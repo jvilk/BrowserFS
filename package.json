@@ -1,0 +1,30 @@
+{
+  "name": "browserfs",
+  "version": "0.0.1",
+  "description": "A filesystem in your browser!",
+  "keywords": ["filesystem", "storage", "node"],
+  "homepage": "https://github.com/jvilk/BrowserFS",
+  "author": "John Vilk <jvilk@cs.umass.edu> (http://people.cs.umass.edu/~jvilk)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jvilk/BrowserFS.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jvilk/BrowserFS/issues"
+  },
+  "engines": {
+    "node": ">= 0.10"
+  },
+  "main": "lib/browserfs.js",
+  "devDependencies": {
+    "async": ">= 0.2.7",
+    "coffee-script": ">= 1.6.2",
+    "glob": ">= 3.1.21",
+    "mocha": "git://github.com/pwnall/mocha.git#web-workers",
+    "uglify-js": ">= 2.2.5"
+  },
+  "scripts": {
+    "prepublish": "node node_modules/coffee-script/bin/cake build"
+  }
+}
