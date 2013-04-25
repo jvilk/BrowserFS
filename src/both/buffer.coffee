@@ -36,32 +36,6 @@ makeArrayAccessors = (obj) ->
   return
 
 class BrowserFS.node.Buffer
-  # Currently unused; placed here with all of the node-supported encodings
-  # for future use.
-  #@_parseEncoding: (encoding) ->
-    #encoding = encoding.toLowerCase()
-    #return switch encoding
-    #  when 'utf8', 'utf-8' then UTF8
-    #  when 'ascii' then ASCII
-    #  when 'base64' then BASE64
-    #  when 'ucs2', 'ucs-2', 'utf16le', 'utf-16le' then UCS2
-    #  when 'binary', 'raw', 'raws' then BINARY
-    #  when 'buffer' then BUFFER
-    #  when 'hex' then HEX
-    #  else UTF8
-
-  # Returns true if the encoding is a valid encoding argument, or false
-  # otherwise.
-  # Note: BrowserFS currently only supports UTF8.
-  # @param [String] A character encoding
-  # @return [Boolean] True if the character encoding is valid
-  @isEncoding: (encoding) -> encoding == 'utf8'
-  # Throws an exception if the encoding is invalid.
-  # @param [String] a character encoding
-  @checkEncoding: (encoding) ->
-    unless BrowserFS.node.Buffer.isEncoding encoding
-      throw new Error "Unknown encoding: #{encoding}"
-    return
   # Tests if obj is a Buffer.
   # @param [Object] An arbitrary object
   # @return [Boolean] True if this object is a Buffer.
@@ -73,12 +47,8 @@ class BrowserFS.node.Buffer
   # @param [?String] Character encoding of the string
   # @return [Number] The number of bytes in the string
   @byteLength: (str, encoding='utf8') ->
-    BrowserFS.node.Buffer.checkEncoding encoding
-    # Credit: http://stackoverflow.com/questions/5515869/string-length-in-bytes-in-javascript
-    # Matches only the 10.. bytes that are non-initial characters in a
-    # multi-byte sequence.
-    m = encodeURIComponent(str).match(/%[89ABab]/g)
-    return str.length + (if m then m.length else 0)
+    strUtil = BrowserFS.StringUtil.FindUtil encoding
+    return strUtil.byteLength(str)
   # Returns a buffer which is the result of concatenating all the buffers in the
   # list together.
   # If the list has no items, or if the totalLength is 0, then it returns a
@@ -159,8 +129,8 @@ class BrowserFS.node.Buffer
   # @param [?String] Character encoding
   # @return [Number] Number of octets written.
   write: (str, offset=0, length=@length-offset, encoding='utf8') ->
-    BrowserFS.node.Buffer.checkEncoding encoding
-    byteArr = BrowserFS.StringUtil.UTF8.str2byte(str)
+    strUtil = BrowserFS.StringUtil.FindUtil encoding
+    byteArr = strUtil.str2byte(str)
     byteLen = byteArr.length
     length = if length+offset > @length then @length else length
     @_charsWritten = if byteLen < length then byteLen else length
@@ -175,14 +145,14 @@ class BrowserFS.node.Buffer
   # @return [String] A string from buffer data encoded with encoding, beginning
   # at start, and ending at end.
   toString: (encoding='utf8', start=0, end=@length) ->
-    BrowserFS.node.Buffer.checkEncoding encoding
+    strUtil = BrowserFS.StringUtil.FindUtil encoding
     throw new Error "Invalid start/end positions: #{start} - #{end}" unless start <= end
     # Create a byte array of the needed characters.
     len = end-start
     byteArr = new Array(len)
     for i in [0...len] by 1
       byteArr[i] = @readUInt8 start+i
-    return BrowserFS.StringUtil.UTF8.byte2str(byteArr)
+    return strUtil.byte2str(byteArr)
 
   # Returns a JSON-representation of the Buffer instance, which is identical to
   # the output for JSON Arrays. JSON.stringify implicitly calls this function

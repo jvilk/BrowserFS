@@ -2,6 +2,23 @@
 # strings and binary byte arrays of arbitrary encoding types.
 # TODO: Put encoding enum here.
 BrowserFS.StringUtil = {}
+# Find the 'utility' object for the given string encoding. Throws an exception
+# if the encoding is invalid.
+# @param [String] a string encoding
+# @return [Object] the StringUtil object for the given encoding.
+BrowserFS.StringUtil.FindUtil = (encoding) ->
+  encoding = encoding.toLowerCase()
+  # This is the same logic in Node's source code.
+  return switch encoding
+      when 'utf8', 'utf-8' then BrowserFS.StringUtil.UTF8
+      when 'ascii' then BrowserFS.StringUtil.ASCII
+      #when 'base64' then BASE64
+      #when 'ucs2', 'ucs-2', 'utf16le', 'utf-16le' then UCS2
+      #when 'binary', 'raw', 'raws' then BINARY
+      #when 'buffer' then BUFFER
+      #when 'hex' then HEX
+      #else UTF8
+      else throw new Error "Unknown encoding: #{encoding}"
 BrowserFS.StringUtil.UTF8 =
   # Converts a JavaScript string into an array of unsigned bytes representing a
   # UTF-8 string.
@@ -73,3 +90,99 @@ BrowserFS.StringUtil.UTF8 =
       else
         throw new Error 'Unable to represent UTF-8 string as UTF-16 JavaScript string.'
     return chars.join ''
+
+  # Returns the number of bytes that the string will take up using the given
+  # encoding.
+  # @param [String] the string to get the byte length for
+  # @return [Number] the number of bytes that the string will take up using the
+  # given encoding.
+  byteLength: (str) ->
+    # Credit: http://stackoverflow.com/questions/5515869/string-length-in-bytes-in-javascript
+    # Matches only the 10.. bytes that are non-initial characters in a
+    # multi-byte sequence.
+    m = encodeURIComponent(str).match(/%[89ABab]/g)
+    return str.length + (if m then m.length else 0)
+
+BrowserFS.StringUtil.ASCII =
+  # Converts a JavaScript string into an array of unsigned bytes representing an
+  # ASCII string.
+  # @param [String] the string that will be converted
+  # @return [Array] string as array of bytes, encoded in ASCII
+  str2byte: (str) ->
+    bytes = new Array str.length
+    for i in [0...str.length]
+      bytes[i] = str.charCodeAt(i) % 256
+    return bytes
+
+  # Converts a byte array, in ASCII format, into a JavaScript string.
+  # @param [Array] an array of bytes
+  # @return [String] the array interpreted as a ASCII format string
+  byte2str: (byteArray) ->
+    chars = new Array byteArray.length
+    for i in [0...byteArray.length]
+      chars[i] = String.fromCharCode byteArray[i]
+    return chars.join ''
+
+  # Returns the number of bytes that the string will take up using the given
+  # encoding.
+  # @param [String] the string to get the byte length for
+  # @return [Number] the number of bytes that the string will take up using the
+  # given encoding.
+  byteLength: (str) -> return str.length
+
+BrowserFS.StringUtil.BASE64 =
+  # Converts a JavaScript string into an array of unsigned bytes representing a
+  # BASE64 string.
+  # @param [String] the string that will be converted
+  # @return [Array] string as array of bytes, encoded in BASE64
+  str2byte: (str) ->
+
+  # Converts a byte array, in BASE64 format, into a JavaScript string.
+  # @param [Array] an array of bytes
+  # @return [String] the array interpreted as a BASE64 format string
+  byte2str: (byteArray) ->
+
+  # Returns the number of bytes that the string will take up using the given
+  # encoding.
+  # @param [String] the string to get the byte length for
+  # @return [Number] the number of bytes that the string will take up using the
+  # given encoding.
+  byteLength: (str) ->
+
+BrowserFS.StringUtil.UCS2 =
+  # Converts a JavaScript string into an array of unsigned bytes representing a
+  # UCS2 string.
+  # @param [String] the string that will be converted
+  # @return [Array] string as array of bytes, encoded in UCS2
+  str2byte: (str) ->
+
+  # Converts a byte array, in UCS2 format, into a JavaScript string.
+  # @param [Array] an array of bytes
+  # @return [String] the array interpreted as a UCS2 format string
+  byte2str: (byteArray) ->
+
+  # Returns the number of bytes that the string will take up using the given
+  # encoding.
+  # @param [String] the string to get the byte length for
+  # @return [Number] the number of bytes that the string will take up using the
+  # given encoding.
+  byteLength: (str) ->
+
+BrowserFS.StringUtil.HEX =
+  # Converts a JavaScript string into an array of unsigned bytes representing a
+  # HEX string.
+  # @param [String] the string that will be converted
+  # @return [Array] string as array of bytes, encoded in HEX
+  str2byte: (str) ->
+
+  # Converts a byte array, in HEX format, into a JavaScript string.
+  # @param [Array] an array of bytes
+  # @return [String] the array interpreted as a HEX format string
+  byte2str: (byteArray) ->
+
+  # Returns the number of bytes that the string will take up using the given
+  # encoding.
+  # @param [String] the string to get the byte length for
+  # @return [Number] the number of bytes that the string will take up using the
+  # given encoding.
+  byteLength: (str) ->
