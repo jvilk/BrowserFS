@@ -28,44 +28,53 @@ BrowserFS.StringUtil.FindUtil = (encoding) ->
 BrowserFS.StringUtil.UTF8 =
   # Converts a JavaScript string into an array of unsigned bytes representing a
   # UTF-8 string.
+  # We assume that the offset / length is pre-validated.
+  # @param [BrowserFS.node.Buffer] the buffer to write into
   # @param [String] the string that will be converted
-  # @return [Array] string as array of bytes, encoded in UTF-8
-  str2byte: (str) ->
+  # @param [Number] the offset to start writing into the buffer at
+  # @param [Number] an upper bound on the length of the string that we can write
+  # @return [Number] number of bytes written into the buffer
+  str2byte: (buf, str, offset, length) ->
     i = 0
+    j = offset
+    maxJ = offset+length
     rv = []
-    while i < str.length
+    while i < str.length and j < maxJ
       code = str.charCodeAt i++
       next = str.charCodeAt i
       if 0xD800 <= code && code <= 0xDBFF && 0xDC00 <= next && next <= 0xDFFF
         # 4 bytes: Surrogate pairs! UTF-16 fun time.
+        if j+4 >= maxJ then break
         # First pair: 10 bits of data, with an implicitly set 11th bit
         # Second pair: 10 bits of data
         codePoint = ((((code&0x3FF)|0x400)<<10)|(next&0x3FF))
         # Highest 3 bits in first byte
-        rv.push((codePoint>>18)|0xF0)
+        buf.writeUInt8 (codePoint>>18)|0xF0, j++
         # Rest are all 6 bits
-        rv.push(((codePoint>>12)&0x3F)|0x80)
-        rv.push(((codePoint>>6)&0x3F)|0x80)
-        rv.push((codePoint&0x3F)|0x80)
+        buf.writeUInt8 ((codePoint>>12)&0x3F)|0x80, j++
+        buf.writeUInt8 ((codePoint>>6)&0x3F)|0x80, j++
+        buf.writeUInt8 (codePoint&0x3F)|0x80, j++
         i++
       else if code < 0x80
         # One byte
-        rv.push code
+        buf.writeUInt8 code, j++
       else if code < 0x800
         # Two bytes
+        if j+2 >= maxJ then break
         # Highest 5 bits in first byte
-        rv.push((code >> 6)|0xC0)
+        buf.writeUInt8 (code >> 6)|0xC0, j++
         # Lower 6 bits in second byte
-        rv.push((code & 0x3F)|0x80)
+        buf.writeUInt8 (code & 0x3F)|0x80, j++
       else if code < 0x10000
         # Three bytes
+        if j+2 >= maxJ then break
         # Highest 4 bits in first byte
-        rv.push((code>>12)|0xE0)
+        buf.writeUInt8 (code>>12)|0xE0, j++
         # Middle 6 bits in second byte
-        rv.push(((code>>6)&0x3F)|0x80)
+        buf.writeUInt8 ((code>>6)&0x3F)|0x80, j++
         # Lowest 6 bits in third byte
-        rv.push((code&0x3F)|0x80)
-    return rv
+        buf.writeUInt8 (code&0x3F)|0x80, j++
+    return j
 
   # Converts a byte array, in UTF8 format, into a JavaScript string.
   # @param [Array] an array of bytes
@@ -113,13 +122,17 @@ BrowserFS.StringUtil.UTF8 =
 BrowserFS.StringUtil.ASCII =
   # Converts a JavaScript string into an array of unsigned bytes representing an
   # ASCII string.
+  # We assume that the offset / length is pre-validated.
+  # @param [BrowserFS.node.Buffer] the buffer to write into
   # @param [String] the string that will be converted
-  # @return [Array] string as array of bytes, encoded in ASCII
-  str2byte: (str) ->
-    bytes = new Array str.length
-    for i in [0...str.length]
-      bytes[i] = str.charCodeAt(i) % 256
-    return bytes
+  # @param [Number] the offset to start writing into the buffer at
+  # @param [Number] an upper bound on the length of the string that we can write
+  # @return [Number] number of bytes written into the buffer
+  str2byte: (buf, str, offset, length) ->
+    length = if str.length > length then length else str.length
+    for i in [0...length]
+      buf.writeUInt8 str.charCodeAt(i) % 256, offset+i
+    return length
 
   # Converts a byte array, in ASCII format, into a JavaScript string.
   # @param [Array] an array of bytes
@@ -140,9 +153,13 @@ BrowserFS.StringUtil.ASCII =
 BrowserFS.StringUtil.BASE64 =
   # Converts a JavaScript string into an array of unsigned bytes representing a
   # BASE64 string.
+  # We assume that the offset / length is pre-validated.
+  # @param [BrowserFS.node.Buffer] the buffer to write into
   # @param [String] the string that will be converted
-  # @return [Array] string as array of bytes, encoded in BASE64
-  str2byte: (str) ->
+  # @param [Number] the offset to start writing into the buffer at
+  # @param [Number] an upper bound on the length of the string that we can write
+  # @return [Number] number of bytes written into the buffer
+  str2byte: (buf, str, offset, length) ->
 
   # Converts a byte array, in BASE64 format, into a JavaScript string.
   # @param [Array] an array of bytes
@@ -160,18 +177,21 @@ BrowserFS.StringUtil.BASE64 =
 BrowserFS.StringUtil.UCS2 =
   # Converts a JavaScript string into an array of unsigned bytes representing a
   # UCS2 string.
+  # We assume that the offset / length is pre-validated.
+  # @param [BrowserFS.node.Buffer] the buffer to write into
   # @param [String] the string that will be converted
-  # @return [Array] string as array of bytes, encoded in UCS2
-  str2byte: (str) ->
-    len = str.length*2
-    bytes = new Array(len)
+  # @param [Number] the offset to start writing into the buffer at
+  # @param [Number] an upper bound on the length of the string that we can write
+  # @return [Number] number of bytes written into the buffer
+  str2byte: (buf, str, offset, length) ->
+    len = str.length
+    # Clip length to longest string of valid characters that can fit in the
+    # byte range.
+    if len*2 > length
+      len = if length % 2 is 1 then (length-1)/2 else length/2
     for i in [0...len]
-      charCode = str.charCodeAt(i)
-      j = i*2
-      # Little endian: Lower byte first.
-      bytes[j] = charCode & 0xFF
-      bytes[j+1] = charCode >> 8
-    return bytes
+      buf.writeUInt16LE str.charCodeAt(i), offset+i*2
+    return len*2
 
   # Converts a byte array, in UCS2 format, into a JavaScript string.
   # @param [Array] an array of bytes
@@ -193,9 +213,13 @@ BrowserFS.StringUtil.UCS2 =
 BrowserFS.StringUtil.HEX =
   # Converts a JavaScript string into an array of unsigned bytes representing a
   # HEX string.
+  # We assume that the offset / length is pre-validated.
+  # @param [BrowserFS.node.Buffer] the buffer to write into
   # @param [String] the string that will be converted
-  # @return [Array] string as array of bytes, encoded in HEX
-  str2byte: (str) ->
+  # @param [Number] the offset to start writing into the buffer at
+  # @param [Number] an upper bound on the length of the string that we can write
+  # @return [Number] number of bytes written into the buffer
+  str2byte: (buf, str, offset, length) ->
 
   # Converts a byte array, in HEX format, into a JavaScript string.
   # @param [Array] an array of bytes

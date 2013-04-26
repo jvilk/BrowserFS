@@ -144,14 +144,9 @@ class BrowserFS.node.Buffer
     # Don't waste our time if the offset is beyond the buffer length
     if offset >= @length then return 0
     strUtil = BrowserFS.StringUtil.FindUtil encoding
-    byteArr = strUtil.str2byte(str)
-    byteLen = byteArr.length
     # Are we trying to write past the buffer?
     length = if length+offset > @length then @length - offset else length
-    # Are we trying to read past the string?
-    @_charsWritten = if byteLen < length then byteLen else length
-    for i in [0...@_charsWritten]
-      @writeUInt8 byteArr[i], offset+i
+    @_charsWritten = strUtil.str2byte(@, str, offset, length)
     return @_charsWritten
 
   # Decodes a portion of the Buffer into a String.
