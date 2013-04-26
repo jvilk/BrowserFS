@@ -49,7 +49,7 @@ var ArrayBuffer, ArrayBufferView,
 
     // Raise an INDEX_SIZE_ERR event - intentionally induces a DOM error
     function raise_INDEX_SIZE_ERR() {
-        if (document) {
+        if (typeof document !== 'undefined') {
             // raises DOMException(INDEX_SIZE_ERR)
             document.createTextNode("").splitText(1);
         }

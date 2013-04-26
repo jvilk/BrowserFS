@@ -7,13 +7,19 @@ BrowserFS.StringUtil = {}
 # @param [String] a string encoding
 # @return [Object] the StringUtil object for the given encoding.
 BrowserFS.StringUtil.FindUtil = (encoding) ->
+  encoding = switch typeof encoding
+    when 'object' then "#{encoding}" # Calls toString on any object (Node does this)
+    when 'string' then encoding      # No transformation needed.
+    else throw new Error 'Invalid encoding argument specified'
+
   encoding = encoding.toLowerCase()
   # This is the same logic in Node's source code.
   return switch encoding
       when 'utf8', 'utf-8' then BrowserFS.StringUtil.UTF8
-      when 'ascii' then BrowserFS.StringUtil.ASCII
+      # TODO: How is binary different from ascii?
+      when 'ascii', 'binary' then BrowserFS.StringUtil.ASCII
+      when 'ucs2', 'ucs-2', 'utf16le', 'utf-16le' then BrowserFS.StringUtil.UCS2
       #when 'base64' then BASE64
-      #when 'ucs2', 'ucs-2', 'utf16le', 'utf-16le' then UCS2
       #when 'binary', 'raw', 'raws' then BINARY
       #when 'buffer' then BUFFER
       #when 'hex' then HEX
@@ -66,6 +72,7 @@ BrowserFS.StringUtil.UTF8 =
   # @return [String] the array interpreted as a UTF8 format string
   byte2str: (byteArray) ->
     chars = []
+    i = 0
     while i < byteArray.length
       code = byteArray[i++]
       if code < 0x80
@@ -76,17 +83,17 @@ BrowserFS.StringUtil.UTF8 =
         throw new Error 'Found incomplete part of character in string.'
       else if code < 0xE0
         # 2 bytes: 5 and 6 bits
-        chars.push ((code&0x1F)<<6)|(byteArray[i++]&0x3F)
+        chars.push String.fromCharCode ((code&0x1F)<<6)|(byteArray[i++]&0x3F)
       else if code < 0xF0
         # 3 bytes: 4, 6, and 6 bits
-        chars.push ((code&0xF)<<12)|((byteArray[i++]&0x3F)<<6)|(byteArray[i++]&0x3F)
+        chars.push String.fromCharCode ((code&0xF)<<12)|((byteArray[i++]&0x3F)<<6)|(byteArray[i++]&0x3F)
       else if code < 0xF8
         # 4 bytes: 3, 6, 6, 6 bits; surrogate pairs time!
         # First 11 bits; remove 11th bit as per UTF-16 standard
         byte3 = byteArray[i+2]
-        chars.push ((((code&0x7)<<8)|((byteArray[i++]&0x3F)<<2)|((byteArray[i++]&0x3F)>>4))&0x3FF)|0xD800
+        chars.push String.fromCharCode ((((code&0x7)<<8)|((byteArray[i++]&0x3F)<<2)|((byteArray[i++]&0x3F)>>4))&0x3FF)|0xD800
         # Final 10 bits
-        chars.push (((byte3&0xF)<<6)|(byteArray[i++]&0x3F))|0xDC00
+        chars.push String.fromCharCode (((byte3&0xF)<<6)|(byteArray[i++]&0x3F))|0xDC00
       else
         throw new Error 'Unable to represent UTF-8 string as UTF-16 JavaScript string.'
     return chars.join ''
@@ -149,24 +156,39 @@ BrowserFS.StringUtil.BASE64 =
   # given encoding.
   byteLength: (str) ->
 
+# Note: UCS2 handling is identical to UTF-16.
 BrowserFS.StringUtil.UCS2 =
   # Converts a JavaScript string into an array of unsigned bytes representing a
   # UCS2 string.
   # @param [String] the string that will be converted
   # @return [Array] string as array of bytes, encoded in UCS2
   str2byte: (str) ->
+    len = str.length*2
+    bytes = new Array(len)
+    for i in [0...len]
+      charCode = str.charCodeAt(i)
+      j = i*2
+      # Little endian: Lower byte first.
+      bytes[j] = charCode & 0xFF
+      bytes[j+1] = charCode >> 8
+    return bytes
 
   # Converts a byte array, in UCS2 format, into a JavaScript string.
   # @param [Array] an array of bytes
   # @return [String] the array interpreted as a UCS2 format string
   byte2str: (byteArray) ->
+    if byteArray.length % 2 != 0 then throw new Error 'Invalid UCS2 byte array.'
+    chars = new Array(byteArray.length/2)
+    for i in [0...byteArray.length] by 2
+      chars[i/2] = String.fromCharCode(byteArray[i] | (byteArray[i+1]<<8))
+    return chars.join ''
 
   # Returns the number of bytes that the string will take up using the given
   # encoding.
   # @param [String] the string to get the byte length for
   # @return [Number] the number of bytes that the string will take up using the
   # given encoding.
-  byteLength: (str) ->
+  byteLength: (str) -> return str.length * 2
 
 BrowserFS.StringUtil.HEX =
   # Converts a JavaScript string into an array of unsigned bytes representing a

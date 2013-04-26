@@ -16,6 +16,9 @@ Differences from Node
 * BrowserFS only supports asynchronous Node API functions.
 * BrowserFS does not support symlink operations at this time; perhaps at some point we'll support BrowserFS-specific link files if this becomes important.
 * BrowserFS does not support watch/unwatch functionality.
+* BrowserFS doesn't support the following NodeJS oddities:
+** Allowing out-of-order arguments (e.g. Buffer's `copy` method allows you to pass in the encoding before starting index if you want).
+** Allowing number arguments to be passed as strings (e.g. '2' instead of 2).
 
 Why do we only support the asynchronous API?
 * Asynchronous methods allow you to use the filesystem across web worker boundaries using proxy file descriptors.

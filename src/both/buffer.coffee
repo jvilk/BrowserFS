@@ -91,9 +91,9 @@ class BrowserFS.node.Buffer
     if typeof arg1 is 'number'
       @length = arg1
       @buff = new DataView new ArrayBuffer(@length)
-    else if Array.isArray(arg1)
+    else if Array.isArray(arg1) or arg1 instanceof BrowserFS.node.Buffer
       # XXX: Is this how node treats arrays?
-      @buff = new DataView arg1.length
+      @buff = new DataView new ArrayBuffer(arg1.length)
       for datum, i in arg1 by 1
         @buff.setUint8 i, datum
       @length = arg1.length
@@ -128,11 +128,27 @@ class BrowserFS.node.Buffer
   # @param [?Number] Number of bytes to write
   # @param [?String] Character encoding
   # @return [Number] Number of octets written.
-  write: (str, offset=0, length=@length-offset, encoding='utf8') ->
+  write: (str, offset=0, length=@length, encoding='utf8') ->
+    # I hate Node's optional arguments.
+    # 'str' and 'encoding' specified
+    if typeof offset is 'string'
+      encoding = offset
+      offset = 0
+      length = @length
+    # 'str', 'offset', and 'encoding' specified
+    else if typeof length is 'string'
+      # Ensure length isn't a number in string form.
+      encoding = length
+      length = @length
+
+    # Don't waste our time if the offset is beyond the buffer length
+    if offset >= @length then return 0
     strUtil = BrowserFS.StringUtil.FindUtil encoding
     byteArr = strUtil.str2byte(str)
     byteLen = byteArr.length
-    length = if length+offset > @length then @length else length
+    # Are we trying to write past the buffer?
+    length = if length+offset > @length then @length - offset else length
+    # Are we trying to read past the string?
     @_charsWritten = if byteLen < length then byteLen else length
     for i in [0...@_charsWritten]
       @writeUInt8 byteArr[i], offset+i
@@ -171,23 +187,23 @@ class BrowserFS.node.Buffer
   # @param [?Number] Index to start copying to in the targetBuffer
   # @param [?Number] Index in this buffer to start copying from
   # @param [?Number] Index in this buffer stop copying at
-  copy: (targetBuffer, targetStart=0, sourceStart=0, sourceEnd=@length) ->
+  copy: (target, targetStart=0, sourceStart=0, sourceEnd=@length) ->
+    # The Node code is weird. It sets some out-of-bounds args to their defaults
+    # and throws exceptions for others (sourceEnd).
+    targetStart = if targetStart < 0 then 0 else targetStart
+    sourceStart = if sourceStart < 0 then 0 else sourceStart
+
     # Need to sanity check all of the input. Node has really odd rules regarding
-    # when to apply default arguments.
-    if sourceStart < 0 then sourceStart = 0
-    if sourceEnd < 0 then throw new RangeError 'Invalid sourceEnd'
-    if targetStart < 0 or targetStart >= targetBuffer.length then throw new RangeError 'Invalid targetBuffer'
+    # when to apply default arguments. I decided to copy Node's logic.
+    if sourceEnd < sourceStart then throw new RangeError 'sourceEnd < sourceStart'
+    if sourceEnd == sourceStart then return 0
+    if targetStart >= target.length then throw new RangeError 'targetStart out of bounds'
+    if sourceStart >= @length then throw new RangeError 'sourceStart out of bounds'
+    if sourceEnd > @length then throw new RangeError 'sourceEnd out of bounds'
 
-    bytesCopied = sourceEnd - sourceStart
-    if bytesCopied < 0 then throw new RangeError 'Invalid sourceStart/sourceEnd combo'
-    if bytesCopied > targetBuffer.length - targetStart
-      bytesCopied = targetBuffer.length - targetStart
-
-    # Verify that the current end is possible.
-    if sourceStart + bytesCopied > @length then throw new RangeError 'Invalid sourceEnd'
-
+    bytesCopied = Math.min(sourceEnd - sourceStart, target.length - targetStart, @length - sourceStart)
     for i in [0...bytesCopied]
-      targetBuffer.writeUInt8 @readUInt8(sourceStart+i), targetStart+i
+      target.writeUInt8 @readUInt8(sourceStart+i), targetStart+i
     return bytesCopied
 
   # Returns a slice of this buffer.
@@ -204,7 +220,7 @@ class BrowserFS.node.Buffer
     if end < 0
       end = @length+end
     # Sanity check.
-    if start < 0 or end < 0 or start >= @length or end >= @length
+    if start < 0 or end < 0 or start >= @length or end > @length
       throw new Error "Invalid slice indices."
     new BrowserFS.node.BufferView(@, start, end)
 
@@ -264,8 +280,30 @@ class BrowserFS.node.BufferView extends BrowserFS.node.Buffer
   # @param [End] The 'end' index that marks the ending of this view.
   constructor: (@srcBuff, @startPos, @endPos) ->
     @length = @endPos - @startPos
+    makeArrayAccessors @
+  # NONSTANDARD
+  # Set the octet at index. The values refer to individual bytes, so the
+  # legal range is between 0x00 and 0xFF hex or 0 and 255.
+  # @param [Number] the index to set the value at
+  # @param [Number] the value to set at the given index
   set: (index, value) -> @srcBuff.set index+@startPos, value
+  # NONSTANDARD
+  # Get the octet at index.
+  # @param [Number] index to fetch the value at
+  # @return [Number] the value at the given index
+  get: (index) -> @srcBuff.get index+@startPos
   write: (str, offset=0, length=@length-offset, encoding='utf8') ->
+     # 'str' and 'encoding' specified
+    if typeof offset is 'string'
+      encoding = offset
+      offset = 0
+      length = @length-offset
+    # 'str', 'offset', and 'encoding' specified
+    else if typeof length is 'string'
+      # Ensure length isn't a number in string form.
+      encoding = length
+      length = @length-offset
+
     oldCW = @srcBuff._charsWritten
     rv = @srcBuff.write str, offset+@startPos, length, encoding
     @_charsWritten = @srcBuff._charsWritten
