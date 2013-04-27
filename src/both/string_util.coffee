@@ -19,10 +19,10 @@ BrowserFS.StringUtil.FindUtil = (encoding) ->
       # TODO: How is binary different from ascii?
       when 'ascii', 'binary' then BrowserFS.StringUtil.ASCII
       when 'ucs2', 'ucs-2', 'utf16le', 'utf-16le' then BrowserFS.StringUtil.UCS2
+      when 'hex' then BrowserFS.StringUtil.HEX
       #when 'base64' then BASE64
       #when 'binary', 'raw', 'raws' then BINARY
       #when 'buffer' then BUFFER
-      #when 'hex' then HEX
       #else UTF8
       else throw new Error "Unknown encoding: #{encoding}"
 BrowserFS.StringUtil.UTF8 =
@@ -211,8 +211,22 @@ BrowserFS.StringUtil.UCS2 =
   byteLength: (str) -> return str.length * 2
 
 BrowserFS.StringUtil.HEX =
+  # Lookup tables
+  num2hex: ( ->
+      obj = {}
+      for i,idx in ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F']
+        obj[idx] = i
+      return obj
+    )()
+  hex2num: ( ->
+      obj = {}
+      for i, idx in ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F']
+        obj[i] = idx
+      return obj
+    )()
+
   # Converts a JavaScript string into an array of unsigned bytes representing a
-  # HEX string.
+  # HEX string. (ASCII string comprised of only 0-9+A-F characters)
   # We assume that the offset / length is pre-validated.
   # @param [BrowserFS.node.Buffer] the buffer to write into
   # @param [String] the string that will be converted
@@ -220,15 +234,34 @@ BrowserFS.StringUtil.HEX =
   # @param [Number] an upper bound on the length of the string that we can write
   # @return [Number] number of bytes written into the buffer
   str2byte: (buf, str, offset, length) ->
+    if str.length % 2 is 1 then throw new Error 'Invalid hex string'
+    # Each character is 1 byte encoded as two hex characters; so 1 byte becomes
+    # 2 bytes.
+    numChars = str.length/2
+    if numChars > length
+      numChars = if length % 2 is 1 then (length-1)/2 else length/2
+    for i in [0...numChars]
+      char1 = BrowserFS.StringUtil.HEX.hex2num[str.charAt(2*i)]
+      char2 = BrowserFS.StringUtil.HEX.hex2num[str.charAt(2*i+1)]
+      buf.writeUInt8 (char1 << 4) | char2, i
+    return numChars
 
-  # Converts a byte array, in HEX format, into a JavaScript string.
+  # Converts a byte array into a HEX string.
   # @param [Array] an array of bytes
   # @return [String] the array interpreted as a HEX format string
   byte2str: (byteArray) ->
+    len = byteArray.length
+    chars = new Array len*2
+    for i in [0...len] by 2
+      hex2 = byteArray[i] & 0xF
+      hex1 = byteArray[i] >> 4
+      chars[i] = BrowserFS.StringUtil.HEX.num2hex[hex1]
+      chars[i+1] = BrowserFS.StringUtil.HEX.num2hex[hex2]
+    return chars.join ''
 
   # Returns the number of bytes that the string will take up using the given
   # encoding.
   # @param [String] the string to get the byte length for
   # @return [Number] the number of bytes that the string will take up using the
   # given encoding.
-  byteLength: (str) ->
+  byteLength: (str) -> return str.length/2
