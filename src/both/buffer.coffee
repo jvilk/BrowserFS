@@ -155,9 +155,11 @@ class BrowserFS.node.Buffer
   # @return [String] A string from buffer data encoded with encoding, beginning
   # at start, and ending at end.
   toString: (encoding='utf8', start=0, end=@length) ->
-    strUtil = BrowserFS.StringUtil.FindUtil encoding
-    throw new Error "Invalid start/end positions: #{start} - #{end}" unless start <= end
     # Create a byte array of the needed characters.
+    throw new Error "Invalid start/end positions: #{start} - #{end}" unless start <= end
+    if start is end then return ''
+    if end > @length then end = @length
+    strUtil = BrowserFS.StringUtil.FindUtil encoding
     len = end-start
     byteArr = new Array(len)
     for i in [0...len] by 1
