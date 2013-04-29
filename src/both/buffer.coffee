@@ -91,8 +91,7 @@ class BrowserFS.node.Buffer
     if typeof arg1 is 'number'
       @length = arg1
       @buff = new DataView new ArrayBuffer(@length)
-    else if Array.isArray(arg1) or arg1 instanceof BrowserFS.node.Buffer
-      # XXX: Is this how node treats arrays?
+    else if Array.isArray(arg1) or arg1 instanceof BrowserFS.node.Buffer or (arg1[0]? and typeof arg1[0] is 'number')
       @buff = new DataView new ArrayBuffer(arg1.length)
       for datum, i in arg1 by 1
         @buff.setUint8 i, datum

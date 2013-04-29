@@ -330,9 +330,10 @@ equalCheck(f, new Buffer('3DD84DDC', 'hex'));
 var arrayIsh = {0: 0, 1: 1, 2: 2, 3: 3, length: 4};
 var g = new Buffer(arrayIsh);
 equalCheck(g, new Buffer([0, 1, 2, 3]));
-var strArrayIsh = {0: '0', 1: '1', 2: '2', 3: '3', length: 4};
-g = new Buffer(strArrayIsh);
-equalCheck(g, new Buffer([0, 1, 2, 3]));
+// JV: We don't support these types of shenanigans.
+//var strArrayIsh = {0: '0', 1: '1', 2: '2', 3: '3', length: 4};
+//g = new Buffer(strArrayIsh);
+//equalCheck(g, new Buffer([0, 1, 2, 3]));
 
 
 //

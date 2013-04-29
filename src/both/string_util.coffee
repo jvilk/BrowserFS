@@ -20,7 +20,7 @@ BrowserFS.StringUtil.FindUtil = (encoding) ->
       when 'ascii', 'binary' then BrowserFS.StringUtil.ASCII
       when 'ucs2', 'ucs-2', 'utf16le', 'utf-16le' then BrowserFS.StringUtil.UCS2
       when 'hex' then BrowserFS.StringUtil.HEX
-      #when 'base64' then BASE64
+      when 'base64' then BrowserFS.StringUtil.BASE64
       #when 'binary', 'raw', 'raws' then BINARY
       #when 'buffer' then BUFFER
       #else UTF8
@@ -150,7 +150,54 @@ BrowserFS.StringUtil.ASCII =
   # given encoding.
   byteLength: (str) -> return str.length
 
+# Adapted from: http://stackoverflow.com/questions/246801/how-can-you-encode-to-base64-using-javascript#246813
 BrowserFS.StringUtil.BASE64 =
+  num2b64: ( ->
+      obj = {}
+      for i,idx in ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+                    'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
+                    '0','1','2','3','4','5','6','7','8','9','+','/']
+        obj[idx] = i
+      return obj
+    )()
+  b642num: ( ->
+      obj = {}
+      for i, idx in ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
+                    'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
+                    '0','1','2','3','4','5','6','7','8','9','+','/']
+        obj[i] = idx
+      # Special: Node supports - and _ values for input
+      obj['-'] = 62
+      obj['_'] = 63
+      return obj
+    )()
+
+  # Converts a byte array into a BASE64 JavaScript string.
+  # @param [Array] an array of bytes
+  # @return [String] the array interpreted as a BASE64 format string
+  byte2str: (byteArray) ->
+    output = ''
+    i = 0
+    while i < byteArray.length
+      chr1 = byteArray[i++]
+      chr2 = byteArray[i++]
+      chr3 = byteArray[i++]
+
+      enc1 = chr1 >> 2
+      enc2 = ((chr1 & 3) << 4) | (chr2 >> 4)
+      enc3 = ((chr2 & 15) << 2) | (chr3 >> 6)
+      enc4 = chr3 & 63
+
+      if isNaN(chr2) then enc3 = enc4 = 64
+      else if isNaN(chr3) then enc4 = 64
+
+      output = output +
+        BrowserFS.StringUtil.BASE64.num2b64[enc1] +
+        BrowserFS.StringUtil.BASE64.num2b64[enc2] +
+        BrowserFS.StringUtil.BASE64.num2b64[enc3] +
+        BrowserFS.StringUtil.BASE64.num2b64[enc4]
+    return output
+
   # Converts a JavaScript string into an array of unsigned bytes representing a
   # BASE64 string.
   # We assume that the offset / length is pre-validated.
@@ -160,11 +207,28 @@ BrowserFS.StringUtil.BASE64 =
   # @param [Number] an upper bound on the length of the string that we can write
   # @return [Number] number of bytes written into the buffer
   str2byte: (buf, str, offset, length) ->
+    output = ''
+    i = 0
+    str = str.replace /[^A-Za-z0-9\+\/\=]/g, ''
+    j = 0
+    while i < str.length
+      enc1 = BrowserFS.StringUtil.BASE64.b642num[str.charAt i++]
+      enc2 = BrowserFS.StringUtil.BASE64.b642num[str.charAt i++]
+      enc3 = BrowserFS.StringUtil.BASE64.b642num[str.charAt i++]
+      enc4 = BrowserFS.StringUtil.BASE64.b642num[str.charAt i++]
 
-  # Converts a byte array, in BASE64 format, into a JavaScript string.
-  # @param [Array] an array of bytes
-  # @return [String] the array interpreted as a BASE64 format string
-  byte2str: (byteArray) ->
+      chr1 = (enc1 << 2) | (enc2 >> 4)
+      chr2 = ((enc2 & 15) << 4) | (enc3 >> 2)
+      chr3 = ((enc3 & 3) << 6) | enc4
+
+      buf.writeUInt8 chr1, offset+j++
+      if j == length then break
+
+      if enc3 != 64 then output += buf.writeUInt8 chr2, offset+j++
+      if j == length then break
+      if enc4 != 64 then output += buf.writeUInt8 chr3, offset+j++
+      if j == length then break
+    return j
 
   # Returns the number of bytes that the string will take up using the given
   # encoding.
@@ -172,6 +236,8 @@ BrowserFS.StringUtil.BASE64 =
   # @return [Number] the number of bytes that the string will take up using the
   # given encoding.
   byteLength: (str) ->
+    # Each character is 6 bits, and we encode as much as possible.
+    Math.floor((str.length * 6) / 8)
 
 # Note: UCS2 handling is identical to UTF-16.
 BrowserFS.StringUtil.UCS2 =
