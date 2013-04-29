@@ -40,7 +40,6 @@ BrowserFS.StringUtil.UTF8 =
     maxJ = offset+length
     rv = []
     numChars = 0
-    console.log "MaxJ: #{maxJ} Offset: #{offset} Length: #{length} Str: #{str}"
     while i < str.length and j < maxJ
       code = str.charCodeAt i++
       next = str.charCodeAt i
