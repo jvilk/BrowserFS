@@ -77,7 +77,6 @@ BrowserFS.StringUtil.UTF8 =
         buf.writeUInt8 ((code>>6)&0x3F)|0x80, j++
         # Lowest 6 bits in third byte
         buf.writeUInt8 (code&0x3F)|0x80, j++
-    console.log "i: #{i} strlen: #{str.length} j: #{j} maxJ: #{maxJ}"
     buf._charsWritten = numChars
     return j-offset
 
