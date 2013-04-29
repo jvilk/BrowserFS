@@ -22,9 +22,7 @@
     "coffee-script": ">= 1.6.2",
     "glob": ">= 3.1.21",
     "mocha": "git://github.com/pwnall/mocha.git#web-workers",
-    "uglify-js": ">= 2.2.5"
-  },
-  "scripts": {
-    "prepublish": "node node_modules/coffee-script/bin/cake build"
+    "uglify-js": ">= 2.2.5",
+    "codo": ">= 1.6.0"
   }
 }

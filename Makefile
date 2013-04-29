@@ -2,19 +2,24 @@
 # across the wire.
 COFFEEC   := $(shell npm bin)/coffee
 UGLIFYJS  := $(shell npm bin)/uglifyjs
+CODO      := $(shell npm bin)/codo
 
 TESTFILES := $(wildcard test/*/*.js)
 TESTS     := $(TESTFILES:.js=.test)
 
-.PHONY: dependencies release dev test
+SRCS      := $(wildcard src/main/*.coffee)
+BINS      := $(SRCS:src/main/%.coffee=tmp/%.js)
 
-# Installs or checks for any required dependencies.
+.PHONY: dependencies release dev test doc
+
+release: dependencies lib/browserfs.min.js
+dev: dependencies lib/browserfs.js
+test: release $(TESTS)
+doc: dependencies
+	$(CODO) --title "BrowserFS Documentation" src
+
 dependencies:
 	@npm install
-
-release: lib/browserfs.min.js
-dev: lib/browserfs.js
-test: $(TESTS)
 
 test/node/%.test: test/node/%.js
 	node $^ > /dev/null
@@ -22,7 +27,7 @@ test/node/%.test: test/node/%.js
 tmp/%.js: src/main/%.coffee
 	node $(COFFEEC) --output tmp --compile $^
 
-lib/browserfs.js:
+lib/browserfs.js: $(BINS)
 	node $(COFFEEC) --output lib --compile --join browserfs.js src/main/*.coffee
 	node $(UGLIFYJS) -b --output lib/browserfs.js vendor/*.js lib/browserfs.js
 
