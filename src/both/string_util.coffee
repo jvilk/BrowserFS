@@ -39,12 +39,13 @@ BrowserFS.StringUtil.UTF8 =
     j = offset
     maxJ = offset+length
     rv = []
+    numChars = 0
     while i < str.length and j < maxJ
       code = str.charCodeAt i++
       next = str.charCodeAt i
       if 0xD800 <= code && code <= 0xDBFF && 0xDC00 <= next && next <= 0xDFFF
         # 4 bytes: Surrogate pairs! UTF-16 fun time.
-        if j+4 >= maxJ then break
+        if j+4 >= maxJ then break else numChars++
         # First pair: 10 bits of data, with an implicitly set 11th bit
         # Second pair: 10 bits of data
         codePoint = ((((code&0x3FF)|0x400)<<10)|(next&0x3FF))
@@ -58,23 +59,25 @@ BrowserFS.StringUtil.UTF8 =
       else if code < 0x80
         # One byte
         buf.writeUInt8 code, j++
+        numChars++
       else if code < 0x800
         # Two bytes
-        if j+2 >= maxJ then break
+        if j+2 >= maxJ then break else numChars++
         # Highest 5 bits in first byte
         buf.writeUInt8 (code >> 6)|0xC0, j++
         # Lower 6 bits in second byte
         buf.writeUInt8 (code & 0x3F)|0x80, j++
       else if code < 0x10000
         # Three bytes
-        if j+2 >= maxJ then break
+        if j+2 >= maxJ then break else numChars++
         # Highest 4 bits in first byte
         buf.writeUInt8 (code>>12)|0xE0, j++
         # Middle 6 bits in second byte
         buf.writeUInt8 ((code>>6)&0x3F)|0x80, j++
         # Lowest 6 bits in third byte
         buf.writeUInt8 (code&0x3F)|0x80, j++
-    return j
+    buf._charsWritten = numChars
+    return j-offset
 
   # Converts a byte array, in UTF8 format, into a JavaScript string.
   # @param [Array] an array of bytes
@@ -132,6 +135,7 @@ BrowserFS.StringUtil.ASCII =
     length = if str.length > length then length else str.length
     for i in [0...length]
       buf.writeUInt8 str.charCodeAt(i) % 256, offset+i
+    buf._charsWritten = length
     return length
 
   # Converts a byte array, in ASCII format, into a JavaScript string.
@@ -229,6 +233,8 @@ BrowserFS.StringUtil.BASE64 =
       if j == length then break
       if enc4 != 64 then output += buf.writeUInt8 chr3, offset+j++
       if j == length then break
+    # Conditional, since BASE64 can pad the end with extra characters.
+    buf._charsWritten = if i > str.length then str.length else i
     return j
 
   # Returns the number of bytes that the string will take up using the given
@@ -256,6 +262,7 @@ BrowserFS.StringUtil.UCS2 =
       len = if length % 2 is 1 then (length-1)/2 else length/2
     for i in [0...len]
       buf.writeUInt16LE str.charCodeAt(i), offset+i*2
+    buf._charsWritten = len
     return len*2
 
   # Converts a byte array, in UCS2 format, into a JavaScript string.
@@ -305,14 +312,14 @@ BrowserFS.StringUtil.HEX =
     if str.length % 2 is 1 then throw new Error 'Invalid hex string'
     # Each character is 1 byte encoded as two hex characters; so 1 byte becomes
     # 2 bytes.
-    numChars = str.length/2
-    if numChars > length
-      numChars = if length % 2 is 1 then (length-1)/2 else length/2
-    for i in [0...numChars]
+    numBytes = str.length/2
+    if numBytes > length then numBytes = length
+    for i in [0...numBytes]
       char1 = BrowserFS.StringUtil.HEX.hex2num[str.charAt(2*i)]
       char2 = BrowserFS.StringUtil.HEX.hex2num[str.charAt(2*i+1)]
-      buf.writeUInt8 (char1 << 4) | char2, i
-    return numChars
+      buf.writeUInt8 (char1 << 4) | char2, offset+i
+    buf._charsWritten = 2*numBytes
+    return numBytes
 
   # Converts a byte array into a HEX string.
   # @param [Array] an array of bytes

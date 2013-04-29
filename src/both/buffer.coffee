@@ -36,6 +36,15 @@ makeArrayAccessors = (obj) ->
   return
 
 class BrowserFS.node.Buffer
+  # Checks if enc is a valid string encoding type.
+  # @param [String] Name of a string encoding type.
+  # @return [Boolean] Whether or not enc is a valid encoding type.
+  @isEncoding: (enc) ->
+    try
+      BrowserFS.StringUtil.FindUtil enc
+    catch e
+      return false
+    return true
   # Tests if obj is a Buffer.
   # @param [Object] An arbitrary object
   # @return [Boolean] True if this object is a Buffer.
@@ -89,6 +98,7 @@ class BrowserFS.node.Buffer
     if @ is undefined then return new BrowserFS.node.Buffer arg1, arg2
     @_charsWritten = 0
     if typeof arg1 is 'number'
+      if arg1 != (arg1>>>0) then throw new TypeError 'Buffer size must be a uint32.'
       @length = arg1
       @buff = new DataView new ArrayBuffer(@length)
     else if Array.isArray(arg1) or arg1 instanceof BrowserFS.node.Buffer or (arg1[0]? and typeof arg1[0] is 'number')
@@ -145,8 +155,8 @@ class BrowserFS.node.Buffer
     strUtil = BrowserFS.StringUtil.FindUtil encoding
     # Are we trying to write past the buffer?
     length = if length+offset > @length then @length - offset else length
-    @_charsWritten = strUtil.str2byte(@, str, offset, length)
-    return @_charsWritten
+    # str2byte will update @_charsWritten.
+    return strUtil.str2byte(@, str, offset, length)
 
   # Decodes a portion of the Buffer into a String.
   # @param [?String] Character encoding to decode to
@@ -174,7 +184,7 @@ class BrowserFS.node.Buffer
     arr = new Array @length
     for i in [0...@length] by 1
       arr[i] = @buff.getUint8 i
-    JSON.stringify arr
+    return {type:'Buffer',data:arr}
 
   # Does copy between buffers. The source and target regions can be overlapped.
   # All values passed that are undefined/NaN or are out of bounds are set equal
@@ -314,7 +324,7 @@ class BrowserFS.node.BufferView extends BrowserFS.node.Buffer
     arr = new Array @length
     for i in [0...@length] by 1
       arr[i] = @srcBuff.readUInt8 i
-    JSON.stringify arr
+    return {type:'Buffer',data:arr}
   copy: (targetBuffer, targetStart=0, sourceStart=0, sourceEnd=@length) ->
     @srcBuff.copy targetBuffer, targetStart, sourceStart+@startPos, sourceEnd+@startPos
   slice: (start=0, end=@length) ->
