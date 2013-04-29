@@ -4,7 +4,7 @@ COFFEEC   := $(shell npm bin)/coffee
 UGLIFYJS  := $(shell npm bin)/uglifyjs
 
 TESTFILES := $(wildcard test/*/*.js)
-TESTS     := $(SOURCES:.js=.test)
+TESTS     := $(TESTFILES:.js=.test)
 
 .PHONY: dependencies release dev test
 
@@ -17,7 +17,7 @@ dev: lib/browserfs.js
 test: $(TESTS)
 
 test/node/%.test: test/node/%.js
-	node $^
+	node $^ > /dev/null
 
 tmp/%.js: src/main/%.coffee
 	node $(COFFEEC) --output tmp --compile $^
