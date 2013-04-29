@@ -1,15 +1,3 @@
-# Emulation of Node's Buffer class. Normally, this is declared globally, but I
-# make that behavior optional.
-# Descriptions modified from http://nodejs.org/api/buffer.html
-# Note that we do *not* support treating Buffer as an array; that would be
-# infeasible (we would have to define a property on the object for each index in
-# the buffer...).
-# The buffer is backed by jDataView, which takes care of compatibility for us. :)
-# Current limitations: We don't perfectly emulate when Node throws exceptions
-# or not.
-#
-# NOTE: Buffer currently only supports encoding to/decoding from UTF-8.
-
 # emulate ES5 getter/setter API using legacy APIs
 # http://blogs.msdn.com/b/ie/archive/2010/09/07/transitioning-existing-code-to-the-es5-getter-setter-apis.aspx
 if Object.prototype.__defineGetter__ and !Object.defineProperty
@@ -35,9 +23,18 @@ makeArrayAccessors = (obj) ->
     makeArrayAccessor i
   return
 
+# Emulation of Node's `Buffer` class. Normally, this is declared globally, but I
+# make that behavior optional.
+#
+# Descriptions modified from: http://nodejs.org/api/buffer.html
+#
+# The buffer is backed by a `DataView`; we have a polyfill in `vendor` that
+# handles compatibility for us.
+#
+# @todo Add option to disable array accessors, as they slow things down.
 class BrowserFS.node.Buffer
   # Checks if enc is a valid string encoding type.
-  # @param [String] Name of a string encoding type.
+  # @param [String] enc Name of a string encoding type.
   # @return [Boolean] Whether or not enc is a valid encoding type.
   @isEncoding: (enc) ->
     try
@@ -46,14 +43,14 @@ class BrowserFS.node.Buffer
       return false
     return true
   # Tests if obj is a Buffer.
-  # @param [Object] An arbitrary object
+  # @param [Object] obj An arbitrary object
   # @return [Boolean] True if this object is a Buffer.
   @isBuffer: (obj) -> obj instanceof BrowserFS.node.Buffer
   # Gives the actual byte length of a string. This is not the same as
   # String.prototype.length since that returns the number of characters in a
   # string.
-  # @param [String] The string to get the byte length of
-  # @param [?String] Character encoding of the string
+  # @param [String] str The string to get the byte length of
+  # @param [?String] encoding Character encoding of the string
   # @return [Number] The number of bytes in the string
   @byteLength: (str, encoding='utf8') ->
     strUtil = BrowserFS.StringUtil.FindUtil encoding
@@ -68,8 +65,8 @@ class BrowserFS.node.Buffer
   # If totalLength is not provided, it is read from the buffers in the list.
   # However, this adds an additional loop to the function, so it is faster to
   # provide the length explicitly.
-  # @param [Array] List of Buffer objects to concat
-  # @param [?Number] Total length of the buffers when concatenated
+  # @param [Array] list List of Buffer objects to concat
+  # @param [?Number] totalLength Total length of the buffers when concatenated
   # @return [BrowserFS.node.Buffer]
   @concat: (list, totalLength) ->
     if list.length == 0 or totalLength == 0
@@ -89,9 +86,9 @@ class BrowserFS.node.Buffer
       return buf
 
   # Constructs a buffer.
-  # @param [Number,Array,String] Instantiate a buffer of the indicated size, or
+  # @param [Number,Array,String] arg1 Instantiate a buffer of the indicated size, or
   #                              from the indicated Array or String.
-  # @param [?String] Encoding to use if arg1 is a string
+  # @param [?String] arg2 Encoding to use if arg1 is a string
   constructor: (arg1, arg2='utf8') ->
     # Node apparently allows you to construct buffers w/o 'new'.
     if @ is undefined then return new BrowserFS.node.Buffer arg1, arg2
@@ -119,25 +116,23 @@ class BrowserFS.node.Buffer
     # array. Inspired by the TypedArray polyfill.
     makeArrayAccessors @
 
-  # NONSTANDARD
-  # Set the octet at index. The values refer to individual bytes, so the
-  # legal range is between 0x00 and 0xFF hex or 0 and 255.
-  # @param [Number] the index to set the value at
-  # @param [Number] the value to set at the given index
+  # **NONSTANDARD**: Set the octet at index. The values refer to individual
+  # bytes, so the legal range is between 0x00 and 0xFF hex or 0 and 255.
+  # @param [Number] index the index to set the value at
+  # @param [Number] value the value to set at the given index
   set: (index, value) -> @buff.setUint8 index, value
-  # NONSTANDARD
-  # Get the octet at index.
-  # @param [Number] index to fetch the value at
+  # **NONSTANDARD**: Get the octet at index.
+  # @param [Number] index index to fetch the value at
   # @return [Number] the value at the given index
   get: (index) -> @buff.getUint8 index
 
   # Writes string to the buffer at offset using the given encoding.
   # If buffer did not contain enough space to fit the entire string, it will
   # write a partial amount of the string.
-  # @param [String] Data to be written to buffer
-  # @param [?Number] Offset in the buffer to write to
-  # @param [?Number] Number of bytes to write
-  # @param [?String] Character encoding
+  # @param [String] str Data to be written to buffer
+  # @param [?Number] offset Offset in the buffer to write to
+  # @param [?Number] length Number of bytes to write
+  # @param [?String] encoding Character encoding
   # @return [Number] Number of octets written.
   write: (str, offset=0, length=@length, encoding='utf8') ->
     # I hate Node's optional arguments.
@@ -161,9 +156,9 @@ class BrowserFS.node.Buffer
     return strUtil.str2byte(@, str, offset, length)
 
   # Decodes a portion of the Buffer into a String.
-  # @param [?String] Character encoding to decode to
-  # @param [?Number] Start position in the buffer
-  # @param [?Number] Ending position in the buffer
+  # @param [?String] encoding Character encoding to decode to
+  # @param [?Number] start Start position in the buffer
+  # @param [?Number] end Ending position in the buffer
   # @return [String] A string from buffer data encoded with encoding, beginning
   # at start, and ending at end.
   toString: (encoding='utf8', start=0, end=@length) ->
@@ -191,10 +186,10 @@ class BrowserFS.node.Buffer
   # Does copy between buffers. The source and target regions can be overlapped.
   # All values passed that are undefined/NaN or are out of bounds are set equal
   # to their respective defaults.
-  # @param [BrowserFS.node.Buffer] Buffer to copy into
-  # @param [?Number] Index to start copying to in the targetBuffer
-  # @param [?Number] Index in this buffer to start copying from
-  # @param [?Number] Index in this buffer stop copying at
+  # @param [BrowserFS.node.Buffer] target Buffer to copy into
+  # @param [?Number] targetStart Index to start copying to in the targetBuffer
+  # @param [?Number] sourceStart Index in this buffer to start copying from
+  # @param [?Number] sourceEnd Index in this buffer stop copying at
   copy: (target, targetStart=0, sourceStart=0, sourceEnd=@length) ->
     # The Node code is weird. It sets some out-of-bounds args to their defaults
     # and throws exceptions for others (sourceEnd).
@@ -215,8 +210,8 @@ class BrowserFS.node.Buffer
     return bytesCopied
 
   # Returns a slice of this buffer.
-  # @param [?Number] Index to start slicing from
-  # @param [?Number] Index to stop slicing at
+  # @param [?Number] start Index to start slicing from
+  # @param [?Number] end Index to stop slicing at
   # @return [BrowserFS.node.Buffer] A new buffer which references the same
   # memory as the old, but offset and cropped by the start (defaults to 0) and
   # end (defaults to buffer.length) indexes. Negative indexes start from the end
@@ -239,9 +234,9 @@ class BrowserFS.node.Buffer
 
   # Fills the buffer with the specified value. If the offset and end are not
   # given it will fill the entire buffer.
-  # @param [?] The value to fill the buffer with
-  # @param [Number] Optional
-  # @param [Number] Optional
+  # @param [String, Number] value The value to fill the buffer with
+  # @param [Number] offset Optional
+  # @param [Number] end Optional
   fill: (value, offset=0, end=@length) ->
     valType = typeof value
     switch valType
@@ -254,7 +249,8 @@ class BrowserFS.node.Buffer
     return
 
   # Numerical read/write methods
-  # TODO: Actually care about noAssert.
+  # @todo Actually care about noAssert.
+
   readUInt8: (offset, noAssert=false) -> @buff.getUint8 offset
   readUInt16LE: (offset, noAssert=false) -> @buff.getUint16 offset, true
   readUInt16BE: (offset, noAssert=false) -> @buff.getUint16 offset, false

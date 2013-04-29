@@ -1,6 +1,7 @@
-# Emulation of Node's fs.Stats object.
-# Attribute descriptions are from `man 2 stat':
-#   http://man7.org/linux/man-pages/man2/stat.2.html
+# Emulation of Node's `fs.Stats` object.
+#
+# Attribute descriptions are from
+# [`man 2 stat'](http://man7.org/linux/man-pages/man2/stat.2.html)
 class BrowserFS.node.fs.Stats
   # item_type indicating that this is a file
   @FILE: 1
@@ -12,13 +13,14 @@ class BrowserFS.node.fs.Stats
   @SOCKET: 4
 
   # Provides information about a particular entry in the file system.
-  # @param [Number] type of the item (FILE, DIRECTORY, SYMLINK, or SOCKET)
-  # @param [Number] Unix-style file mode (e.g. 0o666)
-  # @param [Number] Size of the item in bytes. For directories/symlinks, this is
-  #                 normally the size of the struct that represents the item.
-  # @param [Date] time of last access
-  # @param [Date] time of last modification
-  # @param [Date] time of creation
+  # @param [Number] item_type type of the item (FILE, DIRECTORY, SYMLINK, or SOCKET)
+  # @param [Number] mode Unix-style file mode (e.g. 0o666)
+  # @param [Number] size Size of the item in bytes. For directories/symlinks,
+  #                 this is normally the size of the struct that represents the
+  #                 item.
+  # @param [Date] atime time of last access
+  # @param [Date] mtime time of last modification
+  # @param [Date] ctime time of creation
   constructor: (@item_type, @mode, @size, @atime, @mtime, @ctime) ->
     # number of 512B blocks allocated
     @blocks = Math.ceil(size/512)
@@ -27,8 +29,7 @@ class BrowserFS.node.fs.Stats
   isFile: -> @item_type == @type.FILE
   # @return [Boolean] True if this item is a directory.
   isDirectory: -> @item_type == @type.DIRECTORY
-  # @return [Boolean] True if this item is a symbolic link (only valid through
-  #                   lstat)
+  # @return [Boolean] True if this item is a symbolic link (only valid through lstat)
   isSymbolicLink: -> @item_type == @type.SYMLINK
   # @return [Boolean] True if this item is a socket
   isSocket: -> @item_type == @type.SOCKET
