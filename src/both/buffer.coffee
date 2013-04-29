@@ -85,9 +85,8 @@ class BrowserFS.node.Buffer
       buf = new BrowserFS.node.Buffer totalLength
       curPos = 0
       for item in list
-        item.copy buf, curPos
-        curPos += item.length
-      return item
+        curPos += item.copy buf, curPos
+      return buf
 
   # Constructs a buffer.
   # @param [Number,Array,String] Instantiate a buffer of the indicated size, or
