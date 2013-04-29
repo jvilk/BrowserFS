@@ -151,12 +151,13 @@ BrowserFS.StringUtil.ASCII =
   byteLength: (str) -> return str.length
 
 # Adapted from: http://stackoverflow.com/questions/246801/how-can-you-encode-to-base64-using-javascript#246813
+# TODO: Bake in support for btoa() and atob() if available.
 BrowserFS.StringUtil.BASE64 =
   num2b64: ( ->
       obj = {}
       for i,idx in ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
                     'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
-                    '0','1','2','3','4','5','6','7','8','9','+','/']
+                    '0','1','2','3','4','5','6','7','8','9','+','/','=']
         obj[idx] = i
       return obj
     )()
@@ -164,7 +165,7 @@ BrowserFS.StringUtil.BASE64 =
       obj = {}
       for i, idx in ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
                     'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
-                    '0','1','2','3','4','5','6','7','8','9','+','/']
+                    '0','1','2','3','4','5','6','7','8','9','+','/','=']
         obj[i] = idx
       # Special: Node supports - and _ values for input
       obj['-'] = 62
@@ -209,7 +210,7 @@ BrowserFS.StringUtil.BASE64 =
   str2byte: (buf, str, offset, length) ->
     output = ''
     i = 0
-    str = str.replace /[^A-Za-z0-9\+\/\=]/g, ''
+    str = str.replace /[^A-Za-z0-9\+\/\=\-\_]/g, ''
     j = 0
     while i < str.length
       enc1 = BrowserFS.StringUtil.BASE64.b642num[str.charAt i++]
@@ -235,9 +236,7 @@ BrowserFS.StringUtil.BASE64 =
   # @param [String] the string to get the byte length for
   # @return [Number] the number of bytes that the string will take up using the
   # given encoding.
-  byteLength: (str) ->
-    # Each character is 6 bits, and we encode as much as possible.
-    Math.floor((str.length * 6) / 8)
+  byteLength: (str) -> Math.floor(((str.replace /[^A-Za-z0-9\+\/\-\_]/g, '').length * 6) / 8)
 
 # Note: UCS2 handling is identical to UTF-16.
 BrowserFS.StringUtil.UCS2 =
