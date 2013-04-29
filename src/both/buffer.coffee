@@ -222,9 +222,14 @@ class BrowserFS.node.Buffer
   slice: (start=0, end=@length) ->
     # Translate negative indices to positive ones.
     if start < 0
-      start = @length+start
+      start += @length
+      start = 0 if start < 0
     if end < 0
-      end = @length+end
+      end += @length
+      end = 0 if end < 0
+
+    if end > @length then end = @length
+    if start > end then start = end
     # Sanity check.
     if start < 0 or end < 0 or start >= @length or end > @length
       throw new Error "Invalid slice indices."
