@@ -279,14 +279,17 @@ BrowserFS.StringUtil.HEX =
   # Lookup tables
   num2hex: ( ->
       obj = {}
-      for i,idx in ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F']
+      for i,idx in ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f']
         obj[idx] = i
       return obj
     )()
   hex2num: ( ->
       obj = {}
-      for i, idx in ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F']
+      for i, idx in ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f']
         obj[i] = idx
+      # Support capital hex input, too.
+      for i, idx in ['A','B','C','D','E','F']
+        obj[i] = idx+10
       return obj
     )()
 
