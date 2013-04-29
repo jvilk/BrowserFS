@@ -320,11 +320,12 @@ BrowserFS.StringUtil.HEX =
   byte2str: (byteArray) ->
     len = byteArray.length
     chars = new Array len*2
-    for i in [0...len] by 2
+    j = 0
+    for i in [0...len]
       hex2 = byteArray[i] & 0xF
       hex1 = byteArray[i] >> 4
-      chars[i] = BrowserFS.StringUtil.HEX.num2hex[hex1]
-      chars[i+1] = BrowserFS.StringUtil.HEX.num2hex[hex2]
+      chars[j++] = BrowserFS.StringUtil.HEX.num2hex[hex1]
+      chars[j++] = BrowserFS.StringUtil.HEX.num2hex[hex2]
     return chars.join ''
 
   # Returns the number of bytes that the string will take up using the given
