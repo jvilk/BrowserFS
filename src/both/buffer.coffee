@@ -100,6 +100,9 @@ class BrowserFS.node.Buffer
       if arg1 != (arg1>>>0) then throw new TypeError 'Buffer size must be a uint32.'
       @length = arg1
       @buff = new DataView new ArrayBuffer(@length)
+    else if arg1 instanceof DataView
+      @buff = arg1
+      @length = arg1.byteLength
     else if Array.isArray(arg1) or arg1 instanceof BrowserFS.node.Buffer or (arg1[0]? and typeof arg1[0] is 'number')
       @buff = new DataView new ArrayBuffer(arg1.length)
       for datum, i in arg1 by 1
@@ -232,7 +235,7 @@ class BrowserFS.node.Buffer
     # Sanity check.
     if start < 0 or end < 0 or start >= @length or end > @length
       throw new Error "Invalid slice indices."
-    new BrowserFS.node.BufferView(@, start, end)
+    new BrowserFS.node.Buffer new DataView(@buff.buffer, @buff.byteOffset+start, end-start)
 
   # Fills the buffer with the specified value. If the offset and end are not
   # given it will fill the entire buffer.
@@ -280,86 +283,3 @@ class BrowserFS.node.Buffer
   writeFloatBE: (value, offset, noAssert=false) -> @buff.setFloat32 offset, value, false
   writeDoubleLE: (value, offset, noAssert=false) -> @buff.setFloat64 offset, value, true
   writeDoubleBE: (value, offset, noAssert=false) -> @buff.setFloat64 offset, value, false
-
-# BufferView is a 'view' of a Buffer. You get this from the 'slice' operation,
-# which specifies that the resulting buffer share the same memory.
-class BrowserFS.node.BufferView extends BrowserFS.node.Buffer
-  # Constructs a BufferView.
-  # @param [BrowserFS.node.BufferView] The Buffer this BufferView is a view for.
-  # @param [Number] The 'start' index that marks the beginning of this view
-  # @param [End] The 'end' index that marks the ending of this view.
-  constructor: (@srcBuff, @startPos, @endPos) ->
-    @length = @endPos - @startPos
-    makeArrayAccessors @
-  # NONSTANDARD
-  # Set the octet at index. The values refer to individual bytes, so the
-  # legal range is between 0x00 and 0xFF hex or 0 and 255.
-  # @param [Number] the index to set the value at
-  # @param [Number] the value to set at the given index
-  set: (index, value) -> @srcBuff.set index+@startPos, value
-  # NONSTANDARD
-  # Get the octet at index.
-  # @param [Number] index to fetch the value at
-  # @return [Number] the value at the given index
-  get: (index) -> @srcBuff.get index+@startPos
-  write: (str, offset=0, length=@length-offset, encoding='utf8') ->
-     # 'str' and 'encoding' specified
-    if typeof offset is 'string'
-      encoding = offset
-      offset = 0
-      length = @length-offset
-    # 'str', 'offset', and 'encoding' specified
-    else if typeof length is 'string'
-      # Ensure length isn't a number in string form.
-      encoding = length
-      length = @length-offset
-
-    oldCW = @srcBuff._charsWritten
-    rv = @srcBuff.write str, offset+@startPos, length, encoding
-    @_charsWritten = @srcBuff._charsWritten
-    # We don't want to accidentally affect its internal state; we're technically
-    # a separate buffer.
-    @srcBuff._charsWritten = oldCW
-    return rv
-  toString: (encoding='utf8', start=0, end=@length) ->
-    @srcBuff.toString encoding, start+@startPos, end+@startPos
-  toJSON: () ->
-    # Welp, this will be unexpectedly expensive.
-    arr = new Array @length
-    for i in [0...@length] by 1
-      arr[i] = @srcBuff.readUInt8 i
-    return {type:'Buffer',data:arr}
-  copy: (targetBuffer, targetStart=0, sourceStart=0, sourceEnd=@length) ->
-    @srcBuff.copy targetBuffer, targetStart, sourceStart+@startPos, sourceEnd+@startPos
-  slice: (start=0, end=@length) ->
-    @srcBuff.slice start+@startPos, end+@startPos
-  fill: (value, offset=0, end=@length) ->
-    @srcBuff.fill value, offset+@startPos, end+@startPos
-  readUInt8: (offset, noAssert=false) -> @srcBuff.readUInt8 offset+@startPos, noAssert
-  readUInt16LE: (offset, noAssert=false) -> @srcBuff.readUInt16LE offset+@startPos, noAssert
-  readUInt16BE: (offset, noAssert=false) -> @srcBuff.readUInt16BE offset+@startPos, noAssert
-  readUInt32LE: (offset, noAssert=false) -> @srcBuff.readUInt32LE offset+@startPos, noAssert
-  readUInt32BE: (offset, noAssert=false) -> @srcBuff.readUInt32BE offset+@startPos, noAssert
-  readInt8: (offset, noAssert=false) -> @srcBuff.readInt8 offset+@startPos, noAssert
-  readInt16LE: (offset, noAssert=false) -> @srcBuff.readInt16LE offset+@startPos, noAssert
-  readInt16BE: (offset, noAssert=false) -> @srcBuff.readInt16BE offset+@startPos, noAssert
-  readInt32LE: (offset, noAssert=false) -> @srcBuff.readInt32LE offset+@startPos, noAssert
-  readInt32BE: (offset, noAssert=false) -> @srcBuff.readInt32BE offset+@startPos, noAssert
-  readFloatLE: (offset, noAssert=false) -> @srcBuff.readFloatLE offset+@startPos, noAssert
-  readFloatBE: (offset, noAssert=false) -> @srcBuff.readFloatBE offset+@startPos, noAssert
-  readDoubleLE: (offset, noAssert=false) -> @srcBuff.readDoubleLE offset+@startPos, noAssert
-  readDoubleBE: (offset, noAssert=false) -> @srcBuff.readDoubleBE offset+@startPos, noAssert
-  writeUInt8: (value, offset, noAssert=false) -> @srcBuff.writeUInt8 value, offset+@startPos, noAssert
-  writeUInt16LE: (value, offset, noAssert=false) -> @srcBuff.writeUInt16LE value, offset+@startPos, noAssert
-  writeUInt16BE: (value, offset, noAssert=false) -> @srcBuff.writeUInt16BE value, offset+@startPos, noAssert
-  writeUInt32LE: (value, offset, noAssert=false) -> @srcBuff.writeUInt32LE value, offset+@startPos, noAssert
-  writeUInt32BE: (value, offset, noAssert=false) -> @srcBuff.writeUInt32BE value, offset+@startPos, noAssert
-  writeInt8: (value, offset, noAssert=false) -> @srcBuff.writeInt8 value, offset+@startPos, noAssert
-  writeInt16LE: (value, offset, noAssert=false) -> @srcBuff.writeInt16LE value, offset+@startPos, noAssert
-  writeInt16BE: (value, offset, noAssert=false) -> @srcBuff.writeInt16BE value, offset+@startPos, noAssert
-  writeInt32LE: (value, offset, noAssert=false) -> @srcBuff.writeInt32LE value, offset+@startPos, noAssert
-  writeInt32BE: (value, offset, noAssert=false) -> @srcBuff.writeInt32BE value, offset+@startPos, noAssert
-  writeFloatLE: (value, offset, noAssert=false) -> @srcBuff.writeFloatLE value, offset+@startPos, noAssert
-  writeFloatBE: (value, offset, noAssert=false) -> @srcBuff.writeFloatBE value, offset+@startPos, noAssert
-  writeDoubleLE: (value, offset, noAssert=false) -> @srcBuff.writeDoubleLE value, offset+@startPos, noAssert
-  writeDoubleBE: (value, offset, noAssert=false) -> @srcBuff.writeDoubleBE value, offset+@startPos, noAssert
