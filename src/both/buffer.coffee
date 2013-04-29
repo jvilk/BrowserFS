@@ -109,7 +109,7 @@ class BrowserFS.node.Buffer
     else if typeof arg1 is 'string'
       @length = BrowserFS.node.Buffer.byteLength arg1, arg2
       @buff = new DataView new ArrayBuffer(@length)
-      @write arg1, 0, @length, arg2
+      rv = @write arg1, 0, @length, arg2
     else
       throw new Error "Invalid argument to Buffer constructor: #{arg1}"
     # XXX: If this is a performance drain, make it optional.

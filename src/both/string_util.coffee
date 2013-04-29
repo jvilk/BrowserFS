@@ -40,12 +40,13 @@ BrowserFS.StringUtil.UTF8 =
     maxJ = offset+length
     rv = []
     numChars = 0
+    console.log "MaxJ: #{maxJ} Offset: #{offset} Length: #{length} Str: #{str}"
     while i < str.length and j < maxJ
       code = str.charCodeAt i++
       next = str.charCodeAt i
       if 0xD800 <= code && code <= 0xDBFF && 0xDC00 <= next && next <= 0xDFFF
         # 4 bytes: Surrogate pairs! UTF-16 fun time.
-        if j+4 >= maxJ then break else numChars++
+        if j+3 >= maxJ then break else numChars++
         # First pair: 10 bits of data, with an implicitly set 11th bit
         # Second pair: 10 bits of data
         codePoint = ((((code&0x3FF)|0x400)<<10)|(next&0x3FF))
@@ -62,7 +63,7 @@ BrowserFS.StringUtil.UTF8 =
         numChars++
       else if code < 0x800
         # Two bytes
-        if j+2 >= maxJ then break else numChars++
+        if j+1 >= maxJ then break else numChars++
         # Highest 5 bits in first byte
         buf.writeUInt8 (code >> 6)|0xC0, j++
         # Lower 6 bits in second byte
@@ -76,6 +77,7 @@ BrowserFS.StringUtil.UTF8 =
         buf.writeUInt8 ((code>>6)&0x3F)|0x80, j++
         # Lowest 6 bits in third byte
         buf.writeUInt8 (code&0x3F)|0x80, j++
+    console.log "i: #{i} strlen: #{str.length} j: #{j} maxJ: #{maxJ}"
     buf._charsWritten = numChars
     return j-offset
 
@@ -144,7 +146,7 @@ BrowserFS.StringUtil.ASCII =
   byte2str: (byteArray) ->
     chars = new Array byteArray.length
     for i in [0...byteArray.length]
-      chars[i] = String.fromCharCode byteArray[i]
+      chars[i] = String.fromCharCode(byteArray[i]&0x7F)
     return chars.join ''
 
   # Returns the number of bytes that the string will take up using the given
