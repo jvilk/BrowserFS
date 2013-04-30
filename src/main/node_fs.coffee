@@ -5,14 +5,15 @@
 wrapCb = (cb, numArgs) ->
   # We could use `arguments`, but Function.call/apply is expensive. And we only
   # need to handle 1-3 arguments
-  if numArgs is 1
-    return cb (arg1) -> setImmediate -> cb arg1
-  else if numArgs is 2
-    return cb (arg1, arg2) -> setImmediate -> cb arg1, arg2
-  else if numArgs is 3
-    return cb (arg1, arg2, arg3) -> setImmediate -> cb arg1, arg2, arg3
-  else
-    throw new Error 'Invalid invocation of wrapCb.'
+  switch numArgs
+    when 1
+      return cb (arg1) -> setImmediate -> cb arg1
+    when 2
+      return cb (arg1, arg2) -> setImmediate -> cb arg1, arg2
+    when 3
+      return cb (arg1, arg2, arg3) -> setImmediate -> cb arg1, arg2, arg3
+    else
+      throw new Error 'Invalid invocation of wrapCb.'
 
 # Checks if the fd is valid.
 # @param [BrowserFS.File] fd A file descriptor (in BrowserFS, it's a File object)
@@ -47,7 +48,7 @@ class BrowserFS.node.fs
   # to the completion callback.
   # @param [String] oldPath
   # @param [String] newPath
-  # @param [Function(BrowserFS.ApiError?)] callback
+  # @param [Function(BrowserFS.ApiError)] callback
   @rename: (oldPath, newPath, callback) ->
     oldPath = BrowserFS.node.path.normalize oldPath
     newPath = BrowserFS.node.path.normalize newPath
@@ -98,10 +99,10 @@ class BrowserFS.node.fs
   @unlink: (path, callback) ->
     path = BrowserFS.node.path.normalize path
     newCb = wrapCb callback, 1
-    BrowserFS.node.fs.root.unlink path, len, newCb
+    BrowserFS.node.fs.root.unlink path, newCb
   # Asynchronous file open.
-  # Exclusive mode (O_EXCL) ensures that path is newly created.
-  # `fs.open()` fails if a file by that name already exists.
+  # Exclusive mode ensures that path is newly created.
+  #
   # `flags` can be:
   #
   # * `'r'` - Open file for reading. An exception occurs if the file does not exist.
@@ -145,13 +146,13 @@ class BrowserFS.node.fs
   # @param [Object?] options
   # @option options [String] encoding The string encoding for the file contents. Defaults to `null`.
   # @option options [String] flag Defaults to `'r'`.
-  # @param [Function(BrowserFS.ApiError, String or BrowserFS.node.Buffer)] callback If no encoding is specified, then the raw buffer is returned.
+  # @param [Function(BrowserFS.ApiError, String | BrowserFS.node.Buffer)] callback If no encoding is specified, then the raw buffer is returned.
   @readFile: (filename, options, callback) ->
     filename = BrowserFS.node.path.normalize filename
     if typeof options is 'function'
       callback = options
       options = {}
-    unless options.encoding? then options.encoding = 'utf8'
+    unless options.encoding? then options.encoding = null
     unless options.flag? then options.flag = 'r'
     newCb = wrapCb callback, 2
     # Try/catch is for FileMode failure.
@@ -194,7 +195,7 @@ class BrowserFS.node.fs
       flags = BrowserFS.FileMode.getFileMode options.flag
       unless flags.isWriteable()
         return newCb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Flag passed to writeFile must allow for writing.'
-      BrowserFS.node.fs.root.writeFile filename, options.encoding, flags, options.mode, newCb
+      BrowserFS.node.fs.root.writeFile filename, data, options.encoding, flags, options.mode, newCb
     catch e
       newCb e
 
@@ -227,7 +228,7 @@ class BrowserFS.node.fs
       flags = BrowserFS.FileMode.getFileMode options.flag
       unless flags.isAppendable()
         return newCb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Flag passed to appendFile must allow for appending.'
-      BrowserFS.node.fs.root.appendFile filename, options.encoding, flags, options.mode, newCb
+      BrowserFS.node.fs.root.appendFile filename, data, options.encoding, flags, options.mode, newCb
     catch e
       newCb e
 
@@ -370,7 +371,7 @@ class BrowserFS.node.fs
   # Asynchronous `link`.
   # @param [String] srcpath
   # @param [String] dstpath
-  # @param [Function(BrowserFS.ApiError?)] callback
+  # @param [Function(BrowserFS.ApiError)] callback
   @link: (srcpath, dstpath, callback) ->
     srcpath = BrowserFS.node.path.normalize srcpath
     dstpath = BrowserFS.node.path.normalize dstpath
@@ -380,7 +381,7 @@ class BrowserFS.node.fs
   # @param [String] srcpath
   # @param [String] dstpath
   # @param [String?] type can be either `'dir'` or `'file'` (default is `'file'`)
-  # @param [Function(BrowserFS.ApiError?)] callback
+  # @param [Function(BrowserFS.ApiError)] callback
   @symlink: (srcpath, dstpath, type, callback) ->
     newCb = wrapCb callback, 1
     if typeof type is 'function'
@@ -486,7 +487,9 @@ class BrowserFS.node.fs
 #
 # Exclusive mode ensures that the file path is newly created.
 class BrowserFS.FileMode
+  # Contains cached FileMode instances.
   @modeCache = {}
+  # Array of valid mode strings.
   @validModeStrs = ['r','r+','rs','rs+','w','wx','w+','wx+','a','ax','a+','ax+']
 
   # Get an object representing the given file mode.
