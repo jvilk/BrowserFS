@@ -359,6 +359,7 @@ class BrowserFS.FileMode
 
   # Get an object representing the given file mode.
   # @param [String] modeStr The string representing the mode
+  # @return [BrowserFS.FileMode] The FileMode object representing the mode
   # @throw [BrowserFS.ApiError] when the mode string is invalid
   @getFileMode: (modeStr) ->
     # Check cache first.
