@@ -176,6 +176,7 @@ class BrowserFS.node.Buffer
   # Returns a JSON-representation of the Buffer instance, which is identical to
   # the output for JSON Arrays. JSON.stringify implicitly calls this function
   # when stringifying a Buffer instance.
+  # @return [Object] An object that can be used for JSON stringification.
   toJSON: () ->
     # Welp, this will be unexpectedly expensive.
     arr = new Array @length
@@ -190,6 +191,7 @@ class BrowserFS.node.Buffer
   # @param [?Number] targetStart Index to start copying to in the targetBuffer
   # @param [?Number] sourceStart Index in this buffer to start copying from
   # @param [?Number] sourceEnd Index in this buffer stop copying at
+  # @return [Number] The number of bytes copied into the target buffer.
   copy: (target, targetStart=0, sourceStart=0, sourceEnd=@length) ->
     # The Node code is weird. It sets some out-of-bounds args to their defaults
     # and throws exceptions for others (sourceEnd).

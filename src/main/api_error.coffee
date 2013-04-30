@@ -1,7 +1,8 @@
 # Information about a failed call to the BrowserFS API.
-# Special thanks to Dropbox-JS for some of the error names/descriptions. :)
-# https://raw.github.com/dropbox/dropbox-js/master/src/api_error.coffee
-# TODO: Am I too tightly binding to the Dropbox API?
+#
+# Special thanks to Dropbox-JS for some of the error names/descriptions:
+#   https://raw.github.com/dropbox/dropbox-js/master/src/api_error.coffee
+# @todo Am I too tightly binding to the Dropbox API?
 class BrowserFS.ApiError
   # XHR ERROR STATUSES
   # These error messages correspond to xhr.status, as in Dropbox-JS. They should
@@ -40,6 +41,8 @@ class BrowserFS.ApiError
 
   # BROWSERFS ERROR STATUSES
   # The numbers here have no real meaning; they are just unique identifiers.
-  # TODO: Flesh this out.
+  # @todo Add any needed error types.
 
-  constructor: (@type, @msg) ->
+  # @param [Number] type The type of error. Use one of the static fields of this class as the type.
+  # @param [String?] msg A descriptive error message.
+  constructor: (@type, @msg="") ->
