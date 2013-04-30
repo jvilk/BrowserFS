@@ -1,13 +1,21 @@
 # The node frontend to all filesystems.
-# We handle:
+# This layer handles:
 #
 # * Sanity checking inputs.
+# * Normalizing paths.
 # * Resetting stack depth for asynchronous operations which may not go through
-#   the browser (wrap cbs properly)
-# * Handles translating file movement across filesystems
-#   (e.g. rename path1, path2 -> readFile path1, writeFile path2, rm path1)
+#   the browser by wrapping all input callbacks using `setImmediate`.
+# * Performing the requested operation through the filesystem or the file
+#   descriptor, as appropriate.
+# * Handling optional arguments and setting default arguments.
 # @see http://nodejs.org/api/fs.html
 class BrowserFS.node.fs
+  # **NONSTANDARD**: You must call this function with a properly-instantiated
+  # root filesystem before using any other API method.
+  # @param [BrowserFS.FileSystem] rootFS The root filesystem to use for the
+  #   entire BrowserFS file system.
+  @initiate: (rootFS) -> BrowserFS.node.fs.root = rootFS
+
   # FILE OR DIRECTORY METHODS
 
   # Asynchronous rename. No arguments other than a possible exception are given
@@ -16,6 +24,10 @@ class BrowserFS.node.fs
   # @param [String] newPath
   # @param [Function(BrowserFS.ApiError?)] callback
   @rename: (oldPath, newPath, callback) ->
+    oldPath = BrowserFS.node.path.normalize oldPath
+    newPath = BrowserFS.node.path.normalize newPath
+    newCb = (err) -> setImmediate -> callback err
+    BrowserFS.node.fs.root.rename oldPath, newPath, newCb
   # Test whether or not the given path exists by checking with the file system.
   # Then call the callback argument with either true or false.
   # @example Sample invocation
@@ -25,16 +37,25 @@ class BrowserFS.node.fs
   # @param [String] path
   # @param [Function(Boolean)] callback
   @exists: (path, callback) ->
+    path = BrowserFS.node.path.normalize path
+    newCb = (result) -> setImmediate -> callback result
+    BrowserFS.node.fs.root.exists path, newCb
   # Asynchronous `stat`.
   # @param [String] path
   # @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] callback
   @stat: (path, callback) ->
+    path = BrowserFS.node.path.normalize path
+    newCb = (err, stats) -> setImmediate -> callback err, stats
+    BrowserFS.node.fs.root.stat path, false, newCb
   # Asynchronous `lstat`.
   # `lstat()` is identical to `stat()`, except that if path is a symbolic link,
   # then the link itself is stat-ed, not the file that it refers to.
   # @param [String] path
   # @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] callback
   @lstat: (path, callback) ->
+    path = BrowserFS.node.path.normalize path
+    newCb = (err, stats) -> setImmediate -> callback err, stats
+    BrowserFS.node.fs.root.stat path, true, newCb
 
   # FILE-ONLY METHODS
 
@@ -43,10 +64,16 @@ class BrowserFS.node.fs
   # @param [Number] len
   # @param [Function(BrowserFS.ApiError)] callback
   @truncate: (path, len, callback) ->
+    path = BrowserFS.node.path.normalize path
+    newCb = (err) -> setImmediate -> callback err
+    BrowserFS.node.fs.root.truncate path, len, newCb
   # Asynchronous `unlink`.
   # @param [String] path
   # @param [Function(BrowserFS.ApiError)] callback
   @unlink: (path, callback) ->
+    path = BrowserFS.node.path.normalize path
+    newCb = (err) -> setImmediate -> callback err
+    BrowserFS.node.fs.root.truncate path, len, newCb
   # Asynchronous file open.
   # Exclusive mode (O_EXCL) ensures that path is newly created.
   # `fs.open()` fails if a file by that name already exists.
@@ -71,7 +98,16 @@ class BrowserFS.node.fs
   # @param [Number?] mode defaults to `0666`
   # @param [Function(BrowserFS.ApiError, BrowserFS.File)] callback
   @open: (path, flags, mode, callback) ->
-    # Mode is optional.
+    path = BrowserFS.node.path.normalize path
+    newCb = (err, fd) -> setImmediate -> callback err, fd
+    if typeof mode is 'function'
+      callback = mode
+      mode = 0o666
+    try
+      flags = BrowserFS.FileMode.getFileMode flags
+      BrowserFS.node.fs.root.open path, flags, mode, newCb
+    catch e
+      newCb e
 
   # Asynchronously reads the entire contents of a file.
   # @example Usage example
@@ -85,7 +121,17 @@ class BrowserFS.node.fs
   # @option options [String] flag Defaults to `'r'`.
   # @param [Function(BrowserFS.ApiError, String or BrowserFS.node.Buffer)] callback If no encoding is specified, then the raw buffer is returned.
   @readFile: (filename, options, callback) ->
-    # Options is optional.
+    filename = BrowserFS.node.path.normalize filename
+    if typeof options is 'function'
+      callback = options
+      options = {}
+    if options.encoding? then options.encoding = 'utf8'
+    if options.flag? then options.flag = 'r'
+    newCb = (err, data) -> setImmediate -> callback err, data
+    try
+      BrowserFS.node.fs.root.readFile filename, options.encoding, BrowserFS.FileMode.getFileMode options.flag, newCb
+    catch e
+      newCb e
 
   # Asynchronously writes data to a file, replacing the file if it already
   # exists.
@@ -105,7 +151,17 @@ class BrowserFS.node.fs
   # @option options [String] flag Defaults to `'w'`.
   # @param [Function(BrowserFS.ApiError)] callback
   @writeFile: (filename, data, options, callback) ->
-    # Options is optional.
+    filename = BrowserFS.node.path.normalize filename
+    if typeof options is 'function'
+      callback = options
+      options = {}
+    if options.encoding? then options.encoding = 'utf8'
+    if options.flag? then options.flag = 'w'
+    newCb = (err) -> setImmediate -> callback err
+    try
+      BrowserFS.node.fs.root.writeFile filename, options.encoding, BrowserFS.FileMode.getFileMode options.flag, newCb
+    catch e
+      newCb e
 
   # Asynchronously append data to a file, creating the file if it not yet
   # exists.
@@ -280,3 +336,73 @@ class BrowserFS.node.fs
   # @param [Function(BrowserFS.ApiError, String)] callback
   @realpath: (path, cache, callback) ->
     # Cache is optional.
+
+# Represents one of the following file modes. A convenience object.
+#
+# * `'r'` - Open file for reading. An exception occurs if the file does not exist.
+# * `'r+'` - Open file for reading and writing. An exception occurs if the file does not exist.
+# * `'rs'` - Open file for reading in synchronous mode. Instructs the filesystem to not cache writes.
+# * `'rs+'` - Open file for reading and writing, and opens the file in synchronous mode.
+# * `'w'` - Open file for writing. The file is created (if it does not exist) or truncated (if it exists).
+# * `'wx'` - Like 'w' but opens the file in exclusive mode.
+# * `'w+'` - Open file for reading and writing. The file is created (if it does not exist) or truncated (if it exists).
+# * `'wx+'` - Like 'w+' but opens the file in exclusive mode.
+# * `'a'` - Open file for appending. The file is created if it does not exist.
+# * `'ax'` - Like 'a' but opens the file in exclusive mode.
+# * `'a+'` - Open file for reading and appending. The file is created if it does not exist.
+# * `'ax+'` - Like 'a+' but opens the file in exclusive mode.
+#
+# Exclusive mode ensures that the file path is newly created.
+class BrowserFS.FileMode
+  @modeCache = {}
+  @validModeStrs = ['r','r+','rs','rs+','w','wx','w+','wx+','a','ax','a+','ax+']
+
+  # Get an object representing the given file mode.
+  # @param [String] modeStr The string representing the mode
+  # @throw [BrowserFS.ApiError] when the mode string is invalid
+  @getFileMode: (modeStr) ->
+    # Check cache first.
+    if modeStr in modeCache
+      return modeCache[modeStr]
+    fm = new BrowserFS.FileMode modeStr
+    modeCache[modeStr] = fm
+    return fm
+
+  # Indicates that the code should not do anything.
+  @NOP
+  # Indicates that the code should throw an exception.
+  @THROW_EXCEPTION: 1
+  # Indicates that the code should truncate the file, but only if it is a file.
+  @TRUNCATE_FILE: 2
+  # Indicates that the code should create the file.
+  @CREATE_FILE: 3
+
+  # This should never be called directly.
+  # @param [String] modeStr The string representing the mode
+  # @throw [BrowserFS.ApiError] when the mode string is invalid
+  constructor: (@modeStr) ->
+    if typeof modeStr != 'string' or modeStr.length == 0 or BrowserFS.node.fs.FileMode.validModeStrs.indexOf modeStr == -1
+      throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "Invalid mode string: #{modeStr}"
+
+  # @return [Boolean] Returns true if the file is readable.
+  isReadable: -> return @modeStr.indexOf 'r' != -1 or @modeStr.indexOf '+' != -1
+  # @return [Boolean] Returns true if the file is writeable.
+  isWriteable: -> return @modeStr.indexOf 'w' != -1 or (@modeStr.indexOf 'a' == -1 and @modeStr.indexOf '+' != -1)
+  # @return [Boolean] Returns true if the file is appendable.
+  isAppendable: -> return @modeStr.indexOf 'a' != -1
+  # @return [Boolean] Returns true if the file is open in synchronous mode.
+  isSynchronous: -> return @modeStr.indexOf 's' != -1
+  # @return [Boolean] Returns true if the file is open in exclusive mode.
+  isExclusive: -> return @modeStr.indexOf 'x' != -1
+  # @return [Number] Returns one of the static fields on this object that
+  #   indicates the appropriate response to the path existing.
+  pathExistsAction: ->
+    if @isExclusive() then return @THROW_EXCEPTION
+    else if @isWriteable() then return @TRUNCATE_FILE
+    else return @NOP
+  # @return [Number] Returns one of the static fields on this object that
+  #   indicates the appropriate response to the path not existing.
+  pathNotExistsAction: ->
+    if (@isWriteable() or @isAppendable()) and modeStr isnt 'r+' then return @CREATE_FILE
+    else return @THROW_EXCEPTION
+

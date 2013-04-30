@@ -16,7 +16,7 @@ class BrowserFS.FileSystem
 
   # File or directory operations
   rename: (path1, path2, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
-  stat: (path, mode, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
+  stat: (path, isLstat, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
 
   # File operations
   open: (path, mode, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
@@ -41,6 +41,7 @@ class BrowserFS.FileSystem
   # Mapped to open file, do operation, close file.
   readFile: (path, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
   writeFile: (path, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
+  truncate: (path, len, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
 
   # Property operations
   # This isn't always possible on some filesystem types (e.g. Dropbox).
