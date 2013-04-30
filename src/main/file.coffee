@@ -7,4 +7,5 @@ class BrowserFS.File
   write: ()->
   read: ()->
   close: ()->
+  stat: ->
   utimes: ()->

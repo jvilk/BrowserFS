@@ -1,3 +1,28 @@
+# Wraps a callback with a setImmediate call.
+# @param [Function] cb The callback to wrap.
+# @param [Number] numArgs The number of arguments that the callback takes.
+# @return [Function] The wrapped callback.
+wrapCb = (cb, numArgs) ->
+  # We could use `arguments`, but Function.call/apply is expensive. And we only
+  # need to handle 1-3 arguments
+  if numArgs is 1
+    return cb (arg1) -> setImmediate -> cb arg1
+  else if numArgs is 2
+    return cb (arg1, arg2) -> setImmediate -> cb arg1, arg2
+  else if numArgs is 3
+    return cb (arg1, arg2, arg3) -> setImmediate -> cb arg1, arg2, arg3
+  else
+    throw new Error 'Invalid invocation of wrapCb.'
+
+# Checks if the fd is valid.
+# @param [BrowserFS.File] fd A file descriptor (in BrowserFS, it's a File object)
+# @return [Boolean, BrowserFS.ApiError] Returns `true` if the FD is OK,
+#   otherwise returns an ApiError.
+checkFd = (fd) ->
+  if fd instanceof BrowserFS.File
+    return new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Invalid file descriptor.'
+  return true
+
 # The node frontend to all filesystems.
 # This layer handles:
 #
@@ -26,7 +51,7 @@ class BrowserFS.node.fs
   @rename: (oldPath, newPath, callback) ->
     oldPath = BrowserFS.node.path.normalize oldPath
     newPath = BrowserFS.node.path.normalize newPath
-    newCb = (err) -> setImmediate -> callback err
+    newCb = wrapCb callback, 1
     BrowserFS.node.fs.root.rename oldPath, newPath, newCb
   # Test whether or not the given path exists by checking with the file system.
   # Then call the callback argument with either true or false.
@@ -38,14 +63,14 @@ class BrowserFS.node.fs
   # @param [Function(Boolean)] callback
   @exists: (path, callback) ->
     path = BrowserFS.node.path.normalize path
-    newCb = (result) -> setImmediate -> callback result
+    newCb = wrapCb callback, 1
     BrowserFS.node.fs.root.exists path, newCb
   # Asynchronous `stat`.
   # @param [String] path
   # @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] callback
   @stat: (path, callback) ->
     path = BrowserFS.node.path.normalize path
-    newCb = (err, stats) -> setImmediate -> callback err, stats
+    newCb = wrapCb callback, 2
     BrowserFS.node.fs.root.stat path, false, newCb
   # Asynchronous `lstat`.
   # `lstat()` is identical to `stat()`, except that if path is a symbolic link,
@@ -54,7 +79,7 @@ class BrowserFS.node.fs
   # @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] callback
   @lstat: (path, callback) ->
     path = BrowserFS.node.path.normalize path
-    newCb = (err, stats) -> setImmediate -> callback err, stats
+    newCb = wrapCb callback, 2
     BrowserFS.node.fs.root.stat path, true, newCb
 
   # FILE-ONLY METHODS
@@ -65,14 +90,14 @@ class BrowserFS.node.fs
   # @param [Function(BrowserFS.ApiError)] callback
   @truncate: (path, len, callback) ->
     path = BrowserFS.node.path.normalize path
-    newCb = (err) -> setImmediate -> callback err
+    newCb = wrapCb callback, 1
     BrowserFS.node.fs.root.truncate path, len, newCb
   # Asynchronous `unlink`.
   # @param [String] path
   # @param [Function(BrowserFS.ApiError)] callback
   @unlink: (path, callback) ->
     path = BrowserFS.node.path.normalize path
-    newCb = (err) -> setImmediate -> callback err
+    newCb = wrapCb callback, 1
     BrowserFS.node.fs.root.truncate path, len, newCb
   # Asynchronous file open.
   # Exclusive mode (O_EXCL) ensures that path is newly created.
@@ -99,10 +124,11 @@ class BrowserFS.node.fs
   # @param [Function(BrowserFS.ApiError, BrowserFS.File)] callback
   @open: (path, flags, mode, callback) ->
     path = BrowserFS.node.path.normalize path
-    newCb = (err, fd) -> setImmediate -> callback err, fd
+    newCb = wrapCb callback, 2
     if typeof mode is 'function'
       callback = mode
       mode = 0o666
+    # Try/catch is for FileMode failure.
     try
       flags = BrowserFS.FileMode.getFileMode flags
       BrowserFS.node.fs.root.open path, flags, mode, newCb
@@ -125,11 +151,15 @@ class BrowserFS.node.fs
     if typeof options is 'function'
       callback = options
       options = {}
-    if options.encoding? then options.encoding = 'utf8'
-    if options.flag? then options.flag = 'r'
-    newCb = (err, data) -> setImmediate -> callback err, data
+    unless options.encoding? then options.encoding = 'utf8'
+    unless options.flag? then options.flag = 'r'
+    newCb = wrapCb callback, 2
+    # Try/catch is for FileMode failure.
     try
-      BrowserFS.node.fs.root.readFile filename, options.encoding, BrowserFS.FileMode.getFileMode options.flag, newCb
+      flags = BrowserFS.FileMode.getFileMode options.flag
+      unless flags.isReadable()
+        return newCb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Flag passed to readFile must allow for reading.'
+      BrowserFS.node.fs.root.readFile filename, options.encoding, flags, newCb
     catch e
       newCb e
 
@@ -155,11 +185,16 @@ class BrowserFS.node.fs
     if typeof options is 'function'
       callback = options
       options = {}
-    if options.encoding? then options.encoding = 'utf8'
-    if options.flag? then options.flag = 'w'
-    newCb = (err) -> setImmediate -> callback err
+    unless options.encoding? then options.encoding = 'utf8'
+    unless options.flag? then options.flag = 'w'
+    unless options.mode? then options.mode = 0o666
+    newCb = wrapCb callback, 1
+    # Try/catch is for FileMode failure.
     try
-      BrowserFS.node.fs.root.writeFile filename, options.encoding, BrowserFS.FileMode.getFileMode options.flag, newCb
+      flags = BrowserFS.FileMode.getFileMode options.flag
+      unless flags.isWriteable()
+        return newCb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Flag passed to writeFile must allow for writing.'
+      BrowserFS.node.fs.root.writeFile filename, options.encoding, flags, newCb
     catch e
       newCb e
 
@@ -179,7 +214,22 @@ class BrowserFS.node.fs
   # @option options [String] flag Defaults to `'a'`.
   # @param [Function(BrowserFS.ApiError)] callback
   @appendFile: (filename, data, options, callback) ->
-    # Options is optional.
+    filename = BrowserFS.node.path.normalize filename
+    if typeof options is 'function'
+      callback = options
+      options = {}
+    unless options.encoding? then options.encoding = 'utf8'
+    unless options.flag? then options.flag = 'a'
+    unless options.mode? then options.mode = 0o666
+    newCb = wrapCb callback, 1
+    # Try/catch is for FileMode failure.
+    try
+      flags = BrowserFS.FileMode.getFileMode options.flag
+      unless flags.isAppendable()
+        return newCb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Flag passed to appendFile must allow for appending.'
+      BrowserFS.node.fs.root.appendFile filename, options.encoding, flags, options.mode, newCb
+    catch e
+      newCb e
 
   # FILE DESCRIPTOR METHODS
 
@@ -189,19 +239,35 @@ class BrowserFS.node.fs
   # @param [BrowserFS.File] fd
   # @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] callback
   @fstat: (fd, callback) ->
+    newCb = wrapCb callback, 2
+    fdChk = checkFd fd
+    unless fdChk then return newCb fdChk
+    fd.stat newCb
   # Asynchronous close.
   # @param [BrowserFS.File] fd
   # @param [Function(BrowserFS.ApiError)] callback
   @close: (fd, callback) ->
+    newCb = wrapCb callback, 1
+    fdChk = checkFd fd
+    unless fdChk then return newCb fdChk
+    fd.close newCb
   # Asynchronous ftruncate.
   # @param [BrowserFS.File] fd
   # @param [Number] len
   # @param [Function(BrowserFS.ApiError)] callback
   @ftruncate: (fd, len, callback) ->
+    newCb = wrapCb callback, 1
+    fdChk = checkFd fd
+    unless fdChk then return newCb fdChk
+    fd.truncate len, newCb
   # Asynchronous fsync.
   # @param [BrowserFS.File] fd
   # @param [Function(BrowserFS.ApiError)] callback
   @fsync: (fd, callback) ->
+    newCb = wrapCb callback, 1
+    fdChk = checkFd fd
+    unless fdChk then return newCb fdChk
+    fd.sync newCb
   # Write buffer to the file specified by `fd`.
   # Note that it is unsafe to use fs.write multiple times on the same file
   # without waiting for the callback. For this scenario,
@@ -216,6 +282,10 @@ class BrowserFS.node.fs
   # @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
   #   callback The number specifies the number of bytes written into the file.
   @write: (fd, buffer, offset, length, position, callback) ->
+    newCb = wrapCb callback, 3
+    fdChk = checkFd fd
+    unless fdChk then return newCb fdChk
+    fd.write buffer, offset, length, position, newCb
   # Read data from the file specified by `fd`.
   # @param [BrowserFS.File] fd
   # @param [BrowserFS.node.Buffer] buffer The buffer that the data will be
@@ -229,17 +299,29 @@ class BrowserFS.node.fs
   # @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)] The
   #   number is the number of bytes read
   @read: (fd, buffer, offset, length, position, callback) ->
+    newCb = wrapCb callback, 3
+    fdChk = checkFd fd
+    unless fdChk then return newCb fdChk
+    fd.read buffer, offset, length, position, newCb
   # Asynchronous `fchown`.
   # @param [BrowserFS.File] fd
   # @param [Number] uid
   # @param [Number] gid
   # @param [Function(BrowserFS.ApiError)] callback
   @fchown: (fd, uid, gid, callback) ->
+    newCb = wrapCb callback, 1
+    fdChk = checkFd fd
+    unless fdChk then return newCb fdChk
+    fd.chown uid, gid, newCb
   # Asynchronous `fchmod`.
   # @param [BrowserFS.File] fd
   # @param [Number] mode
   # @param [Function(BrowserFS.ApiError)] callback
   @fchmod: (fd, mode, callback) ->
+    newCb = wrapCb callback, 1
+    fdChk = checkFd fd
+    unless fdChk then return newCb fdChk
+    fd.chmod mode, newCb
   # Change the file timestamps of a file referenced by the supplied file
   # descriptor.
   # @param [BrowserFS.File] fd
@@ -247,6 +329,10 @@ class BrowserFS.node.fs
   # @param [Date] mtime
   # @param [Function(BrowserFS.ApiError)] callback
   @futimes: (fd, atime, mtime, callback) ->
+    newCb = wrapCb callback, 1
+    fdChk = checkFd fd
+    unless fdChk then return newCb fdChk
+    fd.utimes atime, mtime, newCb
 
   # DIRECTORY-ONLY METHODS
 
@@ -254,12 +340,20 @@ class BrowserFS.node.fs
   # @param [String] path
   # @param [Function(BrowserFS.ApiError)] callback
   @rmdir: (path, callback) ->
+    path = BrowserFS.node.path.normalize path
+    newCb = wrapCb callback, 1
+    BrowserFS.node.fs.root.rmdir path, newCb
   # Asynchronous `mkdir`.
   # @param [String] path
   # @param [Number?] mode defaults to `0777`
   # @param [Function(BrowserFS.ApiError)] callback
   @mkdir: (path, mode, callback) ->
-    # Mode is optional.
+    path = BrowserFS.node.path.normalize path
+    if typeof mode is 'function'
+      callback = mode
+      mode = 0o777
+    newCb = wrapCb callback, 1
+    BrowserFS.node.fs.root.mkdir path, mode, newCb
 
   # Asynchronous `readdir`. Reads the contents of a directory.
   # The callback gets two arguments `(err, files)` where `files` is an array of
@@ -267,6 +361,9 @@ class BrowserFS.node.fs
   # @param [String] path
   # @param [Function(BrowserFS.ApiError, String[])] callback
   @readdir: (path, callback) ->
+    path = BrowserFS.node.path.normalize path
+    newCb = wrapCb callback, 2
+    BrowserFS.node.fs.root.readdir path, newCb
 
   # SYMLINK METHODS
 
@@ -275,18 +372,33 @@ class BrowserFS.node.fs
   # @param [String] dstpath
   # @param [Function(BrowserFS.ApiError?)] callback
   @link: (srcpath, dstpath, callback) ->
+    srcpath = BrowserFS.node.path.normalize srcpath
+    dstpath = BrowserFS.node.path.normalize dstpath
+    newCb = wrapCb callback, 1
+    BrowserFS.node.fs.root.link srcpath, dstpath, newCb
   # Asynchronous `symlink`.
   # @param [String] srcpath
   # @param [String] dstpath
   # @param [String?] type can be either `'dir'` or `'file'` (default is `'file'`)
   # @param [Function(BrowserFS.ApiError?)] callback
   @symlink: (srcpath, dstpath, type, callback) ->
-    # Type is optional.
+    newCb = wrapCb callback, 1
+    if typeof type is 'function'
+      callback = type
+      type = 'file'
+    if type isnt 'file' and type isnt 'dir'
+      return newCb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "Invalid type: #{type}"
+    srcpath = BrowserFS.node.path.normalize srcpath
+    dstpath = BrowserFS.node.path.normalize dstpath
+    BrowserFS.node.fs.root.symlink srcpath, dstpath, type, newCb
 
   # Asynchronous readlink.
   # @param [String] path
   # @param [Function(BrowserFS.ApiError, String)] callback
   @readlink: (path, callback) ->
+    path = BrowserFS.node.path.normalize path
+    newCb = wrapCb callback, 2
+    BrowserFS.node.fs.root.readlink path, newCb
 
   # PROPERTY OPERATIONS
 
@@ -296,28 +408,43 @@ class BrowserFS.node.fs
   # @param [Number] gid
   # @param [Function(BrowserFS.ApiError)] callback
   @chown: (path, uid, gid, callback) ->
+    path = BrowserFS.node.path.normalize path
+    newCb = wrapCb callback, 1
+    BrowserFS.node.fs.root.chown path, false, uid, gid, newCb
   # Asynchronous `lchown`.
   # @param [String] path
   # @param [Number] uid
   # @param [Number] gid
   # @param [Function(BrowserFS.ApiError)] callback
   @lchown: (path, uid, gid, callback) ->
+    path = BrowserFS.node.path.normalize path
+    newCb = wrapCb callback, 1
+    BrowserFS.node.fs.root.chown path, true, uid, gid, newCb
   # Asynchronous `chmod`.
   # @param [String] path
   # @param [Number] mode
   # @param [Function(BrowserFS.ApiError)] callback
   @chmod: (path, mode, callback) ->
+    path = BrowserFS.node.path.normalize path
+    newCb = wrapCb callback, 1
+    BrowserFS.node.fs.root.chmod path, false, mode, newCb
   # Asynchronous `lchmod`.
   # @param [String] path
   # @param [Number] mode
   # @param [Function(BrowserFS.ApiError)] callback
   @lchmod: (path, mode, callback) ->
+    path = BrowserFS.node.path.normalize path
+    newCb = wrapCb callback, 1
+    BrowserFS.node.fs.root.chmod path, true, mode, newCb
   # Change file timestamps of the file referenced by the supplied path.
   # @param [String] path
   # @param [Date] atime
   # @param [Date] mtime
   # @param [Function(BrowserFS.ApiError)] callback
   @utimes: (path, atime, mtime, callback) ->
+    path = BrowserFS.node.path.normalize path
+    newCb = wrapCb callback, 1
+    BrowserFS.node.fs.root.utimes path, atime, mtime, newCb
 
   # Asynchronous `realpath`. The callback gets two arguments
   # `(err, resolvedPath)`. May use `process.cwd` to resolve relative paths.
@@ -335,7 +462,12 @@ class BrowserFS.node.fs
   #   known real paths.
   # @param [Function(BrowserFS.ApiError, String)] callback
   @realpath: (path, cache, callback) ->
-    # Cache is optional.
+    if typeof cache is 'function'
+      callback = cache
+      cache = {}
+    path = BrowserFS.node.path.normalize path
+    newCb = wrapCb callback, 2
+    BrowserFS.node.fs.root.realpath path, cache, newCb
 
 # Represents one of the following file modes. A convenience object.
 #
@@ -382,7 +514,7 @@ class BrowserFS.FileMode
   # @param [String] modeStr The string representing the mode
   # @throw [BrowserFS.ApiError] when the mode string is invalid
   constructor: (@modeStr) ->
-    if typeof modeStr != 'string' or modeStr.length == 0 or BrowserFS.node.fs.FileMode.validModeStrs.indexOf modeStr == -1
+    unless modeStr in @validModeStrs
       throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "Invalid mode string: #{modeStr}"
 
   # @return [Boolean] Returns true if the file is readable.
