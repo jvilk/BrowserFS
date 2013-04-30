@@ -1,7 +1,8 @@
 # Emulation of Node's `fs.Stats` object.
 #
-# Attribute descriptions are from
-# [`man 2 stat'](http://man7.org/linux/man-pages/man2/stat.2.html)
+# Attribute descriptions are from `man 2 stat'
+# @see http://nodejs.org/api/fs.html#fs_class_fs_stats
+# @see http://man7.org/linux/man-pages/man2/stat.2.html
 class BrowserFS.node.fs.Stats
   # item_type indicating that this is a file
   @FILE: 1

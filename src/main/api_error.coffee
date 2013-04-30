@@ -1,7 +1,7 @@
 # Information about a failed call to the BrowserFS API.
 #
-# Special thanks to Dropbox-JS for some of the error names/descriptions:
-#   https://raw.github.com/dropbox/dropbox-js/master/src/api_error.coffee
+# Special thanks to Dropbox-JS for some of the error names/descriptions.
+# @see https://raw.github.com/dropbox/dropbox-js/master/src/api_error.coffee
 # @todo Am I too tightly binding to the Dropbox API?
 class BrowserFS.ApiError
   # XHR ERROR STATUSES

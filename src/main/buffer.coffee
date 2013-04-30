@@ -1,12 +1,12 @@
 # emulate ES5 getter/setter API using legacy APIs
-# http://blogs.msdn.com/b/ie/archive/2010/09/07/transitioning-existing-code-to-the-es5-getter-setter-apis.aspx
+# @see http://blogs.msdn.com/b/ie/archive/2010/09/07/transitioning-existing-code-to-the-es5-getter-setter-apis.aspx
 if Object.prototype.__defineGetter__ and !Object.defineProperty
   Object.defineProperty = (obj, prop, desc) ->
     if desc.hasOwnProperty 'get' then obj.__defineGetter__ prop, desc.get
     if desc.hasOwnProperty 'set' then obj.__defineSetter__ prop, desc.set
 
 # Converted from TypedArray polyfill:
-# https://bitbucket.org/lindenlab/llsd/raw/7d2646cd3f9b4c806e73aebc4b32bd81e4047fdc/js/typedarray.js
+# @see https://bitbucket.org/lindenlab/llsd/raw/7d2646cd3f9b4c806e73aebc4b32bd81e4047fdc/js/typedarray.js
 # ES5: Make obj[index] an alias for obj.get(index)/obj.set(index, value)
 # for index in 0 ... obj.length
 makeArrayAccessors = (obj) ->
@@ -26,11 +26,10 @@ makeArrayAccessors = (obj) ->
 # Emulation of Node's `Buffer` class. Normally, this is declared globally, but I
 # make that behavior optional.
 #
-# Descriptions modified from: http://nodejs.org/api/buffer.html
-#
 # The buffer is backed by a `DataView`; we have a polyfill in `vendor` that
 # handles compatibility for us.
 #
+# @see http://nodejs.org/api/buffer.html
 # @todo Add option to disable array accessors, as they slow things down.
 class BrowserFS.node.Buffer
   # Checks if enc is a valid string encoding type.
