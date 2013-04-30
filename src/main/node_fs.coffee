@@ -256,6 +256,11 @@ class BrowserFS.node.fs
   # @param [Number] mode
   # @param [Function(BrowserFS.ApiError)] callback
   @lchmod: (path, mode, callback) ->
+  # Change file timestamps of the file referenced by the supplied path.
+  # @param [String] path
+  # @param [Date] atime
+  # @param [Date] mtime
+  # @param [Function(BrowserFS.ApiError)] callback
   @utimes: (path, atime, mtime, callback) ->
 
   # Asynchronous `realpath`. The callback gets two arguments
