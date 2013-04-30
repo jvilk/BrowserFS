@@ -98,7 +98,7 @@ class BrowserFS.node.fs
   @unlink: (path, callback) ->
     path = BrowserFS.node.path.normalize path
     newCb = wrapCb callback, 1
-    BrowserFS.node.fs.root.truncate path, len, newCb
+    BrowserFS.node.fs.root.unlink path, len, newCb
   # Asynchronous file open.
   # Exclusive mode (O_EXCL) ensures that path is newly created.
   # `fs.open()` fails if a file by that name already exists.
@@ -194,7 +194,7 @@ class BrowserFS.node.fs
       flags = BrowserFS.FileMode.getFileMode options.flag
       unless flags.isWriteable()
         return newCb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Flag passed to writeFile must allow for writing.'
-      BrowserFS.node.fs.root.writeFile filename, options.encoding, flags, newCb
+      BrowserFS.node.fs.root.writeFile filename, options.encoding, flags, options.mode, newCb
     catch e
       newCb e
 
@@ -538,4 +538,3 @@ class BrowserFS.FileMode
   pathNotExistsAction: ->
     if (@isWriteable() or @isAppendable()) and modeStr isnt 'r+' then return @CREATE_FILE
     else return @THROW_EXCEPTION
-
