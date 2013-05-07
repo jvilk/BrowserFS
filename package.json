@@ -19,6 +19,7 @@
   "main": "lib/browserfs.js",
   "devDependencies": {
     "async": ">= 0.2.7",
+    "karma": ">= 0.8.5",
     "coffee-script": ">= 1.6.2",
     "glob": ">= 3.1.21",
     "mocha": "git://github.com/pwnall/mocha.git#web-workers",

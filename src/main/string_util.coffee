@@ -1,40 +1,45 @@
 # Contains string utility functions, mainly for converting between JavaScript
-# strings and binary byte arrays of arbitrary encoding types.
-# TODO: Put encoding enum here.
-BrowserFS.StringUtil = {}
-# Find the 'utility' object for the given string encoding. Throws an exception
-# if the encoding is invalid.
-# @param [String] a string encoding
-# @return [Object] the StringUtil object for the given encoding.
-BrowserFS.StringUtil.FindUtil = (encoding) ->
-  encoding = switch typeof encoding
-    when 'object' then "#{encoding}" # Calls toString on any object (Node does this)
-    when 'string' then encoding      # No transformation needed.
-    else throw new Error 'Invalid encoding argument specified'
+# strings and binary buffers of arbitrary encoding types.
+class BrowserFS.StringUtil
+  # Find the 'utility' object for the given string encoding. Throws an exception
+  # if the encoding is invalid.
+  # @param [String] encoding a string encoding
+  # @return [BrowserFS.StringUtil.*] The StringUtil object for the given encoding
+  @FindUtil = (encoding) ->
+    encoding = switch typeof encoding
+      when 'object' then "#{encoding}" # Calls toString on any object (Node does this)
+      when 'string' then encoding      # No transformation needed.
+      else throw new Error 'Invalid encoding argument specified'
 
-  encoding = encoding.toLowerCase()
-  # This is the same logic in Node's source code.
-  return switch encoding
-      when 'utf8', 'utf-8' then BrowserFS.StringUtil.UTF8
-      # TODO: How is binary different from ascii?
-      when 'ascii', 'binary' then BrowserFS.StringUtil.ASCII
-      when 'ucs2', 'ucs-2', 'utf16le', 'utf-16le' then BrowserFS.StringUtil.UCS2
-      when 'hex' then BrowserFS.StringUtil.HEX
-      when 'base64' then BrowserFS.StringUtil.BASE64
-      #when 'binary', 'raw', 'raws' then BINARY
-      #when 'buffer' then BUFFER
-      #else UTF8
-      else throw new Error "Unknown encoding: #{encoding}"
-BrowserFS.StringUtil.UTF8 =
-  # Converts a JavaScript string into an array of unsigned bytes representing a
-  # UTF-8 string.
+    encoding = encoding.toLowerCase()
+    # This is the same logic in Node's source code.
+    return switch encoding
+        when 'utf8', 'utf-8' then BrowserFS.StringUtil.UTF8
+        # TODO: How is binary different from ascii?
+        when 'ascii', 'binary' then BrowserFS.StringUtil.ASCII
+        when 'ucs2', 'ucs-2', 'utf16le', 'utf-16le' then BrowserFS.StringUtil.UCS2
+        when 'hex' then BrowserFS.StringUtil.HEX
+        when 'base64' then BrowserFS.StringUtil.BASE64
+        #when 'binary', 'raw', 'raws' then BINARY
+        #when 'buffer' then BUFFER
+        #else UTF8
+        else throw new Error "Unknown encoding: #{encoding}"
+
+# String utility functions for UTF-8. Note that some UTF-8 strings *cannot* be
+# expressed in terms of JavaScript UTF-16 strings.
+# @see http://en.wikipedia.org/wiki/UTF-8
+class BrowserFS.StringUtil.UTF8
+  # Converts a JavaScript string into unsigned bytes representing a UTF-8
+  # string, and writes those bytes into the given buffer.
+  #
   # We assume that the offset / length is pre-validated.
-  # @param [BrowserFS.node.Buffer] the buffer to write into
-  # @param [String] the string that will be converted
-  # @param [Number] the offset to start writing into the buffer at
-  # @param [Number] an upper bound on the length of the string that we can write
+  # @param [BrowserFS.node.Buffer] buf the buffer to write into
+  # @param [String] str the string that will be converted
+  # @param [Number] offset the offset to start writing into the buffer at
+  # @param [Number] length an upper bound on the length of the string that we
+  #   can write
   # @return [Number] number of bytes written into the buffer
-  str2byte: (buf, str, offset, length) ->
+  @str2byte: (buf, str, offset, length) ->
     i = 0
     j = offset
     maxJ = offset+length
@@ -79,10 +84,10 @@ BrowserFS.StringUtil.UTF8 =
     buf._charsWritten = numChars
     return j-offset
 
-  # Converts a byte array, in UTF8 format, into a JavaScript string.
-  # @param [Array] an array of bytes
-  # @return [String] the array interpreted as a UTF8 format string
-  byte2str: (byteArray) ->
+  # Converts a byte array, in UTF-8 format, into a JavaScript string.
+  # @param [Array] byteArray an array of bytes
+  # @return [String] the array interpreted as a UTF-8 format string
+  @byte2str: (byteArray) ->
     chars = []
     i = 0
     while i < byteArray.length
@@ -112,26 +117,33 @@ BrowserFS.StringUtil.UTF8 =
 
   # Returns the number of bytes that the string will take up using the given
   # encoding.
-  # @param [String] the string to get the byte length for
+  #
+  # Technique from the below StackOverflow thread.
+  # @see http://stackoverflow.com/questions/5515869/string-length-in-bytes-in-javascript
+  # @param [String] str the string to get the byte length for
   # @return [Number] the number of bytes that the string will take up using the
   # given encoding.
-  byteLength: (str) ->
-    # Credit: http://stackoverflow.com/questions/5515869/string-length-in-bytes-in-javascript
+  @byteLength: (str) ->
     # Matches only the 10.. bytes that are non-initial characters in a
     # multi-byte sequence.
     m = encodeURIComponent(str).match(/%[89ABab]/g)
     return str.length + (if m then m.length else 0)
 
-BrowserFS.StringUtil.ASCII =
-  # Converts a JavaScript string into an array of unsigned bytes representing an
-  # ASCII string.
+# String utility functions for 8-bit ASCII. Like Node, we mask the high bits of
+# characters in JavaScript UTF-16 strings.
+# @see http://en.wikipedia.org/wiki/ASCII
+class BrowserFS.StringUtil.ASCII
+  # Converts a JavaScript string into unsigned bytes representing an ASCII
+  # string, and writes those bytes into the given buffer.
+  #
   # We assume that the offset / length is pre-validated.
-  # @param [BrowserFS.node.Buffer] the buffer to write into
-  # @param [String] the string that will be converted
-  # @param [Number] the offset to start writing into the buffer at
-  # @param [Number] an upper bound on the length of the string that we can write
+  # @param [BrowserFS.node.Buffer] buf the buffer to write into
+  # @param [String] str the string that will be converted
+  # @param [Number] offset the offset to start writing into the buffer at
+  # @param [Number] length an upper bound on the length of the string that we
+  #   can write
   # @return [Number] number of bytes written into the buffer
-  str2byte: (buf, str, offset, length) ->
+  @str2byte: (buf, str, offset, length) ->
     length = if str.length > length then length else str.length
     for i in [0...length]
       buf.writeUInt8 str.charCodeAt(i) % 256, offset+i
@@ -139,9 +151,9 @@ BrowserFS.StringUtil.ASCII =
     return length
 
   # Converts a byte array, in ASCII format, into a JavaScript string.
-  # @param [Array] an array of bytes
+  # @param [Array] byteArray an array of bytes
   # @return [String] the array interpreted as a ASCII format string
-  byte2str: (byteArray) ->
+  @byte2str: (byteArray) ->
     chars = new Array byteArray.length
     for i in [0...byteArray.length]
       chars[i] = String.fromCharCode(byteArray[i]&0x7F)
@@ -149,15 +161,19 @@ BrowserFS.StringUtil.ASCII =
 
   # Returns the number of bytes that the string will take up using the given
   # encoding.
-  # @param [String] the string to get the byte length for
+  # @param [String] str the string to get the byte length for
   # @return [Number] the number of bytes that the string will take up using the
   # given encoding.
-  byteLength: (str) -> return str.length
+  @byteLength: (str) -> return str.length
 
-# Adapted from: http://stackoverflow.com/questions/246801/how-can-you-encode-to-base64-using-javascript#246813
-# TODO: Bake in support for btoa() and atob() if available.
-BrowserFS.StringUtil.BASE64 =
-  num2b64: ( ->
+# Contains string utility functions for base-64 encoding.
+#
+# Adapted from the StackOverflow comment linked below.
+# @see http://stackoverflow.com/questions/246801/how-can-you-encode-to-base64-using-javascript#246813
+# @see http://en.wikipedia.org/wiki/Base64
+# @todo Bake in support for btoa() and atob() if available.
+class BrowserFS.StringUtil.BASE64
+  @num2b64: ( ->
       obj = {}
       for i,idx in ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
                     'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
@@ -165,7 +181,7 @@ BrowserFS.StringUtil.BASE64 =
         obj[idx] = i
       return obj
     )()
-  b642num: ( ->
+  @b642num: ( ->
       obj = {}
       for i, idx in ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
                     'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
@@ -178,9 +194,9 @@ BrowserFS.StringUtil.BASE64 =
     )()
 
   # Converts a byte array into a BASE64 JavaScript string.
-  # @param [Array] an array of bytes
+  # @param [Array] byteArray an array of bytes
   # @return [String] the array interpreted as a BASE64 format string
-  byte2str: (byteArray) ->
+  @byte2str: (byteArray) ->
     output = ''
     i = 0
     while i < byteArray.length
@@ -203,15 +219,17 @@ BrowserFS.StringUtil.BASE64 =
         BrowserFS.StringUtil.BASE64.num2b64[enc4]
     return output
 
-  # Converts a JavaScript string into an array of unsigned bytes representing a
-  # BASE64 string.
+  # Converts a JavaScript string into unsigned bytes representing a BASE64
+  # string, and writes those bytes into the given buffer.
+  #
   # We assume that the offset / length is pre-validated.
-  # @param [BrowserFS.node.Buffer] the buffer to write into
-  # @param [String] the string that will be converted
-  # @param [Number] the offset to start writing into the buffer at
-  # @param [Number] an upper bound on the length of the string that we can write
+  # @param [BrowserFS.node.Buffer] buf the buffer to write into
+  # @param [String] str the string that will be converted
+  # @param [Number] offset the offset to start writing into the buffer at
+  # @param [Number] length an upper bound on the length of the string that we
+  #   can write
   # @return [Number] number of bytes written into the buffer
-  str2byte: (buf, str, offset, length) ->
+  @str2byte: (buf, str, offset, length) ->
     output = ''
     i = 0
     str = str.replace /[^A-Za-z0-9\+\/\=\-\_]/g, ''
@@ -239,22 +257,28 @@ BrowserFS.StringUtil.BASE64 =
 
   # Returns the number of bytes that the string will take up using the given
   # encoding.
-  # @param [String] the string to get the byte length for
+  # @param [String] str the string to get the byte length for
   # @return [Number] the number of bytes that the string will take up using the
   # given encoding.
-  byteLength: (str) -> Math.floor(((str.replace /[^A-Za-z0-9\+\/\-\_]/g, '').length * 6) / 8)
+  @byteLength: (str) -> Math.floor(((str.replace /[^A-Za-z0-9\+\/\-\_]/g, '').length * 6) / 8)
 
-# Note: UCS2 handling is identical to UTF-16.
-BrowserFS.StringUtil.UCS2 =
-  # Converts a JavaScript string into an array of unsigned bytes representing a
-  # UCS2 string.
+# String utility functions for the UCS-2 encoding. Note that our UCS-2 handling
+# is identical to our UTF-16 handling.
+#
+# Note: UCS-2 handling is identical to UTF-16.
+# @see http://en.wikipedia.org/wiki/UCS2
+class BrowserFS.StringUtil.UCS2
+  # Converts a JavaScript string into unsigned bytes representing a UCS-2
+  # string, and writes those bytes into the given buffer.
+  #
   # We assume that the offset / length is pre-validated.
-  # @param [BrowserFS.node.Buffer] the buffer to write into
-  # @param [String] the string that will be converted
-  # @param [Number] the offset to start writing into the buffer at
-  # @param [Number] an upper bound on the length of the string that we can write
+  # @param [BrowserFS.node.Buffer] buf the buffer to write into
+  # @param [String] str the string that will be converted
+  # @param [Number] offset the offset to start writing into the buffer at
+  # @param [Number] length an upper bound on the length of the string that we
+  #   can write
   # @return [Number] number of bytes written into the buffer
-  str2byte: (buf, str, offset, length) ->
+  @str2byte: (buf, str, offset, length) ->
     len = str.length
     # Clip length to longest string of valid characters that can fit in the
     # byte range.
@@ -265,10 +289,10 @@ BrowserFS.StringUtil.UCS2 =
     buf._charsWritten = len
     return len*2
 
-  # Converts a byte array, in UCS2 format, into a JavaScript string.
-  # @param [Array] an array of bytes
-  # @return [String] the array interpreted as a UCS2 format string
-  byte2str: (byteArray) ->
+  # Converts a byte array, in UCS-2 format, into a JavaScript string.
+  # @param [Array] byteArray an array of bytes
+  # @return [String] the array interpreted as a UCS-2 format string
+  @byte2str: (byteArray) ->
     if byteArray.length % 2 != 0 then throw new Error 'Invalid UCS2 byte array.'
     chars = new Array(byteArray.length/2)
     for i in [0...byteArray.length] by 2
@@ -277,20 +301,22 @@ BrowserFS.StringUtil.UCS2 =
 
   # Returns the number of bytes that the string will take up using the given
   # encoding.
-  # @param [String] the string to get the byte length for
+  # @param [String] str the string to get the byte length for
   # @return [Number] the number of bytes that the string will take up using the
   # given encoding.
-  byteLength: (str) -> return str.length * 2
+  @byteLength: (str) -> return str.length * 2
 
-BrowserFS.StringUtil.HEX =
+# Contains string utility functions for hex encoding.
+# @see http://en.wikipedia.org/wiki/Hexadecimal
+class BrowserFS.StringUtil.HEX
   # Lookup tables
-  num2hex: ( ->
+  @num2hex: ( ->
       obj = {}
       for i,idx in ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f']
         obj[idx] = i
       return obj
     )()
-  hex2num: ( ->
+  @hex2num: ( ->
       obj = {}
       for i, idx in ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f']
         obj[i] = idx
@@ -300,15 +326,19 @@ BrowserFS.StringUtil.HEX =
       return obj
     )()
 
-  # Converts a JavaScript string into an array of unsigned bytes representing a
-  # HEX string. (ASCII string comprised of only 0-9+A-F characters)
+  # Converts a hex string into unsigned bytes, and writes those bytes into the
+  # given buffer.
+  #
+  # Hex strings are ASCII string comprised of only 0-9+A-F characters.
+  #
   # We assume that the offset / length is pre-validated.
-  # @param [BrowserFS.node.Buffer] the buffer to write into
-  # @param [String] the string that will be converted
-  # @param [Number] the offset to start writing into the buffer at
-  # @param [Number] an upper bound on the length of the string that we can write
+  # @param [BrowserFS.node.Buffer] buf the buffer to write into
+  # @param [String] str the string that will be converted
+  # @param [Number] offset the offset to start writing into the buffer at
+  # @param [Number] length an upper bound on the length of the string that we
+  #   can write
   # @return [Number] number of bytes written into the buffer
-  str2byte: (buf, str, offset, length) ->
+  @str2byte: (buf, str, offset, length) ->
     if str.length % 2 is 1 then throw new Error 'Invalid hex string'
     # Each character is 1 byte encoded as two hex characters; so 1 byte becomes
     # 2 bytes.
@@ -322,9 +352,9 @@ BrowserFS.StringUtil.HEX =
     return numBytes
 
   # Converts a byte array into a HEX string.
-  # @param [Array] an array of bytes
+  # @param [Array] byteArray an array of bytes
   # @return [String] the array interpreted as a HEX format string
-  byte2str: (byteArray) ->
+  @byte2str: (byteArray) ->
     len = byteArray.length
     chars = new Array len*2
     j = 0
@@ -337,7 +367,7 @@ BrowserFS.StringUtil.HEX =
 
   # Returns the number of bytes that the string will take up using the given
   # encoding.
-  # @param [String] the string to get the byte length for
+  # @param [String] str the string to get the byte length for
   # @return [Number] the number of bytes that the string will take up using the
   # given encoding.
-  byteLength: (str) -> return str.length/2
+  @byteLength: (str) -> return str.length/2
