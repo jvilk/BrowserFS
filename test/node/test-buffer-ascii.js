@@ -20,7 +20,7 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 var assert = require('assert');
-var BrowserFS = require('../../lib/browserfs.js');
+var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
 var Buffer = BrowserFS.node.Buffer;
 
 // ASCII conversion in node.js simply masks off the high bits,

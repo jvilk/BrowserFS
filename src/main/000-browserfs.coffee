@@ -6,9 +6,11 @@ class BrowserFS
   # Installs BrowserFS onto the given object.
   # We recommend that you install things such that they are globals.
   # Properties installed:
+  #
   # * Buffer
   # * process
   # * require (we monkey-patch it)
+  #
   # This allows you to write code as if you were running inside Node.
   # @param [Object] obj The object to install things onto (e.g. window)
   @Install: (obj) ->

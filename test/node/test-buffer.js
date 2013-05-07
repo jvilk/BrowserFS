@@ -20,7 +20,7 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 var assert = require('assert');
-var BrowserFS = require('../../lib/browserfs.js');
+var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
 var Buffer = BrowserFS.node.Buffer;
 
 // counter to ensure unique value is always copied
