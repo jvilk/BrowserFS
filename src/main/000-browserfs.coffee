@@ -28,7 +28,11 @@ class BrowserFS
           if oldRequire?
             oldRequire this, arguments
           else if arg of obj
-            return obj[arg]
+            obj[arg]
           else
             throw new Error "Module not found: #{arg}"
   @Initialize: () -> # TODO: Complete
+  # Debugging.
+  @common:
+      tmpDir: '/tmp/'
+      error: (args...) -> console.error.apply(this, args)
