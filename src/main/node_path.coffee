@@ -1,4 +1,4 @@
-# Emulates Node's 'path' module. This module contains utilities for handling and
+# Emulates Node's `path` module. This module contains utilities for handling and
 # transforming file paths. **All** of these methods perform only string
 # transformations. The file system is not consulted to check whether paths are
 # valid.
@@ -39,15 +39,15 @@ class BrowserFS.node.path
   #
   # Another way to think of it is as a sequence of cd commands in a shell.
   #
-  #    path.resolve('foo/bar', '/tmp/file/', '..', 'a/../subfile')
+  #     path.resolve('foo/bar', '/tmp/file/', '..', 'a/../subfile')
   #
   # Is similar to:
   #
-  #    cd foo/bar
-  #    cd /tmp/file/
-  #    cd ..
-  #    cd a/../subfile
-  #    pwd
+  #     cd foo/bar
+  #     cd /tmp/file/
+  #     cd ..
+  #     cd a/../subfile
+  #     pwd
   #
   # The difference is that the different paths don't need to exist and may also
   # be files.
