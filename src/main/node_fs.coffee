@@ -20,7 +20,7 @@ wrapCb = (cb, numArgs) ->
 # @return [Boolean, BrowserFS.ApiError] Returns `true` if the FD is OK,
 #   otherwise returns an ApiError.
 checkFd = (fd) ->
-  if fd instanceof BrowserFS.File
+  unless fd instanceof BrowserFS.File
     return new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Invalid file descriptor.'
   return true
 
@@ -297,8 +297,8 @@ class BrowserFS.node.fs
   # @param [Number] position An integer specifying where to begin reading from
   #   in the file. If position is null, data will be read from the current file
   #   position.
-  # @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)] The
-  #   number is the number of bytes read
+  # @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
+  #   callback The number is the number of bytes read
   @read: (fd, buffer, offset, length, position, callback) ->
     newCb = wrapCb callback, 3
     fdChk = checkFd fd

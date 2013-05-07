@@ -6,5 +6,5 @@ BrowserFS.node.path =
   dirname: (p) ->
   #basename: (p, [ext]) ->
   extname: (p) ->
-  sep: -> '/'
-  delimiter: -> ':'
+  @sep = '/'
+  @delimiter = ':'

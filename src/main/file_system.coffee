@@ -68,17 +68,18 @@ class BrowserFS.FileSystem
   #   useful for filesystems that support mount points.
   # @param [Function(Number, Number)] cb
   diskSpace: (path, cb) -> cb 0, 0
-  # **Core**
+  # **Core**: Is this filesystem read-only?
   # @return [Boolean] True if this FileSystem is inherently read-only.
   isReadOnly: -> true
-  # **Core**
+  # **Core**: Does the filesystem support optional symlink/hardlink-related
+  #   commands?
   # @return [Boolean] True if the FileSystem supports the optional
   #   symlink/hardlink-related commands.
   supportsLinks: -> false
-  # **Core**
+  # **Core**: Does the filesystem support optional property-related commands?
   # @return [Boolean] True if the FileSystem supports the optional
-  #   permission-related commands.
-  supportsPerms: -> false
+  #   property-related commands (permissions, utimes, etc).
+  supportsProps: -> false
 
   # **CORE API METHODS**
 
@@ -141,7 +142,8 @@ class BrowserFS.FileSystem
   # the file system. Then call the callback argument with either true or false.
   # @param [String] path
   # @param [Function(Boolean)] cb
-  exists: (path, cb) -> @stat(path, (err) -> if err? then cb(false) else cb(true))
+  exists: (path, cb) ->
+    @stat(path, (err) -> if err? then cb(false) else cb(true))
   # **Supplemental**: Asynchronous `realpath`. The callback gets two arguments
   # `(err, resolvedPath)`.
   #
@@ -152,6 +154,21 @@ class BrowserFS.FileSystem
   #   known real paths. If not supplied by the user, it'll be an empty object.
   # @param [Function(BrowserFS.ApiError, String)] cb
   realpath: (path, cache, cb) ->
+    if @supportsLinks()
+      # The path could contain symlinks. Split up the path,
+      # resolve any symlinks, return the resolved string.
+      splitPath = path.split BrowserFS.node.path.sep
+      # TODO: SImpler to just pass through file, find sep and such.
+      for i in [0...splitPath.length]
+        addPaths = splitPath.slice 0, i+1
+        splitPath[i] = BrowserFS.node.path.join.apply null, addPaths
+    else
+      # No symlinks. We just need to verify that it exists.
+      @exists path, (doesExist) ->
+        if doesExist
+          cb null, path
+        else
+          cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "File #{path} not found."
 
   # File operations
 
@@ -179,7 +196,8 @@ class BrowserFS.FileSystem
   # @param [BrowserFS.FileMode] flag
   # @param [Number] mode
   # @param [Function(BrowserFS.ApiError)] cb
-  writeFile: (fname, data, encoding, flag, mode, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
+  writeFile: (fname, data, encoding, flag, mode, cb) ->
+    cb BrowserFS.ApiError.NOT_SUPPORTED
   # **Supplemental**: Asynchronously append data to a file, creating the file if
   # it not yet exists.
   # @param [String] filename
@@ -200,18 +218,21 @@ class BrowserFS.FileSystem
 
   # **Optional**: Asynchronous `chmod` or `lchmod`.
   # @param [String] path
-  # @param [Boolean] isLchmod `True` if `lchmod`, false if `chmod`.
+  # @param [Boolean] isLchmod `True` if `lchmod`, false if `chmod`. Has no
+  #   bearing on result if links aren't supported.
   # @param [Number] mode
   # @param [Function(BrowserFS.ApiError)] cb
   chmod: (path, isLchmod, mode, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
   # **Optional**: Asynchronous `chown` or `lchown`.
   # @param [String] path
-  # @param [Boolean] isLchown `True` if `lchown`, false if `chown`.
+  # @param [Boolean] isLchown `True` if `lchown`, false if `chown`. Has no
+  #   bearing on result if links aren't supported.
   # @param [Number] uid
   # @param [Number] gid
   # @param [Function(BrowserFS.ApiError)] cb
   chown: (path, isLchown, uid, gid, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
-  # **Optional**: Change file timestamps of the file referenced by the supplied path.
+  # **Optional**: Change file timestamps of the file referenced by the supplied
+  # path.
   # @param [String] path
   # @param [Date] atime
   # @param [Date] mtime
