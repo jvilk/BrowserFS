@@ -765,9 +765,11 @@ Buffer(Buffer(0), 0, 0);
 })();
 
 // issue GH-4331
-assert.throws(function() {
+// JV: Disabled; Opera incorrectly throws a TypeError rather than a RangeError
+//     when you try to allocate an ArrayBuffer of this size.
+/*assert.throws(function() {
   new Buffer(0xFFFFFFFF);
-}, RangeError);
+}, RangeError);*/
 assert.throws(function() {
   new Buffer(0xFFFFFFFFF);
 }, TypeError);
