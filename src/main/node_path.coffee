@@ -11,18 +11,18 @@ class BrowserFS.node.path
   #   path.normalize('/foo/bar//baz/asdf/quux/..')
   #   // returns
   #   '/foo/bar/baz/asdf'
-  # @param [String] path The path to normalize.
+  # @param [String] p The path to normalize.
   # @return [String]
-  @normalize: (path) ->
+  @normalize: (p) =>
     # Special case: '' -> '.'
-    if path is '' then path = '.'
+    if p is '' then p = '.'
     # It's very important to know if the path is relative or not, since it
     # changes how we process .. and reconstruct the split string.
-    absolute = path.charAt(0) == @sep
+    absolute = p.charAt(0) == @sep
     # Remove repeated //s
-    path = @_removeDuplicateSeps path
+    p = @_removeDuplicateSeps p
     # Try to remove as many '../' as possible, and remove '.' completely.
-    components = path.split @sep
+    components = p.split @sep
     goodComponents = []
     for c, idx in components
       if c is '.' then continue
@@ -44,10 +44,10 @@ class BrowserFS.node.path
         else
           goodComponents.push '.'
 
-    path = goodComponents.join @sep
-    if absolute and path.charAt(0) != @sep
-      path = @sep + path
-    return path
+    p = goodComponents.join @sep
+    if absolute and p.charAt(0) != @sep
+      p = @sep + p
+    return p
 
   # Join all arguments together and normalize the resulting path.
   #
@@ -62,7 +62,7 @@ class BrowserFS.node.path
   #   TypeError: Arguments to path.join must be strings
   # @param [String,...] paths Each component of the path
   # @return [String]
-  @join: (paths...) ->
+  @join: (paths...) =>
     # Required: Prune any non-strings from the path. I also prune empty segments
     # so we can do a simple join of the array.
     processed = []
@@ -109,18 +109,18 @@ class BrowserFS.node.path
   #   '/home/myself/node/wwwroot/static_files/gif/image.gif'
   # @param [String,...] paths
   # @return [String]
-  @resolve: (paths...) ->
+  @resolve: (paths...) =>
     # Monitor for invalid paths, throw out empty paths, and look for the *last*
     # absolute path that we see.
     processed = []
-    for path in paths
-      if typeof path isnt 'string'
-        throw new TypeError "Invalid argument type to path.join: #{typeof path}"
-      else if path isnt ''
+    for p in paths
+      if typeof p isnt 'string'
+        throw new TypeError "Invalid argument type to path.join: #{typeof p}"
+      else if p isnt ''
         # Remove anything that has occurred before this absolute path, as it
         # doesn't matter.
-        if path.charAt(0) is @sep then processed = []
-        processed.push path
+        if p.charAt(0) is @sep then processed = []
+        processed.push p
     resolved = @normalize processed.join @sep
     # Special: Remove trailing slash unless it's the root
     if resolved.length > 1 and resolved.charAt(resolved.length-1) is @sep
@@ -160,7 +160,7 @@ class BrowserFS.node.path
   # @param [String] from
   # @param [String] to
   # @return [String]
-  @relative: (from, to) ->
+  @relative: (from, to) =>
     # Alright. Let's resolve these two to absolute paths and remove any
     # weirdness.
     from = @resolve from
@@ -213,7 +213,7 @@ class BrowserFS.node.path
   #   '/foo/bar/baz/asdf'
   # @param [String] p The path to get the directory name of.
   # @return [String]
-  @dirname: (p) ->
+  @dirname: (p) =>
     # We get rid of //, but we don't modify anything else (e.g. any extraneous .
     # and ../ are kept intact)
     p = @_removeDuplicateSeps p
@@ -237,7 +237,7 @@ class BrowserFS.node.path
   # @param [String] p
   # @param [String?] ext
   # @return [String]
-  @basename: (p, ext="") ->
+  @basename: (p, ext="") =>
     # Special case: Normalize will modify this to '.'
     if p is '' then return p
     # Normalize the string first to remove any weirdness.
@@ -271,7 +271,7 @@ class BrowserFS.node.path
   #   ''
   # @param [String] p
   # @return [String]
-  @extname: (p) ->
+  @extname: (p) =>
     p = @normalize p
     sections = p.split @sep
     p = sections.pop()
@@ -287,9 +287,9 @@ class BrowserFS.node.path
   # Despite not being documented, this is a tested part of Node's path API.
   # @param [String] p
   # @return [Boolean] True if the path appears to be an absolute path.
-  @isAbsolute: (p) -> return p.length > 0 and p.charAt(0) is @sep
+  @isAbsolute: (p) => return p.length > 0 and p.charAt(0) is @sep
   # Unknown. Undocumented.
-  @_makeLong: (p) -> return p
+  @_makeLong: (p) => return p
   # The platform-specific file separator. BrowserFS uses `/`.
   # @return [String]
   @sep = '/'
