@@ -161,6 +161,37 @@ class BrowserFS.node.path
   # @param [String] to
   # @return [String]
   @relative: (from, to) ->
+    # Alright. Let's resolve these two to absolute paths and remove any
+    # weirdness.
+    from = @resolve from
+    to = @resolve to
+    fromSegs = from.split @sep
+    toSegs = to.split @sep
+    # There are two segments to this path:
+    # * Going *up* the directory hierarchy with '..'
+    # * Going *down* the directory hierarchy with foo/baz/bat.
+    upCount = 0
+    downSegs = []
+
+    # Figure out how many things in 'from' are shared with 'to'.
+    for seg, i in fromSegs
+      if seg is toSegs[i] then continue
+      # It's different. The rest of 'to' indicates where we need to change to.
+      downSegs = toSegs.slice i
+      # The rest of 'from', including the current element, indicates how many
+      # directories we need to go up.
+      upCount = fromSegs.length - i
+      break
+
+    # Create the final string!
+    rv = ''
+    for i in [0...upCount]
+      rv += '../'
+    rv += downSegs.join @sep
+    # Special case: Remove trailing '/'. Happens if it's all up and no down.
+    rv = rv.substr(0, rv.length-1) if rv.length > 1 and rv.charAt(rv.length-1) is @sep
+    return rv
+
   # Return the directory name of a path. Similar to the Unix `dirname` command.
   #
   # Note that BrowserFS does not validate if the path is actually a valid
@@ -240,6 +271,12 @@ class BrowserFS.node.path
     i = p.lastIndexOf '.'
     return '' if i is -1 or i is 0
     return p.substr i
+  # Checks if the given path is an absolute path.
+  #
+  # Despite not being documented, this is a tested part of Node's path API.
+  # @param [String] p
+  # @return [Boolean] True if the path appears to be an absolute path.
+  @isAbsolute: (p) -> return p.length > 0 and p.charAt(0) is @sep
   # The platform-specific file separator. BrowserFS uses `/`.
   # @return [String]
   @sep = '/'
