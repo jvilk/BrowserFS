@@ -19,9 +19,11 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
 var assert = require('assert');
-var fs = require('fs');
-var join = require('path').join;
+var fs = BrowserFS.node.fs;
+var join = BrowserFS.node.path.join;
+var common = BrowserFS.common;
 
 var filename = join(common.tmpDir, 'append.txt');
 

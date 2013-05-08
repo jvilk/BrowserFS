@@ -12,10 +12,10 @@ BINS      := $(SRCS:src/main/%.coffee=tmp/%.js)
 
 .PHONY: dependencies release dev test doc
 
-release: dependencies lib/browserfs.min.js
-dev: dependencies lib/browserfs.js
+release: lib/browserfs.min.js
+dev: lib/browserfs.js
 test: release $(TESTS)
-doc: dependencies
+doc:
 	$(CODO) --title "BrowserFS Documentation" src
 
 dependencies:

@@ -1,4 +1,3 @@
-# Provides access to chdir / pwd functionality.
 startTime = Date.now()
 # Partial implementation of Node's `process` module.
 # We implement the portions that are relevant for the filesystem.
