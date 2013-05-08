@@ -167,6 +167,9 @@ class BrowserFS.node.path
     to = @resolve to
     fromSegs = from.split @sep
     toSegs = to.split @sep
+    # Remove the first segment on both, as it's '' (both are absolute paths)
+    toSegs.shift()
+    fromSegs.shift()
     # There are two segments to this path:
     # * Going *up* the directory hierarchy with '..'
     # * Going *down* the directory hierarchy with foo/baz/bat.
@@ -176,12 +179,20 @@ class BrowserFS.node.path
     # Figure out how many things in 'from' are shared with 'to'.
     for seg, i in fromSegs
       if seg is toSegs[i] then continue
-      # It's different. The rest of 'to' indicates where we need to change to.
-      downSegs = toSegs.slice i
       # The rest of 'from', including the current element, indicates how many
       # directories we need to go up.
       upCount = fromSegs.length - i
       break
+    # The rest of 'to' indicates where we need to change to. We place this
+    # outside of the loop, as toSegs.length may be greater than fromSegs.length.
+    downSegs = toSegs.slice i
+
+    # Special case: If 'from' is '/'
+    if fromSegs.length is 1 and fromSegs[0] is '' then upCount = 0
+
+    # upCount can't be greater than the number of fromSegs
+    # (cd .. from / is still /)
+    if upCount > fromSegs.length then upCount = fromSegs.length
 
     # Create the final string!
     rv = ''
