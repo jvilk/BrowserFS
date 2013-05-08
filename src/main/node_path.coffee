@@ -19,7 +19,7 @@ class BrowserFS.node.path
     absolute = path.charAt(0) == @sep
     # Remove repeated //s
     path = @_removeDuplicateSeps path
-    # Try to remove as many '../' as possible.
+    # Try to remove as many '../' as possible, and remove '.' completely.
     components = path.split @sep
     goodComponents = []
     for c, idx in components
@@ -34,22 +34,19 @@ class BrowserFS.node.path
         goodComponents.push c
 
     # Add in '.' when it's a relative path with no other nonempty components.
-    if not absolute
-      addDot = true
-      for c in goodComponents
-        if c isnt ''
-          addDot = false
-          break
-      if addDot
-        # Special case: Empty string. That's the only way to have a non-absolute
-        # path with one component, which is empty.
-        if goodComponents.length is 1 then goodComponents[0] is '.'
-        else goodComponents.unshift '.'
+    # Possible results: '.' and './' (input: [''] or [])
+    if not absolute and goodComponents.length < 2
+      switch goodComponents.length
+        when 1
+          if goodComponents[0] is '' then goodComponents.unshift '.'
+        else
+          goodComponents.push '.'
 
     path = goodComponents.join @sep
     if absolute and path.charAt(0) != @sep
       path = @sep + path
     return path
+
   # Join all arguments together and normalize the resulting path.
   #
   # Arguments must be strings.
