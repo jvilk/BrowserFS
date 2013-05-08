@@ -63,12 +63,15 @@ class BrowserFS.node.path
   # @param [String,...] paths Each component of the path
   # @return [String]
   @join: (paths...) ->
-    # Ignore any empty paths at the start and end of the array
-    until paths.length is 0 or paths[0] isnt ''
-      paths.shift()
-    until paths.length is 0 or paths[paths.length-1] isnt ''
-      paths.pop()
-    return @normalize paths.join(@sep)
+    # Required: Prune any non-strings from the path. I also prune empty segments
+    # so we can do a simple join of the array.
+    processed = []
+    for segment in paths
+      if typeof segment isnt 'string'
+        throw new TypeError "Invalid argument type to path.join: #{typeof segment}"
+      else if segment isnt ''
+        processed.push segment
+    return @normalize processed.join(@sep)
   # Resolves to to an absolute path.
   #
   # If to isn't already absolute from arguments are prepended in right to left
@@ -104,9 +107,40 @@ class BrowserFS.node.path
   #   path.resolve('wwwroot', 'static_files/png/', '../gif/image.gif')
   #   // if currently in /home/myself/node, it returns
   #   '/home/myself/node/wwwroot/static_files/gif/image.gif'
-  # @param [String,...] args
+  # @param [String,...] paths
   # @return [String]
-  @resolve: (args...) ->
+  @resolve: (paths...) ->
+    # Monitor for invalid paths, throw out empty paths, and look for the *last*
+    # absolute path that we see.
+    processed = []
+    for path in paths
+      if typeof path isnt 'string'
+        throw new TypeError "Invalid argument type to path.join: #{typeof path}"
+      else if path isnt ''
+        # Remove anything that has occurred before this absolute path, as it
+        # doesn't matter.
+        if path.charAt(0) is @sep then processed = []
+        processed.push path
+    resolved = @normalize processed.join @sep
+    # Special: Remove trailing slash unless it's the root
+    if resolved.length > 1 and resolved.charAt(resolved.length-1) is @sep
+      return resolved.substr(0, resolved.length-1)
+
+    # Special: If it doesn't start with '/', it's relative and we need to append
+    # the current directory.
+    if resolved.charAt(0) isnt @sep
+      # Remove ./, since we're going to append the current directory.
+      if resolved.charAt(0) is '.' and (resolved.length is 1 or resolved.charAt(1) is @sep)
+        resolved = if resolved.length is 1 then '' else resolved.substr 2
+      # Append the current directory, which *must* be an absolute path.
+      cwd = BrowserFS.node.process.cwd()
+      if resolved isnt ''
+        resolved = cwd + @sep + resolved
+      else
+        resolved = cwd
+
+    return resolved
+
   # Solve the relative path from from to to.
   #
   # At times we have two absolute paths, and we need to derive the relative path

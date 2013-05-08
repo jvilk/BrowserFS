@@ -12,7 +12,8 @@ files = [
   JASMINE_ADAPTER,
   'lib/browserfs.js',
   'test/glue.js',
-  'test/node/test-buffer*.js'
+  'test/node/test-buffer*.js',
+  'test/node/test-path.js'
 ];
 
 
