@@ -90,13 +90,13 @@ class BrowserFS.FileSystem
   # @param [String] oldPath
   # @param [String] newPath
   # @param [Function(BrowserFS.ApiError)] cb
-  rename: (oldPath, newPath, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
+  rename: (oldPath, newPath, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Core**: Asynchronous `stat` or `lstat`.
   # @param [String] path
   # @param [Boolean] isLstat True if this is `lstat`, false if this is regular
   #   `stat`.
   # @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] cb
-  stat: (path, isLstat, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
+  stat: (path, isLstat, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
 
   # File operations
 
@@ -108,31 +108,31 @@ class BrowserFS.FileSystem
   # @param [Number] mode Mode to use to open the file. Can be ignored if the
   #   filesystem doesn't support permissions.
   # @param [Function(BrowserFS.ApiError, BrowserFS.File)] cb
-  open: (path, flags, mode, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
+  open: (path, flags, mode, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Core**: Asynchronous `unlink`.
   # @param [String] path
   # @param [Function(BrowserFS.ApiError)] cb
-  unlink: (path, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
+  unlink: (path, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
 
   # Directory operations
 
   # **Core**: Asynchronous `rmdir`.
   # @param [String] path
   # @param [Function(BrowserFS.ApiError)] cb
-  rmdir: (path, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
+  rmdir: (path, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Core**: Asynchronous `mkdir`.
   # @param [String] path
   # @param [Number?] mode Mode to make the directory using. Can be ignored if
   #   the filesystem doesn't support permissions.
   # @param [Function(BrowserFS.ApiError)] cb
-  mkdir: (path, mode, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
+  mkdir: (path, mode, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Core**: Asynchronous `readdir`. Reads the contents of a directory.
   #
   # The callback gets two arguments `(err, files)` where `files` is an array of
   # the names of the files in the directory excluding `'.'` and `'..'`.
   # @param [String] path
   # @param [Function(BrowserFS.ApiError, String[])] cb
-  readdir: (path, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
+  readdir: (path, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
 
   # **SUPPLEMENTAL INTERFACE METHODS**
 
@@ -176,7 +176,7 @@ class BrowserFS.FileSystem
   # @param [String] path
   # @param [Number] len
   # @param [Function(BrowserFS.ApiError)] cb
-  truncate: (path, len, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
+  truncate: (path, len, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Supplemental**: Asynchronously reads the entire contents of a file.
   # @param [String] filename
   # @param [String] encoding If non-null, the file's contents should be decoded
@@ -185,7 +185,7 @@ class BrowserFS.FileSystem
   # @param [BrowserFS.FileMode] flag
   # @param [Function(BrowserFS.ApiError, String | BrowserFS.node.Buffer)]
   #   cb If no encoding is specified, then the raw buffer is returned.
-  readFile: (fname, encoding, flag, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
+  readFile: (fname, encoding, flag, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Supplemental**: Asynchronously writes data to a file, replacing the file
   # if it already exists.
   #
@@ -197,7 +197,7 @@ class BrowserFS.FileSystem
   # @param [Number] mode
   # @param [Function(BrowserFS.ApiError)] cb
   writeFile: (fname, data, encoding, flag, mode, cb) ->
-    cb BrowserFS.ApiError.NOT_SUPPORTED
+    cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Supplemental**: Asynchronously append data to a file, creating the file if
   # it not yet exists.
   # @param [String] filename
@@ -222,7 +222,7 @@ class BrowserFS.FileSystem
   #   bearing on result if links aren't supported.
   # @param [Number] mode
   # @param [Function(BrowserFS.ApiError)] cb
-  chmod: (path, isLchmod, mode, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
+  chmod: (path, isLchmod, mode, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Optional**: Asynchronous `chown` or `lchown`.
   # @param [String] path
   # @param [Boolean] isLchown `True` if `lchown`, false if `chown`. Has no
@@ -230,14 +230,14 @@ class BrowserFS.FileSystem
   # @param [Number] uid
   # @param [Number] gid
   # @param [Function(BrowserFS.ApiError)] cb
-  chown: (path, isLchown, uid, gid, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
+  chown: (path, isLchown, uid, gid, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Optional**: Change file timestamps of the file referenced by the supplied
   # path.
   # @param [String] path
   # @param [Date] atime
   # @param [Date] mtime
   # @param [Function(BrowserFS.ApiError)] cb
-  utimes: (path, atime, mtime, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
+  utimes: (path, atime, mtime, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
 
   # Symlink operations
   # Symlinks aren't always supported.
@@ -246,14 +246,14 @@ class BrowserFS.FileSystem
   # @param [String] srcpath
   # @param [String] dstpath
   # @param [Function(BrowserFS.ApiError)] cb
-  link: (srcpath, dstpath, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
+  link: (srcpath, dstpath, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Optional**: Asynchronous `symlink`.
   # @param [String] srcpath
   # @param [String] dstpath
   # @param [String] type can be either `'dir'` or `'file'`
   # @param [Function(BrowserFS.ApiError)] cb
-  symlink: (srcpath, dstpath, type, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
+  symlink: (srcpath, dstpath, type, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Optional**: Asynchronous readlink.
   # @param [String] path
   # @param [Function(BrowserFS.ApiError, String)] callback
-  readlink: (path, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
+  readlink: (path, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
