@@ -14,22 +14,17 @@ class BrowserFS.node.path
   # @param [String] path The path to normalize.
   # @return [String]
   @normalize: (path) ->
-    console.log "Normalize: #{path}"
     # It's very important to know if the path is relative or not, since it
     # changes how we process .. and reconstruct the split string.
     absolute = path.charAt(0) == @sep
     # Remove repeated //s
     path = @_removeDuplicateSeps path
-    console.log "Removing dupes: #{path}"
-    # XXX: Should be changed if @sep changes.
-    # '/./'' -> '/'' and './|/.'' -> ''
-    path = path.replace(/\/\.\//g, '/').replace(/^.\/|\/\.$/g, '')
-    console.log "Removing .: #{path}"
     # Try to remove as many '../' as possible.
     components = path.split @sep
     goodComponents = []
     for c, idx in components
-      if c is '..' and (absolute or (!absolute and goodComponents.length > 0 and goodComponents[0] isnt '..'))
+      if c is '.' then continue
+      else if c is '..' and (absolute or (!absolute and goodComponents.length > 0 and goodComponents[0] isnt '..'))
         # In the absolute case: Path is relative to root, so we may pop even if
         # goodComponents is empty (e.g. /../ => /)
         # In the relative case: We're getting rid of a directory that preceded
@@ -54,7 +49,6 @@ class BrowserFS.node.path
     path = goodComponents.join @sep
     if absolute and path.charAt(0) != @sep
       path = @sep + path
-    console.log "Done: #{path}"
     return path
   # Join all arguments together and normalize the resulting path.
   #
