@@ -19,23 +19,10 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
 var assert = require('assert');
-var path = require('path');
-var common = require('../common');
-
-if (process.platform === 'win32') {
-  var file = path.join(common.fixturesDir, 'a.js');
-  var resolvedFile = path.resolve(file);
-
-  assert.equal('\\\\?\\' + resolvedFile, path._makeLong(file));
-  assert.equal('\\\\?\\' + resolvedFile, path._makeLong('\\\\?\\' + file));
-  assert.equal('\\\\?\\UNC\\someserver\\someshare\\somefile',
-               path._makeLong('\\\\someserver\\someshare\\somefile'));
-  assert.equal('\\\\?\\UNC\\someserver\\someshare\\somefile',
-               path._makeLong('\\\\?\\UNC\\someserver\\someshare\\somefile'));
-  assert.equal('\\\\.\\pipe\\somepipe',
-               path._makeLong('\\\\.\\pipe\\somepipe'));
-}
+var path = BrowserFS.node.path;
+var common = BrowserFS.common;
 
 assert.equal(path._makeLong(null), null);
 assert.equal(path._makeLong(100), 100);

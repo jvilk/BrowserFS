@@ -288,6 +288,8 @@ class BrowserFS.node.path
   # @param [String] p
   # @return [Boolean] True if the path appears to be an absolute path.
   @isAbsolute: (p) -> return p.length > 0 and p.charAt(0) is @sep
+  # Unknown. Undocumented.
+  @_makeLong: (p) -> return p
   # The platform-specific file separator. BrowserFS uses `/`.
   # @return [String]
   @sep = '/'

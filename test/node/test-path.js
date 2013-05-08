@@ -30,8 +30,6 @@ var isWindows = process.platform === 'win32';
 
 // JV: Make explicit for the browser.
 var f = '/Users/jvilk/Code/BrowserFS/test/node/test-path.js';
-// JV: Make path explicit for the browser.
-process.chdir('/Users/jvilk/Code/BrowserFS');
 
 assert.equal(path.basename(f), 'test-path.js');
 assert.equal(path.basename(f, '.js'), 'test-path');

@@ -35,4 +35,6 @@ class BrowserFS
   # Debugging.
   @common:
       tmpDir: '/tmp/'
-      error: (args...) -> console.error.apply(this, args)
+      # NodeJS uses 'common.error' for test messages, but this is inappropriate.
+      # I map it to log, instead.
+      error: (args...) -> console.log.apply(this, args)
