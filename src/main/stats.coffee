@@ -15,16 +15,20 @@ class BrowserFS.node.fs.Stats
 
   # Provides information about a particular entry in the file system.
   # @param [Number] item_type type of the item (FILE, DIRECTORY, SYMLINK, or SOCKET)
-  # @param [Number] mode Unix-style file mode (e.g. 0o666)
   # @param [Number] size Size of the item in bytes. For directories/symlinks,
-  #                 this is normally the size of the struct that represents the
-  #                 item.
-  # @param [Date] atime time of last access
-  # @param [Date] mtime time of last modification
-  # @param [Date] ctime time of creation
-  constructor: (@item_type, @mode, @size, @atime, @mtime, @ctime) ->
+  #   this is normally the size of the struct that represents the item.
+  # @param [Number] mode Unix-style file mode (e.g. 0o666)
+  # @param [Date?] atime time of last access
+  # @param [Date?] mtime time of last modification
+  # @param [Date?] ctime time of creation
+  constructor: (@item_type, @size, @mode, @atime=Date.now(), @mtime=Date.now(), @ctime=Date.now()) ->
     # number of 512B blocks allocated
     @blocks = Math.ceil(size/512)
+
+  # **Nonstandard**: Clone the stats object.
+  # @return [BrowserFS.node.fs.Stats]
+  clone: () ->
+    new BrowserFS.node.fs.Stats @item_type, @size, @mode, @atime, @mtime, @ctime
 
   # @return [Boolean] True if this item is a file.
   isFile: -> @item_type == @type.FILE

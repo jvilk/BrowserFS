@@ -496,12 +496,12 @@ class BrowserFS.FileMode
   # @param [String] modeStr The string representing the mode
   # @return [BrowserFS.FileMode] The FileMode object representing the mode
   # @throw [BrowserFS.ApiError] when the mode string is invalid
-  @getFileMode: (modeStr) ->
+  @getFileMode: (modeStr) =>
     # Check cache first.
-    if modeStr in modeCache
-      return modeCache[modeStr]
+    if modeStr in @modeCache
+      return @modeCache[modeStr]
     fm = new BrowserFS.FileMode modeStr
-    modeCache[modeStr] = fm
+    @modeCache[modeStr] = fm
     return fm
 
   # Indicates that the code should not do anything.
@@ -517,7 +517,7 @@ class BrowserFS.FileMode
   # @param [String] modeStr The string representing the mode
   # @throw [BrowserFS.ApiError] when the mode string is invalid
   constructor: (@modeStr) ->
-    unless modeStr in @validModeStrs
+    unless modeStr in BrowserFS.FileMode.validModeStrs
       throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "Invalid mode string: #{modeStr}"
 
   # @return [Boolean] Returns true if the file is readable.

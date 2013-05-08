@@ -1,20 +1,20 @@
 # Base class that contains the interface for a file object. BrowserFS uses these
 # as a replacement for numeric file descriptors.
 class BrowserFS.File
-  constructor: ()->
+  constructor: ->
   # **Core**: Asynchronous `stat`.
   # @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] cb
-  stat: (cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
+  stat: (cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Core**: Asynchronous close.
   # @param [Function(BrowserFS.ApiError)] cb
-  close: (cb)-> cb BrowserFS.ApiError.NOT_SUPPORTED
+  close: (cb)-> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Core**: Asynchronous truncate.
   # @param [Number] len
   # @param [Function(BrowserFS.ApiError)] cb
-  truncate: (len, cb)-> cb BrowserFS.ApiError.NOT_SUPPORTED
+  truncate: (len, cb)-> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Core**: Asynchronous sync.
   # @param [Function(BrowserFS.ApiError)] cb
-  sync: (cb)-> cb BrowserFS.ApiError.NOT_SUPPORTED
+  sync: (cb)-> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Core**: Write buffer to the file.
   # Note that it is unsafe to use fs.write multiple times on the same file
   # without waiting for the callback. For this scenario,
@@ -29,11 +29,11 @@ class BrowserFS.File
   # @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
   #   cb The number specifies the number of bytes written into the file.
   write: (buffer, offset, length, position, cb)->
-    cb BrowserFS.ApiError.NOT_SUPPORTED
+    cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Core**: Read data from the file.
   # @param [BrowserFS.node.Buffer] buffer The buffer that the data will be
   #   written to.
-  # @param [Number] offset The offset within the buffer where reading will
+  # @param [Number] offset The offset within the buffer where writing will
   #   start.
   # @param [Number] length An integer specifying the number of bytes to read.
   # @param [Number] position An integer specifying where to begin reading from
@@ -42,18 +42,18 @@ class BrowserFS.File
   # @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)] cb The
   #   number is the number of bytes read
   read: (buffer, offset, length, position, cb)->
-    cb BrowserFS.ApiError.NOT_SUPPORTED
+    cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Optional**: Asynchronous `chown`.
   # @param [Number] uid
   # @param [Number] gid
   # @param [Function(BrowserFS.ApiError)] cb
-  chown: (uid, gid, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
+  chown: (uid, gid, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Optional**: Asynchronous `fchmod`.
   # @param [Number] mode
   # @param [Function(BrowserFS.ApiError)] cb
-  chmod: (mode, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
+  chmod: (mode, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Optional**: Change the file timestamps of the file.
   # @param [Date] atime
   # @param [Date] mtime
   # @param [Function(BrowserFS.ApiError)] cb
-  utimes: (atime, mtime, cb) -> cb BrowserFS.ApiError.NOT_SUPPORTED
+  utimes: (atime, mtime, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
