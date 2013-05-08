@@ -9,10 +9,11 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
   # that, if contents is specified, it will be mutated by the file!
   # @param [String] _path
   # @param [BrowserFS.node.fs.Stats] _stat The stats object for the given file.
-  #   PreloadFile will *not* mutate this file. Note that this object must
-  #   contain the appropriate mode that the file was opened as.
+  #   PreloadFile will mutate this object. Note that this object must contain
+  #   the appropriate mode that the file was opened as.
   # @param [BrowserFS.node.Buffer?] contents A buffer containing the entire
-  #   contents of the file. If not specified, we assume it is a new file.
+  #   contents of the file. PreloadFile will mutate this buffer. If not
+  #   specified, we assume it is a new file.
   constructor: (@_path, @_stat, contents) ->
     if contents? and contents instanceof BrowserFS.node.Buffer
       @_buffer = contents
