@@ -14,6 +14,8 @@ class BrowserFS.node.path
   # @param [String] path The path to normalize.
   # @return [String]
   @normalize: (path) ->
+    # Special case: '' -> '.'
+    if path is '' then path = '.'
     # It's very important to know if the path is relative or not, since it
     # changes how we process .. and reconstruct the split string.
     absolute = path.charAt(0) == @sep
