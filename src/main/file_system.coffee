@@ -37,7 +37,7 @@
 # You can assume the following about arguments passed to each API method:
 #
 # * **Every path is an absolute path.** Meaning, `.`, `..`, and other items
-#   are normalized into an absolute form.
+#   are resolved into an absolute form.
 # * **All arguments are present.** Any optional arguments at the Node API level
 #   have been passed in with their default values.
 # * **The callback will reset the stack depth.** When your filesystem calls the
@@ -158,7 +158,7 @@ class BrowserFS.FileSystem
       # The path could contain symlinks. Split up the path,
       # resolve any symlinks, return the resolved string.
       splitPath = path.split BrowserFS.node.path.sep
-      # TODO: SImpler to just pass through file, find sep and such.
+      # TODO: Simpler to just pass through file, find sep and such.
       for i in [0...splitPath.length]
         addPaths = splitPath.slice 0, i+1
         splitPath[i] = BrowserFS.node.path.join.apply null, addPaths
