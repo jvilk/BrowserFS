@@ -8,13 +8,16 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
   # Creates a file with the given path and, optionally, the given contents. Note
   # that, if contents is specified, it will be mutated by the file!
   # @param [String] _path
+  # @param [BrowserFS.FileMode] _mode The mode that the file was opened using.
+  #   Dictates permissions and where the file pointer starts.
   # @param [BrowserFS.node.fs.Stats] _stat The stats object for the given file.
   #   PreloadFile will mutate this object. Note that this object must contain
   #   the appropriate mode that the file was opened as.
   # @param [BrowserFS.node.Buffer?] contents A buffer containing the entire
   #   contents of the file. PreloadFile will mutate this buffer. If not
   #   specified, we assume it is a new file.
-  constructor: (@_path, @_stat, contents) ->
+  constructor: (@_path, @_mode, @_stat, contents) ->
+    @_pos = 0
     if contents? and contents instanceof BrowserFS.node.Buffer
       @_buffer = contents
     else
@@ -29,8 +32,21 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
   # @return [String] The path to the file.
   getPath: -> return @_path
   # Get the current file position.
+  #
+  # We emulate the following bug mentioned in the Node documentation:
+  # > On Linux, positional writes don't work when the file is opened in append
+  #   mode. The kernel ignores the position argument and always appends the data
+  #   to the end of the file.
   # @return [Number] The current file position.
-  getPos: -> return 0
+  getPos: ->
+    if @_mode.isAppendable() then return @_stat.size
+    return @_pos
+  # Advance the current file position by the indicated number of positions.
+  # @param [Number] delta
+  advancePos: (delta) -> @_pos += delta
+  # Set the file position.
+  # @param [Number] newPos
+  setPos: (newPos) -> @_pos = newPos
 
   # **Core**: Asynchronous sync. Must be implemented by subclasses of this
   # class.
@@ -49,8 +65,11 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
   # @param [Number] len
   # @param [Function(BrowserFS.ApiError)] cb
   truncate: (len, cb)->
+    unless @_mode.isWriteable()
+      return cb new BrowserFS.ApiError BrowserFS.ApiError.PERMISSIONS_ERROR, 'File not opened with a writeable mode.'
     @_stat.size = len
     @_stat.mtime = Date.now()
+    if @_mode.isSynchronous() then return @sync (err) -> cb err
     cb null
   # Write buffer to the file.
   # Note that it is unsafe to use fs.write multiple times on the same file
@@ -66,6 +85,8 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
   # @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
   #   cb The number specifies the number of bytes written into the file.
   write: (buffer, offset, length, position=@getPos(), cb) ->
+    unless @_mode.isWriteable()
+      return cb new BrowserFS.ApiError BrowserFS.ApiError.PERMISSIONS_ERROR, 'File not opened with a writeable mode.'
     endFp = position+length
     if endFp > @_stat.size
       @_stat.size = endFp
@@ -77,6 +98,8 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
 
     len = buffer.copy @_buffer, position, offset, offset+length
     @_stat.mtime = Date.now()
+
+    if @_mode.isSynchronous() then return @sync (err) -> cb err, len, buffer
     cb null, len, buffer
   # Read data from the file.
   # @param [BrowserFS.node.Buffer] buffer The buffer that the data will be
@@ -90,6 +113,8 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
   # @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)] cb The
   #   number is the number of bytes read
   read: (buffer, offset, length, position=@getPos(), cb)->
+    unless @_mode.isReadable()
+      return cb new BrowserFS.ApiError BrowserFS.ApiError.PERMISSIONS_ERROR, 'File not opened with a readable mode.'
     rv = @_buffer.copy buffer, offset, position, position+length
     @_stat.atime = Date.now()
     cb null, rv, buffer

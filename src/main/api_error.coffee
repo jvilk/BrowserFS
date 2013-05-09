@@ -43,6 +43,10 @@ class BrowserFS.ApiError
   # The numbers here have no real meaning; they are just unique identifiers.
   # @todo Add any needed error types.
 
+  # Indicates that you lack sufficient permissions to perform the indicated
+  # task. This could be due to a filemode error.
+  @PERMISSIONS_ERROR: 900
+
   # @param [Number] type The type of error. Use one of the static fields of this class as the type.
   # @param [String?] msg A descriptive error message.
   constructor: (@type, @msg="") ->
