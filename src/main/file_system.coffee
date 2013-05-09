@@ -24,6 +24,9 @@
 # Note that a file system may choose to implement supplemental methods for
 # efficiency reasons.
 #
+# The code for some supplemental methods was adapted directly from NodeJS's
+# fs.js source code.
+#
 # ### Optional Methods
 #
 # **Optional** API methods provide functionality that may not be available in
@@ -176,7 +179,15 @@ class BrowserFS.FileSystem
   # @param [String] path
   # @param [Number] len
   # @param [Function(BrowserFS.ApiError)] cb
-  truncate: (path, len, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+  truncate: (path, len, cb) ->
+    BrowserFS.node.fs.open path, 'w', ((er, fd) ->
+      if er then return cb er
+      BrowserFS.node.fs.ftruncate fd, len, ((er) ->
+        BrowserFS.node.fs.close fd, ((er2) ->
+          cb(er || er2)
+        )
+      )
+    )
   # **Supplemental**: Asynchronously reads the entire contents of a file.
   # @param [String] filename
   # @param [String] encoding If non-null, the file's contents should be decoded
@@ -185,7 +196,24 @@ class BrowserFS.FileSystem
   # @param [BrowserFS.FileMode] flag
   # @param [Function(BrowserFS.ApiError, String | BrowserFS.node.Buffer)]
   #   cb If no encoding is specified, then the raw buffer is returned.
-  readFile: (fname, encoding, flag, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+  readFile: (fname, encoding, flag, cb) ->
+    # Wrap cb in file closing code.
+    oldCb = cb
+    cb = (err) -> fd.close (err2) -> oldCb(if err? then err else err2)
+    # Get file.
+    @open fname, flag, 0o666, (err, fd) ->
+      if err? then return cb err
+      BrowserFS.node.fs.fstat fd, (err, stat) ->
+        if err? then return cb err
+        # Allocate buffer.
+        buf = new Buffer stat.size
+        # Write into buffer.
+        BrowserFS.node.fs.read fd, buf, (err) ->
+          if encoding is null then return cb err, buf
+          try
+            cb null, buf.toString encoding
+          catch e
+            cb e
   # **Supplemental**: Asynchronously writes data to a file, replacing the file
   # if it already exists.
   #
@@ -197,7 +225,17 @@ class BrowserFS.FileSystem
   # @param [Number] mode
   # @param [Function(BrowserFS.ApiError)] cb
   writeFile: (fname, data, encoding, flag, mode, cb) ->
-    cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+    # Wrap cb in file closing code.
+    oldCb = cb
+    cb = (err) -> fd.close (err2) -> oldCb(if err? then err else err2)
+    # Get file.
+    @open fname, flag, 0o666, (err, fd) ->
+      if err? then return cb err
+      if typeof data is 'string'
+        data = new BrowserFS.node.Buffer data, encoding
+      # Write into file.
+      fd.write data, 0, data.length, 0, (err) ->
+        cb err
   # **Supplemental**: Asynchronously append data to a file, creating the file if
   # it not yet exists.
   # @param [String] filename
@@ -207,9 +245,14 @@ class BrowserFS.FileSystem
   # @param [Number] mode
   # @param [Function(BrowserFS.ApiError)] cb
   appendFile: (fname, data, encoding, flag, mode, cb) ->
-    # TODO: Deal with once I figure out buffers.
-    #@openpath, 'a' 0666, (err, fd) ->
-    #  fd.write(buffer, offset, length, position, callback)
+    # Wrap cb in file closing code.
+    oldCb = cb
+    cb = (err) -> fd.close (err2) -> oldCb(if err? then err else err2)
+    @open fname, flag, mode, (err, fd) ->
+      if err? then cb err
+      if typeof data is 'string'
+        data = new BrowserFS.node.Buffer data, encoding
+      fd.write data, 0, data.length, 0, (err) -> cb err
 
   # **OPTIONAL INTERFACE METHODS**
 

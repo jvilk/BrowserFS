@@ -2,6 +2,9 @@
 # as a replacement for numeric file descriptors.
 class BrowserFS.File
   constructor: ->
+  # **Core**: Get the current file position.
+  # @return [Number]
+  getPos: -> throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Core**: Asynchronous `stat`.
   # @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] cb
   stat: (cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
