@@ -304,6 +304,7 @@ class BrowserFS.node.fs
     newCb = wrapCb callback, 3
     fdChk = checkFd fd
     unless fdChk then return newCb fdChk
+    unless position? then position = fd.getPos()
     fd.read buffer, offset, length, position, newCb
   # Asynchronous `fchown`.
   # @param [BrowserFS.File] fd
