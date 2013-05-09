@@ -1,37 +1,81 @@
 # A simple filesystem backed by local storage.
+#
 # Note that your program should only ever have one instance of this class.
+# @todo Pack names efficiently: Convert to UTF-8, then convert to a packed
+#   UTF-16 representation (each character is 2 bytes).
+# @todo Pack data efficiently: Each character is 2 bytes rather than 1.
+# @todo Store directory information explicitly. Could do something cool, like
+#   have directory information contain the keys for each subitem, where the
+#   key doesn't have to be the full-path. That would conserve space in
+#   localStorage.
 class BrowserFS.FileSystem.LocalStorage extends BrowserFS.FileSystem
   # Constructs the file system. Loads up any existing files stored in local
   # storage into a simple file index.
   constructor: ->
+    @_index = new BrowserFS.FileIndex
+    for i in [0...length]
+      path = window.localStorage.key i
+      data = window.localStorage.getItem path
+      stats = new BrowserFS.FileInode BrowserFS.node.fs.Stats.FILE, data.length
+      @_index.addPath path, stats
   # Removes all data from localStorage.
-  emptyLocalStorage: ->
-
-
+  emptyLocalStorage: -> window.localStorage.clear()
   # Does the browser support localStorage?
   # @return [Boolean]
-  isAvailable: -> false
+  isAvailable: -> window.localStorage?
   # Passes the size and taken space in bytes to the callback.
+  #
+  # **Note**: We assume that `localStorage` stores 5MB of data, but that is not
+  # always true.
   # @param [String] path Unused in the implementation.
   # @param [Function(Number, Number)] cb
-  diskSpace: (path, cb) -> cb 0, 0
+  # @see http://dev-test.nemikor.com/web-storage/support-test/
+  diskSpace: (path, cb) ->
+    # Guesstimate (5MB)
+    storageLimit = 5242880
+
+    # Assume everything is stored as UTF-16 (2 bytes per character)
+    usedSpace = 0
+    for i in [0...length]
+      key = window.localStorage.key i
+      usedSpace += key.length * 2
+      data = window.localStorage.getItem key
+      usedSpace += data.length * 2
+
+    # IE has a useful function for this purpose, but it's not available
+    # elsewhere. :(
+    if window.localStorage.remainingSpace?
+      remaining = window.localStorage.remainingSpace()
+      # We can extract a more precise upper-limit from this.
+      storageLimit = usedSpace + remaining
+
+    cb storageLimit, usedSpace
   # Returns false; this filesystem is not read-only.
   # @return [Boolean]
   isReadOnly: -> false
   # Returns false; this filesystem does not support symlinks.
   # @return [Boolean]
   supportsLinks: -> false
-  # Returns false; this filesystem does not support properties.
+  # Returns false; this filesystem does not support properties (yet).
   # @return [Boolean]
   supportsProps: -> false
 
   # File or directory operations
 
   rename: (oldPath, newPath, cb) ->
-    cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+    oldInode = @_index.removePath oldPath
+    if oldInode is null
+      return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "#{oldPath} not found."
+    # Remove the given path if it exists.
+    @_index.removePath newPath
+    @_index.addPath newPath, oldInode
+    cb()
 
   stat: (path, isLstat, cb) ->
-    cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+    inode = @_index.getInode path
+    if inode is null
+      return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "#{path} not found."
+    cb null, inode.getStats()
 
   # File operations
 
@@ -39,15 +83,49 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.FileSystem
     cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
 
   unlink: (path, cb) ->
-    cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+    # Check if it exists, and is a file.
+    inode = @_index.getInode path
+    if inode is null
+      return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "#{path} not found."
+    else unless inode.isFile()
+      return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "#{path} is a directory, not a file."
+    @_index.removePath path
+    cb()
 
   # Directory operations
 
   rmdir: (path, cb) ->
-    cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+    # Check if it exists, and is a directory.
+    inode = @_index.getInode path
+    if inode is null
+      return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "#{path} not found."
+    else if inode.isFile()
+      return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "#{path} is a file, not a directory."
+    @_index.removePath path
 
+    # Remove all files belonging to the path from `localStorage`.
+    files = inode.getListing()
+    sep = BrowserFS.node.path.sep
+    for file in files
+      window.localStorage.removeItem "#{path}#{sep}#{file}"
+    cb()
+
+  # @todo Add empty directories to `localStorage` somehow.
   mkdir: (path, mode, cb) ->
-    cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+    # Check if it exists.
+    inode - @_index.getInode path
+    unless inode is null
+      return cb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "#{path} already exists."
+    inode = new BrowserFS.DirInode()
+    success = @_index.addInode path
+    if success then return cb null
+    cb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "Could not add #{path} for some reason."
 
   readdir: (path, cb) ->
-    cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+    # Check if it exists.
+    inode = @_index.getInode path
+    if inode is null
+      return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "#{path} not found."
+    else if inode.isFile()
+      return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "#{path} is a file, not a directory."
+    cb null, inode.getListing()

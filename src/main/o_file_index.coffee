@@ -7,22 +7,11 @@
 # Can be used as a partial or a full index, although care must be taken if used
 # for the former purpose, especially when directories are concerned.
 class BrowserFS.FileIndex
-  # Constructs a new fileindex using the file paths in the given array.
-  # @param [String[]] files An array of *file* paths.
-  constructor: (files=[]) ->
+  # Constructs a new FileIndex.
+  constructor: ->
     # _index is a single-level key,value store that maps *directory* paths to
     # DirInodes. File information is only contained in DirInodes themselves.
     @_index = {}
-    @addPaths files
-
-  # Adds the given file paths to the index if they are not already in the index.
-  # @param [String[]] files An array of *file* paths.
-  # @todo Optimize; can take advantage of the fact that you can easily sort the
-  #   array and take advantage of similar path roots.
-  addPaths: (files) ->
-    for file in files
-      @addPath file
-    return
 
   # Adds the given path to the index if it is not already in the index. Creates
   # any needed parent directories.
@@ -62,7 +51,8 @@ class BrowserFS.FileIndex
     return true
 
   # Removes the given path. Can be a file or a directory.
-  # @return [Boolean] True if the path existed and was removed.
+  # @return [BrowserFS.FileInode | BrowserFS.DirInode | null] The removed item,
+  #   or null if it did not exist.
   removePath: (path) ->
     # Split into directory path / item name
     dirpath = BrowserFS.node.path.dirname path
@@ -70,17 +60,17 @@ class BrowserFS.FileIndex
 
     # Try to remove it from its parent directory first.
     parent = @_index[dirpath]
-    if parent is undefined then return false
+    if parent is undefined then return null
 
     # Remove myself from my parent.
     inode = parent.remItem itemname
-    return false if inode is null
+    return null if inode is null
 
     # If I'm a directory, remove myself from the index.
     # We assume that the presence of the inode in its parent's inode indicates
     # that it must also be in _index.
     unless inode.isFile() then delete @_index[path]
-    return true
+    return inode
 
   # Retrieves the directory listing of the given path.
   # @return [String[]] An array of files in the given path, or 'null' if it does
@@ -109,7 +99,6 @@ class BrowserFS.FileIndex
 #
 # Currently, it's essentially a BrowserFS.node.fs.Stats object.
 class BrowserFS.FileInode extends BrowserFS.node.fs.Stats
-  constructor: ->
   # Return a Stats object for this inode.
   # @return [BrowserFS.node.fs.Stats]
   getStats: -> return @
