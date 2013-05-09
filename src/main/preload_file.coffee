@@ -4,6 +4,7 @@
 # This is also an abstract class, as it lacks an implementation of 'sync' and
 # 'close'. Each filesystem that wishes to use this file representation must
 # extend this class and implement those two methods.
+# @todo 'close' lever that disables functionality once closed.
 class BrowserFS.File.PreloadFile extends BrowserFS.File
   # Creates a file with the given path and, optionally, the given contents. Note
   # that, if contents is specified, it will be mutated by the file!
@@ -118,3 +119,26 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
     rv = @_buffer.copy buffer, offset, position, position+length
     @_stat.atime = Date.now()
     cb null, rv, buffer
+
+# File class for the LocalStorage-based file system.
+# @todo Move into `localstorage_file_system.coffee` file.
+class BrowserFS.File.PreloadFile.LocalStorageFile extends BrowserFS.File.PreloadFile
+  # **Core**: Asynchronous sync. Must be implemented by subclasses of this
+  # class.
+  # @param [Function(BrowserFS.ApiError)] cb
+  sync: (cb)->
+    # Convert to UTF-8.
+    data = @_buffer.toString()
+    try
+      window.localStorage.setItem @_path, data
+    catch e
+      # Assume we're out of space.
+      cb new BrowserFS.ApiError BrowserFS.ApiError.DRIVE_FULL
+    cb()
+
+  # **Core**: Asynchronous close. Must be implemented by subclasses of this
+  # class.
+  # @param [Function(BrowserFS.ApiError)] cb
+  close: (cb)->
+    # Maps to sync.
+    @sync cb

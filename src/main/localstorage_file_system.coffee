@@ -29,7 +29,7 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.FileSystem
     data = window.localStorage.getItem path
     # Doesn't exist.
     return null if data is null
-    return new BrowserFS.File.PreloadFile path, mode, inode.getStats(), new Buffer(data)
+    return new BrowserFS.File.PreloadFile.LocalStorageFile path, mode, inode.getStats(), new Buffer(data)
 
   # Removes all data from localStorage.
   emptyLocalStorage: -> window.localStorage.clear()
@@ -104,7 +104,7 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.FileSystem
             return cb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "#{path} already exists."
           when BrowserFS.FileMode.TRUNCATE_FILE
             # Truncate to 0.
-            file = new BrowserFS.PreloadFile path, flags, inode.getStats()
+            file = new BrowserFS.PreloadFile.LocalStorageFile path, flags, inode.getStats()
           when BrowserFS.FileMode.NOP
             # Use existing file contents.
             file = @_getFile path, flags, inode
@@ -114,7 +114,7 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.FileSystem
     else
       switch flags.pathNotExistsAction()
         when BrowserFS.FileMode.CREATE_FILE
-          file = new BrowserFS.PreloadFile path, flags, inode.getStats()
+          file = new BrowserFS.PreloadFile.LocalStorageFile path, flags, inode.getStats()
         when BrowserFS.FileMode.THROW_EXCEPTION
           return cb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "#{path} doesn't exist."
         else
@@ -154,7 +154,7 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.FileSystem
   # @todo Add empty directories to `localStorage` somehow.
   mkdir: (path, mode, cb) ->
     # Check if it exists.
-    inode - @_index.getInode path
+    inode = @_index.getInode path
     unless inode is null
       return cb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "#{path} already exists."
     inode = new BrowserFS.DirInode()
