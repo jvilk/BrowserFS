@@ -7,11 +7,11 @@ wrapCb = (cb, numArgs) ->
   # need to handle 1-3 arguments
   switch numArgs
     when 1
-      return (arg1) -> window.setImmediate -> cb arg1
+      return (arg1) -> setImmediate -> cb arg1
     when 2
-      return (arg1, arg2) -> window.setImmediate -> cb arg1, arg2
+      return (arg1, arg2) -> setImmediate -> cb arg1, arg2
     when 3
-      return (arg1, arg2, arg3) -> window.setImmediate -> cb arg1, arg2, arg3
+      return (arg1, arg2, arg3) -> setImmediate -> cb arg1, arg2, arg3
     else
       throw new Error 'Invalid invocation of wrapCb.'
 

@@ -26,7 +26,7 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
       @_buffer = new BrowserFS.node.Buffer 0
     # Note: This invariant is *not* maintained once the file starts getting
     # modified.
-    if @_stat.size != @_buffer.byteLength()
+    if @_stat.size != @_buffer.length
       throw new Error 'Invalid buffer: Size differs from size specified in Stats object.'
 
   # Get the path to this file.
@@ -91,7 +91,7 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
     endFp = position+length
     if endFp > @_stat.size
       @_stat.size = endFp
-      if endFp > @_buffer.byteLength()
+      if endFp > @_buffer.length
         # Extend the buffer!
         newBuff = new Buffer(endFp)
         @_buffer.copy newBuff

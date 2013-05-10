@@ -103,7 +103,8 @@ fs.appendFile(filename3, buf, function(e) {
 });
 
 // test that appendFile accepts numbers.
-var filename4 = join(common.tmpDir, 'append4.txt');
+// JV: No.
+/*var filename4 = join(common.tmpDir, 'append4.txt');
 fs.writeFile(filename4, currentFileData, testCb);
 
 common.error('appending to ' + filename4);
@@ -122,14 +123,14 @@ fs.appendFile(filename4, n, { mode: m }, function(e) {
     assert.equal(st.mode & 0700, m);
   }*/
 
-  fs.readFile(filename4, function(e, buffer) {
+/*  fs.readFile(filename4, function(e, buffer) {
     if (e) throw e;
     common.error('file4 read');
     ncallbacks++;
     assert.equal(Buffer.byteLength('' + n) + currentFileData.length,
                  buffer.length);
   });
-});
+});*/
 
 /*process.on('exit', function() {
   common.error('done');
