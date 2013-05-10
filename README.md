@@ -1,3 +1,7 @@
+# This is outdated.
+
+I plan to update this sometime.
+
 BrowserFS
 =========
 
