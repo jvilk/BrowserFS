@@ -28,8 +28,8 @@ tmp/%.js: src/main/%.coffee
 	node $(COFFEEC) --output tmp --compile $^
 
 lib/browserfs.js: $(BINS)
-	node $(COFFEEC) --output tmp --compile --join browserfs.js src/main/*.coffee
-	node $(UGLIFYJS) -b --output lib/browserfs.js vendor/*.js tmp/browserfs.js
+	node $(COFFEEC) -m --output tmp --compile --join browserfs.js src/main/*.coffee
+	node $(UGLIFYJS) -b --output lib/browserfs.js --in-source-map tmp/browserfs.map --source-map lib/browserfs.map vendor/*.js tmp/browserfs.js
 
 lib/browserfs.min.js: lib/browserfs.js
-	node $(UGLIFYJS) --compress unused=false --output lib/browserfs.min.js --source-map lib/browserfs.min.map vendor/*.js lib/browserfs.js
+	node $(UGLIFYJS) --compress unused=false --output lib/browserfs.min.js --in-source-map tmp/browserfs.map --source-map lib/browserfs.min.map vendor/*.js lib/browserfs.js

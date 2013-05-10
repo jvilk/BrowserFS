@@ -50,3 +50,17 @@ class BrowserFS.ApiError
   # @param [Number] type The type of error. Use one of the static fields of this class as the type.
   # @param [String?] msg A descriptive error message.
   constructor: (@type, @msg="") ->
+
+  # @return [String] A friendly error message.
+  toString: ->
+    typeStr = switch @type
+      when @NETWORK_ERROR then 'Network Error'
+      when @INVALID_PARAM then 'Invalid Param'
+      when @INVALID_TOKEN then 'Invalid Token'
+      when @AUTH_ERROR then 'Auth Error'
+      when @NOT_FOUND then 'Not Found'
+      when @DRIVE_FULL then 'Drive Full'
+      when @NOT_SUPPORTED then 'Not Supported'
+      when @PERMISSIONS_ERROR then 'Permissions Error'
+      else 'Error'
+    "BrowserFS #{typeStr}: #{@msg}"

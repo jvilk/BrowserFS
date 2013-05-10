@@ -199,10 +199,10 @@ class BrowserFS.FileSystem
   readFile: (fname, encoding, flag, cb) ->
     # Wrap cb in file closing code.
     oldCb = cb
-    cb = (err) -> fd.close (err2) -> oldCb(if err? then err else err2)
     # Get file.
     @open fname, flag, 0o666, (err, fd) ->
       if err? then return cb err
+      cb = (err) -> fd.close (err2) -> oldCb(if err? then err else err2)
       BrowserFS.node.fs.fstat fd, (err, stat) ->
         if err? then return cb err
         # Allocate buffer.
@@ -227,10 +227,10 @@ class BrowserFS.FileSystem
   writeFile: (fname, data, encoding, flag, mode, cb) ->
     # Wrap cb in file closing code.
     oldCb = cb
-    cb = (err) -> fd.close (err2) -> oldCb(if err? then err else err2)
     # Get file.
     @open fname, flag, 0o666, (err, fd) ->
       if err? then return cb err
+      cb = (err) -> fd.close (err2) -> oldCb(if err? then err else err2)
       if typeof data is 'string'
         data = new BrowserFS.node.Buffer data, encoding
       # Write into file.
@@ -247,9 +247,9 @@ class BrowserFS.FileSystem
   appendFile: (fname, data, encoding, flag, mode, cb) ->
     # Wrap cb in file closing code.
     oldCb = cb
-    cb = (err) -> fd.close (err2) -> oldCb(if err? then err else err2)
     @open fname, flag, mode, (err, fd) ->
       if err? then cb err
+      cb = (err) -> fd.close (err2) -> oldCb(if err? then err else err2)
       if typeof data is 'string'
         data = new BrowserFS.node.Buffer data, encoding
       fd.write data, 0, data.length, 0, (err) -> cb err

@@ -541,5 +541,5 @@ class BrowserFS.FileMode
   # @return [Number] Returns one of the static fields on this object that
   #   indicates the appropriate response to the path not existing.
   pathNotExistsAction: ->
-    if (@isWriteable() or @isAppendable()) and modeStr isnt 'r+' then return @CREATE_FILE
+    if (@isWriteable() or @isAppendable()) and @modeStr isnt 'r+' then return @CREATE_FILE
     else return @THROW_EXCEPTION
