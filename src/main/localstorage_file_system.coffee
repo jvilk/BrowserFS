@@ -32,10 +32,10 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.FileSystem
     return new BrowserFS.File.PreloadFile.LocalStorageFile path, mode, inode.getStats(), new Buffer(data)
 
   # Removes all data from localStorage.
-  emptyLocalStorage: -> window.localStorage.clear()
+  empty: -> window.localStorage.clear()
   # Does the browser support localStorage?
   # @return [Boolean]
-  isAvailable: -> window.localStorage?
+  isAvailable: -> window?.localStorage?
   # Passes the size and taken space in bytes to the callback.
   #
   # **Note**: We assume that `localStorage` stores 5MB of data, but that is not

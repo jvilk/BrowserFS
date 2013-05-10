@@ -86,6 +86,7 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
   # @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
   #   cb The number specifies the number of bytes written into the file.
   write: (buffer, offset, length, position, cb) ->
+    if position is null then position = @getPos()
     unless @_mode.isWriteable()
       return cb new BrowserFS.ApiError BrowserFS.ApiError.PERMISSIONS_ERROR, 'File not opened with a writeable mode.'
     endFp = position+length

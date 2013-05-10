@@ -4,7 +4,9 @@ BrowserFS.Install(this);
 // Change to test directory.
 process.chdir('/Users/jvilk/Code/BrowserFS');
 // Initialize the LocalStorage filesystem.
-BrowserFS.node.fs.initiate(new BrowserFS.FileSystem.LocalStorage());
+var lsfs = new BrowserFS.FileSystem.LocalStorage();
+lsfs.empty();
+BrowserFS.node.fs.initiate(lsfs);
 
 
 // Jasmine hackery for Karma.

@@ -24,6 +24,7 @@ var assert = require('assert');
 var fs = BrowserFS.node.fs;
 var join = BrowserFS.node.path.join;
 var common = BrowserFS.common;
+var Buffer = BrowserFS.node.Buffer;
 
 var filename = join(common.tmpDir, 'append.txt');
 
@@ -132,6 +133,8 @@ fs.appendFile(filename4, n, { mode: m }, function(e) {
   });
 });*/
 
+// JV: No obvious in-browser equivalent. We clear the test filesystem each time
+//     the tests are run, though.
 /*process.on('exit', function() {
   common.error('done');
   assert.equal(8, ncallbacks);

@@ -202,13 +202,14 @@ class BrowserFS.FileSystem
     # Get file.
     @open fname, flag, 0o666, (err, fd) ->
       if err? then return cb err
-      cb = (err) -> fd.close (err2) -> oldCb(if err? then err else err2)
+      cb = (err, arg) -> fd.close (err2) ->
+        err = if err? then err else err2
+        oldCb err, arg
       BrowserFS.node.fs.fstat fd, (err, stat) ->
         if err? then return cb err
         # Allocate buffer.
-        buf = new Buffer stat.size
-        # Write into buffer.
-        BrowserFS.node.fs.read fd, buf, (err) ->
+        buf = new BrowserFS.node.Buffer stat.size
+        BrowserFS.node.fs.read fd, buf, 0, stat.size, 0, (err) ->
           if encoding is null then return cb err, buf
           try
             cb null, buf.toString encoding
@@ -252,7 +253,7 @@ class BrowserFS.FileSystem
       cb = (err) -> fd.close (err2) -> oldCb(if err? then err else err2)
       if typeof data is 'string'
         data = new BrowserFS.node.Buffer data, encoding
-      fd.write data, 0, data.length, 0, (err) -> cb err
+      fd.write data, 0, data.length, null, (err) -> cb err
 
   # **OPTIONAL INTERFACE METHODS**
 

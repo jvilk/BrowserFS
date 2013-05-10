@@ -40,7 +40,10 @@ class BrowserFS.node.fs
   # root filesystem before using any other API method.
   # @param [BrowserFS.FileSystem] rootFS The root filesystem to use for the
   #   entire BrowserFS file system.
-  @initiate: (rootFS) => @root = rootFS
+  @initiate: (rootFS) =>
+    unless rootFS.isAvailable()
+      throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Tried to instantiate BrowserFS with an unavailable file system.'
+    @root = rootFS
 
   # FILE OR DIRECTORY METHODS
 
