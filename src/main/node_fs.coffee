@@ -535,11 +535,11 @@ class BrowserFS.FileMode
   # @return [Number] Returns one of the static fields on this object that
   #   indicates the appropriate response to the path existing.
   pathExistsAction: ->
-    if @isExclusive() then return @THROW_EXCEPTION
-    else if @isWriteable() then return @TRUNCATE_FILE
-    else return @NOP
+    if @isExclusive() then return BrowserFS.FileMode.THROW_EXCEPTION
+    else if @isWriteable() then return BrowserFS.FileMode.TRUNCATE_FILE
+    else return BrowserFS.FileMode.NOP
   # @return [Number] Returns one of the static fields on this object that
   #   indicates the appropriate response to the path not existing.
   pathNotExistsAction: ->
-    if (@isWriteable() or @isAppendable()) and @modeStr isnt 'r+' then return @CREATE_FILE
-    else return @THROW_EXCEPTION
+    if (@isWriteable() or @isAppendable()) and @modeStr isnt 'r+' then return BrowserFS.FileMode.CREATE_FILE
+    else return BrowserFS.FileMode.THROW_EXCEPTION
