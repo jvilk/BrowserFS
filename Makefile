@@ -10,13 +10,17 @@ TESTS     := $(TESTFILES:.js=.test)
 SRCS      := $(wildcard src/main/*.coffee)
 BINS      := $(SRCS:src/main/%.coffee=tmp/%.js)
 
-.PHONY: dependencies release dev test doc
+.PHONY: dependencies release dev test doc clean
 
 release: lib/browserfs.min.js
 dev: lib/browserfs.js
 test: release $(TESTS)
 doc:
 	$(CODO) --title "BrowserFS Documentation" src
+
+clean:
+	@rm -f lib/*.js lib/*.map
+	@rm -rf tmp/
 
 dependencies:
 	@npm install
