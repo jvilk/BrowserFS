@@ -21,15 +21,29 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.FileSystem
 
   # Retrieve the indicated file from `localStorage`.
   # @param [String] path
-  # @param [BrowserFS.FileMode] mode
+  # @param [BrowserFS.FileMode] flags
   # @param [BrowserFS.FileInode] inode
   # @return [BrowserFS.File.PreloadFile] Returns a preload file with the file's
   #   contents, or null if it does not exist.
-  _getFile: (path, mode, inode) ->
+  _getFile: (path, flags, inode) ->
     data = window.localStorage.getItem path
     # Doesn't exist.
     return null if data is null
-    return new BrowserFS.File.PreloadFile.LocalStorageFile path, mode, inode.getStats(), new Buffer(data)
+    return new BrowserFS.File.PreloadFile.LocalStorageFile @, path, flags, inode.getStats(), new BrowserFS.node.Buffer(data)
+
+  # Handles syncing file data with `localStorage`.
+  # @param [String] path
+  # @param [String] data
+  # @param [BrowserFS.FileInode] inode
+  # @param [Function(BrowserFS.ApiError)] cb
+  _sync: (path, data, inode, cb) ->
+    try
+      window.localStorage.setItem path, data
+      @_index.addPath path, inode
+    catch e
+      # Assume we're out of space.
+      cb new BrowserFS.ApiError BrowserFS.ApiError.DRIVE_FULL
+    cb()
 
   # Removes all data from localStorage.
   empty: -> window.localStorage.clear()
@@ -104,7 +118,7 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.FileSystem
             return cb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "#{path} already exists."
           when BrowserFS.FileMode.TRUNCATE_FILE
             # Truncate to 0.
-            file = new BrowserFS.File.PreloadFile.LocalStorageFile path, flags, inode.getStats()
+            file = new BrowserFS.File.PreloadFile.LocalStorageFile @, path, flags, inode.getStats()
           when BrowserFS.FileMode.NOP
             # Use existing file contents.
             file = @_getFile path, flags, inode
@@ -114,7 +128,7 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.FileSystem
     else
       switch flags.pathNotExistsAction()
         when BrowserFS.FileMode.CREATE_FILE
-          file = new BrowserFS.File.PreloadFile.LocalStorageFile path, flags, new BrowserFS.node.fs.Stats(BrowserFS.node.fs.Stats.FILE, 0, mode)
+          file = new BrowserFS.File.PreloadFile.LocalStorageFile @, path, flags, new BrowserFS.node.fs.Stats(BrowserFS.node.fs.Stats.FILE, 0, mode)
         when BrowserFS.FileMode.THROW_EXCEPTION
           return cb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "#{path} doesn't exist."
         else

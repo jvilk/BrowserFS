@@ -8,6 +8,7 @@
 class BrowserFS.File.PreloadFile extends BrowserFS.File
   # Creates a file with the given path and, optionally, the given contents. Note
   # that, if contents is specified, it will be mutated by the file!
+  # @param [BrowserFS.FileSystem] _fs The file system that created the file.
   # @param [String] _path
   # @param [BrowserFS.FileMode] _mode The mode that the file was opened using.
   #   Dictates permissions and where the file pointer starts.
@@ -17,7 +18,7 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
   # @param [BrowserFS.node.Buffer?] contents A buffer containing the entire
   #   contents of the file. PreloadFile will mutate this buffer. If not
   #   specified, we assume it is a new file.
-  constructor: (@_path, @_mode, @_stat, contents) ->
+  constructor: (@_fs, @_path, @_mode, @_stat, contents) ->
     @_pos = 0
     if contents? and contents instanceof BrowserFS.node.Buffer
       @_buffer = contents
@@ -130,12 +131,7 @@ class BrowserFS.File.PreloadFile.LocalStorageFile extends BrowserFS.File.Preload
   sync: (cb)->
     # Convert to UTF-8.
     data = @_buffer.toString()
-    try
-      window.localStorage.setItem @_path, data
-    catch e
-      # Assume we're out of space.
-      cb new BrowserFS.ApiError BrowserFS.ApiError.DRIVE_FULL
-    cb()
+    @_fs._sync @_path, data, @_stat, cb
 
   # **Core**: Asynchronous close. Must be implemented by subclasses of this
   # class.
