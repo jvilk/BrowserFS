@@ -203,7 +203,7 @@ class BrowserFS.FileSystem
     @open fname, flag, 0o666, (err, fd) ->
       if err? then return cb err
       cb = (err, arg) -> fd.close (err2) ->
-        err = if err? then err else err2
+        err ?= err2
         oldCb err, arg
       BrowserFS.node.fs.fstat fd, (err, stat) ->
         if err? then return cb err
