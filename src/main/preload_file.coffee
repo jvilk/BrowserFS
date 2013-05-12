@@ -130,21 +130,3 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
       return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
     @_stat.mode = parseInt(mode, 8)
     @_fs.sync cb
-
-
-# File class for the LocalStorage-based file system.
-# @todo Move into `localstorage_file_system.coffee` file.
-class BrowserFS.File.PreloadFile.LocalStorageFile extends BrowserFS.File.PreloadFile
-  # Asynchronous sync.
-  # @param [Function(BrowserFS.ApiError)] cb
-  sync: (cb)->
-    # Convert to UTF-8.
-    data = @_buffer.toString()
-    inode = BrowserFS.FileInode.from_stats @_stat
-    @_fs._sync @_path, data, inode, cb
-
-  # Asynchronous close.
-  # @param [Function(BrowserFS.ApiError)] cb
-  close: (cb)->
-    # Maps to sync.
-    @sync cb

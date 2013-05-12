@@ -183,3 +183,20 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.FileSystem
     else if inode.isFile()
       return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "#{path} is a file, not a directory."
     cb null, inode.getListing()
+
+
+# File class for the LocalStorage-based file system.
+class BrowserFS.File.PreloadFile.LocalStorageFile extends BrowserFS.File.PreloadFile
+  # Asynchronous sync.
+  # @param [Function(BrowserFS.ApiError)] cb
+  sync: (cb)->
+    # Convert to UTF-8.
+    data = @_buffer.toString()
+    inode = BrowserFS.FileInode.from_stats @_stat
+    @_fs._sync @_path, data, inode, cb
+
+  # Asynchronous close.
+  # @param [Function(BrowserFS.ApiError)] cb
+  close: (cb)->
+    # Maps to sync.
+    @sync cb
