@@ -100,6 +100,14 @@ class BrowserFS.FileIndex
 #
 # Currently, it's essentially a BrowserFS.node.fs.Stats object.
 class BrowserFS.FileInode extends BrowserFS.node.fs.Stats
+  # Constructs an inode for a file
+  # @param [BrowserFS.node.fs.Stats] (Optional) The stats object for this inode.
+  constructor: (_stats) ->
+    if _stats?
+      # XXX: hacky copy-constructor
+      super _stats.item_type, _stats.size, _stats.mode, _stats.atime, _stats.mtime, _stats.ctime
+    else
+      super
   # Return a Stats object for this inode.
   # @return [BrowserFS.node.fs.Stats]
   getStats: -> return @
@@ -122,9 +130,7 @@ class BrowserFS.DirInode
   # Returns the inode for the indicated item, or null if it does not exist.
   # @param [String] p Name of item in this directory.
   # @return [BrowserFS.FileInode | BrowserFS.DirInode | null]
-  getItem: (p) ->
-    item = @_ls[p]
-    return if item is undefined then null else item
+  getItem: (p) -> @_ls[p] ? null
   # Add the given item to the directory listing. Note that the given inode is
   # not copied, and will be mutated by the DirInode if it is a DirInode.
   # @param [String] p Item name to add to the directory listing.
