@@ -22,9 +22,9 @@
 var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
 var assert = require('assert');
 var fs = BrowserFS.node.fs;
+var filename = 'open-test-filename';
 
-var constants = require('constants');
-
+/*
 var caughtException = false;
 try {
   // should throw ENOENT, not EBADF
@@ -36,25 +36,24 @@ catch (e) {
   caughtException = true;
 }
 assert.ok(caughtException);
+*/
+fs.open(filename, 'w', function(err, fd){
+  fs.close(fd, function(){
+    // file is now created
+    fs.open(filename, 'r', function(err, fd) {
+      if (err) {
+        throw err;
+      }
+      assert.ok(fd);
+      console.log("opened with mode `r`: "+filename);
+    });
 
-var openFd;
-fs.open(__filename, 'r', function(err, fd) {
-  if (err) {
-    throw err;
-  }
-  openFd = fd;
+    fs.open(filename, 'rs', function(err, fd) {
+      if (err) {
+        throw err;
+      }
+      assert.ok(fd);
+      console.log("opened with mode `rs`: "+filename);
+    });
+  });
 });
-
-var openFd2;
-fs.open(__filename, 'rs', function(err, fd) {
-  if (err) {
-    throw err;
-  }
-  openFd2 = fd;
-});
-
-process.on('exit', function() {
-  assert.ok(openFd);
-  assert.ok(openFd2);
-});
-
