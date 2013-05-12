@@ -101,7 +101,7 @@ class BrowserFS.FileIndex
 # Currently, it's essentially a BrowserFS.node.fs.Stats object.
 class BrowserFS.FileInode extends BrowserFS.node.fs.Stats
   # Constructs an inode for a file
-  # @param [BrowserFS.node.fs.Stats] (Optional) The stats object for this inode.
+  # @param [BrowserFS.node.fs.Stats?] The stats object for this inode.
   constructor: (_stats) ->
     if _stats?
       # XXX: hacky copy-constructor
