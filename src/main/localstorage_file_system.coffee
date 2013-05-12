@@ -110,7 +110,7 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.FileSystem
     # Check if the path exists, and is a file.
     inode = @_index.getInode path
     if inode isnt null
-      if !inode.isFile()
+      unless inode.isFile()
         return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "#{path} is a directory."
       else
         switch flags.pathExistsAction()
