@@ -20,7 +20,8 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 var assert = require('assert');
-var fs = require('fs');
+var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
+var fs = BrowserFS.node.fs;
 var f = __filename;
 var exists;
 var doesNotExist;

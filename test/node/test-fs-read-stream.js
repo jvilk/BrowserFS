@@ -19,18 +19,16 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-
-
-
-var common = require('../common');
+var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
 var assert = require('assert');
+var path = BrowserFS.node.path;
+var fs = BrowserFS.node.fs;
+var common = BrowserFS.common;
 
 // TODO Improved this test. test_ca.pem is too small. A proper test would
 // great a large utf8 (with multibyte chars) file and stream it in,
 // performing sanity checks throughout.
 
-var path = require('path');
-var fs = require('fs');
 var fn = path.join(common.fixturesDir, 'elipses.txt');
 var rangeFile = path.join(common.fixturesDir, 'x.txt');
 

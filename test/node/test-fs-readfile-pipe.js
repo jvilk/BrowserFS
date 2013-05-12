@@ -19,8 +19,10 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var common = require('../common');
+var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
 var assert = require('assert');
+var fs = BrowserFS.node.fs;
+var common = BrowserFS.common;
 
 // simulate `cat readfile.js | node readfile.js`
 
@@ -29,8 +31,6 @@ if (process.platform === 'win32') {
   console.error('No /dev/stdin on windows.  Skipping test.');
   process.exit();
 }
-
-var fs = require('fs');
 
 var dataExpected = fs.readFileSync(__filename, 'utf8');
 

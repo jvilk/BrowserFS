@@ -1,6 +1,7 @@
-var assert = require('assert'),
-    fs = require('fs'),
-    saneEmitter,
+var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
+var assert = require('assert');
+var fs = BrowserFS.node.fs;
+var saneEmitter,
     sanity = 'ire(\'assert\')';
 
 saneEmitter = fs.createReadStream(__filename, { start: 17, end: 29 });

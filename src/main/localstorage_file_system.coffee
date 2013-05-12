@@ -16,8 +16,8 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.FileSystem
     for i in [0...length]
       path = window.localStorage.key i
       data = window.localStorage.getItem path
-      stats = new BrowserFS.FileInode BrowserFS.node.fs.Stats.FILE, data.length
-      @_index.addPath path, stats
+      inode = new BrowserFS.FileInode BrowserFS.node.fs.Stats.FILE, data.length
+      @_index.addPath path, inode
 
   # Retrieve the indicated file from `localStorage`.
   # @param [String] path
@@ -110,7 +110,7 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.FileSystem
     # Check if the path exists, and is a file.
     inode = @_index.getInode path
     if inode isnt null
-      if !inode.isFile()
+      unless inode.isFile()
         return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "#{path} is a directory."
       else
         switch flags.pathExistsAction()

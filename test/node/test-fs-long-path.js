@@ -19,9 +19,10 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var fs = require('fs');
-var path = require('path');
+var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
 var assert = require('assert');
+var path = BrowserFS.node.path;
+var fs = BrowserFS.node.fs;
 
 var successes = 0;
 

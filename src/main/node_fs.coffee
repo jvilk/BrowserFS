@@ -1,3 +1,6 @@
+# Polyfill for Javascripts without setImmediate (Chrome, etc.)
+setImm = setImmediate ? (cb) -> setTimeout(cb, 0)
+
 # Wraps a callback with a setImmediate call.
 # @param [Function] cb The callback to wrap.
 # @param [Number] numArgs The number of arguments that the callback takes.
@@ -7,11 +10,11 @@ wrapCb = (cb, numArgs) ->
   # need to handle 1-3 arguments
   switch numArgs
     when 1
-      return (arg1) -> setImmediate -> cb arg1
+      return (arg1) -> setImm -> cb arg1
     when 2
-      return (arg1, arg2) -> setImmediate -> cb arg1, arg2
+      return (arg1, arg2) -> setImm -> cb arg1, arg2
     when 3
-      return (arg1, arg2, arg3) -> setImmediate -> cb arg1, arg2, arg3
+      return (arg1, arg2, arg3) -> setImm -> cb arg1, arg2, arg3
     else
       throw new Error 'Invalid invocation of wrapCb.'
 
@@ -526,20 +529,22 @@ class BrowserFS.FileMode
       throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "Invalid mode string: #{modeStr}"
 
   # @return [Boolean] Returns true if the file is readable.
-  isReadable: -> return @modeStr.indexOf 'r' != -1 or @modeStr.indexOf '+' != -1
+  isReadable: -> return @modeStr.indexOf('r') != -1 or @modeStr.indexOf('+') != -1
   # @return [Boolean] Returns true if the file is writeable.
-  isWriteable: -> return @modeStr.indexOf 'w' != -1 or (@modeStr.indexOf 'a' == -1 and @modeStr.indexOf '+' != -1)
+  isWriteable: -> return @modeStr.indexOf('w') != -1 or @modeStr.indexOf('a') != -1 or @modeStr.indexOf('+') != -1
+  # @return [Boolean] Returns true if the file mode should truncate.
+  isTruncating: -> return @modeStr.indexOf('w') != -1
   # @return [Boolean] Returns true if the file is appendable.
-  isAppendable: -> return @modeStr.indexOf 'a' != -1
+  isAppendable: -> return @modeStr.indexOf('a') != -1
   # @return [Boolean] Returns true if the file is open in synchronous mode.
-  isSynchronous: -> return @modeStr.indexOf 's' != -1
+  isSynchronous: -> return @modeStr.indexOf('s') != -1
   # @return [Boolean] Returns true if the file is open in exclusive mode.
-  isExclusive: -> return @modeStr.indexOf 'x' != -1
+  isExclusive: -> return @modeStr.indexOf('x') != -1
   # @return [Number] Returns one of the static fields on this object that
   #   indicates the appropriate response to the path existing.
   pathExistsAction: ->
     if @isExclusive() then return BrowserFS.FileMode.THROW_EXCEPTION
-    else if @isWriteable() then return BrowserFS.FileMode.TRUNCATE_FILE
+    else if @isTruncating() then return BrowserFS.FileMode.TRUNCATE_FILE
     else return BrowserFS.FileMode.NOP
   # @return [Number] Returns one of the static fields on this object that
   #   indicates the appropriate response to the path not existing.
