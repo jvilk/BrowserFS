@@ -29,21 +29,23 @@ var mode = 0777;
 
 var file1 = path.join(common.tmpDir, 'a.js'),
     file2 = path.join(common.tmpDir, 'a1.js');
-fs.open(file1, 'wx', function(){
-  fs.chmod(file1, mode.toString(8), function(err) {
-    if (err) {
-      console.log('XXX(chmod): '+err);
-      assert.ok(false);  // chmod shouldn't throw an error
-    } else {
-      fs.stat(file1, function(err, stats){
-        assert.equal(mode, stats.mode & 0777);
-        fs.chmod(file1, mode, function(){
-          fs.stat(file1, function(err2, stats2){
-            assert.equal(mode, stats2.mode & 0777);
+fs.open(file1, 'wx', function(err, fd){
+  fs.close(fd, function(){
+    fs.chmod(file1, mode.toString(8), function(err) {
+      if (err) {
+        console.log('XXX(chmod): '+err);
+        assert.ok(false);  // chmod shouldn't throw an error
+      } else {
+        fs.stat(file1, function(err, stats){
+          assert.equal(mode, stats.mode & 0777);
+          fs.chmod(file1, mode, function(){
+            fs.stat(file1, function(err2, stats2){
+              assert.equal(mode, stats2.mode & 0777);
+            });
           });
         });
-      });
-    }
+      }
+    });
   });
 });
 

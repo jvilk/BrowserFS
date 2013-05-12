@@ -122,11 +122,20 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
     @_stat.atime = Date.now()
     cb null, rv, buffer
 
+  # Asynchronous `fchmod`.
+  # @param [Number|String] mode
+  # @param [Function(BrowserFS.ApiError)] cb
+  chmod: (mode, cb) ->
+    unless @_fs.supportsProps()
+      return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+    @_stat.mode = parseInt(mode, 8)
+    @_fs.sync cb
+
+
 # File class for the LocalStorage-based file system.
 # @todo Move into `localstorage_file_system.coffee` file.
 class BrowserFS.File.PreloadFile.LocalStorageFile extends BrowserFS.File.PreloadFile
-  # **Core**: Asynchronous sync. Must be implemented by subclasses of this
-  # class.
+  # Asynchronous sync.
   # @param [Function(BrowserFS.ApiError)] cb
   sync: (cb)->
     # Convert to UTF-8.
@@ -134,8 +143,7 @@ class BrowserFS.File.PreloadFile.LocalStorageFile extends BrowserFS.File.Preload
     inode = new BrowserFS.FileInode @_stat
     @_fs._sync @_path, data, inode, cb
 
-  # **Core**: Asynchronous close. Must be implemented by subclasses of this
-  # class.
+  # Asynchronous close.
   # @param [Function(BrowserFS.ApiError)] cb
   close: (cb)->
     # Maps to sync.

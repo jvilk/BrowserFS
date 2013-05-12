@@ -104,13 +104,6 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.FileSystem
       return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "#{path} not found."
     cb null, inode.getStats()
 
-  chmod: (path, isLchmod, mode, cb) ->
-    inode = @_index.getInode path
-    if inode is null
-      return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "#{path} not found."
-    inode.mode = mode
-    cb()
-
   # File operations
 
   open: (path, flags, mode, cb) ->
