@@ -529,15 +529,15 @@ class BrowserFS.FileMode
       throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "Invalid mode string: #{modeStr}"
 
   # @return [Boolean] Returns true if the file is readable.
-  isReadable: -> return @modeStr.indexOf 'r' != -1 or @modeStr.indexOf '+' != -1
+  isReadable: -> return @modeStr.indexOf('r') != -1 or @modeStr.indexOf('+') != -1
   # @return [Boolean] Returns true if the file is writeable.
-  isWriteable: -> return @modeStr.indexOf 'w' != -1 or (@modeStr.indexOf 'a' == -1 and @modeStr.indexOf '+' != -1)
+  isWriteable: -> return @modeStr.indexOf('w') != -1 or (@modeStr.indexOf('a') == -1 and @modeStr.indexOf('+') != -1)
   # @return [Boolean] Returns true if the file is appendable.
-  isAppendable: -> return @modeStr.indexOf 'a' != -1
+  isAppendable: -> return @modeStr.indexOf('a') != -1
   # @return [Boolean] Returns true if the file is open in synchronous mode.
-  isSynchronous: -> return @modeStr.indexOf 's' != -1
+  isSynchronous: -> return @modeStr.indexOf('s') != -1
   # @return [Boolean] Returns true if the file is open in exclusive mode.
-  isExclusive: -> return @modeStr.indexOf 'x' != -1
+  isExclusive: -> return @modeStr.indexOf('x') != -1
   # @return [Number] Returns one of the static fields on this object that
   #   indicates the appropriate response to the path existing.
   pathExistsAction: ->
