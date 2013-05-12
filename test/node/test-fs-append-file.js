@@ -26,6 +26,8 @@ var join = BrowserFS.node.path.join;
 var common = BrowserFS.common;
 var Buffer = BrowserFS.node.Buffer;
 
+(function() {
+
 var filename = join(common.tmpDir, 'append.txt');
 
 common.error('appending to ' + filename);
@@ -144,3 +146,5 @@ fs.appendFile(filename4, n, { mode: m }, function(e) {
   fs.unlink(filename3);
   fs.unlink(filename4);
 });*/
+
+})();

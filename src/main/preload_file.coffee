@@ -70,7 +70,7 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
     unless @_mode.isWriteable()
       return cb new BrowserFS.ApiError BrowserFS.ApiError.PERMISSIONS_ERROR, 'File not opened with a writeable mode.'
     @_stat.size = len
-    @_stat.mtime = Date.now()
+    @_stat.mtime = new Date()
     if @_mode.isSynchronous() then return @sync (err) -> cb err
     cb null
   # Write buffer to the file.
@@ -100,7 +100,7 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
         @_buffer = newBuff
 
     len = buffer.copy @_buffer, position, offset, offset+length
-    @_stat.mtime = Date.now()
+    @_stat.mtime = new Date()
 
     if @_mode.isSynchronous() then return @sync (err) -> cb err, len, buffer
     cb null, len, buffer
@@ -119,7 +119,7 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
     unless @_mode.isReadable()
       return cb new BrowserFS.ApiError BrowserFS.ApiError.PERMISSIONS_ERROR, 'File not opened with a readable mode.'
     rv = @_buffer.copy buffer, offset, position, position+length
-    @_stat.atime = Date.now()
+    @_stat.atime = new Date()
     cb null, rv, buffer
 
   # Asynchronous `fchmod`.

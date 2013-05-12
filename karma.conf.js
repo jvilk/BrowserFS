@@ -20,6 +20,7 @@ files = [
   'test/node/test-fs-long-path.js',
   'test/node/test-fs-mkdir.js',
   'test/node/test-fs-open.js',
+  'test/node/test-fs-stat.js',
 ];
 
 

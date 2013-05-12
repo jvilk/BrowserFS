@@ -245,7 +245,7 @@ class BrowserFS.node.fs
   @fstat: (fd, callback) ->
     newCb = wrapCb callback, 2
     fdChk = checkFd fd
-    unless fdChk then return newCb fdChk
+    return newCb fdChk unless fdChk
     fd.stat newCb
   # Asynchronous close.
   # @param [BrowserFS.File] fd
@@ -253,7 +253,7 @@ class BrowserFS.node.fs
   @close: (fd, callback) ->
     newCb = wrapCb callback, 1
     fdChk = checkFd fd
-    unless fdChk then return newCb fdChk
+    return newCb fdChk unless fdChk
     fd.close newCb
   # Asynchronous ftruncate.
   # @param [BrowserFS.File] fd

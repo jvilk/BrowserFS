@@ -21,7 +21,7 @@ class BrowserFS.node.fs.Stats
   # @param [Date?] atime time of last access
   # @param [Date?] mtime time of last modification
   # @param [Date?] ctime time of creation
-  constructor: (@item_type, @size, @mode=0o666, @atime=Date.now(), @mtime=Date.now(), @ctime=Date.now()) ->
+  constructor: (@item_type, @size, @mode=0o666, @atime=(new Date()), @mtime=(new Date()), @ctime=(new Date())) ->
     # number of 512B blocks allocated
     @blocks = Math.ceil(size/512)
 
