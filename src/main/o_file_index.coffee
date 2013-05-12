@@ -147,6 +147,6 @@ class BrowserFS.DirInode
   #   removed, or null if the item did not exist.
   remItem: (p) ->
     item = @_ls[p]
-    return null if i is undefined
+    return null if item is undefined
     delete @_ls[p]
     return item

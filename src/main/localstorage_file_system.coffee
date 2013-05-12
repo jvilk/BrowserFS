@@ -171,8 +171,7 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.FileSystem
     inode = @_index.getInode path
     unless inode is null
       return cb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "#{path} already exists."
-    inode = new BrowserFS.DirInode()
-    success = @_index.addInode path
+    success = @_index.addPath path, new BrowserFS.DirInode()
     if success then return cb null
     cb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "Could not add #{path} for some reason."
 
