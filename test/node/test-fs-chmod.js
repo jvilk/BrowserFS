@@ -25,106 +25,45 @@ var path = BrowserFS.node.path;
 var fs = BrowserFS.node.fs;
 var common = BrowserFS.common;
 
-var got_error = false;
-var success_count = 0;
-var mode_async;
-var mode_sync;
-var is_windows = process.platform === 'win32';
-
-// Need to hijack fs.open/close to make sure that things
-// get closed once they're opened.
-fs._open = fs.open;
-fs._openSync = fs.openSync;
-fs.open = open;
-fs.openSync = openSync;
-fs._close = fs.close;
-fs._closeSync = fs.closeSync;
-fs.close = close;
-fs.closeSync = closeSync;
-
-var openCount = 0;
-
-function open() {
-  openCount++;
-  return fs._open.apply(fs, arguments);
-}
-
-function openSync() {
-  openCount++;
-  return fs._openSync.apply(fs, arguments);
-}
-
-function close() {
-  openCount--;
-  return fs._close.apply(fs, arguments);
-}
-
-function closeSync() {
-  openCount--;
-  return fs._closeSync.apply(fs, arguments);
-}
-
-
-// On Windows chmod is only able to manipulate read-only bit
-if (is_windows) {
-  mode_async = 0400;   // read-only
-  mode_sync = 0600;    // read-write
-} else {
-  mode_async = 0777;
-  mode_sync = 0644;
-}
+var mode = 0777;
 
 var file1 = path.join(common.fixturesDir, 'a.js'),
     file2 = path.join(common.fixturesDir, 'a1.js');
 
-fs.chmod(file1, mode_async.toString(8), function(err) {
+fs.chmod(file1, mode.toString(8), function(err) {
   if (err) {
-    got_error = true;
+    console.log('XXX(chmod): '+err);
+    assert.ok(false);  // chmod shouldn't throw an error
   } else {
-    console.log(fs.statSync(file1).mode);
-
-    if (is_windows) {
-      assert.ok((fs.statSync(file1).mode & 0777) & mode_async);
-    } else {
-      assert.equal(mode_async, fs.statSync(file1).mode & 0777);
-    }
-
-    fs.chmodSync(file1, mode_sync);
-    if (is_windows) {
-      assert.ok((fs.statSync(file1).mode & 0777) & mode_sync);
-    } else {
-      assert.equal(mode_sync, fs.statSync(file1).mode & 0777);
-    }
-    success_count++;
+    fs.stat(file1, function(err, stats){
+      assert.equal(mode, stats.mode & 0777);
+      fs.chmod(file1, mode, function(){
+        fs.stat(file1, function(err2, stats2){
+          assert.equal(mode, stats2.mode & 0777);
+        });
+      });
+    });
   }
 });
 
 fs.open(file2, 'a', function(err, fd) {
   if (err) {
-    got_error = true;
     console.error(err.stack);
     return;
   }
-  fs.fchmod(fd, mode_async.toString(8), function(err) {
+  fs.fchmod(fd, mode.toString(8), function(err) {
     if (err) {
-      got_error = true;
+      console.log('XXX(fchmod): '+err);
+      assert.ok(false);  // fchmod shouldn't throw an error
     } else {
-      console.log(fs.fstatSync(fd).mode);
-
-      if (is_windows) {
-        assert.ok((fs.fstatSync(fd).mode & 0777) & mode_async);
-      } else {
-        assert.equal(mode_async, fs.fstatSync(fd).mode & 0777);
-      }
-
-      fs.fchmodSync(fd, mode_sync);
-      if (is_windows) {
-        assert.ok((fs.fstatSync(fd).mode & 0777) & mode_sync);
-      } else {
-        assert.equal(mode_sync, fs.fstatSync(fd).mode & 0777);
-      }
-      success_count++;
-      fs.close(fd);
+      fs.fstat(fd, function(err,stats){
+        assert.equal(mode, stats.mode & 0777);
+        fs.fchmod(fd, mode, function(){
+          fs.fstat(fd, function(err2,stats2){
+            assert.equal(mode, stats2.mode & 0777);
+          });
+        });
+      });
     }
   });
 });
@@ -135,29 +74,16 @@ if (fs.lchmod) {
 
   fs.unlink(link, function (){
     fs.symlink(file2, link, function (){
-      fs.lchmod(link, mode_async, function(err) {
+      fs.lchmod(link, mode, function(err) {
         if (err) {
-          got_error = true;
+          console.log('XXX(lchmod): '+err);
           assert.ok(false);  // lchmod shouldn't throw an error
         } else {
-          console.log(fs.lstatSync(link).mode);
-          assert.equal(mode_async, fs.lstatSync(link).mode & 0777);
-
-          fs.lchmodSync(link, mode_sync);
-          assert.equal(mode_sync, fs.lstatSync(link).mode & 0777);
-          success_count++;
+          fs.lstat(link, function (err, stats){
+            assert.equal(mode, stats.mode & 0777);
+          });
         }
       });
     });
   });
-} else {
-  success_count++;
 }
-
-/*
-process.on('exit', function() {
-  assert.equal(3, success_count);
-  assert.equal(0, openCount);
-  assert.equal(false, got_error);
-});
-*/
