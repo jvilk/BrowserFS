@@ -146,7 +146,7 @@ class BrowserFS.FileSystem
   # @param [String] path
   # @param [Function(Boolean)] cb
   exists: (path, cb) ->
-    @stat(path, (err) -> if err? then cb(false) else cb(true))
+    @stat(path, null, (err) -> cb(not err?))
   # **Supplemental**: Asynchronous `realpath`. The callback gets two arguments
   # `(err, resolvedPath)`.
   #

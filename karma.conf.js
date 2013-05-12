@@ -15,7 +15,8 @@ files = [
   'test/node/test-buffer*.js',
   'test/node/test-path*.js',
   'test/node/test-fs-append-file.js',
-  'test/node/test-fs-chmod.js'
+  'test/node/test-fs-chmod.js',
+  'test/node/test-fs-exists.js'
 ];
 
 

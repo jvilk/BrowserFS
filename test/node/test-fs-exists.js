@@ -22,22 +22,23 @@
 var assert = require('assert');
 var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
 var fs = BrowserFS.node.fs;
-var f = __filename;
-var exists;
-var doesNotExist;
+var f = 'foobar';
 
-fs.exists(f, function(y) {
-  exists = y;
+fs.open(f, 'w', function(err, fd){
+  fs.close(fd, function(){
+    fs.exists(f, function(y) {
+      console.log('expected file exists? '+y);
+      assert.strictEqual(y, true);
+    });
+
+    fs.exists(f + '-NO', function(y) {
+      console.log('unexpected file exists? '+y);
+      assert.strictEqual(y, false);
+    });
+  });
 });
 
-fs.exists(f + '-NO', function(y) {
-  doesNotExist = y;
-});
-
+/*
 assert(fs.existsSync(f));
 assert(!fs.existsSync(f + '-NO'));
-
-process.on('exit', function() {
-  assert.strictEqual(exists, true);
-  assert.strictEqual(doesNotExist, false);
-});
+*/
