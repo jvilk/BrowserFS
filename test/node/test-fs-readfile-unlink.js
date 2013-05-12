@@ -19,11 +19,12 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var assert = require('assert'),
-    common = require('../common'),
-    fs = require('fs'),
-    path = require('path'),
-    dirName = path.resolve(common.fixturesDir, 'test-readfile-unlink'),
+var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
+var assert = require('assert');
+var path = BrowserFS.node.path;
+var fs = BrowserFS.node.fs;
+var common = BrowserFS.common;
+var dirName = path.resolve(common.fixturesDir, 'test-readfile-unlink'),
     fileName = path.resolve(dirName, 'test.bin');
 
 var buf = new Buffer(512 * 1024);

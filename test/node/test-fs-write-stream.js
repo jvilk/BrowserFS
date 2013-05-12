@@ -19,11 +19,11 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var common = require('../common');
+var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
 var assert = require('assert');
-
-var path = require('path'),
-    fs = require('fs');
+var path = BrowserFS.node.path;
+var fs = BrowserFS.node.fs;
+var common = BrowserFS.common;
 
 var file = path.join(common.tmpDir, 'write.txt');
 
@@ -34,7 +34,7 @@ var file = path.join(common.tmpDir, 'write.txt');
   fs.close = function(fd) {
     assert.ok(fd, 'fs.close must not be called without an undefined fd.');
     fs.close = _fs_close;
-  }
+  };
   stream.destroy();
 })();
 

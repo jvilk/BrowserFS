@@ -19,10 +19,12 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var common = require('../common');
-var join = require('path').join;
+var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
+var path = BrowserFS.node.path;
+var fs = BrowserFS.node.fs;
+var common = BrowserFS.common;
+var join = path.join;
 var util = require('util');
-var fs = require('fs');
 
 var data = [
   '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcH',

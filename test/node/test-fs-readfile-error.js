@@ -19,10 +19,12 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var common = require('../common');
+var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
 var assert = require('assert');
+var path = BrowserFS.node.path;
+var common = BrowserFS.common;
+
 var exec = require('child_process').exec;
-var path = require('path');
 
 var callbacks = 0;
 

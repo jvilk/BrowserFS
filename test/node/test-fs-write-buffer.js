@@ -19,12 +19,13 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var common = require('../common');
+var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
 var assert = require('assert');
-var path = require('path'),
-    Buffer = require('buffer').Buffer,
-    fs = require('fs'),
-    filename = path.join(common.tmpDir, 'write.txt'),
+var path = BrowserFS.node.path;
+var fs = BrowserFS.node.fs;
+var common = BrowserFS.common;
+var Buffer = BrowserFS.node.Buffer;
+var filename = path.join(common.tmpDir, 'write.txt'),
     expected = new Buffer('hello'),
     openCalled = 0,
     writeCalled = 0;
