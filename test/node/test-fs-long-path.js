@@ -24,36 +24,24 @@ var assert = require('assert');
 var path = BrowserFS.node.path;
 var fs = BrowserFS.node.fs;
 
-var successes = 0;
-
 // make a path that will be at least 260 chars long.
 var fileNameLen = Math.max(260 - common.tmpDir.length - 1, 1);
 var fileName = path.join(common.tmpDir, new Array(fileNameLen + 1).join('x'));
 var fullPath = path.resolve(fileName);
 
-try {
-  fs.unlinkSync(fullPath);
-}
-catch (e) {
-  // Ignore.
-}
-
-console.log({
-  filenameLength: fileName.length,
-  fullPathLength: fullPath.length
-});
-
 fs.writeFile(fullPath, 'ok', function(err) {
   if (err) throw err;
-  successes++;
+  else console.log('wrote file with path length: '+fullPath.length);
 
   fs.stat(fullPath, function(err, stats) {
     if (err) throw err;
-    successes++;
+    assert.equal(2, stats.size);
   });
 });
 
+/*
 process.on('exit', function() {
   fs.unlinkSync(fullPath);
   assert.equal(2, successes);
 });
+*/
