@@ -36,15 +36,16 @@ class BrowserFS.FileIndex
 
     # Try to add to its parent directory first.
     parent = @_index[dirpath]
-    if parent is undefined
+    if parent is undefined and path isnt '/'
       # Create parent.
       parent = new BrowserFS.DirInode()
       success = @addPath dirpath, parent
       return false if !success
 
     # Add myself to my parent.
-    success = parent.addItem itemname, inode
-    return false if !success
+    unless path is '/'
+      success = parent.addItem itemname, inode
+      return false if !success
 
     # If I'm a directory, add myself to the index.
     unless inode.isFile() then @_index[path] = inode
