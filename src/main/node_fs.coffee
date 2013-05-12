@@ -388,10 +388,10 @@ class BrowserFS.node.fs
   # @param [String?] type can be either `'dir'` or `'file'` (default is `'file'`)
   # @param [Function(BrowserFS.ApiError)] callback
   @symlink: (srcpath, dstpath, type, callback) =>
-    newCb = wrapCb callback, 1
     if typeof type is 'function'
       callback = type
       type = 'file'
+    newCb = wrapCb callback, 1
     if type isnt 'file' and type isnt 'dir'
       return newCb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "Invalid type: #{type}"
     srcpath = BrowserFS.node.path.resolve srcpath
