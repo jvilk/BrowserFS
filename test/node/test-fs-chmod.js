@@ -133,31 +133,31 @@ fs.open(file2, 'a', function(err, fd) {
 if (fs.lchmod) {
   var link = path.join(common.tmpDir, 'symbolic-link');
 
-  try {
-    fs.unlinkSync(link);
-  } catch (er) {}
-  fs.symlinkSync(file2, link);
+  fs.unlink(link, function (){
+    fs.symlink(file2, link, function (){
+      fs.lchmod(link, mode_async, function(err) {
+        if (err) {
+          got_error = true;
+          assert.ok(false);  // lchmod shouldn't throw an error
+        } else {
+          console.log(fs.lstatSync(link).mode);
+          assert.equal(mode_async, fs.lstatSync(link).mode & 0777);
 
-  fs.lchmod(link, mode_async, function(err) {
-    if (err) {
-      got_error = true;
-    } else {
-      console.log(fs.lstatSync(link).mode);
-      assert.equal(mode_async, fs.lstatSync(link).mode & 0777);
-
-      fs.lchmodSync(link, mode_sync);
-      assert.equal(mode_sync, fs.lstatSync(link).mode & 0777);
-      success_count++;
-    }
+          fs.lchmodSync(link, mode_sync);
+          assert.equal(mode_sync, fs.lstatSync(link).mode & 0777);
+          success_count++;
+        }
+      });
+    });
   });
 } else {
   success_count++;
 }
 
-
+/*
 process.on('exit', function() {
   assert.equal(3, success_count);
   assert.equal(0, openCount);
   assert.equal(false, got_error);
 });
-
+*/
