@@ -14,7 +14,8 @@ files = [
   'test/glue.js',
   'test/node/test-buffer*.js',
   'test/node/test-path*.js',
-  'test/node/test-fs-*.js'
+  'test/node/test-fs-append-file.js',
+  'test/node/test-fs-chmod.js'
 ];
 
 
