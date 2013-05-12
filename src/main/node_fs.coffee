@@ -1,6 +1,3 @@
-# Polyfill for Javascripts without setImmediate (Chrome, etc.)
-setImm = setImmediate ? (cb) -> setTimeout(cb, 0)
-
 # Wraps a callback with a setImmediate call.
 # @param [Function] cb The callback to wrap.
 # @param [Number] numArgs The number of arguments that the callback takes.
@@ -10,11 +7,11 @@ wrapCb = (cb, numArgs) ->
   # need to handle 1-3 arguments
   switch numArgs
     when 1
-      return (arg1) -> setImm -> cb arg1
+      return (arg1) -> setImmediate -> cb arg1
     when 2
-      return (arg1, arg2) -> setImm -> cb arg1, arg2
+      return (arg1, arg2) -> setImmediate -> cb arg1, arg2
     when 3
-      return (arg1, arg2, arg3) -> setImm -> cb arg1, arg2, arg3
+      return (arg1, arg2, arg3) -> setImmediate -> cb arg1, arg2, arg3
     else
       throw new Error 'Invalid invocation of wrapCb.'
 
