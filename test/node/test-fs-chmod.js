@@ -34,7 +34,6 @@ fs.open(file1, 'wx', function(err, fd){
     fs.chmod(file1, mode.toString(8), function(err) {
       if (err) {
         console.log('XXX(chmod): '+err);
-        assert.ok(false);  // chmod shouldn't throw an error
       } else {
         fs.stat(file1, function(err, stats){
           assert.equal(mode, stats.mode & 0777);
@@ -57,7 +56,6 @@ fs.open(file2, 'a', function(err, fd) {
   fs.fchmod(fd, mode.toString(8), function(err) {
     if (err) {
       console.log('XXX(fchmod): '+err);
-      assert.ok(false);  // fchmod shouldn't throw an error
     } else {
       fs.fstat(fd, function(err,stats){
         assert.equal(mode, stats.mode & 0777);
@@ -80,7 +78,6 @@ if (fs.lchmod) {
       fs.lchmod(link, mode, function(err) {
         if (err) {
           console.log('XXX(lchmod): '+err);
-          assert.ok(false);  // lchmod shouldn't throw an error
         } else {
           fs.lstat(link, function (err, stats){
             assert.equal(mode, stats.mode & 0777);
