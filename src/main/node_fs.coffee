@@ -531,7 +531,7 @@ class BrowserFS.FileMode
   # @return [Boolean] Returns true if the file is readable.
   isReadable: -> return @modeStr.indexOf('r') != -1 or @modeStr.indexOf('+') != -1
   # @return [Boolean] Returns true if the file is writeable.
-  isWriteable: -> return @modeStr.indexOf('w') != -1 or (@modeStr.indexOf('a') == -1 and @modeStr.indexOf('+') != -1)
+  isWriteable: -> return @modeStr.indexOf('w') != -1 or @modeStr.indexOf('a') != -1 or @modeStr.indexOf('+') != -1
   # @return [Boolean] Returns true if the file is appendable.
   isAppendable: -> return @modeStr.indexOf('a') != -1
   # @return [Boolean] Returns true if the file is open in synchronous mode.
