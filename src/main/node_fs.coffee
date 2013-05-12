@@ -128,10 +128,10 @@ class BrowserFS.node.fs
   # @param [Function(BrowserFS.ApiError, BrowserFS.File)] callback
   @open: (path, flags, mode, callback) =>
     path = BrowserFS.node.path.resolve path
-    newCb = wrapCb callback, 2
     if typeof mode is 'function'
       callback = mode
       mode = 0o666
+    newCb = wrapCb callback, 2
     # Try/catch is for FileMode failure.
     try
       flags = BrowserFS.FileMode.getFileMode flags
