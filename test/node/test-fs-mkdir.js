@@ -23,61 +23,28 @@ var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
 var assert = require('assert');
 var fs = BrowserFS.node.fs;
 
-function unlink(pathname) {
-  try {
-    fs.rmdirSync(pathname);
-  } catch (e) {
-  }
-}
-
 (function() {
-  var ncalls = 0;
-  var pathname = common.tmpDir + '/test1';
-
-  unlink(pathname);
+  var pathname = common.tmpDir + '/mkdir-test1';
 
   fs.mkdir(pathname, function(err) {
     assert.equal(err, null);
-    assert.equal(fs.existsSync(pathname), true);
-    ncalls++;
+    fs.exists(pathname, function(y){
+      assert.equal(y, true);
+    console.log('made directory: '+pathname);
+    });
   });
 
-  process.on('exit', function() {
-    unlink(pathname);
-    assert.equal(ncalls, 1);
-  });
 })();
 
 (function() {
-  var ncalls = 0;
-  var pathname = common.tmpDir + '/test2';
-
-  unlink(pathname);
+  var pathname = common.tmpDir + '/mkdir-test2';
 
   fs.mkdir(pathname, 511 /*=0777*/, function(err) {
     assert.equal(err, null);
-    assert.equal(fs.existsSync(pathname), true);
-    ncalls++;
+    fs.exists(pathname, function(y){
+      assert.equal(y, true);
+    console.log('made directory: '+pathname);
+    });
   });
 
-  process.on('exit', function() {
-    unlink(pathname);
-    assert.equal(ncalls, 1);
-  });
 })();
-
-(function() {
-  var pathname = common.tmpDir + '/test3';
-
-  unlink(pathname);
-  fs.mkdirSync(pathname);
-
-  var exists = fs.existsSync(pathname);
-  unlink(pathname);
-
-  assert.equal(exists, true);
-})();
-
-// Keep the event loop alive so the async mkdir() requests
-// have a chance to run (since they don't ref the event loop).
-process.nextTick(function() {});
