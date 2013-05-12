@@ -532,6 +532,8 @@ class BrowserFS.FileMode
   isReadable: -> return @modeStr.indexOf('r') != -1 or @modeStr.indexOf('+') != -1
   # @return [Boolean] Returns true if the file is writeable.
   isWriteable: -> return @modeStr.indexOf('w') != -1 or @modeStr.indexOf('a') != -1 or @modeStr.indexOf('+') != -1
+  # @return [Boolean] Returns true if the file mode should truncate.
+  isTruncating: -> return @modeStr.indexOf('w') != -1
   # @return [Boolean] Returns true if the file is appendable.
   isAppendable: -> return @modeStr.indexOf('a') != -1
   # @return [Boolean] Returns true if the file is open in synchronous mode.
@@ -542,7 +544,7 @@ class BrowserFS.FileMode
   #   indicates the appropriate response to the path existing.
   pathExistsAction: ->
     if @isExclusive() then return BrowserFS.FileMode.THROW_EXCEPTION
-    else if @isWriteable() then return BrowserFS.FileMode.TRUNCATE_FILE
+    else if @isTruncating() then return BrowserFS.FileMode.TRUNCATE_FILE
     else return BrowserFS.FileMode.NOP
   # @return [Number] Returns one of the static fields on this object that
   #   indicates the appropriate response to the path not existing.
