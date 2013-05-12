@@ -13,7 +13,7 @@ BrowserFS.node.fs.initiate(lsfs);
 describe("Run All The Tests!", function() {
   it("runs all of the tests", function() {
     waitsFor(function() {
-      return window.__numWaiting() === 0;
+      return true;
     }, "All callbacks should fire", 600000);
   });
 });
