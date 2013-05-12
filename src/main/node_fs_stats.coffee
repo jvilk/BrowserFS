@@ -31,13 +31,13 @@ class BrowserFS.node.fs.Stats
     new BrowserFS.node.fs.Stats @item_type, @size, @mode, @atime, @mtime, @ctime
 
   # @return [Boolean] True if this item is a file.
-  isFile: -> @item_type == @FILE
+  isFile: -> @item_type == Stats.FILE
   # @return [Boolean] True if this item is a directory.
-  isDirectory: -> @item_type == @DIRECTORY
+  isDirectory: -> @item_type == Stats.DIRECTORY
   # @return [Boolean] True if this item is a symbolic link (only valid through lstat)
-  isSymbolicLink: -> @item_type == @SYMLINK
+  isSymbolicLink: -> @item_type == Stats.SYMLINK
   # @return [Boolean] True if this item is a socket
-  isSocket: -> @item_type == @SOCKET
+  isSocket: -> @item_type == Stats.SOCKET
 
   # Until a character/FIFO filesystem comes about, everything is block based.
   # @return [Boolean] True; we currently only support block devices.
