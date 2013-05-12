@@ -140,7 +140,7 @@ class BrowserFS.File.PreloadFile.LocalStorageFile extends BrowserFS.File.Preload
   sync: (cb)->
     # Convert to UTF-8.
     data = @_buffer.toString()
-    inode = new BrowserFS.FileInode @_stat
+    inode = BrowserFS.FileInode.from_stats @_stat
     @_fs._sync @_path, data, inode, cb
 
   # Asynchronous close.
