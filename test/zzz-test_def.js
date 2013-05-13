@@ -35,5 +35,6 @@ describe("localStorage FS", function() {
       generateTest(testName, window.tests[testName]);
     }
   }
-  console.log("description complete");
 });
+// Trigger the tests
+__karma__.start();

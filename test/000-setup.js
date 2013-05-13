@@ -1,6 +1,6 @@
 // Test-related setup code.
 BrowserFS.Install(this);
-var assert = require('assert');
+var assert = window.assert;
 var fs = BrowserFS.node.fs;
 var path = BrowserFS.node.path;
 var process = BrowserFS.node.process;
