@@ -110,10 +110,9 @@ fs.open('test-stat-filename', 'w', function(err, fd){
   });
 });
 
-/*
-process.on('exit', function() {
+
+/*process.on('exit', function() {
   assert.equal(5, success_count);
   assert.equal(false, got_error);
-});
-*/
+});*/
 };

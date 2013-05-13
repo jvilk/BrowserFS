@@ -36,10 +36,9 @@ fs.writeFile(fullPath, 'ok', function(err) {
   });
 });
 
-/*
+
 process.on('exit', function() {
-  fs.unlinkSync(fullPath);
-  assert.equal(2, successes);
+  fs.unlink(fullPath);
+  //assert.equal(2, successes);
 });
-*/
 };

@@ -55,4 +55,9 @@ fs.open(filename, 'w', function(err, fd){
     });
   });
 });
+
+/*process.on('exit', function() {
+  assert.ok(openFd);
+  assert.ok(openFd2);
+});*/
 };

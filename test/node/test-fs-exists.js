@@ -36,8 +36,9 @@ fs.open(f, 'w', function(err, fd){
   });
 });
 
-/*
-assert(fs.existsSync(f));
-assert(!fs.existsSync(f + '-NO'));
-*/
+/*process.on('exit', function() {
+  assert.strictEqual(exists, true);
+  assert.strictEqual(doesNotExist, false);
+});*/
+
 };

@@ -83,4 +83,13 @@ if (fs.lchmod) {
     });
   });
 }
+
+// TODO: Restore this once I add the fixture data and make this test closer to
+// Node's
+/*process.on('exit', function() {
+  assert.equal(3, success_count);
+  assert.equal(0, openCount);
+  assert.equal(false, got_error);
+});*/
+
 };
