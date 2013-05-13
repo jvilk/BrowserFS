@@ -5,10 +5,19 @@
 
 // Generates a unit test.
 var generateTest = function(testName, test) {
-  console.log("Generating test " + testName);
   it (testName, function() {
-    console.log ("Running test " + testName);
-    test();
+    runs(function() {
+      // Reset the exit callback.
+      process.on('exit', function(){});
+      test();
+    });
+    waitsFor(function() {
+      return window.__numWaiting() === 0;
+    }, "All callbacks should fire", 600000);
+    runs(function() {
+      // Run the exit callback, if any.
+      process._exitCb();
+    });
     waitsFor(function() {
       return window.__numWaiting() === 0;
     }, "All callbacks should fire", 600000);

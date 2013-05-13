@@ -14,3 +14,12 @@ process.chdir('/Users/jvilk/Code/BrowserFS');
 var lsfs = new BrowserFS.FileSystem.LocalStorage();
 lsfs.empty();
 BrowserFS.node.fs.initiate(lsfs);
+
+// Polyfill for `process.on('exit')`.
+process.on = function(trigger, cb) {
+  if (trigger == 'exit') {
+    process._exitCb = cb;
+  } else {
+    throw new Error("Unsupported trigger: " + trigger);
+  }
+};
