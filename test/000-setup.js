@@ -8,8 +8,6 @@ var common = BrowserFS.common;
 var Buffer = BrowserFS.node.Buffer;
 window.tests = {};
 
-// Change to test directory.
-process.chdir('/Users/jvilk/Code/BrowserFS');
 // Initialize the LocalStorage filesystem.
 var lsfs = new BrowserFS.FileSystem.LocalStorage();
 lsfs.empty();
