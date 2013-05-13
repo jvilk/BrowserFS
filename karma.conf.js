@@ -11,7 +11,7 @@ files = [
   JASMINE,
   JASMINE_ADAPTER,
   'lib/browserfs.js',
-  'test/glue.js',
+  'test/000-setup.js',
   'test/node/test-buffer*.js',
   'test/node/test-path*.js',
   'test/node/test-fs-append-file.js',
@@ -21,6 +21,7 @@ files = [
   'test/node/test-fs-mkdir.js',
   'test/node/test-fs-open.js',
   'test/node/test-fs-stat.js',
+  'test/zzz-test_def.js'
 ];
 
 
