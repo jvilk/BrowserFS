@@ -129,16 +129,15 @@ fs.appendFile(filename4, n, { mode: m }, function(e) {
   });
 });*/
 
-// JV: No obvious in-browser equivalent. We clear the test filesystem each time
-//     the tests are run, though.
-/*process.on('exit', function() {
+process.on('exit', function() {
   common.error('done');
-  assert.equal(8, ncallbacks);
+  // JV: 8->6 due to removing one part of the test.
+  assert.equal(6, ncallbacks);
 
   fs.unlink(filename);
   fs.unlink(filename2);
   fs.unlink(filename3);
-  fs.unlink(filename4);
-});*/
+  //fs.unlink(filename4);
+});
 
 };
