@@ -9,8 +9,6 @@ basePath = '';
 files = [
   JASMINE,
   JASMINE_ADAPTER,
-  REQUIRE,
-  REQUIRE_ADAPTER,
   'lib/browserfs.js',
   'test/000-setup.js',
   'test/node/test-buffer*.js',

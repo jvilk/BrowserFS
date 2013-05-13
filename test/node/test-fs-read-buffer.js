@@ -26,24 +26,27 @@ var fs = BrowserFS.node.fs;
 var common = BrowserFS.common;
 var Buffer = BrowserFS.node.Buffer;
 
-var filepath = path.join(common.fixturesDir, 'x.txt'),
-    fd = fs.openSync(filepath, 'r'),
-    expected = 'xyz\n',
-    bufferAsync = new Buffer(expected.length),
-    bufferSync = new Buffer(expected.length),
-    readCalled = 0;
+var filepath = '/x.txt';
 
-fs.read(fd, bufferAsync, 0, expected.length, 0, function(err, bytesRead) {
-  readCalled++;
+fs.open(filepath, 'r', function(err, fd) {
+  if (err) throw err;
+  var expected = 'xyz\n',
+      bufferAsync = new Buffer(expected.length),
+      bufferSync = new Buffer(expected.length),
+      readCalled = 0;
 
-  assert.equal(bytesRead, expected.length);
-  assert.deepEqual(bufferAsync, new Buffer(expected));
+  fs.read(fd, bufferAsync, 0, expected.length, 0, function(err, bytesRead) {
+    readCalled++;
+
+    assert.equal(bytesRead, expected.length);
+    assert.equal(bufferAsync.toString(), (new Buffer(expected)).toString());
+  });
+
+  /*var r = fs.readSync(fd, bufferSync, 0, expected.length, 0);
+  assert.deepEqual(bufferSync, new Buffer(expected));
+  assert.equal(r, expected.length);*/
 });
 
-var r = fs.readSync(fd, bufferSync, 0, expected.length, 0);
-assert.deepEqual(bufferSync, new Buffer(expected));
-assert.equal(r, expected.length);
-
-process.on('exit', function() {
+/*process.on('exit', function() {
   assert.equal(readCalled, 1);
-});
+});*/

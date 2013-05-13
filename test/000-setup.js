@@ -1,5 +1,13 @@
 // Test-related setup code.
 BrowserFS.Install(this);
+// Monkey-patch Karma itself.
+var karmaStart = window.__karma__.start;
+window.__karma__.start = function(actuallyStart) {
+  if (actuallyStart === true) {
+    karmaStart();
+  }
+};
+
 var assert = window.assert;
 var fs = BrowserFS.node.fs;
 var path = BrowserFS.node.path;

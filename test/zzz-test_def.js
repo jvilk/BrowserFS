@@ -37,4 +37,4 @@ describe("localStorage FS", function() {
   }
 });
 // Trigger the tests
-__karma__.start();
+__karma__.start(true);
