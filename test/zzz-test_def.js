@@ -20,9 +20,6 @@ var generateTest = function(testName, test) {
 // test
 // TODO: Generalize this once we have more file systems.
 describe("localStorage FS", function() {
-  it ("should work", function() {
-    console.log("It works!");
-  });
   for (var testName in window.tests) {
     if (window.tests.hasOwnProperty(testName)) {
       // Generate a unit test for this Node test
