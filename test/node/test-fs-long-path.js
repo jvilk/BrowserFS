@@ -19,10 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var assert = require('assert');
-var path = BrowserFS.node.path;
-var fs = BrowserFS.node.fs;
+this.tests.fs_long_path = function(){
 
 // make a path that will be at least 260 chars long.
 var fileNameLen = Math.max(260 - common.tmpDir.length - 1, 1);
@@ -45,3 +42,4 @@ process.on('exit', function() {
   assert.equal(2, successes);
 });
 */
+};

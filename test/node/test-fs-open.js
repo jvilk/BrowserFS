@@ -19,9 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var assert = require('assert');
-var fs = BrowserFS.node.fs;
+this.tests.fs_open = function(){
 var filename = 'open-test-filename';
 
 /*
@@ -57,3 +55,4 @@ fs.open(filename, 'w', function(err, fd){
     });
   });
 });
+};

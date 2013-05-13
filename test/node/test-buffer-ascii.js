@@ -19,9 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var assert = require('assert');
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var Buffer = BrowserFS.node.Buffer;
+this.tests.buffer_ascii = function() {
 
 // ASCII conversion in node.js simply masks off the high bits,
 // it doesn't do transliteration.
@@ -44,3 +42,5 @@ for (var i = 0; i < expected.length; ++i) {
   if (input.charCodeAt(i) > 65535) ++i;
   if (input.charCodeAt(i) > 127) ++i;
 }
+
+};

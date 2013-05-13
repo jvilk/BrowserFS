@@ -19,19 +19,17 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var assert = require('assert');
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var Buffer = BrowserFS.node.Buffer;
+this.tests.buffer_concat = function() {
 
 var zero = [];
 var one  = [ new Buffer('asdf') ];
-var long = [];
-for (var i = 0; i < 10; i++) long.push(new Buffer('asdf'));
+var _long = [];
+for (var i = 0; i < 10; i++) _long.push(new Buffer('asdf'));
 
 var flatZero = Buffer.concat(zero);
 var flatOne = Buffer.concat(one);
-var flatLong = Buffer.concat(long);
-var flatLongLen = Buffer.concat(long, 40);
+var flatLong = Buffer.concat(_long);
+var flatLongLen = Buffer.concat(_long, 40);
 
 assert(flatZero.length === 0);
 assert(flatOne.toString() === 'asdf');
@@ -40,3 +38,4 @@ assert(flatLong.toString() === (new Array(10+1).join('asdf')));
 assert(flatLongLen.toString() === (new Array(10+1).join('asdf')));
 
 console.log("ok");
+}

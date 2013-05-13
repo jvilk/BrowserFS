@@ -19,12 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var common = BrowserFS.common;
-var assert = require('assert');
-var process = BrowserFS.node.process;
-
-var path = BrowserFS.node.path;
+this.tests.path = function(){
 
 var isWindows = process.platform === 'win32';
 
@@ -258,3 +253,4 @@ assert.equal(path.sep, '/');
 // path.delimiter tests
 // posix
 assert.equal(path.delimiter, ':');
+};

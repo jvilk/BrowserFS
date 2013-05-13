@@ -19,9 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var assert = require('assert');
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var fs = BrowserFS.node.fs;
+this.tests.fs_exists = function(){
 var f = 'foobar';
 
 fs.open(f, 'w', function(err, fd){
@@ -42,3 +40,4 @@ fs.open(f, 'w', function(err, fd){
 assert(fs.existsSync(f));
 assert(!fs.existsSync(f + '-NO'));
 */
+};

@@ -19,11 +19,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var assert = require('assert');
-var fs = BrowserFS.node.fs;
+this.tests.fs_mkdir = function(){
 
-(function() {
   var pathname = common.tmpDir + '/mkdir-test1';
 
   fs.mkdir(pathname, function(err) {
@@ -34,10 +31,8 @@ var fs = BrowserFS.node.fs;
     });
   });
 
-})();
 
-(function() {
-  var pathname = common.tmpDir + '/mkdir-test2';
+  pathname = common.tmpDir + '/mkdir-test2';
 
   fs.mkdir(pathname, 511 /*=0777*/, function(err) {
     assert.equal(err, null);
@@ -47,4 +42,4 @@ var fs = BrowserFS.node.fs;
     });
   });
 
-})();
+};

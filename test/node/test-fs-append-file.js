@@ -19,15 +19,9 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var assert = require('assert');
-var fs = BrowserFS.node.fs;
+this.tests.fs_append_file = function() {
+
 var join = BrowserFS.node.path.join;
-var common = BrowserFS.common;
-var Buffer = BrowserFS.node.Buffer;
-
-(function() {
-
 var filename = join(common.tmpDir, 'append.txt');
 
 common.error('appending to ' + filename);
@@ -147,4 +141,4 @@ fs.appendFile(filename4, n, { mode: m }, function(e) {
   fs.unlink(filename4);
 });*/
 
-})();
+};

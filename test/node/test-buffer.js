@@ -19,9 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var assert = require('assert');
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var Buffer = BrowserFS.node.Buffer;
+this.tests.buffer = function() {
 
 // counter to ensure unique value is always copied
 var cntr = 0;
@@ -846,3 +844,5 @@ var buf = new Buffer(0);
     assert.equal(buf.slice(0, -i), s.slice(0, -i));
   }
 })();
+
+};
