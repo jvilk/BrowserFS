@@ -141,14 +141,15 @@ processStat = (p, stat) ->
       processReaddir p, files
   decrCount()
 
-# Kick everything off.
-debugPrint 'Opening load_fixtures.js...'
-fs.open './lib/load_fixtures.js', 'w', (err, fd) ->
-  debugPrint 'load_fixtures.js opened!'
-  if err then throw err
-  outfile = fd
-  dirs.push fixturesPath
-  fs.readdir(fixturesPath, (err, files) ->
+# Sanity check!
+fs.exists './src/main/000-browserfs.coffee', (doesExist) ->
+  unless doesExist then throw new Error 'FixtureLoaderMaker must be run from the BrowserFS root!'
+  debugPrint 'Opening load_fixtures.js...'
+  fs.open './lib/load_fixtures.js', 'w', (err, fd) ->
+    debugPrint 'load_fixtures.js opened!'
     if err then throw err
-    processReaddir fixturesPath, files
-  )
+    outfile = fd
+    dirs.push fixturesPath
+    fs.readdir fixturesPath, (err, files) ->
+      if err then throw err
+      processReaddir fixturesPath, files
