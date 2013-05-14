@@ -5,8 +5,6 @@ UGLIFYJS  := $(shell npm bin)/uglifyjs
 CODO      := $(shell npm bin)/codo
 KARMA     := $(shell npm bin)/karma
 
-TESTFILES := $(wildcard test/*/*.js)
-
 SRCS      := $(wildcard src/main/*.coffee)
 BINS      := $(SRCS:src/main/%.coffee=tmp/%.js)
 
@@ -14,7 +12,7 @@ BINS      := $(SRCS:src/main/%.coffee=tmp/%.js)
 
 release: lib/browserfs.min.js
 dev: lib/browserfs.js
-test: release $(KARMA) $(TESTFILES)
+test: release $(KARMA)
 	$(KARMA) start
 doc: $(CODO)
 	$(CODO) --title "BrowserFS Documentation" src
