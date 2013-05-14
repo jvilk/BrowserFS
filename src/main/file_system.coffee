@@ -83,6 +83,9 @@ class BrowserFS.FileSystem
   # @return [Boolean] True if the FileSystem supports the optional
   #   property-related commands (permissions, utimes, etc).
   supportsProps: -> false
+  # **Core**: Does the filesystem support the optional synchronous interface?
+  # @return [Boolean] True if the FileSystem supports synchronous operations.
+  supportsSynch: -> false
 
   # **CORE API METHODS**
 
