@@ -48,6 +48,11 @@ class BrowserFS.node.fs
       throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Tried to instantiate BrowserFS with an unavailable file system.'
     @root = rootFS
 
+  # **NONSTANDARD**: Grab the FileSystem instance that backs this API.
+  # @return [BrowserFS.FileSystem | null] Returns null if the file system has
+  #   not been initialized.
+  @getRootFS: => if @root then @root else null
+
   # FILE OR DIRECTORY METHODS
 
   # Asynchronous rename. No arguments other than a possible exception are given
