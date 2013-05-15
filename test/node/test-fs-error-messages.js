@@ -19,12 +19,9 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var assert = require('assert');
-var path = BrowserFS.node.path;
-var fs = BrowserFS.node.fs;
-var common = BrowserFS.common;
+window.tests.fs_error_messages = function() {
 
+var rootFS = fs.getRootFS();
 var fn = path.join(common.fixturesDir, 'non-existent'),
     existingFile = path.join(common.fixturesDir, 'exit.js');
 
@@ -80,108 +77,114 @@ fs.readFile(fn, function(err) {
 });
 
 // Sync
+// BFS: Only run if the FS supports sync ops
+if (rootFS.supportsSynch) {
+  var errors = [],
+      expected = 0;
 
-var errors = [],
-    expected = 0;
+  try {
+    ++expected;
+    fs.statSync(fn);
+  } catch (err) {
+    errors.push('stat');
+    assert.ok(0 <= err.message.indexOf(fn));
+  }
 
-try {
-  ++expected;
-  fs.statSync(fn);
-} catch (err) {
-  errors.push('stat');
-  assert.ok(0 <= err.message.indexOf(fn));
-}
+  try {
+    ++expected;
+    fs.mkdirSync(existingFile, 0666);
+  } catch (err) {
+    errors.push('mkdir');
+    assert.ok(0 <= err.message.indexOf(existingFile));
+  }
 
-try {
-  ++expected;
-  fs.mkdirSync(existingFile, 0666);
-} catch (err) {
-  errors.push('mkdir');
-  assert.ok(0 <= err.message.indexOf(existingFile));
-}
+  try {
+    ++expected;
+    fs.chmodSync(fn, 0666);
+  } catch (err) {
+    errors.push('chmod');
+    assert.ok(0 <= err.message.indexOf(fn));
+  }
 
-try {
-  ++expected;
-  fs.chmodSync(fn, 0666);
-} catch (err) {
-  errors.push('chmod');
-  assert.ok(0 <= err.message.indexOf(fn));
-}
+  try {
+    ++expected;
+    fs.lstatSync(fn);
+  } catch (err) {
+    errors.push('lstat');
+    assert.ok(0 <= err.message.indexOf(fn));
+  }
 
-try {
-  ++expected;
-  fs.lstatSync(fn);
-} catch (err) {
-  errors.push('lstat');
-  assert.ok(0 <= err.message.indexOf(fn));
-}
+  try {
+    ++expected;
+    fs.readlinkSync(fn);
+  } catch (err) {
+    errors.push('readlink');
+    assert.ok(0 <= err.message.indexOf(fn));
+  }
 
-try {
-  ++expected;
-  fs.readlinkSync(fn);
-} catch (err) {
-  errors.push('readlink');
-  assert.ok(0 <= err.message.indexOf(fn));
-}
+  try {
+    ++expected;
+    fs.linkSync(fn, 'foo');
+  } catch (err) {
+    errors.push('link');
+    assert.ok(0 <= err.message.indexOf(fn));
+  }
 
-try {
-  ++expected;
-  fs.linkSync(fn, 'foo');
-} catch (err) {
-  errors.push('link');
-  assert.ok(0 <= err.message.indexOf(fn));
-}
+  try {
+    ++expected;
+    fs.unlinkSync(fn);
+  } catch (err) {
+    errors.push('unlink');
+    assert.ok(0 <= err.message.indexOf(fn));
+  }
 
-try {
-  ++expected;
-  fs.unlinkSync(fn);
-} catch (err) {
-  errors.push('unlink');
-  assert.ok(0 <= err.message.indexOf(fn));
-}
+  try {
+    ++expected;
+    fs.rmdirSync(fn);
+  } catch (err) {
+    errors.push('rmdir');
+    assert.ok(0 <= err.message.indexOf(fn));
+  }
 
-try {
-  ++expected;
-  fs.rmdirSync(fn);
-} catch (err) {
-  errors.push('rmdir');
-  assert.ok(0 <= err.message.indexOf(fn));
-}
+  try {
+    ++expected;
+    fs.rmdirSync(existingFile);
+  } catch (err) {
+    errors.push('rmdir');
+    assert.ok(0 <= err.message.indexOf(existingFile));
+  }
 
-try {
-  ++expected;
-  fs.rmdirSync(existingFile);
-} catch (err) {
-  errors.push('rmdir');
-  assert.ok(0 <= err.message.indexOf(existingFile));
-}
+  try {
+    ++expected;
+    fs.openSync(fn, 'r');
+  } catch (err) {
+    errors.push('opens');
+    assert.ok(0 <= err.message.indexOf(fn));
+  }
 
-try {
-  ++expected;
-  fs.openSync(fn, 'r');
-} catch (err) {
-  errors.push('opens');
-  assert.ok(0 <= err.message.indexOf(fn));
-}
+  try {
+    ++expected;
+    fs.renameSync(fn, 'foo');
+  } catch (err) {
+    errors.push('rename');
+    assert.ok(0 <= err.message.indexOf(fn));
+  }
 
-try {
-  ++expected;
-  fs.renameSync(fn, 'foo');
-} catch (err) {
-  errors.push('rename');
-  assert.ok(0 <= err.message.indexOf(fn));
-}
-
-try {
-  ++expected;
-  fs.readdirSync(fn);
-} catch (err) {
-  errors.push('readdir');
-  assert.ok(0 <= err.message.indexOf(fn));
+  try {
+    ++expected;
+    fs.readdirSync(fn);
+  } catch (err) {
+    errors.push('readdir');
+    assert.ok(0 <= err.message.indexOf(fn));
+  }
 }
 
 process.on('exit', function() {
-  assert.equal(expected, errors.length,
-               'Test fs sync exceptions raised, got ' + errors.length +
-               ' expected ' + expected);
+  if (rootFS.supportsSynch()) {
+    assert.equal(expected, errors.length,
+                 'Test fs sync exceptions raised, got ' + errors.length +
+                 ' expected ' + expected);
+  }
 });
+
+};

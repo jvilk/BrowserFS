@@ -48,8 +48,8 @@ class BrowserFS.ApiError
   @PERMISSIONS_ERROR: 900
 
   # @param [Number] type The type of error. Use one of the static fields of this class as the type.
-  # @param [String?] msg A descriptive error message.
-  constructor: (@type, @msg="") ->
+  # @param [String?] message A descriptive error message.
+  constructor: (@type, @message="") ->
 
   # @return [String] A friendly error message.
   toString: ->
@@ -63,4 +63,4 @@ class BrowserFS.ApiError
       when BrowserFS.ApiError.NOT_SUPPORTED then 'Not Supported'
       when BrowserFS.ApiError.PERMISSIONS_ERROR then 'Permissions Error'
       else 'Error'
-    "BrowserFS #{typeStr}: #{@msg}"
+    "BrowserFS #{typeStr}: #{@message}"

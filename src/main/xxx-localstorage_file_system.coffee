@@ -42,7 +42,7 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.FileSystem
       @_index.addPath path, inode
     catch e
       # Assume we're out of space.
-      cb new BrowserFS.ApiError BrowserFS.ApiError.DRIVE_FULL
+      cb new BrowserFS.ApiError BrowserFS.ApiError.DRIVE_FULL, "Unable to sync #{path}"
     cb()
 
   # Removes all data from localStorage.

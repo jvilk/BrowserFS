@@ -15,6 +15,7 @@ files = [
   'test/node/test-path*.js',
   'test/node/test-fs-append-file.js',
   'test/node/test-fs-chmod.js',
+  'test/node/test-fs-error-messages.js',
   'test/node/test-fs-exists.js',
   'test/node/test-fs-long-path.js',
   'test/node/test-fs-mkdir.js',
