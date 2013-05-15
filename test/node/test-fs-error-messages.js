@@ -36,14 +36,6 @@ fs.lstat(fn, function(err) {
   assert.ok(0 <= err.message.indexOf(fn));
 });
 
-fs.readlink(fn, function(err) {
-  assert.ok(0 <= err.message.indexOf(fn));
-});
-
-fs.link(fn, 'foo', function(err) {
-  assert.ok(0 <= err.message.indexOf(fn));
-});
-
 fs.unlink(fn, function(err) {
   assert.ok(0 <= err.message.indexOf(fn));
 });
@@ -64,10 +56,6 @@ fs.rmdir(existingFile, function(err) {
   assert.ok(0 <= err.message.indexOf(existingFile));
 });
 
-fs.chmod(fn, 0666, function(err) {
-  assert.ok(0 <= err.message.indexOf(fn));
-});
-
 fs.open(fn, 'r', 0666, function(err) {
   assert.ok(0 <= err.message.indexOf(fn));
 });
@@ -76,9 +64,24 @@ fs.readFile(fn, function(err) {
   assert.ok(0 <= err.message.indexOf(fn));
 });
 
+// BFS: Only run if the FS supports properties
+if (rootFS.supportsProps()) {
+  fs.readlink(fn, function(err) {
+    assert.ok(0 <= err.message.indexOf(fn));
+  });
+
+  fs.link(fn, 'foo', function(err) {
+    assert.ok(0 <= err.message.indexOf(fn));
+  });
+
+  fs.chmod(fn, 0666, function(err) {
+    assert.ok(0 <= err.message.indexOf(fn));
+  });
+}
+
 // Sync
 // BFS: Only run if the FS supports sync ops
-if (rootFS.supportsSynch) {
+if (rootFS.supportsSynch()) {
   var errors = [],
       expected = 0;
 
