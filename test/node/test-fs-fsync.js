@@ -19,13 +19,12 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var assert = require('assert');
-var path = BrowserFS.node.path;
-var fs = BrowserFS.node.fs;
+window.tests.fs_fsync = function() {
+
 var successes = 0;
 
 var file = path.join(common.fixturesDir, 'a.js');
+var rootFS = fs.getRootFS();
 
 common.error('open ' + file);
 
@@ -33,13 +32,15 @@ fs.open(file, 'a', 0777, function(err, fd) {
   common.error('fd ' + fd);
   if (err) throw err;
 
-  fs.fdatasyncSync(fd);
-  common.error('fdatasync SYNC: ok');
-  successes++;
+  if (rootFS.supportsSynch()) {
+    fs.fdatasyncSync(fd);
+    common.error('fdatasync SYNC: ok');
+    successes++;
 
-  fs.fsyncSync(fd);
-  common.error('fsync SYNC: ok');
-  successes++;
+    fs.fsyncSync(fd);
+    common.error('fsync SYNC: ok');
+    successes++;
+  }
 
   fs.fdatasync(fd, function(err) {
     if (err) throw err;
@@ -54,5 +55,11 @@ fs.open(file, 'a', 0777, function(err, fd) {
 });
 
 process.on('exit', function() {
-  assert.equal(4, successes);
+  if (rootFS.supportsSynch()) {
+    assert.equal(4, successes);
+  } else {
+    assert.equal(2, successes);
+  }
 });
+
+};

@@ -280,6 +280,14 @@ class BrowserFS.node.fs
     fdChk = checkFd fd
     unless fdChk then return newCb fdChk
     fd.sync newCb
+  # Asynchronous fdatasync.
+  # @param [BrowserFS.File] fd
+  # @param [Function(BrowserFS.ApiError)] callback
+  @fdatasync: (fd, callback=nopCb) =>
+    newCb = wrapCb callback, 1
+    fdChk = checkFd fd
+    unless fdChk then return newCb fdChk
+    fd.datasync newCb
   # Write buffer to the file specified by `fd`.
   # Note that it is unsafe to use fs.write multiple times on the same file
   # without waiting for the callback. For this scenario,

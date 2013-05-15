@@ -46,6 +46,11 @@ class BrowserFS.File
   #   number is the number of bytes read
   read: (buffer, offset, length, position, cb)->
     cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+  # **Supplementary**: Asynchronous `datasync`.
+  #
+  # Default implementation maps to `sync`.
+  # @param [Function(BrowserFS.ApiError)] cb
+  datasync: (cb) -> @sync(cb)
   # **Optional**: Asynchronous `chown`.
   # @param [Number] uid
   # @param [Number] gid
