@@ -7,6 +7,7 @@ KARMA     := $(shell npm bin)/karma
 
 SRCS      := $(wildcard src/main/*.coffee)
 BINS      := $(SRCS:src/main/%.coffee=tmp/%.js)
+FIXTURES  := $(shell find test/fixtures -name '*')
 
 .PHONY: dependencies release dev test doc clean
 
@@ -36,5 +37,5 @@ lib/browserfs.js: $(BINS) $(COFFEEC) $(UGLIFYJS)
 lib/browserfs.min.js: lib/browserfs.js $(UGLIFYJS)
 	$(UGLIFYJS) --compress unused=false --output lib/browserfs.min.js --in-source-map tmp/browserfs.map --source-map lib/browserfs.min.map vendor/*.js lib/browserfs.js
 
-lib/load_fixtures.js: $(COFFEEC) tools/FixtureLoaderMaker.coffee
+lib/load_fixtures.js: $(COFFEEC) tools/FixtureLoaderMaker.coffee $(FIXTURES)
 	$(COFFEEC) tools/FixtureLoaderMaker.coffee
