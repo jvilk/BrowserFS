@@ -163,6 +163,8 @@ class BrowserFS.node.fs
     if typeof options is 'function'
       callback = options
       options = {}
+    # Only `filename` and `data` specified
+    if options is undefined then options = {}
     if options.encoding is undefined then options.encoding = null
     unless options.flag? then options.flag = 'r'
     newCb = wrapCb callback, 2
@@ -197,6 +199,8 @@ class BrowserFS.node.fs
     if typeof options is 'function'
       callback = options
       options = {}
+    # Only `filename` and `data` specified
+    if options is undefined then options = {}
     if options.encoding is undefined then options.encoding = 'utf8'
     unless options.flag? then options.flag = 'w'
     unless options.mode? then options.mode = 0o666
@@ -230,6 +234,8 @@ class BrowserFS.node.fs
     if typeof options is 'function'
       callback = options
       options = {}
+    # Only `filename` and `data` specified
+    if options is undefined then options = {}
     if options.encoding is undefined then options.encoding = 'utf8'
     unless options.flag? then options.flag = 'a'
     unless options.mode? then options.mode = 0o666

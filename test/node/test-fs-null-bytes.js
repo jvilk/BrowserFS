@@ -19,9 +19,9 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var assert = require('assert');
-var fs = BrowserFS.node.fs;
+window.tests.fs_null_bytes = (function() {
+
+var rootFS = fs.getRootFS();
 
 function check(async, sync) {
   var expected = /Path must be a string without null bytes./;
@@ -30,7 +30,7 @@ function check(async, sync) {
     assert(er && er.message.match(expected));
   });
 
-  if (sync)
+  if (rootFS.supportsSynch() && sync)
     assert.throws(function() {
       console.error(sync.name, argsSync);
       sync.apply(null, argsSync);
@@ -73,3 +73,4 @@ fs.exists('foo\u0000bar', function(exists) {
 });
 assert(!fs.existsSync('foo\u0000bar'));
 
+});
