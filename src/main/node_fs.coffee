@@ -163,7 +163,7 @@ class BrowserFS.node.fs
     if typeof options is 'function'
       callback = options
       options = {}
-    unless options.encoding? then options.encoding = null
+    if options.encoding is undefined then options.encoding = null
     unless options.flag? then options.flag = 'r'
     newCb = wrapCb callback, 2
     # Try/catch is for FileMode failure.
@@ -192,12 +192,12 @@ class BrowserFS.node.fs
   # @option options [Number] mode Defaults to `0666`.
   # @option options [String] flag Defaults to `'w'`.
   # @param [Function(BrowserFS.ApiError)] callback
-  @writeFile: (filename, data, options, callback=nopCb) =>
+  @writeFile: (filename, data, options={}, callback=nopCb) =>
     filename = BrowserFS.node.path.resolve filename
     if typeof options is 'function'
       callback = options
       options = {}
-    unless options.encoding? then options.encoding = 'utf8'
+    if options.encoding is undefined then options.encoding = 'utf8'
     unless options.flag? then options.flag = 'w'
     unless options.mode? then options.mode = 0o666
     newCb = wrapCb callback, 1
@@ -230,7 +230,7 @@ class BrowserFS.node.fs
     if typeof options is 'function'
       callback = options
       options = {}
-    unless options.encoding? then options.encoding = 'utf8'
+    if options.encoding is undefined then options.encoding = 'utf8'
     unless options.flag? then options.flag = 'a'
     unless options.mode? then options.mode = 0o666
     newCb = wrapCb callback, 1
