@@ -74,7 +74,7 @@ emitFileHeader = (cb) ->
 emitFile = (path, data, cb) ->
   debugPrint "Writing file data for #{path}..."
   buf = new Buffer """
-  fs.writeFile("#{path}", "#{data.toString('base64')}", "base64", fcb);
+  fs.writeFile("#{path}", "#{data.toString('base64')}", {encoding: "base64"}, fcb);
 
   """
   fs.write outfile, buf, 0, buf.length, null, cb
