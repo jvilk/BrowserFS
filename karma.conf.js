@@ -20,7 +20,8 @@ files = [
   'test/node/test-fs-mkdir.js',
   'test/node/test-fs-open.js',
   'test/node/test-fs-stat.js',
-  'test/zzz-test_def.js'
+  'test/zzz-test_def.js',
+  'lib/load_fixtures.js'
 ];
 
 

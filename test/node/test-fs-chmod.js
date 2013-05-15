@@ -21,46 +21,111 @@
 
 this.tests.fs_chmod = function(){
 
-var mode = 0777;
+var got_error = false;
+var success_count = 0;
+var mode_async;
+var mode_sync;
+var is_windows = process.platform === 'win32';
+var rootFS = fs.getRootFS();
 
-var file1 = path.join(common.tmpDir, 'a.js'),
-    file2 = path.join(common.tmpDir, 'a1.js');
-fs.open(file1, 'wx', function(err, fd){
-  fs.close(fd, function(){
-    fs.chmod(file1, mode.toString(8), function(err) {
-      if (err) {
-        console.log('XXX(chmod): '+err);
-      } else {
-        fs.stat(file1, function(err, stats){
-          assert.equal(mode, stats.mode & 0777);
-          fs.chmod(file1, mode, function(){
-            fs.stat(file1, function(err2, stats2){
-              assert.equal(mode, stats2.mode & 0777);
-            });
-          });
-        });
-      }
-    });
-  });
+// BFS: This is only for file systems that support properties.
+if (rootFS.supportsProps() === false) return;
+
+var openCount = 0;
+
+var open = function() {
+  openCount++;
+  return fs._open.apply(fs, arguments);
+};
+
+var openSync = function() {
+  openCount++;
+  return fs._openSync.apply(fs, arguments);
+};
+
+var close = function() {
+  openCount--;
+  return fs._close.apply(fs, arguments);
+};
+
+var closeSync = function() {
+  openCount--;
+  return fs._closeSync.apply(fs, arguments);
+};
+
+// Need to hijack fs.open/close to make sure that things
+// get closed once they're opened.
+fs._open = fs.open;
+fs.open = open;
+fs._close = fs.close;
+fs.close = close;
+if (rootFS.supportsSynch()) {
+  fs._openSync = fs.openSync;
+  fs.openSync = openSync;
+  fs._closeSync = fs.closeSync;
+  fs.closeSync = closeSync;
+}
+
+// On Windows chmod is only able to manipulate read-only bit
+if (is_windows) {
+  mode_async = 0400;   // read-only
+  mode_sync = 0600;    // read-write
+} else {
+  mode_async = 0777;
+  mode_sync = 0644;
+}
+
+var file1 = path.join(common.fixturesDir, 'a.js'),
+    file2 = path.join(common.fixturesDir, 'a1.js');
+
+fs.chmod(file1, mode_async.toString(8), function(err) {
+  if (err) {
+    got_error = true;
+  } else {
+    console.log(fs.statSync(file1).mode);
+
+    if (is_windows) {
+      assert.ok((fs.statSync(file1).mode & 0777) & mode_async);
+    } else {
+      assert.equal(mode_async, fs.statSync(file1).mode & 0777);
+    }
+
+    fs.chmodSync(file1, mode_sync);
+    if (is_windows) {
+      assert.ok((fs.statSync(file1).mode & 0777) & mode_sync);
+    } else {
+      assert.equal(mode_sync, fs.statSync(file1).mode & 0777);
+    }
+    success_count++;
+  }
 });
 
 fs.open(file2, 'a', function(err, fd) {
   if (err) {
+    got_error = true;
     console.error(err.stack);
     return;
   }
-  fs.fchmod(fd, mode.toString(8), function(err) {
+  fs.fchmod(fd, mode_async.toString(8), function(err) {
     if (err) {
-      console.log('XXX(fchmod): '+err);
+      got_error = true;
     } else {
-      fs.fstat(fd, function(err,stats){
-        assert.equal(mode, stats.mode & 0777);
-        fs.fchmod(fd, mode, function(){
-          fs.fstat(fd, function(err2,stats2){
-            assert.equal(mode, stats2.mode & 0777);
-          });
-        });
-      });
+      console.log(fs.fstatSync(fd).mode);
+
+      if (is_windows) {
+        assert.ok((fs.fstatSync(fd).mode & 0777) & mode_async);
+      } else {
+        assert.equal(mode_async, fs.fstatSync(fd).mode & 0777);
+      }
+
+      fs.fchmodSync(fd, mode_sync);
+      if (is_windows) {
+        assert.ok((fs.fstatSync(fd).mode & 0777) & mode_sync);
+      } else {
+        assert.equal(mode_sync, fs.fstatSync(fd).mode & 0777);
+      }
+      success_count++;
+      fs.close(fd);
     }
   });
 });
@@ -69,27 +134,39 @@ fs.open(file2, 'a', function(err, fd) {
 if (fs.lchmod) {
   var link = path.join(common.tmpDir, 'symbolic-link');
 
-  fs.unlink(link, function (){
-    fs.symlink(file2, link, function (){
-      fs.lchmod(link, mode, function(err) {
-        if (err) {
-          console.log('XXX(lchmod): '+err);
-        } else {
-          fs.lstat(link, function (err, stats){
-            assert.equal(mode, stats.mode & 0777);
-          });
-        }
-      });
-    });
+  try {
+    fs.unlinkSync(link);
+  } catch (er) {}
+  fs.symlinkSync(file2, link);
+
+  fs.lchmod(link, mode_async, function(err) {
+    if (err) {
+      got_error = true;
+    } else {
+      console.log(fs.lstatSync(link).mode);
+      assert.equal(mode_async, fs.lstatSync(link).mode & 0777);
+
+      fs.lchmodSync(link, mode_sync);
+      assert.equal(mode_sync, fs.lstatSync(link).mode & 0777);
+      success_count++;
+    }
   });
+} else {
+  success_count++;
 }
 
-// TODO: Restore this once I add the fixture data and make this test closer to
-// Node's
-/*process.on('exit', function() {
+
+process.on('exit', function() {
+  // BFS: Restore methods so we can continue unit testing.
+  fs.open = fs._open;
+  fs.close = fs._close;
+  if (rootFS.supportsSynch()) {
+    fs.openSync = fs._openSync;
+    fs.closeSync = fs._closeSync;
+  }
   assert.equal(3, success_count);
   assert.equal(0, openCount);
   assert.equal(false, got_error);
-});*/
+});
 
 };
