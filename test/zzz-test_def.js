@@ -3,6 +3,7 @@
   // Generates a unit test.
   var generateTest = function(testName, test) {
     it (testName, function() {
+      console.log("Running " + testName);
       runs(function() {
         // Reset the exit callback.
         process.on('exit', function(){});
