@@ -3,3 +3,5 @@ lib/*.js
 lib/*.map
 tmp/*
 doc/*
+*.DS_Store
+
