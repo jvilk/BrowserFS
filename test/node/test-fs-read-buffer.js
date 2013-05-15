@@ -19,34 +19,33 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var assert = require('assert');
-var path = BrowserFS.node.path;
-var fs = BrowserFS.node.fs;
-var common = BrowserFS.common;
-var Buffer = BrowserFS.node.Buffer;
+window.tests.fs_read_buffer = function() {
 
-var filepath = '/x.txt';
+var filepath = path.join(common.fixturesDir, 'x.txt'),
+    expected = 'xyz\n',
+    bufferAsync = new Buffer(expected.length),
+    bufferSync = new Buffer(expected.length),
+    readCalled = 0,
+    rootFS = fs.getRootFS();
 
 fs.open(filepath, 'r', function(err, fd) {
   if (err) throw err;
-  var expected = 'xyz\n',
-      bufferAsync = new Buffer(expected.length),
-      bufferSync = new Buffer(expected.length),
-      readCalled = 0;
-
   fs.read(fd, bufferAsync, 0, expected.length, 0, function(err, bytesRead) {
     readCalled++;
 
     assert.equal(bytesRead, expected.length);
-    assert.equal(bufferAsync.toString(), (new Buffer(expected)).toString());
+    assert.equal(bufferAsync.toString(), new Buffer(expected).toString());
   });
 
-  /*var r = fs.readSync(fd, bufferSync, 0, expected.length, 0);
-  assert.deepEqual(bufferSync, new Buffer(expected));
-  assert.equal(r, expected.length);*/
+  if (rootFS.supportsSynch()) {
+    var r = fs.readSync(fd, bufferSync, 0, expected.length, 0);
+    assert.equal(bufferSync.toString(), new Buffer(expected).toString());
+    assert.equal(r, expected.length);
+  }
 });
 
-/*process.on('exit', function() {
+process.on('exit', function() {
   assert.equal(readCalled, 1);
-});*/
+});
+
+};
