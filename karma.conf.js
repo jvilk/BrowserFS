@@ -23,6 +23,9 @@ files = [
   'test/node/test-fs-null-bytes.js',
   'test/node/test-fs-open.js',
   'test/node/test-fs-read-buffer.js',
+  'test/node/test-fs-read-file-sync.js',
+  'test/node/test-fs-read.js',
+  'test/node/test-fs-readfile-empty.js',
   'test/node/test-fs-stat.js',
   'test/zzz-test_def.js',
   'lib/load_fixtures.js'

@@ -188,6 +188,8 @@ class BrowserFS.node.fs
       if typeof options is 'function'
         callback = options
         options = {}
+      else if typeof options is 'string'
+        options = {encoding: options}
       # Only `filename` and `data` specified
       if options is undefined then options = {}
       if options.encoding is undefined then options.encoding = null
@@ -223,6 +225,8 @@ class BrowserFS.node.fs
       if typeof options is 'function'
         callback = options
         options = {}
+      else if typeof options is 'string'
+        options = {encoding: options}
       # Only `filename` and `data` specified
       if options is undefined then options = {}
       if options.encoding is undefined then options.encoding = 'utf8'
@@ -257,6 +261,8 @@ class BrowserFS.node.fs
       if typeof options is 'function'
         callback = options
         options = {}
+      else if typeof options is 'string'
+        options = {encoding: options}
       # Only `filename` and `data` specified
       if options is undefined then options = {}
       if options.encoding is undefined then options.encoding = 'utf8'

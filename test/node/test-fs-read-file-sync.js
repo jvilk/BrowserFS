@@ -19,16 +19,17 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var assert = require('assert');
-var path = BrowserFS.node.path;
-var fs = BrowserFS.node.fs;
-var common = BrowserFS.common;
+window.tests.fs_read_file_sync = function() {
 
+var rootFS = fs.getRootFS();
 var fn = path.join(common.fixturesDir, 'elipses.txt');
 
-var s = fs.readFileSync(fn, 'utf8');
-for (var i = 0; i < s.length; i++) {
-  assert.equal('\u2026', s[i]);
+if (rootFS.supportsSynch()) {
+  var s = fs.readFileSync(fn, 'utf8');
+  for (var i = 0; i < s.length; i++) {
+    assert.equal('\u2026', s[i]);
+  }
+  assert.equal(10000, s.length);
 }
-assert.equal(10000, s.length);
+
+};

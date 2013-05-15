@@ -19,13 +19,10 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var assert = require('assert');
-var path = BrowserFS.node.path;
-var fs = BrowserFS.node.fs;
-var common = BrowserFS.common;
+window.tests.fs_readfile_empty = function() {
 
 var fn = path.join(common.fixturesDir, 'empty.txt');
+var rootFS = fs.getRootFS();
 
 fs.readFile(fn, function(err, data) {
   assert.ok(data);
@@ -35,5 +32,9 @@ fs.readFile(fn, 'utf8', function(err, data) {
   assert.strictEqual('', data);
 });
 
-assert.ok(fs.readFileSync(fn));
-assert.strictEqual('', fs.readFileSync(fn, 'utf8'));
+if (rootFS.supportsSynch()) {
+  assert.ok(fs.readFileSync(fn));
+  assert.strictEqual('', fs.readFileSync(fn, 'utf8'));
+}
+
+};
