@@ -135,7 +135,8 @@ class BrowserFS.node.path
       # Append the current directory, which *must* be an absolute path.
       cwd = BrowserFS.node.process.cwd()
       if resolved isnt ''
-        resolved = cwd + @sep + resolved
+        # cwd will never end in a /... unless it's the root.
+        resolved = cwd + (if cwd isnt '/' then @sep else '') + resolved
       else
         resolved = cwd
 

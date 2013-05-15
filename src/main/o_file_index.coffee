@@ -93,6 +93,8 @@ class BrowserFS.FileIndex
     # Retrieve from its parent directory.
     parent = @_index[dirpath]
     if parent is undefined then return null
+    # Root case
+    if dirpath is path then return parent
     return parent.getItem itemname
 
 # Inode for a file. Can be extended by the filesystem if need be to store more
