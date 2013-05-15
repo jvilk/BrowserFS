@@ -28,7 +28,9 @@ var fn = path.join(common.fixturesDir, 'non-existent'),
 // ASYNC_CALL
 
 fs.stat(fn, function(err) {
-  assert.equal(fn, err.path);
+  // BFS: Maybe we will support this later when we have standard error messages.
+  // For now, there's no reason to.
+  //assert.equal(fn, err.path);
   assert.ok(0 <= err.message.indexOf(fn));
 });
 
