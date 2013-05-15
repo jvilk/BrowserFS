@@ -12,6 +12,7 @@ files = []
 dirs = []
 count = 1
 DEBUG = false
+uid = 0
 
 # Used to print debug messages.
 debugPrint = (args...) -> if DEBUG then console.log.apply console, args
@@ -38,12 +39,17 @@ emitHeader = (cb) ->
         __fixturesAddFiles();
       }
     };
-    var fcb = function(err) {
-      if (err) throw err;
-      numfiles--;
-      if (numfiles === 0) {
-        window.jasmine.getEnv().execute(true);
-      }
+    var fcb = function(p, writtenData) {
+      return function(err) {
+        if (err) throw err;
+        fs.readFile(p, {encoding:"base64"}, function(err, readData) {
+          if (writtenData != readData) throw new Error('Read data for '+p+' does not match written data.');
+          numfiles--;
+          if (numfiles === 0) {
+            window.jasmine.getEnv().execute(true);
+          }
+        });
+      };
     };
 
   """
@@ -73,8 +79,14 @@ emitFileHeader = (cb) ->
   fs.write outfile, buf, 0, buf.length, null, cb
 emitFile = (path, data, cb) ->
   debugPrint "Writing file data for #{path}..."
+  datab64 = data.toString 'base64'
+  id = uid++
+  dvarName = "data#{id}"
+  pvarName = "path#{id}"
   buf = new Buffer """
-  fs.writeFile("#{path}", "#{data.toString('base64')}", {encoding: "base64"}, fcb);
+  var #{dvarName} = "#{datab64}";
+  var #{pvarName} = "#{path}";
+  fs.writeFile(#{pvarName}, #{dvarName}, {encoding: "base64"}, fcb(#{pvarName}, #{dvarName}));
 
   """
   fs.write outfile, buf, 0, buf.length, null, cb
