@@ -363,7 +363,7 @@ class BrowserFS.node.fs
   # @param [BrowserFS.File] fd
   # @param [BrowserFS.node.Buffer] buffer The buffer that the data will be
   #   written to.
-  # @param [Number] offset The offset within the buffer where reading will
+  # @param [Number] offset The offset within the buffer where writing will
   #   start.
   # @param [Number] length An integer specifying the number of bytes to read.
   # @param [Number] position An integer specifying where to begin reading from
@@ -373,7 +373,24 @@ class BrowserFS.node.fs
   #   callback The number is the number of bytes read
   @read: (fd, buffer, offset, length, position, callback=nopCb) ->
     try
-      newCb = wrapCb callback, 3
+      # Undocumented alternative function:
+      # (fd, length, position, encoding, function(err, str, bytesRead))
+      if typeof buffer is 'number' and typeof offset is 'number' and typeof length is 'string' and typeof position is 'function'
+        callback = position
+        position = offset
+        offset = 0
+        encoding = length
+        length = buffer
+        buffer = new BrowserFS.node.Buffer length
+        # XXX: Inefficient.
+        # Wrap the cb so we shelter upper layers of the API from these
+        # shenanigans.
+        newCb = wrapCb(((err, bytesRead, buf) ->
+          if err then return oldNewCb err
+          callback err, buf.toString(encoding), bytesRead
+        ), 3)
+      else
+        newCb = wrapCb callback, 3
       fdChk = checkFd fd
       unless fdChk then return newCb fdChk
       unless position? then position = fd.getPos()
