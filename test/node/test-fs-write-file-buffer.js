@@ -47,6 +47,10 @@ data = data.join('\n');
 var buf = new Buffer(data, 'base64');
 fs.writeFile(join(common.tmpDir, 'test.jpg'), buf, function(err) {
   if (err) throw err;
+  // BFS: Adding this extra step.
+  fs.readFile(join(common.tmpDir, 'test.jpg'), function(err, bufdat) {
+    assert.equal(data, bufdat.toString('base64'));
+  });
   console.log('Done!');
 });
 
