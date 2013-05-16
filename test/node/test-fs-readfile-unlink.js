@@ -34,7 +34,7 @@ fs.mkdir(dirName, function(err) {
     fs.readFile(fileName, function(err, data) {
       assert.ifError(err);
       assert(data.length == buf.length);
-      assert.strictEqual(buf[0], 42);
+      assert.strictEqual(buf.get(0), 42);
 
       fs.unlink(fileName, function(err) {
         if (err) throw err;
