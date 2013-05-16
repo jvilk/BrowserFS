@@ -28,7 +28,7 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
     # Note: This invariant is *not* maintained once the file starts getting
     # modified.
     if @_stat.size != @_buffer.length
-      throw new Error 'Invalid buffer: Size differs from size specified in Stats object.'
+      throw new Error "Invalid buffer: Buffer is #{@_buffer.length} long, yet Stats object specifies that file is #{@_stat.size} long."
 
   # Get the path to this file.
   # @return [String] The path to the file.
@@ -69,8 +69,16 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
   truncate: (len, cb)->
     unless @_mode.isWriteable()
       return cb new BrowserFS.ApiError BrowserFS.ApiError.PERMISSIONS_ERROR, 'File not opened with a writeable mode.'
-    @_stat.size = len
     @_stat.mtime = new Date()
+    if len > @_buffer.length
+      buf = new Buffer(len-@_buffer.length)
+      buf.fill 0
+      # Write will set @_stat.size for us.
+      return @write buf, 0, buf.length, @_buffer.length, (err) =>
+        if (err) then return cb err
+        if @_mode.isSynchronous() then return @sync (err) -> cb err
+        cb err
+    @_stat.size = len
     if @_mode.isSynchronous() then return @sync (err) -> cb err
     cb null
   # Write buffer to the file.

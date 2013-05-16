@@ -122,6 +122,9 @@ class BrowserFS.node.fs
   # @param [Function(BrowserFS.ApiError)] callback
   @truncate: (path, len, callback=nopCb) =>
     try
+      if typeof len is 'function'
+        callback = len
+        len = 0
       newCb = wrapCb callback, 1
       path = @_canonicalizePath path
       @root.truncate path, len, newCb
@@ -309,6 +312,9 @@ class BrowserFS.node.fs
   # @param [Function(BrowserFS.ApiError)] callback
   @ftruncate: (fd, len, callback=nopCb) ->
     try
+      if typeof len is 'function'
+        callback = len
+        len = 0
       newCb = wrapCb callback, 1
       fdChk = checkFd fd
       unless fdChk then return newCb fdChk
