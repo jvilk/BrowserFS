@@ -29,6 +29,8 @@ files = [
   'test/node/test-fs-readfile-unlink.js',
   'test/node/test-fs-stat.js',
   'test/node/test-fs-truncate.js',
+  'test/node/test-fs-write-buffer.js',
+  'test/node/test-fs-write-file-buffer.js',
   'test/zzz-test_def.js',
   'lib/load_fixtures.js'
 ];

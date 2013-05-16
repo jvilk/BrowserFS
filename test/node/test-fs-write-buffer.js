@@ -19,12 +19,8 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var assert = require('assert');
-var path = BrowserFS.node.path;
-var fs = BrowserFS.node.fs;
-var common = BrowserFS.common;
-var Buffer = BrowserFS.node.Buffer;
+window.tests.fs_write_buffer = function() {
+
 var filename = path.join(common.tmpDir, 'write.txt'),
     expected = new Buffer('hello'),
     openCalled = 0,
@@ -40,11 +36,15 @@ fs.open(filename, 'w', 0644, function(err, fd) {
     if (err) throw err;
 
     assert.equal(expected.length, written);
-    fs.closeSync(fd);
-
-    var found = fs.readFileSync(filename, 'utf8');
-    assert.deepEqual(expected.toString(), found);
-    fs.unlinkSync(filename);
+    fs.close(fd, function(err) {
+      if (err) throw err;
+      fs.readFile(filename, 'utf8', function(err, found) {
+        assert.deepEqual(expected.toString(), found);
+        fs.unlink(filename, function(err) {
+          if (err) throw err;
+        });
+      });
+    });
   });
 });
 
@@ -53,3 +53,4 @@ process.on('exit', function() {
   assert.equal(1, writeCalled);
 });
 
+};

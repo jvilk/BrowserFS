@@ -19,12 +19,9 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var path = BrowserFS.node.path;
-var fs = BrowserFS.node.fs;
-var common = BrowserFS.common;
+window.tests.fs_write_file_buffer = function() {
+
 var join = path.join;
-var util = require('util');
 
 var data = [
   '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcH',
@@ -48,6 +45,9 @@ var data = [
 data = data.join('\n');
 
 var buf = new Buffer(data, 'base64');
-fs.writeFileSync(join(common.tmpDir, 'test.jpg'), buf);
+fs.writeFile(join(common.tmpDir, 'test.jpg'), buf, function(err) {
+  if (err) throw err;
+  console.log('Done!');
+});
 
-util.log('Done!');
+};
