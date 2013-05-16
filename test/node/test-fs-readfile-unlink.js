@@ -19,31 +19,31 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var assert = require('assert');
-var path = BrowserFS.node.path;
-var fs = BrowserFS.node.fs;
-var common = BrowserFS.common;
+window.tests.fs_readfile_unlink = function() {
+
 var dirName = path.resolve(common.fixturesDir, 'test-readfile-unlink'),
     fileName = path.resolve(dirName, 'test.bin');
 
 var buf = new Buffer(512 * 1024);
 buf.fill(42);
 
-try {
-  fs.mkdirSync(dirName);
-} catch (e) {
-  // Ignore if the directory already exists.
-  if (e.code != 'EEXIST') throw e;
-}
+fs.mkdir(dirName, function(err) {
+  if (err) throw err;
+  fs.writeFile(fileName, buf, function(err) {
+    if (err) throw err;
+    fs.readFile(fileName, function(err, data) {
+      assert.ifError(err);
+      assert(data.length == buf.length);
+      assert.strictEqual(buf[0], 42);
 
-fs.writeFileSync(fileName, buf);
-
-fs.readFile(fileName, function(err, data) {
-  assert.ifError(err);
-  assert(data.length == buf.length);
-  assert.strictEqual(buf[0], 42);
-
-  fs.unlinkSync(fileName);
-  fs.rmdirSync(dirName);
+      fs.unlink(fileName, function(err) {
+        if (err) throw err;
+        fs.rmdir(dirName, function(err) {
+          if (err) throw err;
+        });
+      });
+    });
+  });
 });
+
+};

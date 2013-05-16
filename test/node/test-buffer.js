@@ -29,16 +29,16 @@ var b = Buffer(1024); // safe constructor
 console.log('b.length == %d', b.length);
 assert.strictEqual(1024, b.length);
 
-b[0] = -1;
+b.set(0, -1);
 
-assert.strictEqual(b[0], 255);
+assert.strictEqual(b.get(0), 255);
 
 for (var i = 0; i < 1024; i++) {
-  b[i] = i % 256;
+  b.set(i, i % 256);
 }
 
 for (var i = 0; i < 1024; i++) {
-  assert.strictEqual(i % 256, b[i]);
+  assert.strictEqual(i % 256, b.get(i));
 }
 
 var c = new Buffer(512);
@@ -52,7 +52,7 @@ var copied = b.copy(c, 0, 0, 512);
 console.log('copied %d bytes from b into c', copied);
 assert.strictEqual(512, copied);
 for (var i = 0; i < c.length; i++) {
-  assert.strictEqual(b[i], c[i]);
+  assert.strictEqual(b.get(i), c.get(i));
 }
 
 // copy c into b, without specifying sourceEnd
@@ -62,7 +62,7 @@ var copied = c.copy(b, 0, 0);
 console.log('copied %d bytes from c into b w/o sourceEnd', copied);
 assert.strictEqual(c.length, copied);
 for (var i = 0; i < c.length; i++) {
-  assert.strictEqual(c[i], b[i]);
+  assert.strictEqual(c.get(i), b.get(i));
 }
 
 // copy c into b, without specifying sourceStart
@@ -72,7 +72,7 @@ var copied = c.copy(b, 0);
 console.log('copied %d bytes from c into b w/o sourceStart', copied);
 assert.strictEqual(c.length, copied);
 for (var i = 0; i < c.length; i++) {
-  assert.strictEqual(c[i], b[i]);
+  assert.strictEqual(c.get(i), b.get(i));
 }
 
 // copy longer buffer b to shorter c without targetStart
@@ -82,7 +82,7 @@ var copied = b.copy(c);
 console.log('copied %d bytes from b into c w/o targetStart', copied);
 assert.strictEqual(c.length, copied);
 for (var i = 0; i < c.length; i++) {
-  assert.strictEqual(b[i], c[i]);
+  assert.strictEqual(b.get(i), c.get(i));
 }
 
 // copy starting near end of b to c
@@ -92,10 +92,10 @@ var copied = b.copy(c, 0, b.length - Math.floor(c.length / 2));
 console.log('copied %d bytes from end of b into beginning of c', copied);
 assert.strictEqual(Math.floor(c.length / 2), copied);
 for (var i = 0; i < Math.floor(c.length / 2); i++) {
-  assert.strictEqual(b[b.length - Math.floor(c.length / 2) + i], c[i]);
+  assert.strictEqual(b.get(b.length - Math.floor(c.length / 2) + i), c.get(i));
 }
 for (var i = Math.floor(c.length /2) + 1; i < c.length; i++) {
-  assert.strictEqual(c[c.length-1], c[i]);
+  assert.strictEqual(c.get(c.length-1), c.get(i));
 }
 
 // try to copy 513 bytes, and check we don't overrun c
@@ -105,7 +105,7 @@ var copied = b.copy(c, 0, 0, 513);
 console.log('copied %d bytes from b trying to overrun c', copied);
 assert.strictEqual(c.length, copied);
 for (var i = 0; i < c.length; i++) {
-  assert.strictEqual(b[i], c[i]);
+  assert.strictEqual(b.get(i), c.get(i));
 }
 
 // copy 768 bytes from b into b
@@ -115,7 +115,7 @@ var copied = b.copy(b, 0, 256, 1024);
 console.log('copied %d bytes from b into b', copied);
 assert.strictEqual(768, copied);
 for (var i = 0; i < b.length; i++) {
-  assert.strictEqual(cntr, b[i]);
+  assert.strictEqual(cntr, b.get(i));
 }
 
 var caught_error = null;
@@ -135,7 +135,7 @@ var copied = b.copy(c, 0, -1);
 assert.strictEqual(c.length, copied);
 console.log('copied %d bytes from b into c w/ negative sourceStart', copied);
 for (var i = 0; i < c.length; i++) {
-  assert.strictEqual(b[i], c[i]);
+  assert.strictEqual(b.get(i), c.get(i));
 }
 
 // check sourceEnd resets to targetEnd if former is greater than the latter
@@ -145,7 +145,7 @@ c.fill(++cntr);
 var copied = b.copy(c, 0, 0, 1024);
 console.log('copied %d bytes from b into c', copied);
 for (var i = 0; i < c.length; i++) {
-  assert.strictEqual(b[i], c[i]);
+  assert.strictEqual(b.get(i), c.get(i));
 }
 
 // throw with negative sourceEnd
@@ -231,7 +231,7 @@ var offset = 100;
 for (var j = 0; j < 500; j++) {
 
   for (var i = 0; i < asciiString.length; i++) {
-    b[i] = asciiString.charCodeAt(i);
+    b.set(i, asciiString.charCodeAt(i));
   }
   var asciiSlice = b.toString('ascii', 0, asciiString.length);
   assert.equal(asciiString, asciiSlice);
@@ -244,7 +244,7 @@ for (var j = 0; j < 500; j++) {
   var sliceA = b.slice(offset, offset + asciiString.length);
   var sliceB = b.slice(offset, offset + asciiString.length);
   for (var i = 0; i < asciiString.length; i++) {
-    assert.equal(sliceA[i], sliceB[i]);
+    assert.equal(sliceA.get(i), sliceB.get(i));
   }
 
   // TODO utf8 slice tests
@@ -255,7 +255,7 @@ for (var j = 0; j < 100; j++) {
   var slice = b.slice(100, 150);
   assert.equal(50, slice.length);
   for (var i = 0; i < 50; i++) {
-    assert.equal(b[100 + i], slice[i]);
+    assert.equal(b.get(100 + i), slice.get(i));
   }
 }
 
@@ -272,22 +272,22 @@ assert.equal(slice, testValue);
 
 // Test triple  slice
 var a = new Buffer(8);
-for (var i = 0; i < 8; i++) a[i] = i;
+for (var i = 0; i < 8; i++) a.set(i, i);
 var b = a.slice(4, 8);
-assert.equal(4, b[0]);
-assert.equal(5, b[1]);
-assert.equal(6, b[2]);
-assert.equal(7, b[3]);
+assert.equal(4, b.get(0));
+assert.equal(5, b.get(1));
+assert.equal(6, b.get(2));
+assert.equal(7, b.get(3));
 var c = b.slice(2, 4);
-assert.equal(6, c[0]);
-assert.equal(7, c[1]);
+assert.equal(6, c.get(0));
+assert.equal(7, c.get(1));
 
 
 var d = new Buffer([23, 42, 255]);
 assert.equal(d.length, 3);
-assert.equal(d[0], 23);
-assert.equal(d[1], 42);
-assert.equal(d[2], 255);
+assert.equal(d.get(0), 23);
+assert.equal(d.get(1), 42);
+assert.equal(d.get(2), 255);
 // JV: Changed deepEqual -> equal on toJSON.
 function equalCheck(b1, b2) {
   assert.equal(JSON.stringify(b1), JSON.stringify(b2));
@@ -468,10 +468,10 @@ assert.equal(new Buffer('w69jACy6BgZmaFvv96HG6MYksWytuZu3T1FvGnulPg',
 
 // This string encodes single '.' character in UTF-16
 var dot = new Buffer('//4uAA==', 'base64');
-assert.equal(dot[0], 0xff);
-assert.equal(dot[1], 0xfe);
-assert.equal(dot[2], 0x2e);
-assert.equal(dot[3], 0x00);
+assert.equal(dot.get(0), 0xff);
+assert.equal(dot.get(1), 0xfe);
+assert.equal(dot.get(2), 0x2e);
+assert.equal(dot.get(3), 0x00);
 assert.equal(dot.toString('base64'), '//4uAA==');
 
 // Writing base64 at a position > 0 should not mangle the result.
@@ -496,7 +496,7 @@ for (i = 0; i < l; i++) {
 var b = new Buffer(s);
 
 for (i = 0; i < l; i++) {
-  assert.equal('h'.charCodeAt(0), b[i]);
+  assert.equal('h'.charCodeAt(0), b.get(i));
 }
 
 var sb = b.toString();
@@ -524,7 +524,7 @@ assert.equal(0, Buffer('hello').slice(0, 0).length);
 console.log('Create hex string from buffer');
 var hexb = new Buffer(256);
 for (var i = 0; i < 256; i++) {
-  hexb[i] = i;
+  hexb.set(i, i);
 }
 var hexStr = hexb.toString('hex');
 assert.equal(hexStr,
@@ -548,7 +548,7 @@ assert.equal(hexStr,
 console.log('Create buffer from hex string');
 var hexb2 = new Buffer(hexStr, 'hex');
 for (var i = 0; i < 256; i++) {
-  assert.equal(hexb2[i], hexb[i]);
+  assert.equal(hexb2.get(i), hexb.get(i));
 }
 
 // test an invalid slice end.
@@ -565,33 +565,33 @@ assert.equal(0, Buffer('hello').slice(0, 0).length);
 b = new Buffer(50);
 b.fill('h');
 for (var i = 0; i < b.length; i++) {
-  assert.equal('h'.charCodeAt(0), b[i]);
+  assert.equal('h'.charCodeAt(0), b.get(i));
 }
 
 b.fill(0);
 for (var i = 0; i < b.length; i++) {
-  assert.equal(0, b[i]);
+  assert.equal(0, b.get(i));
 }
 
 b.fill(1, 16, 32);
-for (var i = 0; i < 16; i++) assert.equal(0, b[i]);
-for (; i < 32; i++) assert.equal(1, b[i]);
-for (; i < b.length; i++) assert.equal(0, b[i]);
+for (var i = 0; i < 16; i++) assert.equal(0, b.get(i));
+for (; i < 32; i++) assert.equal(1, b.get(i));
+for (; i < b.length; i++) assert.equal(0, b.get(i));
 
 // Binary encoding should write only one byte per character.
 var b = Buffer([0xde, 0xad, 0xbe, 0xef]);
 var s = String.fromCharCode(0xffff);
 b.write(s, 0, 'binary');
-assert.equal(0xff, b[0]);
-assert.equal(0xad, b[1]);
-assert.equal(0xbe, b[2]);
-assert.equal(0xef, b[3]);
+assert.equal(0xff, b.get(0));
+assert.equal(0xad, b.get(1));
+assert.equal(0xbe, b.get(2));
+assert.equal(0xef, b.get(3));
 s = String.fromCharCode(0xaaee);
 b.write(s, 0, 'binary');
-assert.equal(0xee, b[0]);
-assert.equal(0xad, b[1]);
-assert.equal(0xbe, b[2]);
-assert.equal(0xef, b[3]);
+assert.equal(0xee, b.get(0));
+assert.equal(0xad, b.get(1));
+assert.equal(0xbe, b.get(2));
+assert.equal(0xef, b.get(3));
 
 // testing invalid encoding on SlowBuffer.toString
 caught_error = null;
@@ -649,47 +649,47 @@ buf.fill(0xFF);
 var written = buf.write('abcd', 1, 2, 'utf8');
 console.log(buf.toJSON());
 assert.equal(written, 2);
-assert.equal(buf[0], 0xFF);
-assert.equal(buf[1], 0x61);
-assert.equal(buf[2], 0x62);
-assert.equal(buf[3], 0xFF);
+assert.equal(buf.get(0), 0xFF);
+assert.equal(buf.get(1), 0x61);
+assert.equal(buf.get(2), 0x62);
+assert.equal(buf.get(3), 0xFF);
 
 buf.fill(0xFF);
 written = buf.write('abcd', 1, 4);
 console.log(buf.toJSON());
 assert.equal(written, 3);
-assert.equal(buf[0], 0xFF);
-assert.equal(buf[1], 0x61);
-assert.equal(buf[2], 0x62);
-assert.equal(buf[3], 0x63);
+assert.equal(buf.get(0), 0xFF);
+assert.equal(buf.get(1), 0x61);
+assert.equal(buf.get(2), 0x62);
+assert.equal(buf.get(3), 0x63);
 
 buf.fill(0xFF);
 written = buf.write('abcd', 1, 2, 'utf8');  // legacy style
 console.log(buf.toJSON());
 assert.equal(written, 2);
-assert.equal(buf[0], 0xFF);
-assert.equal(buf[1], 0x61);
-assert.equal(buf[2], 0x62);
-assert.equal(buf[3], 0xFF);
+assert.equal(buf.get(0), 0xFF);
+assert.equal(buf.get(1), 0x61);
+assert.equal(buf.get(2), 0x62);
+assert.equal(buf.get(3), 0xFF);
 
 buf.fill(0xFF);
 written = buf.write('abcdef', 1, 2, 'hex');
 console.log(buf.toJSON());
 assert.equal(written, 2);
-assert.equal(buf[0], 0xFF);
-assert.equal(buf[1], 0xAB);
-assert.equal(buf[2], 0xCD);
-assert.equal(buf[3], 0xFF);
+assert.equal(buf.get(0), 0xFF);
+assert.equal(buf.get(1), 0xAB);
+assert.equal(buf.get(2), 0xCD);
+assert.equal(buf.get(3), 0xFF);
 
 ['ucs2', 'ucs-2', 'utf16le', 'utf-16le'].forEach(function(encoding) {
   buf.fill(0xFF);
   written = buf.write('abcd', 0, 2, encoding);
   console.log(buf.toJSON());
   assert.equal(written, 2);
-  assert.equal(buf[0], 0x61);
-  assert.equal(buf[1], 0x00);
-  assert.equal(buf[2], 0xFF);
-  assert.equal(buf[3], 0xFF);
+  assert.equal(buf.get(0), 0x61);
+  assert.equal(buf.get(1), 0x00);
+  assert.equal(buf.get(2), 0xFF);
+  assert.equal(buf.get(3), 0xFF);
 });
 
 // test for buffer overrun
@@ -697,7 +697,7 @@ buf = new Buffer([0, 0, 0, 0, 0]); // length: 5
 var sub = buf.slice(0, 4);         // length: 4
 written = sub.write('12345', 'binary');
 assert.equal(written, 4);
-assert.equal(buf[4], 0);
+assert.equal(buf.get(4), 0);
 
 // Check for fractional length args, junk length args, etc.
 // https://github.com/joyent/node/issues/1758

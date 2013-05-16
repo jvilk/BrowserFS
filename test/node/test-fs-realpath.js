@@ -19,39 +19,14 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var assert = require('assert');
-var path = BrowserFS.node.path;
-var fs = BrowserFS.node.fs;
-var common = BrowserFS.common;
-var exec = require('child_process').exec;
+window.test.fs_realpath = function() {
+
 var async_completed = 0, async_expected = 0, unlink = [];
 var isWindows = process.platform === 'win32';
-var skipSymlinks = false;
+var rootFS = fs.getRootFS();
+var skipSymlinks = !rootFS.supportsLinks();
 
 var root = '/';
-if (isWindows) {
-  // something like "C:\\"
-  root = process.cwd().substr(0, 3);
-
-  // On Windows, creating symlinks requires admin privileges.
-  // We'll only try to run symlink test if we have enough privileges.
-  try {
-    exec('whoami /priv', function(err, o) {
-      if (err || o.indexOf('SeCreateSymbolicLinkPrivilege') == -1) {
-        skipSymlinks = true;
-      }
-      runTest();
-    });
-  } catch (er) {
-    // better safe than sorry
-    skipSymlinks = true;
-    process.nextTick(runTest);
-  }
-} else {
-  process.nextTick(runTest);
-}
-
 
 function tmp(p) {
   return path.join(common.tmpDir, p);
@@ -597,3 +572,5 @@ process.on('exit', function() {
   unlink.forEach(function(path) { try {fs.unlinkSync(path);} catch (e) {} });
   assert.equal(async_completed, async_expected);
 });
+
+};

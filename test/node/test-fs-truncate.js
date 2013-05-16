@@ -19,47 +19,47 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var assert = require('assert');
-var path = BrowserFS.node.path;
-var fs = BrowserFS.node.fs;
-var common = BrowserFS.common;
+window.tests.fs_truncate = function() {
+
 var tmp = common.tmpDir;
 var filename = path.resolve(tmp, 'truncate-file.txt');
 var data = new Buffer(1024 * 16);
 data.fill('x');
 
+var rootFS = fs.getRootFS();
 var stat;
 
 // truncateSync
-fs.writeFileSync(filename, data);
-stat = fs.statSync(filename);
-assert.equal(stat.size, 1024 * 16);
+if (rootFS.supportsSynch()) {
+  fs.writeFileSync(filename, data);
+  stat = fs.statSync(filename);
+  assert.equal(stat.size, 1024 * 16);
 
-fs.truncateSync(filename, 1024);
-stat = fs.statSync(filename);
-assert.equal(stat.size, 1024);
+  fs.truncateSync(filename, 1024);
+  stat = fs.statSync(filename);
+  assert.equal(stat.size, 1024);
 
-fs.truncateSync(filename);
-stat = fs.statSync(filename);
-assert.equal(stat.size, 0);
+  fs.truncateSync(filename);
+  stat = fs.statSync(filename);
+  assert.equal(stat.size, 0);
 
-// ftruncateSync
-fs.writeFileSync(filename, data);
-var fd = fs.openSync(filename, 'r+');
+  // ftruncateSync
+  fs.writeFileSync(filename, data);
+  var fd = fs.openSync(filename, 'r+');
 
-stat = fs.statSync(filename);
-assert.equal(stat.size, 1024 * 16);
+  stat = fs.statSync(filename);
+  assert.equal(stat.size, 1024 * 16);
 
-fs.ftruncateSync(fd, 1024);
-stat = fs.statSync(filename);
-assert.equal(stat.size, 1024);
+  fs.ftruncateSync(fd, 1024);
+  stat = fs.statSync(filename);
+  assert.equal(stat.size, 1024);
 
-fs.ftruncateSync(fd);
-stat = fs.statSync(filename);
-assert.equal(stat.size, 0);
+  fs.ftruncateSync(fd);
+  stat = fs.statSync(filename);
+  assert.equal(stat.size, 0);
 
-fs.closeSync(fd);
+  fs.closeSync(fd);
+}
 
 // async tests
 var success = 0;
@@ -134,3 +134,5 @@ function testFtruncate(cb) {
     });
   });
 }
+
+};

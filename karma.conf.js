@@ -30,6 +30,8 @@ files = [
   'test/zzz-test_def.js',
   'lib/load_fixtures.js'
 ];
+//'test/node/test-fs-readfile-unlink.js',
+//'test/node/test-fs-truncate.js',
 
 
 // list of files to exclude

@@ -99,7 +99,12 @@ class BrowserFS.node.Buffer
     else if arg1 instanceof DataView
       @buff = arg1
       @length = arg1.byteLength
-    else if Array.isArray(arg1) or arg1 instanceof BrowserFS.node.Buffer or (arg1[0]? and typeof arg1[0] is 'number')
+    else if arg1 instanceof BrowserFS.node.Buffer
+      @buff = new DataView new ArrayBuffer(arg1.length)
+      for i in [0...arg1.length]
+        @buff.setUint8 i, arg1.get(i)
+      @length = arg1.length
+    else if Array.isArray(arg1) or (arg1[0]? and typeof arg1[0] is 'number')
       @buff = new DataView new ArrayBuffer(arg1.length)
       for datum, i in arg1 by 1
         @buff.setUint8 i, datum
@@ -113,7 +118,7 @@ class BrowserFS.node.Buffer
     # XXX: If this is a performance drain, make it optional.
     # Defines properties [0...obj.length] on the buffer so it can be used as an
     # array. Inspired by the TypedArray polyfill.
-    makeArrayAccessors @
+    # makeArrayAccessors @
 
   # **NONSTANDARD**: Set the octet at index. The values refer to individual
   # bytes, so the legal range is between 0x00 and 0xFF hex or 0 and 255.
@@ -242,10 +247,17 @@ class BrowserFS.node.Buffer
     valType = typeof value
     switch valType
       when "string"
-        value = value.charCodeAt(0)
+        # Trim to a byte.
+        value = value.charCodeAt(0) & 0xFF
       when "number"
       else throw new Error 'Invalid argument to fill.'
-    for i in [offset...end]
+    # OPTIMIZATION: 4X faster to write 32 bits at a time.
+    val32 = value | (value << 8) | (value << 16) | (value << 24)
+    num32 = Math.floor((end-offset)/4)
+    remSt = offset+num32*4
+    for i in [0...num32]
+      @writeUInt32LE val32, offset+i*4
+    for i in [remSt...end]
       @writeUInt8 value, i
     return
 
