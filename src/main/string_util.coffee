@@ -20,7 +20,7 @@ class BrowserFS.StringUtil
         when 'ucs2', 'ucs-2', 'utf16le', 'utf-16le' then BrowserFS.StringUtil.UCS2
         when 'hex' then BrowserFS.StringUtil.HEX
         when 'base64' then BrowserFS.StringUtil.BASE64
-        # Custom Doppio: For efficiently representing data as JavaScript UTF-16
+        # Custom BFS: For efficiently representing data as JavaScript UTF-16
         # strings.
         when 'binary_string' then BrowserFS.StringUtil.BINSTR
         #when 'binary', 'raw', 'raws' then BINARY
