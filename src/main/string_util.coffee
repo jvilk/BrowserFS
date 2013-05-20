@@ -20,6 +20,9 @@ class BrowserFS.StringUtil
         when 'ucs2', 'ucs-2', 'utf16le', 'utf-16le' then BrowserFS.StringUtil.UCS2
         when 'hex' then BrowserFS.StringUtil.HEX
         when 'base64' then BrowserFS.StringUtil.BASE64
+        # Custom Doppio: For efficiently representing data as JavaScript UTF-16
+        # strings.
+        when 'binary_string' then BrowserFS.StringUtil.BINSTR
         #when 'binary', 'raw', 'raws' then BINARY
         #when 'buffer' then BUFFER
         #else UTF8
@@ -371,3 +374,81 @@ class BrowserFS.StringUtil.HEX
   # @return [Number] the number of bytes that the string will take up using the
   # given encoding.
   @byteLength: (str) -> return str.length/2
+
+# Contains string utility functions for binary string encoding. This is where we
+# pack arbitrary binary data as a UTF-16 string.
+#
+# Each character in the string is two bytes. The first character in the string
+# is special: The first byte specifies if the binary data is of odd byte length.
+# If it is, then it is a 1 and the second byte is the first byte of data; if
+# not, it is a 0 and the second byte is 0.
+#
+# Everything is little endian.
+class BrowserFS.StringUtil.BINSTR
+  # Converts a binary string into unsigned bytes, and writes those bytes into
+  # the given buffer.
+  #
+  # We assume that the offset / length is pre-validated.
+  # @param [BrowserFS.node.Buffer] buf the buffer to write into
+  # @param [String] str the string that will be converted
+  # @param [Number] offset the offset to start writing into the buffer at
+  # @param [Number] length an upper bound on the length of the string that we
+  #   can write
+  # @return [Number] number of bytes written into the buffer
+  @str2byte: (buf, str, offset, length) =>
+    # Special case: Empty string
+    if str.length is 0
+      buf._charsWritten = 0
+      return 0
+    numBytes = @byteLength str
+    if numBytes > length then numBytes = length
+    j = 0
+    startByte = offset
+    endByte = startByte+numBytes
+    # Handle first character separately
+    firstChar = str.charCodeAt j++
+    if firstChar isnt 0
+      buf.writeUInt8 firstChar&0xFF, offset
+      startByte = offset+1
+    for i in [startByte...endByte] by 2
+      chr = str.charCodeAt j++
+      if endByte-i is 1
+        # Write first byte of character
+        buf.writeUInt8 chr>>8, i
+      if endByte-i >= 2
+        # Write both bytes in character
+        buf.writeUInt16BE chr, i
+    buf._charsWritten = Math.floor(numBytes/2)+1
+    return numBytes
+
+  # Converts a byte array into a binary string.
+  # @param [Array] byteArray an array of bytes
+  # @return [String] the array interpreted as a binary string
+  @byte2str: (byteArray) ->
+    len = byteArray.length
+    # Special case: Empty string
+    return '' if len is 0
+    chars = new Array Math.floor(len/2)+1
+    j = 0
+    for i in [0...chars.length] by 1
+      if i is 0
+        if len%2 is 1
+          chars[i] = String.fromCharCode((1 << 8) | byteArray[j++])
+        else
+          chars[i] = String.fromCharCode(0)
+      else
+        chars[i] = String.fromCharCode((byteArray[j++]<<8) | byteArray[j++])
+    return chars.join ''
+
+  # Returns the number of bytes that the string will take up using the given
+  # encoding.
+  # @param [String] str the string to get the byte length for
+  # @return [Number] the number of bytes that the string will take up using the
+  # given encoding.
+  @byteLength: (str) ->
+    # Special case: Empty string.
+    return 0 if str.length is 0
+    firstChar = str.charCodeAt 0
+    bytelen = (str.length-1)*2
+    if firstChar isnt 0 then bytelen++
+    return bytelen

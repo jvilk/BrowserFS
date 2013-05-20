@@ -29,7 +29,7 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.FileSystem
     data = window.localStorage.getItem path
     # Doesn't exist.
     return null if data is null
-    return new BrowserFS.File.PreloadFile.LocalStorageFile @, path, flags, inode.getStats(), new BrowserFS.node.Buffer(data)
+    return new BrowserFS.File.PreloadFile.LocalStorageFile @, path, flags, inode.getStats(), new BrowserFS.node.Buffer(data, 'binary_string')
 
   # Handles syncing file data with `localStorage`.
   # @param [String] path
@@ -192,8 +192,8 @@ class BrowserFS.File.PreloadFile.LocalStorageFile extends BrowserFS.File.Preload
   # Asynchronous sync.
   # @param [Function(BrowserFS.ApiError)] cb
   sync: (cb)->
-    # Convert to UTF-8.
-    data = @_buffer.toString()
+    # Convert to packed UTF-16 (2 bytes per character, 1 character header)
+    data = @_buffer.toString('binary_string')
     inode = BrowserFS.FileInode.from_stats @_stat
     @_fs._sync @_path, data, inode, cb
 
