@@ -42,34 +42,14 @@ files = [
   'lib/load_fixtures.js'
 ];
 
-// Uses streams; can't support yet.
-// test-fs-empty-readStream.js
-// test-fs-read-stream-err.js
-// test-fs-read-stream-fd.js
-// test-fs-read-stream-resume.js
-// test-fs-read-stream.js
-// test-fs-stream-double-close.js
-// test-fs-write-stream-change-open.js
-// test-fs-write-stream-end.js
-// test-fs-write-stream-err.js
-// test-fs-write-stream.js
-
 // Complex:
 // test-fs-realpath.js
 
 // Uses unsupported watch API:
 // test-fs-watch.js
 
-// Try:
-// test-fs-sync-fs-leak.js
-
 // Probably too slow // maybe should check FS size before running:
 // test-fs-sir-writes-alot.js
-
-// Tests crazy node usage:
-// test-fs-non-number-arguments.js
-
-
 
 // list of files to exclude
 exclude = [

@@ -347,8 +347,7 @@ class BrowserFS.node.fs
       newCb e
   # Write buffer to the file specified by `fd`.
   # Note that it is unsafe to use fs.write multiple times on the same file
-  # without waiting for the callback. For this scenario,
-  # BrowserFS.node.fs.createWriteStream is strongly recommended.
+  # without waiting for the callback.
   # @param [BrowserFS.File] fd
   # @param [BrowserFS.node.Buffer] buffer Buffer containing the data to write to
   #   the file.

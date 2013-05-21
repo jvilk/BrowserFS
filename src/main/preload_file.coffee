@@ -83,8 +83,7 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
     cb null
   # Write buffer to the file.
   # Note that it is unsafe to use fs.write multiple times on the same file
-  # without waiting for the callback. For this scenario,
-  # BrowserFS.node.fs.createWriteStream is strongly recommended.
+  # without waiting for the callback.
   # @param [BrowserFS.node.Buffer] buffer Buffer containing the data to write to
   #  the file.
   # @param [Number] offset Offset in the buffer to start reading data from.
