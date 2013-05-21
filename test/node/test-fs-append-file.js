@@ -100,7 +100,7 @@ fs.appendFile(filename3, buf, function(e) {
 });
 
 // test that appendFile accepts numbers.
-// JV: No.
+// BFS: No.
 /*var filename4 = join(common.tmpDir, 'append4.txt');
 fs.writeFile(filename4, currentFileData, testCb);
 
@@ -114,7 +114,6 @@ fs.appendFile(filename4, n, { mode: m }, function(e) {
   common.error('appended to file4');
 
   // windows permissions aren't unix
-  // JV: We currently have no filesystems that support permissions.
   /*if (process.platform !== 'win32') {
     var st = fs.statSync(filename4);
     assert.equal(st.mode & 0700, m);
@@ -131,7 +130,7 @@ fs.appendFile(filename4, n, { mode: m }, function(e) {
 
 process.on('exit', function() {
   common.error('done');
-  // JV: 8->6 due to removing one part of the test.
+  // BFS: 8->6 due to removing one part of the test.
   assert.equal(6, ncallbacks);
 
   fs.unlink(filename);

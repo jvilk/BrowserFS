@@ -23,7 +23,7 @@ this.tests.path = function(){
 
 var isWindows = process.platform === 'win32';
 
-// JV: Make explicit for the browser.
+// BFS: Make explicit for the browser.
 var f = '/Users/jvilk/Code/BrowserFS/test/node/test-path.js';
 
 assert.equal(path.basename(f), 'test-path.js');
@@ -52,7 +52,7 @@ if (!isWindows) {
 
 assert.equal(path.extname(f), '.js');
 
-// JV: Our path is different from node's.
+// BFS: Our path is different from node's.
 assert.equal(path.dirname(f).substr(-9), 'test/node');
 assert.equal(path.dirname('/a/b/'), '/a');
 assert.equal(path.dirname('/a/b'), '/a');

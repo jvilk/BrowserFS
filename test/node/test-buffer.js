@@ -141,7 +141,7 @@ for (var i = 0; i < c.length; i++) {
 // check sourceEnd resets to targetEnd if former is greater than the latter
 b.fill(++cntr);
 c.fill(++cntr);
-// JV: Changed 1025->1024; buff is only 1024 long
+// BFS: Changed 1025->1024; buff is only 1024 long
 var copied = b.copy(c, 0, 0, 1024);
 console.log('copied %d bytes from b into c', copied);
 for (var i = 0; i < c.length; i++) {
@@ -216,7 +216,7 @@ assert.equal(new Buffer('abc').toString({toString: function() {
 }}), 'abc');
 
 // testing for smart defaults and ability to pass string values as offset
-// JV: Yeah, we're not going to support out-of-order arguments and numeric
+// BFS: Yeah, we're not going to support out-of-order arguments and numeric
 //     values as strings.
 var writeTest = new Buffer('abcdes');
 writeTest.write('n', 'ascii');
@@ -288,7 +288,7 @@ assert.equal(d.length, 3);
 assert.equal(d.get(0), 23);
 assert.equal(d.get(1), 42);
 assert.equal(d.get(2), 255);
-// JV: Changed deepEqual -> equal on toJSON.
+// BFS: Changed deepEqual -> equal on toJSON.
 function equalCheck(b1, b2) {
   assert.equal(JSON.stringify(b1), JSON.stringify(b2));
 }
@@ -328,7 +328,7 @@ equalCheck(f, new Buffer('3DD84DDC', 'hex'));
 var arrayIsh = {0: 0, 1: 1, 2: 2, 3: 3, length: 4};
 var g = new Buffer(arrayIsh);
 equalCheck(g, new Buffer([0, 1, 2, 3]));
-// JV: We don't support these types of shenanigans.
+// BFS: We don't support these types of shenanigans.
 //var strArrayIsh = {0: '0', 1: '1', 2: '2', 3: '3', length: 4};
 //g = new Buffer(strArrayIsh);
 //equalCheck(g, new Buffer([0, 1, 2, 3]));
@@ -701,7 +701,7 @@ assert.equal(buf.get(4), 0);
 
 // Check for fractional length args, junk length args, etc.
 // https://github.com/joyent/node/issues/1758
-// JV: NOPE
+// BFS: NOPE
 //Buffer(3.3).toString(); // throws bad argument error in commit 43cb4ec
 //assert.equal(Buffer(-1).length, 0);
 //assert.equal(Buffer(NaN).length, 0);
@@ -763,7 +763,7 @@ Buffer(Buffer(0), 0, 0);
 })();
 
 // issue GH-4331
-// JV: Disabled; Opera incorrectly throws a TypeError rather than a RangeError
+// BFS: Disabled; Opera incorrectly throws a TypeError rather than a RangeError
 //     when you try to allocate an ArrayBuffer of this size.
 /*assert.throws(function() {
   new Buffer(0xFFFFFFFF);
@@ -774,7 +774,7 @@ assert.throws(function() {
 
 
 // attempt to overflow buffers, similar to previous bug in array buffers
-// JV: commented out because it checks exception messages
+// BFS: commented out because it checks exception messages
 //assert.throws(function() {
 //  var buf = new Buffer(8);
 //  buf.readFloatLE(0xffffffff);
