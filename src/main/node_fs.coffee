@@ -3,6 +3,8 @@
 # @param [Number] numArgs The number of arguments that the callback takes.
 # @return [Function] The wrapped callback.
 wrapCb = (cb, numArgs) ->
+  if typeof cb != 'function'
+    throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Callback must be a function.'
   # We could use `arguments`, but Function.call/apply is expensive. And we only
   # need to handle 1-3 arguments
   switch numArgs
@@ -349,15 +351,32 @@ class BrowserFS.node.fs
   # BrowserFS.node.fs.createWriteStream is strongly recommended.
   # @param [BrowserFS.File] fd
   # @param [BrowserFS.node.Buffer] buffer Buffer containing the data to write to
-  #  the file.
+  #   the file.
   # @param [Number] offset Offset in the buffer to start reading data from.
   # @param [Number] length The amount of bytes to write to the file.
   # @param [Number] position Offset from the beginning of the file where this
-  #   data should be written. If position is null, the data will be written at the current position.
+  #   data should be written. If position is null, the data will be written at
+  #   the current position.
   # @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
   #   callback The number specifies the number of bytes written into the file.
-  @write: (fd, buffer, offset, length, position, callback=nopCb) ->
+  @write: (fd, buffer, offset, length, position, callback) ->
     try
+      # Alternate calling convention: Pass in a string w/ encoding to write to
+      # the file.
+      if typeof buffer is 'string'
+        if typeof length is 'string'
+          encoding = length
+        else if typeof offset is 'string'
+          encoding = offset
+        else if typeof offset is 'number'
+          position = offset
+        offset = 0
+        buffer = new Buffer buffer, encoding
+        length = buffer.length
+
+      unless callback?
+        callback = position
+        position = fd.getPos()
       newCb = wrapCb callback, 3
       fdChk = checkFd fd
       unless fdChk then return newCb fdChk

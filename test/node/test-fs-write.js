@@ -20,7 +20,6 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 window.tests.fs_write = function() {
-
 var fn = path.join(common.tmpDir, 'write.txt');
 var fn2 = path.join(common.tmpDir, 'write2.txt');
 var expected = 'ümlaut.';
@@ -36,16 +35,21 @@ fs.open(fn, 'w', 0644, function(err, fd) {
     console.log('write done');
     if (err) throw err;
     assert.equal(Buffer.byteLength(expected), written);
-    fs.closeSync(fd);
-    found = fs.readFileSync(fn, 'utf8');
-    console.log('expected: "%s"', expected);
-    console.log('found: "%s"', found);
-    fs.unlinkSync(fn);
+    fs.close(fd, function(err) {
+      if (err) throw err;
+      fs.readFile(fn, 'utf8', function(err, data) {
+        if (err) throw err;
+        found = data;
+        console.log('expected: "%s"', expected);
+        console.log('found: "%s"', found);
+        fs.unlink(fn, function(err) { if (err) throw err; });
+      });
+    });
   });
 });
 
 
-fs.open(fn2, constants.O_CREAT | constants.O_WRONLY | constants.O_TRUNC, 0644,
+fs.open(fn2, 'w', 0644,
     function(err, fd) {
       if (err) throw err;
       console.log('open done');
@@ -56,11 +60,16 @@ fs.open(fn2, constants.O_CREAT | constants.O_WRONLY | constants.O_TRUNC, 0644,
         console.log('write done');
         if (err) throw err;
         assert.equal(Buffer.byteLength(expected), written);
-        fs.closeSync(fd);
-        found2 = fs.readFileSync(fn2, 'utf8');
-        console.log('expected: "%s"', expected);
-        console.log('found: "%s"', found2);
-        fs.unlinkSync(fn2);
+        fs.close(fd, function(err) {
+          if (err) throw err;
+          fs.readFile(fn2, 'utf8', function(err, data) {
+            if (err) throw err;
+            found2 = data;
+            console.log('expected: "%s"', expected);
+            console.log('found: "%s"', found2);
+            fs.unlink(fn2, function(err) { if (err) throw err; });
+          });
+        });
       });
     });
 
