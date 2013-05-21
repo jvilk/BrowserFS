@@ -19,16 +19,11 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var assert = require('assert');
-var path = BrowserFS.node.path;
-var fs = BrowserFS.node.fs;
-var common = BrowserFS.common;
-var Buffer = BrowserFS.node.Buffer;
+window.tests.fs_write = function() {
+
 var fn = path.join(common.tmpDir, 'write.txt');
 var fn2 = path.join(common.tmpDir, 'write2.txt');
 var expected = 'ümlaut.';
-var constants = require('constants');
 var found, found2;
 
 fs.open(fn, 'w', 0644, function(err, fd) {
@@ -75,3 +70,4 @@ process.on('exit', function() {
   assert.equal(expected, found2);
 });
 
+};

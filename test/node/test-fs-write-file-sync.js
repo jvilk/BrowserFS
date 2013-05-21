@@ -19,15 +19,16 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var assert = require('assert');
-var path = BrowserFS.node.path;
-var fs = BrowserFS.node.fs;
-var common = BrowserFS.common;
+window.tests.fs_write_file_sync = function() {
+
 var isWindows = process.platform === 'win32';
 var openCount = 0;
 var mode;
 var content;
+var rootFS = fs.getRootFS();
+
+// Only works for file systems that support synchronous ops.
+if (!rootFS.supportsSynch()) return;
 
 // Need to hijack fs.open/close to make sure that things
 // get closed once they're opened.
@@ -97,3 +98,11 @@ function closeSync() {
   openCount--;
   return fs._closeSync.apply(fs, arguments);
 }
+
+// BFS: Restore old handlers.
+process.on('exit', function() {
+  fs.openSync = fs._openSync;
+  fs.closeSync = fs._closeSync;
+});
+
+};

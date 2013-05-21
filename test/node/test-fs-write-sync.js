@@ -19,11 +19,11 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var assert = require('assert');
-var path = BrowserFS.node.path;
-var fs = BrowserFS.node.fs;
-var common = BrowserFS.common;
+window.tests.fs_write_sync = function() {
+
+var rootFS = fs.getRootFS();
+if (!rootFS.supportsSynch()) return;
+
 var fn = path.join(common.tmpDir, 'write.txt');
 
 
@@ -41,3 +41,5 @@ assert.ok(written > 3);
 fs.closeSync(fd);
 
 assert.equal(fs.readFileSync(fn), 'foobár');
+
+};

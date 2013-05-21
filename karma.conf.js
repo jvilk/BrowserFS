@@ -31,9 +31,46 @@ files = [
   'test/node/test-fs-truncate.js',
   'test/node/test-fs-write-buffer.js',
   'test/node/test-fs-write-file-buffer.js',
+  'test/node/test-fs-write-file-sync.js',
+  'test/node/test-fs-write-file.js',
+  'test/node/test-fs-write-sync.js',
+  'test/node/test-fs-write.js',
   'test/zzz-test_def.js',
   'lib/load_fixtures.js'
 ];
+
+// Uses streams; can't support yet.
+// test-fs-empty-readStream.js
+// test-fs-read-stream-err.js
+// test-fs-read-stream-fd.js
+// test-fs-read-stream-resume.js
+// test-fs-read-stream.js
+// test-fs-stream-double-close.js
+// test-fs-write-stream-change-open.js
+// test-fs-write-stream-end.js
+// test-fs-write-stream-err.js
+// test-fs-write-stream.js
+
+// Uses symlinks, I think:
+// test-fs-realpath.js
+// test-fs-symlink-dir-junction.js [windows only...?]
+// test-fs-symlink.js
+
+// Uses props:
+// test-fs-utimes.js
+
+// Uses unsupported watch API:
+// test-fs-watch.js
+
+// Try:
+// test-fs-sync-fs-leak.js
+
+// Probably too slow // maybe should check FS size before running:
+// test-fs-sir-writes-alot.js
+
+// Tests crazy node usage:
+// test-fs-non-number-arguments.js
+
 
 
 // list of files to exclude
