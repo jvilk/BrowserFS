@@ -11,33 +11,7 @@ files = [
   JASMINE_ADAPTER,
   'lib/browserfs.js',
   'test/000-setup.js',
-  'test/node/test-buffer*.js',
-  'test/node/test-path*.js',
-  'test/node/test-fs-append-file.js',
-  'test/node/test-fs-chmod.js',
-  'test/node/test-fs-error-messages.js',
-  'test/node/test-fs-exists.js',
-  'test/node/test-fs-fsync.js',
-  'test/node/test-fs-long-path.js',
-  'test/node/test-fs-mkdir.js',
-  'test/node/test-fs-null-bytes.js',
-  'test/node/test-fs-open.js',
-  'test/node/test-fs-read-buffer.js',
-  'test/node/test-fs-read-file-sync.js',
-  'test/node/test-fs-read.js',
-  'test/node/test-fs-readfile-empty.js',
-  'test/node/test-fs-readfile-unlink.js',
-  'test/node/test-fs-stat.js',
-  'test/node/test-fs-symlink.js',
-  'test/node/test-fs-symlink-dir-junction.js',
-  'test/node/test-fs-truncate.js',
-  'test/node/test-fs-utimes.js',
-  'test/node/test-fs-write-buffer.js',
-  'test/node/test-fs-write-file-buffer.js',
-  'test/node/test-fs-write-file-sync.js',
-  'test/node/test-fs-write-file.js',
-  'test/node/test-fs-write-sync.js',
-  'test/node/test-fs-write.js',
+  'test/node/*.js',
   'test/zzz-test_def.js',
   'lib/load_fixtures.js'
 ];
@@ -53,7 +27,9 @@ files = [
 
 // list of files to exclude
 exclude = [
-  
+  'test/node/test-fs-sir-writes-alot.js',
+  'test/node/test-fs-watch.js',
+  'test/node/test-fs-realpath.js'
 ];
 
 
