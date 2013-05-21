@@ -110,6 +110,7 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
     @_stat.mtime = new Date()
 
     if @_mode.isSynchronous() then return @sync (err) -> cb err, len, buffer
+    @setPos position+len
     cb null, len, buffer
   # Read data from the file.
   # @param [BrowserFS.node.Buffer] buffer The buffer that the data will be
@@ -125,8 +126,10 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
   read: (buffer, offset, length, position, cb)->
     unless @_mode.isReadable()
       return cb new BrowserFS.ApiError BrowserFS.ApiError.PERMISSIONS_ERROR, 'File not opened with a readable mode.'
+    unless position? then position = @getPos()
     rv = @_buffer.copy buffer, offset, position, position+length
     @_stat.atime = new Date()
+    @_pos = position+length
     cb null, rv, buffer
 
   # Asynchronous `fchmod`.

@@ -19,50 +19,49 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var assert = require('assert');
-var path = BrowserFS.node.path;
-var fs = BrowserFS.node.fs;
-var common = BrowserFS.common;
+window.tests.fs_sir_writes_alot = function() {
+
 var join = path.join;
 
 var filename = join(common.tmpDir, 'out.txt');
-
-try {
-  fs.unlinkSync(filename);
-} catch (e) {
-  // might not exist, that's okay.
-}
-
-var fd = fs.openSync(filename, 'w');
-
-var line = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaa\n';
-
-var N = 10240, complete = 0;
-for (var i = 0; i < N; i++) {
-  // Create a new buffer for each write. Before the write is actually
-  // executed by the thread pool, the buffer will be collected.
-  var buffer = new Buffer(line);
-  fs.write(fd, buffer, 0, buffer.length, null, function(er, written) {
-    complete++;
-    if (complete === N) {
-      fs.closeSync(fd);
-      var s = fs.createReadStream(filename);
-      s.on('data', testBuffer);
-    }
-  });
-}
-
 var bytesChecked = 0;
 
-function testBuffer(b) {
-  for (var i = 0; i < b.length; i++) {
-    bytesChecked++;
-    if (b[i] !== 'a'.charCodeAt(0) && b[i] !== '\n'.charCodeAt(0)) {
-      throw new Error('invalid char ' + i + ',' + b[i]);
+fs.unlink(filename, function(err) {
+  fs.open(filename, 'w', function (err, fd) {
+    if (err) throw err;
+    var line = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaa\n';
+
+    var N = 10240, complete = 0;
+    for (var i = 0; i < N; i++) {
+      // Create a new buffer for each write. Before the write is actually
+      // executed by the thread pool, the buffer will be collected.
+      var buffer = new Buffer(line);
+      fs.write(fd, buffer, 0, buffer.length, null, function(er, written) {
+        if (er) throw er;
+        complete++;
+        if (complete === N) {
+          console.log("POSITION: " + fd.getPos());
+          fs.close(fd, function(err) {
+            if (err) throw err;
+            fs.readFile(filename, function(err, data) {
+              if (err) throw err;
+              testBuffer(data);
+            });
+          });
+        }
+      });
     }
-  }
-}
+
+    function testBuffer(b) {
+      for (var i = 0; i < b.length; i++) {
+        bytesChecked++;
+        if (b.get(i) !== 'a'.charCodeAt(0) && b.get(i) !== '\n'.charCodeAt(0)) {
+          throw new Error('invalid char ' + i + ',' + b.get(i));
+        }
+      }
+    }
+  });
+});
 
 process.on('exit', function() {
   // Probably some of the writes are going to overlap, so we can't assume
@@ -71,3 +70,4 @@ process.on('exit', function() {
   assert.ok(bytesChecked > 1000);
 });
 
+};

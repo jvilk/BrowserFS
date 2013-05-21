@@ -24,8 +24,8 @@ files = [
 
 // list of files to exclude
 exclude = [
-  'test/node/test-fs-sir-writes-alot.js',
-  'test/node/test-fs-realpath.js'
+  'test/node/test-fs-realpath.js',
+  'test/node/test-fs-sir-writes-alot.js'
 ];
 
 

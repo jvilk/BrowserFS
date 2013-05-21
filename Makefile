@@ -1,12 +1,10 @@
-# TODO: Generalize targets for WebWorker target. Support sharing certain files
-# across the wire.
 COFFEEC   := $(shell npm bin)/coffee
 UGLIFYJS  := $(shell npm bin)/uglifyjs
 CODO      := $(shell npm bin)/codo
 KARMA     := $(shell npm bin)/karma
 
-SRCS      := $(wildcard src/main/*.coffee)
-BINS      := $(SRCS:src/main/%.coffee=tmp/%.js)
+SRCS      := $(wildcard src/*.coffee)
+BINS      := $(SRCS:src/%.coffee=tmp/%.js)
 FIXTURES  := $(shell find test/fixtures -name '*')
 
 .PHONY: dependencies release dev test doc clean
@@ -27,11 +25,11 @@ $(COFFEEC) $(UGLIFYJS) $(CODO) (KARMA):
 	@npm install
 	@echo "Node modules installed successfully!"
 
-tmp/%.js: src/main/%.coffee $(COFFEEC)
+tmp/%.js: src/%.coffee $(COFFEEC)
 	$(COFFEEC) --output tmp --compile $<
 
 lib/browserfs.js: $(BINS) $(COFFEEC) $(UGLIFYJS)
-	$(COFFEEC) -m --output tmp --compile --join browserfs.js src/main/*.coffee
+	$(COFFEEC) -m --output tmp --compile --join browserfs.js src/*.coffee
 	$(UGLIFYJS) -b --output lib/browserfs.js --in-source-map tmp/browserfs.map --source-map lib/browserfs.map vendor/*.js tmp/browserfs.js
 
 lib/browserfs.min.js: lib/browserfs.js $(UGLIFYJS)
