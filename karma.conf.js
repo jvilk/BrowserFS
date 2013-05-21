@@ -19,16 +19,12 @@ files = [
 // Complex:
 // test-fs-realpath.js
 
-// Uses unsupported watch API:
-// test-fs-watch.js
-
 // Probably too slow // maybe should check FS size before running:
 // test-fs-sir-writes-alot.js
 
 // list of files to exclude
 exclude = [
   'test/node/test-fs-sir-writes-alot.js',
-  'test/node/test-fs-watch.js',
   'test/node/test-fs-realpath.js'
 ];
 
