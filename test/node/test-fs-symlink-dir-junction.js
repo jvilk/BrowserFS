@@ -19,11 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var assert = require('assert');
-var path = BrowserFS.node.path;
-var fs = BrowserFS.node.fs;
-var common = BrowserFS.common;
+window.tests.fs_symlink_dir_junction = function() {
 var completed = 0;
 var expected_tests = 4;
 
@@ -31,33 +27,35 @@ var expected_tests = 4;
 var linkData = path.join(common.fixturesDir, 'cycles/');
 var linkPath = path.join(common.tmpDir, 'cycles_link');
 
+var rootFS = fs.getRootFS();
+if (!rootFS.supportsLinks()) return;
+
 // Delete previously created link
-try {
-  fs.unlinkSync(linkPath);
-} catch (e) {}
-
-console.log('linkData: ' + linkData);
-console.log('linkPath: ' + linkPath);
-
-fs.symlink(linkData, linkPath, 'junction', function(err) {
+fs.unlink(linkPath, function(err) {
   if (err) throw err;
-  completed++;
+  console.log('linkData: ' + linkData);
+  console.log('linkPath: ' + linkPath);
 
-  fs.lstat(linkPath, function(err, stats) {
+  fs.symlink(linkData, linkPath, 'junction', function(err) {
     if (err) throw err;
-    assert.ok(stats.isSymbolicLink());
     completed++;
 
-    fs.readlink(linkPath, function(err, destination) {
+    fs.lstat(linkPath, function(err, stats) {
       if (err) throw err;
-      assert.equal(destination, linkData);
+      assert.ok(stats.isSymbolicLink());
       completed++;
 
-      fs.unlink(linkPath, function(err) {
+      fs.readlink(linkPath, function(err, destination) {
         if (err) throw err;
-        assert(!fs.existsSync(linkPath));
-        assert(fs.existsSync(linkData));
+        assert.equal(destination, linkData);
         completed++;
+
+        fs.unlink(linkPath, function(err) {
+          if (err) throw err;
+          assert(!fs.existsSync(linkPath));
+          assert(fs.existsSync(linkData));
+          completed++;
+        });
       });
     });
   });
@@ -67,3 +65,4 @@ process.on('exit', function() {
   assert.equal(completed, expected_tests);
 });
 
+};

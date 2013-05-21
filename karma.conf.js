@@ -28,7 +28,10 @@ files = [
   'test/node/test-fs-readfile-empty.js',
   'test/node/test-fs-readfile-unlink.js',
   'test/node/test-fs-stat.js',
+  'test/node/test-fs-symlink.js',
+  'test/node/test-fs-symlink-dir-junction.js',
   'test/node/test-fs-truncate.js',
+  'test/node/test-fs-utimes.js',
   'test/node/test-fs-write-buffer.js',
   'test/node/test-fs-write-file-buffer.js',
   'test/node/test-fs-write-file-sync.js',
@@ -51,13 +54,8 @@ files = [
 // test-fs-write-stream-err.js
 // test-fs-write-stream.js
 
-// Uses symlinks, I think:
+// Complex:
 // test-fs-realpath.js
-// test-fs-symlink-dir-junction.js [windows only...?]
-// test-fs-symlink.js
-
-// Uses props:
-// test-fs-utimes.js
 
 // Uses unsupported watch API:
 // test-fs-watch.js

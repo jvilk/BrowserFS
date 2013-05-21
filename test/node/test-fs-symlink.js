@@ -19,16 +19,14 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var BrowserFS = BrowserFS ? BrowserFS : require('../../lib/browserfs.js');
-var assert = require('assert');
-var path = BrowserFS.node.path;
-var fs = BrowserFS.node.fs;
-var common = BrowserFS.common;
-var exec = require('child_process').exec;
+
+window.tests.test_fs_symlink = function() {
 var completed = 0;
 var expected_tests = 2;
+var rootFS = fs.getRootFS();
 
-var is_windows = process.platform === 'win32';
+// BFS: Link/symlink support is required for this test.
+if (!rootFS.supportsLinks()) return;
 
 var runtest = function(skip_symlinks) {
   if (!skip_symlinks) {
@@ -90,4 +88,6 @@ if (is_windows) {
 process.on('exit', function() {
   assert.equal(completed, expected_tests);
 });
+
+};
 
