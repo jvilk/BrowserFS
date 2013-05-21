@@ -42,7 +42,9 @@ var data = [
   'Tjq24nJPXNVtO0KATRvNHCIg3zoWJWQHqp+o4pun+EtJ0zxBq8mnLJa2d1L5',
   '0NvnKRjJBUE5PAx3NYxxUY0pRtvYHSc5Ka2X9d7H/9k='];
 
-data = data.join('\n');
+// BFS: Original test joined on \n for some reason, but that ruined my extra
+// 'readFile' test.
+data = data.join('');
 
 var buf = new Buffer(data, 'base64');
 fs.writeFile(join(common.tmpDir, 'test.jpg'), buf, function(err) {
