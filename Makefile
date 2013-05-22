@@ -17,8 +17,6 @@ FIXTURES  := $(shell find test/fixtures -name '*')
 .PHONY: dependencies release dev test doc clean
 
 release: lib/browserfs.min.js
-	@echo Srcs: $(SRCS)
-	@echo Bins: $(BINS)
 dev: lib/browserfs.js
 test: release $(KARMA) lib/load_fixtures.js
 	$(KARMA) start
