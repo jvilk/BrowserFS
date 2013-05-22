@@ -1,6 +1,3 @@
-# Stupid name is due to dependency on node_fs_stats. I plan to address this
-# later...
-
 # A simple class for storing a filesystem index. Assumes that all paths passed
 # to it are *absolute* paths.
 #

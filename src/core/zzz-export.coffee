@@ -4,10 +4,7 @@
 # the source directory. This makes coffee --join work as intended.
 # Adapted from Dropbox-js's zzz-export.coffee.
 
-if typeof module isnt 'undefined' and 'exports' of module
-  # We're a node.js module, so export the BrowserFS class.
-  module.exports = BrowserFS
-else if window?
+if window?
   # We're in a browser, so add BrowserFS to the global namespace.
   if window.BrowserFS
     # Someone's stepping on our toes.

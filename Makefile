@@ -1,15 +1,24 @@
-COFFEEC   := $(shell npm bin)/coffee
+COFFEE    := $(shell npm bin)/coffee
 UGLIFYJS  := $(shell npm bin)/uglifyjs
 CODO      := $(shell npm bin)/codo
 KARMA     := $(shell npm bin)/karma
 
-SRCS      := $(wildcard src/*.coffee)
-BINS      := $(SRCS:src/%.coffee=tmp/%.js)
+S2B = $($(1):src/$(2)/%.coffee=tmp/$(2)/%.js)
+
+SRCS_CORE := $(wildcard src/core/*.coffee)
+SRCS_GEN  := $(wildcard src/generic/*.coffee)
+SRCS_BND  := $(wildcard src/backend/*.coffee)
+# Order matters!
+SRCS      := $(SRCS_CORE) $(SRCS_GEN) $(SRCS_BND)
+BINS      := $(call S2B,SRCS_CORE,core) $(call S2B,SRCS_GEN,generic) \
+             $(call S2B,SRCS_BND,backend)
 FIXTURES  := $(shell find test/fixtures -name '*')
 
 .PHONY: dependencies release dev test doc clean
 
 release: lib/browserfs.min.js
+	@echo Srcs: $(SRCS)
+	@echo Bins: $(BINS)
 dev: lib/browserfs.js
 test: release $(KARMA) lib/load_fixtures.js
 	$(KARMA) start
@@ -18,22 +27,23 @@ doc: $(CODO)
 clean:
 	@rm -f lib/*.js lib/*.map
 	@rm -rf tmp/
-dependencies: $(COFFEEC) $(UGLIFYJS) $(CODO) (KARMA)
+dependencies: $(COFFEE) $(UGLIFYJS) $(CODO) (KARMA)
 
-$(COFFEEC) $(UGLIFYJS) $(CODO) (KARMA):
+$(COFFEE) $(UGLIFYJS) $(CODO) (KARMA):
 	@echo "Installing needed Node modules with 'npm install'..."
 	@npm install
 	@echo "Node modules installed successfully!"
 
-tmp/%.js: src/%.coffee $(COFFEEC)
-	$(COFFEEC) --output tmp --compile $<
+$(BINS): $(SRCS) $(COFFEE)
+	@echo $(BINS)
+	$(COFFEE) --output $(shell dirname $@) --compile $<
 
-lib/browserfs.js: $(BINS) $(COFFEEC) $(UGLIFYJS)
-	$(COFFEEC) -m --output tmp --compile --join browserfs.js src/*.coffee
+lib/browserfs.js: $(BINS) $(COFFEE) $(UGLIFYJS)
+	$(COFFEE) -m --output tmp --compile --join browserfs.js $(SRCS)
 	$(UGLIFYJS) -b --output lib/browserfs.js --in-source-map tmp/browserfs.map --source-map lib/browserfs.map vendor/*.js tmp/browserfs.js
 
 lib/browserfs.min.js: lib/browserfs.js $(UGLIFYJS)
-	$(UGLIFYJS) --compress unused=false --output lib/browserfs.min.js --in-source-map tmp/browserfs.map --source-map lib/browserfs.min.map vendor/*.js lib/browserfs.js
+	$(UGLIFYJS) --compress unused=false --output $@ --in-source-map tmp/browserfs.map --source-map lib/browserfs.min.map vendor/*.js lib/browserfs.js
 
-lib/load_fixtures.js: $(COFFEEC) tools/FixtureLoaderMaker.coffee $(FIXTURES)
-	$(COFFEEC) tools/FixtureLoaderMaker.coffee
+lib/load_fixtures.js: tools/FixtureLoaderMaker.coffee $(COFFEE) $(FIXTURES)
+	$(COFFEE) $<
