@@ -25,7 +25,7 @@ Differences from Node
 * BrowserFS buffers cannot be read from or written to like arrays.
   * Equivalent to `buf[1] = 2`: `buf.writeUInt8(2,1)`
   * Equivalent to `a = buf[1]`: `buf.readUInt8(1)`
-* BrowserFS buffer's `read` and `write` options do not support the optional `noAssert=true` parameter; they will always throw a `RangeError` if you attempt to read or write past the end of the buffer.
+* BrowserFS buffers' `read` and `write` functions do not support the optional `noAssert=true` parameter; they will always throw a `RangeError` if you attempt to read or write past the end of the buffer.
 * BrowserFS only supports asynchronous Node API functions (synchronous support is coming soon -- although it will be an optional feature, as some backends are not amenable to synchronous operations).
 * BrowserFS does not support watch/unwatch functionality.
 * BrowserFS does not support Node's read or write stream objects.
