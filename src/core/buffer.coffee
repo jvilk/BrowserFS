@@ -90,7 +90,8 @@ class BrowserFS.node.Buffer
   # @param [?String] arg2 Encoding to use if arg1 is a string
   constructor: (arg1, arg2='utf8') ->
     # Node apparently allows you to construct buffers w/o 'new'.
-    if @ is undefined then return new BrowserFS.node.Buffer arg1, arg2
+    unless @ instanceof BrowserFS.node.Buffer
+      return new BrowserFS.node.Buffer arg1, arg2
     @_charsWritten = 0
     if typeof arg1 is 'number'
       if arg1 != (arg1>>>0) then throw new TypeError 'Buffer size must be a uint32.'
