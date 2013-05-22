@@ -18,7 +18,7 @@ FIXTURES  := $(shell find test/fixtures -name '*')
 
 release: lib/browserfs.min.js
 dev: lib/browserfs.js
-test: release $(KARMA) lib/load_fixtures.js
+test: $(KARMA) lib/load_fixtures.js
 	$(KARMA) start
 doc: $(CODO)
 	$(CODO) --title "BrowserFS Documentation" src

@@ -162,7 +162,7 @@ processStat = (p, stat) ->
   decrCount()
 
 # Sanity check!
-fs.exists './src/main/000-browserfs.coffee', (doesExist) ->
+fs.exists './src/core/000-browserfs.coffee', (doesExist) ->
   unless doesExist then throw new Error 'FixtureLoaderMaker must be run from the BrowserFS root!'
   debugPrint 'Opening load_fixtures.js...'
   fs.open './lib/load_fixtures.js', 'w', (err, fd) ->

@@ -9,18 +9,15 @@ basePath = '';
 files = [
   JASMINE,
   JASMINE_ADAPTER,
-  'lib/browserfs.js',
+  'vendor/*.js',
+  'src/core/*.coffee',
+  'src/generic/*.coffee',
+  'src/backend/*.coffee',
   'test/000-setup.js',
   'test/node/*.js',
   'test/zzz-test_def.js',
   'lib/load_fixtures.js'
 ];
-
-// Complex:
-// test-fs-realpath.js
-
-// Probably too slow // maybe should check FS size before running:
-// test-fs-sir-writes-alot.js
 
 // list of files to exclude
 exclude = [
@@ -28,6 +25,10 @@ exclude = [
   'test/node/test-fs-sir-writes-alot.js'
 ];
 
+// compile coffee scripts
+preprocessors = {
+  'src/**/*.coffee': 'coffee'
+};
 
 // test results reporter to use
 // possible values: 'dots', 'progress', 'junit'
