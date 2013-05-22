@@ -4,7 +4,9 @@ class BrowserFS
   # API.
   @node: {}
   # Installs BrowserFS onto the given object.
-  # We recommend that you install things such that they are globals.
+  # We recommend that you run install with the 'window' object to make things
+  # global, as in Node.
+  #
   # Properties installed:
   #
   # * Buffer
