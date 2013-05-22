@@ -30,8 +30,8 @@ Differences from Node
 * BrowserFS does not support watch/unwatch functionality.
 * BrowserFS does not support Node's read or write stream objects.
 * BrowserFS doesn't support the following NodeJS oddities:
-** Allowing number arguments to be passed as strings (e.g. '2' instead of 2).
-** We do not support some undocumented API function signatures that Node maintains for backward compatibility purposes (if there is demand for fixing this, it can be fixed).
+  * Allowing number arguments to be passed as strings (e.g. '2' instead of 2).
+  * We do not support some undocumented API function signatures that Node maintains for backward compatibility purposes (if there is demand for fixing this, it can be fixed).
 
 ### File Descriptors
 
