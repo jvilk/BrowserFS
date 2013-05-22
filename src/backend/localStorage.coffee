@@ -3,7 +3,6 @@
 # Note that your program should only ever have one instance of this class.
 # @todo Pack names efficiently: Convert to UTF-8, then convert to a packed
 #   UTF-16 representation (each character is 2 bytes).
-# @todo Pack data efficiently: Each character is 2 bytes rather than 1.
 # @todo Store directory information explicitly. Could do something cool, like
 #   have directory information contain the keys for each subitem, where the
 #   key doesn't have to be the full-path. That would conserve space in
