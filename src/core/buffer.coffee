@@ -30,7 +30,8 @@ makeArrayAccessors = (obj) ->
 # handles compatibility for us.
 #
 # @see http://nodejs.org/api/buffer.html
-# @todo Add option to disable array accessors, as they slow things down.
+# @todo Add option to add array accessors, if someone doesn't mind the *huge*
+#   speed hit for compatibility.
 class BrowserFS.node.Buffer
   # Checks if enc is a valid string encoding type.
   # @param [String] enc Name of a string encoding type.
