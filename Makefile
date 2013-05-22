@@ -20,12 +20,14 @@ release: lib/browserfs.min.js
 dev: lib/browserfs.js
 test: $(KARMA) lib/load_fixtures.js
 	$(KARMA) start
-doc: $(CODO)
-	$(CODO) --title "BrowserFS Documentation" src
+doc: doc/index.html
 clean:
 	@rm -f lib/*.js lib/*.map
 	@rm -rf tmp/
 dependencies: $(COFFEE) $(UGLIFYJS) $(CODO) (KARMA)
+
+doc/index.html: $(SRCS) $(CODO)
+	$(CODO) --title "BrowserFS Documentation" $(SRCS)
 
 $(COFFEE) $(UGLIFYJS) $(CODO) (KARMA):
 	@echo "Installing needed Node modules with 'npm install'..."
