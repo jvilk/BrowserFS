@@ -24,9 +24,9 @@ doc: doc/index.html
 clean:
 	@rm -f lib/*.js lib/*.map
 	@rm -rf tmp/
-dependencies: $(COFFEE) $(UGLIFYJS) $(CODO) (KARMA)
+dependencies: $(COFFEE) $(UGLIFYJS) $(CODO) $(KARMA)
 
-doc/index.html: $(SRCS) $(CODO)
+doc/index.html: $(SRCS) $(CODO) README.md
 	$(CODO) --title "BrowserFS Documentation" $(SRCS)
 
 $(COFFEE) $(UGLIFYJS) $(CODO) (KARMA):
