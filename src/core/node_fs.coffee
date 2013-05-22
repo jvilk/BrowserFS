@@ -41,11 +41,7 @@ nopCb = ->
 # * Handling optional arguments and setting default arguments.
 # @see http://nodejs.org/api/fs.html
 class BrowserFS.node.fs
-  # **NONSTANDARD**: You must call this function with a properly-instantiated
-  # root filesystem before using any other API method.
-  # @param [BrowserFS.FileSystem] rootFS The root filesystem to use for the
-  #   entire BrowserFS file system.
-  @initiate: (rootFS) =>
+  @_initialize: (rootFS) =>
     unless rootFS.isAvailable()
       throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Tried to instantiate BrowserFS with an unavailable file system.'
     @root = rootFS

@@ -1,6 +1,6 @@
 (function() {
   // Test-related setup code.
-  BrowserFS.Install(this);
+  BrowserFS.install(this);
   // Monkey-patch Jasmine itself.
   var jasmineEnv = window.jasmine.getEnv();
   var jasmineEx = jasmineEnv.execute;
@@ -19,7 +19,7 @@
   // Initialize the LocalStorage filesystem.
   var lsfs = new BrowserFS.FileSystem.LocalStorage();
   lsfs.empty();
-  BrowserFS.node.fs.initiate(lsfs);
+  BrowserFS.initialize(lsfs);
 
   // Polyfill for `process.on('exit')`.
   process.on = function(trigger, cb) {
