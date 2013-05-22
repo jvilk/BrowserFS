@@ -32,8 +32,7 @@ $(COFFEE) $(UGLIFYJS) $(CODO) (KARMA):
 	@npm install
 	@echo "Node modules installed successfully!"
 
-$(BINS): $(SRCS) $(COFFEE)
-	@echo $(BINS)
+tmp/%.js: src/%.coffee $(COFFEE)
 	$(COFFEE) --output $(shell dirname $@) --compile $<
 
 lib/browserfs.js: $(BINS) $(COFFEE) $(UGLIFYJS)
