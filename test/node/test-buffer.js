@@ -26,7 +26,7 @@ var cntr = 0;
 
 var b = Buffer(1024); // safe constructor
 
-console.log('b.length == %d', b.length);
+console.log('b.length == ' + b.length);
 assert.strictEqual(1024, b.length);
 
 b.set(0, -1);
@@ -42,14 +42,14 @@ for (var i = 0; i < 1024; i++) {
 }
 
 var c = new Buffer(512);
-console.log('c.length == %d', c.length);
+console.log('c.length == ' + c.length);
 assert.strictEqual(512, c.length);
 
 // copy 512 bytes, from 0 to 512.
 b.fill(++cntr);
 c.fill(++cntr);
 var copied = b.copy(c, 0, 0, 512);
-console.log('copied %d bytes from b into c', copied);
+console.log('copied ' + copied + ' bytes from b into c');
 assert.strictEqual(512, copied);
 for (var i = 0; i < c.length; i++) {
   assert.strictEqual(b.get(i), c.get(i));
@@ -59,7 +59,7 @@ for (var i = 0; i < c.length; i++) {
 b.fill(++cntr);
 c.fill(++cntr);
 var copied = c.copy(b, 0, 0);
-console.log('copied %d bytes from c into b w/o sourceEnd', copied);
+console.log('copied ' + copied + ' bytes from c into b w/o sourceEnd');
 assert.strictEqual(c.length, copied);
 for (var i = 0; i < c.length; i++) {
   assert.strictEqual(c.get(i), b.get(i));
@@ -69,7 +69,7 @@ for (var i = 0; i < c.length; i++) {
 b.fill(++cntr);
 c.fill(++cntr);
 var copied = c.copy(b, 0);
-console.log('copied %d bytes from c into b w/o sourceStart', copied);
+console.log('copied ' + copied + ' bytes from c into b w/o sourceStart');
 assert.strictEqual(c.length, copied);
 for (var i = 0; i < c.length; i++) {
   assert.strictEqual(c.get(i), b.get(i));
@@ -79,7 +79,7 @@ for (var i = 0; i < c.length; i++) {
 b.fill(++cntr);
 c.fill(++cntr);
 var copied = b.copy(c);
-console.log('copied %d bytes from b into c w/o targetStart', copied);
+console.log('copied ' + copied + ' bytes from b into c w/o targetStart');
 assert.strictEqual(c.length, copied);
 for (var i = 0; i < c.length; i++) {
   assert.strictEqual(b.get(i), c.get(i));
@@ -89,7 +89,7 @@ for (var i = 0; i < c.length; i++) {
 b.fill(++cntr);
 c.fill(++cntr);
 var copied = b.copy(c, 0, b.length - Math.floor(c.length / 2));
-console.log('copied %d bytes from end of b into beginning of c', copied);
+console.log('copied ' + copied + ' bytes from end of b into beginning of c');
 assert.strictEqual(Math.floor(c.length / 2), copied);
 for (var i = 0; i < Math.floor(c.length / 2); i++) {
   assert.strictEqual(b.get(b.length - Math.floor(c.length / 2) + i), c.get(i));
@@ -102,7 +102,7 @@ for (var i = Math.floor(c.length /2) + 1; i < c.length; i++) {
 b.fill(++cntr);
 c.fill(++cntr);
 var copied = b.copy(c, 0, 0, 513);
-console.log('copied %d bytes from b trying to overrun c', copied);
+console.log('copied ' + copied + ' bytes from b trying to overrun c');
 assert.strictEqual(c.length, copied);
 for (var i = 0; i < c.length; i++) {
   assert.strictEqual(b.get(i), c.get(i));
@@ -112,7 +112,7 @@ for (var i = 0; i < c.length; i++) {
 b.fill(++cntr);
 b.fill(++cntr, 256);
 var copied = b.copy(b, 0, 256, 1024);
-console.log('copied %d bytes from b into b', copied);
+console.log('copied ' + copied + ' bytes from b into b');
 assert.strictEqual(768, copied);
 for (var i = 0; i < b.length; i++) {
   assert.strictEqual(cntr, b.get(i));
@@ -133,7 +133,7 @@ b.fill(++cntr);
 c.fill(++cntr);
 var copied = b.copy(c, 0, -1);
 assert.strictEqual(c.length, copied);
-console.log('copied %d bytes from b into c w/ negative sourceStart', copied);
+console.log('copied ' + copied + ' bytes from b into c w/ negative sourceStart');
 for (var i = 0; i < c.length; i++) {
   assert.strictEqual(b.get(i), c.get(i));
 }
@@ -143,7 +143,7 @@ b.fill(++cntr);
 c.fill(++cntr);
 // BFS: Changed 1025->1024; buff is only 1024 long
 var copied = b.copy(c, 0, 0, 1024);
-console.log('copied %d bytes from b into c', copied);
+console.log('copied ' + copied + ' bytes from b into c');
 for (var i = 0; i < c.length; i++) {
   assert.strictEqual(b.get(i), c.get(i));
 }
@@ -299,23 +299,23 @@ console.error('uber: \'%s\'', e.toString());
 equalCheck(e, new Buffer([195, 188, 98, 101, 114]));
 
 var f = new Buffer('über', 'ascii');
-console.error('f.length: %d     (should be 4)', f.length);
+console.error('f.length: ' + f.length + '     (should be 4)');
 equalCheck(f, new Buffer([252, 98, 101, 114]));
 
 ['ucs2', 'ucs-2', 'utf16le', 'utf-16le'].forEach(function(encoding) {
   var f = new Buffer('über', encoding);
-  console.error('f.length: %d     (should be 8)', f.length);
+  console.error('f.length: ' + f.length + '     (should be 8)');
   equalCheck(f, new Buffer([252, 0, 98, 0, 101, 0, 114, 0]));
 
   var f = new Buffer('привет', encoding);
-  console.error('f.length: %d     (should be 12)', f.length);
+  console.error('f.length: ' + f.length + '     (should be 12)');
   equalCheck(f, new Buffer([63, 4, 64, 4, 56, 4, 50, 4, 53, 4, 66, 4]));
   assert.equal(f.toString(encoding), 'привет');
 
   var f = new Buffer([0, 0, 0, 0, 0]);
   assert.equal(f.length, 5);
   var size = f.write('あいうえお', encoding);
-  console.error('bytes written to buffer: %d     (should be 4)', size);
+  console.error('bytes written to buffer: ' + size + '     (should be 4)');
   assert.equal(size, 4);
   equalCheck(f, new Buffer([0x42, 0x30, 0x44, 0x30, 0x00]));
 });

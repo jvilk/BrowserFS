@@ -40,8 +40,7 @@ fs.open(fn, 'w', 0644, function(err, fd) {
       fs.readFile(fn, 'utf8', function(err, data) {
         if (err) throw err;
         found = data;
-        console.log('expected: "%s"', expected);
-        console.log('found: "%s"', found);
+        console.log('expected: "' + expected + '", found: "' + found + '"');
         fs.unlink(fn, function(err) { if (err) throw err; });
       });
     });
@@ -65,8 +64,7 @@ fs.open(fn2, 'w', 0644,
           fs.readFile(fn2, 'utf8', function(err, data) {
             if (err) throw err;
             found2 = data;
-            console.log('expected: "%s"', expected);
-            console.log('found: "%s"', found2);
+            console.log('expected: "' + expected + '", found: "' + found2 + '"');
             fs.unlink(fn2, function(err) { if (err) throw err; });
           });
         });
