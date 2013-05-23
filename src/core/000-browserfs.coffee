@@ -38,10 +38,3 @@ class BrowserFS
   # @param [BrowserFS.FileSystem] rootFS The root filesystem to use for the
   #   entire BrowserFS file system.
   @initialize: (rootfs) -> BrowserFS.node.fs._initialize rootfs
-  # Debugging.
-  @common:
-      tmpDir: '/tmp/'
-      fixturesDir: '/test/fixtures'
-      # NodeJS uses 'common.error' for test messages, but this is inappropriate.
-      # I map it to log, instead.
-      error: (args...) -> console.log.apply(this, args)
