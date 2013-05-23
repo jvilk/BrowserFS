@@ -663,7 +663,7 @@ class BrowserFS.FileMode
     return fm
 
   # Indicates that the code should not do anything.
-  @NOP
+  @NOP: 0
   # Indicates that the code should throw an exception.
   @THROW_EXCEPTION: 1
   # Indicates that the code should truncate the file, but only if it is a file.
