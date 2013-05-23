@@ -130,8 +130,8 @@ class BrowserFS.DirInode
   # Add the given item to the directory listing. Note that the given inode is
   # not copied, and will be mutated by the DirInode if it is a DirInode.
   # @param [String] p Item name to add to the directory listing.
-  # @param [BrowserFS.FileInode | BrowserFS.DirInode] The inode for the item to
-  #   add to the directory inode.
+  # @param [BrowserFS.FileInode | BrowserFS.DirInode] inode The inode for the
+  #   item to add to the directory inode.
   # @return [Boolean] True if it was added, false if it already existed.
   addItem: (p, inode) ->
     return false if p of @_ls
