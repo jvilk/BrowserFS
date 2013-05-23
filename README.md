@@ -15,4 +15,4 @@ Prerequisites:
 
 Once you have the above prerequisites installed, type `make` to build BrowserFS. The minified library can then be found as `lib/browserfs.min.js`.
 
-To run unit tests, simply run `make test` (**this will launch multiple web browsers**). You may need to change `karma.conf.js` if you do not have Chrome, Safari, Opera, and Firefox installed.
+To run unit tests, simply run `make test` **(NOTE: This will launch multiple web browsers!)**. You may need to change `karma.conf.js` if you do not have Chrome, Safari, Opera, and Firefox installed.
