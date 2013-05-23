@@ -43,6 +43,7 @@ emitHeader = (cb) ->
       return function(err) {
         if (err) throw err;
         fs.readFile(p, {encoding:"base64"}, function(err, readData) {
+          if (err) throw err;
           if (writtenData != readData) throw new Error('Read data for '+p+' does not match written data:\\n'+readData+'\\n!=\\n'+writtenData);
           numfiles--;
           if (numfiles === 0) {

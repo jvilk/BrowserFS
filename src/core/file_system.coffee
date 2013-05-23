@@ -213,6 +213,7 @@ class BrowserFS.FileSystem
         # Allocate buffer.
         buf = new BrowserFS.node.Buffer stat.size
         BrowserFS.node.fs.read fd, buf, 0, stat.size, 0, (err) ->
+          if err? then return cb err
           if encoding is null then return cb err, buf
           try
             cb null, buf.toString encoding
