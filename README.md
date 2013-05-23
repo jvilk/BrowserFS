@@ -24,4 +24,4 @@ To run unit tests, simply run `make test` **(NOTE: This will launch multiple web
 * BrowserFS is licensed under the MIT License (see `LICENSE` for details).
 * The NodeJS 'assert' polyfill (`vendor/assert.js`) is licensed under the MIT License (see file for details).
 * The typed array polyfill (`vendor/typedarray.js`) is licensed under the MIT License (see file for details).
-* The unit tests from NodeJS (`test/node`) and various test fixtures (`test/fixtures`) are licensed under the MIT License (see `test/node/LICENSE` or `test/fixtures/LICENSE` for details).
+* The unit tests from NodeJS (`test/node`) and various test fixtures (`test/fixtures`) are licensed under the MIT License (see `test/node/LICENSE` or `test/fixtures/node/LICENSE` for details).
