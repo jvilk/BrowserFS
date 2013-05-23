@@ -32,7 +32,7 @@ preprocessors = {
 
 // test results reporter to use
 // possible values: 'dots', 'progress', 'junit'
-reporters = ['progress', 'junit'];
+reporters = ['progress'];
 
 
 // web server port
