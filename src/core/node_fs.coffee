@@ -678,26 +678,34 @@ class BrowserFS.FileMode
     unless modeStr in BrowserFS.FileMode.validModeStrs
       throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "Invalid mode string: #{modeStr}"
 
-  # @return [Boolean] Returns true if the file is readable.
+  # Returns true if the file is readable.
+  # @return [Boolean]
   isReadable: -> return @modeStr.indexOf('r') != -1 or @modeStr.indexOf('+') != -1
-  # @return [Boolean] Returns true if the file is writeable.
+  # Returns true if the file is writeable.
+  # @return [Boolean]
   isWriteable: -> return @modeStr.indexOf('w') != -1 or @modeStr.indexOf('a') != -1 or @modeStr.indexOf('+') != -1
-  # @return [Boolean] Returns true if the file mode should truncate.
+  # Returns true if the file mode should truncate.
+  # @return [Boolean]
   isTruncating: -> return @modeStr.indexOf('w') != -1
-  # @return [Boolean] Returns true if the file is appendable.
+  # Returns true if the file is appendable.
+  # @return [Boolean]
   isAppendable: -> return @modeStr.indexOf('a') != -1
-  # @return [Boolean] Returns true if the file is open in synchronous mode.
+  # Returns true if the file is open in synchronous mode.
+  # @return [Boolean]
   isSynchronous: -> return @modeStr.indexOf('s') != -1
-  # @return [Boolean] Returns true if the file is open in exclusive mode.
+  # Returns true if the file is open in exclusive mode.
+  # @return [Boolean]
   isExclusive: -> return @modeStr.indexOf('x') != -1
-  # @return [Number] Returns one of the static fields on this object that
-  #   indicates the appropriate response to the path existing.
+  # Returns one of the static fields on this object that indicates the
+  # appropriate response to the path existing.
+  # @return [Number]
   pathExistsAction: ->
     if @isExclusive() then return BrowserFS.FileMode.THROW_EXCEPTION
     else if @isTruncating() then return BrowserFS.FileMode.TRUNCATE_FILE
     else return BrowserFS.FileMode.NOP
-  # @return [Number] Returns one of the static fields on this object that
-  #   indicates the appropriate response to the path not existing.
+  # Returns one of the static fields on this object that indicates the
+  # appropriate response to the path not existing.
+  # @return [Number]
   pathNotExistsAction: ->
     if (@isWriteable() or @isAppendable()) and @modeStr isnt 'r+' then return BrowserFS.FileMode.CREATE_FILE
     else return BrowserFS.FileMode.THROW_EXCEPTION
