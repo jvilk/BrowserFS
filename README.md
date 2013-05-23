@@ -5,8 +5,8 @@ BrowserFS is an in-browser file system that emulates the Node JS file system API
 
 For more information, see the [wiki](https://github.com/jvilk/BrowserFS/wiki) and [API documentation](http://jvilk.github.io/BrowserFS/).
 
-Building BrowserFS
-------------------
+### Building
+
 Prerequisites:
 
 * GNU Make (tested with v3.81)
@@ -14,5 +14,7 @@ Prerequisites:
 * Typical Unix command-line tools (`find` and `dirname`)
 
 Once you have the above prerequisites installed, type `make` to build BrowserFS. The minified library can then be found as `lib/browserfs.min.js`.
+
+### Testing
 
 To run unit tests, simply run `make test` **(NOTE: This will launch multiple web browsers!)**. You may need to change `karma.conf.js` if you do not have Chrome, Safari, Opera, and Firefox installed.
