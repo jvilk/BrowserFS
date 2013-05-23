@@ -5,3 +5,5 @@ tmp/*
 doc/*
 *.DS_Store
 
+
+test-results.xml
