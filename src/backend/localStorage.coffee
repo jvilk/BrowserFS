@@ -118,7 +118,6 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.FileSystem
           when BrowserFS.FileMode.TRUNCATE_FILE
             # Truncate to 0.
             inode.size = 0
-            stats = inode.getStats()
             file = new BrowserFS.File.PreloadFile.LocalStorageFile @, path, flags, inode.getStats()
           when BrowserFS.FileMode.NOP
             # Use existing file contents.
