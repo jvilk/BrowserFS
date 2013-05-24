@@ -2,9 +2,9 @@
 # FixtureLoaderMaker
 # Makes a script that loads the test fixtures into the in-browser filesystem
 # USING the in-browser filesystem.
-
-path = require('path');
-fs = require('fs');
+"use strict"
+path = require 'path'
+fs = require 'fs'
 fixturesPath = './test/fixtures'
 outfile = null
 
@@ -31,7 +31,6 @@ emitHeader = (cb) ->
   (function(){
     "use strict";
     var numdirs = #{dirs.length};
-    var numfiles = #{files.length};
     var mcb = function(err) {
       if (err) throw err;
       numdirs--;
@@ -45,10 +44,6 @@ emitHeader = (cb) ->
         fs.readFile(p, {encoding:"base64"}, function(err, readData) {
           if (err) throw err;
           if (writtenData != readData) throw new Error('Read data for '+p+' does not match written data:\\n'+readData+'\\n!=\\n'+writtenData);
-          numfiles--;
-          if (numfiles === 0) {
-            window.jasmine.getEnv().execute(true);
-          }
         });
       };
     };
@@ -72,9 +67,6 @@ emitFileHeader = (cb) ->
   debugPrint "Writing file header..."
   buf = new Buffer """
   var __fixturesAddFiles = function() {
-    if (numfiles === 0) {
-      window.jasmine.getEnv().execute(true);
-    }
 
   """
   fs.write outfile, buf, 0, buf.length, null, cb
@@ -113,6 +105,13 @@ emitAllFiles = (cb) ->
       handleFile files[i], emitCb
   emitCb()
   return
+emitMkdirHeader = (cb) ->
+  debugPrint "Writing mkdir header..."
+  buf = new Buffer """
+  window.loadFixtures = function() {
+
+  """
+  fs.write outfile, buf, 0, buf.length, null, cb
 emitAllMkdirs = (cb) ->
   len = dirs.length
   i = -1
@@ -127,6 +126,7 @@ emitAllMkdirs = (cb) ->
 emitFooter = ->
   debugPrint 'Writing footer...'
   buf = new Buffer """
+  };
   })(this);
 
   """
@@ -137,7 +137,7 @@ emitFooter = ->
 decrCount = ->
   count--
   if count is 0
-    emitHeader -> emitFileHeader -> emitAllFiles -> emitFileFooter -> emitAllMkdirs -> emitFooter()
+    emitHeader -> emitFileHeader -> emitAllFiles -> emitFileFooter -> emitMkdirHeader -> emitAllMkdirs -> emitFooter()
 
 _processReaddir = (path) ->
   fs.stat path, (err, stats) ->

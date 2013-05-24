@@ -23,11 +23,6 @@
   };
   window.Buffer = BrowserFS.node.Buffer;
 
-  // Initialize the LocalStorage filesystem.
-  var lsfs = new BrowserFS.FileSystem.LocalStorage();
-  lsfs.empty();
-  BrowserFS.initialize(lsfs);
-
   // Polyfill for `process.on('exit')`.
   process.on = function(trigger, cb) {
     if (trigger == 'exit') {

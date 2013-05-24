@@ -1,5 +1,6 @@
 // Defines/generates all of our Jasmine unit tests from the node unit tests.
 (function() {
+  "use strict";
   // Generates a unit test.
   var generateTest = function(testName, test) {
     it (testName, function() {
@@ -22,16 +23,31 @@
     });
   };
 
-
-  // programmatically create a single test suite for each filesystem we wish to
-  // test
-  // TODO: Generalize this once we have more file systems.
-  describe("localStorage FS", function() {
+  var generateTests = function(backend) {
+    generateTest("Load filesystem", function() {
+      BrowserFS.initialize(backend);
+    });
+    generateTest("Load fixtures", window.loadFixtures);
     for (var testName in window.tests) {
       if (window.tests.hasOwnProperty(testName)) {
         // Generate a unit test for this Node test
         generateTest(testName, window.tests[testName]);
       }
     }
-  });
+  };
+
+  // Initialize the LocalStorage filesystem.
+  var lsfs = new BrowserFS.FileSystem.LocalStorage();
+  lsfs.empty();
+
+  var backends = [lsfs, new BrowserFS.FileSystem.InMemory()];
+
+  // programmatically create a single test suite for each filesystem we wish to
+  // test
+  for (var i = 0; i < backends.length; i++) {
+    describe("jfs", function() {
+      generateTests(backends[i]);
+    });
+  }
+  window.jasmine.getEnv().execute(true);
 })(this);
