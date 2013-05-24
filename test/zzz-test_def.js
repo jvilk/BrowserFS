@@ -49,5 +49,5 @@
       generateTests(backends[i]);
     });
   }
-  window.jasmine.getEnv().execute(true);
+  __karma__.start();
 })(this);

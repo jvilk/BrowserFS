@@ -1,12 +1,6 @@
 (function() {
   // Test-related setup code.
   BrowserFS.install(this);
-  // Monkey-patch Jasmine itself.
-  var jasmineEnv = window.jasmine.getEnv();
-  var jasmineEx = jasmineEnv.execute;
-  jasmineEnv.execute = function(actuallyStart) {
-    if (actuallyStart) jasmineEx.apply(jasmineEnv, []);
-  };
 
   // Make these things global
   window.tests = {};
@@ -22,6 +16,9 @@
       error: function() { console.log.apply(this, arguments); }
   };
   window.Buffer = BrowserFS.node.Buffer;
+
+  // Prevent Karma from auto-executing.
+  __karma__.loaded = function() {};
 
   // Polyfill for `process.on('exit')`.
   process.on = function(trigger, cb) {
