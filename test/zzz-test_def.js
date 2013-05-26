@@ -45,7 +45,7 @@
   // programmatically create a single test suite for each filesystem we wish to
   // test
   for (var i = 0; i < backends.length; i++) {
-    describe("jfs", function() {
+    describe(backends[i].getName(), function() {
       generateTests(backends[i]);
     });
   }

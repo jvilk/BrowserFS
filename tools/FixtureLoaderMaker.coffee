@@ -30,7 +30,7 @@ emitHeader = (cb) ->
   // Used by unit testing only. Preloads needed testing files.
   (function(){
     "use strict";
-    var numdirs = #{dirs.length};
+    var numdirs;
     var mcb = function(err) {
       if (err) throw err;
       numdirs--;
@@ -109,7 +109,7 @@ emitMkdirHeader = (cb) ->
   debugPrint "Writing mkdir header..."
   buf = new Buffer """
   window.loadFixtures = function() {
-
+    numdirs = #{dirs.length};
   """
   fs.write outfile, buf, 0, buf.length, null, cb
 emitAllMkdirs = (cb) ->

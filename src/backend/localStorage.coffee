@@ -46,6 +46,9 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.FileSystem
 
   # Removes all data from localStorage.
   empty: -> window.localStorage.clear()
+  # Returns the name of the file system.
+  # @return [String]
+  getName: -> 'localStorage'
   # Does the browser support localStorage?
   # @return [Boolean]
   isAvailable: -> window?.localStorage?

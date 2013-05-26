@@ -53,6 +53,9 @@ class BrowserFS.FileSystem
 
   # Global information methods
 
+  # **Optional**: Returns the name of the file system.
+  # @return [String]
+  getName: -> 'Unspecified'
   # **Core**: Returns 'true' if this filesystem is available in the current
   # environment. For example, a `localStorage`-backed filesystem will return
   # 'false' if the browser does not support that API.

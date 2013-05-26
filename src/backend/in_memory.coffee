@@ -9,6 +9,9 @@ class BrowserFS.FileSystem.InMemory extends BrowserFS.FileSystem
   # Clears all data, resetting to the 'just-initialized' state.
   empty: -> @_index = new BrowserFS.FileIndex
 
+  # Returns the name of the file system.
+  # @return [String]
+  getName: -> 'In-memory'
   # All browsers support storing data in memory.
   # @return [Boolean]
   isAvailable: -> true
