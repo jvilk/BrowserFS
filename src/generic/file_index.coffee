@@ -99,16 +99,18 @@ class BrowserFS.FileIndex
 # @return [BrowserFS.FileIndex] A new FileIndex object.
 BrowserFS.FileIndex.from_listing = (listing) ->
   idx = new BrowserFS.FileIndex()
-  queue = [['/', listing]]
+  queue = [['', listing, null]]
   while queue.length > 0
-    [pwd, tree] = queue.pop()
+    [pwd, tree, parent] = queue.pop()
     for node, children of tree
       name = "#{pwd}/#{node}"
       if children?
-        idx._index[name] = new BrowserFS.DirInode()
-        queue.push [name, children]
+        idx._index[name] = inode = new BrowserFS.DirInode()
+        queue.push [name, children, inode]
       else
-        idx._index[name] = new BrowserFS.FileInode(BrowserFS.node.fs.Stats.FILE, 0)
+        idx._index[name] = inode = new BrowserFS.FileInode(BrowserFS.node.fs.Stats.FILE, 0)
+      if parent?
+        parent._ls[node] = inode
   return idx
 
 # Inode for a file. Just an alias for a BrowserFS.node.fs.Stats object.
