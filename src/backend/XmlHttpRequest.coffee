@@ -51,6 +51,9 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.IndexedFileSystem
   # @return [Boolean]
   supportsProps: -> false
 
+  rename: (oldPath, newPath, cb) ->
+    cb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "cannot rename with a read-only filesystem."
+
   # File operations
 
   open: (path, flags, mode, cb) ->
@@ -75,3 +78,14 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.IndexedFileSystem
           return cb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "#{path} doesn't exist."
         else
           return cb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Invalid FileMode object.'
+
+  unlink: (path, cb) ->
+    cb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "cannot unlink with a read-only filesystem."
+
+  # Directory operations
+
+  rmdir: (path, cb) ->
+    cb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "cannot rmdir with a read-only filesystem."
+
+  mkdir: (path, mode, cb) ->
+    cb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "cannot mkdir with a read-only filesystem."
