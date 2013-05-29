@@ -101,16 +101,8 @@ BrowserFS.FileIndex.from_listing = (listing) ->
   console.log 'TODO: from_listing'
   return new BrowserFS.FileIndex()
 
-# Inode for a file. Can be extended by the filesystem if need be to store more
-# information.
-#
-# Currently, it's essentially a BrowserFS.node.fs.Stats object.
-class BrowserFS.FileInode extends BrowserFS.node.fs.Stats
-  # Constructs an inode from a Stats object.
-  # @param [BrowserFS.node.fs.Stats] The stats object for this inode.
-  @from_stats: (_stats) ->
-    # XXX: this is kinda hacky.
-    new FileInode(_stats.item_type, _stats.size, _stats.mode, _stats.atime, _stats.mtime, _stats.ctime)
+# Inode for a file. Just an alias for a BrowserFS.node.fs.Stats object.
+BrowserFS.FileInode = BrowserFS.node.fs.Stats
 
 # Inode for a directory. Currently only contains the directory listing.
 class BrowserFS.DirInode

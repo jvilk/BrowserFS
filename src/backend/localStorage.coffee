@@ -120,8 +120,7 @@ class BrowserFS.File.PreloadFile.LocalStorageFile extends BrowserFS.File.Preload
   sync: (cb)->
     # Convert to packed UTF-16 (2 bytes per character, 1 character header)
     data = @_buffer.toString('binary_string')
-    inode = BrowserFS.FileInode.from_stats @_stat
-    @_fs._sync @_path, data, inode, cb
+    @_fs._sync @_path, data, @_stat, cb
 
   # Asynchronous close.
   # @param [Function(BrowserFS.ApiError)] cb
