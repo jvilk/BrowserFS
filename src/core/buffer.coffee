@@ -101,6 +101,9 @@ class BrowserFS.node.Buffer
     else if arg1 instanceof DataView
       @buff = arg1
       @length = arg1.byteLength
+    else if arg1 instanceof ArrayBuffer
+      @buff = new DataView arg1
+      @length = arg1.byteLength
     else if arg1 instanceof BrowserFS.node.Buffer
       @buff = new DataView new ArrayBuffer(arg1.length)
       for i in [0...arg1.length]

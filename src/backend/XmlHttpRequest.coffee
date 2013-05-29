@@ -12,7 +12,8 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.IndexedFileSystem
 
   _request_file: (path, data_type, cb) ->
     # Ensure the file is in the index.
-    return null if @_index?.getInode(path) == null
+    if @_index?.getInode(path) == null
+      return if cb? then cb(null) else null
     req = new XMLHttpRequest()
     req.open 'GET', path, cb?
     req.responseType = data_type
@@ -21,8 +22,8 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.IndexedFileSystem
     req.onload = (e) ->
       unless req.readyState is 4 and req.status is 200
         console.error req.statusText
-      return cb(req.response) if cb?
-      data = req.response
+      data = BrowserFS.node.Buffer(req.response ? 0)
+      return cb(data) if cb?
     req.send()
     if data? and data != 'NOT FOUND'
       return data
