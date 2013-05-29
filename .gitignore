@@ -4,6 +4,4 @@ lib/*.map
 tmp/*
 doc/*
 *.DS_Store
-
-
-test-results.xml
+*.log
