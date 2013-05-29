@@ -43,7 +43,7 @@
   var backends = [
     lsfs,
     new BrowserFS.FileSystem.InMemory(),
-    new BrowserFS.FileSystem.XmlHttpRequest('/ajax/listings.json'),
+    new BrowserFS.FileSystem.XmlHttpRequest('/listings.json'),
   ];
 
   // programmatically create a single test suite for each filesystem we wish to
