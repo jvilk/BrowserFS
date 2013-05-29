@@ -44,10 +44,12 @@
 
   // programmatically create a single test suite for each filesystem we wish to
   // test
+  var testGeneratorFactory = function(backend) {
+    return function() { generateTests(backend); };
+  };
   for (var i = 0; i < backends.length; i++) {
-    describe(backends[i].getName(), function() {
-      generateTests(backends[i]);
-    });
+    var _backend = backends[i];
+    describe(_backend.getName(), testGeneratorFactory(_backend));
   }
   __karma__.start();
 })(this);
