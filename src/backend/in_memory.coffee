@@ -22,7 +22,7 @@ class BrowserFS.FileSystem.InMemory extends BrowserFS.IndexedFileSystem
   # @param [String] path Unused in the implementation.
   # @param [Function(Number, Number)] cb
   diskSpace: (path, cb) ->
-    cb Infinity, roughSizeOfObject @_index
+    cb Infinity, BrowserFS.util.roughSizeOfObject @_index
 
   # Returns false; this filesystem is not read-only.
   # @return [Boolean]
@@ -56,27 +56,3 @@ class BrowserFS.FileSystem.InMemory extends BrowserFS.IndexedFileSystem
 
   # Directory operations
   _rmdir: (path, inode, cb) -> cb()
-
-
-# Estimates the size of a JS object.
-# @param [Object] the object to measure.
-# @return [Number] estimated object size.
-# @see http://stackoverflow.com/a/11900218/10601
-roughSizeOfObject = (object) ->
-  objectList = []
-  stack = [object]
-  bytes = 0
-  until stack.length is 0
-    value = stack.pop()
-    if typeof value is 'boolean'
-      bytes += 4
-    else if typeof value is 'string'
-      bytes += value.length * 2
-    else if typeof value is 'number'
-      bytes += 8
-    else if typeof value is 'object' and value not in objectList
-      objectList.push value
-      for key, prop of value
-        bytes += key.length * 2
-        stack.push prop
-  return bytes
