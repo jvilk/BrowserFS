@@ -6,6 +6,8 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.IndexedFileSystem
   #   or absolutely specified.
   constructor: (listing_path='index.json') ->
     listing = @_request_file(listing_path, 'json')
+    unless listing?
+      throw new Error "Unable to find listing at URL: #{listing_path}"
     @_index = BrowserFS.FileIndex.from_listing listing
 
   _request_file: (path, data_type, cb) ->
@@ -22,7 +24,8 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.IndexedFileSystem
       return cb(req.response) if cb?
       data = req.response
     req.send()
-    return data
+    if data? and data != 'NOT FOUND'
+      return data
 
   # Returns the name of the file system.
   # @return [String]
