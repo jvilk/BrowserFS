@@ -40,7 +40,11 @@
   var lsfs = new BrowserFS.FileSystem.LocalStorage();
   lsfs.empty();
 
-  var backends = [lsfs, new BrowserFS.FileSystem.InMemory()];
+  var backends = [
+    lsfs,
+    new BrowserFS.FileSystem.InMemory(),
+    new BrowserFS.FileSystem.XmlHttpRequest('/ajax/listings.json'),
+  ];
 
   // programmatically create a single test suite for each filesystem we wish to
   // test

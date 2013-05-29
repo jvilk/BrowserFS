@@ -74,3 +74,8 @@ captureTimeout = 60000;
 // Continuous Integration mode
 // if true, it capture browsers, run tests and exit
 singleRun = false;
+
+// Avoid hardcoding and cross-origin issues.
+proxies = {
+  '/ajax/': 'http://localhost:8000/'
+};
