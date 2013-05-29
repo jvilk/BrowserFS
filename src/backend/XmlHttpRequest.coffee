@@ -71,7 +71,7 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
           when BrowserFS.FileMode.NOP
             # Use existing file contents.
             @_request_file path, 'arraybuffer', (buffer) =>
-              file = new BrowserFS.File.NoSyncFile @, path, flags, inode.getStats(), buffer
+              file = new BrowserFS.File.NoSyncFile @, path, flags, inode, buffer
               return cb null, file
           else
             return cb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Invalid FileMode object.'

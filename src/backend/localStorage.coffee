@@ -29,7 +29,7 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.IndexedFileSystem
     # Doesn't exist.
     return null if data is null
     buffer = new BrowserFS.node.Buffer(data, 'binary_string')
-    return new BrowserFS.File.PreloadFile.LocalStorageFile @, path, flags, inode.getStats(), buffer
+    return new BrowserFS.File.PreloadFile.LocalStorageFile @, path, flags, inode, buffer
 
   # Handles syncing file data with `localStorage`.
   # @param [String] path

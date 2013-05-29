@@ -19,7 +19,7 @@ class BrowserFS.IndexedFileSystem extends BrowserFS.FileSystem
     inode = @_index.getInode path
     if inode is null
       return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "#{path} not found."
-    cb null, inode
+    cb null, inode.getStats()
 
   # File operations
 
