@@ -109,6 +109,7 @@ emitMkdirHeader = (cb) ->
   debugPrint "Writing mkdir header..."
   buf = new Buffer """
   window.loadFixtures = function() {
+    if (fs.getRootFS().isReadOnly()) { return; }
     numdirs = #{dirs.length};
   """
   fs.write outfile, buf, 0, buf.length, null, cb
