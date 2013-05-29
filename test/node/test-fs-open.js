@@ -20,7 +20,7 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 this.tests.fs_open = function(){
-var filename = 'open-test-filename';
+  var filename = path.join(common.fixturesDir, 'a.js');
 
 /*
 var caughtException = false;
@@ -35,26 +35,22 @@ catch (e) {
 }
 assert.ok(caughtException);
 */
-fs.open(filename, 'w', function(err, fd){
-  fs.close(fd, function(){
-    // file is now created
-    fs.open(filename, 'r', function(err, fd) {
-      if (err) {
-        throw err;
-      }
-      assert.ok(fd);
-      console.log("opened with mode `r`: "+filename);
-    });
 
-    fs.open(filename, 'rs', function(err, fd) {
-      if (err) {
-        throw err;
-      }
-      assert.ok(fd);
-      console.log("opened with mode `rs`: "+filename);
-    });
+  fs.open(filename, 'r', function(err, fd) {
+    if (err) {
+      throw err;
+    }
+    assert.ok(fd);
+    console.log("opened with mode `r`: "+filename);
   });
-});
+
+  fs.open(filename, 'rs', function(err, fd) {
+    if (err) {
+      throw err;
+    }
+    assert.ok(fd);
+    console.log("opened with mode `rs`: "+filename);
+  });
 
 /*process.on('exit', function() {
   assert.ok(openFd);

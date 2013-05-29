@@ -20,6 +20,8 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 this.tests.fs_mkdir = function(){
+  if (fs.getRootFS().isReadOnly()) return;
+
 
   var pathname = common.tmpDir + '/mkdir-test1';
 

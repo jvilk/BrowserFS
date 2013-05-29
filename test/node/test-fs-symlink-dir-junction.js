@@ -28,7 +28,7 @@ var linkData = path.join(common.fixturesDir, 'cycles/');
 var linkPath = path.join(common.tmpDir, 'cycles_link');
 
 var rootFS = fs.getRootFS();
-if (!rootFS.supportsLinks()) return;
+if (rootFS.isReadOnly() || !rootFS.supportsLinks()) return;
 
 // Delete previously created link
 fs.unlink(linkPath, function(err) {

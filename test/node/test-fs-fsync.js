@@ -25,6 +25,7 @@ var successes = 0;
 
 var file = path.join(common.fixturesDir, 'a.js');
 var rootFS = fs.getRootFS();
+if (rootFS.isReadOnly()) return;
 
 common.error('open ' + file);
 

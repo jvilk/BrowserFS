@@ -111,9 +111,10 @@ fs.open('test-stat-filename', 'w', function(err, fd){
 });
 
 // BFS: make sure we can stat directories as well.
-fs.mkdir('test-stat-dirname', function(err, fd){
+var test_dirname = common.fixturesDir;
+console.log('stating: '+test_dirname);
+fs.open(test_dirname, function(err, fd) {
   if (err) return;
-  console.log('stating: test-stat-dirname');
   fs.fstat(fd, function(err, s) {
     if (err) {
       console.error('XXX(fstat)(dir): '+err);
@@ -122,15 +123,15 @@ fs.mkdir('test-stat-dirname', function(err, fd){
       assert.ok(s.size > 0);
     }
   });
-  // also do a path-based stat
-  fs.stat('test-stat-dirname', function(err, s) {
-    if (err) {
-      console.error('XXX(fstat)(dir): '+err);
-    } else {
-      console.log('dir size? ' + s.size);
-      assert.ok(s.size > 0);
-    }
-  });
+});
+// also do a path-based stat
+fs.stat(test_dirname, function(err, s) {
+  if (err) {
+    console.error('XXX(fstat)(dir): '+err);
+  } else {
+    console.log('dir size? ' + s.size);
+    assert.ok(s.size > 0);
+  }
 });
 
 /*process.on('exit', function() {

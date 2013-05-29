@@ -20,6 +20,7 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 window.tests.fs_readfile_unlink = function() {
+if (fs.getRootFS().isReadOnly()) return;
 
 var dirName = path.resolve(common.fixturesDir, 'test-readfile-unlink'),
     fileName = path.resolve(dirName, 'test.bin');
