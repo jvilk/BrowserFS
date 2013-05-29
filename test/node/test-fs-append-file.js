@@ -21,6 +21,8 @@
 
 this.tests.fs_append_file = function() {
 
+if (fs.getRootFS().isReadOnly()) return;
+
 var join = BrowserFS.node.path.join;
 var filename = join(common.tmpDir, 'append.txt');
 

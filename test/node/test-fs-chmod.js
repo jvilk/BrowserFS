@@ -28,8 +28,8 @@ var mode_sync;
 var is_windows = process.platform === 'win32';
 var rootFS = fs.getRootFS();
 
-// BFS: This is only for file systems that support properties.
-if (rootFS.supportsProps() === false) return;
+// BFS: This is only for writable file systems that support properties.
+if (rootFS.isReadOnly() || rootFS.supportsProps() === false) return;
 
 var openCount = 0;
 
