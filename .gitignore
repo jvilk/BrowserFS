@@ -5,3 +5,4 @@ tmp/*
 doc/*
 *.DS_Store
 *.log
+*.json
