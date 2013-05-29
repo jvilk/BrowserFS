@@ -69,6 +69,7 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.IndexedFileSystem
         when BrowserFS.FileMode.NOP
           # Use existing file contents.
           @_request_file path, 'arraybuffer', (buffer) =>
+            inode.size = buffer.length  # we don't initially have file sizes
             file = new BrowserFS.File.NoSyncFile @, path, flags, inode, buffer
             return cb null, file
         else
