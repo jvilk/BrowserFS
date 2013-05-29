@@ -20,25 +20,26 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 this.tests.fs_exists = function(){
-var f = 'foobar';
+var f = path.join(common.fixturesDir, 'x.txt');
+var exists;
+var doesNotExist;
 
-fs.open(f, 'w', function(err, fd){
-  fs.close(fd, function(){
-    fs.exists(f, function(y) {
-      console.log('expected file exists? '+y);
-      assert.strictEqual(y, true);
-    });
-
-    fs.exists(f + '-NO', function(y) {
-      console.log('unexpected file exists? '+y);
-      assert.strictEqual(y, false);
-    });
-  });
+fs.exists(f, function(y) {
+  exists = y;
 });
 
-/*process.on('exit', function() {
+fs.exists(f + '-NO', function(y) {
+  doesNotExist = y;
+});
+
+if (fs.getRootFS().supportsSynch()) {
+  assert(fs.existsSync(f));
+  assert(!fs.existsSync(f + '-NO'));
+}
+
+process.on('exit', function() {
   assert.strictEqual(exists, true);
   assert.strictEqual(doesNotExist, false);
-});*/
+});
 
 };
