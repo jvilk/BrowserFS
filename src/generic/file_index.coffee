@@ -111,9 +111,6 @@ class BrowserFS.FileInode extends BrowserFS.node.fs.Stats
   @from_stats: (_stats) ->
     # XXX: this is kinda hacky.
     new FileInode(_stats.item_type, _stats.size, _stats.mode, _stats.atime, _stats.mtime, _stats.ctime)
-  # Return a Stats object for this inode.
-  # @return [BrowserFS.node.fs.Stats]
-  getStats: -> return @
 
 # Inode for a directory. Currently only contains the directory listing.
 class BrowserFS.DirInode
@@ -125,7 +122,8 @@ class BrowserFS.DirInode
   # Return a Stats object for this inode.
   # @return [BrowserFS.node.fs.Stats]
   getStats: ->
-    new BrowserFS.node.fs.Stats(BrowserFS.node.fs.Stats.DIRECTORY, @_ls.length)
+    size = BrowserFS.util.roughSizeOfObject @_ls
+    new BrowserFS.node.fs.Stats(BrowserFS.node.fs.Stats.DIRECTORY, size)
   # Returns the directory listing for this directory. Paths in the directory are
   # relative to the directory's path.
   # @return [String[]] The directory listing for this directory.
