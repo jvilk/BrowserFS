@@ -140,3 +140,15 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
       return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
     @_stat.mode = parseInt(mode, 8)
     @_fs.sync cb
+
+
+# File class for the InMemory and XHR file systems.
+# Doesn't sync to anything, so it works nicely for memory-only files.
+class BrowserFS.File.NoSyncFile extends BrowserFS.File.PreloadFile
+  # Asynchronous sync. Doesn't do anything, simply calls the cb.
+  # @param [Function(BrowserFS.ApiError)] cb
+  sync: (cb) -> cb()
+
+  # Asynchronous close. Doesn't do anything, simply calls the cb.
+  # @param [Function(BrowserFS.ApiError)] cb
+  close: (cb)-> cb()
