@@ -6,11 +6,11 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.IndexedFileSystem
   #   or absolutely specified.
   constructor: (listing_path='index.json') ->
     listing = @_request_file(listing_path, 'json')
-    @index = BrowserFS.FileIndex.from_listing listing
+    @_index = BrowserFS.FileIndex.from_listing listing
 
   _request_file: (path, data_type, cb) ->
     # Ensure the file is in the index.
-    return null if @index?.getInode(path) == null
+    return null if @_index?.getInode(path) == null
     req = new XMLHttpRequest()
     req.open 'GET', path, cb?
     req.responseType = data_type
