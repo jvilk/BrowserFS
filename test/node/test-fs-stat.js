@@ -60,23 +60,23 @@ fs.open(existing_file, 'r', undefined, function(err, fd) {
   });
 });
 
-/*
-// fstatSync
-fs.open(existing_file, 'r', undefined, function(err, fd) {
-  var stats;
-  try {
-    stats = fs.fstatSync(fd);
-  } catch (e) {
-    got_error = true;
-  }
-  if (stats) {
-    console.dir(stats);
-    assert.ok(stats.mtime instanceof Date);
-    success_count++;
-  }
-  fs.close(fd);
-});
-*/
+if (fs.getRootFS().supportsSynch()) {
+  // fstatSync
+  fs.open(existing_file, 'r', undefined, function(err, fd) {
+    var stats;
+    try {
+      stats = fs.fstatSync(fd);
+    } catch (e) {
+      got_error = true;
+    }
+    if (stats) {
+      console.dir(stats);
+      assert.ok(stats.mtime instanceof Date);
+      success_count++;
+    }
+    fs.close(fd);
+  });
+}
 
 console.log('stating: ' + existing_file);
 fs.stat(existing_file, function(err, s) {
@@ -112,9 +112,9 @@ fs.stat(existing_file, function(err, s) {
 });
 
 process.on('exit', function() {
-  console.log(success_count+' should == 5');
-  assert.equal(5, success_count);
-  console.log(got_error+' should be false');
+  var expected_success = 4;
+  if (fs.getRootFS().supportsSynch()) expected_success++;
+  assert.equal(expected_success, success_count);
   assert.equal(false, got_error);
 });
 
