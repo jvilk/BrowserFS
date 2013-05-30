@@ -61,12 +61,12 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
     # Check if the path exists, and is a file.
     inode = @_index.getInode path
     if inode is null
-      return cb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "#{path} is not in the FileIndex."
+      return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "#{path} is not in the FileIndex."
     if inode.isDirectory()
       return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "#{path} is a directory."
     switch flags.pathExistsAction()
       when BrowserFS.FileMode.THROW_EXCEPTION, BrowserFS.FileMode.TRUNCATE_FILE
-        return cb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "#{path} already exists."
+        return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "#{path} already exists."
       when BrowserFS.FileMode.NOP
         # Use existing file contents.
         return cb(null, inode.file_data) if inode.file_data?
