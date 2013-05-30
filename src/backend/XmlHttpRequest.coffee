@@ -10,6 +10,10 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
       throw new Error "Unable to find listing at URL: #{listing_url}"
     @_index = BrowserFS.FileIndex.from_listing listing
 
+  empty: ->
+    for k, v of @_index._index when v.file_data?
+      v.file_data = undefined
+
   # Assumes that path is in @_index.
   _request_file: (path, data_type, cb) ->
     req = new XMLHttpRequest()
