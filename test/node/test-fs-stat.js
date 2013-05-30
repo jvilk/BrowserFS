@@ -21,42 +21,48 @@
 
 this.tests.fs_stat = function(){
 
+var got_error = false;
+var success_count = 0;
+var existing_dir = common.fixturesDir;
+var existing_file = path.join(common.fixturesDir, 'x.txt');
+
+fs.stat(existing_dir, function(err, stats) {
+  if (err) {
+    got_error = true;
+  } else {
+    assert.ok(stats.mtime instanceof Date);
+    success_count++;
+  }
+});
+
+fs.lstat(existing_dir, function(err, stats) {
+  if (err) {
+    got_error = true;
+  } else {
+    assert.ok(stats.mtime instanceof Date);
+    success_count++;
+  }
+});
+
 // fstat
-fs.open('test-stat-filename', 'w', function(err, fd) {
-  fs.close(fd, function(){
+fs.open(existing_file, 'r', undefined, function(err, fd) {
   assert.ok(!err);
   assert.ok(fd);
 
-  fs.stat('test-stat-filename', function(err, stats) {
-    if (err) {
-      console.log('XXX(stat): '+err);
-    } else {
-      assert.ok(stats.mtime instanceof Date);
-    }
-  });
-
-  fs.lstat('test-stat-filename', function(err, stats) {
-    if (err) {
-      console.log('XXX(lstat): '+err);
-    } else {
-      assert.ok(stats.mtime instanceof Date);
-    }
-  });
-
   fs.fstat(fd, function(err, stats) {
     if (err) {
-      console.log('XXX(fstat): '+err);
+      got_error = true;
     } else {
       assert.ok(stats.mtime instanceof Date);
+      success_count++;
+      fs.close(fd);
     }
   });
-
-});
 });
 
 /*
 // fstatSync
-fs.open('.', 'r', undefined, function(err, fd) {
+fs.open(existing_file, 'r', undefined, function(err, fd) {
   var stats;
   try {
     stats = fs.fstatSync(fd);
@@ -72,70 +78,44 @@ fs.open('.', 'r', undefined, function(err, fd) {
 });
 */
 
-fs.open('test-stat-filename', 'w', function(err, fd){
-  fs.close(fd, function(){
-    // file is now ready
-    console.log('stating: test-stat-filename');
-    fs.stat('test-stat-filename', function(err, s) {
-      if (err) {
-        console.error('XXX(stat)(filename): '+err);
-      } else {
-        console.dir(s);
-
-        console.log('isDirectory: ' + JSON.stringify(s.isDirectory()));
-        assert.equal(false, s.isDirectory());
-
-        console.log('isFile: ' + JSON.stringify(s.isFile()));
-        assert.equal(true, s.isFile());
-
-        console.log('isSocket: ' + JSON.stringify(s.isSocket()));
-        assert.equal(false, s.isSocket());
-
-        console.log('isBlockDevice: ' + JSON.stringify(s.isBlockDevice()));
-        //assert.equal(false, s.isBlockDevice());
-
-        console.log('isCharacterDevice: ' + JSON.stringify(s.isCharacterDevice()));
-        assert.equal(false, s.isCharacterDevice());
-
-        console.log('isFIFO: ' + JSON.stringify(s.isFIFO()));
-        assert.equal(false, s.isFIFO());
-
-        console.log('isSymbolicLink: ' + JSON.stringify(s.isSymbolicLink()));
-        assert.equal(false, s.isSymbolicLink());
-
-        console.log('mtime: ' + s.mtime);
-        assert.ok(s.mtime instanceof Date);
-      }
-    });
-  });
-});
-
-// BFS: make sure we can stat directories as well.
-var test_dirname = common.fixturesDir;
-console.log('stating: '+test_dirname);
-fs.open(test_dirname, function(err, fd) {
-  if (err) return;
-  fs.fstat(fd, function(err, s) {
-    if (err) {
-      console.error('XXX(fstat)(dir): '+err);
-    } else {
-      console.log('dir size? ' + s.size);
-      assert.ok(s.size > 0);
-    }
-  });
-});
-// also do a path-based stat
-fs.stat(test_dirname, function(err, s) {
+console.log('stating: ' + existing_file);
+fs.stat(existing_file, function(err, s) {
   if (err) {
-    console.error('XXX(fstat)(dir): '+err);
+    got_error = true;
   } else {
-    console.log('dir size? ' + s.size);
-    assert.ok(s.size > 0);
+    success_count++;
+
+    console.log('isDirectory: ' + JSON.stringify(s.isDirectory()));
+    assert.equal(false, s.isDirectory());
+
+    console.log('isFile: ' + JSON.stringify(s.isFile()));
+    assert.equal(true, s.isFile());
+
+    console.log('isSocket: ' + JSON.stringify(s.isSocket()));
+    assert.equal(false, s.isSocket());
+
+    console.log('isBlockDevice: ' + JSON.stringify(s.isBlockDevice()));
+    //assert.equal(false, s.isBlockDevice());
+
+    console.log('isCharacterDevice: ' + JSON.stringify(s.isCharacterDevice()));
+    assert.equal(false, s.isCharacterDevice());
+
+    console.log('isFIFO: ' + JSON.stringify(s.isFIFO()));
+    assert.equal(false, s.isFIFO());
+
+    console.log('isSymbolicLink: ' + JSON.stringify(s.isSymbolicLink()));
+    assert.equal(false, s.isSymbolicLink());
+
+    console.log('mtime: ' + s.mtime);
+    assert.ok(s.mtime instanceof Date);
   }
 });
 
-/*process.on('exit', function() {
+process.on('exit', function() {
+  console.log(success_count+' should == 5');
   assert.equal(5, success_count);
+  console.log(got_error+' should be false');
   assert.equal(false, got_error);
-});*/
+});
+
 };
