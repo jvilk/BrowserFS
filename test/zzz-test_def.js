@@ -36,20 +36,24 @@
     }
   };
 
-  var backends = [
-    new BrowserFS.FileSystem.LocalStorage(),
-    new BrowserFS.FileSystem.InMemory(),
-    new BrowserFS.FileSystem.XmlHttpRequest('/listings.json'),
-  ];
+  var idbfs = new BrowserFS.FileSystem.IndexedDB(function(err){
+    if (err !== undefined) return;
+    var backends = [
+      new BrowserFS.FileSystem.LocalStorage(),
+      new BrowserFS.FileSystem.InMemory(),
+      new BrowserFS.FileSystem.XmlHttpRequest('/listings.json'),
+      idbfs,
+    ];
 
-  // programmatically create a single test suite for each filesystem we wish to
-  // test
-  var testGeneratorFactory = function(backend) {
-    return function() { generateTests(backend); };
-  };
-  for (var i = 0; i < backends.length; i++) {
-    var _backend = backends[i];
-    describe(_backend.getName(), testGeneratorFactory(_backend));
-  }
-  __karma__.start();
+    // programmatically create a single test suite for each filesystem we wish to
+    // test
+    var testGeneratorFactory = function(backend) {
+      return function() { generateTests(backend); };
+    };
+    for (var i = 0; i < backends.length; i++) {
+      var _backend = backends[i];
+      describe(_backend.getName(), testGeneratorFactory(_backend));
+    }
+    __karma__.start();
+  });
 })(this);
