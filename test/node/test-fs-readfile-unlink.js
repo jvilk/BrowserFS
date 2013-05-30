@@ -25,7 +25,7 @@ if (fs.getRootFS().isReadOnly()) return;
 var dirName = path.resolve(common.fixturesDir, 'test-readfile-unlink'),
     fileName = path.resolve(dirName, 'test.bin');
 
-var buf = new Buffer(512 * 1024);
+var buf = new Buffer(512);
 buf.fill(42);
 
 fs.mkdir(dirName, function(err) {
