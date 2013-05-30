@@ -36,12 +36,8 @@
     }
   };
 
-  // Initialize the LocalStorage filesystem.
-  var lsfs = new BrowserFS.FileSystem.LocalStorage();
-  lsfs.empty();
-
   var backends = [
-    lsfs,
+    new BrowserFS.FileSystem.LocalStorage(),
     new BrowserFS.FileSystem.InMemory(),
     new BrowserFS.FileSystem.XmlHttpRequest('/listings.json'),
   ];
