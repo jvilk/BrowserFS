@@ -14,7 +14,7 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
   _request_file: (path, data_type, cb) ->
     req = new XMLHttpRequest()
     req.open 'GET', path, cb?
-    req.responseType = data_type
+    req.responseType = data_type if cb?
     data = null
     req.onerror = (e) -> console.error req.statusText
     req.onload = (e) ->
