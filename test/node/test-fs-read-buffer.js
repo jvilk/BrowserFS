@@ -28,6 +28,10 @@ var filepath = path.join(common.fixturesDir, 'x.txt'),
     readCalled = 0,
     rootFS = fs.getRootFS();
 
+// Hack: process.exit is called when the last callback fires,
+// so we wrap all this in a callback to avoid running
+// the exit function after the open but before the read.
+setImmediate(function(){
 fs.open(filepath, 'r', function(err, fd) {
   if (err) throw err;
   fs.read(fd, bufferAsync, 0, expected.length, 0, function(err, bytesRead) {
@@ -42,6 +46,7 @@ fs.open(filepath, 'r', function(err, fd) {
     assert.equal(bufferSync.toString(), new Buffer(expected).toString());
     assert.equal(r, expected.length);
   }
+});
 });
 
 process.on('exit', function() {
