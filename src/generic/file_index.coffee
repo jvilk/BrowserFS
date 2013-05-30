@@ -123,6 +123,9 @@ class BrowserFS.DirInode
   # Is this an inode for a file?
   # @return [Boolean] false
   isFile: -> false
+  # Is this an inode for a directory?
+  # @return [Boolean] true
+  isDirectory: -> true
   # Return a Stats object for this inode.
   # @return [BrowserFS.node.fs.Stats]
   getStats: ->
