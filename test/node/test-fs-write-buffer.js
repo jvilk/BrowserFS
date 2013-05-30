@@ -20,6 +20,7 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 window.tests.fs_write_buffer = function() {
+if (fs.getRootFS().isReadOnly()) return;
 
 var filename = path.join(common.tmpDir, 'write.txt'),
     expected = new Buffer('hello'),

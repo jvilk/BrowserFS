@@ -20,6 +20,7 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 window.tests.fs_write = function() {
+if (fs.getRootFS().isReadOnly()) return;
 var fn = path.join(common.tmpDir, 'write.txt');
 var fn2 = path.join(common.tmpDir, 'write2.txt');
 var expected = 'ümlaut.';

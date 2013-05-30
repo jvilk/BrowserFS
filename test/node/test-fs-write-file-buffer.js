@@ -20,6 +20,7 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 window.tests.fs_write_file_buffer = function() {
+if (fs.getRootFS().isReadOnly()) return;
 
 var join = path.join;
 

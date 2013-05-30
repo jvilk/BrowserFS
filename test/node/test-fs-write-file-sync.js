@@ -28,7 +28,7 @@ var content;
 var rootFS = fs.getRootFS();
 
 // Only works for file systems that support synchronous ops.
-if (!rootFS.supportsSynch()) return;
+if (rootFS.isReadOnly() || !rootFS.supportsSynch()) return;
 
 // Need to hijack fs.open/close to make sure that things
 // get closed once they're opened.
@@ -38,7 +38,7 @@ fs._closeSync = fs.closeSync;
 fs.closeSync = closeSync;
 
 // Reset the umask for testing
-var mask = process.umask(0000);
+var mask = process.umask(0);
 
 // On Windows chmod is only able to manipulate read-only bit. Test if creating
 // the file in read-only mode works.

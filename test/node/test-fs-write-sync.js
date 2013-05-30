@@ -22,7 +22,7 @@
 window.tests.fs_write_sync = function() {
 
 var rootFS = fs.getRootFS();
-if (!rootFS.supportsSynch()) return;
+if (rootFS.isReadOnly() || !rootFS.supportsSynch()) return;
 
 var fn = path.join(common.tmpDir, 'write.txt');
 

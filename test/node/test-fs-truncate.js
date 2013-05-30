@@ -20,13 +20,14 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 window.tests.fs_truncate = function() {
+var rootFS = fs.getRootFS();
+if (rootFS.isReadOnly()) return;
 
 var tmp = common.tmpDir;
 var filename = path.resolve(tmp, 'truncate-file.txt');
 var data = new Buffer(1024 * 16);
 data.fill('x');
 
-var rootFS = fs.getRootFS();
 var stat;
 
 // truncateSync
