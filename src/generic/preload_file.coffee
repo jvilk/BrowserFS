@@ -139,7 +139,7 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
     unless @_fs.supportsProps()
       return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
     @_stat.mode = parseInt(mode, 8)
-    @_fs.sync cb
+    @sync cb
 
 
 # File class for the InMemory and XHR file systems.
