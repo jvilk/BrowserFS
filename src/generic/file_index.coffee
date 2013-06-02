@@ -29,23 +29,21 @@ class BrowserFS.FileIndex
 
     # Split into directory path / item name
     dirpath = BrowserFS.node.path.dirname path
-    itemname = path.substr dirpath.length+1
+    itemname = path.substr dirpath.length
 
     # Try to add to its parent directory first.
     parent = @_index[dirpath]
     if parent is undefined and path isnt '/'
       # Create parent.
       parent = new BrowserFS.DirInode()
-      success = @addPath dirpath, parent
-      return false if !success
+      return false unless @addPath dirpath, parent
 
     # Add myself to my parent.
     unless path is '/'
-      success = parent.addItem itemname, inode
-      return false if !success
+      return false unless parent.addItem itemname, inode
 
     # If I'm a directory, add myself to the index.
-    unless inode.isFile() then @_index[path] = inode
+    @_index[path] = inode unless inode.isFile()
     return true
 
   # Removes the given path. Can be a file or a directory.
