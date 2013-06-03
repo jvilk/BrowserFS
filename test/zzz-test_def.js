@@ -1,6 +1,8 @@
 // Defines/generates all of our Jasmine unit tests from the node unit tests.
 (function() {
   "use strict";
+  var backends = [];
+
   // Generates a unit test.
   var generateTest = function(testName, test) {
     it (testName, function() {
@@ -36,15 +38,7 @@
     }
   };
 
-  var idbfs = new BrowserFS.FileSystem.IndexedDB(function(err){
-    if (err !== undefined) return;
-    var backends = [
-      new BrowserFS.FileSystem.LocalStorage(),
-      new BrowserFS.FileSystem.InMemory(),
-      new BrowserFS.FileSystem.XmlHttpRequest('/listings.json'),
-      idbfs,
-    ];
-
+  var generateAllTests = function() {
     // programmatically create a single test suite for each filesystem we wish to
     // test
     var testGeneratorFactory = function(backend) {
@@ -55,5 +49,20 @@
       describe(_backend.getName(), testGeneratorFactory(_backend));
     }
     __karma__.start();
-  });
+  };
+
+  if (BrowserFS.FileSystem.LocalStorage.isAvailable())
+    backends.push(new BrowserFS.FileSystem.LocalStorage());
+  backends.push(new BrowserFS.FileSystem.InMemory());
+  if (BrowserFS.FileSystem.XmlHttpRequest.isAvailable())
+    backends.push(new BrowserFS.FileSystem.XmlHttpRequest('/listings.json'));
+  if (BrowserFS.FileSystem.IndexedDB.isAvailable()) {
+    var idbfs = new BrowserFS.FileSystem.IndexedDB(function(err){
+      if (err !== undefined) throw err;
+      backends.push(idbfs);
+      generateAllTests();
+    });
+  } else {
+    generateAllTests();
+  }
 })(this);

@@ -24,7 +24,7 @@ class BrowserFS.FileSystem.IndexedDB extends BrowserFS.FileSystem
 
   # Does the browser support indexedDB?
   # @return [Boolean]
-  isAvailable: -> window?.indexedDB?
+  @isAvailable: -> window?.indexedDB?
 
   # Returns false; this filesystem is not read-only.
   # @return [Boolean]

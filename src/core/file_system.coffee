@@ -62,7 +62,7 @@ class BrowserFS.FileSystem
   #
   # Defaults to 'false', as the FileSystem base class isn't usable alone.
   # @return [Boolean]
-  isAvailable: -> false
+  @isAvailable: -> false
   # **Optional**: Passes the following information to the callback:
   #
   # * Total number of bytes available on this file system.

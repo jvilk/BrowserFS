@@ -14,7 +14,7 @@ class BrowserFS.FileSystem.InMemory extends BrowserFS.IndexedFileSystem
   getName: -> 'In-memory'
   # All browsers support storing data in memory.
   # @return [Boolean]
-  isAvailable: -> true
+  @isAvailable: -> true
 
   # Passes the size and taken space in bytes to the callback.
   #

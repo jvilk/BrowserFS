@@ -35,7 +35,7 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
   getName: -> 'XmlHttpRequest'
   # Does the browser support XmlHttpRequest?
   # @return [Boolean]
-  isAvailable: ->
+  @isAvailable: ->
     # Note: Older browsers use a different name for XHR, iirc.
     XMLHttpRequest?
   # Passes the size and taken space in bytes to the callback. Size will always

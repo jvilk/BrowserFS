@@ -52,7 +52,7 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.IndexedFileSystem
   getName: -> 'localStorage'
   # Does the browser support localStorage?
   # @return [Boolean]
-  isAvailable: -> window?.localStorage?
+  @isAvailable: -> window?.localStorage?
   # Passes the size and taken space in bytes to the callback.
   #
   # **Note**: We assume that `localStorage` stores 5MB of data, but that is not
