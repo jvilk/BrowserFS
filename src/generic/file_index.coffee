@@ -52,7 +52,7 @@ class BrowserFS.FileIndex
   removePath: (path) ->
     # Split into directory path / item name
     dirpath = BrowserFS.node.path.dirname path
-    itemname = path.substr dirpath.length+1
+    itemname = path.substr dirpath.length
 
     # Try to remove it from its parent directory first.
     parent = @_index[dirpath]
@@ -83,7 +83,7 @@ class BrowserFS.FileIndex
   getInode: (path) ->
     # Split into directory path / item name
     dirpath = BrowserFS.node.path.dirname path
-    itemname = path.substr dirpath.length+1
+    itemname = path.substr dirpath.length
 
     # Retrieve from its parent directory.
     parent = @_index[dirpath]
