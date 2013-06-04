@@ -42,7 +42,7 @@ nopCb = ->
 # @see http://nodejs.org/api/fs.html
 class BrowserFS.node.fs
   @_initialize: (rootFS) =>
-    unless rootFS.isAvailable()
+    unless rootFS.constructor.isAvailable()
       throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Tried to instantiate BrowserFS with an unavailable file system.'
     @root = rootFS
 
