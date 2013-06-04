@@ -10,6 +10,12 @@ class BrowserFS.FileIndex
     # DirInodes. File information is only contained in DirInodes themselves.
     @_index = {}
 
+  # Split into a (directory path, item name) pair
+  _split_path: (path) ->
+    dirpath = BrowserFS.node.path.dirname path
+    itemname = path.substr(dirpath.length + if dirpath is "/" then 0 else 1)
+    return [dirpath, itemname]
+
   # Adds the given path to the index if it is not already in the index. Creates
   # any needed parent directories.
   # @param [String] path The path to add to the index.
@@ -27,9 +33,7 @@ class BrowserFS.FileIndex
     if @_index[path] isnt undefined
       return @_index[path] is inode
 
-    # Split into directory path / item name
-    dirpath = BrowserFS.node.path.dirname path
-    itemname = path.substr dirpath.length
+    [dirpath, itemname] = @_split_path path
 
     # Try to add to its parent directory first.
     parent = @_index[dirpath]
@@ -50,9 +54,7 @@ class BrowserFS.FileIndex
   # @return [BrowserFS.FileInode | BrowserFS.DirInode | null] The removed item,
   #   or null if it did not exist.
   removePath: (path) ->
-    # Split into directory path / item name
-    dirpath = BrowserFS.node.path.dirname path
-    itemname = path.substr dirpath.length
+    [dirpath, itemname] = @_split_path path
 
     # Try to remove it from its parent directory first.
     parent = @_index[dirpath]
@@ -81,9 +83,7 @@ class BrowserFS.FileIndex
   # @return [BrowserFS.FileInode | BrowserFS.DirInode | null] Returns null if
   #   the item does not exist.
   getInode: (path) ->
-    # Split into directory path / item name
-    dirpath = BrowserFS.node.path.dirname path
-    itemname = path.substr dirpath.length
+    [dirpath, itemname] = @_split_path path
 
     # Retrieve from its parent directory.
     parent = @_index[dirpath]
