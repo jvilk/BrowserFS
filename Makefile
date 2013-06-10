@@ -18,7 +18,7 @@ FIXTURES  := $(shell find test/fixtures -name '*')
 
 release: lib/browserfs.min.js
 dev: lib/browserfs.js
-test: $(KARMA) lib/load_fixtures.js
+test: $(KARMA) listings.json lib/load_fixtures.js
 	$(KARMA) start
 doc: doc/index.html
 clean:
@@ -33,6 +33,9 @@ $(COFFEE) $(UGLIFYJS) $(CODO) (KARMA):
 	@echo "Installing needed Node modules with 'npm install'..."
 	@npm install
 	@echo "Node modules installed successfully!"
+
+listings.json: tools/XHRIndexer.coffee $(FIXTURES)
+	$(COFFEE) tools/XHRIndexer.coffee > listings.json
 
 tmp/%.js: src/%.coffee $(COFFEE)
 	$(COFFEE) --output $(shell dirname $@) --compile $<

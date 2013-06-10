@@ -5,15 +5,18 @@
 wrapCb = (cb, numArgs) ->
   if typeof cb != 'function'
     throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Callback must be a function.'
+  if typeof window.__numWaiting is undefined
+    window.__numWaiting = 0
+  window.__numWaiting++
   # We could use `arguments`, but Function.call/apply is expensive. And we only
   # need to handle 1-3 arguments
   switch numArgs
     when 1
-      return (arg1) -> setImmediate -> cb arg1
+      return (arg1) -> setImmediate -> window.__numWaiting--; cb arg1
     when 2
-      return (arg1, arg2) -> setImmediate -> cb arg1, arg2
+      return (arg1, arg2) -> setImmediate -> window.__numWaiting--; cb arg1, arg2
     when 3
-      return (arg1, arg2, arg3) -> setImmediate -> cb arg1, arg2, arg3
+      return (arg1, arg2, arg3) -> setImmediate -> window.__numWaiting--; cb arg1, arg2, arg3
     else
       throw new Error 'Invalid invocation of wrapCb.'
 

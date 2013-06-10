@@ -6,8 +6,6 @@ if typeof setImmediate is 'undefined'
   timeouts = []
   messageName = "zero-timeout-message"
 
-  window.__numWaiting = -> timeouts.length
-
   # IE8 has postMessage, but it is synchronous. This function detects whether or
   # not we can use postMessage as a means to reset the stack.
   canUsePostMessage = ->

@@ -13,20 +13,21 @@
         test();
       });
       waitsFor(function() {
-        return window.__numWaiting() === 0;
+        return window.__numWaiting === 0;
       }, "All callbacks should fire", 600000);
       runs(function() {
         // Run the exit callback, if any.
         process._exitCb();
       });
       waitsFor(function() {
-        return window.__numWaiting() === 0;
+        return window.__numWaiting === 0;
       }, "All callbacks should fire", 600000);
     });
   };
 
   var generateTests = function(backend) {
     generateTest("Load filesystem", function() {
+      window.__numWaiting = 0;
       BrowserFS.initialize(backend);
     });
     generateTest("Load fixtures", window.loadFixtures);
@@ -54,8 +55,8 @@
   if (BrowserFS.FileSystem.LocalStorage.isAvailable())
     backends.push(new BrowserFS.FileSystem.LocalStorage());
   backends.push(new BrowserFS.FileSystem.InMemory());
-  if (BrowserFS.FileSystem.XmlHttpRequest.isAvailable())
-    backends.push(new BrowserFS.FileSystem.XmlHttpRequest('/listings.json'));
+  //if (BrowserFS.FileSystem.XmlHttpRequest.isAvailable())
+  //  backends.push(new BrowserFS.FileSystem.XmlHttpRequest('/listings.json'));
   if (BrowserFS.FileSystem.IndexedDB.isAvailable()) {
     var idbfs = new BrowserFS.FileSystem.IndexedDB(function(err){
       if (err !== undefined) throw err;
