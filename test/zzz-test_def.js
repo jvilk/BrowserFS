@@ -55,8 +55,8 @@
   if (BrowserFS.FileSystem.LocalStorage.isAvailable())
     backends.push(new BrowserFS.FileSystem.LocalStorage());
   backends.push(new BrowserFS.FileSystem.InMemory());
-  //if (BrowserFS.FileSystem.XmlHttpRequest.isAvailable())
-  //  backends.push(new BrowserFS.FileSystem.XmlHttpRequest('/listings.json'));
+  if (BrowserFS.FileSystem.XmlHttpRequest.isAvailable())
+    backends.push(new BrowserFS.FileSystem.XmlHttpRequest('/listings.json'));
   if (BrowserFS.FileSystem.IndexedDB.isAvailable()) {
     var idbfs = new BrowserFS.FileSystem.IndexedDB(function(err){
       if (err !== undefined) throw err;

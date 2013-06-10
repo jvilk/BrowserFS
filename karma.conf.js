@@ -77,7 +77,7 @@ singleRun = false;
 
 // Avoid hardcoding and cross-origin issues.
 proxies = {
-  '/': 'http://localhost:9876/'
+  '/': 'http://localhost:8000/'
 };
 
 urlRoot = '/karma/';
