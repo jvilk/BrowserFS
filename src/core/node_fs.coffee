@@ -75,6 +75,13 @@ class BrowserFS.node.fs
       @root.rename oldPath, newPath, newCb
     catch e
       newCb e
+  # Synchronous rename.
+  # @param [String] oldPath
+  # @param [String] newPath
+  @renameSync: (oldPath, newPath) =>
+    oldPath = @_canonicalizePath oldPath
+    newPath = @_canonicalizePath newPath
+    @root.renameSync oldPath, newPath
   # Test whether or not the given path exists by checking with the file system.
   # Then call the callback argument with either true or false.
   # @example Sample invocation
@@ -92,6 +99,17 @@ class BrowserFS.node.fs
       # Doesn't return an error. If something bad happens, we assume it just
       # doesn't exist.
       newCb false
+  # Test whether or not the given path exists by checking with the file system.
+  # @param [String] path
+  # @return [boolean]
+  @existsSync: (path) =>
+    try
+      path = @_canonicalizePath path
+      @root.existsSync path
+    catch e
+      # Doesn't return an error. If something bad happens, we assume it just
+      # doesn't exist.
+      false
   # Asynchronous `stat`.
   # @param [String] path
   # @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] callback
@@ -102,6 +120,12 @@ class BrowserFS.node.fs
       @root.stat path, false, newCb
     catch e
       newCb e
+  # Synchronous `stat`.
+  # @param [String] path
+  # @return [BrowserFS.node.fs.Stats]
+  @statSync: (path) =>
+    path = @_canonicalizePath path
+    @root.statSync path, false
   # Asynchronous `lstat`.
   # `lstat()` is identical to `stat()`, except that if path is a symbolic link,
   # then the link itself is stat-ed, not the file that it refers to.
@@ -114,6 +138,14 @@ class BrowserFS.node.fs
       @root.stat path, true, newCb
     catch e
       newCb e
+  # Synchronous `lstat`.
+  # `lstat()` is identical to `stat()`, except that if path is a symbolic link,
+  # then the link itself is stat-ed, not the file that it refers to.
+  # @param [String] path
+  # @return [BrowserFS.node.fs.Stats]
+  @lstatSync: (path) =>
+    path = @_canonicalizePath path
+    @root.statSync path, true
 
   # FILE-ONLY METHODS
 
@@ -131,6 +163,12 @@ class BrowserFS.node.fs
       @root.truncate path, len, newCb
     catch e
       newCb e
+  # Synchronous `truncate`.
+  # @param [String] path
+  # @param [Number] len
+  @truncateSync: (path, len=0) =>
+    path = @_canonicalizePath path
+    @root.truncateSync path, len,
   # Asynchronous `unlink`.
   # @param [String] path
   # @param [Function(BrowserFS.ApiError)] callback
@@ -141,6 +179,11 @@ class BrowserFS.node.fs
       @root.unlink path, newCb
     catch e
       newCb e
+  # Synchronous `unlink`.
+  # @param [String] path
+  @unlinkSync: (path) =>
+    path = @_canonicalizePath path
+    @root.unlinkSync path
   # Asynchronous file open.
   # Exclusive mode ensures that path is newly created.
   #
@@ -175,6 +218,16 @@ class BrowserFS.node.fs
       @root.open path, flags, mode, newCb
     catch e
       newCb e
+  # Synchronous file open.
+  # @see http://www.manpagez.com/man/2/open/
+  # @param [String] path
+  # @param [String] flags
+  # @param [Number?] mode defaults to `0666`
+  # @return [BrowserFS.File]
+  @openSync: (path, flags, mode=0o666) =>
+    path = @_canonicalizePath path
+    flags = BrowserFS.FileMode.getFileMode flags
+    @root.openSync path, flags, mode
 
   # Asynchronously reads the entire contents of a file.
   # @example Usage example
@@ -206,6 +259,24 @@ class BrowserFS.node.fs
       @root.readFile filename, options.encoding, flags, newCb
     catch e
       newCb e
+  # Synchronously reads the entire contents of a file.
+  # @param [String] filename
+  # @param [Object?] options
+  # @option options [String] encoding The string encoding for the file contents. Defaults to `null`.
+  # @option options [String] flag Defaults to `'r'`.
+  # @return [String | BrowserFS.node.Buffer]
+  @readFileSync: (filename, options={}) =>
+    if typeof options is 'string'
+      options = {encoding: options}
+    # Only `filename` and `data` specified
+    if options is undefined then options = {}
+    if options.encoding is undefined then options.encoding = null
+    unless options.flag? then options.flag = 'r'
+    filename = @_canonicalizePath filename
+    flags = BrowserFS.FileMode.getFileMode options.flag
+    unless flags.isReadable()
+      throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Flag passed to readFile must allow for reading.'
+    @root.readFileSync filename, options.encoding, flags
 
   # Asynchronously writes data to a file, replacing the file if it already
   # exists.
@@ -245,6 +316,30 @@ class BrowserFS.node.fs
     catch e
       newCb e
 
+  # Synchronously writes data to a file, replacing the file if it already
+  # exists.
+  #
+  # The encoding option is ignored if data is a buffer.
+  # @param [String] filename
+  # @param [String | BrowserFS.node.Buffer] data
+  # @param [Object?] options
+  # @option options [String] encoding Defaults to `'utf8'`.
+  # @option options [Number] mode Defaults to `0666`.
+  # @option options [String] flag Defaults to `'w'`.
+  @writeFileSync: (filename, data, options={}) =>
+    if typeof options is 'string'
+      options = {encoding: options}
+    # Only `filename` and `data` specified
+    if options is undefined then options = {}
+    if options.encoding is undefined then options.encoding = 'utf8'
+    unless options.flag? then options.flag = 'w'
+    unless options.mode? then options.mode = 0o666
+    filename = @_canonicalizePath filename
+    flags = BrowserFS.FileMode.getFileMode options.flag
+    unless flags.isWriteable()
+      throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Flag passed to writeFile must allow for writing.'
+    @root.writeFileSync filename, data, options.encoding, flags, options.mode
+
   # Asynchronously append data to a file, creating the file if it not yet
   # exists.
   #
@@ -281,6 +376,34 @@ class BrowserFS.node.fs
     catch e
       newCb e
 
+  # Asynchronously append data to a file, creating the file if it not yet
+  # exists.
+  #
+  # @example Usage example
+  #   fs.appendFile('message.txt', 'data to append', function (err) {
+  #     if (err) throw err;
+  #     console.log('The "data to append" was appended to file!');
+  #   });
+  # @param [String] filename
+  # @param [String | BrowserFS.node.Buffer] data
+  # @param [Object?] options
+  # @option options [String] encoding Defaults to `'utf8'`.
+  # @option options [Number] mode Defaults to `0666`.
+  # @option options [String] flag Defaults to `'a'`.
+  @appendFileSync: (filename, data, options={}) =>
+    if typeof options is 'string'
+      options = {encoding: options}
+    # Only `filename` and `data` specified
+    if options is undefined then options = {}
+    if options.encoding is undefined then options.encoding = 'utf8'
+    unless options.flag? then options.flag = 'a'
+    unless options.mode? then options.mode = 0o666
+    filename = @_canonicalizePath filename
+    flags = BrowserFS.FileMode.getFileMode options.flag
+    unless flags.isAppendable()
+      throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Flag passed to appendFile must allow for appending.'
+    @root.appendFileSync filename, data, options.encoding, flags, options.mode
+
   # FILE DESCRIPTOR METHODS
 
   # Asynchronous `fstat`.
@@ -296,6 +419,15 @@ class BrowserFS.node.fs
       fd.stat newCb
     catch e
       newCb e
+  # Synchronous `fstat`.
+  # `fstat()` is identical to `stat()`, except that the file to be stat-ed is
+  # specified by the file descriptor `fd`.
+  # @param [BrowserFS.File] fd
+  # @return [BrowserFS.node.fs.Stats]
+  @fstatSync: (fd) ->
+    fdChk = checkFd fd
+    return fdChk unless fdChk
+    return fd.statSync()
   # Asynchronous close.
   # @param [BrowserFS.File] fd
   # @param [Function(BrowserFS.ApiError)] callback
@@ -307,6 +439,12 @@ class BrowserFS.node.fs
       fd.close newCb
     catch e
       newCb e
+  # Synchronous close.
+  # @param [BrowserFS.File] fd
+  @closeSync: (fd) ->
+    fdChk = checkFd fd
+    return fdChk unless fdChk
+    return fd.close()
   # Asynchronous ftruncate.
   # @param [BrowserFS.File] fd
   # @param [Number] len
@@ -322,6 +460,13 @@ class BrowserFS.node.fs
       fd.truncate len, newCb
     catch e
       newCb e
+  # Synchronous ftruncate.
+  # @param [BrowserFS.File] fd
+  # @param [Number] len
+  @ftruncateSync: (fd, len=0) ->
+    fdChk = checkFd fd
+    unless fdChk then return fdChk
+    return fd.truncateSync len
   # Asynchronous fsync.
   # @param [BrowserFS.File] fd
   # @param [Function(BrowserFS.ApiError)] callback
@@ -333,6 +478,12 @@ class BrowserFS.node.fs
       fd.sync newCb
     catch e
       newCb e
+  # Synchronous fsync.
+  # @param [BrowserFS.File] fd
+  @fsyncSync: (fd) ->
+    fdChk = checkFd fd
+    unless fdChk then return fdChk
+    return fd.syncSync()
   # Asynchronous fdatasync.
   # @param [BrowserFS.File] fd
   # @param [Function(BrowserFS.ApiError)] callback
@@ -382,6 +533,36 @@ class BrowserFS.node.fs
       fd.write buffer, offset, length, position, newCb
     catch e
       newCb e
+  # Write buffer to the file specified by `fd`.
+  # Note that it is unsafe to use fs.write multiple times on the same file
+  # without waiting for it to return.
+  # @param [BrowserFS.File] fd
+  # @param [BrowserFS.node.Buffer] buffer Buffer containing the data to write to
+  #   the file.
+  # @param [Number] offset Offset in the buffer to start reading data from.
+  # @param [Number] length The amount of bytes to write to the file.
+  # @param [Number] position Offset from the beginning of the file where this
+  #   data should be written. If position is null, the data will be written at
+  #   the current position.
+  # @return [Number]
+  @writeSync: (fd, buffer, offset, length, position) ->
+    # Alternate calling convention: Pass in a string w/ encoding to write to
+    # the file.
+    if typeof buffer is 'string'
+      if typeof length is 'string'
+        encoding = length
+      else if typeof offset is 'string'
+        encoding = offset
+      else if typeof offset is 'number'
+        position = offset
+      offset = 0
+      buffer = new Buffer buffer, encoding
+      length = buffer.length
+
+    fdChk = checkFd fd
+    unless fdChk then return fdChk
+    unless position? then position = fd.getPos()
+    return fd.writeSync buffer, offset, length, position
   # Read data from the file specified by `fd`.
   # @param [BrowserFS.File] fd
   # @param [BrowserFS.node.Buffer] buffer The buffer that the data will be
@@ -420,6 +601,30 @@ class BrowserFS.node.fs
       fd.read buffer, offset, length, position, newCb
     catch e
       newCb e
+  # Read data from the file specified by `fd`.
+  # @param [BrowserFS.File] fd
+  # @param [BrowserFS.node.Buffer] buffer The buffer that the data will be
+  #   written to.
+  # @param [Number] offset The offset within the buffer where writing will
+  #   start.
+  # @param [Number] length An integer specifying the number of bytes to read.
+  # @param [Number] position An integer specifying where to begin reading from
+  #   in the file. If position is null, data will be read from the current file
+  #   position.
+  # @return [Number]
+  @readSync: (fd, buffer, offset, length, position) ->
+    # Undocumented alternative function:
+    # (fd, length, position, encoding, function(err, str, bytesRead))
+    if typeof buffer is 'number' and typeof offset is 'number' and typeof length is 'string'
+      position = offset
+      offset = 0
+      encoding = length
+      length = buffer
+      buffer = new BrowserFS.node.Buffer length
+    fdChk = checkFd fd
+    unless fdChk then return fdChk
+    unless position? then position = fd.getPos()
+    return fd.readSync buffer, offset, length, position
   # Asynchronous `fchown`.
   # @param [BrowserFS.File] fd
   # @param [Number] uid
@@ -433,6 +638,14 @@ class BrowserFS.node.fs
       fd.chown uid, gid, newCb
     catch e
       newCb e
+  # Synchronous `fchown`.
+  # @param [BrowserFS.File] fd
+  # @param [Number] uid
+  # @param [Number] gid
+  @fchownSync: (fd, uid, gid) ->
+    fdChk = checkFd fd
+    unless fdChk then return fdChk
+    fd.chownSync uid, gid
   # Asynchronous `fchmod`.
   # @param [BrowserFS.File] fd
   # @param [Number] mode
@@ -445,6 +658,13 @@ class BrowserFS.node.fs
       fd.chmod mode, newCb
     catch e
       newCb e
+  # Synchronous `fchmod`.
+  # @param [BrowserFS.File] fd
+  # @param [Number] mode
+  @fchmodSync: (fd, mode) ->
+    fdChk = checkFd fd
+    unless fdChk then return fdChk
+    fd.chmodSync mode
   # Change the file timestamps of a file referenced by the supplied file
   # descriptor.
   # @param [BrowserFS.File] fd
@@ -459,6 +679,15 @@ class BrowserFS.node.fs
       fd.utimes atime, mtime, newCb
     catch e
       newCb e
+  # Change the file timestamps of a file referenced by the supplied file
+  # descriptor.
+  # @param [BrowserFS.File] fd
+  # @param [Date] atime
+  # @param [Date] mtime
+  @futimesSync: (fd, atime, mtime) ->
+    fdChk = checkFd fd
+    unless fdChk then return fdChk
+    fd.utimesSync atime, mtime
 
   # DIRECTORY-ONLY METHODS
 
@@ -472,6 +701,11 @@ class BrowserFS.node.fs
       BrowserFS.node.fs.root.rmdir path, newCb
     catch e
       newCb e
+  # Synchronous `rmdir`.
+  # @param [String] path
+  @rmdirSync: (path) =>
+    path = @_canonicalizePath path
+    BrowserFS.node.fs.root.rmdirSync path
   # Asynchronous `mkdir`.
   # @param [String] path
   # @param [Number?] mode defaults to `0777`
@@ -486,6 +720,12 @@ class BrowserFS.node.fs
       BrowserFS.node.fs.root.mkdir path, mode, newCb
     catch e
       newCb e
+  # Synchronous `mkdir`.
+  # @param [String] path
+  # @param [Number?] mode defaults to `0777`
+  @mkdirSync: (path, mode=0o777) =>
+    path = @_canonicalizePath path
+    BrowserFS.node.fs.root.mkdirSync path, mode
 
   # Asynchronous `readdir`. Reads the contents of a directory.
   # The callback gets two arguments `(err, files)` where `files` is an array of
@@ -499,6 +739,12 @@ class BrowserFS.node.fs
       @root.readdir path, newCb
     catch e
       newCb e
+  # Synchronous `readdir`. Reads the contents of a directory.
+  # @param [String] path
+  # @return [String[]]
+  @readdirSync: (path) =>
+    path = @_canonicalizePath path
+    @root.readdirSync path
 
   # SYMLINK METHODS
 
@@ -514,6 +760,13 @@ class BrowserFS.node.fs
       @root.link srcpath, dstpath, newCb
     catch e
       newCb e
+  # Synchronous `link`.
+  # @param [String] srcpath
+  # @param [String] dstpath
+  @linkSync: (srcpath, dstpath) =>
+    srcpath = @_canonicalizePath srcpath
+    dstpath = @_canonicalizePath dstpath
+    @root.linkSync srcpath, dstpath
   # Asynchronous `symlink`.
   # @param [String] srcpath
   # @param [String] dstpath
@@ -532,6 +785,16 @@ class BrowserFS.node.fs
       @root.symlink srcpath, dstpath, type, newCb
     catch e
       newCb e
+  # Synchronous `symlink`.
+  # @param [String] srcpath
+  # @param [String] dstpath
+  # @param [String?] type can be either `'dir'` or `'file'` (default is `'file'`)
+  @symlink: (srcpath, dstpath, type='file') =>
+    if type isnt 'file' and type isnt 'dir'
+      throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "Invalid type: #{type}"
+    srcpath = @_canonicalizePath srcpath
+    dstpath = @_canonicalizePath dstpath
+    @root.symlinkSync srcpath, dstpath, type
 
   # Asynchronous readlink.
   # @param [String] path
@@ -543,6 +806,12 @@ class BrowserFS.node.fs
       @root.readlink path, newCb
     catch e
       newCb e
+  # Synchronous readlink.
+  # @param [String] path
+  # @return [String]
+  @readlinkSync: (path) =>
+    path = @_canonicalizePath path
+    @root.readlinkSync path
 
   # PROPERTY OPERATIONS
 
@@ -558,6 +827,13 @@ class BrowserFS.node.fs
       @root.chown path, false, uid, gid, newCb
     catch e
       newCb e
+  # Synchronous `chown`.
+  # @param [String] path
+  # @param [Number] uid
+  # @param [Number] gid
+  @chownSync: (path, uid, gid) =>
+    path = @_canonicalizePath path
+    @root.chownSync path, false, uid, gid
   # Asynchronous `lchown`.
   # @param [String] path
   # @param [Number] uid
@@ -570,6 +846,13 @@ class BrowserFS.node.fs
       @root.chown path, true, uid, gid, newCb
     catch e
       newCb e
+  # Synchronous `lchown`.
+  # @param [String] path
+  # @param [Number] uid
+  # @param [Number] gid
+  @lchownSync: (path, uid, gid) =>
+    path = @_canonicalizePath path
+    @root.chownSync path, true, uid, gid
   # Asynchronous `chmod`.
   # @param [String] path
   # @param [Number] mode
@@ -581,6 +864,12 @@ class BrowserFS.node.fs
       @root.chmod path, false, mode, newCb
     catch e
       newCb e
+  # Synchronous `chmod`.
+  # @param [String] path
+  # @param [Number] mode
+  @chmodSync: (path, mode) =>
+    path = @_canonicalizePath path
+    @root.chmodSync path, false, mode
   # Asynchronous `lchmod`.
   # @param [String] path
   # @param [Number] mode
@@ -592,6 +881,12 @@ class BrowserFS.node.fs
       @root.chmod path, true, mode, newCb
     catch e
       newCb e
+  # Synchronous `lchmod`.
+  # @param [String] path
+  # @param [Number] mode
+  @lchmodSync: (path, mode) =>
+    path = @_canonicalizePath path
+    @root.chmodSync path, true, mode
   # Change file timestamps of the file referenced by the supplied path.
   # @param [String] path
   # @param [Date] atime
@@ -604,6 +899,13 @@ class BrowserFS.node.fs
       @root.utimes path, atime, mtime, newCb
     catch e
       newCb e
+  # Change file timestamps of the file referenced by the supplied path.
+  # @param [String] path
+  # @param [Date] atime
+  # @param [Date] mtime
+  @utimes: (path, atime, mtime) =>
+    path = @_canonicalizePath path
+    @root.utimesSync path, atime, mtime
 
   # Asynchronous `realpath`. The callback gets two arguments
   # `(err, resolvedPath)`. May use `process.cwd` to resolve relative paths.
@@ -630,6 +932,15 @@ class BrowserFS.node.fs
       @root.realpath path, cache, newCb
     catch e
       newCb e
+  # Synchronous `realpath`.
+  # @param [String] path
+  # @param [Object?] cache An object literal of mapped paths that can be used to
+  #   force a specific path resolution or avoid additional `fs.stat` calls for
+  #   known real paths.
+  # @return [String]
+  @realpathSync: (path, cache={}) =>
+    path = @_canonicalizePath path
+    @root.realpathSync path, cache
 
 # Represents one of the following file modes. A convenience object.
 #
