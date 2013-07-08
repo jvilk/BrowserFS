@@ -40,6 +40,7 @@ class BrowserFS.FileSystem.InMemory extends BrowserFS.IndexedFileSystem
     inode.size = 0
     inode.mtime = new Date()
     file = inode.file_data
+    file._mode = flags
     file._buffer = new BrowserFS.node.Buffer 0
     return file
 

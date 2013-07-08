@@ -77,7 +77,7 @@ class BrowserFS.File
   # @param [Number] position An integer specifying where to begin reading from
   #   in the file. If position is null, data will be read from the current file
   #   position.
-  # @return [[Buffer,Number]]
+  # @return [Number]
   readSync: (buffer, offset, length, position)->
     throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Supplementary**: Asynchronous `datasync`.
