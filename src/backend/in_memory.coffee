@@ -55,4 +55,4 @@ class BrowserFS.FileSystem.InMemory extends BrowserFS.IndexedFileSystem
     return file
 
   # Directory operations
-  _rmdir: (path, inode, cb) -> cb()
+  _rmdirSync: (path, inode) -> return

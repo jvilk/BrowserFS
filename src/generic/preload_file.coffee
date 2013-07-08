@@ -217,7 +217,11 @@ class BrowserFS.File.NoSyncFile extends BrowserFS.File.PreloadFile
   # Asynchronous sync. Doesn't do anything, simply calls the cb.
   # @param [Function(BrowserFS.ApiError)] cb
   sync: (cb) -> cb()
+  # Synchronous sync. Doesn't do anything.
+  syncSync: -> return
 
   # Asynchronous close. Doesn't do anything, simply calls the cb.
   # @param [Function(BrowserFS.ApiError)] cb
   close: (cb)-> cb()
+  # Synchronous close. Doesn't do anything.
+  closeSync: -> return
