@@ -86,11 +86,11 @@ if (rootFS.supportsProps()) {
   }
 }
 
+var expected = 0;
 // Sync
 // BFS: Only run if the FS supports sync ops
 if (rootFS.supportsSynch()) {
-  var errors = [],
-      expected = 0;
+  var errors = [];
 
   try {
     ++expected;
@@ -111,30 +111,6 @@ if (rootFS.supportsSynch()) {
 
     try {
       ++expected;
-      fs.chmodSync(fn, 0666);
-    } catch (err) {
-      errors.push('chmod');
-      assert.ok(0 <= err.message.indexOf(fn));
-    }
-
-    try {
-      ++expected;
-      fs.linkSync(fn, 'foo');
-    } catch (err) {
-      errors.push('link');
-      assert.ok(0 <= err.message.indexOf(fn));
-    }
-
-    try {
-      ++expected;
-      fs.unlinkSync(fn);
-    } catch (err) {
-      errors.push('unlink');
-      assert.ok(0 <= err.message.indexOf(fn));
-    }
-
-    try {
-      ++expected;
       fs.rmdirSync(fn);
     } catch (err) {
       errors.push('rmdir');
@@ -148,6 +124,7 @@ if (rootFS.supportsSynch()) {
       errors.push('rmdir');
       assert.ok(0 <= err.message.indexOf(existingFile));
     }
+
     try {
       ++expected;
       fs.renameSync(fn, 'foo');
@@ -155,38 +132,66 @@ if (rootFS.supportsSynch()) {
       errors.push('rename');
       assert.ok(0 <= err.message.indexOf(fn));
     }
-  }
 
-  try {
-    ++expected;
-    fs.lstatSync(fn);
-  } catch (err) {
-    errors.push('lstat');
-    assert.ok(0 <= err.message.indexOf(fn));
-  }
+    try {
+      ++expected;
+      fs.lstatSync(fn);
+    } catch (err) {
+      errors.push('lstat');
+      assert.ok(0 <= err.message.indexOf(fn));
+    }
 
-  try {
-    ++expected;
-    fs.readlinkSync(fn);
-  } catch (err) {
-    errors.push('readlink');
-    assert.ok(0 <= err.message.indexOf(fn));
-  }
+    try {
+      ++expected;
+      fs.openSync(fn, 'r');
+    } catch (err) {
+      errors.push('opens');
+      assert.ok(0 <= err.message.indexOf(fn));
+    }
 
-  try {
-    ++expected;
-    fs.openSync(fn, 'r');
-  } catch (err) {
-    errors.push('opens');
-    assert.ok(0 <= err.message.indexOf(fn));
-  }
+    try {
+      ++expected;
+      fs.readdirSync(fn);
+    } catch (err) {
+      errors.push('readdir');
+      assert.ok(0 <= err.message.indexOf(fn));
+    }
 
-  try {
-    ++expected;
-    fs.readdirSync(fn);
-  } catch (err) {
-    errors.push('readdir');
-    assert.ok(0 <= err.message.indexOf(fn));
+    try {
+      ++expected;
+      fs.unlinkSync(fn);
+    } catch (err) {
+      errors.push('unlink');
+      assert.ok(0 <= err.message.indexOf(fn));
+    }
+
+    if (rootFS.supportsProps()) {
+      try {
+        ++expected;
+        fs.chmodSync(fn, 0666);
+      } catch (err) {
+        errors.push('chmod');
+        assert.ok(0 <= err.message.indexOf(fn));
+      }
+    }
+
+    if (rootFS.supportsLinks()) {
+      try {
+        ++expected;
+        fs.linkSync(fn, 'foo');
+      } catch (err) {
+        errors.push('link');
+        assert.ok(0 <= err.message.indexOf(fn));
+      }
+
+      try {
+        ++expected;
+        fs.readlinkSync(fn);
+      } catch (err) {
+        errors.push('readlink');
+        assert.ok(0 <= err.message.indexOf(fn));
+      }
+    }
   }
 }
 

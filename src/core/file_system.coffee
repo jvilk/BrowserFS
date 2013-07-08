@@ -366,7 +366,7 @@ class BrowserFS.FileSystem
       fd.writeSync data, 0, data.length, 0
     catch e
       # NOP
-    @closeSync fd
+    BrowserFS.node.fs.closeSync fd
     if e? then throw e
     return
   # **Supplemental**: Asynchronously append data to a file, creating the file if
@@ -401,7 +401,7 @@ class BrowserFS.FileSystem
       fd.writeSync data, 0, data.length, null
     catch e
       # NOP
-    @closeSync fd
+    BrowserFS.node.fs.closeSync fd
     if e? then throw e
     return
 
@@ -483,3 +483,174 @@ class BrowserFS.FileSystem
   # **Optional**: Synchronous readlink.
   # @param [String] path
   readlinkSync: (path) -> throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+
+# Implements the asynchronous API in terms of the synchronous API.
+class BrowserFS.SynchronousFileSystem extends BrowserFS.FileSystem
+  # **Core**: Does the filesystem support the optional synchronous interface?
+  # @return [Boolean] True if the FileSystem supports synchronous operations.
+  supportsSynch: -> true
+
+  # **CORE API METHODS**
+
+  # File or directory operations
+
+  # **Core**: Asynchronous rename. No arguments other than a possible exception
+  # are given to the completion callback.
+  # @param [String] oldPath
+  # @param [String] newPath
+  # @param [Function(BrowserFS.ApiError)] cb
+  rename: (oldPath, newPath, cb) ->
+    try
+      @renameSync oldPath, newPath
+      cb()
+    catch e
+      cb e
+  # **Core**: Asynchronous `stat` or `lstat`.
+  # @param [String] path
+  # @param [Boolean] isLstat True if this is `lstat`, false if this is regular
+  #   `stat`.
+  # @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] cb
+  stat: (path, isLstat, cb) ->
+    try
+      cb(null, @statSync(path, isLstat))
+    catch e
+      cb(e)
+
+  # File operations
+
+  # **Core**: Asynchronous file open.
+  # @see http://www.manpagez.com/man/2/open/
+  # @param [String] path
+  # @param [BrowserFS.FileMode] flags Handles the complexity of the various file
+  #   modes. See its API for more details.
+  # @param [Number] mode Mode to use to open the file. Can be ignored if the
+  #   filesystem doesn't support permissions.
+  # @param [Function(BrowserFS.ApiError, BrowserFS.File)] cb
+  open: (path, flags, mode, cb) ->
+    try
+      cb(null, @openSync(path, flags, mode, cb))
+    catch e
+      cb(e)
+  # **Core**: Asynchronous `unlink`.
+  # @param [String] path
+  # @param [Function(BrowserFS.ApiError)] cb
+  unlink: (path, cb) ->
+    try
+      @unlinkSync path
+      cb()
+    catch e
+      cb(e)
+
+  # Directory operations
+
+  # **Core**: Asynchronous `rmdir`.
+  # @param [String] path
+  # @param [Function(BrowserFS.ApiError)] cb
+  rmdir: (path, cb) ->
+    try
+      @rmdirSync path
+      cb()
+    catch e
+      cb(e)
+
+  # **Core**: Asynchronous `mkdir`.
+  # @param [String] path
+  # @param [Number?] mode Mode to make the directory using. Can be ignored if
+  #   the filesystem doesn't support permissions.
+  # @param [Function(BrowserFS.ApiError)] cb
+  mkdir: (path, mode, cb) ->
+    try
+      @mkdirSync path, mode
+      cb()
+    catch e
+      cb(e)
+
+  # **Core**: Asynchronous `readdir`. Reads the contents of a directory.
+  #
+  # The callback gets two arguments `(err, files)` where `files` is an array of
+  # the names of the files in the directory excluding `'.'` and `'..'`.
+  # @param [String] path
+  # @param [Function(BrowserFS.ApiError, String[])] cb
+  readdir: (path, cb) ->
+    try
+      cb(null, @readdirSync(path))
+    catch e
+      cb(e)
+
+  # **OPTIONAL INTERFACE METHODS**
+
+  # Property operations
+  # This isn't always possible on some filesystem types (e.g. Dropbox).
+
+  # **Optional**: Asynchronous `chmod` or `lchmod`.
+  # @param [String] path
+  # @param [Boolean] isLchmod `True` if `lchmod`, false if `chmod`. Has no
+  #   bearing on result if links aren't supported.
+  # @param [Number] mode
+  # @param [Function(BrowserFS.ApiError)] cb
+  chmod: (path, isLchmod, mode, cb) ->
+    try
+      @chmodSync path, isLchmod, mode
+      cb()
+    catch e
+      cb(e)
+
+  # **Optional**: Asynchronous `chown` or `lchown`.
+  # @param [String] path
+  # @param [Boolean] isLchown `True` if `lchown`, false if `chown`. Has no
+  #   bearing on result if links aren't supported.
+  # @param [Number] uid
+  # @param [Number] gid
+  # @param [Function(BrowserFS.ApiError)] cb
+  chown: (path, isLchown, uid, gid, cb) ->
+    try
+      @chownSync path, isLchown, uid, gid
+      cb()
+    catch e
+      cb(e)
+  # **Optional**: Change file timestamps of the file referenced by the supplied
+  # path.
+  # @param [String] path
+  # @param [Date] atime
+  # @param [Date] mtime
+  # @param [Function(BrowserFS.ApiError)] cb
+  utimes: (path, atime, mtime, cb) ->
+    try
+      @utimesSync path, atime, mtime
+      cb()
+    catch e
+      cb(e)
+
+  # Symlink operations
+  # Symlinks aren't always supported.
+
+  # **Optional**: Asynchronous `link`.
+  # @param [String] srcpath
+  # @param [String] dstpath
+  # @param [Function(BrowserFS.ApiError)] cb
+  link: (srcpath, dstpath, cb) ->
+    try
+      @linkSync srcpath, dstpath
+      cb()
+    catch e
+      cb(e)
+  # **Optional**: Asynchronous `symlink`.
+  # @param [String] srcpath
+  # @param [String] dstpath
+  # @param [String] type can be either `'dir'` or `'file'`
+  # @param [Function(BrowserFS.ApiError)] cb
+  symlink: (srcpath, dstpath, type, cb) ->
+    try
+      @symlinkSync srcpath, dstpath, type
+      cb()
+    catch e
+      cb(e)
+  # **Optional**: Asynchronous readlink.
+  # @param [String] path
+  # @param [Function(BrowserFS.ApiError, String)] callback
+  readlink: (path, cb) ->
+    try
+      cb(null, @readlinkSync(path))
+    catch e
+      cb(e)
+

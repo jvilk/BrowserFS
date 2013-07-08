@@ -35,15 +35,15 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.IndexedFileSystem
   # @param [String] path
   # @param [String] data
   # @param [BrowserFS.FileInode] inode
-  # @param [Function(BrowserFS.ApiError)] cb
-  _sync: (path, data, inode, cb) ->
+  # @return [BrowserFS.node.fs.Stats]
+  _syncSync: (path, data, inode) ->
     try
       window.localStorage.setItem path, data
       @_index.addPath path, inode
     catch e
       # Assume we're out of space.
-      cb new BrowserFS.ApiError BrowserFS.ApiError.DRIVE_FULL, "Unable to sync #{path}"
-    cb()
+      throw new BrowserFS.ApiError BrowserFS.ApiError.DRIVE_FULL, "Unable to sync #{path}"
+    return
 
   # Removes all data from localStorage.
   empty: -> window.localStorage.clear()
@@ -104,26 +104,25 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.IndexedFileSystem
 
   # Directory operations
 
-  _rmdir: (path, inode, cb) ->
+  _rmdirSync: (path, inode) ->
     # Remove all files belonging to the path from `localStorage`.
     files = inode.getListing()
     sep = BrowserFS.node.path.sep
     for file in files
       window.localStorage.removeItem "#{path}#{sep}#{file}"
-    cb()
+    return
 
 
 # File class for the LocalStorage-based file system.
 class BrowserFS.File.PreloadFile.LocalStorageFile extends BrowserFS.File.PreloadFile
-  # Asynchronous sync.
-  # @param [Function(BrowserFS.ApiError)] cb
-  sync: (cb)->
+  # Synchronous sync.
+  syncSync: ->
     # Convert to packed UTF-16 (2 bytes per character, 1 character header)
     data = @_buffer.toString('binary_string')
-    @_fs._sync @_path, data, @_stat, cb
+    @_fs._syncSync @_path, data, @_stat
+    return
 
-  # Asynchronous close.
-  # @param [Function(BrowserFS.ApiError)] cb
-  close: (cb)->
+  # Synchronous close.
+  closeSync: ->
     # Maps to sync.
-    @sync cb
+    @syncSync()

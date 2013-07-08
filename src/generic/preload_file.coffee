@@ -53,34 +53,61 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
   # **Core**: Asynchronous sync. Must be implemented by subclasses of this
   # class.
   # @param [Function(BrowserFS.ApiError)] cb
-  sync: (cb)-> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+  sync: (cb)->
+    try
+      @syncSync()
+      cb()
+    catch e
+      cb(e)
+  # **Core**: Synchronous sync.
+  syncSync: -> throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Core**: Asynchronous close. Must be implemented by subclasses of this
   # class.
   # @param [Function(BrowserFS.ApiError)] cb
-  close: (cb)-> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+  close: (cb)->
+    try
+      @closeSync()
+      cb()
+    catch e
+      cb(e)
+  # **Core**: Synchronous close.
+  closeSync: -> throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
 
 
   # Asynchronous `stat`.
   # @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] cb
-  stat: (cb) -> cb null, @_stat.clone()
+  stat: (cb) ->
+    try
+      cb(null, @_stat.clone())
+    catch e
+      cb(e)
+  # Synchronous `stat`.
+  statSync: -> return @_stat.clone()
   # Asynchronous truncate.
   # @param [Number] len
   # @param [Function(BrowserFS.ApiError)] cb
   truncate: (len, cb)->
+    try
+      @truncateSync(len)
+      cb()
+    catch e
+      cb(e)
+  # Synchronous truncate.
+  # @param [Number] len
+  truncateSync: (len, cb)->
     unless @_mode.isWriteable()
-      return cb new BrowserFS.ApiError BrowserFS.ApiError.PERMISSIONS_ERROR, 'File not opened with a writeable mode.'
+      throw new BrowserFS.ApiError BrowserFS.ApiError.PERMISSIONS_ERROR, 'File not opened with a writeable mode.'
     @_stat.mtime = new Date()
     if len > @_buffer.length
       buf = new Buffer(len-@_buffer.length)
       buf.fill 0
       # Write will set @_stat.size for us.
-      return @write buf, 0, buf.length, @_buffer.length, (err) =>
-        if (err) then return cb err
-        if @_mode.isSynchronous() then return @sync (err) -> cb err
-        cb err
+      @writeSync buf, 0, buf.length, @_buffer.length
+      if @_mode.isSynchronous() then @syncSync()
+      return
     @_stat.size = len
-    if @_mode.isSynchronous() then return @sync (err) -> cb err
-    cb null
+    if @_mode.isSynchronous() then @syncSync()
+    return
   # Write buffer to the file.
   # Note that it is unsafe to use fs.write multiple times on the same file
   # without waiting for the callback.
@@ -94,9 +121,25 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
   # @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
   #   cb The number specifies the number of bytes written into the file.
   write: (buffer, offset, length, position, cb) ->
+    try
+      cb(null, @writeSync(buffer, offset, length, position), buffer)
+    catch e
+      cb(e)
+  # Write buffer to the file.
+  # Note that it is unsafe to use fs.writeSync multiple times on the same file
+  # without waiting for the callback.
+  # @param [BrowserFS.node.Buffer] buffer Buffer containing the data to write to
+  #  the file.
+  # @param [Number] offset Offset in the buffer to start reading data from.
+  # @param [Number] length The amount of bytes to write to the file.
+  # @param [Number] position Offset from the beginning of the file where this
+  #   data should be written. If position is null, the data will be written at
+  #   the current position.
+  # @return [Number]
+  writeSync: (buffer, offset, length, position) ->
     position ?= @getPos()
     unless @_mode.isWriteable()
-      return cb new BrowserFS.ApiError BrowserFS.ApiError.PERMISSIONS_ERROR, 'File not opened with a writeable mode.'
+      throw new BrowserFS.ApiError BrowserFS.ApiError.PERMISSIONS_ERROR, 'File not opened with a writeable mode.'
     endFp = position+length
     if endFp > @_stat.size
       @_stat.size = endFp
@@ -109,9 +152,11 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
     len = buffer.copy @_buffer, position, offset, offset+length
     @_stat.mtime = new Date()
 
-    if @_mode.isSynchronous() then return @sync (err) -> cb err, len, buffer
+    if @_mode.isSynchronous()
+      @syncSync()
+      return len
     @setPos position+len
-    cb null, len, buffer
+    return len
   # Read data from the file.
   # @param [BrowserFS.node.Buffer] buffer The buffer that the data will be
   #   written to.
@@ -124,22 +169,46 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
   # @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)] cb The
   #   number is the number of bytes read
   read: (buffer, offset, length, position, cb)->
+    try
+      cb(null, @readSync(buffer, offset, length, position), buffer)
+    catch e
+      cb(e)
+  # Read data from the file.
+  # @param [BrowserFS.node.Buffer] buffer The buffer that the data will be
+  #   written to.
+  # @param [Number] offset The offset within the buffer where writing will
+  #   start.
+  # @param [Number] length An integer specifying the number of bytes to read.
+  # @param [Number] position An integer specifying where to begin reading from
+  #   in the file. If position is null, data will be read from the current file
+  #   position.
+  # @return [Number]
+  readSync: (buffer, offset, length, position)->
     unless @_mode.isReadable()
-      return cb new BrowserFS.ApiError BrowserFS.ApiError.PERMISSIONS_ERROR, 'File not opened with a readable mode.'
+      throw new BrowserFS.ApiError BrowserFS.ApiError.PERMISSIONS_ERROR, 'File not opened with a readable mode.'
     unless position? then position = @getPos()
     rv = @_buffer.copy buffer, offset, position, position+length
     @_stat.atime = new Date()
     @_pos = position+length
-    cb null, rv, buffer
+    return rv
 
   # Asynchronous `fchmod`.
   # @param [Number|String] mode
   # @param [Function(BrowserFS.ApiError)] cb
   chmod: (mode, cb) ->
+    try
+      @chmodSync mode
+      cb()
+    catch e
+      cb(e)
+  # Asynchronous `fchmod`.
+  # @param [Number|String] mode
+  chmodSync: (mode) ->
     unless @_fs.supportsProps()
-      return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+      throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
     @_stat.mode = parseInt(mode, 8)
-    @sync cb
+    @syncSync()
+    return
 
 
 # File class for the InMemory and XHR file systems.

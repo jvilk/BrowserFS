@@ -32,13 +32,14 @@ if (rootFS.isReadOnly() || !rootFS.supportsSynch()) return;
 
 // Need to hijack fs.open/close to make sure that things
 // get closed once they're opened.
-fs._openSync = fs.openSync;
-fs.openSync = openSync;
+rootFS._openSync = rootFS.openSync;
+rootFS.openSync = openSync;
 fs._closeSync = fs.closeSync;
 fs.closeSync = closeSync;
 
 // Reset the umask for testing
-var mask = process.umask(0);
+// BFS: Not supported.
+//var mask = process.umask(0);
 
 // On Windows chmod is only able to manipulate read-only bit. Test if creating
 // the file in read-only mode works.
@@ -57,7 +58,9 @@ fs.writeFileSync(file1, '123', {mode: mode});
 content = fs.readFileSync(file1, {encoding: 'utf8'});
 assert.equal('123', content);
 
-assert.equal(mode, fs.statSync(file1).mode & 0777);
+if (rootFS.supportsProps()) {
+  assert.equal(mode, fs.statSync(file1).mode & 0777);
+}
 
 removeFile(file1);
 
@@ -70,7 +73,9 @@ fs.appendFileSync(file2, 'abc', {mode: mode});
 content = fs.readFileSync(file2, {encoding: 'utf8'});
 assert.equal('abc', content);
 
-assert.equal(mode, fs.statSync(file2).mode & mode);
+if (rootFS.supportsProps()) {
+  assert.equal(mode, fs.statSync(file2).mode & mode);
+}
 
 removeFile(file2);
 
@@ -84,14 +89,15 @@ function removeFile(file) {
       fs.chmodSync(file, 0666);
     fs.unlinkSync(file);
   } catch (err) {
-    if (err && err.code !== 'ENOENT')
-      throw err;
+    // BFS: We don't attach codes like that.
+    //if (err && err.code !== 'ENOENT')
+    //  throw err;
   }
 }
 
 function openSync() {
   openCount++;
-  return fs._openSync.apply(fs, arguments);
+  return rootFS._openSync.apply(rootFS, arguments);
 }
 
 function closeSync() {
@@ -101,7 +107,7 @@ function closeSync() {
 
 // BFS: Restore old handlers.
 process.on('exit', function() {
-  fs.openSync = fs._openSync;
+  rootFS.openSync = rootFS._openSync;
   fs.closeSync = fs._closeSync;
 });
 

@@ -24,9 +24,12 @@ wrapCb = (cb, numArgs) ->
 # @param [BrowserFS.File] fd A file descriptor (in BrowserFS, it's a File object)
 # @return [Boolean, BrowserFS.ApiError] Returns `true` if the FD is OK,
 #   otherwise returns an ApiError.
-checkFd = (fd) ->
+checkFd = (fd, async=true) ->
   unless fd instanceof BrowserFS.File
-    return new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Invalid file descriptor.'
+    if async
+      return new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Invalid file descriptor.'
+    else
+      throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Invalid file descriptor.'
   return true
 
 # The default callback is a NOP.
@@ -425,8 +428,7 @@ class BrowserFS.node.fs
   # @param [BrowserFS.File] fd
   # @return [BrowserFS.node.fs.Stats]
   @fstatSync: (fd) ->
-    fdChk = checkFd fd
-    return fdChk unless fdChk
+    checkFd fd, false
     return fd.statSync()
   # Asynchronous close.
   # @param [BrowserFS.File] fd
@@ -442,9 +444,8 @@ class BrowserFS.node.fs
   # Synchronous close.
   # @param [BrowserFS.File] fd
   @closeSync: (fd) ->
-    fdChk = checkFd fd
-    return fdChk unless fdChk
-    return fd.close()
+    checkFd fd, false
+    return fd.closeSync()
   # Asynchronous ftruncate.
   # @param [BrowserFS.File] fd
   # @param [Number] len
@@ -464,8 +465,7 @@ class BrowserFS.node.fs
   # @param [BrowserFS.File] fd
   # @param [Number] len
   @ftruncateSync: (fd, len=0) ->
-    fdChk = checkFd fd
-    unless fdChk then return fdChk
+    checkFd fd, false
     return fd.truncateSync len
   # Asynchronous fsync.
   # @param [BrowserFS.File] fd
@@ -481,8 +481,7 @@ class BrowserFS.node.fs
   # Synchronous fsync.
   # @param [BrowserFS.File] fd
   @fsyncSync: (fd) ->
-    fdChk = checkFd fd
-    unless fdChk then return fdChk
+    checkFd fd, false
     return fd.syncSync()
   # Asynchronous fdatasync.
   # @param [BrowserFS.File] fd
@@ -495,6 +494,12 @@ class BrowserFS.node.fs
       fd.datasync newCb
     catch e
       newCb e
+  # Synchronous fdatasync.
+  # @param [BrowserFS.File] fd
+  @fdatasyncSync: (fd) ->
+    checkFd fd, false
+    fd.datasyncSync()
+    return
   # Write buffer to the file specified by `fd`.
   # Note that it is unsafe to use fs.write multiple times on the same file
   # without waiting for the callback.
@@ -559,8 +564,7 @@ class BrowserFS.node.fs
       buffer = new Buffer buffer, encoding
       length = buffer.length
 
-    fdChk = checkFd fd
-    unless fdChk then return fdChk
+    checkFd fd, false
     unless position? then position = fd.getPos()
     return fd.writeSync buffer, offset, length, position
   # Read data from the file specified by `fd`.
@@ -615,16 +619,21 @@ class BrowserFS.node.fs
   @readSync: (fd, buffer, offset, length, position) ->
     # Undocumented alternative function:
     # (fd, length, position, encoding, function(err, str, bytesRead))
+    shenanigans = false
     if typeof buffer is 'number' and typeof offset is 'number' and typeof length is 'string'
       position = offset
       offset = 0
       encoding = length
       length = buffer
       buffer = new BrowserFS.node.Buffer length
-    fdChk = checkFd fd
-    unless fdChk then return fdChk
+      shenanigans = true
+    checkFd fd, false
     unless position? then position = fd.getPos()
-    return fd.readSync buffer, offset, length, position
+    rv = fd.readSync buffer, offset, length, position
+    unless shenanigans
+      return rv
+    else
+      return [buffer.toString(encoding), rv]
   # Asynchronous `fchown`.
   # @param [BrowserFS.File] fd
   # @param [Number] uid
@@ -643,8 +652,7 @@ class BrowserFS.node.fs
   # @param [Number] uid
   # @param [Number] gid
   @fchownSync: (fd, uid, gid) ->
-    fdChk = checkFd fd
-    unless fdChk then return fdChk
+    checkFd fd, false
     fd.chownSync uid, gid
   # Asynchronous `fchmod`.
   # @param [BrowserFS.File] fd
@@ -662,8 +670,7 @@ class BrowserFS.node.fs
   # @param [BrowserFS.File] fd
   # @param [Number] mode
   @fchmodSync: (fd, mode) ->
-    fdChk = checkFd fd
-    unless fdChk then return fdChk
+    checkFd fd, false
     fd.chmodSync mode
   # Change the file timestamps of a file referenced by the supplied file
   # descriptor.
@@ -685,8 +692,7 @@ class BrowserFS.node.fs
   # @param [Date] atime
   # @param [Date] mtime
   @futimesSync: (fd, atime, mtime) ->
-    fdChk = checkFd fd
-    unless fdChk then return fdChk
+    checkFd fd, false
     fd.utimesSync atime, mtime
 
   # DIRECTORY-ONLY METHODS
