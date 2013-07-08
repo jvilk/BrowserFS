@@ -100,12 +100,22 @@ class BrowserFS.FileSystem
   # @param [String] newPath
   # @param [Function(BrowserFS.ApiError)] cb
   rename: (oldPath, newPath, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+  # **Core**: Synchronous rename.
+  # @param [String] oldPath
+  # @param [String] newPath
+  renameSync: (oldPath, newPath) -> throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Core**: Asynchronous `stat` or `lstat`.
   # @param [String] path
   # @param [Boolean] isLstat True if this is `lstat`, false if this is regular
   #   `stat`.
   # @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] cb
   stat: (path, isLstat, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+  # **Core**: Synchronous `stat` or `lstat`.
+  # @param [String] path
+  # @param [Boolean] isLstat True if this is `lstat`, false if this is regular
+  #   `stat`.
+  # @return [BrowserFS.node.fs.Stats]
+  statSync: (path, isLstat) -> throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
 
   # File operations
 
@@ -118,10 +128,22 @@ class BrowserFS.FileSystem
   #   filesystem doesn't support permissions.
   # @param [Function(BrowserFS.ApiError, BrowserFS.File)] cb
   open: (path, flags, mode, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+  # **Core**: Synchronous file open.
+  # @see http://www.manpagez.com/man/2/open/
+  # @param [String] path
+  # @param [BrowserFS.FileMode] flags Handles the complexity of the various file
+  #   modes. See its API for more details.
+  # @param [Number] mode Mode to use to open the file. Can be ignored if the
+  #   filesystem doesn't support permissions.
+  # @return [BrowserFS.File]
+  openSync: (path, flags, mode) -> throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Core**: Asynchronous `unlink`.
   # @param [String] path
   # @param [Function(BrowserFS.ApiError)] cb
   unlink: (path, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+  # **Core**: Synchronous `unlink`.
+  # @param [String] path
+  unlinkSync: (path) -> throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
 
   # Directory operations
 
@@ -129,12 +151,20 @@ class BrowserFS.FileSystem
   # @param [String] path
   # @param [Function(BrowserFS.ApiError)] cb
   rmdir: (path, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+  # **Core**: Synchronous `rmdir`.
+  # @param [String] path
+  rmdirSync: (path) -> throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Core**: Asynchronous `mkdir`.
   # @param [String] path
   # @param [Number?] mode Mode to make the directory using. Can be ignored if
   #   the filesystem doesn't support permissions.
   # @param [Function(BrowserFS.ApiError)] cb
   mkdir: (path, mode, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+  # **Core**: Synchronous `mkdir`.
+  # @param [String] path
+  # @param [Number?] mode Mode to make the directory using. Can be ignored if
+  #   the filesystem doesn't support permissions.
+  mkdirSync: (path, mode) -> throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Core**: Asynchronous `readdir`. Reads the contents of a directory.
   #
   # The callback gets two arguments `(err, files)` where `files` is an array of
@@ -142,6 +172,11 @@ class BrowserFS.FileSystem
   # @param [String] path
   # @param [Function(BrowserFS.ApiError, String[])] cb
   readdir: (path, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+  # **Core**: Synchronous `readdir`. Reads the contents of a directory.
+  #
+  # @param [String] path
+  # @return [String[]]
+  readdirSync: (path) -> throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
 
   # **SUPPLEMENTAL INTERFACE METHODS**
 
@@ -153,6 +188,16 @@ class BrowserFS.FileSystem
   # @param [Function(Boolean)] cb
   exists: (path, cb) ->
     @stat(path, null, (err) -> cb(not err?))
+  # **Supplemental**: Test whether or not the given path exists by checking with
+  # the file system.
+  # @param [String] path
+  # @return [Boolean]
+  existsSync: (path) ->
+    try
+      @statSync path
+      true
+    catch e
+      false
   # **Supplemental**: Asynchronous `realpath`. The callback gets two arguments
   # `(err, resolvedPath)`.
   #
@@ -178,6 +223,29 @@ class BrowserFS.FileSystem
           cb null, path
         else
           cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "File #{path} not found."
+  # **Supplemental**: Synchronous `realpath`.
+  #
+  # Note that the Node API will resolve `path` to an absolute path.
+  # @param [String] path
+  # @param [Object] cache An object literal of mapped paths that can be used to
+  #   force a specific path resolution or avoid additional `fs.stat` calls for
+  #   known real paths. If not supplied by the user, it'll be an empty object.
+  # @return [String]
+  realpathSync: (path, cache) ->
+    if @supportsLinks()
+      # The path could contain symlinks. Split up the path,
+      # resolve any symlinks, return the resolved string.
+      splitPath = path.split BrowserFS.node.path.sep
+      # TODO: Simpler to just pass through file, find sep and such.
+      for i in [0...splitPath.length]
+        addPaths = splitPath.slice 0, i+1
+        splitPath[i] = BrowserFS.node.path.join.apply null, addPaths
+    else
+      # No symlinks. We just need to verify that it exists.
+      if @existsSync path
+        return path
+      else
+        throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "File #{path} not found."
 
   # File operations
 
@@ -194,6 +262,19 @@ class BrowserFS.FileSystem
         )
       )
     )
+  # **Supplemental**: Synchronous `truncate`.
+  # @param [String] path
+  # @param [Number] len
+  truncateSync: (path, len) ->
+    fd = BrowserFS.node.fs.openSync path, 'w'
+    # Need to safely close FD, regardless of whether or not truncate succeeds.
+    try
+      BrowserFS.node.fs.ftruncateSync fd, len
+    catch e
+      # NOP
+    BrowserFS.node.fs.closeSync fd
+    if e? then throw e
+    return
   # **Supplemental**: Asynchronously reads the entire contents of a file.
   # @param [String] filename
   # @param [String] encoding If non-null, the file's contents should be decoded
@@ -222,6 +303,28 @@ class BrowserFS.FileSystem
             cb null, buf.toString encoding
           catch e
             cb e
+  # **Supplemental**: Synchronously reads the entire contents of a file.
+  # @param [String] filename
+  # @param [String] encoding If non-null, the file's contents should be decoded
+  #   into a string using that encoding. Otherwise, if encoding is null, fetch
+  #   the file's contents as a Buffer.
+  # @param [BrowserFS.FileMode] flag
+  # @return [String|BrowserFS.Buffer]
+  readFileSync: (fname, encoding, flag) ->
+    # Get file.
+    fd = @openSync fname, flag, 0o666
+    try
+      stat = BrowserFS.node.fs.fstatSync fd
+      # Allocate buffer.
+      buf = new BrowserFS.node.Buffer stat.size
+      BrowserFS.node.fs.readSync fd, buf, 0, stat.size, 0
+      BrowserFS.node.fs.closeSync fd
+      if encoding is null then return buf
+      return buf.toString encoding
+    catch e
+      BrowserFS.node.fs.closeSync fd
+      throw e
+
   # **Supplemental**: Asynchronously writes data to a file, replacing the file
   # if it already exists.
   #
@@ -244,6 +347,28 @@ class BrowserFS.FileSystem
       # Write into file.
       fd.write data, 0, data.length, 0, (err) ->
         cb err
+  # **Supplemental**: Synchronously writes data to a file, replacing the file
+  # if it already exists.
+  #
+  # The encoding option is ignored if data is a buffer.
+  # @param [String] filename
+  # @param [String | BrowserFS.node.Buffer] data
+  # @param [String] encoding
+  # @param [BrowserFS.FileMode] flag
+  # @param [Number] mode
+  writeFileSync: (fname, data, encoding, flag, mode) ->
+    # Get file.
+    fd = @openSync fname, flag, 0o666
+    if typeof data is 'string'
+      data = new BrowserFS.node.Buffer data, encoding
+    try
+      # Write into file.
+      fd.writeSync data, 0, data.length, 0
+    catch e
+      # NOP
+    @closeSync fd
+    if e? then throw e
+    return
   # **Supplemental**: Asynchronously append data to a file, creating the file if
   # it not yet exists.
   # @param [String] filename
@@ -261,6 +386,25 @@ class BrowserFS.FileSystem
       if typeof data is 'string'
         data = new BrowserFS.node.Buffer data, encoding
       fd.write data, 0, data.length, null, (err) -> cb err
+  # **Supplemental**: Synchronously append data to a file, creating the file if
+  # it not yet exists.
+  # @param [String] filename
+  # @param [String | BrowserFS.node.Buffer] data
+  # @param [String] encoding
+  # @param [BrowserFS.FileMode] flag
+  # @param [Number] mode
+  appendFileSync: (fname, data, encoding, flag, mode) ->
+    fd = @openSync fname, flag, mode
+    if typeof data is 'string'
+      data = new BrowserFS.node.Buffer data, encoding
+    try
+      fd.writeSync data, 0, data.length, null
+    catch e
+      # NOP
+    @closeSync fd
+    if e? then throw e
+    return
+
 
   # **OPTIONAL INTERFACE METHODS**
 
@@ -274,6 +418,12 @@ class BrowserFS.FileSystem
   # @param [Number] mode
   # @param [Function(BrowserFS.ApiError)] cb
   chmod: (path, isLchmod, mode, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+  # **Optional**: Synchronous `chmod` or `lchmod`.
+  # @param [String] path
+  # @param [Boolean] isLchmod `True` if `lchmod`, false if `chmod`. Has no
+  #   bearing on result if links aren't supported.
+  # @param [Number] mode
+  chmodSync: (path, isLchmod, mode) -> throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Optional**: Asynchronous `chown` or `lchown`.
   # @param [String] path
   # @param [Boolean] isLchown `True` if `lchown`, false if `chown`. Has no
@@ -282,6 +432,13 @@ class BrowserFS.FileSystem
   # @param [Number] gid
   # @param [Function(BrowserFS.ApiError)] cb
   chown: (path, isLchown, uid, gid, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+  # **Optional**: Synchronous `chown` or `lchown`.
+  # @param [String] path
+  # @param [Boolean] isLchown `True` if `lchown`, false if `chown`. Has no
+  #   bearing on result if links aren't supported.
+  # @param [Number] uid
+  # @param [Number] gid
+  chownSync: (path, isLchown, uid, gid) -> throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Optional**: Change file timestamps of the file referenced by the supplied
   # path.
   # @param [String] path
@@ -289,6 +446,12 @@ class BrowserFS.FileSystem
   # @param [Date] mtime
   # @param [Function(BrowserFS.ApiError)] cb
   utimes: (path, atime, mtime, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+  # **Optional**: Change file timestamps of the file referenced by the supplied
+  # path.
+  # @param [String] path
+  # @param [Date] atime
+  # @param [Date] mtime
+  utimesSync: (path, atime, mtime) -> throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
 
   # Symlink operations
   # Symlinks aren't always supported.
@@ -298,13 +461,25 @@ class BrowserFS.FileSystem
   # @param [String] dstpath
   # @param [Function(BrowserFS.ApiError)] cb
   link: (srcpath, dstpath, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+  # **Optional**: Synchronous `link`.
+  # @param [String] srcpath
+  # @param [String] dstpath
+  linkSync: (srcpath, dstpath) -> throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Optional**: Asynchronous `symlink`.
   # @param [String] srcpath
   # @param [String] dstpath
   # @param [String] type can be either `'dir'` or `'file'`
   # @param [Function(BrowserFS.ApiError)] cb
   symlink: (srcpath, dstpath, type, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+  # **Optional**: Synchronous `symlink`.
+  # @param [String] srcpath
+  # @param [String] dstpath
+  # @param [String] type can be either `'dir'` or `'file'`
+  symlinkSync: (srcpath, dstpath, type) -> throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
   # **Optional**: Asynchronous readlink.
   # @param [String] path
   # @param [Function(BrowserFS.ApiError, String)] callback
   readlink: (path, cb) -> cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
+  # **Optional**: Synchronous readlink.
+  # @param [String] path
+  readlinkSync: (path) -> throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
