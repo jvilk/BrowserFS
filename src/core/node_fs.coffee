@@ -518,13 +518,11 @@ class BrowserFS.node.fs
       # Alternate calling convention: Pass in a string w/ encoding to write to
       # the file.
       if typeof buffer is 'string'
-        if typeof length is 'string'
+        if typeof position is 'function'
+          callback = position
           encoding = length
-        else if typeof offset is 'string'
-          encoding = offset
-        else if typeof offset is 'number'
           position = offset
-        offset = 0
+          offset = 0
         buffer = new Buffer buffer, encoding
         length = buffer.length
 
