@@ -18,6 +18,7 @@ FIXTURES  := $(shell find test/fixtures -name '*')
 
 release: lib/browserfs.min.js
 dev: lib/browserfs.js
+# TODO: `make test` never cleans up the backgrounded server.
 test: $(KARMA) listings.json lib/load_fixtures.js
 	python -m SimpleHTTPServer 8000 &
 	$(KARMA) start
