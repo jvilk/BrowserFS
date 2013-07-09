@@ -16,8 +16,8 @@ class BrowserFS.FileIndex
     itemname = path.substr(dirpath.length + if dirpath is "/" then 0 else 1)
     return [dirpath, itemname]
 
-  # Adds the given path to the index if it is not already in the index. Creates
-  # any needed parent directories.
+  # Adds the given absolute path to the index if it is not already in the index.
+  # Creates any needed parent directories.
   # @param [String] path The path to add to the index.
   # @param [BrowserFS.FileInode | BrowserFS.DirInode] inode The inode for the
   #   path to add.
@@ -28,6 +28,7 @@ class BrowserFS.FileIndex
   #   the new empty directories.
   addPath: (path, inode) ->
     throw new Error 'Inode must be specified' unless inode?
+    throw new Error 'Path must be absolute, got: '+path unless path[0] is '/'
 
     # Check if it already exists.
     if @_index[path] isnt undefined

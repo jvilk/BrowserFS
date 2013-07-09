@@ -12,10 +12,14 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.IndexedFileSystem
   # storage into a simple file index.
   constructor: ->
     @_index = new BrowserFS.FileIndex
-    for i in [0...length]
+    for i in [0...window.localStorage.length] by 1
       path = window.localStorage.key i
+      # Ignore keys that don't look like absolute paths.
+      continue unless path[0] is '/'
       data = window.localStorage.getItem path
-      inode = new BrowserFS.FileInode BrowserFS.node.fs.Stats.FILE, data.length
+      # data is in packed UTF-16 (2 bytes per character, 1 character header)
+      len = if data.length > 0 then data.length * 2 - 1 else 0
+      inode = new BrowserFS.FileInode BrowserFS.node.fs.Stats.FILE, len
       @_index.addPath path, inode
 
   # Retrieve the indicated file from `localStorage`.
@@ -91,6 +95,12 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.IndexedFileSystem
   supportsProps: -> false
 
   # File operations
+
+  # Handles removing file data from `localStorage`.
+  # @param [String] path
+  unlinkSync: (path) ->
+    super path
+    window.localStorage.removeItem path
 
   _truncate: (path, flags, inode) ->
     inode.size = 0
