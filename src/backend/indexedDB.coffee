@@ -50,7 +50,7 @@ class BrowserFS.FileSystem.IndexedDB extends BrowserFS.FileSystem
     console.log 'putting', file
     req = @db.transaction('inodes', 'readwrite').objectStore('inodes').put(file)
     req.onerror = (evt) -> cb evt.target.errorCode
-    req.onsuccess = (evt) -> cb null, evt.target.result
+    req.onsuccess = (evt) -> cb null, file
 
   _rmDB: (path, cb) ->
     req = @db.transaction('inodes', 'readwrite').objectStore('inodes').delete(path)
@@ -73,7 +73,7 @@ class BrowserFS.FileSystem.IndexedDB extends BrowserFS.FileSystem
     console.log 'opening: '+path
     @_getDB path, (err, file) =>
       console.log path, err, file
-      unless file?
+      if file?
         if file.isDirectory()
           return cb new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "#{path} is a directory."
         switch flags.pathExistsAction()
