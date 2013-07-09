@@ -52,8 +52,11 @@
     __karma__.start();
   };
 
-  if (BrowserFS.FileSystem.LocalStorage.isAvailable())
-    backends.push(new BrowserFS.FileSystem.LocalStorage());
+  if (BrowserFS.FileSystem.LocalStorage.isAvailable()) {
+    var lsfs = new BrowserFS.FileSystem.LocalStorage();
+    lsfs.empty();
+    backends.push(lsfs);
+  }
   backends.push(new BrowserFS.FileSystem.InMemory());
   if (BrowserFS.FileSystem.XmlHttpRequest.isAvailable())
     backends.push(new BrowserFS.FileSystem.XmlHttpRequest('/listings.json'));
