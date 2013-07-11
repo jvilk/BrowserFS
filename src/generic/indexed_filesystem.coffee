@@ -89,3 +89,23 @@ class BrowserFS.IndexedFileSystem extends BrowserFS.SynchronousFileSystem
     else if inode.isFile()
       throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "#{path} is a file, not a directory."
     return inode.getListing()
+
+  chmodSync: (path, isLchmod, mode) ->
+    fd = @openSync path, BrowserFS.FileMode.getFileMode('r+'), 0o666
+    fd._stat.mode = mode
+    fd.closeSync()
+    return
+
+  chownSync: (path, isLchown, uid, gid) ->
+    fd = @openSync path, BrowserFS.FileMode.getFileMode('r+'), 0o666
+    fd._stat.uid = uid
+    fd._stat.gid = gid
+    fd.closeSync()
+    return
+
+  utimesSync: (path, atime, mtime) ->
+    fd = @openSync path, BrowserFS.FileMode.getFileMode('r+'), 0o666
+    fd._stat.atime = atime
+    fd._stat.mtime = mtime
+    fd.closeSync()
+    return

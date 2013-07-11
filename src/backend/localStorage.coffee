@@ -18,7 +18,7 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.IndexedFileSystem
       continue unless path[0] is '/'
       data = window.localStorage.getItem path
       # XXX: I don't know *how*, but sometimes these items become null.
-      if data is null then data = ""
+      data ?= null
       # data is in packed UTF-16 (2 bytes per character, 1 character header)
       len = if data.length > 0 then data.length * 2 - 1 else 0
       inode = new BrowserFS.FileInode BrowserFS.node.fs.Stats.FILE, len
@@ -34,8 +34,12 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.IndexedFileSystem
     data = window.localStorage.getItem path
     # Doesn't exist.
     return null if data is null
+    headerBuff = new BrowserFS.node.Buffer(data.substr(0, 2), 'binary_string')
+    data = data.substr(2)
     buffer = new BrowserFS.node.Buffer(data, 'binary_string')
-    return new BrowserFS.File.PreloadFile.LocalStorageFile @, path, flags, inode, buffer
+    file = new BrowserFS.File.PreloadFile.LocalStorageFile @, path, flags, inode, buffer
+    file._stat.mode = headerBuff.readUInt16BE(0)
+    return file
 
   # Handles syncing file data with `localStorage`.
   # @param [String] path
@@ -96,7 +100,7 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.IndexedFileSystem
   supportsLinks: -> false
   # Returns false; this filesystem does not support properties (yet).
   # @return [Boolean]
-  supportsProps: -> false
+  supportsProps: -> true
 
   # File operations
 
@@ -133,6 +137,14 @@ class BrowserFS.File.PreloadFile.LocalStorageFile extends BrowserFS.File.Preload
   syncSync: ->
     # Convert to packed UTF-16 (2 bytes per character, 1 character header)
     data = @_buffer.toString('binary_string')
+    # Append fixed-size header with mode/uid/gid (16-bits) and mtime/atime (64-bits each).
+    # That amounts to 18 bytes/9 characters.
+    headerBuff = new BrowserFS.node.Buffer 2
+    # TODO: Merge w/ uid/gid
+    headerBuff.writeUInt16BE @_stat.mode, 0
+    headerDat = headerBuff.toString('binary_string')
+    data = headerDat + data
+    # writeUInt32BE
     @_fs._syncSync @_path, data, @_stat
     return
 

@@ -25,6 +25,25 @@ class BrowserFS.node.fs.Stats
     # number of 512B blocks allocated
     @blocks = Math.ceil(size/512)
 
+    # UNSUPPORTED ATTRIBUTES
+    # I assume no one is going to need these details, although we could fake
+    # appropriate values if need be.
+    # ID of device containing file
+    @dev = 0
+    # inode number
+    @ino = 0
+    # device ID (if special file)
+    @rdev = 0
+    # number of hard links
+    @nlink = 1
+    # blocksize for file system I/O
+    @blksize = 4096
+    # TODO: Maybe support these? atm, it's a one-user filesystem.
+    # user ID of owner
+    @uid = 0
+    # group ID of owner
+    @gid = 0
+
   # **Nonstandard**: Clone the stats object.
   # @return [BrowserFS.node.fs.Stats]
   clone: () ->
@@ -46,23 +65,3 @@ class BrowserFS.node.fs.Stats
   isCharacterDevice: -> false
   # @return [Boolean] False; we currently only support block devices.
   isFIFO: -> false
-
-  # UNSUPPORTED ATTRIBUTES
-  # I assume no one is going to need these details, although we could fake
-  # appropriate values if need be.
-
-  # ID of device containing file
-  @dev: 0
-  # inode number
-  @ino: 0
-  # device ID (if special file)
-  @rdev: 0
-  # number of hard links
-  @nlink: 1
-  # blocksize for file system I/O
-  @blksize: 4096
-  # TODO: Maybe support these? atm, it's a one-user filesystem.
-  # user ID of owner
-  @uid: 0
-  # group ID of owner
-  @gid: 0

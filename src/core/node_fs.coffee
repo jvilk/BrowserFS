@@ -659,6 +659,8 @@ class BrowserFS.node.fs
   @fchmod: (fd, mode, callback=nopCb) ->
     try
       newCb = wrapCb callback, 1
+      if typeof mode is 'string'
+        mode = parseInt(mode, 8)
       fdChk = checkFd fd
       unless fdChk then return newCb fdChk
       fd.chmod mode, newCb
@@ -668,6 +670,8 @@ class BrowserFS.node.fs
   # @param [BrowserFS.File] fd
   # @param [Number] mode
   @fchmodSync: (fd, mode) ->
+    if typeof mode is 'string'
+      mode = parseInt(mode, 8)
     checkFd fd, false
     fd.chmodSync mode
   # Change the file timestamps of a file referenced by the supplied file
@@ -864,6 +868,8 @@ class BrowserFS.node.fs
   @chmod: (path, mode, callback=nopCb) =>
     try
       newCb = wrapCb callback, 1
+      if typeof mode is 'string'
+        mode = parseInt(mode, 8)
       path = @_canonicalizePath path
       @root.chmod path, false, mode, newCb
     catch e
@@ -872,6 +878,8 @@ class BrowserFS.node.fs
   # @param [String] path
   # @param [Number] mode
   @chmodSync: (path, mode) =>
+    if typeof mode is 'string'
+      mode = parseInt(mode, 8)
     path = @_canonicalizePath path
     @root.chmodSync path, false, mode
   # Asynchronous `lchmod`.
@@ -881,6 +889,8 @@ class BrowserFS.node.fs
   @lchmod: (path, mode, callback=nopCb) =>
     try
       newCb = wrapCb callback, 1
+      if typeof mode is 'string'
+        mode = parseInt(mode, 8)
       path = @_canonicalizePath path
       @root.chmod path, true, mode, newCb
     catch e
@@ -890,6 +900,8 @@ class BrowserFS.node.fs
   # @param [Number] mode
   @lchmodSync: (path, mode) =>
     path = @_canonicalizePath path
+    if typeof mode is 'string'
+      mode = parseInt(mode, 8)
     @root.chmodSync path, true, mode
   # Change file timestamps of the file referenced by the supplied path.
   # @param [String] path

@@ -69,8 +69,8 @@ fs.readFile(fn, function(err) {
   assert.ok(0 <= err.message.indexOf(fn));
 });
 
-// BFS: Only run if the FS supports properties
-if (rootFS.supportsProps()) {
+// BFS: Only run if the FS supports links
+if (rootFS.supportsLinks()) {
   fs.readlink(fn, function(err) {
     assert.ok(0 <= err.message.indexOf(fn));
   });
@@ -79,11 +79,13 @@ if (rootFS.supportsProps()) {
     fs.link(fn, 'foo', function(err) {
       assert.ok(0 <= err.message.indexOf(fn));
     });
-
-    fs.chmod(fn, 0666, function(err) {
-      assert.ok(0 <= err.message.indexOf(fn));
-    });
   }
+}
+
+if (rootFS.supportsProps() && canWrite ) {
+  fs.chmod(fn, 0666, function(err) {
+    assert.ok(0 <= err.message.indexOf(fn));
+  });
 }
 
 var expected = 0;

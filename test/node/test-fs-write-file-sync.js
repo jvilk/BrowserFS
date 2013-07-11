@@ -37,6 +37,12 @@ rootFS.openSync = openSync;
 fs._closeSync = fs.closeSync;
 fs.closeSync = closeSync;
 
+// BFS: Restore old handlers.
+process.on('exit', function() {
+  rootFS.openSync = rootFS._openSync;
+  fs.closeSync = fs._closeSync;
+});
+
 // Reset the umask for testing
 // BFS: Not supported.
 //var mask = process.umask(0);
@@ -107,11 +113,5 @@ function closeSync() {
   openCount--;
   return fs._closeSync.apply(fs, arguments);
 }
-
-// BFS: Restore old handlers.
-process.on('exit', function() {
-  rootFS.openSync = rootFS._openSync;
-  fs.closeSync = fs._closeSync;
-});
 
 };

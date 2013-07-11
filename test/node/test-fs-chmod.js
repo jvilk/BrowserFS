@@ -91,6 +91,7 @@ fs.chmod(file1, mode_async.toString(8), function(err) {
     }
 
     fs.chmodSync(file1, mode_sync);
+    console.log(fs.statSync(file1).mode);
     if (is_windows) {
       assert.ok((fs.statSync(file1).mode & 0777) & mode_sync);
     } else {
@@ -131,28 +132,30 @@ fs.open(file2, 'a', function(err, fd) {
 });
 
 // lchmod
-if (fs.lchmod) {
-  var link = path.join(common.tmpDir, 'symbolic-link');
+if (rootFS.supportsLinks()) {
+  if (fs.lchmod) {
+    var link = path.join(common.tmpDir, 'symbolic-link');
 
-  try {
-    fs.unlinkSync(link);
-  } catch (er) {}
-  fs.symlinkSync(file2, link);
+    try {
+      fs.unlinkSync(link);
+    } catch (er) {}
+    fs.symlinkSync(file2, link);
 
-  fs.lchmod(link, mode_async, function(err) {
-    if (err) {
-      got_error = true;
-    } else {
-      console.log(fs.lstatSync(link).mode);
-      assert.equal(mode_async, fs.lstatSync(link).mode & 0777);
+    fs.lchmod(link, mode_async, function(err) {
+      if (err) {
+        got_error = true;
+      } else {
+        console.log(fs.lstatSync(link).mode);
+        assert.equal(mode_async, fs.lstatSync(link).mode & 0777);
 
-      fs.lchmodSync(link, mode_sync);
-      assert.equal(mode_sync, fs.lstatSync(link).mode & 0777);
-      success_count++;
-    }
-  });
-} else {
-  success_count++;
+        fs.lchmodSync(link, mode_sync);
+        assert.equal(mode_sync, fs.lstatSync(link).mode & 0777);
+        success_count++;
+      }
+    });
+  } else {
+    success_count++;
+  }
 }
 
 
@@ -164,7 +167,10 @@ process.on('exit', function() {
     fs.openSync = fs._openSync;
     fs.closeSync = fs._closeSync;
   }
-  assert.equal(3, success_count);
+  if (rootFS.supportsLinks())
+    assert.equal(3, success_count);
+  else
+    assert.equal(2, success_count);
   assert.equal(0, openCount);
   assert.equal(false, got_error);
 });

@@ -202,11 +202,11 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
     catch e
       cb(e)
   # Asynchronous `fchmod`.
-  # @param [Number|String] mode
+  # @param [Number] mode
   chmodSync: (mode) ->
     unless @_fs.supportsProps()
       throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_SUPPORTED
-    @_stat.mode = parseInt(mode, 8)
+    @_stat.mode = mode
     @syncSync()
     return
 
