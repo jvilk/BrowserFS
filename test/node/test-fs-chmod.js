@@ -91,7 +91,6 @@ fs.chmod(file1, mode_async.toString(8), function(err) {
     }
 
     fs.chmodSync(file1, mode_sync);
-    console.log(fs.statSync(file1).mode);
     if (is_windows) {
       assert.ok((fs.statSync(file1).mode & 0777) & mode_sync);
     } else {
