@@ -26,7 +26,7 @@ class BrowserFS.FileSystem.MountableFileSystem extends BrowserFS.FileSystem
     # TODO: Optimize. :)
     for mnt_pt,fs of @mntMap
       if path.indexOf(mnt_pt) is 0
-        return fs
+        return [fs, path.substr(if mnt_pt.length > 1 then mnt_pt.length else 0)]
     e = new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "#{name} failed: #{path} doesn't exist."
     if async then return e else throw e
 
@@ -46,9 +46,10 @@ class BrowserFS.FileSystem.MountableFileSystem extends BrowserFS.FileSystem
   # the *last* is the callback function (if async).
   defineFcn = (name, isSync, numArgs) ->
     return (args...) ->
-      relevantFs = this._get_fs args[0], !isSync, name
-      if relevantFs instanceof BrowserFS.ApiError then return args[numArgs](relevantFs)
-      return relevantFs[name].apply relevantFs, args
+      rv = this._get_fs args[0], !isSync, name
+      if rv instanceof BrowserFS.ApiError then return args[numArgs](rv)
+      args[0] = rv[1]
+      return rv[0][name].apply rv[0], args
   fsCmdMap = [
     # 1 argument functions
     ['readdir', 'exists', 'unlink', 'rmdir', 'readlink'],
@@ -75,11 +76,13 @@ class BrowserFS.FileSystem.MountableFileSystem extends BrowserFS.FileSystem
 
   rename: (oldPath, newPath, cb) ->
     # Scenario 1: old and new are on same FS.
-    fs1 = @_get_fs oldPath
-    fs2 = @_get_fs newPath
-    if fs1 instanceof BrowserFS.ApiError then return cb fs1
-    if fs1 is fs2
-      return fs1.rename oldPath, newPath, cb
+    fs1_rv = @_get_fs oldPath
+    fs2_rv = @_get_fs newPath
+    if fs1_rv instanceof BrowserFS.ApiError then return cb fs1_rv
+    if fs2_rv instanceof BrowserFS.ApiError then return cb fs2_rv
+
+    if fs1_rv[0] is fs2_rv[0]
+      return fs1_rv[0].rename fs1_rv[1], fs2_rv[1], cb
 
     # Scenario 2: Different file systems.
     # Read old file, write new file, delete old file.
@@ -90,11 +93,12 @@ class BrowserFS.FileSystem.MountableFileSystem extends BrowserFS.FileSystem
         BrowserFS.node.fs.unlink oldPath, cb
   renameSync: (oldPath, newPath) ->
     # Scenario 1: old and new are on same FS.
-    fs1 = @_get_fs oldPath
-    fs2 = @_get_fs newPath
-    if fs1 instanceof BrowserFS.ApiError then throw fs1
-    if fs1 is fs2
-      return fs1.renameSync oldPath, newPath
+    fs1_rv = @_get_fs oldPath
+    fs2_rv = @_get_fs newPath
+    if fs1_rv instanceof BrowserFS.ApiError then throw fs1_rv
+    if fs2_rv instanceof BrowserFS.ApiError then throw fs2_rv
+    if fs1_rv[0] is fs2_rv[0]
+      return fs1_rv[0].renameSync fs1_rv[1], fs2_rv[1]
 
     # Scenario 2: Different file systems.
     data = BrowserFS.node.fs.readFileSync oldPath

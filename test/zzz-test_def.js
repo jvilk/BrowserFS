@@ -61,8 +61,12 @@
   if (BrowserFS.FileSystem.XmlHttpRequest.isAvailable())
     backends.push(new BrowserFS.FileSystem.XmlHttpRequest('/listings.json'));
   var im2 = new BrowserFS.FileSystem.InMemory();
+  //var im3 = new BrowserFS.FileSystem.InMemory();
   var mfs = new BrowserFS.FileSystem.MountableFileSystem();
   mfs.mount('/', im2);
+  //TODO: Test when API Error has a 'file' attribute that MFS can appropriately
+  // alter when an error is raised.
+  //mfs.mount('/test', im2);
   backends.push(mfs);
   generateAllTests();
 })(this);
