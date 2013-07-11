@@ -17,6 +17,8 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.IndexedFileSystem
       # Ignore keys that don't look like absolute paths.
       continue unless path[0] is '/'
       data = window.localStorage.getItem path
+      # XXX: I don't know *how*, but sometimes these items become null.
+      if data is null then data = ""
       # data is in packed UTF-16 (2 bytes per character, 1 character header)
       len = if data.length > 0 then data.length * 2 - 1 else 0
       inode = new BrowserFS.FileInode BrowserFS.node.fs.Stats.FILE, len
@@ -50,7 +52,9 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.IndexedFileSystem
     return
 
   # Removes all data from localStorage.
-  empty: -> window.localStorage.clear()
+  empty: ->
+    window.localStorage.clear()
+    @_index = new BrowserFS.FileIndex
   # Returns the name of the file system.
   # @return [String]
   getName: -> 'localStorage'
