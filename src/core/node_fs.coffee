@@ -919,7 +919,7 @@ class BrowserFS.node.fs
   # @param [String] path
   # @param [Date] atime
   # @param [Date] mtime
-  @utimes: (path, atime, mtime) =>
+  @utimesSync: (path, atime, mtime) =>
     path = @_canonicalizePath path
     @root.utimesSync path, atime, mtime
 
