@@ -32,7 +32,7 @@ function check(async, sync) {
 
   if (rootFS.supportsSynch() && sync)
     assert.throws(function() {
-      console.error(sync.name, argsSync);
+      console.log(sync.name, argsSync);
       sync.apply(null, argsSync);
     }, expected);
 

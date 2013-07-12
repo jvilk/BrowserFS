@@ -295,27 +295,27 @@ function equalCheck(b1, b2) {
 equalCheck(d, new Buffer(d));
 
 var e = new Buffer('über');
-console.error('uber: \'%s\'', e.toString());
+console.log('uber: \'%s\'', e.toString());
 equalCheck(e, new Buffer([195, 188, 98, 101, 114]));
 
 var f = new Buffer('über', 'ascii');
-console.error('f.length: ' + f.length + '     (should be 4)');
+console.log('f.length: ' + f.length + '     (should be 4)');
 equalCheck(f, new Buffer([252, 98, 101, 114]));
 
 ['ucs2', 'ucs-2', 'utf16le', 'utf-16le'].forEach(function(encoding) {
   var f = new Buffer('über', encoding);
-  console.error('f.length: ' + f.length + '     (should be 8)');
+  console.log('f.length: ' + f.length + '     (should be 8)');
   equalCheck(f, new Buffer([252, 0, 98, 0, 101, 0, 114, 0]));
 
   var f = new Buffer('привет', encoding);
-  console.error('f.length: ' + f.length + '     (should be 12)');
+  console.log('f.length: ' + f.length + '     (should be 12)');
   equalCheck(f, new Buffer([63, 4, 64, 4, 56, 4, 50, 4, 53, 4, 66, 4]));
   assert.equal(f.toString(encoding), 'привет');
 
   var f = new Buffer([0, 0, 0, 0, 0]);
   assert.equal(f.length, 5);
   var size = f.write('あいうえお', encoding);
-  console.error('bytes written to buffer: ' + size + '     (should be 4)');
+  console.log('bytes written to buffer: ' + size + '     (should be 4)');
   assert.equal(size, 4);
   equalCheck(f, new Buffer([0x42, 0x30, 0x44, 0x30, 0x00]));
 });

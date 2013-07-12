@@ -103,7 +103,7 @@ fs.chmod(file1, mode_async.toString(8), function(err) {
 fs.open(file2, 'a', function(err, fd) {
   if (err) {
     got_error = true;
-    console.error(err.stack);
+    console.log(err.stack);
     return;
   }
   fs.fchmod(fd, mode_async.toString(8), function(err) {

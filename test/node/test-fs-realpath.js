@@ -35,7 +35,7 @@ function tmp(p) {
 var fixturesAbsDir = common.fixturesDir;
 var tmpAbsDir = common.tmpDir;
 
-console.error("absolutes\n%s\n%s", fixturesAbsDir, tmpAbsDir);
+console.log("absolutes\n%s\n%s", fixturesAbsDir, tmpAbsDir);
 
 function asynctest(testBlock, args, callback, assertBlock) {
   async_expected++;
@@ -114,7 +114,7 @@ function test_simple_absolute_symlink(callback) {
     [entry, expected]
   ].forEach(function(t) {
     try {fs.unlinkSync(t[0]);} catch (e) {}
-    console.error('fs.symlinkSync(%j, %j, %j)', t[1], t[0], type);
+    console.log('fs.symlinkSync(%j, %j, %j)', t[1], t[0], type);
     fs.symlinkSync(t[1], t[0], type);
     unlink.push(t[0]);
   });
@@ -260,7 +260,7 @@ function test_relative_input_cwd(callback) {
     [common.tmpDir + '/cycles/realpath-3c', 'root.js']
   ].forEach(function(t) {
     var fn = t[0];
-    console.error('fn=%j', fn);
+    console.log('fn=%j', fn);
     try {fs.unlinkSync(fn);} catch (e) {}
     var b = path.basename(t[1]);
     var type = (b === 'root.js' ? 'file' : 'dir');
@@ -381,7 +381,7 @@ assert.equal(upone, uponeActual,
 //     `-- d -> ..
 // realpath(a/b/e/d/a/b/e/d/a) ==> a
 function test_up_multiple(cb) {
-  console.error('test_up_multiple');
+  console.log('test_up_multiple');
   if (skipSymlinks) {
     console.log('skipping symlink test (no privs)');
     return runNextTest();
@@ -561,8 +561,8 @@ function runTest() {
     if (s) return;
     fs.mkdirSync(t, 0700);
   });
-  fs.writeFileSync(tmp('cycles/root.js'), "console.error('roooot!');");
-  console.error('start tests');
+  fs.writeFileSync(tmp('cycles/root.js'), "console.log('roooot!');");
+  console.log('start tests');
   runNextTest();
 }
 
