@@ -50,7 +50,7 @@ function expect_errno(syscall, resource, err, errno) {
   if (err && (err.code === errno || err.code === 'ENOSYS')) {
     tests_ok++;
   } else {
-    console.log('FAILED:', arguments.callee.name, util.inspect(arguments));
+    console.log('FAILED:', arguments.callee.name, arguments);
   }
 }
 
@@ -60,7 +60,7 @@ function expect_ok(syscall, resource, err, atime, mtime) {
       err && err.code === 'ENOSYS') {
     tests_ok++;
   } else {
-    console.log('FAILED:', arguments.callee.name, util.inspect(arguments));
+    console.log('FAILED:', arguments.callee.name, arguments);
   }
 }
 
