@@ -693,6 +693,10 @@ class BrowserFS.node.fs
     try
       newCb = wrapCb callback, 1
       fdChk = checkFd fd
+      if typeof atime is 'number'
+        atime = new Date atime*1000
+      if typeof mtime is 'number'
+        mtime = new Date mtime*1000
       unless fdChk then return newCb fdChk
       fd.utimes atime, mtime, newCb
     catch e
@@ -704,6 +708,10 @@ class BrowserFS.node.fs
   # @param [Date] mtime
   @futimesSync: (fd, atime, mtime) ->
     checkFd fd, false
+    if typeof atime is 'number'
+      atime = new Date atime*1000
+    if typeof mtime is 'number'
+      mtime = new Date mtime*1000
     fd.utimesSync atime, mtime
 
   # DIRECTORY-ONLY METHODS
@@ -921,6 +929,10 @@ class BrowserFS.node.fs
     try
       newCb = wrapCb callback, 1
       path = @_canonicalizePath path
+      if typeof atime is 'number'
+        atime = new Date atime*1000
+      if typeof mtime is 'number'
+        mtime = new Date mtime*1000
       @root.utimes path, atime, mtime, newCb
     catch e
       newCb e
@@ -930,6 +942,10 @@ class BrowserFS.node.fs
   # @param [Date] mtime
   @utimesSync: (path, atime, mtime) =>
     path = @_canonicalizePath path
+    if typeof atime is 'number'
+      atime = new Date atime*1000
+    if typeof mtime is 'number'
+      mtime = new Date mtime*1000
     @root.utimesSync path, atime, mtime
 
   # Asynchronous `realpath`. The callback gets two arguments

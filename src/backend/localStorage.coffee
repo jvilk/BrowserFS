@@ -19,7 +19,8 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.IndexedFileSystem
       # XXX: I don't know *how*, but sometimes these items become null.
       data = window.localStorage.getItem(path) ? ''
       # data is in packed UTF-16 (2 bytes per character, 1 character header)
-      len = if data.length > 0 then data.length * 2 - 1 else 0
+      # 10 character header for metadata (9 char data + 1 char header)
+      len = if data.length > 0 then data.length * 2 - 1 - 10 else 0
       inode = new BrowserFS.FileInode BrowserFS.node.fs.Stats.FILE, len
       @_index.addPath path, inode
 
@@ -33,11 +34,13 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.IndexedFileSystem
     data = window.localStorage.getItem path
     # Doesn't exist.
     return null if data is null
-    headerBuff = new BrowserFS.node.Buffer(data.substr(0, 2), 'binary_string')
-    data = data.substr(2)
+    headerBuff = new BrowserFS.node.Buffer(data.substr(0, 10), 'binary_string')
+    data = data.substr 10
     buffer = new BrowserFS.node.Buffer(data, 'binary_string')
     file = new BrowserFS.File.PreloadFile.LocalStorageFile @, path, flags, inode, buffer
-    file._stat.mode = headerBuff.readUInt16BE(0)
+    file._stat.mode = headerBuff.readUInt16BE 0
+    file._stat.mtime = new Date(headerBuff.readDoubleBE 2)
+    file._stat.atime = new Date(headerBuff.readDoubleBE 10)
     return file
 
   # Handles syncing file data with `localStorage`.
@@ -46,6 +49,17 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.IndexedFileSystem
   # @param [BrowserFS.FileInode] inode
   # @return [BrowserFS.node.fs.Stats]
   _syncSync: (path, data, inode) ->
+    # Append fixed-size header with mode (16-bits) and mtime/atime (64-bits each).
+    # I don't care about uid/gid right now.
+    # That amounts to 18 bytes/9 characters + 1 character header
+    headerBuff = new BrowserFS.node.Buffer 18
+    headerBuff.writeUInt16BE inode.mode, 0
+    # Well, they're doubles and are going to be 64-bit regardless...
+    headerBuff.writeDoubleBE inode.mtime.getTime(), 2
+    headerBuff.writeDoubleBE inode.atime.getTime(), 10
+    headerDat = headerBuff.toString('binary_string')
+    data = headerDat + data
+
     try
       window.localStorage.setItem path, data
       @_index.addPath path, inode
@@ -136,14 +150,6 @@ class BrowserFS.File.PreloadFile.LocalStorageFile extends BrowserFS.File.Preload
   syncSync: ->
     # Convert to packed UTF-16 (2 bytes per character, 1 character header)
     data = @_buffer.toString('binary_string')
-    # Append fixed-size header with mode/uid/gid (16-bits) and mtime/atime (64-bits each).
-    # That amounts to 18 bytes/9 characters.
-    headerBuff = new BrowserFS.node.Buffer 2
-    # TODO: Merge w/ uid/gid
-    headerBuff.writeUInt16BE @_stat.mode, 0
-    headerDat = headerBuff.toString('binary_string')
-    data = headerDat + data
-    # writeUInt32BE
     @_fs._syncSync @_path, data, @_stat
     return
 
