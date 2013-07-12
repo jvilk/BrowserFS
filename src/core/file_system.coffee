@@ -358,7 +358,7 @@ class BrowserFS.FileSystem
   # @param [Number] mode
   writeFileSync: (fname, data, encoding, flag, mode) ->
     # Get file.
-    fd = @openSync fname, flag, 0o666
+    fd = @openSync fname, flag, mode
     if typeof data is 'string'
       data = new BrowserFS.node.Buffer data, encoding
     try
