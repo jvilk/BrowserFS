@@ -22,25 +22,25 @@
 this.tests.fs_mkdir = function(){
   if (fs.getRootFS().isReadOnly()) return;
 
-
   var pathname = common.tmpDir + '/mkdir-test1';
 
   fs.mkdir(pathname, function(err) {
-    assert.equal(err, null);
+    assert.equal(err, null,
+        'fs.mkdir(' + pathname + ') reports non-null error: ' + err);
     fs.exists(pathname, function(y){
-      assert.equal(y, true);
-    console.log('made directory: '+pathname);
+      assert.equal(y, true,
+        'Got null error from fs.mkdir, but fs.exists reports false for ' + pathname);
     });
   });
-
 
   pathname = common.tmpDir + '/mkdir-test2';
 
   fs.mkdir(pathname, 511 /*=0777*/, function(err) {
-    assert.equal(err, null);
+    assert.equal(err, null,
+        'fs.mkdir(' + pathname + ') reports non-null error: ' + err);
     fs.exists(pathname, function(y){
-      assert.equal(y, true);
-    console.log('made directory: '+pathname);
+      assert.equal(y, true,
+        'Got null error from fs.mkdir, but fs.exists reports false for ' + pathname);
     });
   });
 

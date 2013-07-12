@@ -28,11 +28,10 @@ var fullPath = path.resolve(fileName);
 
 fs.writeFile(fullPath, 'ok', function(err) {
   if (err) throw err;
-  else console.log('wrote file with path length: '+fullPath.length);
 
   fs.stat(fullPath, function(err, stats) {
     if (err) throw err;
-    assert.equal(2, stats.size);
+    assert.equal(2, stats.size, 'stats.size: expected 2, got: ' + stats.size);
   });
 });
 

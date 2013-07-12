@@ -95,7 +95,6 @@ fs.writeFile(filename3, n, { mode: m }, function(e) {
 
 
 process.on('exit', function() {
-  common.error('done');
   // BFS: 6=>4, since I commented out one part of the test.
   assert.equal(4, ncallbacks, 'Expected 4 callbacks, got ' + ncallbacks);
 

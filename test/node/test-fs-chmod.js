@@ -82,8 +82,6 @@ fs.chmod(file1, mode_async.toString(8), function(err) {
   if (err) {
     got_error = true;
   } else {
-    console.log(fs.statSync(file1).mode);
-
     if (is_windows) {
       assert.ok((fs.statSync(file1).mode & 0777) & mode_async);
     } else {
@@ -110,8 +108,6 @@ fs.open(file2, 'a', function(err, fd) {
     if (err) {
       got_error = true;
     } else {
-      console.log(fs.fstatSync(fd).mode);
-
       if (is_windows) {
         assert.ok((fs.fstatSync(fd).mode & 0777) & mode_async);
       } else {

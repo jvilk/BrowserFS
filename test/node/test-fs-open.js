@@ -40,20 +40,13 @@ assert.ok(caughtException);
     if (err) {
       throw err;
     }
-    assert.ok(fd);
-    console.log("opened with mode `r`: "+filename);
+    assert.ok(fd, 'failed to open with mode `r`: ' + filename);
   });
 
   fs.open(filename, 'rs', function(err, fd) {
     if (err) {
       throw err;
     }
-    assert.ok(fd);
-    console.log("opened with mode `rs`: "+filename);
+    assert.ok(fd, 'failed to open with mode `rs`: ' + filename);
   });
-
-/*process.on('exit', function() {
-  assert.ok(openFd);
-  assert.ok(openFd2);
-});*/
 };

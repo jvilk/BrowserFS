@@ -26,8 +26,7 @@ var cntr = 0;
 
 var b = Buffer(1024); // safe constructor
 
-console.log('b.length == ' + b.length);
-assert.strictEqual(1024, b.length);
+assert.strictEqual(1024, b.length, 'Buffer length mismatch: 1024 != ' + b.length);
 
 b.set(0, -1);
 
@@ -42,15 +41,13 @@ for (var i = 0; i < 1024; i++) {
 }
 
 var c = new Buffer(512);
-console.log('c.length == ' + c.length);
-assert.strictEqual(512, c.length);
+assert.strictEqual(512, c.length, 'Buffer length mismatch: 512 != ' + c.length);
 
 // copy 512 bytes, from 0 to 512.
 b.fill(++cntr);
 c.fill(++cntr);
 var copied = b.copy(c, 0, 0, 512);
-console.log('copied ' + copied + ' bytes from b into c');
-assert.strictEqual(512, copied);
+assert.strictEqual(512, copied, 'Expected 512 copied bytes, got: ' + copied);
 for (var i = 0; i < c.length; i++) {
   assert.strictEqual(b.get(i), c.get(i));
 }
@@ -59,8 +56,8 @@ for (var i = 0; i < c.length; i++) {
 b.fill(++cntr);
 c.fill(++cntr);
 var copied = c.copy(b, 0, 0);
-console.log('copied ' + copied + ' bytes from c into b w/o sourceEnd');
-assert.strictEqual(c.length, copied);
+assert.strictEqual(c.length, copied,
+    'Expected ' + c.length + ' copied bytes w/o sourceEnd, got: ' + copied);
 for (var i = 0; i < c.length; i++) {
   assert.strictEqual(c.get(i), b.get(i));
 }
@@ -69,8 +66,8 @@ for (var i = 0; i < c.length; i++) {
 b.fill(++cntr);
 c.fill(++cntr);
 var copied = c.copy(b, 0);
-console.log('copied ' + copied + ' bytes from c into b w/o sourceStart');
-assert.strictEqual(c.length, copied);
+assert.strictEqual(c.length, copied,
+    'Expected ' + c.length + ' copied bytes w/o sourceStart, got: ' + copied);
 for (var i = 0; i < c.length; i++) {
   assert.strictEqual(c.get(i), b.get(i));
 }
@@ -79,8 +76,8 @@ for (var i = 0; i < c.length; i++) {
 b.fill(++cntr);
 c.fill(++cntr);
 var copied = b.copy(c);
-console.log('copied ' + copied + ' bytes from b into c w/o targetStart');
-assert.strictEqual(c.length, copied);
+assert.strictEqual(c.length, copied,
+    'Expected ' + c.length + ' copied bytes w/o targetStart, got: ' + copied);
 for (var i = 0; i < c.length; i++) {
   assert.strictEqual(b.get(i), c.get(i));
 }
@@ -89,8 +86,9 @@ for (var i = 0; i < c.length; i++) {
 b.fill(++cntr);
 c.fill(++cntr);
 var copied = b.copy(c, 0, b.length - Math.floor(c.length / 2));
-console.log('copied ' + copied + ' bytes from end of b into beginning of c');
-assert.strictEqual(Math.floor(c.length / 2), copied);
+var expected = Math.floor(c.length / 2);
+assert.strictEqual(expected, copied,
+    'Expected ' + expected + ' copied bytes, got: ' + copied);
 for (var i = 0; i < Math.floor(c.length / 2); i++) {
   assert.strictEqual(b.get(b.length - Math.floor(c.length / 2) + i), c.get(i));
 }
@@ -102,8 +100,8 @@ for (var i = Math.floor(c.length /2) + 1; i < c.length; i++) {
 b.fill(++cntr);
 c.fill(++cntr);
 var copied = b.copy(c, 0, 0, 513);
-console.log('copied ' + copied + ' bytes from b trying to overrun c');
-assert.strictEqual(c.length, copied);
+assert.strictEqual(c.length, copied,
+    'Expected ' + c.length + ' copied bytes (no overrun), got: ' + copied);
 for (var i = 0; i < c.length; i++) {
   assert.strictEqual(b.get(i), c.get(i));
 }
@@ -112,8 +110,8 @@ for (var i = 0; i < c.length; i++) {
 b.fill(++cntr);
 b.fill(++cntr, 256);
 var copied = b.copy(b, 0, 256, 1024);
-console.log('copied ' + copied + ' bytes from b into b');
-assert.strictEqual(768, copied);
+assert.strictEqual(768, copied,
+    'Expected 728 copied bytes (same buffer), got: ' + copied);
 for (var i = 0; i < b.length; i++) {
   assert.strictEqual(cntr, b.get(i));
 }
@@ -132,8 +130,8 @@ try {
 b.fill(++cntr);
 c.fill(++cntr);
 var copied = b.copy(c, 0, -1);
-assert.strictEqual(c.length, copied);
-console.log('copied ' + copied + ' bytes from b into c w/ negative sourceStart');
+assert.strictEqual(c.length, copied,
+    'Expected ' + c.length + ' copied bytes (sourceStart < 0), got: ' + copied);
 for (var i = 0; i < c.length; i++) {
   assert.strictEqual(b.get(i), c.get(i));
 }
@@ -143,13 +141,11 @@ b.fill(++cntr);
 c.fill(++cntr);
 // BFS: Changed 1025->1024; buff is only 1024 long
 var copied = b.copy(c, 0, 0, 1024);
-console.log('copied ' + copied + ' bytes from b into c');
 for (var i = 0; i < c.length; i++) {
   assert.strictEqual(b.get(i), c.get(i));
 }
 
 // throw with negative sourceEnd
-console.log('test copy at negative sourceEnd');
 assert.throws(function() {
   b.copy(c, 0, 0, -1);
 }, RangeError);
@@ -250,7 +246,6 @@ for (var j = 0; j < 500; j++) {
   // TODO utf8 slice tests
 }
 
-
 for (var j = 0; j < 100; j++) {
   var slice = b.slice(100, 150);
   assert.equal(50, slice.length);
@@ -259,13 +254,10 @@ for (var j = 0; j < 100; j++) {
   }
 }
 
-
-
 // Bug regression test
 var testValue = '\u00F6\u65E5\u672C\u8A9E'; // ö日本語
 var buffer = new Buffer(32);
 var size = buffer.write(testValue, 0, 'utf8');
-console.log('bytes written to buffer: ' + size);
 var slice = buffer.toString('utf8', 0, size);
 assert.equal(slice, testValue);
 
@@ -295,33 +287,31 @@ function equalCheck(b1, b2) {
 equalCheck(d, new Buffer(d));
 
 var e = new Buffer('über');
-console.log('uber: \'%s\'', e.toString());
 equalCheck(e, new Buffer([195, 188, 98, 101, 114]));
 
 var f = new Buffer('über', 'ascii');
-console.log('f.length: ' + f.length + '     (should be 4)');
+assert.equal(4, f.length, 'f.length: ' + f.length + ' (should be 4)');
 equalCheck(f, new Buffer([252, 98, 101, 114]));
 
 ['ucs2', 'ucs-2', 'utf16le', 'utf-16le'].forEach(function(encoding) {
   var f = new Buffer('über', encoding);
-  console.log('f.length: ' + f.length + '     (should be 8)');
+  assert.equal(8, f.length, 'f.length: ' + f.length + ' (should be 8)');
   equalCheck(f, new Buffer([252, 0, 98, 0, 101, 0, 114, 0]));
 
   var f = new Buffer('привет', encoding);
-  console.log('f.length: ' + f.length + '     (should be 12)');
+  assert.equal(12, f.length, 'f.length: ' + f.length + ' (should be 12)');
   equalCheck(f, new Buffer([63, 4, 64, 4, 56, 4, 50, 4, 53, 4, 66, 4]));
   assert.equal(f.toString(encoding), 'привет');
 
   var f = new Buffer([0, 0, 0, 0, 0]);
   assert.equal(f.length, 5);
   var size = f.write('あいうえお', encoding);
-  console.log('bytes written to buffer: ' + size + '     (should be 4)');
-  assert.equal(size, 4);
+  assert.equal(size, 4, 'expected 4 bytes written to buffer, got: ' + size);
   equalCheck(f, new Buffer([0x42, 0x30, 0x44, 0x30, 0x00]));
 });
 
 var f = new Buffer('\uD83D\uDC4D', 'utf-16le'); // THUMBS UP SIGN (U+1F44D)
-assert.equal(f.length, 4);
+assert.equal(4, f.length, 'f.length: ' + f.length + ' (should be 4)');
 equalCheck(f, new Buffer('3DD84DDC', 'hex'));
 
 
@@ -521,7 +511,6 @@ assert.equal(12, Buffer.byteLength('Il était tué', 'binary'));
 assert.equal(0, Buffer('hello').slice(0, 0).length);
 
 // test hex toString
-console.log('Create hex string from buffer');
 var hexb = new Buffer(256);
 for (var i = 0; i < 256; i++) {
   hexb.set(i, i);
@@ -545,14 +534,12 @@ assert.equal(hexStr,
              'e0e1e2e3e4e5e6e7e8e9eaebecedeeef' +
              'f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff');
 
-console.log('Create buffer from hex string');
 var hexb2 = new Buffer(hexStr, 'hex');
 for (var i = 0; i < 256; i++) {
   assert.equal(hexb2.get(i), hexb.get(i));
 }
 
 // test an invalid slice end.
-console.log('Try to slice off the end of the buffer');
 var b = new Buffer([1, 2, 3, 4, 5]);
 var b2 = b.toString('hex', 1, 10000);
 var b3 = b.toString('hex', 1, 5);
@@ -647,7 +634,6 @@ assert.equal(written, 10);
 var buf = new Buffer(4);
 buf.fill(0xFF);
 var written = buf.write('abcd', 1, 2, 'utf8');
-console.log(buf.toJSON());
 assert.equal(written, 2);
 assert.equal(buf.get(0), 0xFF);
 assert.equal(buf.get(1), 0x61);
@@ -656,7 +642,6 @@ assert.equal(buf.get(3), 0xFF);
 
 buf.fill(0xFF);
 written = buf.write('abcd', 1, 4);
-console.log(buf.toJSON());
 assert.equal(written, 3);
 assert.equal(buf.get(0), 0xFF);
 assert.equal(buf.get(1), 0x61);
@@ -665,7 +650,6 @@ assert.equal(buf.get(3), 0x63);
 
 buf.fill(0xFF);
 written = buf.write('abcd', 1, 2, 'utf8');  // legacy style
-console.log(buf.toJSON());
 assert.equal(written, 2);
 assert.equal(buf.get(0), 0xFF);
 assert.equal(buf.get(1), 0x61);
@@ -674,7 +658,6 @@ assert.equal(buf.get(3), 0xFF);
 
 buf.fill(0xFF);
 written = buf.write('abcdef', 1, 2, 'hex');
-console.log(buf.toJSON());
 assert.equal(written, 2);
 assert.equal(buf.get(0), 0xFF);
 assert.equal(buf.get(1), 0xAB);
@@ -684,7 +667,6 @@ assert.equal(buf.get(3), 0xFF);
 ['ucs2', 'ucs-2', 'utf16le', 'utf-16le'].forEach(function(encoding) {
   buf.fill(0xFF);
   written = buf.write('abcd', 0, 2, encoding);
-  console.log(buf.toJSON());
   assert.equal(written, 2);
   assert.equal(buf.get(0), 0x61);
   assert.equal(buf.get(1), 0x00);

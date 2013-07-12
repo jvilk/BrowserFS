@@ -27,29 +27,22 @@ var file = path.join(common.fixturesDir, 'a.js');
 var rootFS = fs.getRootFS();
 if (rootFS.isReadOnly()) return;
 
-common.error('open ' + file);
-
 fs.open(file, 'a', 0777, function(err, fd) {
-  common.error('fd ' + fd);
   if (err) throw err;
 
   if (rootFS.supportsSynch()) {
     fs.fdatasyncSync(fd);
-    common.error('fdatasync SYNC: ok');
     successes++;
 
     fs.fsyncSync(fd);
-    common.error('fsync SYNC: ok');
     successes++;
   }
 
   fs.fdatasync(fd, function(err) {
     if (err) throw err;
-    common.error('fdatasync ASYNC: ok');
     successes++;
     fs.fsync(fd, function(err) {
       if (err) throw err;
-      common.error('fsync ASYNC: ok');
       successes++;
     });
   });

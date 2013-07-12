@@ -78,35 +78,19 @@ if (fs.getRootFS().supportsSynch()) {
   });
 }
 
-console.log('stating: ' + existing_file);
 fs.stat(existing_file, function(err, s) {
   if (err) {
     got_error = true;
   } else {
     success_count++;
-
-    console.log('isDirectory: ' + JSON.stringify(s.isDirectory()));
     assert.equal(false, s.isDirectory());
-
-    console.log('isFile: ' + JSON.stringify(s.isFile()));
     assert.equal(true, s.isFile());
-
-    console.log('isSocket: ' + JSON.stringify(s.isSocket()));
     assert.equal(false, s.isSocket());
-
-    console.log('isBlockDevice: ' + JSON.stringify(s.isBlockDevice()));
     //assert.equal(false, s.isBlockDevice());
-
-    console.log('isCharacterDevice: ' + JSON.stringify(s.isCharacterDevice()));
     assert.equal(false, s.isCharacterDevice());
-
-    console.log('isFIFO: ' + JSON.stringify(s.isFIFO()));
     assert.equal(false, s.isFIFO());
-
-    console.log('isSymbolicLink: ' + JSON.stringify(s.isSymbolicLink()));
     assert.equal(false, s.isSymbolicLink());
 
-    console.log('mtime: ' + s.mtime);
     assert.ok(s.mtime instanceof Date);
   }
 });
