@@ -65,7 +65,8 @@ function refresh_all() {
       } else {
         $('#contents').text('');
       }
-      $('#stat').text('Mode: 0o' + s.mode.toString(8) + ', Size: ' + s.size + 'B');
+      $('#stat').text('Mode: 0o' + s.mode.toString(8) +
+        ', Size: ' + s.size + 'B, Modified at ' + s.mtime);
     });
 }
 function clear_fs() {
