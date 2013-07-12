@@ -13,7 +13,7 @@
       fixturesDir: '/test/fixtures/node',
       // NodeJS uses 'common.error' for test messages, but this is inappropriate.
       // I map it to log, instead.
-      error: function() { console.log.apply(this, arguments); }
+      error: function() { console.log.apply(console, arguments); }
   };
   window.Buffer = BrowserFS.node.Buffer;
 
