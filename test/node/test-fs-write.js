@@ -24,58 +24,45 @@ if (fs.getRootFS().isReadOnly()) return;
 var fn = path.join(common.tmpDir, 'write.txt');
 var fn2 = path.join(common.tmpDir, 'write2.txt');
 var expected = 'ümlaut.';
-var found, found2;
 
 fs.open(fn, 'w', 0644, function(err, fd) {
   if (err) throw err;
-  console.log('open done');
   fs.write(fd, '', 0, 'utf8', function(err, written) {
     assert.equal(0, written);
   });
   fs.write(fd, expected, 0, 'utf8', function(err, written) {
-    console.log('write done');
     if (err) throw err;
     assert.equal(Buffer.byteLength(expected), written);
     fs.close(fd, function(err) {
       if (err) throw err;
       fs.readFile(fn, 'utf8', function(err, data) {
         if (err) throw err;
-        found = data;
-        console.log('expected: "' + expected + '", found: "' + found + '"');
+        assert.equal(expected, data,
+            'expected: "' + data + '", found: "' + data + '"');
         fs.unlink(fn, function(err) { if (err) throw err; });
       });
     });
   });
 });
 
-
 fs.open(fn2, 'w', 0644,
     function(err, fd) {
       if (err) throw err;
-      console.log('open done');
       fs.write(fd, '', 0, 'utf8', function(err, written) {
         assert.equal(0, written);
       });
       fs.write(fd, expected, 0, 'utf8', function(err, written) {
-        console.log('write done');
         if (err) throw err;
         assert.equal(Buffer.byteLength(expected), written);
         fs.close(fd, function(err) {
           if (err) throw err;
           fs.readFile(fn2, 'utf8', function(err, data) {
             if (err) throw err;
-            found2 = data;
-            console.log('expected: "' + expected + '", found: "' + found2 + '"');
+            assert.equal(expected, data,
+                'expected: "' + expected + '", found: "' + data + '"');
             fs.unlink(fn2, function(err) { if (err) throw err; });
           });
         });
       });
     });
-
-
-process.on('exit', function() {
-  assert.equal(expected, found);
-  assert.equal(expected, found2);
-});
-
 };

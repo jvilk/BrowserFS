@@ -26,8 +26,6 @@ var join = path.join;
 
 var filename = join(common.tmpDir, 'test.txt');
 
-common.error('writing to ' + filename);
-
 var n = 220;
 var s = '南越国是前203年至前111年存在于岭南地区的一个国家，国都位于番禺，疆域包括今天中国的广东、' +
         '广西两省区的大部份地区，福建省、湖南、贵州、云南的一小部份地区和越南的北部。' +
@@ -41,44 +39,39 @@ var ncallbacks = 0;
 
 fs.writeFile(filename, s, function(e) {
   if (e) throw e;
-
   ncallbacks++;
-  common.error('file written');
-
   fs.readFile(filename, function(e, buffer) {
     if (e) throw e;
-    common.error('file read');
     ncallbacks++;
-    assert.equal(Buffer.byteLength(s), buffer.length);
+    var expected = Buffer.byteLength(s);
+    assert.equal(expected, buffer.length,
+        'Buffer length mismatch for ' + filename + ': expected ' + expected +
+        ', got ' + buffer.length);
   });
 });
 
 // test that writeFile accepts buffers
 var filename2 = join(common.tmpDir, 'test2.txt');
 var buf = new Buffer(s, 'utf8');
-common.error('writing to ' + filename2);
 
 fs.writeFile(filename2, buf, function(e) {
   if (e) throw e;
-
   ncallbacks++;
-  common.error('file2 written');
-
   fs.readFile(filename2, function(e, buffer) {
     if (e) throw e;
-    common.error('file2 read');
     ncallbacks++;
-    assert.equal(buf.length, buffer.length);
+    assert.equal(buf.length, buffer.length,
+        'Buffer length mismatch for ' + filename2 + ': expected ' +
+        buf.length + ', got ' + buffer.length);
   });
 });
 
+// BFS: We don't support writing a single byte to the file.
+/*
 // test that writeFile accepts numbers.
 var filename3 = join(common.tmpDir, 'test3.txt');
-common.error('writing to ' + filename3);
-
 var m = 0600;
-// BFS: We don't support writing a single byte to the file.
-/*fs.writeFile(filename3, n, { mode: m }, function(e) {
+fs.writeFile(filename3, n, { mode: m }, function(e) {
   if (e) throw e;
 
   // windows permissions aren't unix
@@ -104,7 +97,7 @@ var m = 0600;
 process.on('exit', function() {
   common.error('done');
   // BFS: 6=>4, since I commented out one part of the test.
-  assert.equal(4, ncallbacks);
+  assert.equal(4, ncallbacks, 'Expected 4 callbacks, got ' + ncallbacks);
 
   fs.unlink(filename, function(err) { if (err) throw err; });
   fs.unlink(filename2, function(err) { if (err) throw err; });
