@@ -52,6 +52,15 @@ class BrowserFS.node.fs
       throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Tried to instantiate BrowserFS with an unavailable file system.'
     @root = rootFS
 
+  # converts Date or number to a fractional UNIX timestamp
+  # Grabbed from NodeJS sources (lib/fs.js)
+  @_toUnixTimestamp: (time) =>
+    if typeof time is 'number'
+      return time
+    if time instanceof Date
+      return time.getTime()/1000
+    throw new Error "Cannot parse time: #{time}"
+
   # **NONSTANDARD**: Grab the FileSystem instance that backs this API.
   # @return [BrowserFS.FileSystem | null] Returns null if the file system has
   #   not been initialized.
