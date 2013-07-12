@@ -38,7 +38,16 @@ function refresh_list(fl, dirpath) {
   }
 }
 function refresh_all() {
-  refresh_list($('#tree > ul')[0], '/');
+  var root_ul = $('#tree > ul');
+  try {
+    refresh_list(root_ul[0], '/');
+  } catch (err) {
+    if (err.message !== "/ not found.") {
+      throw err;
+    }
+    root_ul.text('No files found. Touch one to get started.');
+    return;
+  }
   $('#tree')
     .jstree({'plugins':["themes","html_data","ui","crrm"]})
     .bind("select_node.jstree", function (event, data) {
@@ -58,6 +67,10 @@ function refresh_all() {
       $('#stat').text('Mode: 0o' + s.mode.toString(8) + ', Size: ' + s.size + 'B');
     });
 }
+function clear() {
+  lsfs.empty();
+  refresh_all();
+}
 var lsfs;  // global, for debugging purposes.
 $(function(){
   BrowserFS.install(window);
@@ -73,8 +86,9 @@ Touch:
 <input type='text' onkeypress='if(event.charCode==13)touch_file(this.value);'></input>
 Delete:
 <input type='text' onkeypress='if(event.charCode==13)delete_file(this.value);'></input>
-<button onclick='refresh_all()'>Refresh</button><br />
-<hr>
+<button onclick='refresh_all()'>Refresh</button>
+<button onclick='clear()'>Clear localStorage</button>
+<br /><hr>
 File listing:<br />
 <div id='tree'><ul id='filelist'></ul></div>
 <div id='contents'></div>
