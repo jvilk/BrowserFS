@@ -20,8 +20,6 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 window.tests.fs_write_file_sync = function() {
-
-var isWindows = process.platform === 'win32';
 var openCount = 0;
 var mode;
 var content;
@@ -49,11 +47,7 @@ process.on('exit', function() {
 
 // On Windows chmod is only able to manipulate read-only bit. Test if creating
 // the file in read-only mode works.
-if (isWindows) {
-  mode = 0444;
-} else {
-  mode = 0755;
-}
+mode = 0755;
 
 // Test writeFileSync
 var file1 = path.join(common.tmpDir, 'testWriteFileSync.txt');
@@ -62,10 +56,13 @@ removeFile(file1);
 fs.writeFileSync(file1, '123', {mode: mode});
 
 content = fs.readFileSync(file1, {encoding: 'utf8'});
-assert.equal('123', content);
+assert.equal('123', content,
+    'File contents mismatch: \'' + content + '\' != \'123\'');
 
 if (rootFS.supportsProps()) {
-  assert.equal(mode, fs.statSync(file1).mode & 0777);
+  var actual = fs.statSync(file1).mode & 0777;
+  assert.equal(mode, actual,
+    'Expected mode 0' + mode.toString(8) + ', got mode 0' + actual.toString(8));
 }
 
 removeFile(file1);
@@ -77,7 +74,8 @@ removeFile(file2);
 fs.appendFileSync(file2, 'abc', {mode: mode});
 
 content = fs.readFileSync(file2, {encoding: 'utf8'});
-assert.equal('abc', content);
+assert.equal('abc', content,
+    'File contents mismatch: \'' + content + '\' != \'abc\'');
 
 if (rootFS.supportsProps()) {
   assert.equal(mode, fs.statSync(file2).mode & mode);
