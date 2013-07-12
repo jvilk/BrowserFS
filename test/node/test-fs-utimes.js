@@ -133,7 +133,7 @@ function runTest(atime, mtime, callback) {
 
 var stats = fs.statSync(filename);
 
-runTest(new Date('1982-09-10 13:37'), new Date('1982-09-10 13:37'), function() {
+runTest(new Date('1982-09-10T13:37:00Z'), new Date('1982-09-10T13:37:00Z'), function() {
   runTest(new Date(), new Date(), function() {
     runTest(123456.789, 123456.789, function() {
       runTest(stats.mtime, stats.mtime, function() {
