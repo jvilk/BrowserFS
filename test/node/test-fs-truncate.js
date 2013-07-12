@@ -74,8 +74,7 @@ testTruncate(function(er) {
 });
 
 process.on('exit', function() {
-  assert.equal(success, 2);
-  console.log('ok');
+  assert.equal(success, 2, 'Exit code mismatch: ' + success + ' != 2');
 });
 
 function testTruncate(cb) {
