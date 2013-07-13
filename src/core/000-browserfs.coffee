@@ -20,7 +20,10 @@ class BrowserFS
     obj.process = BrowserFS.node.process
     oldRequire = if obj.require? then obj.require else null
     # Monkey-patch require for Node-style code.
-    obj.require = (arg) ->
+    obj.require = (arg, herp) ->
+      # XXX: Hackfix for Ace Editor. The Ace Editor clobbers require definitions,
+      # but recalls it with an empty first argument.
+      if herp? and not arg? then arg = herp
       return switch arg
         when 'fs' then BrowserFS.node.fs
         when 'path' then BrowserFS.node.path
@@ -28,9 +31,7 @@ class BrowserFS
         when 'buffer' then BrowserFS.node # require('buffer').Buffer
         else
           if oldRequire?
-            oldRequire this, arguments
-          else if arg of obj
-            obj[arg]
+            oldRequire.apply this, arguments
           else
             throw new Error "Module not found: #{arg}"
   # You must call this function with a properly-instantiated root file system
