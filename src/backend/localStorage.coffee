@@ -18,9 +18,10 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.IndexedFileSystem
       continue unless path[0] is '/'
       # XXX: I don't know *how*, but sometimes these items become null.
       data = window.localStorage.getItem(path) ? ''
-      # data is in packed UTF-16 (2 bytes per character, 1 character header)
-      # 10 character header for metadata (9 char data + 1 char header)
-      len = if data.length > 10 then (data.length-10) * 2 - 1 else 0
+      if data.length > 10
+        # 10 character header for metadata (9 char data + 1 char header)
+        len = BrowserFS.StringUtil.FindUtil('binary_string').byteLength(data.substr(10))
+      else len = 0
       inode = new BrowserFS.FileInode BrowserFS.node.fs.Stats.FILE, len
       @_index.addPath path, inode
 

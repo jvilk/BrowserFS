@@ -187,6 +187,9 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
     unless @_mode.isReadable()
       throw new BrowserFS.ApiError BrowserFS.ApiError.PERMISSIONS_ERROR, 'File not opened with a readable mode.'
     unless position? then position = @getPos()
+    endRead = position+length
+    if endRead > @_stat.size
+      length = @_stat.size - position
     rv = @_buffer.copy buffer, offset, position, position+length
     @_stat.atime = new Date()
     @_pos = position+length
