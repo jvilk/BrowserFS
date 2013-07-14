@@ -54,6 +54,17 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
   # @return [Boolean]
   supportsProps: -> false
 
+  # Special XHR function: Preload the given file into the index.
+  # @param [String] path
+  # @param [BrowserFS.Buffer] buffer
+  preloadFile: (path, buffer) ->
+    inode = @_index.getInode path
+    if inode is null
+      throw new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "#{path} not found."
+    inode.size = buffer.length
+    inode.file_data = new BrowserFS.File.NoSyncFile @, path, BrowserFS.FileMode.getFileMode('r'), inode, buffer
+    return
+
   stat: (path, isLstat, cb) ->
     inode = @_index.getInode path
     if inode is null
@@ -73,6 +84,7 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
         return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "#{path} already exists."
       when BrowserFS.FileMode.NOP
         # Use existing file contents.
+        # XXX: Uh, this maintains the previously-used flag.
         return cb(null, inode.file_data) if inode.file_data?
         # TODO: be lazier about actually requesting the file
         @_request_file path, 'arraybuffer', (buffer) =>
