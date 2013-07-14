@@ -98,7 +98,10 @@ class BrowserFS.FileIndex
 # @return [BrowserFS.FileIndex] A new FileIndex object.
 BrowserFS.FileIndex.from_listing = (listing) ->
   idx = new BrowserFS.FileIndex()
-  queue = [['', listing, null]]
+  # Add a root DirNode.
+  rootInode = new BrowserFS.DirInode()
+  idx._index['/'] = rootInode
+  queue = [['', listing, rootInode]]
   while queue.length > 0
     [pwd, tree, parent] = queue.pop()
     for node, children of tree
@@ -127,9 +130,7 @@ class BrowserFS.DirInode
   isDirectory: -> true
   # Return a Stats object for this inode.
   # @return [BrowserFS.node.fs.Stats]
-  getStats: ->
-    size = BrowserFS.util.roughSizeOfObject @_ls
-    new BrowserFS.node.fs.Stats(BrowserFS.node.fs.Stats.DIRECTORY, size)
+  getStats: -> new BrowserFS.node.fs.Stats(BrowserFS.node.fs.Stats.DIRECTORY, 4096)
   # Returns the directory listing for this directory. Paths in the directory are
   # relative to the directory's path.
   # @return [String[]] The directory listing for this directory.

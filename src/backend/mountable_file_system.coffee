@@ -6,18 +6,25 @@
 # For example, if a file system is mounted at /mnt/blah, and a request came in
 # for /mnt/blah/foo.txt, the file system would see a request for /foo.txt.
 class BrowserFS.FileSystem.MountableFileSystem extends BrowserFS.FileSystem
-  constructor: -> @mntMap = {}
+  constructor: ->
+    @mntMap = {}
+    # The InMemory file system serves purely to provide directory listings for
+    # mounted file systems.
+    @rootFs = new BrowserFS.FileSystem.InMemory()
 
   # Mounts the file system at the given mount point.
   mount: (mnt_pt, fs) ->
     if @mntMap[mnt_pt]
       throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "Mount point #{mnt_pt} is already taken."
     # TODO: Ensure new mount path is not subsumed by active mount paths.
+    @rootFs.mkdirSync mnt_pt
     @mntMap[mnt_pt] = fs
+
   umount: (mnt_pt) ->
     unless @mntMap[mnt_pt]
       throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "Mount point #{mnt_pt} is already unmounted."
     delete @mntMap[mnt_pt]
+    @rootFs.rmdirSync mnt_pt
 
   # Returns the file system that the path points to.
   # Throws an exception if the path is invalid and async is false, otherwise
@@ -26,9 +33,11 @@ class BrowserFS.FileSystem.MountableFileSystem extends BrowserFS.FileSystem
     # TODO: Optimize. :)
     for mnt_pt,fs of @mntMap
       if path.indexOf(mnt_pt) is 0
-        return [fs, path.substr(if mnt_pt.length > 1 then mnt_pt.length else 0)]
-    e = new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "#{name} failed: #{path} doesn't exist."
-    if async then return e else throw e
+        path = path.substr(if mnt_pt.length > 1 then mnt_pt.length else 0)
+        if path is '' then path = '/'
+        return [fs, path]
+    # Query our root file system.
+    return [@rootFs, path]
 
   # Global information methods
 
@@ -47,7 +56,6 @@ class BrowserFS.FileSystem.MountableFileSystem extends BrowserFS.FileSystem
   defineFcn = (name, isSync, numArgs) ->
     return (args...) ->
       rv = this._get_fs args[0], !isSync, name
-      if rv instanceof BrowserFS.ApiError then return args[numArgs](rv)
       args[0] = rv[1]
       return rv[0][name].apply rv[0], args
   fsCmdMap = [

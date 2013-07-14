@@ -136,7 +136,7 @@ class BrowserFS.node.path
       cwd = BrowserFS.node.process.cwd()
       if resolved isnt ''
         # cwd will never end in a /... unless it's the root.
-        resolved = cwd + (if cwd isnt '/' then @sep else '') + resolved
+        resolved = BrowserFS.node.path.normalize(cwd + (if cwd isnt '/' then @sep else '') + resolved)
       else
         resolved = cwd
 

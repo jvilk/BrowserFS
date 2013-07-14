@@ -13,7 +13,7 @@ class BrowserFS.node.process
   #   process.chdir('/tmp');
   #   console.log('New directory: ' + process.cwd());
   # @param [String] dir The directory to change to.
-  @chdir: (dir) -> _cwd = BrowserFS.node.path.resolve dir
+  @chdir: (dir) -> @_cwd = BrowserFS.node.path.resolve dir
   # Returns the current working directory.
   # @example Usage example
   #   console.log('Current directory: ' + process.cwd());
