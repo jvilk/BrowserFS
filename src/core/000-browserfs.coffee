@@ -66,3 +66,6 @@ class BrowserFS
             stack.push prop
       return bytes
   }
+
+  @isIE = /(msie) ([\w.]+)/.exec navigator.userAgent.toLowerCase()
+

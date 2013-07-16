@@ -23,6 +23,7 @@ class BrowserFS.StringUtil
         # Custom BFS: For efficiently representing data as JavaScript UTF-16
         # strings.
         when 'binary_string' then BrowserFS.StringUtil.BINSTR
+        when 'binary_string_ie' then BrowserFS.StringUtil.BINSTRIE
         #when 'binary', 'raw', 'raws' then BINARY
         #when 'buffer' then BUFFER
         #else UTF8
@@ -452,3 +453,32 @@ class BrowserFS.StringUtil.BINSTR
     bytelen = (str.length-1)*2
     if firstChar isnt 0 then bytelen++
     return bytelen
+
+# IE/older FF version of binary string. One byte per character, offset by 0x20.
+class BrowserFS.StringUtil.BINSTRIE
+  # @param [BrowserFS.node.Buffer] buf the buffer to write into
+  # @param [String] str the string that will be converted
+  # @param [Number] offset the offset to start writing into the buffer at
+  # @param [Number] length an upper bound on the length of the string that we
+  #   can write
+  # @return [Number] number of bytes written into the buffer
+  @str2byte: (buf, str, offset, length) ->
+    length = if str.length*2 > length then length else str.length*2
+    for i in [0...Math.floor(length/2)]
+      buf.writeUInt8(((str.charCodeAt(2*i)-0x20) % 256), offset+2*i)
+      buf.writeUInt8(((str.charCodeAt(2*i+1)-0x20) >> 8), offset+2*i+1)
+    buf._charsWritten = i
+    return length
+
+  # @param [Array] byteArray an array of bytes
+  # @return [String] the array interpreted as a string
+  @byte2str: (byteArray) ->
+    chars = new Array byteArray.length
+    for i in [0...byteArray.length] by 2
+      chars[i] = String.fromCharCode((byteArray[i]&0xFF+0x20)|((byteArray[i+1]<<8)+0x20))
+    return chars.join ''
+
+  # @param [String] str the string to get the byte length for
+  # @return [Number] the number of bytes that the string will take up using the
+  # given encoding.
+  @byteLength: (str) -> return str.length*2

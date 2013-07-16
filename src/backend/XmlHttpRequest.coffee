@@ -1,3 +1,24 @@
+# IE9 and below only: Injects a VBScript function that converts the
+# 'responseBody' attribute of an XMLHttpRequest into a bytestring.
+# Credit: http://miskun.com/javascript/internet-explorer-and-binary-files-data-access/#comment-11
+document.write(
+  "<!-- IEBinaryToArray_ByteStr -->\r\n"+
+  "<script type='text/vbscript'>\r\n"+
+  "Function IEBinaryToArray_ByteStr(Binary)\r\n"+
+  " IEBinaryToArray_ByteStr = CStr(Binary)\r\n"+
+  "End Function\r\n"+
+  "Function IEBinaryToArray_ByteStr_Last(Binary)\r\n"+
+  " Dim lastIndex\r\n"+
+  " lastIndex = LenB(Binary)\r\n"+
+  " if lastIndex mod 2 Then\r\n"+
+  " IEBinaryToArray_ByteStr_Last = Chr( AscB( MidB( Binary, lastIndex, 1 ) ) )\r\n"+
+  " Else\r\n"+
+  " IEBinaryToArray_ByteStr_Last = "+'""'+"\r\n"+
+  " End If\r\n"+
+  "End Function\r\n"+
+  "</script>\r\n"
+)
+
 # A simple filesystem backed by XmlHttpRequests.
 class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
   # Constructs the file system.
@@ -15,7 +36,7 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
       v.file_data = undefined
 
   # Assumes that path is in @_index.
-  _request_file: (path, data_type, cb) ->
+  _request_file_modern: (path, data_type, cb) ->
     req = new XMLHttpRequest()
     req.open 'GET', path, cb?
     req.responseType = data_type if cb?
@@ -29,6 +50,40 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
     req.send()
     if data? and data != 'NOT FOUND'
       return data
+
+  # Converts 'responseBody' in IE into the equivalent 'responseText' that other
+  # browsers would generate.
+  _GetIEByteArray_ByteStr: (IEByteArray) ->
+    rawBytes = IEBinaryToArray_ByteStr(IEByteArray)
+    lastChr = IEBinaryToArray_ByteStr_Last(IEByteArray)
+    return rawBytes.replace(/[\s\S]/g,
+      ((match) ->
+        v = match.charCodeAt(0)
+        return String.fromCharCode(v&0xff, v>>8)
+      )) + lastChr
+
+  # IE < 9 doesn't support array buffers.
+  _request_file_IE: (path, data_type, cb) ->
+    req = new XMLHttpRequest()
+    req.open 'GET', path, cb?
+    req.setRequestHeader "Accept-Charset", "x-user-defined"
+    data = null
+    req.onerror = (e) -> console.error req.statusText
+    req.onload = (e) =>
+      unless req.readyState is 4 and req.status is 200
+        console.error req.statusText
+      data_array = @_GetIEByteArray_ByteStr req.responseBody
+      data = BrowserFS.node.Buffer data_array
+      cb?(data)
+    req.send()
+    if data? and data != 'NOT FOUND'
+      return data
+
+  # Dynamically determine which version to use.
+  if BrowserFS.isIE and not window.Blob
+    XmlHttpRequest.prototype._request_file = XmlHttpRequest.prototype._request_file_IE
+  else
+    XmlHttpRequest.prototype._request_file = XmlHttpRequest.prototype._request_file_modern
 
   # Returns the name of the file system.
   # @return [String]

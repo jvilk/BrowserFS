@@ -18,10 +18,7 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.IndexedFileSystem
       continue unless path[0] is '/'
       # XXX: I don't know *how*, but sometimes these items become null.
       data = window.localStorage.getItem(path) ? ''
-      if data.length > 10
-        # 10 character header for metadata (9 char data + 1 char header)
-        len = BrowserFS.StringUtil.FindUtil('binary_string').byteLength(data.substr(10))
-      else len = 0
+      len = @_getFileLength data
       inode = new BrowserFS.FileInode BrowserFS.node.fs.Stats.FILE, len
       @_index.addPath path, inode
 
@@ -35,14 +32,7 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.IndexedFileSystem
     data = window.localStorage.getItem path
     # Doesn't exist.
     return null if data is null
-    headerBuff = new BrowserFS.node.Buffer(data.substr(0, 10), 'binary_string')
-    data = data.substr 10
-    buffer = new BrowserFS.node.Buffer(data, 'binary_string')
-    file = new BrowserFS.File.PreloadFile.LocalStorageFile @, path, flags, inode, buffer
-    file._stat.mode = headerBuff.readUInt16BE 0
-    file._stat.mtime = new Date(headerBuff.readDoubleBE 2)
-    file._stat.atime = new Date(headerBuff.readDoubleBE 10)
-    return file
+    return @_convertFromBinaryString path, data, flags, inode
 
   # Handles syncing file data with `localStorage`.
   # @param [String] path
@@ -50,17 +40,7 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.IndexedFileSystem
   # @param [BrowserFS.FileInode] inode
   # @return [BrowserFS.node.fs.Stats]
   _syncSync: (path, data, inode) ->
-    # Append fixed-size header with mode (16-bits) and mtime/atime (64-bits each).
-    # I don't care about uid/gid right now.
-    # That amounts to 18 bytes/9 characters + 1 character header
-    headerBuff = new BrowserFS.node.Buffer 18
-    headerBuff.writeUInt16BE inode.mode, 0
-    # Well, they're doubles and are going to be 64-bit regardless...
-    headerBuff.writeDoubleBE inode.mtime.getTime(), 2
-    headerBuff.writeDoubleBE inode.atime.getTime(), 10
-    headerDat = headerBuff.toString('binary_string')
-    data = headerDat + data
-
+    data = @_convertToBinaryString data, inode
     try
       window.localStorage.setItem path, data
       @_index.addPath path, inode
@@ -68,6 +48,68 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.IndexedFileSystem
       # Assume we're out of space.
       throw new BrowserFS.ApiError BrowserFS.ApiError.DRIVE_FULL, "Unable to sync #{path}"
     return
+
+  # Some versions of FF and all versions of IE do not support the full range of
+  # 16-bit numbers encoded as characters, as they enforce UTF-16 restrictions.
+  # http://stackoverflow.com/questions/11170716/are-there-any-characters-that-are-not-allowed-in-localstorage/11173673#11173673
+  try
+    window.localStorage.setItem("__test__", String.fromCharCode(0xD800))
+    supportsBinaryString = window.localStorage.getItem("__test__") == String.fromCharCode(0xD800)
+  catch e
+    # IE throws an exception.
+    supportsBinaryString = false
+
+  if supportsBinaryString
+    LocalStorage.prototype._convertToBinaryString = (data, inode) ->
+      data = data.toString('binary_string')
+      # Append fixed-size header with mode (16-bits) and mtime/atime (64-bits each).
+      # I don't care about uid/gid right now.
+      # That amounts to 18 bytes/9 characters + 1 character header
+      headerBuff = new BrowserFS.node.Buffer 18
+      headerBuff.writeUInt16BE inode.mode, 0
+      # Well, they're doubles and are going to be 64-bit regardless...
+      headerBuff.writeDoubleBE inode.mtime.getTime(), 2
+      headerBuff.writeDoubleBE inode.atime.getTime(), 10
+      headerDat = headerBuff.toString('binary_string')
+      data = headerDat + data
+      return data
+
+    LocalStorage.prototype._convertFromBinaryString = (path, data, flags, inode) ->
+      headerBuff = new BrowserFS.node.Buffer(data.substr(0, 10), 'binary_string')
+      data = data.substr 10
+      buffer = new BrowserFS.node.Buffer(data, 'binary_string')
+      file = new BrowserFS.File.PreloadFile.LocalStorageFile @, path, flags, inode, buffer
+      file._stat.mode = headerBuff.readUInt16BE 0
+      file._stat.mtime = new Date(headerBuff.readDoubleBE 2)
+      file._stat.atime = new Date(headerBuff.readDoubleBE 10)
+      return file
+
+    LocalStorage.prototype._getFileLength = (data) ->
+      return if data.length > 10
+        # 10 character header for metadata (9 char data + 1 char header)
+        BrowserFS.StringUtil.FindUtil('binary_string').byteLength(data.substr(10))
+      else 0
+  else
+    LocalStorage.prototype._convertToBinaryString = (data, inode) ->
+      data = data.toString 'binary_string_ie'
+      headerBuff = new BrowserFS.node.Buffer 18
+      headerBuff.writeUInt16BE inode.mode, 0
+      # Well, they're doubles and are going to be 64-bit regardless...
+      headerBuff.writeDoubleBE inode.mtime.getTime(), 2
+      headerBuff.writeDoubleBE inode.atime.getTime(), 10
+      headerDat = headerBuff.toString('binary_string_ie')
+      data = headerDat + data
+      return data
+    LocalStorage.prototype._convertFromBinaryString = (path, data, flags, inode) ->
+      headerBuff = new BrowserFS.node.Buffer(data.substr(0, 18), 'binary_string_ie')
+      data = data.substr 18
+      buffer = new BrowserFS.node.Buffer(data, 'binary_string_ie')
+      file = new BrowserFS.File.PreloadFile.LocalStorageFile @, path, flags, inode, buffer
+      file._stat.mode = headerBuff.readUInt16BE 0
+      file._stat.mtime = new Date(headerBuff.readDoubleBE 2)
+      file._stat.atime = new Date(headerBuff.readDoubleBE 10)
+      return file
+    LocalStorage.prototype._getFileLength = (data) -> return if data.length > 0 then data.length-18 else 0
 
   # Removes all data from localStorage.
   empty: ->
@@ -149,9 +191,7 @@ class BrowserFS.FileSystem.LocalStorage extends BrowserFS.IndexedFileSystem
 class BrowserFS.File.PreloadFile.LocalStorageFile extends BrowserFS.File.PreloadFile
   # Synchronous sync.
   syncSync: ->
-    # Convert to packed UTF-16 (2 bytes per character, 1 character header)
-    data = @_buffer.toString('binary_string')
-    @_fs._syncSync @_path, data, @_stat
+    @_fs._syncSync @_path, @_buffer, @_stat
     return
 
   # Synchronous close.
