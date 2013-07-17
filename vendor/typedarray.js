@@ -347,8 +347,9 @@ var ArrayBuffer, ArrayBufferView,
                     this.constructor = ctor;
 
                     // ES5-only magic
-                    configureProperties(this);
-                    makeArrayAccessors(this);
+                    // BFS: Disable for performance reasons.
+                    //configureProperties(this);
+                    //makeArrayAccessors(this);
                 };
 
                 ctor.prototype = new ArrayBufferView();

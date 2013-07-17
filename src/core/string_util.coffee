@@ -463,22 +463,21 @@ class BrowserFS.StringUtil.BINSTRIE
   #   can write
   # @return [Number] number of bytes written into the buffer
   @str2byte: (buf, str, offset, length) ->
-    length = if str.length*2 > length then length else str.length*2
-    for i in [0...Math.floor(length/2)]
-      buf.writeUInt8(((str.charCodeAt(2*i)-0x20) % 256), offset+2*i)
-      buf.writeUInt8(((str.charCodeAt(2*i+1)-0x20) >> 8), offset+2*i+1)
-    buf._charsWritten = i
+    length = if str.length > length then length else str.length
+    for i in [0...length]
+      buf.writeUInt8(str.charCodeAt(i)-0x20, offset+i)
+    buf._charsWritten = length
     return length
 
   # @param [Array] byteArray an array of bytes
   # @return [String] the array interpreted as a string
   @byte2str: (byteArray) ->
     chars = new Array byteArray.length
-    for i in [0...byteArray.length] by 2
-      chars[i] = String.fromCharCode((byteArray[i]&0xFF+0x20)|((byteArray[i+1]<<8)+0x20))
+    for i in [0...byteArray.length]
+      chars[i] = String.fromCharCode(byteArray[i]+0x20)
     return chars.join ''
 
   # @param [String] str the string to get the byte length for
   # @return [Number] the number of bytes that the string will take up using the
   # given encoding.
-  @byteLength: (str) -> return str.length*2
+  @byteLength: (str) -> return str.length
