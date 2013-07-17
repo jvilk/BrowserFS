@@ -70,7 +70,9 @@ if (fs.getRootFS().supportsSynch()) {
       got_error = true;
     }
     if (stats) {
-      console.dir(stats);
+      // BFS: IE9 doesn't define console until you open dev tools, so this
+      // fails.
+      if (console['dir']) console.dir(stats);
       assert.ok(stats.mtime instanceof Date);
       success_count++;
     }
