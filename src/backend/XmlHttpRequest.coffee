@@ -124,8 +124,18 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
     inode = @_index.getInode path
     if inode is null
       return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "#{path} not found."
-    stats = inode.getStats?() ? inode
-    cb null, stats
+    # At this point, a non-opened file will still have default stats from the listing.
+    if inode._placeholder?
+      @_request_file path, 'arraybuffer', (buffer) =>
+        inode.size = buffer.length
+        # XXX: May want to avoid storing the file data here, for memory reasons.
+        inode.file_data = new BrowserFS.File.NoSyncFile @, path, BrowserFS.FileMode.getFileMode('r'), inode, buffer
+        delete inode._placeholder
+        cb null, inode
+    else
+      stats = inode.getStats?() ? inode
+      cb null, stats
+    return
 
   open: (path, flags, mode, cb) ->
     # Check if the path exists, and is a file.

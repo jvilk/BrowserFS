@@ -110,7 +110,10 @@ BrowserFS.FileIndex.from_listing = (listing) ->
         idx._index[name] = inode = new BrowserFS.DirInode()
         queue.push [name, children, inode]
       else
-        idx._index[name] = inode = new BrowserFS.FileInode(BrowserFS.node.fs.Stats.FILE, 0)
+        inode = new BrowserFS.FileInode(BrowserFS.node.fs.Stats.FILE, 0)
+        # This inode doesn't have correct size information.
+        inode._placeholder = true
+        idx._index[name] = inode
       if parent?
         parent._ls[node] = inode
   return idx
