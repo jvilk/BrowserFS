@@ -51,6 +51,17 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
     if data? and data != 'NOT FOUND'
       return data
 
+  # Only requests the HEAD content, for the file size.
+  _request_file_size: (path, cb) ->
+    req = new XMLHttpRequest()
+    req.open 'HEAD', path
+    req.onerror = (e) -> console.error req.statusText
+    req.onload = (e) ->
+      unless req.readyState is 4 and req.status is 200
+        console.error req.statusText
+      cb req.getResponseHeader('Content-Length')
+    req.send()
+
   # Converts 'responseBody' in IE into the equivalent 'responseText' that other
   # browsers would generate.
   _GetIEByteArray_ByteStr: (IEByteArray) ->
@@ -125,12 +136,9 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
     if inode is null
       return cb new BrowserFS.ApiError BrowserFS.ApiError.NOT_FOUND, "#{path} not found."
     # At this point, a non-opened file will still have default stats from the listing.
-    if inode._placeholder?
-      @_request_file path, 'arraybuffer', (buffer) =>
-        inode.size = buffer.length
-        # XXX: May want to avoid storing the file data here, for memory reasons.
-        inode.file_data = new BrowserFS.File.NoSyncFile @, path, BrowserFS.FileMode.getFileMode('r'), inode, buffer
-        delete inode._placeholder
+    if inode.size < 0
+      @_request_file_size path, (size) ->
+        inode.size = size
         cb null, inode
     else
       stats = inode.getStats?() ? inode
