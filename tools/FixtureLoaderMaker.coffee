@@ -9,7 +9,7 @@ fixturesPath = './test/fixtures'
 outfile = null
 
 files = []
-dirs = []
+dirs = ['./test', fixturesPath]
 count = 1
 DEBUG = false
 uid = 0
@@ -171,7 +171,6 @@ fs.exists './src/core/000-browserfs.coffee', (doesExist) ->
     debugPrint 'load_fixtures.js opened!'
     if err then throw err
     outfile = fd
-    dirs.push fixturesPath
     fs.readdir fixturesPath, (err, files) ->
       if err then throw err
       processReaddir fixturesPath, files

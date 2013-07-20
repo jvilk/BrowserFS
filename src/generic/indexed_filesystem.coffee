@@ -77,6 +77,10 @@ class BrowserFS.IndexedFileSystem extends BrowserFS.SynchronousFileSystem
     inode = @_index.getInode path
     unless inode is null
       throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "#{path} already exists."
+    # Check if it lives below an existing dir (that is, we can't mkdir -p).
+    parent = BrowserFS.node.path.dirname path
+    if parent isnt '/' and @_index.getInode(parent) is null
+      throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "Can't create #{path} because #{parent} doesn't exist."
     success = @_index.addPath path, new BrowserFS.DirInode()
     if success then return
     throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "Could not add #{path} for some reason."
