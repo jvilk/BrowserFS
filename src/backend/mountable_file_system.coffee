@@ -27,9 +27,7 @@ class BrowserFS.FileSystem.MountableFileSystem extends BrowserFS.FileSystem
     @rootFs.rmdirSync mnt_pt
 
   # Returns the file system that the path points to.
-  # Throws an exception if the path is invalid and async is false, otherwise
-  # it returns a new instance of the exception.
-  _get_fs: (path, async=true, name='') ->
+  _get_fs: (path) ->
     # TODO: Optimize. :)
     for mnt_pt,fs of @mntMap
       if path.indexOf(mnt_pt) is 0
@@ -55,7 +53,7 @@ class BrowserFS.FileSystem.MountableFileSystem extends BrowserFS.FileSystem
   # the *last* is the callback function (if async).
   defineFcn = (name, isSync, numArgs) ->
     return (args...) ->
-      rv = this._get_fs args[0], !isSync, name
+      rv = this._get_fs args[0]
       args[0] = rv[1]
       return rv[0][name].apply rv[0], args
   fsCmdMap = [
