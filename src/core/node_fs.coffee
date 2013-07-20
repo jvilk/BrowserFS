@@ -219,13 +219,13 @@ class BrowserFS.node.fs
   # @see http://www.manpagez.com/man/2/open/
   # @param [String] path
   # @param [String] flags
-  # @param [Number?] mode defaults to `0666`
+  # @param [Number?] mode defaults to `0644`
   # @param [Function(BrowserFS.ApiError, BrowserFS.File)] callback
   @open: (path, flags, mode, callback=nopCb) =>
     try
       if typeof mode is 'function'
         callback = mode
-        mode = 0o666
+        mode = 0o644
       newCb = wrapCb callback, 2
       path = @_canonicalizePath path
       flags = BrowserFS.FileMode.getFileMode flags
@@ -236,9 +236,9 @@ class BrowserFS.node.fs
   # @see http://www.manpagez.com/man/2/open/
   # @param [String] path
   # @param [String] flags
-  # @param [Number?] mode defaults to `0666`
+  # @param [Number?] mode defaults to `0644`
   # @return [BrowserFS.File]
-  @openSync: (path, flags, mode=0o666) =>
+  @openSync: (path, flags, mode=0o644) =>
     path = @_canonicalizePath path
     flags = BrowserFS.FileMode.getFileMode flags
     @root.openSync path, flags, mode
@@ -306,7 +306,7 @@ class BrowserFS.node.fs
   # @param [String | BrowserFS.node.Buffer] data
   # @param [Object?] options
   # @option options [String] encoding Defaults to `'utf8'`.
-  # @option options [Number] mode Defaults to `0666`.
+  # @option options [Number] mode Defaults to `0644`.
   # @option options [String] flag Defaults to `'w'`.
   # @param [Function(BrowserFS.ApiError)] callback
   @writeFile: (filename, data, options={}, callback=nopCb) =>
@@ -320,7 +320,7 @@ class BrowserFS.node.fs
       if options is undefined then options = {}
       if options.encoding is undefined then options.encoding = 'utf8'
       unless options.flag? then options.flag = 'w'
-      unless options.mode? then options.mode = 0o666
+      unless options.mode? then options.mode = 0o644
       newCb = wrapCb callback, 1
       filename = @_canonicalizePath filename
       flags = BrowserFS.FileMode.getFileMode options.flag
@@ -338,7 +338,7 @@ class BrowserFS.node.fs
   # @param [String | BrowserFS.node.Buffer] data
   # @param [Object?] options
   # @option options [String] encoding Defaults to `'utf8'`.
-  # @option options [Number] mode Defaults to `0666`.
+  # @option options [Number] mode Defaults to `0644`.
   # @option options [String] flag Defaults to `'w'`.
   @writeFileSync: (filename, data, options={}) =>
     if typeof options is 'string'
@@ -347,7 +347,7 @@ class BrowserFS.node.fs
     if options is undefined then options = {}
     if options.encoding is undefined then options.encoding = 'utf8'
     unless options.flag? then options.flag = 'w'
-    unless options.mode? then options.mode = 0o666
+    unless options.mode? then options.mode = 0o644
     filename = @_canonicalizePath filename
     flags = BrowserFS.FileMode.getFileMode options.flag
     unless flags.isWriteable()
@@ -366,7 +366,7 @@ class BrowserFS.node.fs
   # @param [String | BrowserFS.node.Buffer] data
   # @param [Object?] options
   # @option options [String] encoding Defaults to `'utf8'`.
-  # @option options [Number] mode Defaults to `0666`.
+  # @option options [Number] mode Defaults to `0644`.
   # @option options [String] flag Defaults to `'a'`.
   # @param [Function(BrowserFS.ApiError)] callback
   @appendFile: (filename, data, options, callback=nopCb) =>
@@ -380,7 +380,7 @@ class BrowserFS.node.fs
       if options is undefined then options = {}
       if options.encoding is undefined then options.encoding = 'utf8'
       unless options.flag? then options.flag = 'a'
-      unless options.mode? then options.mode = 0o666
+      unless options.mode? then options.mode = 0o644
       newCb = wrapCb callback, 1
       filename = @_canonicalizePath filename
       flags = BrowserFS.FileMode.getFileMode options.flag
@@ -402,7 +402,7 @@ class BrowserFS.node.fs
   # @param [String | BrowserFS.node.Buffer] data
   # @param [Object?] options
   # @option options [String] encoding Defaults to `'utf8'`.
-  # @option options [Number] mode Defaults to `0666`.
+  # @option options [Number] mode Defaults to `0644`.
   # @option options [String] flag Defaults to `'a'`.
   @appendFileSync: (filename, data, options={}) =>
     if typeof options is 'string'
@@ -411,7 +411,7 @@ class BrowserFS.node.fs
     if options is undefined then options = {}
     if options.encoding is undefined then options.encoding = 'utf8'
     unless options.flag? then options.flag = 'a'
-    unless options.mode? then options.mode = 0o666
+    unless options.mode? then options.mode = 0o644
     filename = @_canonicalizePath filename
     flags = BrowserFS.FileMode.getFileMode options.flag
     unless flags.isAppendable()

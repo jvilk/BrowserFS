@@ -287,7 +287,7 @@ class BrowserFS.FileSystem
     # Wrap cb in file closing code.
     oldCb = cb
     # Get file.
-    @open fname, flag, 0o666, (err, fd) ->
+    @open fname, flag, 0o644, (err, fd) ->
       if err? then return cb err
       cb = (err, arg) -> fd.close (err2) ->
         err ?= err2
@@ -312,7 +312,7 @@ class BrowserFS.FileSystem
   # @return [String|BrowserFS.Buffer]
   readFileSync: (fname, encoding, flag) ->
     # Get file.
-    fd = @openSync fname, flag, 0o666
+    fd = @openSync fname, flag, 0o644
     try
       stat = BrowserFS.node.fs.fstatSync fd
       # Allocate buffer.
@@ -339,7 +339,7 @@ class BrowserFS.FileSystem
     # Wrap cb in file closing code.
     oldCb = cb
     # Get file.
-    @open fname, flag, 0o666, (err, fd) ->
+    @open fname, flag, 0o644, (err, fd) ->
       if err? then return cb err
       cb = (err) -> fd.close (err2) -> oldCb(if err? then err else err2)
       if typeof data is 'string'

@@ -17,11 +17,11 @@ class BrowserFS.node.fs.Stats
   # @param [Number] item_type type of the item (FILE, DIRECTORY, SYMLINK, or SOCKET)
   # @param [Number] size Size of the item in bytes. For directories/symlinks,
   #   this is normally the size of the struct that represents the item.
-  # @param [Number] mode Unix-style file mode (e.g. 0o666)
+  # @param [Number] mode Unix-style file mode (e.g. 0o644)
   # @param [Date?] atime time of last access
   # @param [Date?] mtime time of last modification
   # @param [Date?] ctime time of creation
-  constructor: (@item_type, @size, @mode=0o666, @atime=(new Date()), @mtime=(new Date()), @ctime=(new Date())) ->
+  constructor: (@item_type, @size, @mode=0o644, @atime=(new Date()), @mtime=(new Date()), @ctime=(new Date())) ->
     # number of 512B blocks allocated
     @blocks = Math.ceil(size/512)
 

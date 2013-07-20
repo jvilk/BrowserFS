@@ -95,20 +95,20 @@ class BrowserFS.IndexedFileSystem extends BrowserFS.SynchronousFileSystem
     return inode.getListing()
 
   chmodSync: (path, isLchmod, mode) ->
-    fd = @openSync path, BrowserFS.FileMode.getFileMode('r+'), 0o666
+    fd = @openSync path, BrowserFS.FileMode.getFileMode('r+'), 0o644
     fd._stat.mode = mode
     fd.closeSync()
     return
 
   chownSync: (path, isLchown, uid, gid) ->
-    fd = @openSync path, BrowserFS.FileMode.getFileMode('r+'), 0o666
+    fd = @openSync path, BrowserFS.FileMode.getFileMode('r+'), 0o644
     fd._stat.uid = uid
     fd._stat.gid = gid
     fd.closeSync()
     return
 
   utimesSync: (path, atime, mtime) ->
-    fd = @openSync path, BrowserFS.FileMode.getFileMode('r+'), 0o666
+    fd = @openSync path, BrowserFS.FileMode.getFileMode('r+'), 0o644
     fd._stat.atime = atime
     fd._stat.mtime = mtime
     fd.closeSync()
