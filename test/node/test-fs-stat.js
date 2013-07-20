@@ -26,6 +26,15 @@ var success_count = 0;
 var existing_dir = common.fixturesDir;
 var existing_file = path.join(common.fixturesDir, 'x.txt');
 
+// Empty string is not a valid file path.
+fs.stat('', function(err, stats) {
+  if (err) {
+    success_count++;
+  } else {
+    got_error = true;
+  }
+});
+
 fs.stat(existing_dir, function(err, stats) {
   if (err) {
     got_error = true;
@@ -98,7 +107,7 @@ fs.stat(existing_file, function(err, s) {
 });
 
 process.on('exit', function() {
-  var expected_success = 4;
+  var expected_success = 5;
   if (fs.getRootFS().supportsSynch()) expected_success++;
   assert.equal(expected_success, success_count);
   assert.equal(false, got_error);
