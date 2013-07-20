@@ -70,6 +70,8 @@ class BrowserFS.node.fs
     # Node doesn't allow null characters in paths.
     if p.indexOf('\u0000') >= 0
       throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, 'Path must be a string without null bytes.'
+    # Empty string stays empty.
+    return p if p is ''
     return BrowserFS.node.path.resolve p
 
   # FILE OR DIRECTORY METHODS
