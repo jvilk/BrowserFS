@@ -1,0 +1,12 @@
+{
+  "name": "BrowserFS",
+  "version": "0.1.0",
+  "main": [ "./dist/browserfs.min.js", "./dist/browserfs.js" ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
