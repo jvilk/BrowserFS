@@ -5,7 +5,11 @@ KARMA     := $(shell npm bin)/karma
 
 S2B = $($(1):src/$(2)/%.coffee=tmp/$(2)/%.js)
 
-SRCS_CORE := $(wildcard src/core/*.coffee)
+#From Make 3.82 onwards, wildcard returns filenames in arbitrary order.
+#Alphabetically sorting the values is sufficient for browserfs build dependencies.
+SRCS_CORE_UNSORTED := $(wildcard src/core/*.coffee)
+SRCS_CORE := $(sort $(SRCS_CORE_UNSORTED))
+
 SRCS_GEN  := $(wildcard src/generic/*.coffee)
 SRCS_BND  := $(wildcard src/backend/*.coffee)
 # Order matters!
