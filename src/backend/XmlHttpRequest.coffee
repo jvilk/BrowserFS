@@ -28,7 +28,6 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
   # @param [String] prefix_url The url prefix to use for all web-server requests.
   
   constructor: (listing_url='index.json',@prefix_url='') ->
-    listing_url = @prefix_url + listing_url
     listing = JSON.parse @_request_file(listing_url, 'json')
     unless listing?
       throw new Error "Unable to find listing at URL: #{listing_url}"
