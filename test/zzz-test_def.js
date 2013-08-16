@@ -52,14 +52,21 @@
     __karma__.start();
   };
 
+  // Add LocalStorage-backed filesystem
   if (BrowserFS.FileSystem.LocalStorage.isAvailable()) {
     var lsfs = new BrowserFS.FileSystem.LocalStorage();
     lsfs.empty();
     backends.push(lsfs);
   }
+
+  // Add in-memory filesystem
   backends.push(new BrowserFS.FileSystem.InMemory());
+
+  // Add AJAX filesystem
   if (BrowserFS.FileSystem.XmlHttpRequest.isAvailable())
     backends.push(new BrowserFS.FileSystem.XmlHttpRequest('/listings.json'));
+
+  // Add mountable filesystem
   var im2 = new BrowserFS.FileSystem.InMemory();
   //var im3 = new BrowserFS.FileSystem.InMemory();
   var mfs = new BrowserFS.FileSystem.MountableFileSystem();
@@ -68,5 +75,11 @@
   // alter when an error is raised.
   //mfs.mount('/test', im2);
   backends.push(mfs);
+
+  // Add Dropbox-backed filesystem
+  if (BrowserFS.FileSystem.Dropbox.isAvailable()){
+    backends.push(new BrowserFS.FileSystem.Dropbox());
+  }
+
   generateAllTests();
 })(this);

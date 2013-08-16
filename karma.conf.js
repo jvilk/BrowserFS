@@ -14,7 +14,12 @@ module.exports = function(config) {
       'src/core/*.coffee',
       'src/generic/*.coffee',
       'src/backend/*.coffee',
+      '../dbfs-demo/js/jquery.js',
+      '../dbfs-demo/js/browserfs.js',
+      '../dbfs-demo/js/dropbox.js',
+      '../dbfs-demo/js/dbfs.js',
       'lib/load_fixtures.js',
+
       'test/000-setup.js',
       'test/node/*.js',
       'test/zzz-test_def.js'
