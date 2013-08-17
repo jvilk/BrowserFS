@@ -71,8 +71,13 @@ module.exports = function(grunt) {
     connect: {
       server: {
         options: {
-          keepalive: true
+          keepalive: false
         }
+      }
+    },
+    karma: {
+      unit: {
+        configFile: 'karma.conf.js'
       }
     }
   });
@@ -84,8 +89,9 @@ module.exports = function(grunt) {
   // grunt.loadNpmTasks('grunt-contrib-jshint');
   // grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-connect');
+  grunt.loadNpmTasks('grunt-karma');
 
   // Default task.
-  grunt.registerTask('default', ['jshint', 'qunit', 'concat', 'uglify']);
+  grunt.registerTask('default', ['connect', 'karma']);
 
 };

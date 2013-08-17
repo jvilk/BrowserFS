@@ -76,10 +76,5 @@
   //mfs.mount('/test', im2);
   backends.push(mfs);
 
-  // Add Dropbox-backed filesystem
-  if (BrowserFS.FileSystem.Dropbox.isAvailable()){
-    backends.push(new BrowserFS.FileSystem.Dropbox());
-  }
-
   generateAllTests();
 })(this);
