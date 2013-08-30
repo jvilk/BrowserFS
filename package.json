@@ -2,7 +2,11 @@
   "name": "browserfs",
   "version": "0.2.0",
   "description": "A filesystem in your browser!",
-  "keywords": ["filesystem", "storage", "node"],
+  "keywords": [
+    "filesystem",
+    "storage",
+    "node"
+  ],
   "homepage": "https://github.com/jvilk/BrowserFS",
   "author": "John Vilk <jvilk@cs.umass.edu> (http://people.cs.umass.edu/~jvilk)",
   "license": "MIT",
@@ -23,6 +27,10 @@
     "coffee-script": ">= 1.6.2",
     "glob": ">= 3.1.21",
     "uglify-js": ">= 2.2.5",
-    "codo": ">= 1.6.0"
+    "codo": ">= 1.6.0",
+    "grunt-karma": "~0.6.1",
+    "grunt-cli": "~0.1.9",
+    "grunt-contrib-connect": "~0.3.0",
+    "grunt": "~0.4.1"
   }
 }

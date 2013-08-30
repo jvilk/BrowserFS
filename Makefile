@@ -2,6 +2,7 @@ COFFEE    := $(shell npm bin)/coffee
 UGLIFYJS  := $(shell npm bin)/uglifyjs
 CODO      := $(shell npm bin)/codo
 KARMA     := $(shell npm bin)/karma
+GRUNT     := $(shell npm bin)/grunt
 
 S2B = $($(1):src/$(2)/%.coffee=tmp/$(2)/%.js)
 
@@ -22,10 +23,9 @@ FIXTURES  := $(shell find test/fixtures -name '*')
 
 release: lib/browserfs.min.js
 dev: lib/browserfs.js
-# TODO: `make test` never cleans up the backgrounded server.
-test: $(KARMA) listings.json lib/load_fixtures.js
-	python -m SimpleHTTPServer 8000 &
-	$(KARMA) start
+
+test: $(GRUNT) $(KARMA) listings.json lib/load_fixtures.js
+	$(GRUNT)
 doc: doc/index.html
 clean:
 	@rm -f lib/*.js lib/*.map
@@ -35,7 +35,7 @@ dependencies: $(COFFEE) $(UGLIFYJS) $(CODO) $(KARMA)
 doc/index.html: $(SRCS) $(CODO) README.md
 	$(CODO) --title "BrowserFS Documentation" $(SRCS)
 
-$(COFFEE) $(UGLIFYJS) $(CODO) (KARMA):
+$(COFFEE) $(UGLIFYJS) $(CODO) (KARMA) $(GRUNT):
 	@echo "Installing needed Node modules with 'npm install'..."
 	@npm install
 	@echo "Node modules installed successfully!"
