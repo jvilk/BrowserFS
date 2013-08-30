@@ -24,7 +24,7 @@ FIXTURES  := $(shell find test/fixtures -name '*')
 release: lib/browserfs.min.js
 dev: lib/browserfs.js
 
-test: $(GRUNT) listings.json lib/load_fixtures.js
+test: $(GRUNT) $(KARMA) listings.json lib/load_fixtures.js
 	$(GRUNT)
 doc: doc/index.html
 clean:
@@ -35,7 +35,7 @@ dependencies: $(COFFEE) $(UGLIFYJS) $(CODO) $(KARMA)
 doc/index.html: $(SRCS) $(CODO) README.md
 	$(CODO) --title "BrowserFS Documentation" $(SRCS)
 
-$(COFFEE) $(UGLIFYJS) $(CODO) (KARMA):
+$(COFFEE) $(UGLIFYJS) $(CODO) (KARMA) $(GRUNT):
 	@echo "Installing needed Node modules with 'npm install'..."
 	@npm install
 	@echo "Node modules installed successfully!"
