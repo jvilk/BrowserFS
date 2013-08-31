@@ -77,10 +77,9 @@
   //backends.push(mfs);
 
   var dbfs = new BrowserFS.FileSystem.Dropbox(function() {
+    backends.push(dbfs);
     dbfs.empty(function(){
       generateAllTests();
     });
   }, true);
-
-  backends.push(dbfs);
 })(this);

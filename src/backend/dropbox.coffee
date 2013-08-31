@@ -58,13 +58,12 @@ class BrowserFS.FileSystem.Dropbox extends BrowserFS.FileSystem
         creds = JSON.parse req.response
         @init_client.setCredentials(creds)
         auth()
-        cb(@)
       req.send()
     # Prompt the user to authenticate under normal use
     else
       @init_client.authDriver(new db.AuthDriver.Redirect({ rememberUser: true }))
       auth()
-      cb(@)
+    return
 
   getName: -> 'Dropbox'
 
