@@ -53,33 +53,34 @@
   };
 
   // Add LocalStorage-backed filesystem
-  if (BrowserFS.FileSystem.LocalStorage.isAvailable()) {
-    var lsfs = new BrowserFS.FileSystem.LocalStorage();
-    lsfs.empty();
-    backends.push(lsfs);
-  }
+  //if (BrowserFS.FileSystem.LocalStorage.isAvailable()) {
+  //  var lsfs = new BrowserFS.FileSystem.LocalStorage();
+  //  lsfs.empty();
+  //  backends.push(lsfs);
+  //}
 
   // Add in-memory filesystem
-  backends.push(new BrowserFS.FileSystem.InMemory());
+  //backends.push(new BrowserFS.FileSystem.InMemory());
 
   // Add AJAX filesystem
-  if (BrowserFS.FileSystem.XmlHttpRequest.isAvailable())
-    backends.push(new BrowserFS.FileSystem.XmlHttpRequest('/listings.json'));
+  //if (BrowserFS.FileSystem.XmlHttpRequest.isAvailable())
+  //  backends.push(new BrowserFS.FileSystem.XmlHttpRequest('/listings.json'));
 
   // Add mountable filesystem
-  var im2 = new BrowserFS.FileSystem.InMemory();
+  //var im2 = new BrowserFS.FileSystem.InMemory();
   //var im3 = new BrowserFS.FileSystem.InMemory();
-  var mfs = new BrowserFS.FileSystem.MountableFileSystem();
-  mfs.mount('/', im2);
+  //var mfs = new BrowserFS.FileSystem.MountableFileSystem();
+  //mfs.mount('/', im2);
   //TODO: Test when API Error has a 'file' attribute that MFS can appropriately
   // alter when an error is raised.
   //mfs.mount('/test', im2);
-  backends.push(mfs);
+  //backends.push(mfs);
 
-  var dbfs = new BrowserFS.FileSystem.Dropbox(null, true);
+  var dbfs = new BrowserFS.FileSystem.Dropbox(function() {
+    dbfs.empty(function(){
+      generateAllTests();
+    });
+  }, true);
+
   backends.push(dbfs);
-  dbfs.empty(function(){
-    generateAllTests();
-  });
-
 })(this);

@@ -26,7 +26,6 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
   #   tools/XHRIndexer.coffee. This can be relative to the current webpage URL
   #   or absolutely specified.
   # @param [String] prefix_url The url prefix to use for all web-server requests.
-  
   constructor: (listing_url='index.json',@prefix_url='') ->
     listing = JSON.parse @_request_file(listing_url, 'json')
     unless listing?

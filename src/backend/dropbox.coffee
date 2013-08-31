@@ -27,35 +27,44 @@ class BrowserFS.FileSystem.Dropbox extends BrowserFS.FileSystem
   # credentials for testing.
   constructor: (cb, testing=false) ->
     @init_client = new db.Client({
-      key: 'u8sx6mjp5bxvbg4'
+      key: 'c6oex2qavccb2l3'
       sandbox: true
     })
 
-    # Authenticate with pregenerated credentials for unit testing so that it
-    # can be automatic
+    auth = =>
+      @init_client.authenticate((error, authed_client) =>
+        if error
+          console.error 'Error: could not connect to Dropbox'
+          console.error error
+          return
+
+        authed_client.getUserInfo((error, info) ->
+          console.debug "Successfully connected to #{info.name}'s Dropbox"
+        )
+
+        @client = authed_client
+        cb(this) if cb
+      )
+
+    # Authenticate with pregenerated unit testing credentials.
     if testing
-      @init_client.setCredentials({
-        key: "u8sx6mjp5bxvbg4",
-        token: "mhkmZQTE4PUAAAAAAAAAAYyMdcdkqvPudyYwmuIZp3REM1YvV9skdtstDBYUxuFg",
-        uid: "4326179"
-      })
+      req = new XMLHttpRequest()
+      req.open 'GET', '/db_credentials.json'
+      data = null
+      req.onerror = (e) -> console.error req.statusText
+      req.onload = (e) =>
+        unless req.readyState is 4 and req.status is 200
+          console.error req.statusText
+        creds = JSON.parse req.response
+        @init_client.setCredentials(creds)
+        auth()
+        cb(@)
+      req.send()
     # Prompt the user to authenticate under normal use
     else
       @init_client.authDriver(new db.AuthDriver.Redirect({ rememberUser: true }))
-
-    @init_client.authenticate((error, authed_client) =>
-      if error
-        console.error 'Error: could not connect to Dropbox'
-        console.error error
-        return
-
-      authed_client.getUserInfo((error, info) ->
-        console.debug "Successfully connected to #{info.name}'s Dropbox"
-      )
-
-      @client = authed_client
-      cb(this) if cb
-    )
+      auth()
+      cb(@)
 
   getName: -> 'Dropbox'
 
