@@ -110,6 +110,10 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
         @syncSync()
       return
     @_stat.size = len
+    # Truncate buffer to 'len'.
+    newBuff = new Buffer(len)
+    @_buffer.copy newBuff, 0, 0, len
+    @_buffer = newBuff
     if @_mode.isSynchronous() and BrowserFS.node.fs.getRootFS().supportsSynch()
       @syncSync()
     return
