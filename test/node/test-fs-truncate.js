@@ -126,7 +126,7 @@ function testFtruncate(cb) {
               fs.ftruncate(fd, function(er) {
                 if (er) return cb(er);
                 // Force a sync.
-                fs.fsync(filename, function(er) {
+                fs.fsync(fd, function(er) {
                   if (er) return cb(er);
                   fs.stat(filename, function(er, stat) {
                     if (er) return cb(er);
