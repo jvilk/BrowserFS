@@ -76,5 +76,10 @@
   //mfs.mount('/test', im2);
   backends.push(mfs);
 
-  generateAllTests();
+  var dbfs = new BrowserFS.FileSystem.Dropbox(null, true);
+  backends.push(dbfs);
+  dbfs.empty(function(){
+    generateAllTests();
+  });
+
 })(this);
