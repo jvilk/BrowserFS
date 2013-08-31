@@ -49,14 +49,14 @@ class BrowserFS.FileSystem.Dropbox extends BrowserFS.FileSystem
     # Authenticate with pregenerated unit testing credentials.
     if testing
       req = new XMLHttpRequest()
-      req.open 'GET', '/db_credentials.json'
+      req.open 'GET', '/test/token/token.json'
       data = null
       req.onerror = (e) -> console.error req.statusText
       req.onload = (e) =>
         unless req.readyState is 4 and req.status is 200
           console.error req.statusText
         creds = JSON.parse req.response
-        @init_client.setCredentials(creds)
+        @init_client.setCredentials(creds.sandbox)
         auth()
       req.send()
     # Prompt the user to authenticate under normal use
