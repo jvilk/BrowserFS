@@ -116,19 +116,27 @@ function testFtruncate(cb) {
         if (er) return cb(er);
         fs.ftruncate(fd, 1024, function(er) {
           if (er) return cb(er);
-          fs.stat(filename, function(er, stat) {
+          // Force a sync.
+          fs.fsync(fd, function(er) {
             if (er) return cb(er);
-            assert.equal(stat.size, 1024);
-
-            fs.ftruncate(fd, function(er) {
+            fs.stat(filename, function(er, stat) {
               if (er) return cb(er);
-              fs.stat(filename, function(er, stat) {
+              assert.equal(stat.size, 1024);
+
+              fs.ftruncate(fd, function(er) {
                 if (er) return cb(er);
-                assert.equal(stat.size, 0);
-                fs.close(fd, cb);
+                // Force a sync.
+                fs.fsync(filename, function(er) {
+                  if (er) return cb(er);
+                  fs.stat(filename, function(er, stat) {
+                    if (er) return cb(er);
+                    assert.equal(stat.size, 0);
+                    fs.close(fd, cb);
+                  });
+                });
               });
             });
-          });
+          })
         });
       });
     });

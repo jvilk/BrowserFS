@@ -89,12 +89,15 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
   truncate: (len, cb)->
     try
       @truncateSync(len)
-      cb()
+      if @_mode.isSynchronous() and !BrowserFS.node.fs.getRootFS().supportsSynch()
+        @sync(cb)
+      else
+        cb()
     catch e
       cb(e)
   # Synchronous truncate.
   # @param [Number] len
-  truncateSync: (len, cb)->
+  truncateSync: (len)->
     unless @_mode.isWriteable()
       throw new BrowserFS.ApiError BrowserFS.ApiError.PERMISSIONS_ERROR, 'File not opened with a writeable mode.'
     @_stat.mtime = new Date()
@@ -103,10 +106,12 @@ class BrowserFS.File.PreloadFile extends BrowserFS.File
       buf.fill 0
       # Write will set @_stat.size for us.
       @writeSync buf, 0, buf.length, @_buffer.length
-      if @_mode.isSynchronous() then @syncSync()
+      if @_mode.isSynchronous() and BrowserFS.node.fs.getRootFS().supportsSynch()
+        @syncSync()
       return
     @_stat.size = len
-    if @_mode.isSynchronous() then @syncSync()
+    if @_mode.isSynchronous() and BrowserFS.node.fs.getRootFS().supportsSynch()
+      @syncSync()
     return
   # Write buffer to the file.
   # Note that it is unsafe to use fs.write multiple times on the same file
