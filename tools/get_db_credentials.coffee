@@ -2,6 +2,7 @@
 
 # Modified from dropbox-js
 fs = require 'fs'
+child_process = require 'child_process'
 
 # Stashes Dropbox access credentials.
 class TokenStash
@@ -132,8 +133,34 @@ class TokenStash
     unless @_fs.existsSync @_dirPath
       @_fs.mkdirSync @_dirPath
 
-module.exports = TokenStash
-ts = new TokenStash tls: fs.readFileSync('test/ssl/cert.pem')
-ts.get ->
-  console.log "Done"
+class Certificate
+  constructor: ->
+    @path = 'test/ssl/cert.pem'
+    @cmd = "openssl req -new -x509 -days 365 -nodes -batch -out #{@path} -keyout #{@path} -subj /O=dropbox.js/OU=Testing/CN=localhost"
 
+    fs.mkdir('test/ssl') unless fs.existsSync('test/ssl')
+
+  exists: ->
+    fs.existsSync(@path)
+
+  valid: ->
+    @exists()
+
+  create: (cb) ->
+    return if @valid()
+    child_process.exec(@cmd, (err) ->
+      console.error(err) if err
+      cb()
+    )
+
+  read: ->
+    fs.readFileSync(@path)
+
+module.exports = TokenStash
+
+cert = new Certificate()
+cert.create ->
+  ts = new TokenStash tls: cert.read()
+  ts.get ->
+    console.log "Done"
+    process.exit(0)
