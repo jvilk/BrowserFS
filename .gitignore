@@ -8,3 +8,5 @@ doc/*
 *.json
 vendor/async/
 vendor/dropbox-build/
+test/token/
+test/ssl

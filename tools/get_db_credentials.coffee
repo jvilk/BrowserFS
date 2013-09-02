@@ -1,3 +1,5 @@
+#! /usr/bin/env coffee
+
 # Modified from dropbox-js
 fs = require 'fs'
 
