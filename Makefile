@@ -25,7 +25,8 @@ FIXTURES  := $(shell find test/fixtures -name '*')
 release: lib/browserfs.min.js
 dev: lib/browserfs.js
 
-test: $(GRUNT) $(KARMA) listings.json lib/load_fixtures.js test/ssl/cert.pem \
+test: $(GRUNT) $(KARMA) listings.json lib/load_fixtures.js \
+	test/ssl/cert.pem test/token/token.json \
 	vendor/async/lib/async.js vendor/dropbox-build/dropbox.js
 	$(GRUNT)
 doc: doc/index.html
@@ -58,7 +59,7 @@ lib/browserfs.min.js: lib/browserfs.js $(UGLIFYJS)
 lib/load_fixtures.js: tools/FixtureLoaderMaker.coffee $(COFFEE) $(FIXTURES)
 	$(COFFEE) $<
 
-test/ssl/cert.pem: tools/get_db_credentials.coffee $(COFFEE)
+test/ssl/cert.pem test/token/token.json: tools/get_db_credentials.coffee $(COFFEE)
 	$(COFFEE) $<
 
 vendor/async/lib/async.js vendor/dropbox-build/dropbox.js: $(BOWER)

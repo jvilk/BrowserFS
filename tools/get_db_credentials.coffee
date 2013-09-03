@@ -31,11 +31,11 @@ class TokenStash
       callback @_getCache
       return null
 
-    @liveLogin (fullCredentials, sandboxCredentials) =>
-      unless fullCredentials and sandboxCredentials
+    @liveLogin (credentials) =>
+      unless credentials
         throw new Error('Dropbox API authorization failed')
 
-      @writeStash fullCredentials, sandboxCredentials
+      @writeStash credentials
       @_getCache = @readStash()
       callback @_getCache
     null
@@ -51,38 +51,28 @@ class TokenStash
   # @return null
   liveLogin: (callback) ->
     Dropbox = require 'dropbox'
-    sandboxClient = new Dropbox.Client @clientOptions().sandbox
-    fullClient = new Dropbox.Client @clientOptions().full
+    client = new Dropbox.Client @clientOptions()
     @setupAuth()
-    sandboxClient.authDriver @_authDriver
-    sandboxClient.authenticate (error, data) =>
+    client.authDriver @_authDriver
+    client.authenticate (error, data) =>
       if error
         @killAuth()
         console.error error
         callback null
         return
-      fullClient.authDriver @_authDriver
-      fullClient.authenticate (error, data) =>
-        @killAuth()
-        if error
-          console.error error
-          callback null
-          return
-        credentials = @clientOptions()
-        callback fullClient.credentials(), sandboxClient.credentials()
+
+      credentials = @clientOptions()
+      callback client.credentials()
+
     null
 
   # Returns the options used to create a Dropbox Client.
   clientOptions: ->
-    if process.env['API_CONFIG']
-      JSON.parse @_fs.readFileSync(process.env['API_CONFIG'])
+    if process.env.API_CONFIG
+      JSON.parse @_fs.readFileSync(process.env.API_CONFIG)
     else
-      sandbox:
-        key: 'c6oex2qavccb2l3'
-        secret: 'cb0sxc9e09itvrn'
-      full:
-        key: 'c6oex2qavccb2l3'
-        secret: 'cb0sxc9e09itvrn'
+      key: 'c6oex2qavccb2l3'
+      secret: 'cb0sxc9e09itvrn'
 
 
   # Reads the file containing the access credentials, if it is available.
@@ -97,16 +87,9 @@ class TokenStash
   # Stashes the access credentials for future test use.
   #
   # @return null
-  writeStash: (fullCredentials, sandboxCredentials) ->
-    json = JSON.stringify full: fullCredentials, sandbox: sandboxCredentials
+  writeStash: (credentials) ->
+    json = JSON.stringify credentials
     @_fs.writeFileSync @_jsonPath, json
-
-    browserJs = "window.testKeys = #{JSON.stringify sandboxCredentials};" +
-        "window.testFullDropboxKeys = #{JSON.stringify fullCredentials};"
-    @_fs.writeFileSync @_browserJsPath, browserJs
-    workerJs = "self.testKeys = #{JSON.stringify sandboxCredentials};" +
-        "self.testFullDropboxKeys = #{JSON.stringify fullCredentials};"
-    @_fs.writeFileSync @_workerJsPath, workerJs
     null
 
   # Sets up a node.js server-based authentication driver.
@@ -125,13 +108,7 @@ class TokenStash
 
   # Sets up the directory structure for the credential stash.
   setupFs: ->
-    @_dirPath = 'test/token'
-    @_jsonPath = 'test/token/token.json'
-    @_browserJsPath = 'test/token/token.browser.js'
-    @_workerJsPath = 'test/token/token.worker.js'
-
-    unless @_fs.existsSync @_dirPath
-      @_fs.mkdirSync @_dirPath
+    @_jsonPath = 'test/token.json'
 
 # Represents the SSL certificate used to authenticate with Dropbox
 # Singleton class - only instantiate once
