@@ -33,6 +33,7 @@
     "grunt-contrib-connect": "~0.3.0",
     "grunt": "~0.4.1",
     "xhr2": "*",
-    "open": "*"
+    "open": "*",
+    "dropbox": "~0.10.1"
   }
 }

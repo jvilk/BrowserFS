@@ -2,7 +2,7 @@
 
 # Modified from dropbox-js
 fs = require 'fs'
-child_process = require 'child_process'
+{exec} = require 'child_process'
 
 # Stashes Dropbox access credentials.
 class TokenStash
@@ -133,6 +133,8 @@ class TokenStash
     unless @_fs.existsSync @_dirPath
       @_fs.mkdirSync @_dirPath
 
+# Represents the SSL certificate used to authenticate with Dropbox
+# Singleton class - only instantiate once
 class Certificate
   constructor: ->
     @path = 'test/ssl/cert.pem'
@@ -143,14 +145,34 @@ class Certificate
   exists: ->
     fs.existsSync(@path)
 
-  valid: ->
-    @exists()
+  valid: (cb) ->
+    cb(false) unless @exists()
+
+    dropbox = require('dropbox')
+    client = new dropbox.Client({
+      key: 'c6oex2qavccb2l3'
+      secret: 'cb0sxc9e09itvrn'
+    })
+    client.authDriver(new dropbox.AuthDriver.NodeServer())
+    client.authenticate((error, authed_client) ->
+      if error
+        console.error('Failed to authenticate with current credentials')
+        cb(false)
+      else
+        authed_client.readdir('/' (error, files) ->
+          if error
+            cb(false)
+          else
+            cb(true)
+        )
+    )
 
   create: (cb) ->
-    return if @valid()
-    child_process.exec(@cmd, (err) ->
-      console.error(err) if err
-      cb()
+    @valid((result) =>
+      exec(@cmd, (err) ->
+        console.error(err) if err
+        cb()
+      )
     )
 
   read: ->
