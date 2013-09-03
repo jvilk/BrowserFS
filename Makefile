@@ -3,6 +3,7 @@ UGLIFYJS  := $(shell npm bin)/uglifyjs
 CODO      := $(shell npm bin)/codo
 KARMA     := $(shell npm bin)/karma
 GRUNT     := $(shell npm bin)/grunt
+BOWER     := $(shell npm bin)/bower
 
 S2B = $($(1):src/$(2)/%.coffee=tmp/$(2)/%.js)
 
@@ -24,7 +25,8 @@ FIXTURES  := $(shell find test/fixtures -name '*')
 release: lib/browserfs.min.js
 dev: lib/browserfs.js
 
-test: $(GRUNT) $(KARMA) listings.json lib/load_fixtures.js test/ssl/cert.pem
+test: $(GRUNT) $(KARMA) listings.json lib/load_fixtures.js test/ssl/cert.pem \
+	vendor/async/lib/async.js vendor/dropbox-build/dropbox.js
 	$(GRUNT)
 doc: doc/index.html
 clean:
@@ -58,3 +60,6 @@ lib/load_fixtures.js: tools/FixtureLoaderMaker.coffee $(COFFEE) $(FIXTURES)
 
 test/ssl/cert.pem: tools/get_db_credentials.coffee $(COFFEE)
 	$(COFFEE) $<
+
+vendor/async/lib/async.js vendor/dropbox-build/dropbox.js: $(BOWER)
+	bower install
