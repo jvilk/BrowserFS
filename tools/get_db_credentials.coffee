@@ -159,7 +159,7 @@ class Certificate
         console.error('Failed to authenticate with current credentials')
         cb(false)
       else
-        authed_client.readdir('/' (error, files) ->
+        authed_client.readdir('/', (error, files) ->
           if error
             cb(false)
           else

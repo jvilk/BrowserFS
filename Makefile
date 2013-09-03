@@ -24,7 +24,7 @@ FIXTURES  := $(shell find test/fixtures -name '*')
 release: lib/browserfs.min.js
 dev: lib/browserfs.js
 
-test: $(GRUNT) $(KARMA) listings.json lib/load_fixtures.js
+test: $(GRUNT) $(KARMA) listings.json lib/load_fixtures.js test/ssl/cert.pem
 	$(GRUNT)
 doc: doc/index.html
 clean:
@@ -54,4 +54,7 @@ lib/browserfs.min.js: lib/browserfs.js $(UGLIFYJS)
 	$(UGLIFYJS) --compress unused=false --output $@ --in-source-map tmp/browserfs.map --source-map lib/browserfs.min.map vendor/*.js lib/browserfs.js
 
 lib/load_fixtures.js: tools/FixtureLoaderMaker.coffee $(COFFEE) $(FIXTURES)
+	$(COFFEE) $<
+
+test/ssl/cert.pem: tools/get_db_credentials.coffee $(COFFEE)
 	$(COFFEE) $<
