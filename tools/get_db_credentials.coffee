@@ -4,6 +4,8 @@
 fs = require 'fs'
 {exec} = require 'child_process'
 
+dropbox = require 'dropbox'
+
 # Stashes Dropbox access credentials.
 class TokenStash
   # @param {Object} options one or more of the options below
@@ -50,8 +52,7 @@ class TokenStash
   #   App folder access
   # @return null
   liveLogin: (callback) ->
-    Dropbox = require 'dropbox'
-    client = new Dropbox.Client @clientOptions()
+    client = new dropbox.Client @clientOptions()
     @setupAuth()
     client.authDriver @_authDriver
     client.authenticate (error, data) =>
@@ -96,8 +97,7 @@ class TokenStash
   setupAuth: ->
     return if @_authDriver
 
-    Dropbox = require 'dropbox'
-    @_authDriver = new Dropbox.AuthDriver.NodeServer tls: @_tlsOptions
+    @_authDriver = new dropbox.AuthDriver.NodeServer tls: @_tlsOptions
 
   # Shuts down the node.js server behind the authentication server.
   killAuth: ->
@@ -125,7 +125,6 @@ class Certificate
   valid: (cb) ->
     cb(false) unless @exists()
 
-    dropbox = require('dropbox')
     client = new dropbox.Client({
       key: 'c6oex2qavccb2l3'
       secret: 'cb0sxc9e09itvrn'
