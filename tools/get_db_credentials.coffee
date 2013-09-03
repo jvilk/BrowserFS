@@ -50,7 +50,7 @@ class TokenStash
   #   App folder access
   # @return null
   liveLogin: (callback) ->
-    Dropbox = require '../vendor/dropbox-build/dropbox'
+    Dropbox = require 'dropbox'
     sandboxClient = new Dropbox.Client @clientOptions().sandbox
     fullClient = new Dropbox.Client @clientOptions().full
     @setupAuth()
