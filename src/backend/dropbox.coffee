@@ -14,51 +14,8 @@ class BrowserFS.File.DropboxFile extends BrowserFS.File.PreloadFile
   close: (cb) -> @sync(cb)
 
 class BrowserFS.FileSystem.Dropbox extends BrowserFS.FileSystem
-  # Pass a callback to be executed once the authentication process has finished
-  # DBFS cannot be used before this point. The callback recieves one argument,
-  # the newly constructed FS object, that you can then make calls to.
-  #
-  # Pass a null callback and testing=true to authenticate with pregenerated
-  # credentials for testing.
-  constructor: (cb, testing=false) ->
-    @init_client = new db.Client({
-      key: 'c6oex2qavccb2l3'
-      sandbox: true
-    })
-
-    auth = =>
-      @init_client.authenticate((error, authed_client) =>
-        if error
-          console.error 'Error: could not connect to Dropbox'
-          console.error error
-          return
-
-        authed_client.getUserInfo((error, info) ->
-          console.debug "Successfully connected to #{info.name}'s Dropbox"
-        )
-
-        @client = authed_client
-        cb(this) if cb
-      )
-
-    # Authenticate with pregenerated unit testing credentials.
-    if testing
-      req = new XMLHttpRequest()
-      req.open 'GET', '/test/token/token.json'
-      data = null
-      req.onerror = (e) -> console.error req.statusText
-      req.onload = (e) =>
-        unless req.readyState is 4 and req.status is 200
-          console.error req.statusText
-        creds = JSON.parse req.response
-        @init_client.setCredentials(creds.sandbox)
-        auth()
-      req.send()
-    # Prompt the user to authenticate under normal use
-    else
-      @init_client.authDriver(new db.AuthDriver.Redirect({ rememberUser: true }))
-      auth()
-    return
+  # Arguments: an authenticated Dropbox.js client
+  constructor: (@client) ->
 
   getName: -> 'Dropbox'
 

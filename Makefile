@@ -20,7 +20,7 @@ BINS      := $(call S2B,SRCS_CORE,core) $(call S2B,SRCS_GEN,generic) \
              $(call S2B,SRCS_BND,backend)
 FIXTURES  := $(shell find test/fixtures -name '*')
 
-.PHONY: dependencies release dev test doc clean
+.PHONY: dependencies release dev test doc clean dropbox
 
 release: lib/browserfs.min.js
 dev: lib/browserfs.js
@@ -33,7 +33,12 @@ doc: doc/index.html
 clean:
 	@rm -f lib/*.js lib/*.map
 	@rm -rf tmp/
+	@rm -rf test/ssl
+	@rm test/token.json
 dependencies: $(COFFEE) $(UGLIFYJS) $(CODO) $(KARMA)
+
+dropbox: $(COFFEE)
+	tools/get_db_credentials.coffee
 
 doc/index.html: $(SRCS) $(CODO) README.md
 	$(CODO) --title "BrowserFS Documentation" $(SRCS)
@@ -59,8 +64,7 @@ lib/browserfs.min.js: lib/browserfs.js $(UGLIFYJS)
 lib/load_fixtures.js: tools/FixtureLoaderMaker.coffee $(COFFEE) $(FIXTURES)
 	$(COFFEE) $<
 
-test/ssl/cert.pem test/token/token.json: tools/get_db_credentials.coffee $(COFFEE)
-	$(COFFEE) $<
-
 vendor/async/lib/async.js vendor/dropbox-build/dropbox.js: $(BOWER)
 	bower install
+
+test/ssl/cert.pem test/token/token.json: dropbox
