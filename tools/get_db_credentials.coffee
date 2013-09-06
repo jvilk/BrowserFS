@@ -1,114 +1,14 @@
 #! /usr/bin/env coffee
 
-# Modified from dropbox-js
 fs = require 'fs'
 {exec} = require 'child_process'
-
 dropbox = require 'dropbox'
 
-# Stashes Dropbox access credentials.
-class TokenStash
-  # @param {Object} options one or more of the options below
-  # @option options {Object} tls tls.createServer() options for the node.js
-  #   HTTPS server that intercepts the OAuth 2 authorization redirect
-  constructor: (options) ->
-    @_tlsOptions = options?.tls or {}
-    @_fs = require 'fs'
-    # Node 0.6 hack.
-    unless @_fs.existsSync
-      path = require 'path'
-      @_fs.existsSync = (filePath) -> path.existsSync filePath
-    @_getCache = null
-    @setupFs()
+client = new dropbox.Client({
+  key: 'c6oex2qavccb2l3'
+  secret: 'cb0sxc9e09itvrn'
+})
 
-  # Calls the supplied method with the Dropbox access credentials.
-  #
-  # @param {function(Object<String, Object>)} callback called with an object
-  #   whose 'full' and 'sandbox' properties point to two set of Oauth
-  #   credentials
-  # @return null
-  get: (callback) ->
-    @_getCache or= @readStash()
-    if @_getCache
-      callback @_getCache
-      return null
-
-    @liveLogin (credentials) =>
-      unless credentials
-        throw new Error('Dropbox API authorization failed')
-
-      @writeStash credentials
-      @_getCache = @readStash()
-      callback @_getCache
-    null
-
-  # Obtains credentials by doing a login on the live site.
-  #
-  # @private
-  # Used internally by get.
-  #
-  # @param {function(Object, Object)} callback called with two sets of
-  #   crendentials; the first set has Full Dropbox access, the second set has
-  #   App folder access
-  # @return null
-  liveLogin: (callback) ->
-    client = new dropbox.Client @clientOptions()
-    @setupAuth()
-    client.authDriver @_authDriver
-    client.authenticate (error, data) =>
-      if error
-        @killAuth()
-        console.error error
-        callback null
-        return
-
-      credentials = @clientOptions()
-      callback client.credentials()
-
-    null
-
-  # Returns the options used to create a Dropbox Client.
-  clientOptions: ->
-    if process.env.API_CONFIG
-      JSON.parse @_fs.readFileSync(process.env.API_CONFIG)
-    else
-      key: 'c6oex2qavccb2l3'
-      secret: 'cb0sxc9e09itvrn'
-
-
-  # Reads the file containing the access credentials, if it is available.
-  #
-  # @return {Object?} parsed access credentials, or null if they haven't been
-  #   stashed
-  readStash: ->
-    unless @_fs.existsSync @_jsonPath
-      return null
-    JSON.parse @_fs.readFileSync @_jsonPath
-
-  # Stashes the access credentials for future test use.
-  #
-  # @return null
-  writeStash: (credentials) ->
-    json = JSON.stringify credentials
-    @_fs.writeFileSync @_jsonPath, json
-    null
-
-  # Sets up a node.js server-based authentication driver.
-  setupAuth: ->
-    return if @_authDriver
-
-    @_authDriver = new dropbox.AuthDriver.NodeServer tls: @_tlsOptions
-
-  # Shuts down the node.js server behind the authentication server.
-  killAuth: ->
-    return unless @_authDriver
-
-    @_authDriver.closeServer()
-    @_authDriver = null
-
-  # Sets up the directory structure for the credential stash.
-  setupFs: ->
-    @_jsonPath = 'test/token.json'
 
 # Represents the SSL certificate used to authenticate with Dropbox
 # Singleton class - only instantiate once
@@ -119,46 +19,45 @@ class Certificate
 
     fs.mkdir('test/ssl') unless fs.existsSync('test/ssl')
 
-  exists: ->
-    fs.existsSync(@path)
-
-  valid: (cb) ->
-    cb(false) unless @exists()
-
-    client = new dropbox.Client({
-      key: 'c6oex2qavccb2l3'
-      secret: 'cb0sxc9e09itvrn'
-    })
-    client.authDriver(new dropbox.AuthDriver.NodeServer())
-    client.authenticate((error, authed_client) ->
-      if error
-        console.error('Failed to authenticate with current credentials')
-        cb(false)
-      else
-        authed_client.readdir('/', (error, files) ->
-          if error
-            cb(false)
-          else
-            cb(true)
-        )
-    )
-
   create: (cb) ->
-    @valid((result) =>
-      exec(@cmd, (err) ->
-        console.error(err) if err
-        cb()
-      )
+    exec(@cmd, (err) ->
+      console.error(err) if err
+      cb()
     )
 
   read: ->
     fs.readFileSync(@path)
 
-module.exports = TokenStash
-
+# Create a new SSL certificate for the server that handles the auth callback
 cert = new Certificate()
 cert.create ->
-  ts = new TokenStash tls: cert.read()
-  ts.get ->
-    console.log "Done"
-    process.exit(0)
+  client.authDriver(new dropbox.AuthDriver.NodeServer({tls: cert.read()}))
+
+  # Check if there are some credentials already stored
+  tokenPath = 'test/token.json'
+  token = null
+  if fs.existsSync(tokenPath)
+    tokenData = fs.readFileSync(tokenPath, 'utf8')
+    try
+      token = JSON.parse(tokenData)
+    catch
+
+  # Use them to authenticate if there are
+  if token isnt null
+    client.setCredentials(token)
+
+  # Authenticate the client using the credentials
+  client.authenticate((error, authed_client) ->
+    if error
+      console.error('Failed to authenticate')
+      process.exit(1)
+    else
+      if client.isAuthenticated()
+        # Save the credentials for future use
+        fs.writeFileSync(tokenPath, JSON.stringify(authed_client.credentials()))
+        console.log 'Done'
+        process.exit(0)
+      else
+        console.error('Failed to authenticate')
+        process.exit(1)
+  )
