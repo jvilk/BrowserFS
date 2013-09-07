@@ -104,7 +104,7 @@
 
   // Authenticate with pregenerated unit testing credentials.
   var req = new XMLHttpRequest();
-  req.open('GET', '/test/token.json');
+  req.open('GET', '/test/dropbox/token.json');
   var data = null
   req.onerror = function(e){ console.error(req.statusText); };
   req.onload = function(e){
