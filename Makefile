@@ -36,9 +36,6 @@ clean:
 	@rm -rf test/dropbox
 dependencies: $(COFFEE) $(UGLIFYJS) $(CODO) $(KARMA)
 
-dropbox: $(COFFEE)
-	tools/get_db_credentials.coffee
-
 doc/index.html: $(SRCS) $(CODO) README.md
 	$(CODO) --title "BrowserFS Documentation" $(SRCS)
 
