@@ -4,11 +4,6 @@ window.db = window.Dropbox
 
 class BrowserFS.File.DropboxFile extends BrowserFS.File.PreloadFile
   sync: (cb) ->
-    if @_path is '/tmp/append2.txt'
-      console.debug(@_stat)
-      console.debug(@_pos)
-      console.debug("Writing to #{@_path}:\n#{@_buffer.toString()}")
-
     @_fs.client.writeFile(@_path, @_buffer.buff.buffer, (error, stat) ->
       if error
         cb(error)
@@ -19,51 +14,8 @@ class BrowserFS.File.DropboxFile extends BrowserFS.File.PreloadFile
   close: (cb) -> @sync(cb)
 
 class BrowserFS.FileSystem.Dropbox extends BrowserFS.FileSystem
-  # Pass a callback to be executed once the authentication process has finished
-  # DBFS cannot be used before this point. The callback recieves one argument,
-  # the newly constructed FS object, that you can then make calls to.
-  #
-  # Pass a null callback and testing=true to authenticate with pregenerated
-  # credentials for testing.
-  constructor: (cb, testing=false) ->
-    @init_client = new db.Client({
-      key: 'c6oex2qavccb2l3'
-      sandbox: true
-    })
-
-    auth = =>
-      @init_client.authenticate((error, authed_client) =>
-        if error
-          console.error 'Error: could not connect to Dropbox'
-          console.error error
-          return
-
-        authed_client.getUserInfo((error, info) ->
-          console.debug "Successfully connected to #{info.name}'s Dropbox"
-        )
-
-        @client = authed_client
-        cb(this) if cb
-      )
-
-    # Authenticate with pregenerated unit testing credentials.
-    if testing
-      req = new XMLHttpRequest()
-      req.open 'GET', '/test/token/token.json'
-      data = null
-      req.onerror = (e) -> console.error req.statusText
-      req.onload = (e) =>
-        unless req.readyState is 4 and req.status is 200
-          console.error req.statusText
-        creds = JSON.parse req.response
-        @init_client.setCredentials(creds.sandbox)
-        auth()
-      req.send()
-    # Prompt the user to authenticate under normal use
-    else
-      @init_client.authDriver(new db.AuthDriver.Redirect({ rememberUser: true }))
-      auth()
-    return
+  # Arguments: an authenticated Dropbox.js client
+  constructor: (@client) ->
 
   getName: -> 'Dropbox'
 
@@ -139,10 +91,6 @@ class BrowserFS.FileSystem.Dropbox extends BrowserFS.FileSystem
   open: (path, flags, mode, cb) ->
     self = this
 
-    # XXX remove this
-    if path is '/tmp/append2.txt'
-      debugger
-
     # Try and get the file's contents
     self.client.readFile(path, {arrayBuffer: true}, (error, content, db_stat, range) =>
       if error
@@ -157,7 +105,6 @@ class BrowserFS.FileSystem.Dropbox extends BrowserFS.FileSystem
             # If it's being opened for writing or appending, create it so that
             # it can be written to
             when 404
-              # console.debug("#{path} doesn't exist, creating...")
               self.client.writeFile(path, '', (error, stat) ->
                 buf = new BrowserFS.node.Buffer(0)
                 file = self._makeFile(path, flags, stat, buf)
@@ -167,8 +114,6 @@ class BrowserFS.FileSystem.Dropbox extends BrowserFS.FileSystem
               console.log("Unhandled error: #{error}")
       # No error
       else
-        # console.debug("size of #{path}: #{db_stat.size}")
-
         # Dropbox.js seems to set `content` to `null` rather than to an empty
         # buffer when reading an empty file. Not sure why this is.
         if content is null
