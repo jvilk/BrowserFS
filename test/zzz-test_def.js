@@ -77,9 +77,10 @@
   // backends.push(mfs);
 
   if (BrowserFS.FileSystem.HTML5FS.isAvailable()){
-    new BrowserFS.FileSystem.HTML5FS(function(fs, err){
-      if(fs){
-        backends.push(fs);
+    var html5fs = new BrowserFS.FileSystem.HTML5FS();
+    html5fs.allocate(function(err){
+      if (!err){
+        backends.push(html5fs);
         generateAllTests();
       }
     });

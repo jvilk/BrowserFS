@@ -6,25 +6,7 @@ class BrowserFS.File.HTML5FSFile extends BrowserFS.File.PreloadFile
   close: (cb) -> @sync(cb)
 
 class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
-  constructor: (cb) ->
-    self = this
-    type = window.PERSISTENT
-
-    kb = 1024
-    mb = kb * kb
-    size = 5 * mb
-
-    success = (fs) ->
-      console.debug("FS created: #{fs.name}")
-      cb(self) if cb
-
-    error = (err) ->
-      console.error("Failed to create FS")
-      console.error(err)
-      cb(null, err) if cb
-
-    _getFS()(type, size, success, error)
-    cb(this) if cb
+  constructor: ->
 
   getName: -> 'HTML5 FileSystem'
 
@@ -37,6 +19,26 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
   supportsProps: -> false
 
   supportsSynch: -> false
+
+  allocate: (cb) ->
+    self = this
+
+    type = window.PERSISTENT
+
+    kb = 1024
+    mb = kb * kb
+    size = 5 * mb
+
+    success = (fs) ->
+      console.debug("FS created: #{fs.name}")
+      cb(null) if cb
+
+    error = (err) ->
+      console.error("Failed to create FS")
+      console.error(err)
+      cb(err) if cb
+
+    _getFS()(type, size, success, error)
 
   empty: (cb) ->
 
