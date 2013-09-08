@@ -9,7 +9,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
   getName: -> 'HTML5 FileSystem'
 
-  @isAvailable: -> true
+  @isAvailable: -> (window.webkitRequestFileSystem or window.requestFileSystem)?
 
   isReadOnly: -> false
 
