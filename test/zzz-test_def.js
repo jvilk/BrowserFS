@@ -53,28 +53,38 @@
   };
 
   // Add LocalStorage-backed filesystem
-  if (BrowserFS.FileSystem.LocalStorage.isAvailable()) {
-    var lsfs = new BrowserFS.FileSystem.LocalStorage();
-    lsfs.empty();
-    backends.push(lsfs);
+  // if (BrowserFS.FileSystem.LocalStorage.isAvailable()) {
+  //   var lsfs = new BrowserFS.FileSystem.LocalStorage();
+  //   lsfs.empty();
+  //   backends.push(lsfs);
+  // }
+
+  // // Add in-memory filesystem
+  // backends.push(new BrowserFS.FileSystem.InMemory());
+
+  // // Add AJAX filesystem
+  // if (BrowserFS.FileSystem.XmlHttpRequest.isAvailable())
+  //   backends.push(new BrowserFS.FileSystem.XmlHttpRequest('/listings.json'));
+
+  // // Add mountable filesystem
+  // var im2 = new BrowserFS.FileSystem.InMemory();
+  // //var im3 = new BrowserFS.FileSystem.InMemory();
+  // var mfs = new BrowserFS.FileSystem.MountableFileSystem();
+  // mfs.mount('/', im2);
+  // //TODO: Test when API Error has a 'file' attribute that MFS can appropriately
+  // // alter when an error is raised.
+  // //mfs.mount('/test', im2);
+  // backends.push(mfs);
+
+  if (BrowserFS.FileSystem.HTML5FS.isAvailable()){
+    new BrowserFS.FileSystem.HTML5FS(function(fs, err){
+      if(fs){
+        backends.push(fs);
+        generateAllTests();
+      }
+    });
   }
 
-  // Add in-memory filesystem
-  backends.push(new BrowserFS.FileSystem.InMemory());
 
-  // Add AJAX filesystem
-  if (BrowserFS.FileSystem.XmlHttpRequest.isAvailable())
-    backends.push(new BrowserFS.FileSystem.XmlHttpRequest('/listings.json'));
 
-  // Add mountable filesystem
-  var im2 = new BrowserFS.FileSystem.InMemory();
-  //var im3 = new BrowserFS.FileSystem.InMemory();
-  var mfs = new BrowserFS.FileSystem.MountableFileSystem();
-  mfs.mount('/', im2);
-  //TODO: Test when API Error has a 'file' attribute that MFS can appropriately
-  // alter when an error is raised.
-  //mfs.mount('/test', im2);
-  backends.push(mfs);
-
-  generateAllTests();
 })(this);
