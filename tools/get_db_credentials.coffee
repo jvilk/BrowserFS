@@ -35,6 +35,8 @@ fail = ->
   process.exit 1
 
 # Authenticate the client using the credentials
+# If credentials do not exist OR if existing credentials are not valid,
+# this method will pop up a browser window with the Dropbox login prompt.
 client.authenticate (error, authed_client) ->
   if error
     fail()
