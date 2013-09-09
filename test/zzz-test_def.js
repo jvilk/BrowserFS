@@ -3,6 +3,8 @@
   "use strict";
   var backends = [];
 
+  var timeout = 5000;
+
   // Generates a unit test.
   var generateTest = function(testName, test) {
     it (testName, function() {
@@ -14,14 +16,14 @@
       });
       waitsFor(function() {
         return window.__numWaiting === 0;
-      }, "All callbacks should fire", 600000);
+      }, "All callbacks should fire", timeout);
       runs(function() {
         // Run the exit callback, if any.
         process._exitCb();
       });
       waitsFor(function() {
         return window.__numWaiting === 0;
-      }, "All callbacks should fire", 600000);
+      }, "All callbacks should fire", timeout);
     });
   };
 
@@ -78,10 +80,13 @@
 
   if (BrowserFS.FileSystem.HTML5FS.isAvailable()){
     var html5fs = new BrowserFS.FileSystem.HTML5FS();
+    backends.push(html5fs);
     html5fs.allocate(function(err){
       if (!err){
-        backends.push(html5fs);
         generateAllTests();
+      }
+      else {
+        console.error(err)
       }
     });
   }
