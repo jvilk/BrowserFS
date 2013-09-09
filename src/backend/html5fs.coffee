@@ -126,9 +126,31 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
     return new BrowserFS.File.HTML5FSFile(this, path, mode, stat, buffer)
 
+  # Private
+  # Delete a file or directory from Dropbox
+  # isFile should reflect which call was made to remove the it (`unlink` or
+  # `rmdir`). If this doesn't match what's actually at `path`, an error will be
+  # returned
+  _remove: (path, cb, isFile) ->
+    self = this
+    method = "get#{if isFile then 'File' else 'Directory'}"
+
+    success = (entry) ->
+      entry.remove(
+        (-> cb(null)),
+        (-> self._sendError(cb, "Failed to remove #{path}"))
+      )
+
+    error = (err) ->
+      self._sendError(cb, err)
+
+    @fs.root[method](path, {create: false}, success, error)
+
   unlink: (path, cb) ->
+    @_remove(path, cb, true)
 
   rmdir: (path, cb) ->
+    @_remove(path, cb, false)
 
   mkdir: (path, mode, cb) ->
     success = (dir) -> cb(null)
@@ -138,3 +160,21 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
     @fs.root.getDirectory(path, {create: true}, success, error)
 
   readdir: (path, cb) ->
+    self = this
+    reader = @fs.root.createReader()
+    entries = []
+
+    error = (err) ->
+      self._sendError(cb, err)
+
+    # Call the reader.readEntries() until no more results are returned.
+    readEntries = ->
+      dirReader.readEntries(((results) ->
+        if results.length
+          entries = entries.concat(toArray(results))
+          readEntries()
+        else
+          cb(null, entries)
+      ), error)
+
+    readEntries()
