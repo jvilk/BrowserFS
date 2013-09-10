@@ -68,9 +68,19 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
       _getFS()(type, granted, success, error)
     )
 
-  empty: (cb) ->
+  # empty: (cb) ->
 
   rename: (oldPath, newPath, cb) ->
+    self = this
+
+    success = (file) ->
+      file.moveTo(oldPath, newPath)
+      cb(null)
+
+    error = (err) ->
+      self._sendError(cb, err)
+
+    @fs.root.getFile(oldPath, {}, success, err)
 
   stat: (path, isLstat, cb) ->
 
@@ -92,6 +102,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
       reader = new FileReader()
 
       reader.onloadend = (err) ->
+        console.debug('loaded')
         console.error(err) if err
 
         bfs_file = self._makeFile(path, flags, file, @result)
