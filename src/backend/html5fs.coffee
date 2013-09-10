@@ -17,7 +17,10 @@ class BrowserFS.File.HTML5FSFile extends BrowserFS.File.PreloadFile
   close: (cb) -> @sync(cb)
 
 class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
-  constructor: ->
+  constructor: (@type=window.PERSISTENT, @size=5) ->
+    kb = 1024
+    mb = kb * kb
+    @size *= mb
 
   getName: -> 'HTML5 FileSystem'
 
@@ -33,12 +36,6 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
   allocate: (cb) ->
     self = this
-
-    type = window.PERSISTENT
-
-    kb = 1024
-    mb = kb * kb
-    size = 5 * mb
 
     success = (fs) ->
       self.fs = fs
@@ -64,9 +61,14 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
       console.error(msg)
       cb(err) if cb
 
-    window.webkitStorageInfo.requestQuota(type, size, (granted) ->
-      _getFS()(type, granted, success, error)
-    )
+    getter = _getFS()
+
+    if @type is window.PERSISTENT
+      window.webkitStorageInfo.requestQuota(@type, @size, (granted) ->
+        getter(@type, granted, success, error)
+      )
+    else
+      getter(@type, @size, success, error)
 
   # empty: (cb) ->
 
@@ -85,7 +87,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
   stat: (path, isLstat, cb) ->
 
   open: (path, flags, mode, cb) ->
-    console.log('open')
+    console.debug('File open triggered')
 
     self = this
 
@@ -102,7 +104,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
       reader = new FileReader()
 
       reader.onloadend = (err) ->
-        console.debug('loaded')
+        console.debug('File reader loaded')
         console.error(err) if err
 
         bfs_file = self._makeFile(path, flags, file, @result)
@@ -147,10 +149,9 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
     method = "get#{if isFile then 'File' else 'Directory'}"
 
     success = (entry) ->
-      entry.remove(
-        (-> cb(null)),
-        (-> self._sendError(cb, "Failed to remove #{path}"))
-      )
+      succ = -> cb(null)
+      err = -> self._sendError(cb, "Failed to remove #{path}")
+      entry.remove(succ, err)
 
     error = (err) ->
       self._sendError(cb, err)
