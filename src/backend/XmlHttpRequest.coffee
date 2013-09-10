@@ -26,9 +26,9 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
   #   tools/XHRIndexer.coffee. This can be relative to the current webpage URL
   #   or absolutely specified.
   # @param [String] prefix_url The url prefix to use for all web-server requests.
-  
   constructor: (listing_url='index.json',@prefix_url='') ->
-    listing = JSON.parse @_request_file(listing_url, 'json')
+    file_data = @_request_file(listing_url, 'json')
+    listing = JSON.parse file_data
     unless listing?
       throw new Error "Unable to find listing at URL: #{listing_url}"
     @_index = BrowserFS.FileIndex.from_listing listing
@@ -57,8 +57,7 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
   _request_file_size: (path, cb) ->
     req = new XMLHttpRequest()
     req.open 'HEAD', @prefix_url + path
-    req.onerror = (e) -> console.error req.statusText
-    req.onload = (e) ->
+    req.onreadystatechange = (e) ->
       unless req.readyState is 4 and req.status is 200
         console.error req.statusText
       cb req.getResponseHeader('Content-Length')
@@ -81,13 +80,15 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
     req.open 'GET', @prefix_url + path, cb?
     req.setRequestHeader "Accept-Charset", "x-user-defined"
     data = null
-    req.onerror = (e) -> console.error req.statusText
-    req.onload = (e) =>
-      unless req.readyState is 4 and req.status is 200
-        console.error req.statusText
-      data_array = @_GetIEByteArray_ByteStr req.responseBody
-      data = BrowserFS.node.Buffer data_array
-      cb?(data)
+    req.onreadystatechange = (e) =>
+      # 4 means the request is complete.
+      if req.readyState is 4
+        if req.status is 200
+          data_array = @_GetIEByteArray_ByteStr req.responseBody
+          data = BrowserFS.node.Buffer data_array
+          cb?(data)
+        else
+          console.error "ReadyState: #{req.readyState} Status: #{req.status}"
     req.send()
     if data? and data != 'NOT FOUND'
       return data

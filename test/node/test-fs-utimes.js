@@ -50,7 +50,9 @@ function expect_errno(syscall, resource, err, errno) {
   if (err) {//&& (err.code === errno || err.code === 'ENOSYS')) {
     tests_ok++;
   } else {
-    console.log('FAILED:', arguments.callee.name, arguments);
+    // BFS: IE doesn't have a toString method for the arguments pseudo-array,
+    // so we create a real array for printing w/ slice.
+    console.log('FAILED:', arguments.callee.name, Array.prototype.slice.call(arguments,0));
   }
 }
 
@@ -60,7 +62,9 @@ function expect_ok(syscall, resource, err, atime, mtime) {
       err) { //&& err.code === 'ENOSYS') {
     tests_ok++;
   } else {
-    console.log('FAILED:', arguments.callee.name, arguments);
+    // BFS: IE doesn't have a toString method for the arguments pseudo-array,
+    // so we create a real array for printing w/ slice.
+    console.log('FAILED:', arguments.callee.name, Array.prototype.slice.call(arguments,0));
   }
 }
 
@@ -133,7 +137,10 @@ function runTest(atime, mtime, callback) {
 
 var stats = fs.statSync(filename);
 
-runTest(new Date('1982-09-10T13:37:00Z'), new Date('1982-09-10T13:37:00Z'), function() {
+// BFS: Original tests used:
+//   new Date('1982-09-10T13:37:00Z'), new Date('1982-09-10T13:37:00Z')
+// These are not supported in IE < 9: http://dygraphs.com/date-formats.html
+runTest(new Date('1982/09/10 13:37:00'), new Date('1982/09/10 13:37:00'), function() {
   runTest(new Date(), new Date(), function() {
     runTest(123456.789, 123456.789, function() {
       runTest(stats.mtime, stats.mtime, function() {
