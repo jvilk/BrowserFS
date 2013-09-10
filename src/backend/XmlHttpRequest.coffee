@@ -58,9 +58,9 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
     req = new XMLHttpRequest()
     req.open 'HEAD', @prefix_url + path
     req.onreadystatechange = (e) ->
-      unless req.readyState is 4 and req.status is 200
-        console.error req.statusText
-      cb req.getResponseHeader('Content-Length')
+      if req.readyState is 4
+        unless req.status is 200 then console.error req.statusText
+        cb req.getResponseHeader('Content-Length')
     req.send()
 
   # Converts 'responseBody' in IE into the equivalent 'responseText' that other
