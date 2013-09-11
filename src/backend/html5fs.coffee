@@ -35,6 +35,21 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
   supportsSynch: -> false
 
+  _humanise: (err) ->
+    switch err.code
+      when FileError.QUOTA_EXCEEDED_ERR
+        'Filesystem full. Please delete some files to free up space.'
+      when FileError.NOT_FOUND_ERR
+        'File does not exist.'
+      when FileError.SECURITY_ERR
+        'Insecure file access.'
+      when FileError.INVALID_MODIFICATION_ERR
+        ''
+      when FileError.INVALID_STATE_ERR
+        ''
+      else
+        'Unknown Error'
+
   allocate: (cb) ->
     self = this
 
@@ -44,19 +59,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
       cb(null) if cb
 
     error = (err) ->
-      msg = switch err.code
-        when FileError.QUOTA_EXCEEDED_ERR
-          'QUOTA_EXCEEDED_ERR'
-        when FileError.NOT_FOUND_ERR
-          'NOT_FOUND_ERR'
-        when FileError.SECURITY_ERR
-          'SECURITY_ERR'
-        when FileError.INVALID_MODIFICATION_ERR
-          'INVALID_MODIFICATION_ERR'
-        when FileError.INVALID_STATE_ERR
-          'INVALID_STATE_ERR'
-        else
-          'Unknown Error'
+      msg = @_humanise(err)
 
       console.error("Failed to create FS")
       console.error(msg)
@@ -102,6 +105,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
         throw new Error("Invalid mode: #{flags.modeStr}")
 
     success = (file) ->
+      debugger
       reader = new FileReader()
 
       reader.onloadend = (err) ->
@@ -121,10 +125,14 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
   # Private
   # Create a BrowserFS error object with message msg and pass it to cb
-  _sendError: (cb, msg) ->
+  _sendError: (cb, err) ->
+    if typeof err is 'string'
+      msg = err
+    else
+      msg = @_humanise(err)
     cb(new BrowserFS.ApiError(BrowserFS.ApiError.INVALID_PARAM, msg))
 
-    # Private
+  # Private
   # Returns a BrowserFS object representing the type of a Dropbox.js stat object
   _statType: (stat) ->
     BrowserFS.node.fs.Stats[if stat.isFile then 'FILE' else 'DIRECTORY']
