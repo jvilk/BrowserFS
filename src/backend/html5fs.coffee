@@ -2,6 +2,7 @@ _getFS = -> window.webkitRequestFileSystem or window.requestFileSystem or null
 
 class BrowserFS.File.HTML5FSFile extends BrowserFS.File.PreloadFile
   sync: (cb) ->
+    self = this
     opts =
       create: true
       exclusive: false
@@ -10,7 +11,7 @@ class BrowserFS.File.HTML5FSFile extends BrowserFS.File.PreloadFile
       cb(null)
 
     error = (err) ->
-      cb(err)
+      self._fs._sendError(cb, null)
 
     @_fs.fs.getFile(@_path, opts, success, error)
 
