@@ -56,50 +56,6 @@ var ArrayBuffer, ArrayBufferView,
         throw new RangeError("INDEX_SIZE_ERR");
     }
 
-    // ES5: lock down object properties
-    function configureProperties(obj) {
-        if (Object.getOwnPropertyNames && Object.defineProperty) {
-            var props = Object.getOwnPropertyNames(obj), i;
-            for (i = 0; i < props.length; i += 1) {
-                Object.defineProperty(obj, props[i], {
-                    value: obj[props[i]],
-                    writable: false,
-                    enumerable: false,
-                    configurable: false
-                });
-            }
-        }
-    }
-
-    // emulate ES5 getter/setter API using legacy APIs
-    // http://blogs.msdn.com/b/ie/archive/2010/09/07/transitioning-existing-code-to-the-es5-getter-setter-apis.aspx
-    if (Object.prototype.__defineGetter__ && !Object.defineProperty) {
-        Object.defineProperty = function (obj, prop, desc) {
-            if (desc.hasOwnProperty('get')) { obj.__defineGetter__(prop, desc.get); }
-            if (desc.hasOwnProperty('set')) { obj.__defineSetter__(prop, desc.set); }
-        };
-    }
-
-    // ES5: Make obj[index] an alias for obj._getter(index)/obj._setter(index, value)
-    // for index in 0 ... obj.length
-    function makeArrayAccessors(obj) {
-        if (!Object.defineProperty) { return; }
-
-        function makeArrayAccessor(index) {
-            Object.defineProperty(obj, index, {
-                'get': function () { return obj._getter(index); },
-                'set': function (v) { obj._setter(index, v); },
-                enumerable: true,
-                configurable: false
-            });
-        }
-
-        var i;
-        for (i = 0; i < obj.length; i += 1) {
-            makeArrayAccessor(i);
-        }
-    }
-
     // Internal conversion functions:
     //    pack<Type>()   - take a number (interpreted as Type), output a byte array
     //    unpack<Type>() - take a byte array, output a Type-like number
@@ -219,8 +175,7 @@ var ArrayBuffer, ArrayBufferView,
     function unpackFloat32(b) { return unpackIEEE754(b, 8, 23); }
     function packFloat32(v) { return packIEEE754(v, 8, 23); }
 
-
-    if (!ArrayBuffer) {
+    if (!DataView) {
         (function () {
 
             //
@@ -239,8 +194,6 @@ var ArrayBuffer, ArrayBufferView,
                 for (i = 0; i < this.byteLength; i += 1) {
                     this._bytes[i] = 0;
                 }
-
-                configureProperties(this);
             };
 
 
@@ -256,269 +209,16 @@ var ArrayBuffer, ArrayBufferView,
             };
 
             //
-            // 5 The Typed Array View Types
-            //
-
-            function makeTypedArrayConstructor(bytesPerElement, pack, unpack) {
-                // Each TypedArray type requires a distinct constructor instance with
-                // identical logic, which this produces.
-
-                var ctor;
-                ctor = function (buffer, byteOffset, length) {
-                    var array, sequence, i, s;
-
-                    // Constructor(unsigned long length)
-                    if (!arguments.length || typeof arguments[0] === 'number') {
-                        this.length = ECMAScript.ToInt32(arguments[0]);
-                        if (length < 0) { throw new RangeError('ArrayBufferView size is not a small enough positive integer.'); }
-
-                        this.byteLength = this.length * this.BYTES_PER_ELEMENT;
-                        this.buffer = new ArrayBuffer(this.byteLength);
-                        this.byteOffset = 0;
-                    }
-
-                    // Constructor(TypedArray array)
-                    else if (typeof arguments[0] === 'object' && arguments[0].constructor === ctor) {
-                        array = arguments[0];
-
-                        this.length = array.length;
-                        this.byteLength = this.length * this.BYTES_PER_ELEMENT;
-                        this.buffer = new ArrayBuffer(this.byteLength);
-                        this.byteOffset = 0;
-
-                        for (i = 0; i < this.length; i += 1) {
-                            this._setter(i, array._getter(i));
-                        }
-                    }
-
-                    // Constructor(sequence<type> array)
-                    else if (typeof arguments[0] === 'object' && !(arguments[0] instanceof ArrayBuffer)) {
-                        sequence = arguments[0];
-
-                        this.length = ECMAScript.ToUint32(sequence.length);
-                        this.byteLength = this.length * this.BYTES_PER_ELEMENT;
-                        this.buffer = new ArrayBuffer(this.byteLength);
-                        this.byteOffset = 0;
-
-                        for (i = 0; i < this.length; i += 1) {
-                            s = sequence[i];
-                            this._setter(i, Number(s));
-                        }
-                    }
-
-                    // Constructor(ArrayBuffer buffer,
-                    //             optional unsigned long byteOffset, optional unsigned long length)
-                    else if (typeof arguments[0] === 'object' && arguments[0] instanceof ArrayBuffer) {
-                        this.buffer = buffer;
-
-                        this.byteOffset = ECMAScript.ToUint32(byteOffset);
-                        if (this.byteOffset > this.buffer.byteLength) {
-                            raise_INDEX_SIZE_ERR(); // byteOffset out of range
-                        }
-
-                        if (this.byteOffset % this.BYTES_PER_ELEMENT) {
-                            // The given byteOffset must be a multiple of the element
-                            // size of the specific type, otherwise an exception is raised.
-                            //raise_INDEX_SIZE_ERR();
-                            throw new RangeError("ArrayBuffer length minus the byteOffset is not a multiple of the element size.");
-                        }
-
-                        if (arguments.length < 3) {
-                            this.byteLength = this.buffer.byteLength - this.byteOffset;
-
-                            if (this.byteLength % this.BYTES_PER_ELEMENT) {
-                                raise_INDEX_SIZE_ERR(); // length of buffer minus byteOffset not a multiple of the element size
-                            }
-                            this.length = this.byteLength / this.BYTES_PER_ELEMENT;
-                        }
-                        else {
-                            this.length = ECMAScript.ToUint32(length);
-                            this.byteLength = this.length * this.BYTES_PER_ELEMENT;
-                        }
-
-                        if ((this.byteOffset + this.byteLength) > this.buffer.byteLength) {
-                            raise_INDEX_SIZE_ERR(); // byteOffset and length reference an area beyond the end of the buffer
-                        }
-                    }
-                    else {
-                        throw new TypeError("Unexpected argument type(s)");
-                    }
-
-                    this.constructor = ctor;
-
-                    // ES5-only magic
-                    // BFS: Disable for performance reasons.
-                    //configureProperties(this);
-                    //makeArrayAccessors(this);
-                };
-
-                ctor.prototype = new ArrayBufferView();
-                ctor.prototype.BYTES_PER_ELEMENT = bytesPerElement;
-                ctor.prototype._pack = pack;
-                ctor.prototype._unpack = unpack;
-                ctor.BYTES_PER_ELEMENT = bytesPerElement;
-
-                // getter type (unsigned long index);
-                ctor.prototype._getter = function (index) {
-                    if (arguments.length < 1) { throw new SyntaxError("Not enough arguments"); }
-
-                    index = ECMAScript.ToUint32(index);
-                    if (index >= this.length) {
-                        //raise_INDEX_SIZE_ERR(); // Array index out of range
-                        return; // undefined
-                    }
-
-                    var bytes = [], i, o;
-                    for (i = 0, o = this.byteOffset + index * this.BYTES_PER_ELEMENT;
-                        i < this.BYTES_PER_ELEMENT;
-                        i += 1, o += 1) {
-                        bytes.push(this.buffer._bytes[o]);
-                    }
-                    return this._unpack(bytes);
-                };
-
-                // NONSTANDARD: convenience alias for getter: type get(unsigned long index);
-                ctor.prototype.get = ctor.prototype._getter;
-
-                // setter void (unsigned long index, type value);
-                ctor.prototype._setter = function (index, value) {
-                    if (arguments.length < 2) { throw new SyntaxError("Not enough arguments"); }
-
-                    index = ECMAScript.ToUint32(index);
-                    if (index >= this.length) {
-                        //raise_INDEX_SIZE_ERR(); // Array index out of range
-                        return;
-                    }
-
-                    var bytes = this._pack(value), i, o;
-                    for (i = 0, o = this.byteOffset + index * this.BYTES_PER_ELEMENT;
-                        i < this.BYTES_PER_ELEMENT;
-                        i += 1, o += 1) {
-                        this.buffer._bytes[o] = bytes[i];
-                    }
-                };
-
-                // void set(TypedArray array, optional unsigned long offset);
-                // void set(sequence<type> array, optional unsigned long offset);
-                ctor.prototype.set = function (index, value) {
-                    if (arguments.length < 1) { throw new SyntaxError("Not enough arguments"); }
-                    var array, sequence, offset, len,
-                        i, s, d,
-                        byteOffset, byteLength, tmp;
-
-                    // void set(TypedArray array, optional unsigned long offset);
-                    if (typeof arguments[0] === 'object' && arguments[0].constructor === this.constructor) {
-                        array = arguments[0];
-                        offset = ECMAScript.ToUint32(arguments[1]);
-
-                        if (offset + array.length > this.length) {
-                            raise_INDEX_SIZE_ERR(); // Offset plus length of array is out of range
-                        }
-
-                        byteOffset = this.byteOffset + offset * this.BYTES_PER_ELEMENT;
-                        byteLength = array.length * this.BYTES_PER_ELEMENT;
-
-                        if (array.buffer === this.buffer) {
-                            tmp = [];
-                            for (i = 0, s = array.byteOffset; i < byteLength; i += 1, s += 1) {
-                                tmp[i] = array.buffer._bytes[s];
-                            }
-                            for (i = 0, d = byteOffset; i < byteLength; i += 1, d += 1) {
-                                this.buffer._bytes[d] = tmp[i];
-                            }
-                        }
-                        else {
-                            for (i = 0, s = array.byteOffset, d = byteOffset;
-                                i < byteLength; i += 1, s += 1, d += 1) {
-                                this.buffer._bytes[d] = array.buffer._bytes[s];
-                            }
-                        }
-                    }
-
-                    // void set(sequence<type> array, optional unsigned long offset);
-                    else if (typeof arguments[0] === 'object' && typeof arguments[0].length !== 'undefined') {
-                        sequence = arguments[0];
-                        len = ECMAScript.ToUint32(sequence.length);
-                        offset = ECMAScript.ToUint32(arguments[1]);
-
-                        if (offset + len > this.length) {
-                            raise_INDEX_SIZE_ERR(); // Offset plus length of array is out of range
-                        }
-
-                        for (i = 0; i < len; i += 1) {
-                            s = sequence[i];
-                            this._setter(offset + i, Number(s));
-                        }
-                    }
-
-                    else {
-                        throw new TypeError("Unexpected argument type(s)");
-                    }
-                };
-
-                // TypedArray subarray(long begin, optional long end);
-                ctor.prototype.subarray = function (start, end) {
-                    function clamp(v, min, max) { return v < min ? min : v > max ? max : v; }
-
-                    start = ECMAScript.ToInt32(start);
-                    end = ECMAScript.ToInt32(end);
-
-                    if (arguments.length < 1) { start = 0; }
-                    if (arguments.length < 2) { end = this.length; }
-
-                    if (start < 0) { start = this.length + start; }
-                    if (end < 0) { end = this.length + end; }
-
-                    start = clamp(start, 0, this.length);
-                    end = clamp(end, 0, this.length);
-
-                    var len = end - start;
-                    if (len < 0) {
-                        len = 0;
-                    }
-
-                    return new this.constructor(this.buffer, start * this.BYTES_PER_ELEMENT, len);
-                };
-
-                return ctor;
-            }
-
-            Int8Array = Int8Array || makeTypedArrayConstructor(1, packInt8, unpackInt8);
-            Uint8Array = Uint8Array || makeTypedArrayConstructor(1, packUint8, unpackUint8);
-            Int16Array = Int16Array || makeTypedArrayConstructor(2, packInt16, unpackInt16);
-            Uint16Array = Uint16Array || makeTypedArrayConstructor(2, packUint16, unpackUint16);
-            Int32Array = Int32Array || makeTypedArrayConstructor(4, packInt32, unpackInt32);
-            Uint32Array = Uint32Array || makeTypedArrayConstructor(4, packUint32, unpackUint32);
-            Float32Array = Float32Array || makeTypedArrayConstructor(4, packFloat32, unpackFloat32);
-            Float64Array = Float64Array || makeTypedArrayConstructor(8, packFloat64, unpackFloat64);
-
-        } ());
-    }
-
-
-    if (!DataView) {
-        (function () {
-
-            //
             // 6 The DataView View Type
             //
 
-            function r(array, index) {
-                if (typeof array.get === 'function') {
-                    return array.get(index);
-                }
-                else {
-                    return array[index];
-                }
-            }
+            // We use our polyfill, so fix it to BE.
+            var IS_BIG_ENDIAN = true;
 
-
-            var IS_BIG_ENDIAN = (function () {
-                var u16array = new Uint16Array([0x1234]),
-                u8array = new Uint8Array(u16array.buffer);
-                return r(u8array, 0) === 0x12;
-            } ());
-
+            // TODO: Does not take advantage of older FF / Chrome / Opera versions
+            // w/ TA support but no DV support. This will cause issues in those
+            // browsers.
+            //
             // Constructor(ArrayBuffer buffer,
             //             optional unsigned long byteOffset,
             //             optional unsigned long byteLength)
@@ -544,64 +244,54 @@ var ArrayBuffer, ArrayBufferView,
                 if ((this.byteOffset + this.byteLength) > this.buffer.byteLength) {
                     raise_INDEX_SIZE_ERR(); // byteOffset and length reference an area beyond the end of the buffer
                 }
-
-                // ES5-only magic
-                configureProperties(this);
             };
 
             if (ArrayBufferView) {
                 DataView.prototype = new ArrayBufferView();
             }
 
-            function makeDataView_getter(arrayType) {
+            function makeDataView_getter(unpacker, numBytes) {
                 return function (byteOffset, littleEndian) {
                     /*jslint newcap: false*/
                     byteOffset = ECMAScript.ToUint32(byteOffset);
 
-                    if (byteOffset + arrayType.BYTES_PER_ELEMENT > this.byteLength) {
+                    if (byteOffset + numBytes > this.byteLength) {
                         raise_INDEX_SIZE_ERR(); // Array index out of range
                     }
                     byteOffset += this.byteOffset;
 
-                    var uint8Array = new Uint8Array(this.buffer, byteOffset, arrayType.BYTES_PER_ELEMENT),
-                        bytes = [], i;
-                    for (i = 0; i < arrayType.BYTES_PER_ELEMENT; i += 1) {
-                        bytes.push(r(uint8Array, i));
+                    var bytes = [], i;
+                    for (i = 0; i < numBytes; i += 1) {
+                        bytes.push(this.buffer._bytes[byteOffset+i]);
                     }
 
                     if (Boolean(littleEndian) === Boolean(IS_BIG_ENDIAN)) {
                         bytes.reverse();
                     }
 
-                    return r(new arrayType(new Uint8Array(bytes).buffer), 0);
+                    return unpacker(bytes);
                 };
             }
 
-            DataView.prototype.getUint8 = makeDataView_getter(Uint8Array);
-            DataView.prototype.getInt8 = makeDataView_getter(Int8Array);
-            DataView.prototype.getUint16 = makeDataView_getter(Uint16Array);
-            DataView.prototype.getInt16 = makeDataView_getter(Int16Array);
-            DataView.prototype.getUint32 = makeDataView_getter(Uint32Array);
-            DataView.prototype.getInt32 = makeDataView_getter(Int32Array);
-            DataView.prototype.getFloat32 = makeDataView_getter(Float32Array);
-            DataView.prototype.getFloat64 = makeDataView_getter(Float64Array);
+            DataView.prototype.getUint8 = makeDataView_getter(unpackUint8, 1);
+            DataView.prototype.getInt8 = makeDataView_getter(unpackInt8, 1);
+            DataView.prototype.getUint16 = makeDataView_getter(unpackUint16, 2);
+            DataView.prototype.getInt16 = makeDataView_getter(unpackInt16, 2);
+            DataView.prototype.getUint32 = makeDataView_getter(unpackUint32, 4);
+            DataView.prototype.getInt32 = makeDataView_getter(unpackInt32, 4);
+            DataView.prototype.getFloat32 = makeDataView_getter(unpackFloat32, 4);
+            DataView.prototype.getFloat64 = makeDataView_getter(unpackFloat64, 8);
 
-            function makeDataView_setter(arrayType) {
+            function makeDataView_setter(packer, numBytes) {
                 return function (byteOffset, value, littleEndian) {
                     /*jslint newcap: false*/
                     byteOffset = ECMAScript.ToUint32(byteOffset);
-                    if (byteOffset + arrayType.BYTES_PER_ELEMENT > this.byteLength) {
+                    if (byteOffset + numBytes > this.byteLength) {
                         raise_INDEX_SIZE_ERR(); // Array index out of range
                     }
 
                     // Get bytes
-                    var typeArray = new arrayType([value]),
-                        byteArray = new Uint8Array(typeArray.buffer),
-                        bytes = [], i, byteView;
-
-                    for (i = 0; i < arrayType.BYTES_PER_ELEMENT; i += 1) {
-                        bytes.push(r(byteArray, i));
-                    }
+                    var bytes = packer(value);
 
                     // Flip if necessary
                     if (Boolean(littleEndian) === Boolean(IS_BIG_ENDIAN)) {
@@ -609,19 +299,21 @@ var ArrayBuffer, ArrayBufferView,
                     }
 
                     // Write them
-                    byteView = new Uint8Array(this.buffer, byteOffset, arrayType.BYTES_PER_ELEMENT);
-                    byteView.set(bytes);
+                    byteOffset += this.byteOffset;
+                    for (var i = 0; i < bytes.length; i++) {
+                        this.buffer._bytes[byteOffset+i] = bytes[i];
+                    }
                 };
             }
 
-            DataView.prototype.setUint8 = makeDataView_setter(Uint8Array);
-            DataView.prototype.setInt8 = makeDataView_setter(Int8Array);
-            DataView.prototype.setUint16 = makeDataView_setter(Uint16Array);
-            DataView.prototype.setInt16 = makeDataView_setter(Int16Array);
-            DataView.prototype.setUint32 = makeDataView_setter(Uint32Array);
-            DataView.prototype.setInt32 = makeDataView_setter(Int32Array);
-            DataView.prototype.setFloat32 = makeDataView_setter(Float32Array);
-            DataView.prototype.setFloat64 = makeDataView_setter(Float64Array);
+            DataView.prototype.setUint8 = makeDataView_setter(packUint8, 1);
+            DataView.prototype.setInt8 = makeDataView_setter(packInt8, 1);
+            DataView.prototype.setUint16 = makeDataView_setter(packUint16, 2);
+            DataView.prototype.setInt16 = makeDataView_setter(packInt16, 2);
+            DataView.prototype.setUint32 = makeDataView_setter(packUint32, 4);
+            DataView.prototype.setInt32 = makeDataView_setter(packInt32, 4);
+            DataView.prototype.setFloat32 = makeDataView_setter(packFloat32, 4);
+            DataView.prototype.setFloat64 = makeDataView_setter(packFloat64, 8);
 
         } ());
     }
