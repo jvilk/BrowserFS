@@ -90,6 +90,9 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
   empty: (main_cb) ->
     self = this
 
+    main_cb()
+    return
+
     # Get a list of all entries in the root directory to delete them
     self._readdir('/', (err, entries) ->
       debugger
@@ -132,9 +135,9 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
       cb(null)
 
     error = (err) ->
-      self._sendError(cb, err)
+      self._sendError(cb, "Could not rename #{oldPath} to #{newPath}")
 
-    @fs.root.getFile(oldPath, {}, success, err)
+    @fs.root.getFile(oldPath, {}, success, error)
 
   stat: (path, isLstat, cb) ->
 
@@ -169,13 +172,13 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
         reader.onerror = (err) ->
           console.error(err)
-          self._sendError(cb, err)
+          self._sendError(cb, "Could not open #{path}")
 
         reader.readAsArrayBuffer(file)
 
 
     error = (err) ->
-      self._sendError(cb, err)
+      self._sendError(cb, "Could not open #{path}")
 
     @fs.root.getFile(path, opts, success, error)
 
@@ -197,7 +200,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
   # Returns a BrowserFS object representing a File, created from the data
   # returned by calls to the Dropbox API.
   _makeFile: (path, mode, stat, data) ->
-    debugger
+    # debugger
     type = @_statType(stat)
     stat = new BrowserFS.node.fs.Stats(type, stat.size)
     data or= ''
@@ -220,7 +223,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
       entry.remove(succ, err)
 
     error = (err) ->
-      self._sendError(cb, err)
+      self._sendError(cb, "Failed to remove #{path}")
 
     @fs.root[method](path, {create: false}, success, error)
 
@@ -231,9 +234,10 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
     @_remove(path, cb, false)
 
   mkdir: (path, mode, cb) ->
+    self = this
     success = (dir) -> cb(null)
 
-    error = (err) -> @_sendError(cb, err)
+    error = (err) -> self._sendError(cb, "Could not create directory #{path}")
 
     @fs.root.getDirectory(path, {create: true}, success, error)
 
@@ -261,3 +265,23 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
     @_readdir(path, (entries) ->
       cb((entry.name for entry in entries))
     )
+
+  appendFile: (fname, data, encoding, flag, mode, cb) ->
+    debugger
+    self = this
+    if typeof data is 'string'
+      data = new BrowserFS.node.Buffer data, encoding
+
+    error = (err) ->
+      console.error(err)
+      self._sendError(cb, err)
+
+    @fs.root.getFile(fname, {create: true, exclusive: false}, ((fileEntry) ->
+      success = (fileWriter) ->
+        fileWriter.seek(fileWriter.length)
+        blob = new Blob(data.buff, {type: 'text/plain'})
+        fileWriter.write(blob)
+
+      fileEntry.createWriter(success, error)
+
+    ), error)
