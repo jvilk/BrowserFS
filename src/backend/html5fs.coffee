@@ -1,19 +1,33 @@
 _getFS = -> window.webkitRequestFileSystem or window.requestFileSystem or null
 
+_toArray = (list) -> Array.prototype.slice.call(list or [], 0)
+
 class BrowserFS.File.HTML5FSFile extends BrowserFS.File.PreloadFile
   sync: (cb) ->
     self = this
     opts =
-      create: true
+      create: false
       exclusive: false
 
-    success = (file) ->
-      cb(null)
+    success = (entry) ->
+      entry.createWriter (writer) ->
+        writer.onwriteend = (e) ->
+          console.log('Write completed')
+          cb(null)
+
+        writer.onerror = (e) ->
+          console.log('Write failed: ' + e.toString())
+          self._fs._sendError(cb, 'write failed')
+
+        # blob = new Blob(['Lorem Ipsum'], {type: 'text/plain'})
+        console.log(entry)
+        blob = new Blob([self._buffer.buff], { type: 'application/octet' })
+        writer.write(blob)
 
     error = (err) ->
-      self._fs._sendError(cb, null)
+      self._fs._sendError(cb, err)
 
-    @_fs.fs.getFile(@_path, opts, success, error)
+    @_fs.fs.root.getFile(@_path, opts, success, error)
 
   close: (cb) -> @sync(cb)
 
@@ -74,7 +88,33 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
     else
       getter(@type, @size, success, error)
 
-  # empty: (cb) ->
+  empty: (main_cb) ->
+    self = this
+
+    self.readdir('/', (err, entries) ->
+      if err
+        console.error('Failed to empty')
+        main_cb(err)
+      else
+        succ = -> #cb(null)
+        err = -> self._sendError(cb, "Failed to remove #{path}")
+
+        finished = (err) ->
+          if err
+            console.error("Failed to empty FS")
+            console.error(err)
+          else
+            console.debug('Emptied sucessfully')
+            main_cb()
+
+        deleteEntry = (entry, cb) ->
+          if entry.isFile
+            entry.remove(succ, err)
+          else
+            entry.removeRecursively(succ, err)
+
+        async.each(entries, deleteEntry, finished)
+    )
 
   rename: (oldPath, newPath, cb) ->
     self = this
@@ -91,7 +131,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
   stat: (path, isLstat, cb) ->
 
   open: (path, flags, mode, cb) ->
-    console.debug('File open triggered')
+    console.debug("File open triggered for #{path}")
 
     self = this
 
@@ -104,23 +144,26 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
       else
         throw new Error("Invalid mode: #{flags.modeStr}")
 
-    success = (file) ->
-      # debugger
-      reader = new FileReader()
+    success = (entry) ->
+      entry.file (file) ->
+        console.debug('Success callback reached')
+        # debugger
+        reader = new FileReader()
+        # reader.file = file
 
-      reader.onloadend = (err) ->
-        debugger
-        console.debug('File reader loaded')
-        console.error(err) if err
+        reader.onloadend = (event) ->
+          console.log(event.target.result)
+          # debugger
+          console.debug('File reader loaded')
 
-        bfs_file = self._makeFile(path, flags, file, @result)
-        cb(null, bfs_file)
+          bfs_file = self._makeFile(path, flags, file, event.target.result)
+          cb(null, bfs_file)
 
-      reader.onerror = (err) ->
-        console.error(err)
-        self._sendError(cb, err)
+        reader.onerror = (err) ->
+          console.error(err)
+          self._sendError(cb, err)
 
-      reader.readAsArrayBuffer(file)
+        reader.readAsArrayBuffer(file)
 
 
     error = (err) ->
@@ -146,6 +189,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
   # Returns a BrowserFS object representing a File, created from the data
   # returned by calls to the Dropbox API.
   _makeFile: (path, mode, stat, data) ->
+    debugger
     type = @_statType(stat)
     stat = new BrowserFS.node.fs.Stats(type, stat.size)
     data or= ''
@@ -195,9 +239,9 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
     # Call the reader.readEntries() until no more results are returned.
     readEntries = ->
-      dirReader.readEntries(((results) ->
+      reader.readEntries(((results) ->
         if results.length
-          entries = entries.concat(toArray(results))
+          entries = entries.concat(_toArray(results))
           readEntries()
         else
           cb(null, entries)

@@ -1,12 +1,18 @@
 {
   "name": "BrowserFS",
   "version": "0.2.0",
-  "main": [ "./dist/browserfs.min.js", "./dist/browserfs.js" ],
+  "main": [
+    "./dist/browserfs.min.js",
+    "./dist/browserfs.js"
+  ],
   "ignore": [
     "**/.*",
     "node_modules",
     "bower_components",
     "test",
     "tests"
-  ]
+  ],
+  "dependencies": {
+    "async": "~0.2.5"
+  }
 }

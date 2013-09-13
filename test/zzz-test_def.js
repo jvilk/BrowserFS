@@ -82,11 +82,18 @@
     var html5fs = new BrowserFS.FileSystem.HTML5FS(window.TEMPORARY);
     backends.push(html5fs);
     html5fs.allocate(function(err){
-      if (!err){
-        generateAllTests();
+      if (err){
+        console.error(err);
       }
       else {
-        console.error(err)
+        html5fs.empty(function(err2){
+          if (err2) {
+            console.error(err);
+          }
+          else {
+            generateAllTests();
+          }
+        });
       }
     });
   }
