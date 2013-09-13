@@ -19,7 +19,6 @@ class BrowserFS.File.HTML5FSFile extends BrowserFS.File.PreloadFile
           console.log('Write failed: ' + e.toString())
           self._fs._sendError(cb, 'write failed')
 
-        # blob = new Blob(['Lorem Ipsum'], {type: 'text/plain'})
         console.log(entry)
         blob = new Blob([self._buffer.buff], { type: 'application/octet' })
         writer.write(blob)
@@ -91,28 +90,37 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
   empty: (main_cb) ->
     self = this
 
-    self.readdir('/', (err, entries) ->
+    # Get a list of all entries in the root directory to delete them
+    self._readdir('/', (err, entries) ->
+      debugger
+
       if err
         console.error('Failed to empty')
         main_cb(err)
       else
-        succ = -> #cb(null)
+        succ = -> 'Deleted file'
         err = -> self._sendError(cb, "Failed to remove #{path}")
 
+        # Called when every entry has operated on
         finished = (err) ->
+          debugger
           if err
             console.error("Failed to empty FS")
             console.error(err)
+            main_cb(err)
           else
             console.debug('Emptied sucessfully')
-            main_cb()
+            main_cb(null)
 
+        # Removes files and recursively removes directories
         deleteEntry = (entry, cb) ->
           if entry.isFile
             entry.remove(succ, err)
           else
             entry.removeRecursively(succ, err)
 
+        # Loop through the entries and remove them, then call the callback
+        # when they're all finished
         async.each(entries, deleteEntry, finished)
     )
 
@@ -229,7 +237,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
     @fs.root.getDirectory(path, {create: true}, success, error)
 
-  readdir: (path, cb) ->
+  _readdir: (path, cb) ->
     self = this
     reader = @fs.root.createReader()
     entries = []
@@ -248,3 +256,8 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
       ), error)
 
     readEntries()
+
+  readdir: (path, cb) ->
+    @_readdir(path, (entries) ->
+      cb((entry.name for entry in entries))
+    )

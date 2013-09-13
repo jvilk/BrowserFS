@@ -88,7 +88,7 @@
       else {
         html5fs.empty(function(err2){
           if (err2) {
-            console.error(err);
+            console.error(err2);
           }
           else {
             generateAllTests();
