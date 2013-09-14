@@ -11,14 +11,14 @@ class BrowserFS.File.HTML5FSFile extends BrowserFS.File.PreloadFile
 
     success = (entry) ->
       entry.createWriter (writer) ->
-        writer.onwriteend = (e) ->
-          # console.log('Write completed')
+        writer.onwriteend = (event) ->
           cb(null)
 
-        writer.onerror = (e) ->
-          console.error("Write failed: #{e}")
+        writer.onerror = (err) ->
+          console.error("Write failed: #{err}")
           self._fs._sendError(cb, 'Write failed')
 
+        # XXX: Not sure how to get the MIME type
         blob = new Blob([self._buffer.buff], { type: 'application/octet' })
         writer.write(blob)
 
@@ -30,6 +30,9 @@ class BrowserFS.File.HTML5FSFile extends BrowserFS.File.PreloadFile
   close: (cb) -> @sync(cb)
 
 class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
+  # Arguments:
+  #   - type: PERSISTENT or TEMPORARY
+  #   - size: storage quota to request, in megabytes. Allocated value may be less.
   constructor: (@type=window.PERSISTENT, @size=5) ->
     kb = 1024
     mb = kb * kb
@@ -47,6 +50,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
   supportsSynch: -> false
 
+  # Returns a human-readable error message for the given FileError
   _humanise: (err) ->
     switch err.code
       when FileError.QUOTA_EXCEEDED_ERR
@@ -55,6 +59,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
         'File does not exist.'
       when FileError.SECURITY_ERR
         'Insecure file access.'
+      # XXX: not sure what to return for these
       when FileError.INVALID_MODIFICATION_ERR
         ''
       when FileError.INVALID_STATE_ERR
@@ -89,23 +94,20 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
   empty: (main_cb) ->
     self = this
 
-    main_cb()
-    return
+    # main_cb()
+    # return
 
     # Get a list of all entries in the root directory to delete them
     self._readdir('/', (err, entries) ->
-      debugger
-
       if err
-        console.error('Failed to empty')
+        console.error('Failed to empty FS')
         main_cb(err)
       else
         succ = -> 'Deleted file'
         err = -> self._sendError(cb, "Failed to remove #{path}")
 
-        # Called when every entry has operated on
+        # Called when every entry has been operated on
         finished = (err) ->
-          debugger
           if err
             console.error("Failed to empty FS")
             console.error(err)
@@ -141,16 +143,27 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
   stat: (path, isLstat, cb) ->
     self = this
 
-    @fs.root.getFile(path, {create: false}, ((entry) ->
-      entry.file((file) ->
+    # if path is ''
+    #   self._sendError(cb, "Empty string is not a valid path")
+    #   return
+
+    # isLstat can be ignored, because the HTML5 FileSystem API doesn't support
+    # symlinks
+
+    opts =
+      create: false
+
+    success = (entry) ->
+      entry.file (file) ->
         stat = new BrowserFS.node.fs.Stats(self._statType(entry), file.size)
         cb(null, stat)
-      )
-    ), (err) -> self._sendError(cb, "Could not stat #{path}"))
+
+    error = (err) ->
+      self._sendError(cb, "Could not stat #{path}")
+
+    @fs.root.getFile(path, opts, success, error)
 
   open: (path, flags, mode, cb) ->
-    # console.debug("File open triggered for #{path}")
-
     self = this
 
     opts =
@@ -164,16 +177,9 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
     success = (entry) ->
       entry.file (file) ->
-        # console.debug('Success callback reached')
-        # debugger
         reader = new FileReader()
-        # reader.file = file
 
         reader.onloadend = (event) ->
-          # console.log(event.target.result)
-          # debugger
-          # console.debug('File reader loaded')
-
           bfs_file = self._makeFile(path, flags, file, event.target.result)
           cb(null, bfs_file)
 
@@ -192,10 +198,10 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
   # Private
   # Create a BrowserFS error object with message msg and pass it to cb
   _sendError: (cb, err) ->
-    if typeof err is 'string'
-      msg = err
-    else
-      msg = @_humanise(err)
+    msg =
+      if typeof err is 'string' then err
+      else @_humanise(err)
+
     cb(new BrowserFS.ApiError(BrowserFS.ApiError.INVALID_PARAM, msg))
 
   # Private
