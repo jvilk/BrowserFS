@@ -141,7 +141,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
   stat: (path, isLstat, cb) ->
     self = this
 
-    @fs.root.getFile(path, {}, ((entry) ->
+    @fs.root.getFile(path, {create: false}, ((entry) ->
       entry.file((file) ->
         stat = new BrowserFS.node.fs.Stats(self._statType(entry), file.size)
         cb(null, stat)
@@ -246,7 +246,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
     error = (err) -> self._sendError(cb, "Could not create directory #{path}")
 
-    @fs.root.getDirectory(path, {create: true}, success, error)
+    @fs.root.getDirectory(path, {create: true, exclusive: true}, success, error)
 
   _readdir: (path, cb) ->
     self = this
@@ -273,22 +273,22 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
       cb((entry.name for entry in entries))
     )
 
-  appendFile: (fname, data, encoding, flag, mode, cb) ->
-    debugger
-    self = this
-    if typeof data is 'string'
-      data = new BrowserFS.node.Buffer data, encoding
+  # appendFile: (fname, data, encoding, flag, mode, cb) ->
+  #   debugger
+  #   self = this
+  #   if typeof data is 'string'
+  #     data = new BrowserFS.node.Buffer data, encoding
 
-    error = (err) ->
-      console.error(err)
-      self._sendError(cb, err)
+  #   error = (err) ->
+  #     console.error(err)
+  #     self._sendError(cb, err)
 
-    @fs.root.getFile(fname, {create: true, exclusive: false}, ((fileEntry) ->
-      success = (fileWriter) ->
-        fileWriter.seek(fileWriter.length)
-        blob = new Blob(data.buff, {type: 'text/plain'})
-        fileWriter.write(blob)
+  #   @fs.root.getFile(fname, {create: true, exclusive: false}, ((fileEntry) ->
+  #     success = (fileWriter) ->
+  #       fileWriter.seek(fileWriter.length)
+  #       blob = new Blob(data.buff, {type: 'text/plain'})
+  #       fileWriter.write(blob)
 
-      fileEntry.createWriter(success, error)
+  #     fileEntry.createWriter(success, error)
 
-    ), error)
+  #   ), error)
