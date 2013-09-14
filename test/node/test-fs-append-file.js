@@ -90,8 +90,10 @@
 // });
 
 // // test that appendFile accepts numbers.
-// // BFS: No.
-// /*var filename4 = join(common.tmpDir, 'append4.txt');
+// /*
+
+//  BFS: No.
+// var filename4 = join(common.tmpDir, 'append4.txt');
 // fs.writeFile(filename4, currentFileData, testCb);
 
 // common.error('appending to ' + filename4);
@@ -104,19 +106,20 @@
 //   common.error('appended to file4');
 
 //   // windows permissions aren't unix
-//   /*if (process.platform !== 'win32') {
+//   if (process.platform !== 'win32') {
 //     var st = fs.statSync(filename4);
 //     assert.equal(st.mode & 0700, m);
-//   }*/
+//   }
 
-// /*  fs.readFile(filename4, function(e, buffer) {
+//   fs.readFile(filename4, function(e, buffer) {
 //     if (e) throw e;
 //     common.error('file4 read');
 //     ncallbacks++;
 //     assert.equal(Buffer.byteLength('' + n) + currentFileData.length,
 //                  buffer.length);
 //   });
-// });*/
+// });
+// */
 
 // process.on('exit', function() {
 //   // BFS: 8->6 due to removing one part of the test.

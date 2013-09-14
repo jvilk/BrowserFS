@@ -91,7 +91,14 @@
             console.error(err2);
           }
           else {
-            generateAllTests();
+            html5fs.mkdir('/tmp', null, function(err3){
+              if (err3){
+                console.error(err3);
+              }
+              else {
+                generateAllTests();
+              }
+            })
           }
         });
       }

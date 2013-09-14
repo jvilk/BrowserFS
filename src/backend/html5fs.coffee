@@ -12,14 +12,13 @@ class BrowserFS.File.HTML5FSFile extends BrowserFS.File.PreloadFile
     success = (entry) ->
       entry.createWriter (writer) ->
         writer.onwriteend = (e) ->
-          console.log('Write completed')
+          # console.log('Write completed')
           cb(null)
 
         writer.onerror = (e) ->
-          console.log('Write failed: ' + e.toString())
-          self._fs._sendError(cb, 'write failed')
+          console.error("Write failed: #{e}")
+          self._fs._sendError(cb, 'Write failed')
 
-        console.log(entry)
         blob = new Blob([self._buffer.buff], { type: 'application/octet' })
         writer.write(blob)
 
@@ -142,7 +141,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
   stat: (path, isLstat, cb) ->
 
   open: (path, flags, mode, cb) ->
-    console.debug("File open triggered for #{path}")
+    # console.debug("File open triggered for #{path}")
 
     self = this
 
@@ -157,15 +156,15 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
     success = (entry) ->
       entry.file (file) ->
-        console.debug('Success callback reached')
+        # console.debug('Success callback reached')
         # debugger
         reader = new FileReader()
         # reader.file = file
 
         reader.onloadend = (event) ->
-          console.log(event.target.result)
+          # console.log(event.target.result)
           # debugger
-          console.debug('File reader loaded')
+          # console.debug('File reader loaded')
 
           bfs_file = self._makeFile(path, flags, file, event.target.result)
           cb(null, bfs_file)
