@@ -67,6 +67,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
       else
         'Unknown Error'
 
+  # Requests a storage quota from the browser to back this FS
   allocate: (cb) ->
     self = this
 
@@ -76,7 +77,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
       cb(null) if cb
 
     error = (err) ->
-      msg = @_humanise(err)
+      msg = self._humanise(err)
 
       console.error("Failed to create FS")
       console.error(msg)
@@ -91,6 +92,9 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
     else
       getter(@type, @size, success, error)
 
+  # Deletes everything in the FS. Nonstandard, used for testing. Karma clears
+  # the storage after you quit it but not between runs of the test suite,
+  # and the tests expect an empty FS every time.
   empty: (main_cb) ->
     self = this
 
@@ -144,6 +148,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
   stat: (path, isLstat, cb) ->
     self = this
 
+    # XXX: is this needed? It was for Dropbox.
     # if path is ''
     #   self._sendError(cb, "Empty string is not a valid path")
     #   return
@@ -214,7 +219,6 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
   # Returns a BrowserFS object representing a File, created from the data
   # returned by calls to the Dropbox API.
   _makeFile: (path, mode, stat, data) ->
-    # debugger
     type = @_statType(stat)
     stat = new BrowserFS.node.fs.Stats(type, stat.size)
     data or= ''
@@ -223,12 +227,13 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
     return new BrowserFS.File.HTML5FSFile(this, path, mode, stat, buffer)
 
   # Private
-  # Delete a file or directory from Dropbox
+  # Delete a file or directory from the file system
   # isFile should reflect which call was made to remove the it (`unlink` or
   # `rmdir`). If this doesn't match what's actually at `path`, an error will be
   # returned
   _remove: (path, cb, isFile) ->
     self = this
+    # Stringly typed
     method = "get#{if isFile then 'File' else 'Directory'}"
 
     success = (entry) ->
@@ -251,10 +256,12 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
     self = this
     success = (dir) -> cb(null)
 
-    error = (err) -> self._sendError(cb, "Could not create directory #{path}")
+    error = (err) -> self._sendError(cb, "Could not create directory: #{path}")
 
     @fs.root.getDirectory(path, {create: true, exclusive: true}, success, error)
 
+  # Private
+  # Returns an array of `FileEntry`s. Used internally by empty and readdir.
   _readdir: (path, cb) ->
     self = this
     reader = @fs.root.createReader()
@@ -275,6 +282,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
     readEntries()
 
+  # Map _readdir's list of `FileEntry`s to their names and return that.
   readdir: (path, cb) ->
     @_readdir(path, (entries) ->
       cb((entry.name for entry in entries))
