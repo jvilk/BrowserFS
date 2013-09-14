@@ -139,6 +139,14 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
     @fs.root.getFile(oldPath, {}, success, error)
 
   stat: (path, isLstat, cb) ->
+    self = this
+
+    @fs.root.getFile(path, {}, ((entry) ->
+      entry.file((file) ->
+        stat = new BrowserFS.node.fs.Stats(self._statType(entry), file.size)
+        cb(null, stat)
+      )
+    ), (err) -> self._sendError(cb, "Could not stat #{path}"))
 
   open: (path, flags, mode, cb) ->
     # console.debug("File open triggered for #{path}")
