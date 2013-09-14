@@ -94,17 +94,12 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
   empty: (main_cb) ->
     self = this
 
-    # main_cb()
-    # return
-
     # Get a list of all entries in the root directory to delete them
     self._readdir('/', (err, entries) ->
       if err
         console.error('Failed to empty FS')
         main_cb(err)
       else
-        succ = -> 'Deleted file'
-        err = -> self._sendError(cb, "Failed to remove #{path}")
 
         # Called when every entry has been operated on
         finished = (err) ->
@@ -118,6 +113,12 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
         # Removes files and recursively removes directories
         deleteEntry = (entry, cb) ->
+          succ = ->
+            cb(null)
+
+          err = ->
+            cb("Failed to remove #{entry.fullPath}")
+
           if entry.isFile
             entry.remove(succ, err)
           else
