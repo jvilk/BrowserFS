@@ -181,23 +181,23 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
       else
         throw new Error("Invalid mode: #{flags.modeStr}")
 
-    success = (entry) ->
-      entry.file (file) ->
-        reader = new FileReader()
-
-        reader.onloadend = (event) ->
-          bfs_file = self._makeFile(path, flags, file, event.target.result)
-          cb(null, bfs_file)
-
-        reader.onerror = (err) ->
-          console.error(err)
-          self._sendError(cb, "Could not open #{path}")
-
-        reader.readAsArrayBuffer(file)
-
-
     error = (err) ->
       self._sendError(cb, "Could not open #{path}")
+
+    success = (entry) ->
+      entry.file(
+        ((file) ->
+          reader = new FileReader()
+
+          reader.onloadend = (event) ->
+            bfs_file = self._makeFile(path, flags, file, event.target.result)
+            cb(null, bfs_file)
+
+          reader.onerror = error
+
+          reader.readAsArrayBuffer(file)
+        ), error)
+
 
     @fs.root.getFile(path, opts, success, error)
 
