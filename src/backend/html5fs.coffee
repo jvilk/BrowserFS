@@ -189,19 +189,18 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
       self._sendError(cb, "Could not open #{path}")
 
     success = (entry) ->
-      entry.file(
-        ((file) ->
-          reader = new FileReader()
+      success2 = (file) ->
+        reader = new FileReader()
 
-          reader.onloadend = (event) ->
-            bfs_file = self._makeFile(path, flags, file, event.target.result)
-            cb(null, bfs_file)
+        reader.onloadend = (event) ->
+          bfs_file = self._makeFile(path, flags, file, event.target.result)
+          cb(null, bfs_file)
 
-          reader.onerror = error
+        reader.onerror = error
 
-          reader.readAsArrayBuffer(file)
-        ), error)
+        reader.readAsArrayBuffer(file)
 
+      entry.file(success2, error)
 
     @fs.root.getFile(path, opts, success, error)
 
