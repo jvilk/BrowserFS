@@ -291,23 +291,3 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
     @_readdir(path, (entries) ->
       cb((entry.name for entry in entries))
     )
-
-  # appendFile: (fname, data, encoding, flag, mode, cb) ->
-  #   debugger
-  #   self = this
-  #   if typeof data is 'string'
-  #     data = new BrowserFS.node.Buffer data, encoding
-
-  #   error = (err) ->
-  #     console.error(err)
-  #     self._sendError(cb, err)
-
-  #   @fs.root.getFile(fname, {create: true, exclusive: false}, ((fileEntry) ->
-  #     success = (fileWriter) ->
-  #       fileWriter.seek(fileWriter.length)
-  #       blob = new Blob(data.buff, {type: 'text/plain'})
-  #       fileWriter.write(blob)
-
-  #     fileEntry.createWriter(success, error)
-
-  #   ), error)
