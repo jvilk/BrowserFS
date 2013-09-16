@@ -39,7 +39,7 @@ dependencies: $(COFFEE) $(UGLIFYJS) $(CODO) $(KARMA)
 doc/index.html: $(SRCS) $(CODO) README.md
 	$(CODO) --title "BrowserFS Documentation" $(SRCS)
 
-$(COFFEE) $(UGLIFYJS) $(CODO) (KARMA) $(GRUNT):
+$(COFFEE) $(UGLIFYJS) $(CODO) (KARMA) $(GRUNT) $(BOWER):
 	@echo "Installing needed Node modules with 'npm install'..."
 	@npm install
 	@echo "Node modules installed successfully!"
