@@ -52,19 +52,19 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
   supportsSynch: -> false
 
-  # Returns a human-readable error message for the given FileError
+  # Returns a human-readable error message for the given DOMError
+  # Full list of values here:
+  # https://developer.mozilla.org/en-US/docs/Web/API/DOMError
+  # I've only implemented the most obvious ones, but more can be added to
+  # make errors more descriptive in the future.
   _humanise: (err) ->
     switch err.code
-      when FileError.QUOTA_EXCEEDED_ERR
+      when DOMError.QUOTA_EXCEEDED_ERR
         'Filesystem full. Please delete some files to free up space.'
-      when FileError.NOT_FOUND_ERR
+      when DOMError.NOT_FOUND_ERR
         'File does not exist.'
-      when FileError.SECURITY_ERR
+      when DOMError.SECURITY_ERR
         'Insecure file access.'
-      when FileError.INVALID_MODIFICATION_ERR
-        ''
-      when FileError.INVALID_STATE_ERR
-        ''
       else
         'Unknown Error'
 
