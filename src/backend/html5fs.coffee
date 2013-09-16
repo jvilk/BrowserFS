@@ -20,7 +20,6 @@ class BrowserFS.File.HTML5FSFile extends BrowserFS.File.PreloadFile
           cb(null)
 
         writer.onerror = (err) ->
-          console.error("Write failed: #{err}")
           self._fs._sendError(cb, 'Write failed')
 
         writer.write(blob)
@@ -62,7 +61,6 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
         'File does not exist.'
       when FileError.SECURITY_ERR
         'Insecure file access.'
-      # XXX: not sure what to return for these
       when FileError.INVALID_MODIFICATION_ERR
         ''
       when FileError.INVALID_STATE_ERR
@@ -76,7 +74,6 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
     success = (fs) ->
       self.fs = fs
-      console.debug("FS created: #{fs.name}")
       cb(null) if cb
 
     error = (err) ->
@@ -112,10 +109,8 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
         finished = (err) ->
           if err
             console.error("Failed to empty FS")
-            console.error(err)
             main_cb(err)
           else
-            console.debug('Emptied sucessfully')
             main_cb(null)
 
         # Removes files and recursively removes directories
@@ -132,7 +127,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
             entry.removeRecursively(succ, err)
 
         # Loop through the entries and remove them, then call the callback
-        # when they're all finished
+        # when they're all finished.
         async.each(entries, deleteEntry, finished)
     )
 
@@ -147,8 +142,6 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
       self._sendError(cb, "Could not rename #{oldPath} to #{newPath}")
 
     @fs.root.getFile(oldPath, {}, success, error)
-
-  lstat: ->
 
   stat: (path, isLstat, cb) ->
     self = this
@@ -172,20 +165,24 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
     # Called when the path has been successfully loaded as a directory.
     loadAsDir = (dir) ->
-      # XXX: don't know how to get a directory's size
-      stat = new BrowserFS.node.fs.Stats(BrowserFS.node.fs.Stats.DIRECTORY)
+      # Directory entry size can't be determined from the HTML5 FS API, and is
+      # implementation-dependant anyway, so a dummy value is used.
+      size = 4096
+      stat = new BrowserFS.node.fs.Stats(BrowserFS.node.fs.Stats.DIRECTORY, size)
       cb(null, stat)
 
     # Called when the path couldn't be opened as a directory or a file.
     failedToLoad = (err) ->
       self._sendError(cb, "Could not stat #{path}")
 
-    # Called when the path couldn't be opened as a file, but might still be a directory.
+    # Called when the path couldn't be opened as a file, but might still be a
+    # directory.
     failedToLoadAsFile = ->
       self.fs.root.getDirectory(path, opts, loadAsDir, failedToLoad)
 
-    # XXX: can't find a way to tell whether a path refers to a directory or a
-    # file, so resorted to trying both and seeing which one succeeds.
+    # No method currently exists to determine whether a path refers to a
+    # directory or a file, so this implementation tries both and uses the first
+    # one that succeeds.
     @fs.root.getFile(path, opts, loadAsFile, failedToLoadAsFile)
 
   open: (path, flags, mode, cb) ->
@@ -272,11 +269,16 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
   mkdir: (path, mode, cb) ->
     self = this
+
+    opts =
+      create: true
+      exclusive: true
+
     success = (dir) -> cb(null)
 
     error = (err) -> self._sendError(cb, "Could not create directory: #{path}")
 
-    @fs.root.getDirectory(path, {create: true, exclusive: true}, success, error)
+    @fs.root.getDirectory(path, opts, success, error)
 
   # Private
   # Returns an array of `FileEntry`s. Used internally by empty and readdir.
