@@ -6,7 +6,6 @@ doc/*
 *.DS_Store
 *.log
 *.json
-vendor/async
-vendor/dropbox-build
-test/token.json
-test/ssl/
+vendor/async/
+vendor/dropbox-build/
+test/dropbox

@@ -23,7 +23,7 @@
   "main": "lib/browserfs.js",
   "devDependencies": {
     "async": ">= 0.2.7",
-    "karma": "*",
+    "karma": "~0.10.0",
     "coffee-script": ">= 1.6.2",
     "glob": ">= 3.1.21",
     "uglify-js": ">= 2.2.5",
@@ -31,6 +31,10 @@
     "grunt-karma": "~0.6.1",
     "grunt-cli": "~0.1.9",
     "grunt-contrib-connect": "~0.3.0",
-    "grunt": "~0.4.1"
+    "grunt": "~0.4.1",
+    "xhr2": "*",
+    "open": "*",
+    "dropbox": "~0.10.1",
+    "bower": "~1.2.5"
   }
 }
