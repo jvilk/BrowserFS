@@ -1,4 +1,6 @@
 this.tests.bfs_mkdir = function () {
+  var rootFS = fs.getRootFS();
+  if (rootFS.isReadOnly()) return;
   fs.writeFile('does/not/exist.txt', 'BFS plz don\'t create this', function(err) {
     if (!err) throw new Error('Created a file in a nonexistant directory!');
     fs.mkdir('does', function(err) {
