@@ -24,7 +24,8 @@ if fs.existsSync(tokenPath)
   tokenData = fs.readFileSync(tokenPath, 'utf8')
   try
     token = JSON.parse(tokenData)
-  catch
+  catch e
+    # Do nothing.
 
 # Use them to authenticate if there are
 if token isnt null
