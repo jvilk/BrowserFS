@@ -152,8 +152,9 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
   stat: (path, isLstat, cb) ->
     self = this
 
-    # isLstat can be ignored, because the HTML5 FileSystem API doesn't support
-    # symlinks
+    # TODO:
+    # 1: get lstat test to pass
+    # 2: get existing dir test to pass
 
     opts =
       create: false
