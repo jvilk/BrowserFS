@@ -37,7 +37,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
   # Arguments:
   #   - type: PERSISTENT or TEMPORARY
   #   - size: storage quota to request, in megabytes. Allocated value may be less.
-  constructor: (@type=window.PERSISTENT, @size=5) ->
+  constructor: (@size=5, @type=window.PERSISTENT) ->
     kb = 1024
     mb = kb * kb
     @size *= mb

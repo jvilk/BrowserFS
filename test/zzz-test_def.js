@@ -80,7 +80,7 @@
 
   // Add HTML5 FileSystem API backed filesystem
   if (BrowserFS.FileSystem.HTML5FS.isAvailable()){
-    var html5fs = new BrowserFS.FileSystem.HTML5FS(window.TEMPORARY, 1000);
+    var html5fs = new BrowserFS.FileSystem.HTML5FS(10, window.TEMPORARY);
     backends.push(html5fs);
     html5fs.allocate(function(err){
       if (err){
