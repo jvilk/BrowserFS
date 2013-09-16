@@ -25,9 +25,10 @@ FIXTURES  := $(shell find test/fixtures -name '*')
 release: lib/browserfs.min.js
 dev: lib/browserfs.js
 
+dropbox_test: dropbox_tokens test
+
 test: $(GRUNT) $(KARMA) listings.json lib/load_fixtures.js \
-	vendor/async/lib/async.js vendor/dropbox-build/dropbox.js \
-	dropbox_tokens
+	vendor/async/lib/async.js vendor/dropbox-build/dropbox.js
 	$(GRUNT)
 doc: doc/index.html
 clean:
