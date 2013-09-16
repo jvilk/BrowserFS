@@ -11,6 +11,8 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       'vendor/*.js',
+      'vendor/async/lib/async.js',
+      'vendor/dropbox-build/dropbox.js',
       'src/core/*.coffee',
       'src/generic/*.coffee',
       'src/backend/*.coffee',
