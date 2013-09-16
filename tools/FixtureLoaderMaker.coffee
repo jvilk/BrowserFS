@@ -9,7 +9,7 @@ fs = require 'fs'
 fixturesPath = 'test/fixtures'
 outfile = null
 files = []
-dirs = []
+dirs = ['tmp']
 DEBUG = false
 uid = 0
 
