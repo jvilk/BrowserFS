@@ -11,8 +11,7 @@ class BrowserFS.File.HTML5FSFile extends BrowserFS.File.PreloadFile
 
     success = (entry) ->
       entry.createWriter (writer) ->
-        # XXX: Not sure how to get the MIME type
-        blob = new Blob([self._buffer.buff], { type: 'application/octet' })
+        blob = new Blob([self._buffer.buff])
         length = blob.size
 
         writer.onwriteend = (event) ->
