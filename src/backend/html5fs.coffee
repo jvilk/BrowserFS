@@ -149,27 +149,45 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
     @fs.root.getFile(oldPath, {}, success, error)
 
+  lstat: ->
+
   stat: (path, isLstat, cb) ->
     self = this
 
-    # TODO:
-    # 1: get lstat test to pass
-    # 2: get existing dir test to pass
+    # Handle empty string case -- valid in the HTML5 FS API, but not valid in
+    # the Node API.
+    if path is ''
+      self._sendError(cb, "Empty string is not a valid path")
+      return
 
     opts =
       create: false
 
-    success = (entry) ->
-      success2 = (file) ->
-        stat = new BrowserFS.node.fs.Stats(self._statType(entry), file.size)
+    # Called when the path has been successfully loaded as a file.
+    loadAsFile = (entry) ->
+      fileFromEntry = (file) ->
+        stat = new BrowserFS.node.fs.Stats(BrowserFS.node.fs.Stats.FILE, file.size)
         cb(null, stat)
 
-      entry.file(success2, error)
+      entry.file(fileFromEntry, failedToLoad)
 
-    error = (err) ->
+    # Called when the path has been successfully loaded as a directory.
+    loadAsDir = (dir) ->
+      # XXX: don't know how to get a directory's size
+      stat = new BrowserFS.node.fs.Stats(BrowserFS.node.fs.Stats.DIRECTORY)
+      cb(null, stat)
+
+    # Called when the path couldn't be opened as a directory or a file.
+    failedToLoad = (err) ->
       self._sendError(cb, "Could not stat #{path}")
 
-    @fs.root.getFile(path, opts, success, error)
+    # Called when the path couldn't be opened as a file, but might still be a directory.
+    failedToLoadAsFile = ->
+      self.fs.root.getDirectory(path, opts, loadAsDir, failedToLoad)
+
+    # XXX: can't find a way to tell whether a path refers to a directory or a
+    # file, so resorted to trying both and seeing which one succeeds.
+    @fs.root.getFile(path, opts, loadAsFile, failedToLoadAsFile)
 
   open: (path, flags, mode, cb) ->
     self = this

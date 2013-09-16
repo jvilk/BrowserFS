@@ -30,7 +30,6 @@ var existing_file = path.join(common.fixturesDir, 'x.txt');
 fs.stat('', function(err, stats) {
   if (err) {
     success_count++;
-    console.log('empty string correctly rejected')
   } else {
     got_error = true;
   }
@@ -42,7 +41,6 @@ fs.stat(existing_dir, function(err, stats) {
   } else {
     assert.ok(stats.mtime instanceof Date);
     success_count++;
-    console.log('existing dir returns a stats object')
   }
 });
 
@@ -52,7 +50,6 @@ fs.lstat(existing_dir, function(err, stats) {
   } else {
     assert.ok(stats.mtime instanceof Date);
     success_count++;
-    console.log('lstat works')
   }
 });
 
@@ -67,7 +64,6 @@ fs.open(existing_file, 'r', undefined, function(err, fd) {
     } else {
       assert.ok(stats.mtime instanceof Date);
       success_count++;
-      console.log('fstat works')
       fs.close(fd);
     }
   });
@@ -98,7 +94,6 @@ fs.stat(existing_file, function(err, s) {
     got_error = true;
   } else {
     success_count++;
-    console.log('existing file 2 works')
     assert.equal(false, s.isDirectory());
     assert.equal(true, s.isFile());
     assert.equal(false, s.isSocket());
