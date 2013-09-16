@@ -152,11 +152,6 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
   stat: (path, isLstat, cb) ->
     self = this
 
-    # XXX: is this needed? It was for Dropbox.
-    # if path is ''
-    #   self._sendError(cb, "Empty string is not a valid path")
-    #   return
-
     # isLstat can be ignored, because the HTML5 FileSystem API doesn't support
     # symlinks
 
@@ -164,9 +159,11 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
       create: false
 
     success = (entry) ->
-      entry.file (file) ->
+      success2 = (file) ->
         stat = new BrowserFS.node.fs.Stats(self._statType(entry), file.size)
         cb(null, stat)
+
+      entry.file(success2, error)
 
     error = (err) ->
       self._sendError(cb, "Could not stat #{path}")

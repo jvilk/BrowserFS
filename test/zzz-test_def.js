@@ -58,15 +58,15 @@
   if (BrowserFS.FileSystem.LocalStorage.isAvailable()) {
     var lsfs = new BrowserFS.FileSystem.LocalStorage();
     lsfs.empty();
-    backends.push(lsfs);
+    // backends.push(lsfs);
   }
 
   // Add in-memory filesystem
-  backends.push(new BrowserFS.FileSystem.InMemory());
+  // backends.push(new BrowserFS.FileSystem.InMemory());
 
   // Add AJAX filesystem
-  if (BrowserFS.FileSystem.XmlHttpRequest.isAvailable())
-    backends.push(new BrowserFS.FileSystem.XmlHttpRequest('/listings.json'));
+  // if (BrowserFS.FileSystem.XmlHttpRequest.isAvailable())
+    // backends.push(new BrowserFS.FileSystem.XmlHttpRequest('/listings.json'));
 
   // Add mountable filesystem
   var im2 = new BrowserFS.FileSystem.InMemory();
@@ -76,7 +76,7 @@
   //TODO: Test when API Error has a 'file' attribute that MFS can appropriately
   // alter when an error is raised.
   //mfs.mount('/test', im2);
-  backends.push(mfs);
+  // backends.push(mfs);
 
   // Add HTML5 FileSystem API backed filesystem
   if (BrowserFS.FileSystem.HTML5FS.isAvailable()){
