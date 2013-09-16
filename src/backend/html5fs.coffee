@@ -17,7 +17,7 @@ class BrowserFS.File.HTML5FSFile extends BrowserFS.File.PreloadFile
         writer.onwriteend = (event) ->
           writer.onwriteend = null
           writer.truncate(length)
-          cb(null)
+          cb?()
 
         writer.onerror = (err) ->
           self._fs._sendError(cb, 'Write failed')
@@ -52,6 +52,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
   supportsSynch: -> false
 
+  # Private
   # Returns a human-readable error message for the given DOMError
   # Full list of values here:
   # https://developer.mozilla.org/en-US/docs/Web/API/DOMError
@@ -66,22 +67,23 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
       when DOMError.SECURITY_ERR
         'Insecure file access.'
       else
-        'Unknown Error'
+        "Unknown Error: #{err.name}"
 
-  # Requests a storage quota from the browser to back this FS
+  # Nonstandard
+  # Requests a storage quota from the browser to back this FS.
   allocate: (cb) ->
     self = this
 
     success = (fs) ->
       self.fs = fs
-      cb(null) if cb
+      cb?()
 
     error = (err) ->
       msg = self._humanise(err)
 
       console.error("Failed to create FS")
       console.error(msg)
-      cb(err) if cb
+      cb?(err)
 
     getter = _getFS()
 
@@ -92,9 +94,10 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
     else
       getter(@type, @size, success, error)
 
-  # Deletes everything in the FS. Nonstandard, used for testing. Karma clears
-  # the storage after you quit it but not between runs of the test suite,
-  # and the tests expect an empty FS every time.
+  # Nonstandard
+  # Deletes everything in the FS. Used for testing.
+  # Karma clears the storage after you quit it but not between runs of the test
+  # suite, and the tests expect an empty FS every time.
   empty: (main_cb) ->
     self = this
 
@@ -111,12 +114,12 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
             console.error("Failed to empty FS")
             main_cb(err)
           else
-            main_cb(null)
+            main_cb()
 
         # Removes files and recursively removes directories
         deleteEntry = (entry, cb) ->
           succ = ->
-            cb(null)
+            cb()
 
           err = ->
             cb("Failed to remove #{entry.fullPath}")
@@ -136,7 +139,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
     success = (file) ->
       file.moveTo(oldPath, newPath)
-      cb(null)
+      cb()
 
     error = (err) ->
       self._sendError(cb, "Could not rename #{oldPath} to #{newPath}")
@@ -252,7 +255,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
     method = "get#{if isFile then 'File' else 'Directory'}"
 
     success = (entry) ->
-      succ = -> cb(null)
+      succ = -> cb()
       err = -> self._sendError(cb, "Failed to remove #{path}")
       entry.remove(succ, err)
 
@@ -274,7 +277,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
       create: true
       exclusive: true
 
-    success = (dir) -> cb(null)
+    success = (dir) -> cb()
 
     error = (err) -> self._sendError(cb, "Could not create directory: #{path}")
 
