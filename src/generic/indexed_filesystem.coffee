@@ -43,6 +43,11 @@ class BrowserFS.IndexedFileSystem extends BrowserFS.SynchronousFileSystem
     else
       switch flags.pathNotExistsAction()
         when BrowserFS.FileMode.CREATE_FILE
+          # Ensure the parent exists!
+          parentPath = BrowserFS.node.path.dirname(path)
+          parentInode = @_index.getInode parentPath
+          if parentInode is null or parentInode.isFile()
+            throw new BrowserFS.ApiError BrowserFS.ApiError.INVALID_PARAM, "#{parentPath} doesn't exist."
           inode = new BrowserFS.node.fs.Stats(BrowserFS.node.fs.Stats.FILE, 0, mode)
           return @_create(path, flags, inode)
         when BrowserFS.FileMode.THROW_EXCEPTION
