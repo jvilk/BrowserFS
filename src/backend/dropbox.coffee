@@ -4,12 +4,7 @@ window.db = window.Dropbox
 
 class BrowserFS.File.DropboxFile extends BrowserFS.File.PreloadFile
   sync: (cb) ->
-    @_fs.client.writeFile(@_path, @_buffer.buff.buffer, (error, stat) ->
-      if error
-        cb(error)
-      else
-        cb()
-    )
+    @_fs._writeFileStrict(@_path, @_buffer.buff.buffer, cb)
 
   close: (cb) -> @sync(cb)
 
@@ -105,10 +100,13 @@ class BrowserFS.FileSystem.Dropbox extends BrowserFS.FileSystem
             # If it's being opened for writing or appending, create it so that
             # it can be written to
             when 404
-              self.client.writeFile(path, '', (error, stat) ->
-                buf = new BrowserFS.node.Buffer(0)
-                file = self._makeFile(path, flags, stat, buf)
-                cb(null, file)
+              self._writeFileStrict(path, '', (error2, stat) ->
+                if error2
+                  self._sendError(cb, error2)
+                else
+                  buf = new BrowserFS.node.Buffer(0)
+                  file = self._makeFile(path, flags, stat, buf)
+                  cb(null, file)
               )
             else
               console.log("Unhandled error: #{error}")
@@ -123,6 +121,22 @@ class BrowserFS.FileSystem.Dropbox extends BrowserFS.FileSystem
 
         file = self._makeFile(path, flags, db_stat, content)
         cb(null, file)
+    )
+
+  _writeFileStrict: (path, data, cb) ->
+    self = this
+    parent = BrowserFS.node.path.dirname(path)
+
+    self.stat(parent, false, (error, stat) ->
+      if error
+        self._sendError(cb, "Can't create #{path} because #{parent} doesn't exist")
+      else
+        self.client.writeFile(path, data, (error2, stat) ->
+          if error2
+            cb(error2)
+          else
+            cb(null, stat)
+        )
     )
 
   # Private
