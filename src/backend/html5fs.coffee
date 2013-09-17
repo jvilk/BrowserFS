@@ -2,12 +2,20 @@ _getFS = -> window.webkitRequestFileSystem or window.requestFileSystem or null
 
 _toArray = (list) -> Array.prototype.slice.call(list or [], 0)
 
+# A note about getFile and getDirectory options:
+# These methods are called at numerous places in this file, and are passed
+# some combination of these two options:
+#   - create: If true, the entry will be created if it doesn't exist.
+#             If false, an error will be thrown if it doesn't exist.
+#   - exclusive: If true, only create the entry if it doesn't already exist,
+#                and throw an error if it does.
+
 class BrowserFS.File.HTML5FSFile extends BrowserFS.File.PreloadFile
   sync: (cb) ->
     self = this
+    # Don't create the file (it should already have been created by `open`)
     opts =
       create: false
-      exclusive: false
 
     success = (entry) ->
       entry.createWriter (writer) ->
@@ -151,10 +159,13 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
     # Handle empty string case -- valid in the HTML5 FS API, but not valid in
     # the Node API.
+    # XXX: shouldn't be necessary, see issue 55.
     if path is ''
       self._sendError(cb, "Empty string is not a valid path")
       return
 
+    # Throw an error if the entry doesn't exist, because then there's nothing
+    # to stat.
     opts =
       create: false
 
@@ -193,10 +204,14 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
 
     opts =
       if 'r' in flags.modeStr
+        # Don't create the file - if it doesn't exist, it can't be read, and
+        # an error should be thrown
         create: false
       else if 'w' in flags.modeStr or 'a' in flags.modeStr
-        create: true      # Create the file if it doesn't exist
-        exclusive: false  # Don't throw an error if it does exist
+        # Create the file if it doesn't exist
+        create: true
+        # Don't throw an error if it does exist
+        exclusive: false
       else
         throw new Error("Invalid mode: #{flags.modeStr}")
 
@@ -262,7 +277,11 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
     error = (err) ->
       self._sendError(cb, "Failed to remove #{path}")
 
-    @fs.root[method](path, {create: false}, success, error)
+    # Deleting the entry, so don't create it
+    opts =
+      create: false
+
+    @fs.root[method](path, opts, success, error)
 
   unlink: (path, cb) ->
     @_remove(path, cb, true)
@@ -273,6 +292,8 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
   mkdir: (path, mode, cb) ->
     self = this
 
+    # Create the directory, but throw an error if it already exists, as per
+    # mkdir(1)
     opts =
       create: true
       exclusive: true
