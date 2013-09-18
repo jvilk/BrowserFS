@@ -203,17 +203,8 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
     self = this
 
     opts =
-      if 'r' in flags.modeStr
-        # Don't create the file - if it doesn't exist, it can't be read, and
-        # an error should be thrown
-        create: false
-      else if 'w' in flags.modeStr or 'a' in flags.modeStr
-        # Create the file if it doesn't exist
-        create: true
-        # Don't throw an error if it does exist
-        exclusive: false
-      else
-        throw new Error("Invalid mode: #{flags.modeStr}")
+      create: flags.isWriteable()
+      exclusive: flags.isExclusive()
 
     error = (err) ->
       self._sendError(cb, "Could not open #{path}")
