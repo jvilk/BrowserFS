@@ -3,6 +3,8 @@
   "use strict";
   var backends = [];
 
+  var timeout = 5000;
+
   // Generates a unit test.
   var generateTest = function(testName, test) {
     it (testName, function() {
@@ -14,14 +16,14 @@
       });
       waitsFor(function() {
         return window.__numWaiting === 0;
-      }, "All callbacks should fire", 600000);
+      }, "All callbacks should fire", timeout);
       runs(function() {
         // Run the exit callback, if any.
         process._exitCb();
       });
       waitsFor(function() {
         return window.__numWaiting === 0;
-      }, "All callbacks should fire", 600000);
+      }, "All callbacks should fire", timeout);
     });
   };
 
@@ -76,6 +78,8 @@
   mfs.mount('/test', im2);
   backends.push(mfs);
 
+  var async_backends = 2;
+
   // Set to 'true' to test the Dropbox FS (which is slow to test).
   if (false) {
     var init_client = new db.Client({
@@ -98,7 +102,8 @@
         var dbfs = new BrowserFS.FileSystem.Dropbox(authed_client);
         backends.push(dbfs);
         dbfs.empty(function(){
-          generateAllTests();
+          async_backends--;
+          if (async_backends === 0) generateAllTests();
         });
       });
     };
@@ -106,7 +111,7 @@
     // Authenticate with pregenerated unit testing credentials.
     var req = new XMLHttpRequest();
     req.open('GET', '/test/dropbox/token.json');
-    var data = null
+    var data = null;
     req.onerror = function(e){ console.error(req.statusText); };
     req.onload = function(e){
       if(!(req.readyState === 4 && req.status === 200)){
@@ -118,6 +123,33 @@
     };
     req.send();
   } else {
-    generateAllTests();
+    async_backends--;
+    if (async_backends === 0) generateAllTests();
+  }
+
+
+  // Add HTML5 FileSystem API backed filesystem
+  if (BrowserFS.FileSystem.HTML5FS.isAvailable()){
+    var html5fs = new BrowserFS.FileSystem.HTML5FS(10, window.TEMPORARY);
+    backends.push(html5fs);
+    html5fs.allocate(function(err){
+      if (err){
+        console.error(err);
+      }
+      else {
+        html5fs.empty(function(err2){
+          if (err2) {
+            console.error(err2);
+          }
+          else {
+            async_backends--;
+            if (async_backends === 0) generateAllTests();
+          }
+        });
+      }
+    });
+  } else {
+    async_backends--;
+    if (async_backends === 0) generateAllTests();
   }
 })(this);
