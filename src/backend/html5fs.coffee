@@ -203,7 +203,7 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
     self = this
 
     opts =
-      create: flags.isWriteable()
+      create: flags.pathNotExistsAction() == BrowserFS.FileMode.CREATE_FILE
       exclusive: flags.isExclusive()
 
     error = (err) ->
