@@ -1,20 +1,15 @@
 # IE9 and below only: Injects a VBScript function that converts the
 # 'responseBody' attribute of an XMLHttpRequest into a bytestring.
-# Credit: http://miskun.com/javascript/internet-explorer-and-binary-files-data-access/#comment-11
+# From ExtJS: http://docs-origin.sencha.com/extjs/4.1.3/source/Connection.html
 document.write(
   "<!-- IEBinaryToArray_ByteStr -->\r\n"+
   "<script type='text/vbscript'>\r\n"+
-  "Function IEBinaryToArray_ByteStr(Binary)\r\n"+
-  " IEBinaryToArray_ByteStr = CStr(Binary)\r\n"+
-  "End Function\r\n"+
-  "Function IEBinaryToArray_ByteStr_Last(Binary)\r\n"+
-  " Dim lastIndex\r\n"+
-  " lastIndex = LenB(Binary)\r\n"+
-  " if lastIndex mod 2 Then\r\n"+
-  " IEBinaryToArray_ByteStr_Last = Chr( AscB( MidB( Binary, lastIndex, 1 ) ) )\r\n"+
-  " Else\r\n"+
-  " IEBinaryToArray_ByteStr_Last = "+'""'+"\r\n"+
-  " End If\r\n"+
+  "Function getIEByteArray(byteArray, out)\r\n"+
+  "  Dim len, i\r\n"+
+  "  len = LenB(byteArray)\r\n"+
+  "  For i = 1 to len\r\n"+
+  "    out.push(AscB(MidB(byteArray, i, 1)))\r\n"+
+  "  Next\r\n"+
   "End Function\r\n"+
   "</script>\r\n"
 )
@@ -63,17 +58,6 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
         cb req.getResponseHeader('Content-Length')
     req.send()
 
-  # Converts 'responseBody' in IE into the equivalent 'responseText' that other
-  # browsers would generate.
-  _GetIEByteArray_ByteStr: (IEByteArray) ->
-    rawBytes = IEBinaryToArray_ByteStr(IEByteArray)
-    lastChr = IEBinaryToArray_ByteStr_Last(IEByteArray)
-    return rawBytes.replace(/[\s\S]/g,
-      ((match) ->
-        v = match.charCodeAt(0)
-        return String.fromCharCode(v&0xff, v>>8)
-      )) + lastChr
-
   # IE < 9 doesn't support array buffers.
   _request_file_IE: (path, data_type, cb) ->
     req = new XMLHttpRequest()
@@ -84,7 +68,11 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
       # 4 means the request is complete.
       if req.readyState is 4
         if req.status is 200
-          data_array = @_GetIEByteArray_ByteStr req.responseBody
+          # TODO(jvilk): The VBArray solution below works in IE9, but we can't
+          # simply test for the presence of VBArray; IE8 contains a
+          # nonfunctioning definition of it.
+          # data_array = new VBArray(req.responseBody).toArray();
+          getIEByteArray(req.responseBody, data_array = [])
           data = BrowserFS.node.Buffer data_array
           cb?(data)
         else
