@@ -33,16 +33,20 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
       v.file_data = undefined
 
   # Assumes that path is in @_index.
+  # TODO(jvilk): Separate into async / sync methods.
   _request_file_modern: (path, data_type, cb) ->
     req = new XMLHttpRequest()
     req.open 'GET', @prefix_url + path, cb?
-    req.responseType = data_type if cb?
+    req.responseType = data_type
     data = null
     req.onerror = (e) -> console.error req.statusText
     req.onload = (e) ->
       unless req.readyState is 4 and req.status is 200
         console.error req.statusText
-      data = BrowserFS.node.Buffer(req.response ? 0)
+      if data_type is 'arraybuffer'
+        data = new BrowserFS.node.Buffer(req.response ? 0)
+      else
+        data = req.response
       cb?(data)
     req.send()
     if data? and data != 'NOT FOUND'
@@ -68,12 +72,17 @@ class BrowserFS.FileSystem.XmlHttpRequest extends BrowserFS.FileSystem
       # 4 means the request is complete.
       if req.readyState is 4
         if req.status is 200
-          # TODO(jvilk): The VBArray solution below works in IE9, but we can't
-          # simply test for the presence of VBArray; IE8 contains a
-          # nonfunctioning definition of it.
-          # data_array = new VBArray(req.responseBody).toArray();
-          getIEByteArray(req.responseBody, data_array = [])
-          data = BrowserFS.node.Buffer data_array
+          if data_type is 'arraybuffer'
+            # TODO(jvilk): The VBArray solution below works in IE9, but we can't
+            # simply test for the presence of VBArray; IE8 contains a
+            # nonfunctioning definition of it.
+            # data_array = new VBArray(req.responseBody).toArray();
+            getIEByteArray(req.responseBody, data_array = [])
+            data = new BrowserFS.node.Buffer data_array
+          else
+            # There shouldn't be any NULL characters in files we request as
+            # text...
+            data = req.responseText
           cb?(data)
         else
           console.error "ReadyState: #{req.readyState} Status: #{req.status}"
