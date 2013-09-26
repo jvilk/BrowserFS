@@ -157,13 +157,6 @@ class BrowserFS.FileSystem.HTML5FS extends BrowserFS.FileSystem
   stat: (path, isLstat, cb) ->
     self = this
 
-    # Handle empty string case -- valid in the HTML5 FS API, but not valid in
-    # the Node API.
-    # XXX: shouldn't be necessary, see issue 55.
-    if path is ''
-      self._sendError(cb, "Empty string is not a valid path")
-      return
-
     # Throw an error if the entry doesn't exist, because then there's nothing
     # to stat.
     opts =

@@ -64,12 +64,6 @@ class BrowserFS.FileSystem.Dropbox extends BrowserFS.FileSystem
   stat: (path, isLstat, cb) ->
     self = this
 
-    # Handle empty string case -- doesn't return a Dropbox error, but isn't
-    # valid in the node API
-    if path is ''
-      self._sendError(cb, "Empty string is not a valid path")
-      return
-
     # Ignore lstat case -- Dropbox doesn't support symlinks
 
     # Stat the file
