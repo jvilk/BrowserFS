@@ -1,4 +1,6 @@
 import api_error = require('api_error');
+import stats = require('node_fs_stats');
+import buffer = require('buffer');
 var ApiError = api_error.ApiError;
 var ErrorType = api_error.ErrorType;
 
@@ -7,83 +9,83 @@ export class File {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
-  public stat(cb) {
-    return cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  public stat(cb: (err: api_error.ApiError, stats: stats.Stats) => any): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
-  public statSync() {
+  public statSync(): stats.Stats {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
-  public close(cb) {
-    return cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  public close(cb: Function): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
-  public closeSync() {
+  public closeSync(): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
-  public truncate(len, cb) {
-    return cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  public truncate(len: number, cb: Function): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
-  public truncateSync(len) {
+  public truncateSync(len: number): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
-  public sync(cb) {
-    return cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  public sync(cb: Function): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
-  public syncSync() {
+  public syncSync(): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
-  public write(buffer, offset, length, position, cb) {
-    return cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  public write(buffer: buffer.Buffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, written: number, buffer: buffer.Buffer) => any): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
-  public writeSync(buffer, offset, length, position) {
+  public writeSync(buffer: buffer.Buffer, offset: number, length: number, position: number): number {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
-  public read(buffer, offset, length, position, cb) {
-    return cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  public read(buffer: buffer.Buffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, bytesRead: number, buffer: buffer.Buffer) => void): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
-  public readSync(buffer, offset, length, position) {
+  public readSync(buffer: buffer.Buffer, offset: number, length: number, position: number): number {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
-  public datasync(cb) {
-    return this.sync(cb);
+  public datasync(cb: Function): void {
+    this.sync(cb);
   }
 
-  public datasyncSync() {
+  public datasyncSync(): void {
     return this.syncSync();
   }
 
-  public chown(uid, gid, cb) {
-    return cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  public chown(uid: number, gid: number, cb: Function): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
-  public chownSync(uid, gid) {
+  public chownSync(uid: number, gid: number): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
-  public chmod(mode, cb) {
-    return cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  public chmod(mode: number, cb: Function): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
-  public chmodSync(mode) {
+  public chmodSync(mode: number): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
-  public utimes(atime, mtime, cb) {
-    return cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  public utimes(atime: number, mtime: number, cb: Function): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
-  public utimesSync(atime, mtime) {
+  public utimesSync(atime: number, mtime: number): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 }
