@@ -110,10 +110,16 @@ class BrowserFS.node.Buffer
         @buff.setUint8 i, arg1.get(i)
       @length = arg1.length
     else if Array.isArray(arg1) or (arg1[0]? and typeof arg1[0] is 'number')
-      @buff = new DataView new ArrayBuffer(arg1.length)
-      for datum, i in arg1 by 1
-        @buff.setUint8 i, datum
-      @length = arg1.length
+      # XXX: Use the array as the buffer polyfill's data; prevents us from
+      #      copying it again. We should have a better solution for this!
+      if DataView.isPolyfill? and Array.isArray(arg1)
+        @buff = new DataView new ArrayBuffer(arg1)
+        @length = arg1.length
+      else
+        @buff = new DataView new ArrayBuffer(arg1.length)
+        for datum, i in arg1 by 1
+          @buff.setUint8 i, datum
+        @length = arg1.length
     else if typeof arg1 is 'string'
       @length = BrowserFS.node.Buffer.byteLength arg1, arg2
       @buff = new DataView new ArrayBuffer(@length)

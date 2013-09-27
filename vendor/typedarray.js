@@ -183,16 +183,20 @@ var ArrayBuffer, ArrayBufferView,
             //
 
             ArrayBuffer = function (length) {
-                length = ECMAScript.ToInt32(length);
-                if (length < 0) { throw new RangeError('ArrayBuffer size is not a small enough positive integer.'); }
+                if (Array.isArray(length)) {
+                    this._bytes = length;
+                    this.byteLenth = length.length;
+                } else {
+                    length = ECMAScript.ToInt32(length);
+                    if (length < 0) { throw new RangeError('ArrayBuffer size is not a small enough positive integer.'); }
+                    this._bytes = [];
+                    this._bytes.length = length;
+                    this.byteLength = length;
 
-                this.byteLength = length;
-                this._bytes = [];
-                this._bytes.length = length;
-
-                var i;
-                for (i = 0; i < this.byteLength; i += 1) {
-                    this._bytes[i] = 0;
+                    var i;
+                    for (i = 0; i < this.byteLength; i += 1) {
+                        this._bytes[i] = 0;
+                    }
                 }
             };
 
@@ -273,6 +277,7 @@ var ArrayBuffer, ArrayBufferView,
                 };
             }
 
+            DataView.isPolyfill = true;
             DataView.prototype.getUint8 = makeDataView_getter(unpackUint8, 1);
             DataView.prototype.getInt8 = makeDataView_getter(unpackInt8, 1);
             DataView.prototype.getUint16 = makeDataView_getter(unpackUint16, 2);
