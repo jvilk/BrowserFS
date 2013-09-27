@@ -1,3 +1,4 @@
+/// <reference path="../../vendor/node.d.ts" />
 import string_util = require('string_util');
 
 /**
@@ -11,7 +12,12 @@ import string_util = require('string_util');
  * @todo Add option to add array accessors, if someone doesn't mind the *huge*
  *       speed hit for compatibility.
  */
-export class Buffer {
+export class Buffer implements NodeBuffer {
+  /**
+   * Added to satisfy TypeScript NodeBuffer typing.
+   */
+  public static INSPECT_MAX_BYTES = 0;
+
   /**
    * Checks if enc is a valid string encoding type.
    * @param [String] enc Name of a string encoding type.
@@ -98,33 +104,44 @@ export class Buffer {
    * from the indicated Array or String.
    * @param [?String] arg2 Encoding to use if arg1 is a string
    */
-  constructor(arg1, arg2='utf8') {
+  constructor (size: number);
+  constructor (data: any[]);
+  constructor (data: DataView);
+  constructor (data: ArrayBuffer);
+  constructor (data: Buffer);
+  constructor (data: string, encoding?: string);
+  constructor (arg1: any, arg2='utf8') {
     var i;
-
     // Node apparently allows you to construct buffers w/o 'new'.
     if (!(this instanceof Buffer)) {
       return new Buffer(arg1, arg2);
     }
     this._charsWritten = 0;
+
     if (typeof arg1 === 'number') {
+      // constructor (size: number);
       if (arg1 !== (arg1 >>> 0)) {
         throw new TypeError('Buffer size must be a uint32.');
       }
       this.length = arg1;
       this.buff = new DataView(new ArrayBuffer(this.length));
     } else if (arg1 instanceof DataView) {
+      // constructor (data: DataView);
       this.buff = arg1;
       this.length = arg1.byteLength;
     } else if (arg1 instanceof ArrayBuffer) {
+      // constructor (data: ArrayBuffer);
       this.buff = new DataView(arg1);
       this.length = arg1.byteLength;
     } else if (arg1 instanceof Buffer) {
+      // constructor (data: Buffer);
       this.buff = new DataView(new ArrayBuffer(arg1.length));
       for (i = 0; i < arg1.length; i++) {
         this.buff.setUint8(i, arg1.get(i));
       }
       this.length = arg1.length;
     } else if (Array.isArray(arg1) || ((arg1[0] != null) && typeof arg1[0] === 'number')) {
+      // constructor (data: number[]);
       if ((DataView['isPolyfill'] != null) && Array.isArray(arg1)) {
         // XXX: Use the array as the buffer polyfill's data; prevents us from
         // copying it again. We should have a better solution for this!
@@ -138,6 +155,7 @@ export class Buffer {
         this.length = arg1.length;
       }
     } else if (typeof arg1 === 'string') {
+      // constructor (data: string, encoding?: string);
       this.length = Buffer.byteLength(arg1, arg2);
       this.buff = new DataView(new ArrayBuffer(this.length));
       this.write(arg1, 0, this.length, arg2);
@@ -152,7 +170,7 @@ export class Buffer {
    * @param [Number] index the index to set the value at
    * @param [Number] value the value to set at the given index
    */
-  public set(index, value) {
+  public set(index: number, value: number) {
     return this.buff.setUint8(index, value);
   }
 
@@ -161,7 +179,7 @@ export class Buffer {
    * @param [Number] index index to fetch the value at
    * @return [Number] the value at the given index
    */
-  public get(index) {
+  public get(index: number): number {
     return this.buff.getUint8(index);
   }
 
@@ -175,7 +193,7 @@ export class Buffer {
    * @param [?String] encoding Character encoding
    * @return [Number] Number of octets written.
    */
-  public write(str, offset = 0, length = this.length, encoding = 'utf8') {
+  public write(str: string, offset = 0, length = this.length, encoding = 'utf8'): number {
     // I hate Node's optional arguments.
     if (typeof offset === 'string') {
       // 'str' and 'encoding' specified
@@ -206,7 +224,7 @@ export class Buffer {
    * @return [String] A string from buffer data encoded with encoding, beginning
    *   at start, and ending at end.
    */
-  public toString(encoding = 'utf8', start = 0, end = this.length) {
+  public toString(encoding = 'utf8', start = 0, end = this.length): string {
     if (!(start <= end)) {
       throw new Error("Invalid start/end positions: " + start + " - " + end);
     }
@@ -232,7 +250,7 @@ export class Buffer {
    * when stringifying a Buffer instance.
    * @return [Object] An object that can be used for JSON stringification.
    */
-  public toJSON() {
+  public toJSON(): {type: string; data: number[]} {
     var arr = new Array(this.length);
     for (var i = 0; i < this.length; i++) {
       arr[i] = this.buff.getUint8(i);
@@ -253,7 +271,7 @@ export class Buffer {
    * @param [?Number] sourceEnd Index in this buffer stop copying at
    * @return [Number] The number of bytes copied into the target buffer.
    */
-  public copy(target, targetStart = 0, sourceStart = 0, sourceEnd = this.length) {
+  public copy(target: Buffer, targetStart = 0, sourceStart = 0, sourceEnd = this.length): number {
     // The Node code is weird. It sets some out-of-bounds args to their defaults
     // and throws exceptions for others (sourceEnd).
     targetStart = targetStart < 0 ? 0 : targetStart;
@@ -288,11 +306,11 @@ export class Buffer {
    * @param [?Number] start Index to start slicing from
    * @param [?Number] end Index to stop slicing at
    * @return [Buffer] A new buffer which references the same
-   * memory as the old, but offset and cropped by the start (defaults to 0) and
-   * end (defaults to buffer.length) indexes. Negative indexes start from the end
-   * of the buffer.
+   *   memory as the old, but offset and cropped by the start (defaults to 0) and
+   *   end (defaults to buffer.length) indexes. Negative indexes start from the end
+   *   of the buffer.
    */
-  public slice(start = 0, end = this.length) {
+  public slice(start = 0, end = this.length): Buffer {
     // Translate negative indices to positive ones.
     if (start < 0) {
       start += this.length;
@@ -327,7 +345,7 @@ export class Buffer {
    * @param [Number] offset Optional
    * @param [Number] end Optional
    */
-  public fill(value, offset = 0, end = this.length) {
+  public fill(value: any, offset = 0, end = this.length): void {
     var i;
     var valType = typeof value;
     switch (valType) {
@@ -355,115 +373,115 @@ export class Buffer {
   // Numerical read/write methods
   // @todo Actually care about noAssert.
 
-  public readUInt8(offset, noAssert = false) {
+  public readUInt8(offset: number, noAssert = false): number {
     return this.buff.getUint8(offset);
   }
 
-  public readUInt16LE(offset, noAssert = false) {
+  public readUInt16LE(offset: number, noAssert = false): number {
     return this.buff.getUint16(offset, true);
   }
 
-  public readUInt16BE(offset, noAssert = false) {
+  public readUInt16BE(offset: number, noAssert = false): number {
     return this.buff.getUint16(offset, false);
   }
 
-  public readUInt32LE(offset, noAssert = false) {
+  public readUInt32LE(offset: number, noAssert = false): number {
     return this.buff.getUint32(offset, true);
   }
 
-  public readUInt32BE(offset, noAssert = false) {
+  public readUInt32BE(offset: number, noAssert = false): number {
     return this.buff.getUint32(offset, false);
   }
 
-  public readInt8(offset, noAssert = false) {
+  public readInt8(offset: number, noAssert = false): number {
     return this.buff.getInt8(offset);
   }
 
-  public readInt16LE(offset, noAssert = false) {
+  public readInt16LE(offset: number, noAssert = false): number {
     return this.buff.getInt16(offset, true);
   }
 
-  public readInt16BE(offset, noAssert = false) {
+  public readInt16BE(offset: number, noAssert = false): number {
     return this.buff.getInt16(offset, false);
   }
 
-  public readInt32LE(offset, noAssert = false) {
+  public readInt32LE(offset: number, noAssert = false): number {
     return this.buff.getInt32(offset, true);
   }
 
-  public readInt32BE(offset, noAssert = false) {
+  public readInt32BE(offset: number, noAssert = false): number {
     return this.buff.getInt32(offset, false);
   }
 
-  public readFloatLE(offset, noAssert = false) {
+  public readFloatLE(offset: number, noAssert = false): number {
     return this.buff.getFloat32(offset, true);
   }
 
-  public readFloatBE(offset, noAssert = false) {
+  public readFloatBE(offset: number, noAssert = false): number {
     return this.buff.getFloat32(offset, false);
   }
 
-  public readDoubleLE(offset, noAssert = false) {
+  public readDoubleLE(offset: number, noAssert = false): number {
     return this.buff.getFloat64(offset, true);
   }
 
-  public readDoubleBE(offset, noAssert = false) {
+  public readDoubleBE(offset: number, noAssert = false): number {
     return this.buff.getFloat64(offset, false);
   }
 
-  public writeUInt8(value, offset, noAssert = false) {
-    return this.buff.setUint8(offset, value);
+  public writeUInt8(value: number, offset: number, noAssert = false): void {
+    this.buff.setUint8(offset, value);
   }
 
-  public writeUInt16LE(value, offset, noAssert = false) {
-    return this.buff.setUint16(offset, value, true);
+  public writeUInt16LE(value: number, offset: number, noAssert = false): void {
+    this.buff.setUint16(offset, value, true);
   }
 
-  public writeUInt16BE(value, offset, noAssert = false) {
-    return this.buff.setUint16(offset, value, false);
+  public writeUInt16BE(value: number, offset: number, noAssert = false): void {
+    this.buff.setUint16(offset, value, false);
   }
 
-  public writeUInt32LE(value, offset, noAssert = false) {
-    return this.buff.setUint32(offset, value, true);
+  public writeUInt32LE(value: number, offset: number, noAssert = false): void {
+    this.buff.setUint32(offset, value, true);
   }
 
-  public writeUInt32BE(value, offset, noAssert = false) {
-    return this.buff.setUint32(offset, value, false);
+  public writeUInt32BE(value: number, offset: number, noAssert = false): void {
+    this.buff.setUint32(offset, value, false);
   }
 
-  public writeInt8(value, offset, noAssert = false) {
-    return this.buff.setInt8(offset, value);
+  public writeInt8(value: number, offset: number, noAssert = false): void {
+    this.buff.setInt8(offset, value);
   }
 
-  public writeInt16LE(value, offset, noAssert = false) {
-    return this.buff.setInt16(offset, value, true);
+  public writeInt16LE(value: number, offset: number, noAssert = false): void {
+    this.buff.setInt16(offset, value, true);
   }
 
-  public writeInt16BE(value, offset, noAssert = false) {
-    return this.buff.setInt16(offset, value, false);
+  public writeInt16BE(value: number, offset: number, noAssert = false): void {
+    this.buff.setInt16(offset, value, false);
   }
 
-  public writeInt32LE(value, offset, noAssert = false) {
-    return this.buff.setInt32(offset, value, true);
+  public writeInt32LE(value: number, offset: number, noAssert = false): void {
+    this.buff.setInt32(offset, value, true);
   }
 
-  public writeInt32BE(value, offset, noAssert = false) {
-    return this.buff.setInt32(offset, value, false);
+  public writeInt32BE(value: number, offset: number, noAssert = false): void {
+    this.buff.setInt32(offset, value, false);
   }
 
-  public writeFloatLE(value, offset, noAssert = false) {
-    return this.buff.setFloat32(offset, value, true);
+  public writeFloatLE(value: number, offset: number, noAssert = false): void {
+    this.buff.setFloat32(offset, value, true);
   }
 
-  public writeFloatBE(value, offset, noAssert = false) {
-    return this.buff.setFloat32(offset, value, false);
+  public writeFloatBE(value: number, offset: number, noAssert = false): void {
+    this.buff.setFloat32(offset, value, false);
   }
 
-  public writeDoubleLE(value, offset, noAssert = false) {
-    return this.buff.setFloat64(offset, value, true);
+  public writeDoubleLE(value: number, offset: number, noAssert = false): void {
+    this.buff.setFloat64(offset, value, true);
   }
 
-  public writeDoubleBE(value, offset, noAssert = false) {
-    return this.buff.setFloat64(offset, value, false);
+  public writeDoubleBE(value: number, offset: number, noAssert = false): void {
+    this.buff.setFloat64(offset, value, false);
   }
 }
