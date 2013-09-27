@@ -1,5 +1,7 @@
+import string_util = require('string_util');
+
 /**
- *  Emulation of Node's `Buffer` class. Normally, this is declared globally, but I
+ * Emulation of Node's `Buffer` class. Normally, this is declared globally, but I
  * make that behavior optional.
  *
  * The buffer is backed by a `DataView`; we have a polyfill in `vendor` that
@@ -15,9 +17,9 @@ export class Buffer {
    * @param [String] enc Name of a string encoding type.
    * @return [Boolean] Whether or not enc is a valid encoding type.
    */
-  public static isEncoding(enc) {
+  public static isEncoding(enc: string): boolean {
     try {
-      BrowserFS.StringUtil.FindUtil(enc);
+      string_util.FindUtil(enc);
     } catch (e) {
       return false;
     }
@@ -29,7 +31,7 @@ export class Buffer {
    * @param [Object] obj An arbitrary object
    * @return [Boolean] True if this object is a Buffer.
    */
-  public static isBuffer(obj) {
+  public static isBuffer(obj: any): boolean {
     return obj instanceof Buffer;
   }
 
@@ -41,8 +43,8 @@ export class Buffer {
    * @param [?String] encoding Character encoding of the string
    * @return [Number] The number of bytes in the string
    */
-  public static byteLength(str, encoding='utf8') {
-    var strUtil = BrowserFS.StringUtil.FindUtil(encoding);
+  public static byteLength(str: string, encoding: string = 'utf8'): number {
+    var strUtil = string_util.FindUtil(encoding);
     return strUtil.byteLength(str);
   }
 
@@ -61,7 +63,7 @@ export class Buffer {
    * @param [?Number] totalLength Total length of the buffers when concatenated
    * @return [Buffer]
    */
-  public static concat(list, totalLength) {
+  public static concat(list: Buffer[], totalLength: number): Buffer {
     var item;
     if (list.length === 0 || totalLength === 0) {
       return new Buffer(0);
@@ -123,7 +125,7 @@ export class Buffer {
       }
       this.length = arg1.length;
     } else if (Array.isArray(arg1) || ((arg1[0] != null) && typeof arg1[0] === 'number')) {
-      if ((DataView.isPolyfill != null) && Array.isArray(arg1)) {
+      if ((DataView['isPolyfill'] != null) && Array.isArray(arg1)) {
         // XXX: Use the array as the buffer polyfill's data; prevents us from
         // copying it again. We should have a better solution for this!
         this.buff = new DataView(new ArrayBuffer(arg1));
@@ -177,19 +179,19 @@ export class Buffer {
     // I hate Node's optional arguments.
     if (typeof offset === 'string') {
       // 'str' and 'encoding' specified
-      encoding = offset;
+      encoding = (<string> offset);
       offset = 0;
       length = this.length;
     } else if (typeof length === 'string') {
       // 'str', 'offset', and 'encoding' specified
-      encoding = length;
+      encoding = (<string> length);
       length = this.length;
     }
     // Don't waste our time if the offset is beyond the buffer length
     if (offset >= this.length) {
       return 0;
     }
-    var strUtil = BrowserFS.StringUtil.FindUtil(encoding);
+    var strUtil = string_util.FindUtil(encoding);
     // Are we trying to write past the buffer?
     length = length + offset > this.length ? this.length - offset : length;
     // str2byte will update @_charsWritten.
@@ -214,7 +216,7 @@ export class Buffer {
     if (end > this.length) {
       end = this.length;
     }
-    var strUtil = BrowserFS.StringUtil.FindUtil(encoding);
+    var strUtil = string_util.FindUtil(encoding);
     var len = end - start;
     // Create a byte array of the needed characters.
     var byteArr = new Array(len);
