@@ -179,12 +179,12 @@ export class Buffer {
     // I hate Node's optional arguments.
     if (typeof offset === 'string') {
       // 'str' and 'encoding' specified
-      encoding = (<string> offset);
+      encoding = "" + offset;
       offset = 0;
       length = this.length;
     } else if (typeof length === 'string') {
       // 'str', 'offset', and 'encoding' specified
-      encoding = (<string> length);
+      encoding = "" + length;
       length = this.length;
     }
     // Don't waste our time if the offset is beyond the buffer length
