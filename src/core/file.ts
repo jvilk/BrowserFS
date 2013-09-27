@@ -4,12 +4,36 @@ import buffer = require('buffer');
 var ApiError = api_error.ApiError;
 var ErrorType = api_error.ErrorType;
 
-export class File {
+export interface File {
+  getPos(): number;
+  stat(cb: (err: api_error.ApiError, stats?: stats.Stats) => any): void;
+  statSync(): stats.Stats;
+  close(cb: Function): void;
+  closeSync(): void;
+  truncate(len: number, cb: Function): void;
+  truncateSync(len: number): void;
+  sync(cb: Function): void;
+  syncSync(): void;
+  write(buffer: buffer.Buffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, written?: number, buffer?: buffer.Buffer) => any): void;
+  writeSync(buffer: buffer.Buffer, offset: number, length: number, position: number): number;
+  read(buffer: buffer.Buffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, bytesRead?: number, buffer?: buffer.Buffer) => void): void;
+  readSync(buffer: buffer.Buffer, offset: number, length: number, position: number): number;
+  datasync(cb: Function): void;
+  datasyncSync(): void;
+  chown(uid: number, gid: number, cb: Function): void;
+  chownSync(uid: number, gid: number): void;
+  chmod(mode: number, cb: Function): void;
+  chmodSync(mode: number): void;
+  utimes(atime: number, mtime: number, cb: Function): void;
+  utimesSync(atime: number, mtime: number): void;
+}
+
+export class BaseFile implements File {
   public getPos(): number {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
-  public stat(cb: (err: api_error.ApiError, stats: stats.Stats) => any): void {
+  public stat(cb: (err: api_error.ApiError, stats?: stats.Stats) => any): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
@@ -41,7 +65,7 @@ export class File {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
-  public write(buffer: buffer.Buffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, written: number, buffer: buffer.Buffer) => any): void {
+  public write(buffer: buffer.Buffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, written?: number, buffer?: buffer.Buffer) => any): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
@@ -49,7 +73,7 @@ export class File {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
-  public read(buffer: buffer.Buffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, bytesRead: number, buffer: buffer.Buffer) => void): void {
+  public read(buffer: buffer.Buffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, bytesRead?: number, buffer?: buffer.Buffer) => void): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
