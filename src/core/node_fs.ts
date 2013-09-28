@@ -43,16 +43,59 @@ function wrapCb(cb: Function, numArgs: number): Function {
   }
 }
 
-function checkFd(fd: file.BaseFile, async = true): any {
+function checkFd(fd: file.BaseFile): void {
   if (!(fd instanceof BaseFile)) {
-    var error = new ApiError(ErrorType.INVALID_PARAM, 'Invalid file descriptor.');
-    if (async) {
-      return error;
-    } else {
-      throw error;
-    }
+    throw new ApiError(ErrorType.INVALID_PARAM, 'Invalid file descriptor.');
   }
-  return true;
+}
+
+function normalizeMode(mode: any, def: number): number {
+  switch(typeof arg2) {
+    case 'number':
+      // (path, flags, mode, cb?)
+      return arg2;
+    case 'string':
+      // (path, flags, modeString, cb?)
+      var trueMode = parseInt(mode, 8);
+      if (trueMode !== NaN) {
+        return trueMode;
+      }
+      // FALL THROUGH if mode is an invalid string!
+    default:
+      return def;
+  }
+}
+
+function normalizePath(p: string): string {
+  if (p.indexOf('\u0000') >= 0) {
+    throw new ApiError(ErrorType.INVALID_PARAM, 'Path must be a string without null bytes.');
+  } else if (p === '') {
+    throw new ApiError(ErrorType.INVALID_PARAM, 'Path must not be empty.');
+  }
+  return path.resolve(p);
+}
+
+function normalizeOptions(options: any, defEnc: string, defFlag: string, defMode: number): {encoding: string, flag: string, mode: number} {
+  switch (typeof options) {
+    case 'object':
+      return {
+        encoding: typeof options['encoding'] !== undefined ? options['encoding'] : defEnc,
+        flag: typeof options['flag'] !== undefined ? options['flag'] : defFlag,
+        mode: normalizeMode(options['mode'], defMode)
+      };
+    case 'string':
+      return {
+        encoding: options,
+        flag: defFlag,
+        mode: defMode
+      };
+    default:
+      return {
+        encoding: defEnc,
+        flag: defFlag,
+        mode: defMode
+      };
+  }
 }
 
 function nopCb() {};
@@ -86,32 +129,23 @@ export class fs {
     }
   }
 
-  private static _normalize(p: string): string {
-    if (p.indexOf('\u0000') >= 0) {
-      throw new ApiError(ErrorType.INVALID_PARAM, 'Path must be a string without null bytes.');
-    } else if (p === '') {
-      throw new ApiError(ErrorType.INVALID_PARAM, 'Path must not be empty.');
-    }
-    return path.resolve(p);
-  }
-
   public static rename(oldPath: string, newPath: string, cb: Function = nopCb): void {
     var newCb = wrapCb(cb, 1);
     try {
-      this.root.rename(this._normalize(oldPath), this._normalize(newPath), newCb);
+      this.root.rename(normalizePath(oldPath), normalizePath(newPath), newCb);
     } catch (e) {
       newCb(e);
     }
   }
 
   public static renameSync(oldPath: string, newPath: string): void {
-    this.root.renameSync(this._normalize(oldPath), this._normalize(newPath));
+    this.root.renameSync(normalizePath(oldPath), normalizePath(newPath));
   }
 
   public static exists(path: string, cb: (exists: boolean) => void = nopCb): void {
     var newCb = wrapCb(callback, 1);
     try {
-      return this.root.exists(this._normalize(path), newCb);
+      return this.root.exists(normalizePath(path), newCb);
     } catch (e) {
       return newCb(false);
     }
@@ -119,7 +153,7 @@ export class fs {
 
   public static existsSync(path: string): boolean {
     try {
-      return this.root.existsSync(this._normalize(path));
+      return this.root.existsSync(normalizePath(path));
     } catch (e) {
       return false;
     }
@@ -128,27 +162,27 @@ export class fs {
   public static stat(path: string, cb?: (err: Error, stats: Stats) => any = nopCb): Stats {
     var newCb = wrapCb(cb, 2);
     try {
-      return this.root.stat(this._normalize(path), false, newCb);
+      return this.root.stat(normalizePath(path), false, newCb);
     } catch (e) {
       return newCb(e, null);
     }
   }
 
   public static statSync(path: string): Stats {
-    return this.root.statSync(this._normalize(path), false);
+    return this.root.statSync(normalizePath(path), false);
   }
 
   public static lstat(path: string, cb: (err: Error, stats: Stats) => any = nopCb): Stats {
     var newCb = wrapCb(cb, 2);
     try {
-      return this.root.stat(this._normalize(path), true, newCb);
+      return this.root.stat(normalizePath(path), true, newCb);
     } catch (e) {
       return newCb(e, null);
     }
   }
 
   public static lstatSync(path: string): Stats {
-    return this.root.statSync(this._normalize(path), true);
+    return this.root.statSync(normalizePath(path), true);
   }
 
   public static truncate(path: string, cb?: Function): void;
@@ -163,48 +197,38 @@ export class fs {
 
     var newCb = wrapCb(cb, 1);
     try {
-      return this.root.truncate(this._normalize(path), len, newCb);
+      return this.root.truncate(normalizePath(path), len, newCb);
     } catch (e) {
       return newCb(e);
     }
   }
 
   public static truncateSync(path: string, len: number = 0): void {
-    return this.root.truncateSync(this._normalize(path), len);
+    return this.root.truncateSync(normalizePath(path), len);
   }
 
   public static unlink(path: string, cb: Function = nopCb): void {
     var newCb = wrapCb(cb, 1);
     try {
-      return this.root.unlink(this._normalize(path), newCb);
+      return this.root.unlink(normalizePath(path), newCb);
     } catch (e) {
       return newCb(e);
     }
   }
 
   public static unlinkSync(path: string): void {
-    return this.root.unlinkSync(this._normalize(path));
+    return this.root.unlinkSync(normalizePath(path));
   }
 
   public static open(path: string, flags: string, cb?: (err: Error, fd: file.BaseFile) => any): void;
   public static open(path: string, flags: string, mode: string, cb?: (err: Error, fd: file.BaseFile) => any): void;
   public static open(path: string, flags: string, mode: number, cb?: (err: Error, fd: file.BaseFile) => any): void;
-  public static open(path: string, flags: string, arg2?: any, cb?: (err: Error, fd: file.BaseFile) => any = nopCb): void {
-    var mode: number = 0x1a4;
-    if (typeof arg2 === 'undefined') {
-      // (path, flags)
-      cb = nopCb;
-    } else if (typeof arg2 === 'function') {
-      // (path, flags, cb)
-      cb = arg2;
-    } else if (typeof arg2 === 'number') {
-      // (path, flags, mode, cb?) (cb will be set to the default if not present)
-      mode = arg2;
-    }
-
+  public static open(path: string, flags: string, arg2: any, cb: (err: Error, fd: file.BaseFile) => any = nopCb): void {
+    var mode = normalizeMode(arg2, 0x1a4);
+    cb = typeof arg2 === 'function' ? arg2 : cb;
     var newCb = wrapCb(cb, 2);
     try {
-      return this.root.open(this._normalize(path), BrowserFS.FileMode.getFileMode(flags), mode, newCb);
+      return this.root.open(normalizePath(path), BrowserFS.FileMode.getFileMode(flags), mode, newCb);
     } catch (e) {
       return newCb(e, null);
     }
@@ -213,47 +237,22 @@ export class fs {
   public static openSync(path: string, flags: string, mode?: string): file.BaseFile;
   public static openSync(path: string, flags: string, mode?: number): file.BaseFile;
   public static openSync(path: string, flags: string, mode?: any = 0x1a4): file.BaseFile {
-    return this.root.openSync(this._normalize(path), BrowserFS.FileMode.getFileMode(flags), mode);
+    return this.root.openSync(normalizePath(path), BrowserFS.FileMode.getFileMode(flags), mode);
   }
 
   public static readFile(filename: string, cb?: (err: Error, data: any) => void ): void;
   public static readFile(filename: string, options: {[opt: string]: any}, cb?: (err: Error, data: any) => void ): void;
   public static readFile(filename: string, encoding: string, cb?: (err: Error, data: any) => void ): void;
   public static readFile(filename: string, arg2: any = {}, cb: (err: Error, data: any) => void = nopCb ) {
-    var options = {};
-    switch(typeof arg2) {
-      case 'function':
-        // (filename, cb)
-        cb = arg2;
-        break;
-      case 'string':
-        // (filename, encoding, cb)
-        options['encoding'] = arg2;
-        break;
-      case 'object':
-        options = args;
-        break;
-      default:
-        return cb(new ApiError(ErrorType.INVALID_PARAM, "Invalid options object."), null);
-    }
-
-    // Standardize options.
-    if (options['encoding'] === undefined) {
-      // Null indicates: 'give me a buffer'
-      options['encoding'] = null;
-    }
-    if (options['flag'] == null) {
-      options['flag'] = 'r';
-    }
-
+    var options = normalizeOptions(arg2, null, 'r', null);
+    cb = typeof arg2 === 'function' ? arg2 : cb;
     var newCb = wrapCb(callback, 2);
     try {
-      filename = this._normalize(filename);
       var flags = BrowserFS.FileMode.getFileMode(options['flag']);
       if (!flags.isReadable()) {
         return newCb(new ApiError(ErrorType.INVALID_PARAM, 'Flag passed to readFile must allow for reading.'));
       }
-      return this.root.readFile(filename, options.encoding, flags, newCb);
+      return this.root.readFile(normalizePath(filename), options.encoding, flags, newCb);
     } catch (e) {
       return newCb(e, null);
     }
@@ -262,304 +261,154 @@ export class fs {
   public static readFileSync(filename: string, encoding?: string): buffer.Buffer;
   public static readFileSync(filename: string, options?: { encoding?: string; flag?: string; }): buffer.Buffer;
   public static readFileSync(filename: string, arg2: any = {}): buffer.Buffer {
-    var options = {};
-    switch (typeof arg2) {
-      case 'string':
-        // (filename, encoding)
-        options['encoding'] = arg2;
-        break;
-      case 'object':
-        // (filename, options)
-        options = arg2;
-        break;
-      default:
-        throw new ApiError(ErrorType.INVALID_PARAM, 'Invalid options argument');
-    }
-
-    if (options['encoding'] === undefined) {
-      options['encoding'] = null;
-    }
-    if (options['flag'] == null) {
-      options['flag'] = 'r';
-    }
-
-    filename = this._normalize(filename);
+    var options = normalizeOptions(arg2, null, 'r', null);
     var flags = BrowserFS.FileMode.getFileMode(options.flag);
     if (!flags.isReadable()) {
       throw new ApiError(ErrorType.INVALID_PARAM, 'Flag passed to readFile must allow for reading.');
     }
-    return this.root.readFileSync(filename, options.encoding, flags);
+    return this.root.readFileSync(normalizePath(filename), options.encoding, flags);
   }
 
-  public static writeFile(filename: string, data: any, callback?: Function);
-  public static writeFile(filename: string, data: any, encoding?: string, callback?: Function);
-  public static writeFile(filename: string, data: any, arg3: any = {}, callback: Function = nopCb): void {
-    var e, flags, newCb;
-
+  public static writeFile(filename: string, data: any, cb?: Function);
+  public static writeFile(filename: string, data: any, encoding?: string, cb?: Function);
+  public static writeFile(filename: string, data: any, options?: object, cb?: Function);
+  public static writeFile(filename: string, data: any, arg3: any = {}, cb: Function = nopCb): void {
+    var options = normalizeOptions(arg3, 'utf8', 'w', 0x1a4);
+    cb = typeof arg3 === 'function' ? arg3 : cb;
+    var newCb = wrapCb(cb, 1);
     try {
-      if (typeof options === 'function') {
-        callback = options;
-        options = {};
-      } else if (typeof options === 'string') {
-        options = {
-          encoding: options
-        };
-      }
-      if (options === void 0) {
-        options = {};
-      }
-      if (options.encoding === void 0) {
-        options.encoding = 'utf8';
-      }
-      if (options.flag == null) {
-        options.flag = 'w';
-      }
-      if (options.mode == null) {
-        options.mode = 0x1a4;
-      }
-      newCb = wrapCb(callback, 1);
-      filename = this._normalize(filename);
-      flags = BrowserFS.FileMode.getFileMode(options.flag);
+      var flags = BrowserFS.FileMode.getFileMode(options.flag);
       if (!flags.isWriteable()) {
-        return newCb(new BrowserFS.ApiError(BrowserFS.ApiError.INVALID_PARAM, 'Flag passed to writeFile must allow for writing.'));
+        return newCb(new ApiError(ErrorType.INVALID_PARAM, 'Flag passed to writeFile must allow for writing.'));
       }
-      return this.root.writeFile(filename, data, options.encoding, flags, options.mode, newCb);
-    } catch (_error) {
-      e = _error;
+      return this.root.writeFile(normalizePath(filename), data, options.encoding, flags, options.mode, newCb);
+    } catch (e) {
       return newCb(e);
     }
   }
 
-  public static writeFileSync(filename: string, data: any, encoding?: string): void {
-    var flags;
-
-    if (options == null) {
-      options = {};
-    }
-    if (typeof options === 'string') {
-      options = {
-        encoding: options
-      };
-    }
-    if (options === void 0) {
-      options = {};
-    }
-    if (options.encoding === void 0) {
-      options.encoding = 'utf8';
-    }
-    if (options.flag == null) {
-      options.flag = 'w';
-    }
-    if (options.mode == null) {
-      options.mode = 0x1a4;
-    }
-    filename = this._normalize(filename);
-    flags = BrowserFS.FileMode.getFileMode(options.flag);
+  public static writeFileSync(filename: string, data: any, options?: object): void;
+  public static writeFileSync(filename: string, data: any, encoding?: string): void;
+  public static writeFileSync(filename: string, data: any, arg3?: any): void {
+    var options = normalizeOptions(arg3, 'utf8', 'w', 0x1a4);
+    var flags = BrowserFS.FileMode.getFileMode(options.flag);
     if (!flags.isWriteable()) {
       throw new BrowserFS.ApiError(BrowserFS.ApiError.INVALID_PARAM, 'Flag passed to writeFile must allow for writing.');
     }
-    return this.root.writeFileSync(filename, data, options.encoding, flags, options.mode);
+    return this.root.writeFileSync(normalizePath(filename), data, options.encoding, flags, options.mode);
   }
 
-  public static appendFile(filename: string, data: any, encoding?: string, callback?: Function): void {
-    var e, flags, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static appendFile(filename: string, data: any, cb?: Function): void;
+  public static appendFile(filename: string, data: any, options?: object, cb?: Function): void;
+  public static appendFile(filename: string, data: any, encoding?: string, cb?: Function): void;
+  public static appendFile(filename: string, data: any, arg3?: string, cb: Function = nopCb): void {
+    var options = normalizeOptions(arg3, 'utf8', 'a', 0x1a4);
+    cb = typeof arg3 === 'function' ? arg3 : cb;
+    var newCb = wrapCb(cb, 1);
     try {
-      if (typeof options === 'function') {
-        callback = options;
-        options = {};
-      } else if (typeof options === 'string') {
-        options = {
-          encoding: options
-        };
-      }
-      if (options === void 0) {
-        options = {};
-      }
-      if (options.encoding === void 0) {
-        options.encoding = 'utf8';
-      }
-      if (options.flag == null) {
-        options.flag = 'a';
-      }
-      if (options.mode == null) {
-        options.mode = 0x1a4;
-      }
-      newCb = wrapCb(callback, 1);
-      filename = this._normalize(filename);
-      flags = BrowserFS.FileMode.getFileMode(options.flag);
+      var flags = BrowserFS.FileMode.getFileMode(options.flag);
       if (!flags.isAppendable()) {
         return newCb(new BrowserFS.ApiError(BrowserFS.ApiError.INVALID_PARAM, 'Flag passed to appendFile must allow for appending.'));
       }
-      return this.root.appendFile(filename, data, options.encoding, flags, options.mode, newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      this.root.appendFile(normalizePath(filename), data, options.encoding, flags, options.mode, newCb);
+    } catch (e) {
+      newCb(e);
     }
   }
 
-  public static appendFileSync(filename: string, data: any, encoding?: string): void {
-    var flags;
-
-    if (options == null) {
-      options = {};
-    }
-    if (typeof options === 'string') {
-      options = {
-        encoding: options
-      };
-    }
-    if (options === void 0) {
-      options = {};
-    }
-    if (options.encoding === void 0) {
-      options.encoding = 'utf8';
-    }
-    if (options.flag == null) {
-      options.flag = 'a';
-    }
-    if (options.mode == null) {
-      options.mode = 0x1a4;
-    }
-    filename = this._normalize(filename);
-    flags = BrowserFS.FileMode.getFileMode(options.flag);
+  public static appendFileSync(filename: string, data: any, options?: object): void;
+  public static appendFileSync(filename: string, data: any, encoding?: string): void;
+  public static appendFileSync(filename: string, data: any, arg3?: any): void {
+    var options = normalizeOptions(arg3, 'utf8', 'a', 0x1a4);
+    var flags = BrowserFS.FileMode.getFileMode(options.flag);
     if (!flags.isAppendable()) {
       throw new BrowserFS.ApiError(BrowserFS.ApiError.INVALID_PARAM, 'Flag passed to appendFile must allow for appending.');
     }
-    return this.root.appendFileSync(filename, data, options.encoding, flags, options.mode);
+    return this.root.appendFileSync(normalizePath(filename), data, options.encoding, flags, options.mode);
   }
 
-  public static fstat(fd: number, callback?: (err: Error, stats: Stats) =>any): Stats {
-    var e, fdChk, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static fstat(fd: file.BaseFile, cb: (err: Error, stats: Stats) => any = nopCb): void {
+    var newCb = wrapCb(callback, 2);
     try {
-      newCb = wrapCb(callback, 2);
-      fdChk = checkFd(fd);
-      if (!fdChk) {
-        return newCb(fdChk);
-      }
-      return fd.stat(newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      checkFd(fd);
+      fd.stat(newCb);
+    } catch (e) {
+      newCb(e);
     }
   }
 
-  public static fstatSync(fd: number): Stats {
-    checkFd(fd, false);
+  public static fstatSync(fd: file.BaseFile): Stats {
+    checkFd(fd);
     return fd.statSync();
   }
 
-  public static close(fd: number, callback?: Function): void {
-    var e, fdChk, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static close(fd: file.BaseFile, cb: Function = nopCb): void {
+    var newCb = wrapCb(callback, 1);
     try {
-      newCb = wrapCb(callback, 1);
-      fdChk = checkFd(fd);
-      if (!fdChk) {
-        return newCb(fdChk);
-      }
-      return fd.close(newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      checkFd(fd);
+      fd.close(newCb);
+    } catch (e) {
+      newCb(e);
     }
   }
 
-  public static closeSync(fd: number): void {
-    checkFd(fd, false);
+  public static closeSync(fd: file.BaseFile): void {
+    checkFd(fd);
     return fd.closeSync();
   }
 
-  public static ftruncate(fd, len, callback) {
-    var e, fdChk, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static ftruncate(fd: file.BaseFile, cb?:Function);
+  public static ftruncate(fd: file.BaseFile, len?: number, cb?:Function);
+  public static ftruncate(fd: file.BaseFile, arg2?: any, cb:Function = nopCb) {
+    var length = typeof arg2 === 'number' ? arg2 : 0;
+    cb = typeof arg2 === 'function' ? arg2 : cb;
+    var newCb = wrapCb(cb, 1);
     try {
-      if (typeof len === 'function') {
-        callback = len;
-        len = 0;
-      }
-      newCb = wrapCb(callback, 1);
-      fdChk = checkFd(fd);
-      if (!fdChk) {
-        return newCb(fdChk);
-      }
-      return fd.truncate(len, newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      checkFd(fd);
+      fd.truncate(len, newCb);
+    } catch (e) {
+      newCb(e);
     }
   }
 
-  public static ftruncateSync(fd, len) {
-    if (len == null) {
-      len = 0;
-    }
-    checkFd(fd, false);
+  public static ftruncateSync(fd: file.BaseFile, len: number = 0) {
+    checkFd(fd);
     return fd.truncateSync(len);
   }
 
-  public static fsync(fd: number, callback?: Function): void {
-    var e, fdChk, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static fsync(fd: file.BaseFile, cb: Function = nopCb): void {
+    var newCb = wrapCb(cb, 1);
     try {
-      newCb = wrapCb(callback, 1);
-      fdChk = checkFd(fd);
-      if (!fdChk) {
-        return newCb(fdChk);
-      }
-      return fd.sync(newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      checkFd(fd);
+      fd.sync(newCb);
+    } catch (e) {
+      newCb(e);
     }
   }
 
-  public static fsyncSync(fd: number): void {
-    checkFd(fd, false);
+  public static fsyncSync(fd: file.BaseFile): void {
+    checkFd(fd);
     return fd.syncSync();
   }
 
-  public static fdatasync(fd: number, callback?: Function): void {
-    var e, fdChk, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static fdatasync(fd: file.BaseFile, cb: Function = nopCb): void {
+    var newCb = wrapCb(cb, 1);
     try {
-      newCb = wrapCb(callback, 1);
-      fdChk = checkFd(fd);
-      if (!fdChk) {
-        return newCb(fdChk);
-      }
-      return fd.datasync(newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      checkFd(fd);
+      fd.datasync(newCb);
+    } catch (e) {
+      newCb(e);
     }
   }
 
-  public static fdatasyncSync(fd: number): void {
-    checkFd(fd, false);
+  public static fdatasyncSync(fd: file.BaseFile): void {
+    checkFd(fd);
     fd.datasyncSync();
   }
 
-  public static write(fd: number, buffer: NodeBuffer, offset: number, length: number, position: number, callback?: (err: Error, written: number, buffer: NodeBuffer) =>any): void {
+  public static write(fd: file.BaseFile, buffer: NodeBuffer, offset: number, length: number, cb?: (err: Error, written: number, buffer: NodeBuffer) => any): void;
+  public static write(fd: file.BaseFile, buffer: NodeBuffer, offset: number, length: number, position?: number, cb?: (err: Error, written: number, buffer: NodeBuffer) => any): void;
+  public static write(fd: file.BaseFile, buffer: NodeBuffer, offset: number, length: number, arg5?: number, cb: (err: Error, written: number, buffer: NodeBuffer) => any = nopCb): void {
     var e, encoding, fdChk, newCb;
 
     try {
@@ -578,10 +427,7 @@ export class fs {
         position = fd.getPos();
       }
       newCb = wrapCb(callback, 3);
-      fdChk = checkFd(fd);
-      if (!fdChk) {
-        return newCb(fdChk);
-      }
+      checkFd(fd);
       if (position == null) {
         position = fd.getPos();
       }
@@ -607,7 +453,7 @@ export class fs {
       buffer = new Buffer(buffer, encoding);
       length = buffer.length;
     }
-    checkFd(fd, false);
+    checkFd(fd);
     if (position == null) {
       position = fd.getPos();
     }
@@ -637,10 +483,7 @@ export class fs {
       } else {
         newCb = wrapCb(callback, 3);
       }
-      fdChk = checkFd(fd);
-      if (!fdChk) {
-        return newCb(fdChk);
-      }
+      checkFd(fd);
       if (position == null) {
         position = fd.getPos();
       }
@@ -663,7 +506,7 @@ export class fs {
       buffer = new BrowserFS.node.Buffer(length);
       shenanigans = true;
     }
-    checkFd(fd, false);
+    checkFd(fd);
     if (position == null) {
       position = fd.getPos();
     }
@@ -683,10 +526,7 @@ export class fs {
     }
     try {
       newCb = wrapCb(callback, 1);
-      fdChk = checkFd(fd);
-      if (!fdChk) {
-        return newCb(fdChk);
-      }
+      checkFd(fd);
       return fd.chown(uid, gid, newCb);
     } catch (_error) {
       e = _error;
@@ -695,7 +535,7 @@ export class fs {
   }
 
   public static fchownSync(fd: number, uid: number, gid: number): void {
-    checkFd(fd, false);
+    checkFd(fd);
     return fd.chownSync(uid, gid);
   }
 
@@ -711,10 +551,7 @@ export class fs {
       if (typeof mode === 'string') {
         mode = parseInt(mode, 8);
       }
-      fdChk = checkFd(fd);
-      if (!fdChk) {
-        return newCb(fdChk);
-      }
+      checkFd(fd);
       return fd.chmod(mode, newCb);
     } catch (_error) {
       e = _error;
@@ -727,7 +564,7 @@ export class fs {
     if (typeof mode === 'string') {
       mode = parseInt(mode, 8);
     }
-    checkFd(fd, false);
+    checkFd(fd);
     return fd.chmodSync(mode);
   }
 
@@ -739,25 +576,21 @@ export class fs {
     }
     try {
       newCb = wrapCb(callback, 1);
-      fdChk = checkFd(fd);
+      checkFd(fd);
       if (typeof atime === 'number') {
         atime = new Date(atime * 1000);
       }
       if (typeof mtime === 'number') {
         mtime = new Date(mtime * 1000);
       }
-      if (!fdChk) {
-        return newCb(fdChk);
-      }
       return fd.utimes(atime, mtime, newCb);
-    } catch (_error) {
-      e = _error;
+    } catch (e) {
       return newCb(e);
     }
   }
 
   public static futimesSync(fd: number, atime: number, mtime: number): void {
-    checkFd(fd, false);
+    checkFd(fd);
     if (typeof atime === 'number') {
       atime = new Date(atime * 1000);
     }
@@ -775,7 +608,7 @@ export class fs {
     }
     try {
       newCb = wrapCb(callback, 1);
-      path = this._normalize(path);
+      path = normalizePath(path);
       return BrowserFS.node.public static root.rmdir(path, newCb);
     } catch (_error) {
       e = _error;
@@ -784,7 +617,7 @@ export class fs {
   }
 
   public static rmdirSync(path: string): void {
-    path = this._normalize(path);
+    path = normalizePath(path);
     return BrowserFS.node.public static root.rmdirSync(path);
   }
 
@@ -800,7 +633,7 @@ export class fs {
         mode = 0x1ff;
       }
       newCb = wrapCb(callback, 1);
-      path = this._normalize(path);
+      path = normalizePath(path);
       return BrowserFS.node.public static root.mkdir(path, mode, newCb);
     } catch (_error) {
       e = _error;
@@ -813,7 +646,7 @@ export class fs {
     if (mode == null) {
       mode = 0x1ff;
     }
-    path = this._normalize(path);
+    path = normalizePath(path);
     return BrowserFS.node.public static root.mkdirSync(path, mode);
   }
 
@@ -825,7 +658,7 @@ export class fs {
     }
     try {
       newCb = wrapCb(callback, 2);
-      path = this._normalize(path);
+      path = normalizePath(path);
       return this.root.readdir(path, newCb);
     } catch (_error) {
       e = _error;
@@ -834,7 +667,7 @@ export class fs {
   }
 
   public static readdirSync(path: string): string[] {
-    path = this._normalize(path);
+    path = normalizePath(path);
     return this.root.readdirSync(path);
   }
 
@@ -846,8 +679,8 @@ export class fs {
     }
     try {
       newCb = wrapCb(callback, 1);
-      srcpath = this._normalize(srcpath);
-      dstpath = this._normalize(dstpath);
+      srcpath = normalizePath(srcpath);
+      dstpath = normalizePath(dstpath);
       return this.root.link(srcpath, dstpath, newCb);
     } catch (_error) {
       e = _error;
@@ -856,8 +689,8 @@ export class fs {
   }
 
   public static linkSync(srcpath: string, dstpath: string): void {
-    srcpath = this._normalize(srcpath);
-    dstpath = this._normalize(dstpath);
+    srcpath = normalizePath(srcpath);
+    dstpath = normalizePath(dstpath);
     return this.root.linkSync(srcpath, dstpath);
   }
 
@@ -876,8 +709,8 @@ export class fs {
       if (type !== 'file' && type !== 'dir') {
         return newCb(new BrowserFS.ApiError(BrowserFS.ApiError.INVALID_PARAM, "Invalid type: " + type));
       }
-      srcpath = this._normalize(srcpath);
-      dstpath = this._normalize(dstpath);
+      srcpath = normalizePath(srcpath);
+      dstpath = normalizePath(dstpath);
       return this.root.symlink(srcpath, dstpath, type, newCb);
     } catch (_error) {
       e = _error;
@@ -892,8 +725,8 @@ export class fs {
     if (type !== 'file' && type !== 'dir') {
       throw new BrowserFS.ApiError(BrowserFS.ApiError.INVALID_PARAM, "Invalid type: " + type);
     }
-    srcpath = this._normalize(srcpath);
-    dstpath = this._normalize(dstpath);
+    srcpath = normalizePath(srcpath);
+    dstpath = normalizePath(dstpath);
     return this.root.symlinkSync(srcpath, dstpath, type);
   }
 
@@ -905,7 +738,7 @@ export class fs {
     }
     try {
       newCb = wrapCb(callback, 2);
-      path = this._normalize(path);
+      path = normalizePath(path);
       return this.root.readlink(path, newCb);
     } catch (_error) {
       e = _error;
@@ -914,7 +747,7 @@ export class fs {
   }
 
   public static readlinkSync(path: string): string {
-    path = this._normalize(path);
+    path = normalizePath(path);
     return this.root.readlinkSync(path);
   }
 
@@ -926,7 +759,7 @@ export class fs {
     }
     try {
       newCb = wrapCb(callback, 1);
-      path = this._normalize(path);
+      path = normalizePath(path);
       return this.root.chown(path, false, uid, gid, newCb);
     } catch (_error) {
       e = _error;
@@ -935,7 +768,7 @@ export class fs {
   }
 
   public static chownSync(path: string, uid: number, gid: number): void {
-    path = this._normalize(path);
+    path = normalizePath(path);
     return this.root.chownSync(path, false, uid, gid);
   }
 
@@ -947,7 +780,7 @@ export class fs {
     }
     try {
       newCb = wrapCb(callback, 1);
-      path = this._normalize(path);
+      path = normalizePath(path);
       return this.root.chown(path, true, uid, gid, newCb);
     } catch (_error) {
       e = _error;
@@ -956,7 +789,7 @@ export class fs {
   }
 
   public static lchownSync(path: string, uid: number, gid: number): void {
-    path = this._normalize(path);
+    path = normalizePath(path);
     return this.root.chownSync(path, true, uid, gid);
   }
 
@@ -972,7 +805,7 @@ export class fs {
       if (typeof mode === 'string') {
         mode = parseInt(mode, 8);
       }
-      path = this._normalize(path);
+      path = normalizePath(path);
       return this.root.chmod(path, false, mode, newCb);
     } catch (_error) {
       e = _error;
@@ -985,7 +818,7 @@ export class fs {
     if (typeof mode === 'string') {
       mode = parseInt(mode, 8);
     }
-    path = this._normalize(path);
+    path = normalizePath(path);
     return this.root.chmodSync(path, false, mode);
   }
 
@@ -1001,7 +834,7 @@ export class fs {
       if (typeof mode === 'string') {
         mode = parseInt(mode, 8);
       }
-      path = this._normalize(path);
+      path = normalizePath(path);
       return this.root.chmod(path, true, mode, newCb);
     } catch (_error) {
       e = _error;
@@ -1011,7 +844,7 @@ export class fs {
 
   public static lchmodSync(path: string, mode: number): void;
   public static lchmodSync(path: string, mode: string): void {
-    path = this._normalize(path);
+    path = normalizePath(path);
     if (typeof mode === 'string') {
       mode = parseInt(mode, 8);
     }
@@ -1026,7 +859,7 @@ export class fs {
     }
     try {
       newCb = wrapCb(callback, 1);
-      path = this._normalize(path);
+      path = normalizePath(path);
       if (typeof atime === 'number') {
         atime = new Date(atime * 1000);
       }
@@ -1041,7 +874,7 @@ export class fs {
   }
 
   public static utimesSync(path: string, atime: number, mtime: number): void {
-    path = this._normalize(path);
+    path = normalizePath(path);
     if (typeof atime === 'number') {
       atime = new Date(atime * 1000);
     }
@@ -1064,7 +897,7 @@ export class fs {
         cache = {};
       }
       newCb = wrapCb(callback, 2);
-      path = this._normalize(path);
+      path = normalizePath(path);
       return this.root.realpath(path, cache, newCb);
     } catch (_error) {
       e = _error;
@@ -1076,7 +909,7 @@ export class fs {
     if (cache == null) {
       cache = {};
     }
-    path = this._normalize(path);
+    path = normalizePath(path);
     return this.root.realpathSync(path, cache);
   }
 }
