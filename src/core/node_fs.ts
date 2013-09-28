@@ -10,6 +10,8 @@ function wrapCb(cb: Function, numArgs: number): Function {
   if (typeof cb !== 'function') {
     throw new ApiError(ErrorType.INVALID_PARAM, 'Callback must be a function.');
   }
+  // @todo This is used for unit testing. Maybe we should inject this logic
+  //       dynamically rather than bundle it in 'production' code.
   if (typeof window.__numWaiting === void 0) {
     window.__numWaiting = 0;
   }
@@ -43,10 +45,11 @@ function wrapCb(cb: Function, numArgs: number): Function {
 
 function checkFd(fd: file.BaseFile, async = true): any {
   if (!(fd instanceof BaseFile)) {
+    var error = new ApiError(ErrorType.INVALID_PARAM, 'Invalid file descriptor.');
     if (async) {
-      return new ApiError(ErrorType.INVALID_PARAM, 'Invalid file descriptor.');
+      return error;
     } else {
-      throw new ApiError(ErrorType.INVALID_PARAM, 'Invalid file descriptor.');
+      throw error;
     }
   }
   return true;
@@ -83,7 +86,7 @@ export class fs {
     }
   }
 
-  public static _canonicalizePath(p: string): string {
+  private static _normalize(p: string): string {
     if (p.indexOf('\u0000') >= 0) {
       throw new ApiError(ErrorType.INVALID_PARAM, 'Path must be a string without null bytes.');
     } else if (p === '') {
@@ -92,249 +95,207 @@ export class fs {
     return path.resolve(p);
   }
 
-  public static rename(oldPath: string, newPath: string, callback: Function = nopCb): void {
-    var newCb;
+  public static rename(oldPath: string, newPath: string, cb: Function = nopCb): void {
+    var newCb = wrapCb(cb, 1);
     try {
-      newCb = wrapCb(callback, 1);
-      oldPath = this._canonicalizePath(oldPath);
-      newPath = this._canonicalizePath(newPath);
-      this.root.rename(oldPath, newPath, newCb);
+      this.root.rename(this._normalize(oldPath), this._normalize(newPath), newCb);
     } catch (e) {
       newCb(e);
     }
   }
 
   public static renameSync(oldPath: string, newPath: string): void {
-    oldPath = this._canonicalizePath(oldPath);
-    newPath = this._canonicalizePath(newPath);
-    this.root.renameSync(oldPath, newPath);
+    this.root.renameSync(this._normalize(oldPath), this._normalize(newPath));
   }
 
-  public static exists(path: string, callback?: (exists: boolean) =>void ): void {
-    var e, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static exists(path: string, cb: (exists: boolean) => void = nopCb): void {
+    var newCb = wrapCb(callback, 1);
     try {
-      newCb = wrapCb(callback, 1);
-      path = this._canonicalizePath(path);
-      return this.root.exists(path, newCb);
-    } catch (_error) {
-      e = _error;
+      return this.root.exists(this._normalize(path), newCb);
+    } catch (e) {
       return newCb(false);
     }
   }
 
   public static existsSync(path: string): boolean {
-    var e;
-
     try {
-      path = this._canonicalizePath(path);
-      return this.root.existsSync(path);
-    } catch (_error) {
-      e = _error;
+      return this.root.existsSync(this._normalize(path));
+    } catch (e) {
       return false;
     }
   }
 
-  public static stat(path: string, callback?: (err: Error, stats: Stats) =>any): Stats {
-    var e, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static stat(path: string, cb?: (err: Error, stats: Stats) => any = nopCb): Stats {
+    var newCb = wrapCb(cb, 2);
     try {
-      newCb = wrapCb(callback, 2);
-      path = this._canonicalizePath(path);
-      return this.root.stat(path, false, newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      return this.root.stat(this._normalize(path), false, newCb);
+    } catch (e) {
+      return newCb(e, null);
     }
   }
 
   public static statSync(path: string): Stats {
-    path = this._canonicalizePath(path);
-    return this.root.statSync(path, false);
+    return this.root.statSync(this._normalize(path), false);
   }
 
-  public static lstat(path: string, callback?: (err: Error, stats: Stats) =>any): Stats {
-    var e, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static lstat(path: string, cb: (err: Error, stats: Stats) => any = nopCb): Stats {
+    var newCb = wrapCb(cb, 2);
     try {
-      newCb = wrapCb(callback, 2);
-      path = this._canonicalizePath(path);
-      return this.root.stat(path, true, newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      return this.root.stat(this._normalize(path), true, newCb);
+    } catch (e) {
+      return newCb(e, null);
     }
   }
 
   public static lstatSync(path: string): Stats {
-    path = this._canonicalizePath(path);
-    return this.root.statSync(path, true);
+    return this.root.statSync(this._normalize(path), true);
   }
 
-  public static truncate(fd: number, len: number, callback?: Function): void {
-    var e, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
+  public static truncate(path: string, cb?: Function): void;
+  public static truncate(path: string, len: number; cb?: Function): void;
+  public static truncate(path: string, arg2: any = 0, cb: Function = nopCb): void {
+    var len = 0;
+    if (typeof arg2 === 'function') {
+      cb = arg2;
+    } else if (typeof arg2 === 'number') {
+      len = arg2;
     }
+
+    var newCb = wrapCb(cb, 1);
     try {
-      if (typeof len === 'function') {
-        callback = len;
-        len = 0;
-      }
-      newCb = wrapCb(callback, 1);
-      path = this._canonicalizePath(path);
-      return this.root.truncate(path, len, newCb);
-    } catch (_error) {
-      e = _error;
+      return this.root.truncate(this._normalize(path), len, newCb);
+    } catch (e) {
       return newCb(e);
     }
   }
 
-  public static truncateSync(fd: number, len: number): void {
-    if (len == null) {
-      len = 0;
-    }
-    path = this._canonicalizePath(path);
-    return this.root.truncateSync(path, len);
+  public static truncateSync(path: string, len: number = 0): void {
+    return this.root.truncateSync(this._normalize(path), len);
   }
 
-  public static unlink(path: string, callback?: Function): void {
-    var e, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static unlink(path: string, cb: Function = nopCb): void {
+    var newCb = wrapCb(cb, 1);
     try {
-      newCb = wrapCb(callback, 1);
-      path = this._canonicalizePath(path);
-      return this.root.unlink(path, newCb);
-    } catch (_error) {
-      e = _error;
+      return this.root.unlink(this._normalize(path), newCb);
+    } catch (e) {
       return newCb(e);
     }
   }
 
   public static unlinkSync(path: string): void {
-    path = this._canonicalizePath(path);
-    return this.root.unlinkSync(path);
+    return this.root.unlinkSync(this._normalize(path));
   }
 
-  public static open(path: string, flags: string, mode?: string, callback?: (err: Error, fd: number) =>any): void {
-    var e, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
+  public static open(path: string, flags: string, cb?: (err: Error, fd: file.BaseFile) => any): void;
+  public static open(path: string, flags: string, mode: string, cb?: (err: Error, fd: file.BaseFile) => any): void;
+  public static open(path: string, flags: string, mode: number, cb?: (err: Error, fd: file.BaseFile) => any): void;
+  public static open(path: string, flags: string, arg2?: any, cb?: (err: Error, fd: file.BaseFile) => any = nopCb): void {
+    var mode: number = 0x1a4;
+    if (typeof arg2 === 'undefined') {
+      // (path, flags)
+      cb = nopCb;
+    } else if (typeof arg2 === 'function') {
+      // (path, flags, cb)
+      cb = arg2;
+    } else if (typeof arg2 === 'number') {
+      // (path, flags, mode, cb?) (cb will be set to the default if not present)
+      mode = arg2;
     }
+
+    var newCb = wrapCb(cb, 2);
     try {
-      if (typeof mode === 'function') {
-        callback = mode;
-        mode = 0x1a4;
-      }
-      newCb = wrapCb(callback, 2);
-      path = this._canonicalizePath(path);
-      flags = BrowserFS.FileMode.getFileMode(flags);
-      return this.root.open(path, flags, mode, newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      return this.root.open(this._normalize(path), BrowserFS.FileMode.getFileMode(flags), mode, newCb);
+    } catch (e) {
+      return newCb(e, null);
     }
   }
 
-  public static openSync(path: string, flags: string, mode?: string): number {
-    if (mode == null) {
-      mode = 0x1a4;
-    }
-    path = this._canonicalizePath(path);
-    flags = BrowserFS.FileMode.getFileMode(flags);
-    return this.root.openSync(path, flags, mode);
+  public static openSync(path: string, flags: string, mode?: string): file.BaseFile;
+  public static openSync(path: string, flags: string, mode?: number): file.BaseFile;
+  public static openSync(path: string, flags: string, mode?: any = 0x1a4): file.BaseFile {
+    return this.root.openSync(this._normalize(path), BrowserFS.FileMode.getFileMode(flags), mode);
   }
 
-  public static readFile(filename: string, callback: (err: Error, data: NodeBuffer) => void ): void;
-  public static readFile(filename: string, encoding: string, callback: (err: Error, data: string) => void ) {
-    var e, flags, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
+  public static readFile(filename: string, cb?: (err: Error, data: any) => void ): void;
+  public static readFile(filename: string, options: {[opt: string]: any}, cb?: (err: Error, data: any) => void ): void;
+  public static readFile(filename: string, encoding: string, cb?: (err: Error, data: any) => void ): void;
+  public static readFile(filename: string, arg2: any = {}, cb: (err: Error, data: any) => void = nopCb ) {
+    var options = {};
+    switch(typeof arg2) {
+      case 'function':
+        // (filename, cb)
+        cb = arg2;
+        break;
+      case 'string':
+        // (filename, encoding, cb)
+        options['encoding'] = arg2;
+        break;
+      case 'object':
+        options = args;
+        break;
+      default:
+        return cb(new ApiError(ErrorType.INVALID_PARAM, "Invalid options object."), null);
     }
+
+    // Standardize options.
+    if (options['encoding'] === undefined) {
+      // Null indicates: 'give me a buffer'
+      options['encoding'] = null;
+    }
+    if (options['flag'] == null) {
+      options['flag'] = 'r';
+    }
+
+    var newCb = wrapCb(callback, 2);
     try {
-      if (typeof options === 'function') {
-        callback = options;
-        options = {};
-      } else if (typeof options === 'string') {
-        options = {
-          encoding: options
-        };
-      }
-      if (options === void 0) {
-        options = {};
-      }
-      if (options.encoding === void 0) {
-        options.encoding = null;
-      }
-      if (options.flag == null) {
-        options.flag = 'r';
-      }
-      newCb = wrapCb(callback, 2);
-      filename = this._canonicalizePath(filename);
-      flags = BrowserFS.FileMode.getFileMode(options.flag);
+      filename = this._normalize(filename);
+      var flags = BrowserFS.FileMode.getFileMode(options['flag']);
       if (!flags.isReadable()) {
-        return newCb(new BrowserFS.ApiError(BrowserFS.ApiError.INVALID_PARAM, 'Flag passed to readFile must allow for reading.'));
+        return newCb(new ApiError(ErrorType.INVALID_PARAM, 'Flag passed to readFile must allow for reading.'));
       }
       return this.root.readFile(filename, options.encoding, flags, newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+    } catch (e) {
+      return newCb(e, null);
     }
   }
 
-  public static readFileSync(filename: string): NodeBuffer;
-  public static readFileSync(filename: string, encoding: string): string {
-    var flags;
+  public static readFileSync(filename: string, encoding?: string): buffer.Buffer;
+  public static readFileSync(filename: string, options?: { encoding?: string; flag?: string; }): buffer.Buffer;
+  public static readFileSync(filename: string, arg2: any = {}): buffer.Buffer {
+    var options = {};
+    switch (typeof arg2) {
+      case 'string':
+        // (filename, encoding)
+        options['encoding'] = arg2;
+        break;
+      case 'object':
+        // (filename, options)
+        options = arg2;
+        break;
+      default:
+        throw new ApiError(ErrorType.INVALID_PARAM, 'Invalid options argument');
+    }
 
-    if (options == null) {
-      options = {};
+    if (options['encoding'] === undefined) {
+      options['encoding'] = null;
     }
-    if (typeof options === 'string') {
-      options = {
-        encoding: options
-      };
+    if (options['flag'] == null) {
+      options['flag'] = 'r';
     }
-    if (options === void 0) {
-      options = {};
-    }
-    if (options.encoding === void 0) {
-      options.encoding = null;
-    }
-    if (options.flag == null) {
-      options.flag = 'r';
-    }
-    filename = this._canonicalizePath(filename);
-    flags = BrowserFS.FileMode.getFileMode(options.flag);
+
+    filename = this._normalize(filename);
+    var flags = BrowserFS.FileMode.getFileMode(options.flag);
     if (!flags.isReadable()) {
-      throw new BrowserFS.ApiError(BrowserFS.ApiError.INVALID_PARAM, 'Flag passed to readFile must allow for reading.');
+      throw new ApiError(ErrorType.INVALID_PARAM, 'Flag passed to readFile must allow for reading.');
     }
     return this.root.readFileSync(filename, options.encoding, flags);
   }
 
-  public static writeFile(filename: string, data: any, encoding?: string, callback?: Function): void {
+  public static writeFile(filename: string, data: any, callback?: Function);
+  public static writeFile(filename: string, data: any, encoding?: string, callback?: Function);
+  public static writeFile(filename: string, data: any, arg3: any = {}, callback: Function = nopCb): void {
     var e, flags, newCb;
 
-    if (options == null) {
-      options = {};
-    }
-    if (callback == null) {
-      callback = nopCb;
-    }
     try {
       if (typeof options === 'function') {
         callback = options;
@@ -357,7 +318,7 @@ export class fs {
         options.mode = 0x1a4;
       }
       newCb = wrapCb(callback, 1);
-      filename = this._canonicalizePath(filename);
+      filename = this._normalize(filename);
       flags = BrowserFS.FileMode.getFileMode(options.flag);
       if (!flags.isWriteable()) {
         return newCb(new BrowserFS.ApiError(BrowserFS.ApiError.INVALID_PARAM, 'Flag passed to writeFile must allow for writing.'));
@@ -392,7 +353,7 @@ export class fs {
     if (options.mode == null) {
       options.mode = 0x1a4;
     }
-    filename = this._canonicalizePath(filename);
+    filename = this._normalize(filename);
     flags = BrowserFS.FileMode.getFileMode(options.flag);
     if (!flags.isWriteable()) {
       throw new BrowserFS.ApiError(BrowserFS.ApiError.INVALID_PARAM, 'Flag passed to writeFile must allow for writing.');
@@ -428,7 +389,7 @@ export class fs {
         options.mode = 0x1a4;
       }
       newCb = wrapCb(callback, 1);
-      filename = this._canonicalizePath(filename);
+      filename = this._normalize(filename);
       flags = BrowserFS.FileMode.getFileMode(options.flag);
       if (!flags.isAppendable()) {
         return newCb(new BrowserFS.ApiError(BrowserFS.ApiError.INVALID_PARAM, 'Flag passed to appendFile must allow for appending.'));
@@ -463,7 +424,7 @@ export class fs {
     if (options.mode == null) {
       options.mode = 0x1a4;
     }
-    filename = this._canonicalizePath(filename);
+    filename = this._normalize(filename);
     flags = BrowserFS.FileMode.getFileMode(options.flag);
     if (!flags.isAppendable()) {
       throw new BrowserFS.ApiError(BrowserFS.ApiError.INVALID_PARAM, 'Flag passed to appendFile must allow for appending.');
@@ -814,7 +775,7 @@ export class fs {
     }
     try {
       newCb = wrapCb(callback, 1);
-      path = this._canonicalizePath(path);
+      path = this._normalize(path);
       return BrowserFS.node.public static root.rmdir(path, newCb);
     } catch (_error) {
       e = _error;
@@ -823,7 +784,7 @@ export class fs {
   }
 
   public static rmdirSync(path: string): void {
-    path = this._canonicalizePath(path);
+    path = this._normalize(path);
     return BrowserFS.node.public static root.rmdirSync(path);
   }
 
@@ -839,7 +800,7 @@ export class fs {
         mode = 0x1ff;
       }
       newCb = wrapCb(callback, 1);
-      path = this._canonicalizePath(path);
+      path = this._normalize(path);
       return BrowserFS.node.public static root.mkdir(path, mode, newCb);
     } catch (_error) {
       e = _error;
@@ -852,7 +813,7 @@ export class fs {
     if (mode == null) {
       mode = 0x1ff;
     }
-    path = this._canonicalizePath(path);
+    path = this._normalize(path);
     return BrowserFS.node.public static root.mkdirSync(path, mode);
   }
 
@@ -864,7 +825,7 @@ export class fs {
     }
     try {
       newCb = wrapCb(callback, 2);
-      path = this._canonicalizePath(path);
+      path = this._normalize(path);
       return this.root.readdir(path, newCb);
     } catch (_error) {
       e = _error;
@@ -873,7 +834,7 @@ export class fs {
   }
 
   public static readdirSync(path: string): string[] {
-    path = this._canonicalizePath(path);
+    path = this._normalize(path);
     return this.root.readdirSync(path);
   }
 
@@ -885,8 +846,8 @@ export class fs {
     }
     try {
       newCb = wrapCb(callback, 1);
-      srcpath = this._canonicalizePath(srcpath);
-      dstpath = this._canonicalizePath(dstpath);
+      srcpath = this._normalize(srcpath);
+      dstpath = this._normalize(dstpath);
       return this.root.link(srcpath, dstpath, newCb);
     } catch (_error) {
       e = _error;
@@ -895,8 +856,8 @@ export class fs {
   }
 
   public static linkSync(srcpath: string, dstpath: string): void {
-    srcpath = this._canonicalizePath(srcpath);
-    dstpath = this._canonicalizePath(dstpath);
+    srcpath = this._normalize(srcpath);
+    dstpath = this._normalize(dstpath);
     return this.root.linkSync(srcpath, dstpath);
   }
 
@@ -915,8 +876,8 @@ export class fs {
       if (type !== 'file' && type !== 'dir') {
         return newCb(new BrowserFS.ApiError(BrowserFS.ApiError.INVALID_PARAM, "Invalid type: " + type));
       }
-      srcpath = this._canonicalizePath(srcpath);
-      dstpath = this._canonicalizePath(dstpath);
+      srcpath = this._normalize(srcpath);
+      dstpath = this._normalize(dstpath);
       return this.root.symlink(srcpath, dstpath, type, newCb);
     } catch (_error) {
       e = _error;
@@ -931,8 +892,8 @@ export class fs {
     if (type !== 'file' && type !== 'dir') {
       throw new BrowserFS.ApiError(BrowserFS.ApiError.INVALID_PARAM, "Invalid type: " + type);
     }
-    srcpath = this._canonicalizePath(srcpath);
-    dstpath = this._canonicalizePath(dstpath);
+    srcpath = this._normalize(srcpath);
+    dstpath = this._normalize(dstpath);
     return this.root.symlinkSync(srcpath, dstpath, type);
   }
 
@@ -944,7 +905,7 @@ export class fs {
     }
     try {
       newCb = wrapCb(callback, 2);
-      path = this._canonicalizePath(path);
+      path = this._normalize(path);
       return this.root.readlink(path, newCb);
     } catch (_error) {
       e = _error;
@@ -953,7 +914,7 @@ export class fs {
   }
 
   public static readlinkSync(path: string): string {
-    path = this._canonicalizePath(path);
+    path = this._normalize(path);
     return this.root.readlinkSync(path);
   }
 
@@ -965,7 +926,7 @@ export class fs {
     }
     try {
       newCb = wrapCb(callback, 1);
-      path = this._canonicalizePath(path);
+      path = this._normalize(path);
       return this.root.chown(path, false, uid, gid, newCb);
     } catch (_error) {
       e = _error;
@@ -974,7 +935,7 @@ export class fs {
   }
 
   public static chownSync(path: string, uid: number, gid: number): void {
-    path = this._canonicalizePath(path);
+    path = this._normalize(path);
     return this.root.chownSync(path, false, uid, gid);
   }
 
@@ -986,7 +947,7 @@ export class fs {
     }
     try {
       newCb = wrapCb(callback, 1);
-      path = this._canonicalizePath(path);
+      path = this._normalize(path);
       return this.root.chown(path, true, uid, gid, newCb);
     } catch (_error) {
       e = _error;
@@ -995,7 +956,7 @@ export class fs {
   }
 
   public static lchownSync(path: string, uid: number, gid: number): void {
-    path = this._canonicalizePath(path);
+    path = this._normalize(path);
     return this.root.chownSync(path, true, uid, gid);
   }
 
@@ -1011,7 +972,7 @@ export class fs {
       if (typeof mode === 'string') {
         mode = parseInt(mode, 8);
       }
-      path = this._canonicalizePath(path);
+      path = this._normalize(path);
       return this.root.chmod(path, false, mode, newCb);
     } catch (_error) {
       e = _error;
@@ -1024,7 +985,7 @@ export class fs {
     if (typeof mode === 'string') {
       mode = parseInt(mode, 8);
     }
-    path = this._canonicalizePath(path);
+    path = this._normalize(path);
     return this.root.chmodSync(path, false, mode);
   }
 
@@ -1040,7 +1001,7 @@ export class fs {
       if (typeof mode === 'string') {
         mode = parseInt(mode, 8);
       }
-      path = this._canonicalizePath(path);
+      path = this._normalize(path);
       return this.root.chmod(path, true, mode, newCb);
     } catch (_error) {
       e = _error;
@@ -1050,7 +1011,7 @@ export class fs {
 
   public static lchmodSync(path: string, mode: number): void;
   public static lchmodSync(path: string, mode: string): void {
-    path = this._canonicalizePath(path);
+    path = this._normalize(path);
     if (typeof mode === 'string') {
       mode = parseInt(mode, 8);
     }
@@ -1065,7 +1026,7 @@ export class fs {
     }
     try {
       newCb = wrapCb(callback, 1);
-      path = this._canonicalizePath(path);
+      path = this._normalize(path);
       if (typeof atime === 'number') {
         atime = new Date(atime * 1000);
       }
@@ -1080,7 +1041,7 @@ export class fs {
   }
 
   public static utimesSync(path: string, atime: number, mtime: number): void {
-    path = this._canonicalizePath(path);
+    path = this._normalize(path);
     if (typeof atime === 'number') {
       atime = new Date(atime * 1000);
     }
@@ -1103,7 +1064,7 @@ export class fs {
         cache = {};
       }
       newCb = wrapCb(callback, 2);
-      path = this._canonicalizePath(path);
+      path = this._normalize(path);
       return this.root.realpath(path, cache, newCb);
     } catch (_error) {
       e = _error;
@@ -1115,7 +1076,7 @@ export class fs {
     if (cache == null) {
       cache = {};
     }
-    path = this._canonicalizePath(path);
+    path = this._normalize(path);
     return this.root.realpathSync(path, cache);
   }
 }
