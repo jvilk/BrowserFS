@@ -678,55 +678,42 @@ export class fs {
     return this.root.linkSync(srcpath, dstpath);
   }
 
-  public static symlink(srcpath: string, dstpath: string, type?: string, callback?: Function): void {
-    var e, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static symlink(srcpath: string, dstpath: string, cb?: Function): void;
+  public static symlink(srcpath: string, dstpath: string, type?: string, cb?: Function): void;
+  public static symlink(srcpath: string, dstpath: string, arg3?: any, cb: Function = nopCb): void {
+    type = typeof arg3 === 'string' ? arg3 : 'file';
+    cb = typeof arg3 === 'function' ? arg3 : cb;
+    var newCb = wrapCb(callback, 1);
     try {
-      if (typeof type === 'function') {
-        callback = type;
-        type = 'file';
-      }
-      newCb = wrapCb(callback, 1);
       if (type !== 'file' && type !== 'dir') {
-        return newCb(new BrowserFS.ApiError(BrowserFS.ApiError.INVALID_PARAM, "Invalid type: " + type));
+        return newCb(new ApiError(ErrorType.INVALID_PARAM, "Invalid type: " + type));
       }
       srcpath = normalizePath(srcpath);
       dstpath = normalizePath(dstpath);
-      return this.root.symlink(srcpath, dstpath, type, newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      this.root.symlink(srcpath, dstpath, type, newCb);
+    } catch (e) {
+      newCb(e);
     }
   }
 
   public static symlinkSync(srcpath: string, dstpath: string, type?: string): void {
     if (type == null) {
       type = 'file';
-    }
-    if (type !== 'file' && type !== 'dir') {
-      throw new BrowserFS.ApiError(BrowserFS.ApiError.INVALID_PARAM, "Invalid type: " + type);
+    } else if (type !== 'file' && type !== 'dir') {
+      throw new ApiError(ErrorType.INVALID_PARAM, "Invalid type: " + type);
     }
     srcpath = normalizePath(srcpath);
     dstpath = normalizePath(dstpath);
     return this.root.symlinkSync(srcpath, dstpath, type);
   }
 
-  public static readlink(path: string, callback?: (err: Error, linkString: string) =>any): void {
-    var e, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static readlink(path: string, cb: (err: Error, linkString: string) => any = nopCb): void {
+    var newCb = wrapCb(callback, 2);
     try {
-      newCb = wrapCb(callback, 2);
       path = normalizePath(path);
-      return this.root.readlink(path, newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      this.root.readlink(path, newCb);
+    } catch (e) {
+      newCb(e);
     }
   }
 
@@ -735,40 +722,28 @@ export class fs {
     return this.root.readlinkSync(path);
   }
 
-  public static chown(path: string, uid: number, gid: number, callback?: Function): void {
-    var e, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static chown(path: string, uid: number, gid: number, cb: Function = nopCb): void {
+    var newCb = wrapCb(cb, 1);
     try {
-      newCb = wrapCb(callback, 1);
       path = normalizePath(path);
-      return this.root.chown(path, false, uid, gid, newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      this.root.chown(path, false, uid, gid, newCb);
+    } catch (e) {
+      newCb(e);
     }
   }
 
   public static chownSync(path: string, uid: number, gid: number): void {
     path = normalizePath(path);
-    return this.root.chownSync(path, false, uid, gid);
+    this.root.chownSync(path, false, uid, gid);
   }
 
-  public static lchown(path: string, uid: number, gid: number, callback?: Function): void {
-    var e, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static lchown(path: string, uid: number, gid: number, cb: Function = nopCb): void {
+    var newCb = wrapCb(cb, 1);
     try {
-      newCb = wrapCb(callback, 1);
       path = normalizePath(path);
-      return this.root.chown(path, true, uid, gid, newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      this.root.chown(path, true, uid, gid, newCb);
+    } catch (e) {
+      newCb(e);
     }
   }
 
@@ -777,72 +752,50 @@ export class fs {
     return this.root.chownSync(path, true, uid, gid);
   }
 
-  public static chmod(path: string, mode: string, callback?: Function): void;
-  public static chmod(path: string, mode: number, callback?: Function): void {
-    var e, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static chmod(path: string, mode: string, cb?: Function): void;
+  public static chmod(path: string, mode: number, cb?: Function): void;
+  public static chmod(path: string, mode: any, cb: Function = nopCb): void {
+    var newCb = wrapCb(cb, 1);
     try {
-      newCb = wrapCb(callback, 1);
-      if (typeof mode === 'string') {
-        mode = parseInt(mode, 8);
-      }
+      mode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
       path = normalizePath(path);
-      return this.root.chmod(path, false, mode, newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      this.root.chmod(path, false, mode, newCb);
+    } catch (e) {
+      newCb(e);
     }
   }
 
   public static chmodSync(path: string, mode: string): void;
   public static chmodSync(path: string, mode: number): void {
-    if (typeof mode === 'string') {
-      mode = parseInt(mode, 8);
-    }
+    mode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
     path = normalizePath(path);
     return this.root.chmodSync(path, false, mode);
   }
 
-  public static lchmod(path: string, mode: string, callback?: Function): void;
-  public static lchmod(path: string, mode: number, callback?: Function): void {
-    var e, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static lchmod(path: string, mode: string, cb?: Function): void;
+  public static lchmod(path: string, mode: number, cb?: Function): void;
+  public static lchmod(path: string, mode: any, cb: Function = nopCb): void {
+    var newCb = wrapCb(cb, 1);
     try {
-      newCb = wrapCb(callback, 1);
-      if (typeof mode === 'string') {
-        mode = parseInt(mode, 8);
-      }
+      mode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
       path = normalizePath(path);
-      return this.root.chmod(path, true, mode, newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      this.root.chmod(path, true, mode, newCb);
+    } catch (e) {
+      newCb(e);
     }
   }
 
   public static lchmodSync(path: string, mode: number): void;
-  public static lchmodSync(path: string, mode: string): void {
+  public static lchmodSync(path: string, mode: string): void;
+  public static lchmodSync(path: string, mode: any): void {
     path = normalizePath(path);
-    if (typeof mode === 'string') {
-      mode = parseInt(mode, 8);
-    }
+    mode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
     return this.root.chmodSync(path, true, mode);
   }
 
-  public static utimes(path: string, atime: number, mtime: number, callback?: Function): void {
-    var e, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static utimes(path: string, atime: number, mtime: number, cb: Function = nopCb): void {
+    var newCb = wrapCb(callback, 1);
     try {
-      newCb = wrapCb(callback, 1);
       path = normalizePath(path);
       if (typeof atime === 'number') {
         atime = new Date(atime * 1000);
@@ -850,10 +803,9 @@ export class fs {
       if (typeof mtime === 'number') {
         mtime = new Date(mtime * 1000);
       }
-      return this.root.utimes(path, atime, mtime, newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      this.root.utimes(path, atime, mtime, newCb);
+    } catch (e) {
+      newCb(e);
     }
   }
 
@@ -869,30 +821,20 @@ export class fs {
   }
 
   public static realpath(path: string, callback?: (err: Error, resolvedPath: string) =>any): void;
-  public static realpath(path: string, cache: {[path: string]: string}, callback: (err: Error, resolvedPath: string) =>any): void {
-    var e, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static realpath(path: string, cache: {[path: string]: string}, callback: (err: Error, resolvedPath: string) =>any): void;
+  public static realpath(path: string, arg2: any, cb: any = nopCb): void {
+    var cache = typeof arg2 === 'object' ? arg2 : {};
+    cb = typeof arg2 === 'function' ? arg2 : nopCb;
+    var newCb = wrapCb(callback, 2);
     try {
-      if (typeof cache === 'function') {
-        callback = cache;
-        cache = {};
-      }
-      newCb = wrapCb(callback, 2);
       path = normalizePath(path);
-      return this.root.realpath(path, cache, newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      this.root.realpath(path, cache, newCb);
+    } catch (e) {
+      newCb(e);
     }
   }
 
-  public static realpathSync(path: string, cache?: {[path: string]: string}): string {
-    if (cache == null) {
-      cache = {};
-    }
+  public static realpathSync(path: string, cache: {[path: string]: string} = {}): string {
     path = normalizePath(path);
     return this.root.realpathSync(path, cache);
   }
