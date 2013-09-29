@@ -406,53 +406,80 @@ export class fs {
     fd.datasyncSync();
   }
 
-  public static write(fd: file.BaseFile, buffer: NodeBuffer, offset: number, length: number, cb?: (err: Error, written: number, buffer: NodeBuffer) => any): void;
-  public static write(fd: file.BaseFile, buffer: NodeBuffer, offset: number, length: number, position?: number, cb?: (err: Error, written: number, buffer: NodeBuffer) => any): void;
-  public static write(fd: file.BaseFile, buffer: NodeBuffer, offset: number, length: number, arg5?: number, cb: (err: Error, written: number, buffer: NodeBuffer) => any = nopCb): void {
-    var e, encoding, fdChk, newCb;
+  /*
+// fs.write(fd, buffer, offset, length[, position], callback);
+// OR
+// fs.write(fd, string[, position[, encoding]], callback);
+  */
+  public static write(fd: file.BaseFile, buffer: buffer.Buffer, offset: number, length: number, cb?: (err: Error, written: number, buffer: buffer.Buffer) => any): void;
+  public static write(fd: file.BaseFile, buffer: buffer.Buffer, offset: number, length: number, position?: number, cb?: (err: Error, written: number, buffer: buffer.Buffer) => any): void;
+  public static write(fd: file.BaseFile, data: string, cb?: (err: Error, written: number, buffer: buffer.Buffer) => any): void;
+  public static write(fd: file.BaseFile, data: string, position: number, cb?: (err: Error, written: number, buffer: buffer.Buffer) => any): void;
+  public static write(fd: file.BaseFile, data: string, position: number, encoding: string, cb?: (err: Error, written: number, buffer: buffer.Buffer) => any): void;
+  public static write(fd: file.BaseFile, arg2: any, arg3?: number, arg4?: number, arg5?: number, cb: (err: Error, written: number, buffer: buffer.Buffer) => any = nopCb): void {
+    var buffer: buffer.Buffer, offset: number, length: number, position: number = null;
+    if (typeof arg2 === 'string') {
+      // Signature 1: (fd, string, [position?, [encoding?]], cb?)
+      var encoding = 'utf8';
+      switch (typeof arg3) {
+        case 'function':
+          // (fd, string, cb)
+          cb = arg3;
+          break;
+        case 'number':
+          // (fd, string, position, encoding?, cb?)
+          position = arg3;
+          encoding = typeof arg4 === 'string' ? arg4 : 'utf8';
+          cb = typeof arg5 === 'function' ? arg5 : cb;
+          break;
+        default:
+          // ...try to find the callback and get out of here!
+          cb = typeof arg4 === 'function' ? arg4 : typeof arg5 === 'function' ? arg5 : cb;
+          return cb(new ApiError(ErrorType.INVALID_PARAM, 'Invalid arguments.'));
+      }
+      buffer = new buffer.Buffer(arg2, encoding);
+      offset = 0;
+      length = buffer.length;
+    } else {
+      // Signature 2: (fd, buffer, offset, length, position?, cb?)
+      buffer = arg2;
+      offset = arg3;
+      length = arg4;
+      position = typeof arg5 === 'number' ? arg5 : null;
+      cb = typeof arg5 === 'function' ? arg5 : cb;
+    }
 
+    var newCb = wrapCb(cb, 3);
     try {
-      if (typeof buffer === 'string') {
-        if (typeof position === 'function') {
-          callback = position;
-          encoding = length;
-          position = offset;
-          offset = 0;
-        }
-        buffer = new Buffer(buffer, encoding);
-        length = buffer.length;
-      }
-      if (callback == null) {
-        callback = position;
-        position = fd.getPos();
-      }
-      newCb = wrapCb(callback, 3);
       checkFd(fd);
       if (position == null) {
         position = fd.getPos();
       }
-      return fd.write(buffer, offset, length, position, newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      fd.write(buffer, offset, length, position, newCb);
+    } catch (e) {
+      newCb(e);
     }
   }
 
-  public static writeSync(fd: number, buffer: NodeBuffer, offset: number, length: number, position: number): number {
-    var encoding;
-
-    if (typeof buffer === 'string') {
-      if (typeof length === 'string') {
-        encoding = length;
-      } else if (typeof offset === 'string') {
-        encoding = offset;
-      } else if (typeof offset === 'number') {
-        position = offset;
-      }
+  public static writeSync(fd: file.BaseFile, buffer: buffer.Buffer, offset: number, length: number, position?: number): void;
+  public static writeSync(fd: file.BaseFile, data: string, position?: number, encoding?: string): void;
+  public static writeSync(fd: number, arg2: any, arg3: any, arg4: any, arg5: any): number {
+    var buffer: buffer.Buffer, offset: 0, length: number, position: number;
+    if (typeof arg2 === 'string') {
+      // Signature 1: (fd, string, [position?, [encoding?]])
+      position = typeof arg3 === 'number' ? arg3 : null;
+      var encoding = typeof arg4 === 'string' ? arg4 : 'utf8';
       offset = 0;
-      buffer = new Buffer(buffer, encoding);
+      buffer = new buffer.Buffer(arg2, encoding);
       length = buffer.length;
+    } else {
+      // Signature 2: (fd, buffer, offset, length, position?)
+      buffer = arg2;
+      offset = arg3;
+      length = arg4;
+      position = typeof arg5 === 'number' ? arg5 : null;
     }
+
     checkFd(fd);
     if (position == null) {
       position = fd.getPos();
@@ -460,45 +487,45 @@ export class fs {
     return fd.writeSync(buffer, offset, length, position);
   }
 
-  public static read(fd: number, buffer: NodeBuffer, offset: number, length: number, position: number, callback?: (err: Error, bytesRead: number, buffer: NodeBuffer) => void): void {
-    var e, encoding, fdChk, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
+  // legacy string interface (fd, length, position, encoding, callback)
+  public static read(fd: file.BaseFile, length: number, position: number, encoding: string, cb?: (err: Error, data: string, bytesRead: number) => void): void;
+  public static read(fd: file.BaseFile, buffer: NodeBuffer, offset: number, length: number, position: number, cb?: (err: Error, bytesRead: number, buffer: NodeBuffer) => void): void;
+  public static read(fd: file.BaseFile, buffer: NodeBuffer, offset: number, length: number, position: number, cb: Function => void = nopCb): void {
+    var newCb;
+    if (typeof buffer === 'number') {
+      cb = position;
+      position = offset;
+      offset = 0;
+      encoding = length;
+      length = buffer;
+      buffer = new BrowserFS.node.Buffer(length);
+      newCb = wrapCb((function(err, bytesRead, buf) {
+        if (err) {
+          return oldNewCb(err);
+        }
+        cb(err, buf.toString(encoding), bytesRead);
+      }), 3);
+    } else {
+      newCb = wrapCb(cb, 3);
     }
+
     try {
-      if (typeof buffer === 'number' && typeof offset === 'number' && typeof length === 'string' && typeof position === 'function') {
-        callback = position;
-        position = offset;
-        offset = 0;
-        encoding = length;
-        length = buffer;
-        buffer = new BrowserFS.node.Buffer(length);
-        newCb = wrapCb((function(err, bytesRead, buf) {
-          if (err) {
-            return oldNewCb(err);
-          }
-          return callback(err, buf.toString(encoding), bytesRead);
-        }), 3);
-      } else {
-        newCb = wrapCb(callback, 3);
-      }
       checkFd(fd);
       if (position == null) {
         position = fd.getPos();
       }
-      return fd.read(buffer, offset, length, position, newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      fd.read(buffer, offset, length, position, newCb);
+    } catch (e) {
+      newCb(e);
     }
   }
 
-  public static readSync(fd: number, buffer: NodeBuffer, offset: number, length: number, position: number): number {
-    var encoding, rv, shenanigans;
-
-    shenanigans = false;
-    if (typeof buffer === 'number' && typeof offset === 'number' && typeof length === 'string') {
+  public static readSync(fd: file.BaseFile, length: number, position: number, encoding: string): string;
+  public static readSync(fd: file.BaseFile, buffer: NodeBuffer, offset: number, length: number, position: number): number;
+  public static readSync(fd: file.BaseFile, buffer: any, offset: number, length: number, position: number): any {
+    var shenanigans = false;
+    var encoding;
+    if (typeof buffer === 'number') {
       position = offset;
       offset = 0;
       encoding = length;
@@ -510,7 +537,8 @@ export class fs {
     if (position == null) {
       position = fd.getPos();
     }
-    rv = fd.readSync(buffer, offset, length, position);
+
+    var rv = fd.readSync(buffer, offset, length, position);
     if (!shenanigans) {
       return rv;
     } else {
@@ -518,19 +546,13 @@ export class fs {
     }
   }
 
-  public static fchown(fd: number, uid: number, gid: number, callback?: Function): void {
-    var e, fdChk, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static fchown(fd: file.BaseFile, uid: number, gid: number, callback: Function = nopCb): void {
+    var newCb = wrapCb(callback, 1);
     try {
-      newCb = wrapCb(callback, 1);
       checkFd(fd);
-      return fd.chown(uid, gid, newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      fd.chown(uid, gid, newCb);
+    } catch (e) {
+      newCb(e);
     }
   }
 
@@ -539,43 +561,30 @@ export class fs {
     return fd.chownSync(uid, gid);
   }
 
-  public static fchmod(fd: number, mode: string, callback?: Function): void;
-  public static fchmod(fd: number, mode: number, callback?: Function): void {
-    var e, fdChk, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static fchmod(fd: number, mode: string, cb?: Function): void;
+  public static fchmod(fd: number, mode: number, cb?: Function): void;
+  public static fchmod(fd: number, mode: any, cb: Function = nopCb): void {
+    var newCb = wrapCb(cb, 1);
     try {
-      newCb = wrapCb(callback, 1);
-      if (typeof mode === 'string') {
-        mode = parseInt(mode, 8);
-      }
+      mode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
       checkFd(fd);
-      return fd.chmod(mode, newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      fd.chmod(mode, newCb);
+    } catch (e) {
+      newCb(e);
     }
   }
 
   public static fchmodSync(fd: number, mode: string): void;
-  public static fchmodSync(fd: number, mode: number): void {
-    if (typeof mode === 'string') {
-      mode = parseInt(mode, 8);
-    }
+  public static fchmodSync(fd: number, mode: number): void;
+  public static fchmodSync(fd: number, mode: any): void {
+    mode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
     checkFd(fd);
     return fd.chmodSync(mode);
   }
 
-  public static futimes(fd: number, atime: number, mtime: number, callback?: Function): void {
-    var e, fdChk, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static futimes(fd: number, atime: number, mtime: number, cb: Function = nopCb): void {
+    var newCb = wrapCb(cb, 1);
     try {
-      newCb = wrapCb(callback, 1);
       checkFd(fd);
       if (typeof atime === 'number') {
         atime = new Date(atime * 1000);
@@ -583,9 +592,9 @@ export class fs {
       if (typeof mtime === 'number') {
         mtime = new Date(mtime * 1000);
       }
-      return fd.utimes(atime, mtime, newCb);
+      fd.utimes(atime, mtime, newCb);
     } catch (e) {
-      return newCb(e);
+      newCb(e);
     }
   }
 
@@ -600,69 +609,50 @@ export class fs {
     return fd.utimesSync(atime, mtime);
   }
 
-  public static rmdir(path: string, callback?: Function): void {
-    var e, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static rmdir(path: string, cb: Function = nopCb): void {
+    var newCb = wrapCb(callback, 1);
     try {
-      newCb = wrapCb(callback, 1);
       path = normalizePath(path);
-      return BrowserFS.node.public static root.rmdir(path, newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      fs.root.rmdir(path, newCb);
+    } catch (e) {
+      newCb(e);
     }
   }
 
   public static rmdirSync(path: string): void {
     path = normalizePath(path);
-    return BrowserFS.node.public static root.rmdirSync(path);
+    return fs.root.rmdirSync(path);
   }
 
-  public static mkdir(path: string, mode?: any, callback?: Function): void {
-    var e, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
+  public static mkdir(path: string, mode?: any, cb: Function = nopCb): void {
+    if (typeof mode === 'function') {
+      cb = mode;
+      mode = 0x1ff;
     }
+    var newCb = wrapCb(cb, 1);
     try {
-      if (typeof mode === 'function') {
-        callback = mode;
-        mode = 0x1ff;
-      }
-      newCb = wrapCb(callback, 1);
       path = normalizePath(path);
-      return BrowserFS.node.public static root.mkdir(path, mode, newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      fs.root.mkdir(path, mode, newCb);
+    } catch (e) {
+      newCb(e);
     }
   }
 
   public static mkdirSync(path: string, mode?: string): void;
-  public static mkdirSync(path: string, mode?: number): void {
-    if (mode == null) {
-      mode = 0x1ff;
-    }
+  public static mkdirSync(path: string, mode?: number): void;
+  public static mkdirSync(path: string, mode?: any = 0x1ff): void {
+    mode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
     path = normalizePath(path);
-    return BrowserFS.node.public static root.mkdirSync(path, mode);
+    return fs.root.mkdirSync(path, mode);
   }
 
-  public static readdir(path: string, callback?: (err: Error, files: string[]) => void): void {
-    var e, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static readdir(path: string, cb: (err: Error, files: string[]) => void = nopCb): void {
+    var newCb = wrapCb(cb, 2);
     try {
-      newCb = wrapCb(callback, 2);
       path = normalizePath(path);
-      return this.root.readdir(path, newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      this.root.readdir(path, newCb);
+    } catch (e) {
+      newCb(e);
     }
   }
 
@@ -671,20 +661,14 @@ export class fs {
     return this.root.readdirSync(path);
   }
 
-  public static link(srcpath: string, dstpath: string, callback?: Function): void {
-    var e, newCb;
-
-    if (callback == null) {
-      callback = nopCb;
-    }
+  public static link(srcpath: string, dstpath: string, cb: Function = nopCb): void {
+    var newCb = wrapCb(callback, 1);
     try {
-      newCb = wrapCb(callback, 1);
       srcpath = normalizePath(srcpath);
       dstpath = normalizePath(dstpath);
-      return this.root.link(srcpath, dstpath, newCb);
-    } catch (_error) {
-      e = _error;
-      return newCb(e);
+      this.root.link(srcpath, dstpath, newCb);
+    } catch (e) {
+      newCb(e);
     }
   }
 
