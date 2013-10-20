@@ -1,6 +1,20 @@
 import api_error = require('api_error');
 import stat = require('node_fs_stats');
 
+import file = require('file');
+import file_flag = require('file_flag');
+
+import node_path = require('node_path');
+import node_fs = require('node_fs');
+
+import buffer = require('buffer');
+
+var ApiError = api_error.ApiError;
+var ErrorType = api_error.ErrorType;
+var path = node_path.path;
+var fs = node_fs.fs;
+var Buffer = buffer.Buffer;
+
 export class FileSystem {
 
   public getName(): string {
@@ -11,7 +25,7 @@ export class FileSystem {
     return false;
   }
 
-  public diskSpace(path: string, cb: (number, number) => any): void {
+  public diskSpace(p: string, cb: (total: number, free: number) => any): void {
     cb(0, 0);
   }
 
@@ -32,510 +46,415 @@ export class FileSystem {
   }
 
   public rename(oldPath: string, newPath: string, cb: Function): void {
-    cb(new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED));
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
-  public renameSync(oldPath: string, newPath: string) {
-    throw new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED);
-  }
-
-  public stat(path: string, isLstat: boolean, cb: (api_error.ApiError, stat.Stats)): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED), null);
-  }
-
-  public statSync(path: string, isLstat: boolean): stat.Stats {
+  public renameSync(oldPath: string, newPath: string): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
-  public open(path: string, flags, mode, cb) {
-    return cb(new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED));
-  };
+  public stat(p: string, isLstat: boolean, cb: (err: api_error.ApiError, stat?: stat.Stats) => void): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  }
 
-  public openSync(path, flags, mode) {
-    throw new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED);
-  };
+  public statSync(p: string, isLstat: boolean): stat.Stats {
+    throw new ApiError(ErrorType.NOT_SUPPORTED);
+  }
 
-  public unlink(path, cb) {
-    return cb(new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED));
-  };
+  public open(p: string, flag:file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.BaseFile) => any): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  }
 
-  public unlinkSync(path) {
-    throw new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED);
-  };
+  public openSync(p: string, flag: file_flag.FileFlag, mode: number): file.BaseFile {
+    throw new ApiError(ErrorType.NOT_SUPPORTED);
+  }
 
-  public rmdir(path, cb) {
-    return cb(new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED));
-  };
+  public unlink(p: string, cb: Function): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  }
 
-  public rmdirSync(path) {
-    throw new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED);
-  };
+  public unlinkSync(p: string): void {
+    throw new ApiError(ErrorType.NOT_SUPPORTED);
+  }
 
-  public mkdir(path, mode, cb) {
-    return cb(new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED));
-  };
+  public rmdir(p: string, cb: Function): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  }
 
-  public mkdirSync(path, mode) {
-    throw new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED);
-  };
+  public rmdirSync(p: string): void {
+    throw new ApiError(ErrorType.NOT_SUPPORTED);
+  }
 
-  public readdir(path, cb) {
-    return cb(new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED));
-  };
+  public mkdir(p: string, mode: number, cb: Function): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  }
 
-  public readdirSync(path) {
-    throw new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED);
-  };
+  public mkdirSync(p: string, mode: number): void {
+    throw new ApiError(ErrorType.NOT_SUPPORTED);
+  }
 
-  public exists(path, cb) {
-    return this.stat(path, null, function(err) {
-      return cb(err == null);
+  public readdir(p: string, cb: (err: api_error.ApiError, files?: string[]) => void): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  }
+
+  public readdirSync(p: string): string[] {
+    throw new ApiError(ErrorType.NOT_SUPPORTED);
+  }
+
+  public exists(p: string, cb: (exists: boolean) => void): void {
+    this.stat(p, null, function(err) {
+      cb(err == null);
     });
-  };
+  }
 
-  public existsSync(path) {
-    var e;
-
+  public existsSync(p: string): boolean {
     try {
-      this.statSync(path);
+      this.statSync(p, true);
       return true;
-    } catch (_error) {
-      e = _error;
+    } catch (e) {
       return false;
     }
-  };
+  }
 
-  public realpath(path, cache, cb) {
-    var addPaths, i, splitPath, _i, _ref, _results;
-
+  public realpath(p: string, cache: {[path: string]: string}, cb: (err: api_error.ApiError, resolvedPath?: string) => any): void {
     if (this.supportsLinks()) {
-      splitPath = path.split(BrowserFS.node.path.sep);
-      _results = [];
-      for (i = _i = 0, _ref = splitPath.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-        addPaths = splitPath.slice(0, i + 1);
-        _results.push(splitPath[i] = BrowserFS.node.path.join.apply(null, addPaths));
+      var splitPath = p.split(path.sep);
+      for (var i = 0; i < splitPath.length; i++) {
+        var addPaths = splitPath.slice(0, i + 1);
+        splitPath[i] = path.join.apply(null, addPaths);
       }
-      return _results;
     } else {
-      return this.exists(path, function(doesExist) {
+      this.exists(p, function(doesExist) {
         if (doesExist) {
-          return cb(null, path);
+          cb(null, p);
         } else {
-          return cb(new BrowserFS.ApiError(BrowserFS.ApiError.NOT_FOUND, "File " + path + " not found."));
+          cb(new ApiError(ErrorType.NOT_FOUND, "File " + p + " not found."));
         }
       });
     }
-  };
+  }
 
-  public realpathSync(path, cache) {
-    var addPaths, i, splitPath, _i, _ref, _results;
-
+  public realpathSync(p: string, cache: {[path: string]: string}): string {
     if (this.supportsLinks()) {
-      splitPath = path.split(BrowserFS.node.path.sep);
-      _results = [];
-      for (i = _i = 0, _ref = splitPath.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-        addPaths = splitPath.slice(0, i + 1);
-        _results.push(splitPath[i] = BrowserFS.node.path.join.apply(null, addPaths));
+      var splitPath = p.split(path.sep);
+      for (var i = 0; i < splitPath.length; i++) {
+        var addPaths = splitPath.slice(0, i + 1);
+        splitPath[i] = path.join.apply(null, addPaths);
       }
-      return _results;
     } else {
-      if (this.existsSync(path)) {
-        return path;
+      if (this.existsSync(p)) {
+        return p;
       } else {
-        throw new BrowserFS.ApiError(BrowserFS.ApiError.NOT_FOUND, "File " + path + " not found.");
+        throw new ApiError(ErrorType.NOT_FOUND, "File " + p + " not found.");
       }
     }
-  };
+  }
 
-  public truncate(path, len, cb) {
-    return BrowserFS.node.fs.open(path, 'w', (function(er, fd) {
+  public truncate(p: string, len: number, cb: Function): void {
+    fs.open(p, 'w', (function(er: api_error.ApiError, fd?: file.BaseFile) {
       if (er) {
         return cb(er);
       }
-      return BrowserFS.node.fs.ftruncate(fd, len, (function(er) {
-        return BrowserFS.node.fs.close(fd, (function(er2) {
-          return cb(er || er2);
+      fs.ftruncate(fd, len, (function(er) {
+        fs.close(fd, (function(er2) {
+          cb(er || er2);
         }));
       }));
     }));
-  };
+  }
 
-  public truncateSync(path, len) {
-    var e, fd;
-
-    fd = BrowserFS.node.fs.openSync(path, 'w');
+  public truncateSync(p: string, len: number): void {
+    var fd = fs.openSync(p, 'w');
     try {
-      BrowserFS.node.fs.ftruncateSync(fd, len);
-    } catch (_error) {
-      e = _error;
-    }
-    BrowserFS.node.fs.closeSync(fd);
-    if (e != null) {
+      fs.ftruncateSync(fd, len);
+    } catch (e) {
       throw e;
+    } finally {
+      fs.closeSync(fd);
     }
-  };
+  }
 
-  public readFile(fname, encoding, flag, cb) {
-    var oldCb;
-
-    oldCb = cb;
-    return this.open(fname, flag, 0x1a4, function(err, fd) {
-      if (err != null) {
+  public readFile(fname: string, encoding: string, flag: file_flag.FileFlag, cb: (err: api_error.ApiError, data?: any) => void): void {
+    var oldCb = cb;
+    this.open(fname, flag, 0x1a4, function(err: api_error.ApiError, fd?: file.BaseFile) {
+      if (err) {
         return cb(err);
       }
-      cb(err, arg) {
-        return fd.close(function(err2) {
+      cb = function(err: api_error.ApiError, arg?: file.BaseFile) {
+        fd.close(function(err2) {
           if (err == null) {
             err = err2;
           }
           return oldCb(err, arg);
         });
       };
-      return BrowserFS.node.fs.fstat(fd, function(err, stat) {
-        var buf;
-
+      fs.fstat(fd, function(err: api_error.ApiError, stat?: stat.Stats) {
         if (err != null) {
           return cb(err);
         }
-        buf = new BrowserFS.node.Buffer(stat.size);
-        return BrowserFS.node.fs.read(fd, buf, 0, stat.size, 0, function(err) {
-          var e;
-
+        var buf = new Buffer(stat.size);
+        fs.read(fd, buf, 0, stat.size, 0, function(err) {
           if (err != null) {
             return cb(err);
-          }
-          if (encoding === null) {
+          } else if (encoding === null) {
             return cb(err, buf);
           }
           try {
-            return cb(null, buf.toString(encoding));
-          } catch (_error) {
-            e = _error;
-            return cb(e);
+            cb(null, buf.toString(encoding));
+          } catch (e) {
+            cb(e);
           }
         });
       });
     });
-  };
+  }
 
-  public readFileSync(fname, encoding, flag) {
-    var buf, e, fd, stat;
-
-    fd = this.openSync(fname, flag, 0x1a4);
+  public readFileSync(fname: string, encoding: string, flag: file_flag.FileFlag): any {
+    var fd = this.openSync(fname, flag, 0x1a4);
     try {
-      stat = BrowserFS.node.fs.fstatSync(fd);
-      buf = new BrowserFS.node.Buffer(stat.size);
-      BrowserFS.node.fs.readSync(fd, buf, 0, stat.size, 0);
-      BrowserFS.node.fs.closeSync(fd);
+      var stat = fs.fstatSync(fd);
+      var buf = new Buffer(stat.size);
+      fs.readSync(fd, buf, 0, stat.size, 0);
+      fs.closeSync(fd);
       if (encoding === null) {
         return buf;
       }
       return buf.toString(encoding);
-    } catch (_error) {
-      e = _error;
-      BrowserFS.node.fs.closeSync(fd);
+    } catch (e) {
+      fs.closeSync(fd);
       throw e;
     }
-  };
-
-  public writeFile(fname, data, encoding, flag, mode, cb) {
-    var oldCb;
-
-    oldCb = cb;
-    return this.open(fname, flag, 0x1a4, function(err, fd) {
-      if (err != null) {
-        return cb(err);
-      }
-      cb(err) {
-        return fd.close(function(err2) {
-          return oldCb(err != null ? err : err2);
-        });
-      };
-      if (typeof data === 'string') {
-        data = new BrowserFS.node.Buffer(data, encoding);
-      }
-      return fd.write(data, 0, data.length, 0, function(err) {
-        return cb(err);
-      });
-    });
-  };
-
-  public writeFileSync(fname, data, encoding, flag, mode) {
-    var e, fd;
-
-    fd = this.openSync(fname, flag, mode);
-    if (typeof data === 'string') {
-      data = new BrowserFS.node.Buffer(data, encoding);
-    }
-    try {
-      fd.writeSync(data, 0, data.length, 0);
-    } catch (_error) {
-      e = _error;
-    }
-    BrowserFS.node.fs.closeSync(fd);
-    if (e != null) {
-      throw e;
-    }
-  };
-
-  public appendFile(fname, data, encoding, flag, mode, cb) {
-    var oldCb;
-
-    oldCb = cb;
-    return this.open(fname, flag, mode, function(err, fd) {
-      if (err != null) {
-        return cb(err);
-      }
-      cb(err) {
-        return fd.close(function(err2) {
-          return oldCb(err != null ? err : err2);
-        });
-      };
-      if (typeof data === 'string') {
-        data = new BrowserFS.node.Buffer(data, encoding);
-      }
-      return fd.write(data, 0, data.length, null, function(err) {
-        return cb(err);
-      });
-    });
-  };
-
-  public appendFileSync(fname, data, encoding, flag, mode) {
-    var e, fd;
-
-    fd = this.openSync(fname, flag, mode);
-    if (typeof data === 'string') {
-      data = new BrowserFS.node.Buffer(data, encoding);
-    }
-    try {
-      fd.writeSync(data, 0, data.length, null);
-    } catch (_error) {
-      e = _error;
-    }
-    BrowserFS.node.fs.closeSync(fd);
-    if (e != null) {
-      throw e;
-    }
-  };
-
-  public chmod(path, isLchmod, mode, cb) {
-    return cb(new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED));
-  };
-
-  public chmodSync(path, isLchmod, mode) {
-    throw new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED);
-  };
-
-  public chown(path, isLchown, uid, gid, cb) {
-    return cb(new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED));
-  };
-
-  public chownSync(path, isLchown, uid, gid) {
-    throw new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED);
-  };
-
-  public utimes(path, atime, mtime, cb) {
-    return cb(new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED));
-  };
-
-  public utimesSync(path, atime, mtime) {
-    throw new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED);
-  };
-
-  public link(srcpath, dstpath, cb) {
-    return cb(new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED));
-  };
-
-  public linkSync(srcpath, dstpath) {
-    throw new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED);
-  };
-
-  public symlink(srcpath, dstpath, type, cb) {
-    return cb(new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED));
-  };
-
-  public symlinkSync(srcpath, dstpath, type) {
-    throw new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED);
-  };
-
-  public readlink(path, cb) {
-    return cb(new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED));
-  };
-
-  public readlinkSync(path) {
-    throw new BrowserFS.ApiError(BrowserFS.ApiError.NOT_SUPPORTED);
-  };
-
-  return FileSystem;
-
-})();
-
-BrowserFS.SynchronousFileSystem = (function(_super) {
-  __extends(SynchronousFileSystem, _super);
-
-  function SynchronousFileSystem() {
-    _ref = SynchronousFileSystem.__super__.constructor.apply(this, arguments);
-    return _ref;
   }
 
-  Synchronouspublic supportsSynch() {
+  public writeFile(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError) => void): void {
+    var oldCb = cb;
+    this.open(fname, flag, 0x1a4, function(err: api_error.ApiError, fd?:file.BaseFile) {
+      if (err != null) {
+        return cb(err);
+      }
+      cb = function(err: api_error.ApiError) {
+        fd.close(function(err2) {
+          oldCb(err != null ? err : err2);
+        });
+      };
+
+      try {
+        if (typeof data === 'string') {
+          data = new Buffer(data, encoding);
+        }
+      } catch (e) {
+        return cb(e);
+      }
+      fd.write(data, 0, data.length, 0, cb);
+    });
+  }
+
+  public writeFileSync(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number): void {
+    var fd = this.openSync(fname, flag, mode);
+    try {
+      if (typeof data === 'string') {
+        data = new Buffer(data, encoding);
+      }
+      fd.writeSync(data, 0, data.length, 0);
+    } finally {
+      fs.closeSync(fd);
+    }
+  }
+
+  public appendFile(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError) => void): void {
+    var oldCb = cb;
+    this.open(fname, flag, mode, function(err: api_error.ApiError, fd?: file.BaseFile) {
+      if (err != null) {
+        return cb(err);
+      }
+      cb = function(err: api_error.ApiError) {
+        fd.close(function(err2) {
+          oldCb(err != null ? err : err2);
+        });
+      };
+      if (typeof data === 'string') {
+        data = new Buffer(data, encoding);
+      }
+      fd.write(data, 0, data.length, null, cb);
+    });
+  }
+
+  public appendFileSync(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number): void {
+    var fd = this.openSync(fname, flag, mode);
+    try {
+      if (typeof data === 'string') {
+        data = new Buffer(data, encoding);
+      }
+      fd.writeSync(data, 0, data.length, null);
+    } finally {
+      fs.closeSync(fd);
+    }
+  }
+
+  public chmod(p: string, isLchmod: boolean, mode: number, cb: Function): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  }
+
+  public chmodSync(p: string, isLchmod: boolean, mode: number) {
+    throw new ApiError(ErrorType.NOT_SUPPORTED);
+  }
+
+  public chown(p: string, isLchown: boolean, uid: number, gid: number, cb: Function): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  }
+
+  public chownSync(p: string, isLchown: boolean, uid: number, gid: number): void {
+    throw new ApiError(ErrorType.NOT_SUPPORTED);
+  }
+
+  public utimes(p: string, atime: Date, mtime: Date, cb: Function): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  }
+
+  public utimesSync(p: string, atime: Date, mtime: Date): void {
+    throw new ApiError(ErrorType.NOT_SUPPORTED);
+  }
+
+  public link(srcpath: string, dstpath: string, cb: Function): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  }
+
+  public linkSync(srcpath: string, dstpath: string): void {
+    throw new ApiError(ErrorType.NOT_SUPPORTED);
+  }
+
+  public symlink(srcpath: string, dstpath: string, type: string, cb: Function): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  }
+
+  public symlinkSync(srcpath: string, dstpath: string, type: string): void {
+    throw new ApiError(ErrorType.NOT_SUPPORTED);
+  }
+
+  public readlink(p: string, cb: Function): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  }
+
+  public readlinkSync(p: string): string {
+    throw new ApiError(ErrorType.NOT_SUPPORTED);
+  }
+}
+
+export class SynchronousFileSystem extends FileSystem {
+  public supportsSynch(): boolean {
     return true;
-  };
+  }
 
-  Synchronouspublic rename(oldPath, newPath, cb) {
-    var e;
-
+  public rename(oldPath: string, newPath: string, cb: Function): void {
     try {
       this.renameSync(oldPath, newPath);
-      return cb();
-    } catch (_error) {
-      e = _error;
-      return cb(e);
+      cb();
+    } catch (e) {
+      cb(e);
     }
-  };
+  }
 
-  Synchronouspublic stat(path, isLstat, cb) {
-    var e;
-
+  public stat(p: string, isLstat: boolean, cb: Function): void {
     try {
-      return cb(null, this.statSync(path, isLstat));
-    } catch (_error) {
-      e = _error;
-      return cb(e);
+      cb(null, this.statSync(p, isLstat));
+    } catch (e) {
+      cb(e);
     }
-  };
+  }
 
-  Synchronouspublic open(path, flags, mode, cb) {
-    var e;
-
+  public open(p: string, flags: file_flag.FileFlag, mode: number, cb: Function): void {
     try {
-      return cb(null, this.openSync(path, flags, mode, cb));
-    } catch (_error) {
-      e = _error;
-      return cb(e);
+      cb(null, this.openSync(p, flags, mode));
+    } catch (e) {
+      cb(e);
     }
-  };
+  }
 
-  Synchronouspublic unlink(path, cb) {
-    var e;
-
+  public unlink(p: string, cb: Function): void {
     try {
-      this.unlinkSync(path);
-      return cb();
-    } catch (_error) {
-      e = _error;
-      return cb(e);
+      this.unlinkSync(p);
+      cb();
+    } catch (e) {
+      cb(e);
     }
-  };
+  }
 
-  Synchronouspublic rmdir(path, cb) {
-    var e;
-
+  public rmdir(p: string, cb: Function): void {
     try {
-      this.rmdirSync(path);
-      return cb();
-    } catch (_error) {
-      e = _error;
-      return cb(e);
+      this.rmdirSync(p);
+      cb();
+    } catch (e) {
+      cb(e);
     }
-  };
+  }
 
-  Synchronouspublic mkdir(path, mode, cb) {
-    var e;
-
+  public mkdir(p: string, mode: number, cb: Function): void {
     try {
-      this.mkdirSync(path, mode);
-      return cb();
-    } catch (_error) {
-      e = _error;
-      return cb(e);
+      this.mkdirSync(p, mode);
+      cb();
+    } catch (e) {
+      cb(e);
     }
-  };
+  }
 
-  Synchronouspublic readdir(path, cb) {
-    var e;
-
+  public readdir(p: string, cb: Function): void {
     try {
-      return cb(null, this.readdirSync(path));
-    } catch (_error) {
-      e = _error;
-      return cb(e);
+      cb(null, this.readdirSync(p));
+    } catch (e) {
+      cb(e);
     }
-  };
+  }
 
-  Synchronouspublic chmod(path, isLchmod, mode, cb) {
-    var e;
-
+  public chmod(p: string, isLchmod: boolean, mode: number, cb: Function): void {
     try {
-      this.chmodSync(path, isLchmod, mode);
-      return cb();
-    } catch (_error) {
-      e = _error;
-      return cb(e);
+      this.chmodSync(p, isLchmod, mode);
+      cb();
+    } catch (e) {
+      cb(e);
     }
-  };
+  }
 
-  Synchronouspublic chown(path, isLchown, uid, gid, cb) {
-    var e;
-
+  public chown(p: string, isLchown: boolean, uid: number, gid: number, cb: Function): void {
     try {
-      this.chownSync(path, isLchown, uid, gid);
-      return cb();
-    } catch (_error) {
-      e = _error;
-      return cb(e);
+      this.chownSync(p, isLchown, uid, gid);
+      cb();
+    } catch (e) {
+      cb(e);
     }
-  };
+  }
 
-  Synchronouspublic utimes(path, atime, mtime, cb) {
-    var e;
-
+  public utimes(p: string, atime: Date, mtime: Date, cb: Function): void {
     try {
-      this.utimesSync(path, atime, mtime);
-      return cb();
-    } catch (_error) {
-      e = _error;
-      return cb(e);
+      this.utimesSync(p, atime, mtime);
+      cb();
+    } catch (e) {
+      cb(e);
     }
-  };
+  }
 
-  Synchronouspublic link(srcpath, dstpath, cb) {
-    var e;
-
+  public link(srcpath: string, dstpath: string, cb: Function): void {
     try {
       this.linkSync(srcpath, dstpath);
-      return cb();
-    } catch (_error) {
-      e = _error;
-      return cb(e);
+      cb();
+    } catch (e) {
+      cb(e);
     }
-  };
+  }
 
-  Synchronouspublic symlink(srcpath, dstpath, type, cb) {
-    var e;
-
+  public symlink(srcpath: string, dstpath: string, type: string, cb: Function): void {
     try {
       this.symlinkSync(srcpath, dstpath, type);
-      return cb();
-    } catch (_error) {
-      e = _error;
-      return cb(e);
+      cb();
+    } catch (e) {
+      cb(e);
     }
-  };
+  }
 
-  Synchronouspublic readlink(path, cb) {
-    var e;
-
+  public readlink(p: string, cb: Function): void {
     try {
-      return cb(null, this.readlinkSync(path));
-    } catch (_error) {
-      e = _error;
-      return cb(e);
+      cb(null, this.readlinkSync(p));
+    } catch (e) {
+      cb(e);
     }
-  };
-
-  return SynchronousFileSystem;
-
-})(BrowserFS.FileSystem);
-
-}).call(this);
+  }
+}
