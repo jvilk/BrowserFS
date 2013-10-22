@@ -11,11 +11,11 @@ var ErrorType = api_error.ErrorType;
 var fs = node_fs.fs;
 var Buffer = buffer.Buffer;
 export class PreloadFile extends file.BaseFile {
-  private _fs: file_system.FileSystem;
-  private _path: string;
-  private _stat: node_fs_stats.Stats;
   private _pos: number = 0;
   // XXX: Some backends manipulate these directly :(
+  public _path: string;
+  public _fs: file_system.FileSystem;
+  public _stat: node_fs_stats.Stats;
   public _flag: file_flag.FileFlag;
   public _buffer: buffer.Buffer;
   constructor(_fs: file_system.FileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: buffer.Buffer) {
