@@ -1,6 +1,7 @@
 /// <reference path="../../vendor/node.d.ts" />
 // Import the type annotation from Node.
 import fs = require('fs');
+import file = require('file');
 
 export enum FileType {
   FILE = 1,
@@ -24,6 +25,8 @@ export class Stats implements fs.Stats {
   public blksize: number = 4096;
   public uid: number = 0;
   public gid: number = 0;
+  // XXX: Some file systems stash a file on stats objects.
+  public file_data: file.File;
   constructor(item_type: FileType, size, mode = 0x1a4, atime = new Date(), mtime = new Date(), ctime = new Date()) {
     this.item_type = item_type;
     this.size = size;

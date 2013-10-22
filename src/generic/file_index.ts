@@ -5,7 +5,9 @@ var Stats = node_fs_stats.Stats;
 var path = node_path.path;
 
 export class FileIndex {
-  private _index: {[path: string]: Inode}
+  // XXX: Public so backends can efficiently iterate over it to empty stashed
+  //      files. :(
+  public _index: {[path: string]: Inode}
   constructor() {
     this._index = {};
   }
