@@ -203,7 +203,7 @@ export class LocalStorageOld extends LocalStorageAbstract {
 }
 
 export class LocalStorageFile extends preload_file.PreloadFile {
-  constructor(_fs: file_system.FileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: buffer.Buffer) {
+  constructor(_fs: LocalStorageAbstract, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: buffer.Buffer) {
     super(_fs, _path, _flag, _stat, contents);
   }
 

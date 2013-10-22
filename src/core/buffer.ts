@@ -1,4 +1,4 @@
-/// <reference path="../../vendor/node.d.ts" />
+/// <reference path="../../vendor/DefinitelyTyped/node/node.d.ts" />
 import string_util = require('string_util');
 
 /**
@@ -94,7 +94,8 @@ export class Buffer implements NodeBuffer {
     }
   }
 
-  private buff: DataView;
+  // XXX: :| HTML5FS directly copies this.
+  public buff: DataView;
   public length: number;
   public _charsWritten: number;
 
