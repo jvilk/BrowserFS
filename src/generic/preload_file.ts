@@ -13,10 +13,11 @@ var Buffer = buffer.Buffer;
 export class PreloadFile extends file.BaseFile {
   private _fs: file_system.FileSystem;
   private _path: string;
-  private _flag: file_flag.FileFlag;
   private _stat: node_fs_stats.Stats;
   private _pos: number = 0;
-  private _buffer: buffer.Buffer;
+  // XXX: Some backends manipulate these directly :(
+  public _flag: file_flag.FileFlag;
+  public _buffer: buffer.Buffer;
   constructor(_fs: file_system.FileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: buffer.Buffer) {
     super();
     this._fs = _fs;
