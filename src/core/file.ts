@@ -1,6 +1,6 @@
-import api_error = require('api_error');
-import stats = require('node_fs_stats');
-import buffer = require('buffer');
+import api_error = require('./api_error');
+import stats = require('./node_fs_stats');
+import buffer = require('./buffer');
 var ApiError = api_error.ApiError;
 var ErrorType = api_error.ErrorType;
 

@@ -1,5 +1,5 @@
 import file_system = require('../core/file_system');
-import file_index = require('file_index');
+import file_index = require('./file_index');
 import file_flag = require('../core/file_flag');
 import file = require('../core/file');
 import node_fs_stats = require('../core/node_fs_stats');

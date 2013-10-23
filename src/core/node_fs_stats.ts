@@ -1,7 +1,7 @@
 /// <reference path="../../vendor/DefinitelyTyped/node/node.d.ts" />
 // Import the type annotation from Node.
 import fs = require('fs');
-import file = require('file');
+import file = require('./file');
 
 export enum FileType {
   FILE = 1,

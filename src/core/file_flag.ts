@@ -1,4 +1,4 @@
-import api_error = require('api_error');
+import api_error = require('./api_error');
 
 export enum ActionType {
   NOP = 0,

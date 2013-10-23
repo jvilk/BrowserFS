@@ -1,5 +1,5 @@
 import file_system = require('../core/file_system');
-import in_memory = require('in_memory');
+import in_memory = require('./in_memory');
 import api_error = require('../core/api_error');
 import node_fs = require('../core/node_fs');
 import browserfs = require('../core/browserfs');

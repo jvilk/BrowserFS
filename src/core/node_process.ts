@@ -1,4 +1,4 @@
-import node_path = require('node_path');
+import node_path = require('./node_path');
 var path = node_path.path;
 
 export class process {

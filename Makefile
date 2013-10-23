@@ -1,20 +1,21 @@
 COFFEE    := $(shell npm bin)/coffee
-UGLIFYJS  := $(shell npm bin)/uglifyjs
+TSC       := $(shell npm bin)/tsc
+RJS       := $(shell npm bin)/r.js
 CODO      := $(shell npm bin)/codo
 KARMA     := $(shell npm bin)/karma
 GRUNT     := $(shell npm bin)/grunt
 BOWER     := $(shell npm bin)/bower
+# Convenience for expressing dependencies.
+NPM_MODS  := $(COFFEE) $(TSC) $(RJS) $(CODO) $(KARMA) $(GRUNT) $(BOWER)
+# Bower dependencies.
+BOW_DEPS  := vendor/async/lib/async.js vendor/dropbox-build/dropbox.js \
+             vendor/DefinitelyTyped/README.md
 
-S2B = $($(1):src/$(2)/%.coffee=tmp/$(2)/%.js)
+S2B = $($(1):src/$(2)/%.ts=tmp/$(2)/%.js)
 
-#From Make 3.82 onwards, wildcard returns filenames in arbitrary order.
-#Alphabetically sorting the values is sufficient for browserfs build dependencies.
-SRCS_CORE_UNSORTED := $(wildcard src/core/*.coffee)
-SRCS_CORE := $(sort $(SRCS_CORE_UNSORTED))
-
-SRCS_GEN  := $(wildcard src/generic/*.coffee)
-SRCS_BND  := $(wildcard src/backend/*.coffee)
-# Order matters!
+SRCS_CORE := $(wildcard src/core/*.ts)
+SRCS_GEN  := $(wildcard src/generic/*.ts)
+SRCS_BND  := $(wildcard src/backend/*.ts)
 SRCS      := $(SRCS_CORE) $(SRCS_GEN) $(SRCS_BND)
 BINS      := $(call S2B,SRCS_CORE,core) $(call S2B,SRCS_GEN,generic) \
              $(call S2B,SRCS_BND,backend)
@@ -22,8 +23,8 @@ FIXTURES  := $(shell find test/fixtures -name '*')
 
 .PHONY: dependencies release dev test doc clean dropbox_tokens
 
-release: lib/browserfs.min.js
-dev: lib/browserfs.js
+release: lib/browserfs.js
+dev: $(BINS)
 
 dropbox_test: dropbox_tokens test
 
@@ -35,34 +36,33 @@ clean:
 	@rm -f lib/*.js lib/*.map
 	@rm -rf tmp/
 	@rm -rf test/dropbox
-dependencies: $(COFFEE) $(UGLIFYJS) $(CODO) $(KARMA)
+dependencies: $(NPM_MODS) $(BOW_DEPS)
 
 doc/index.html: $(SRCS) $(CODO) README.md
-	$(CODO) --title "BrowserFS Documentation" $(SRCS)
+	# TODO: Use JSDoc.
+	#$(CODO) --title "BrowserFS Documentation" $(SRCS)
 
-$(COFFEE) $(UGLIFYJS) $(CODO) (KARMA) $(GRUNT) $(BOWER):
+$(NPM_MODS):
 	@echo "Installing needed Node modules with 'npm install'..."
 	@npm install
 	@echo "Node modules installed successfully!"
 
+$(BOW_DEPS): $(BOWER)
+	$(BOWER) install
+
 listings.json: tools/XHRIndexer.coffee $(FIXTURES)
 	$(COFFEE) tools/XHRIndexer.coffee > listings.json
 
-tmp/%.js: src/%.coffee $(COFFEE)
-	$(COFFEE) --output $(shell dirname $@) --compile $<
+# Release build
+lib/browserfs.js: $(BINS) $(RJS)
+	$(RJS) -o build.js
 
-lib/browserfs.js: $(BINS) $(COFFEE) $(UGLIFYJS)
-	$(COFFEE) -m --output tmp --compile --join browserfs.js $(SRCS)
-	$(UGLIFYJS) -b --output lib/browserfs.js --in-source-map tmp/browserfs.map --source-map lib/browserfs.map vendor/*.js tmp/browserfs.js
-
-lib/browserfs.min.js: lib/browserfs.js $(UGLIFYJS)
-	$(UGLIFYJS) --compress unused=false --output $@ --in-source-map tmp/browserfs.map --source-map lib/browserfs.min.map vendor/*.js lib/browserfs.js
+# Development build
+$(BINS): $(SRCS) $(TSC)
+	$(TSC) --outDir tmp --module amd $(SRCS)
 
 lib/load_fixtures.js: tools/FixtureLoaderMaker.coffee $(COFFEE) $(FIXTURES)
 	$(COFFEE) $<
-
-vendor/async/lib/async.js vendor/dropbox-build/dropbox.js: $(BOWER)
-	bower install
 
 test/dropbox/cert.pem:
 	mkdir -p test/dropbox

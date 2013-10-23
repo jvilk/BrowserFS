@@ -1,8 +1,8 @@
-import buffer = require('buffer');
-import node_fs = require('node_fs');
-import node_path = require('node_path');
-import node_process = require('node_process');
-import file_system = require('file_system');
+import buffer = require('./buffer');
+import node_fs = require('./node_fs');
+import node_path = require('./node_path');
+import node_process = require('./node_process');
+import file_system = require('./file_system');
 
 /**
  * Installs BrowserFS onto the given object.

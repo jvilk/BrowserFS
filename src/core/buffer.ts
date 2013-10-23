@@ -1,5 +1,5 @@
 /// <reference path="../../vendor/DefinitelyTyped/node/node.d.ts" />
-import string_util = require('string_util');
+import string_util = require('./string_util');
 
 /**
  * Emulation of Node's `Buffer` class. Normally, this is declared globally, but I

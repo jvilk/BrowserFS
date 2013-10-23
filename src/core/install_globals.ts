@@ -2,7 +2,7 @@
  * This script runs before the page loads and before any BFS code runs.
  * It installs the BrowserFS global, and all of the polyfills we need.
  */
-import browserfs = require('browserfs');
+import browserfs = require('./browserfs');
 
 // The library user uses this module to communicate with the rest of BrowserFS.
 if (typeof window !== "undefined" && window !== null) {

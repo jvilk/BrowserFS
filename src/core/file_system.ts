@@ -1,13 +1,13 @@
-import api_error = require('api_error');
-import stat = require('node_fs_stats');
+import api_error = require('./api_error');
+import stat = require('./node_fs_stats');
 
-import file = require('file');
-import file_flag = require('file_flag');
+import file = require('./file');
+import file_flag = require('./file_flag');
 
-import node_path = require('node_path');
-import node_fs = require('node_fs');
+import node_path = require('./node_path');
+import node_fs = require('./node_fs');
 
-import buffer = require('buffer');
+import buffer = require('./buffer');
 
 var ApiError = api_error.ApiError;
 var ErrorType = api_error.ErrorType;

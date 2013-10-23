@@ -1,4 +1,4 @@
-import buffer = require("buffer");
+import buffer = require("./buffer");
 
 export interface StringUtil {
   str2byte(buf: buffer.Buffer, str: string, offset: number, length: number): number;
