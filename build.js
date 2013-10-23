@@ -5,10 +5,12 @@
     // The main module that installs the BrowserFS global and needed polyfills.
     name: 'core/install_globals',
     out: 'lib/browserfs.js',
+    optimize: 'uglify2',
+    generateSourceMaps: true,
+    preserveLicenseComments: false,
     // List all of the backends you want in your build here.
     include: ['../vendor/setImmediate',
               '../vendor/typedarray',
-              '../vendor/async/lib/async.js',
               'backend/dropbox',
               'backend/html5fs',
               'backend/in_memory',

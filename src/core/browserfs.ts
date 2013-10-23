@@ -38,7 +38,7 @@ export function registerFileSystem(name: string, fs: any) {
   fsTypes[name] = fs;
 }
 
-export function getFsConstructor(type: string): any {
+export function getFsConstructor(name: string): any {
   return fsTypes[name];
 }
 

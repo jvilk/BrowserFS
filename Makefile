@@ -28,7 +28,7 @@ dev: $(BINS)
 
 dropbox_test: dropbox_tokens test
 
-test: $(GRUNT) $(KARMA) listings.json lib/load_fixtures.js \
+test: dev $(GRUNT) $(KARMA) listings.json lib/load_fixtures.js \
 	vendor/async/lib/async.js vendor/dropbox-build/dropbox.js
 	$(GRUNT)
 doc: doc/index.html
@@ -59,7 +59,7 @@ lib/browserfs.js: $(BINS) $(RJS)
 
 # Development build
 $(BINS): $(SRCS) $(TSC)
-	$(TSC) --outDir tmp --module amd $(SRCS)
+	$(TSC) --outDir tmp --module amd --sourcemap $(SRCS)
 
 lib/load_fixtures.js: tools/FixtureLoaderMaker.coffee $(COFFEE) $(FIXTURES)
 	$(COFFEE) $<

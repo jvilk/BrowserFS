@@ -147,9 +147,9 @@ export class ASCII implements StringUtil {
 export class BASE64 implements StringUtil {
   private static b64chars = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/', '='];
   private static num2b64: string[] = (function() {
-    var obj = new Array(this.b64chars.length);
-    for (var idx = 0; idx < this.b64chars.length; idx++) {
-      var i = this.b64chars[idx];
+    var obj = new Array(BASE64.b64chars.length);
+    for (var idx = 0; idx < BASE64.b64chars.length; idx++) {
+      var i = BASE64.b64chars[idx];
       obj[idx] = i;
     }
     return obj;
@@ -157,8 +157,8 @@ export class BASE64 implements StringUtil {
 
   private static b642num: {[chr: string]: number} = (function() {
     var obj = {};
-    for (var idx = 0; idx < this.b64chars.length; idx++) {
-      var i = this.b64chars[idx];
+    for (var idx = 0; idx < BASE64.b64chars.length; idx++) {
+      var i = BASE64.b64chars[idx];
       obj[i] = idx;
     }
     obj['-'] = 62;
@@ -193,10 +193,10 @@ export class BASE64 implements StringUtil {
     str = str.replace(/[^A-Za-z0-9\+\/\=\-\_]/g, '');
     var j = 0;
     while (i < str.length) {
-      var enc1 = this.b642num[str.charAt(i++)];
-      var enc2 = this.b642num[str.charAt(i++)];
-      var enc3 = this.b642num[str.charAt(i++)];
-      var enc4 = this.b642num[str.charAt(i++)];
+      var enc1 = BASE64.b642num[str.charAt(i++)];
+      var enc2 = BASE64.b642num[str.charAt(i++)];
+      var enc3 = BASE64.b642num[str.charAt(i++)];
+      var enc4 = BASE64.b642num[str.charAt(i++)];
       var chr1 = (enc1 << 2) | (enc2 >> 4);
       var chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
       var chr3 = ((enc3 & 3) << 6) | enc4;
@@ -259,9 +259,9 @@ export class HEX implements StringUtil {
   private static HEXCHARS = '0123456789abcdef';
 
   private static num2hex: string[] = (function() {
-    var obj = new Array(this.HEXCHARS.length);
-    for (var idx = 0; idx < this.HEXCHARS.length; idx++) {
-      var i = this.HEXCHARS[idx];
+    var obj = new Array(HEX.HEXCHARS.length);
+    for (var idx = 0; idx < HEX.HEXCHARS.length; idx++) {
+      var i = HEX.HEXCHARS[idx];
       obj[idx] = i;
     }
     return obj;
@@ -270,8 +270,8 @@ export class HEX implements StringUtil {
   private static hex2num: {[chr: string]: number} = (function() {
     var idx, i;
     var obj = {};
-    for (idx = 0; idx < this.HEXCHARS.length; idx++) {
-      i = this.HEXCHARS[idx];
+    for (idx = 0; idx < HEX.HEXCHARS.length; idx++) {
+      i = HEX.HEXCHARS[idx];
       obj[i] = idx;
     }
     var capitals = 'ABCDEF';

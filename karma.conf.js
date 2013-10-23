@@ -11,15 +11,10 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       'vendor/*.js',
-      'vendor/async/lib/async.js',
       'vendor/dropbox-build/dropbox.js',
-      'src/core/*.coffee',
-      'src/generic/*.coffee',
-      'src/backend/*.coffee',
       'lib/load_fixtures.js',
-      'test/000-setup.js',
-      'test/node/*.js',
-      'test/zzz-test_def.js'
+      'test/setup.js',
+      'test/node/*.js'
     ],
 
     // list of files to exclude
@@ -27,11 +22,6 @@ module.exports = function(config) {
       'test/node/test-fs-realpath.js',
       'test/node/test-fs-sir-writes-alot.js'
     ],
-
-    // compile coffee scripts
-    preprocessors: {
-      'src/**/*.coffee': 'coffee'
-    },
 
     // test results reporter to use
     // possible values: 'dots', 'progress', 'junit'

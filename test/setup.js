@@ -1,6 +1,48 @@
+// Prevent Karma from auto-executing.
+__karma__.loaded = function() {};
+window.tests = {};
+
 // Defines/generates all of our Jasmine unit tests from the node unit tests.
-(function() {
+// XXX: We need to list all of the backends here so they will register themselves
+//      with BFS. I need a better mechanism for doing this.
+require(['../tmp/core/install_globals',
+         '../tmp/backend/dropbox',
+         '../tmp/backend/html5fs',
+         '../tmp/backend/in_memory',
+         '../tmp/backend/localStorage',
+         '../tmp/backend/mountable_file_system',
+         '../tmp/backend/XmlHttpRequest'],
+function() {
   "use strict";
+  // Test-related setup code.
+  var obj = {};
+  // Install to obj to prevent trampling on RequireJS's require
+  // function.
+  BrowserFS.install(obj);
+
+  // Make these things global
+  window.fs = obj.require('fs');
+  window.path = obj.require('path');
+  window.process = obj.process;
+  // Polyfill for Node's 'common' module that it uses for its unit tests.
+  window.common = {
+      tmpDir: '/tmp/',
+      fixturesDir: '/test/fixtures/node',
+      // NodeJS uses 'common.error' for test messages, but this is inappropriate.
+      // I map it to log, instead.
+      error: function() { console.log.apply(console, arguments); }
+  };
+  window.Buffer = obj.Buffer;
+
+  // Polyfill for `process.on('exit')`.
+  process.on = function(trigger, cb) {
+    if (trigger == 'exit') {
+      process._exitCb = cb;
+    } else {
+      throw new Error("Unsupported trigger: " + trigger);
+    }
+  };
+
   var backends = [];
 
   var timeout = 5000;
@@ -55,23 +97,27 @@
   };
 
   // Add LocalStorage-backed filesystem
-  if (BrowserFS.FileSystem.LocalStorage.isAvailable()) {
-    var lsfs = new BrowserFS.FileSystem.LocalStorage();
+  var LocalStorage = BrowserFS.getFsConstructor('LocalStorage');
+  if (LocalStorage.isAvailable()) {
+    var lsfs = new LocalStorage();
     lsfs.empty();
     backends.push(lsfs);
   }
 
   // Add in-memory filesystem
-  backends.push(new BrowserFS.FileSystem.InMemory());
+  var InMemory = BrowserFS.getFsConstructor('InMemory');
+  backends.push(new InMemory());
 
   // Add AJAX filesystem
-  if (BrowserFS.FileSystem.XmlHttpRequest.isAvailable())
-    backends.push(new BrowserFS.FileSystem.XmlHttpRequest('/listings.json'));
+  var XmlHttpRequest = BrowserFS.getFsConstructor('XmlHttpRequest');
+  if (XmlHttpRequest.isAvailable())
+    backends.push(new XmlHttpRequest('/listings.json'));
 
   // Add mountable filesystem
-  var im2 = new BrowserFS.FileSystem.InMemory();
-  var im3 = new BrowserFS.FileSystem.InMemory();
-  var mfs = new BrowserFS.FileSystem.MountableFileSystem();
+  var im2 = new InMemory();
+  var im3 = new InMemory();
+  var MountableFileSystem = BrowserFS.getFsConstructor('MountableFileSystem');
+  var mfs = new MountableFileSystem();
   mfs.mount('/', im2);
   //TODO: Test when API Error has a 'file' attribute that MFS can appropriately
   // alter when an error is raised.
@@ -99,7 +145,8 @@
           console.debug("Successfully connected to " + info.name + "'s Dropbox");
         });
 
-        var dbfs = new BrowserFS.FileSystem.Dropbox(authed_client);
+        var Dropbox = BrowserFS.getFsConstructor('Dropbox');
+        var dbfs = new Dropbox(authed_client);
         backends.push(dbfs);
         dbfs.empty(function(){
           async_backends--;
@@ -129,8 +176,9 @@
 
 
   // Add HTML5 FileSystem API backed filesystem
-  if (BrowserFS.FileSystem.HTML5FS.isAvailable()){
-    var html5fs = new BrowserFS.FileSystem.HTML5FS(10, window.TEMPORARY);
+  var HTML5FS = BrowserFS.getFsConstructor('HTML5FS');
+  if (HTML5FS.isAvailable()){
+    var html5fs = new HTML5FS(10, window.TEMPORARY);
     backends.push(html5fs);
     html5fs.allocate(function(err){
       if (err){
@@ -152,4 +200,4 @@
     async_backends--;
     if (async_backends === 0) generateAllTests();
   }
-})(this);
+});

@@ -1,3 +1,4 @@
+/// <amd-dependency path="../../vendor/async/lib/async" />
 import preload_file = require('../generic/preload_file');
 import file_system = require('../core/file_system');
 import file_flag = require('../core/file_flag');
@@ -18,8 +19,8 @@ window['db'] = window['Dropbox'];
 
 // XXX: No typings available for the Dropbox client. :(
 
-// XXX: No up-to-date typings for async.
-declare var async;
+// XXX: The typings for async on DefinitelyTyped are out of date.
+var async = require('../../vendor/async/lib/async');
 
 export class DropboxFile extends preload_file.PreloadFile {
   constructor(_fs: file_system.FileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: buffer.Buffer) {

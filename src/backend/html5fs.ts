@@ -1,4 +1,5 @@
 /// <reference path="../../vendor/DefinitelyTyped/filesystem/filesystem.d.ts" />
+/// <amd-dependency path="../../vendor/async/lib/async" />
 import preload_file = require('../generic/preload_file');
 import file_system = require('../core/file_system');
 import api_error = require('../core/api_error');
@@ -16,7 +17,7 @@ var ErrorType = api_error.ErrorType;
 var ActionType = file_flag.ActionType;
 
 // XXX: The typings for async on DefinitelyTyped are out of date.
-declare var async: any;
+var async = require('../../vendor/async/lib/async');
 
 var _getFS: (type:number, size:number, successCallback: FileSystemCallback, errorCallback?: ErrorCallback) => void = window.webkitRequestFileSystem || window.requestFileSystem || null;
 
