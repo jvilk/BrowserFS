@@ -6,6 +6,7 @@ import buffer = require('../core/buffer');
 import api_error = require('../core/api_error');
 import file = require('../core/file');
 import node_path = require('../core/node_path');
+import browserfs = require('../core/browserfs');
 
 var Buffer = buffer.Buffer;
 var Stats = node_fs_stats.Stats;
@@ -246,3 +247,5 @@ export class Dropbox extends file_system.FileSystem {
     });
   }
 }
+
+browserfs.registerFileSystem('Dropbox', Dropbox);

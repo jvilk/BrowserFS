@@ -6,6 +6,7 @@ import file_flag = require('../core/file_flag');
 import node_fs_stats = require('../core/node_fs_stats');
 import buffer = require('../core/buffer');
 import file = require('../core/file');
+import browserfs = require('../core/browserfs');
 
 var Buffer = buffer.Buffer;
 var Stats = node_fs_stats.Stats;
@@ -351,3 +352,5 @@ export class HTML5FS extends file_system.FileSystem {
     });
   }
 }
+
+browserfs.registerFileSystem('HTML5FS', HTML5FS);

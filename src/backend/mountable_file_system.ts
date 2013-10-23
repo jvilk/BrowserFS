@@ -2,6 +2,7 @@ import file_system = require('../core/file_system');
 import in_memory = require('in_memory');
 import api_error = require('../core/api_error');
 import node_fs = require('../core/node_fs');
+import browserfs = require('../core/browserfs');
 
 var ApiError = api_error.ApiError;
 var ErrorType = api_error.ErrorType;
@@ -122,3 +123,6 @@ for (var i = 0; i < fsCmdMap.length; i++) {
     MountableFileSystem.prototype[fnName + 'Sync'] = defineFcn(fnName + 'Sync', true, i + 1);
   }
 }
+
+browserfs.registerFileSystem('MountableFileSystem', MountableFileSystem);
+

@@ -7,6 +7,7 @@ import util = require('../core/util');
 import file = require('../core/file');
 import node_fs_stats = require('../core/node_fs_stats');
 import preload_file = require('../generic/preload_file');
+import browserfs = require('../core/browserfs');
 
 var Buffer = buffer.Buffer;
 var ApiError = api_error.ApiError;
@@ -235,3 +236,5 @@ export class XmlHttpRequestModern extends XmlHttpRequestAbstract {
 }
 
 export var XmlHttpRequest = (util.isIE && typeof window['Blob'] === 'undefined') ? XmlHttpRequestIE : XmlHttpRequestModern;
+
+browserfs.registerFileSystem('XmlHttpRequest', XmlHttpRequest);

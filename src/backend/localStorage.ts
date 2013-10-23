@@ -8,6 +8,7 @@ import string_util = require('../core/string_util');
 import api_error = require('../core/api_error');
 import node_path = require('../core/node_path');
 import file_system = require('../core/file_system');
+import browserfs = require('../core/browserfs');
 
 var Buffer = buffer.Buffer;
 var Stats = node_fs_stats.Stats;
@@ -223,3 +224,5 @@ try {
 } catch (e) {
 }
 export var LocalStorage = supportsBinaryString ? LocalStorageModern : LocalStorageOld;
+
+browserfs.registerFileSystem('LocalStorage', LocalStorage);

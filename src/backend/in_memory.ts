@@ -6,6 +6,7 @@ import node_fs_stats = require('../core/node_fs_stats');
 import buffer = require('../core/buffer');
 import preload_file = require('../generic/preload_file');
 import util = require('../core/util');
+import browserfs = require('../core/browserfs');
 
 var Buffer = buffer.Buffer;
 var NoSyncFile = preload_file.NoSyncFile;
@@ -66,3 +67,5 @@ export class InMemory extends indexed_filesystem.IndexedFileSystem {
 
   public _rmdirSync(path: string, inode: file_index.Inode): void {}
 }
+
+browserfs.registerFileSystem('InMemory', InMemory);
