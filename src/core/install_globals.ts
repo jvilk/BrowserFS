@@ -1,7 +1,15 @@
 /**
- * Contains miscellaneous small polyfills for browsers that do not support
- * features that we make use of.
+ * This script runs before the page loads and before any BFS code runs.
+ * It installs the BrowserFS global, and all of the polyfills we need.
  */
+import browserfs = require('browserfs');
+
+// The library user uses this module to communicate with the rest of BrowserFS.
+if (typeof window !== "undefined" && window !== null) {
+  window['BrowserFS'] = browserfs;
+} else if (typeof self !== 'undefined' && self !== null) {
+  self['BrowserFS'] = browserfs;
+}
 
 // IE < 9 does not define this function.
 if (!Date.now) {
@@ -62,8 +70,8 @@ if (!Object.keys) {
 
 // IE substr does not support negative indices
 if ('ab'.substr(-1) !== 'b') {
-  String.prototype.substr = function(substr) {
-    return function(start, length) {
+  String.prototype.substr = function(substr: (start: number, length?: number) => string) {
+    return function(start: number, length?: number): string {
       // did we get a negative start, calculate how much it is from the
       // beginning of the string
       if (start < 0) start = this.length + start;
@@ -75,9 +83,8 @@ if ('ab'.substr(-1) !== 'b') {
 
 // IE < 9 does not support forEach
 if (!Array.prototype.forEach) {
-  Array.prototype.forEach = function (fn, scope) {
-    var i, len;
-    for (i = 0, len = this.length; i < len; ++i) {
+  Array.prototype.forEach = function(fn: (value: string, index: number, array: string[]) => void, scope?: any): void {
+    for (var i = 0; i < this.length; ++i) {
       if (i in this) {
         fn.call(scope, this[i], i, this);
       }
