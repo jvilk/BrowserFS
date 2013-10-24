@@ -27,21 +27,21 @@ function wrapCb(cb: Function, numArgs: number): Function {
   switch (numArgs) {
     case 1:
       return function(arg1) {
-        return setImmediate(function() {
+        setImmediate(function() {
           __numWaiting--;
           return cb(arg1);
         });
       };
     case 2:
       return function(arg1, arg2) {
-        return setImmediate(function() {
+        setImmediate(function() {
           __numWaiting--;
           return cb(arg1, arg2);
         });
       };
     case 3:
       return function(arg1, arg2, arg3) {
-        return setImmediate(function() {
+        setImmediate(function() {
           __numWaiting--;
           return cb(arg1, arg2, arg3);
         });
