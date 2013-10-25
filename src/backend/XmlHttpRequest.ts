@@ -35,8 +35,7 @@ export class XmlHttpRequestAbstract extends file_system.FileSystem {
       listing_url = 'index.json';
     }
     this.prefix_url = prefix_url != null ? prefix_url : '';
-    var file_data = this._request_file(listing_url, 'json');
-    var listing = JSON.parse(file_data);
+    var listing = this._request_file(listing_url, 'json');
     if (listing == null) {
       throw new Error("Unable to find listing at URL: " + listing_url);
     }

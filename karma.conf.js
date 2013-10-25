@@ -10,6 +10,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
+      'tmp/core/setImmediate.js',
       'vendor/*.js',
       'vendor/dropbox-build/dropbox.js',
       'lib/load_fixtures.js',

@@ -8,7 +8,7 @@ if (typeof setImmediate === 'undefined') {
     var postMessageIsAsync = true;
     var oldOnMessage = window.onmessage;
     window.onmessage = function() {
-      return postMessageIsAsync = false;
+      postMessageIsAsync = false;
     };
     window.postMessage('', '*');
     window.onmessage = oldOnMessage;
@@ -16,14 +16,11 @@ if (typeof setImmediate === 'undefined') {
   };
   if (canUsePostMessage()) {
     window['set'+'Immediate'] = function(fn) {
-      console.log("Settin' fcn");
       timeouts.push(fn);
-      return window.postMessage(messageName, "*");
+      window.postMessage(messageName, "*");
     };
     var handleMessage = function(event) {
-      console.log("Rcvd msg: " + event);
       if (event.source === self && event.data === messageName) {
-        console.log("Handlin' message");
         if (event.stopPropagation) {
           event.stopPropagation();
         } else {

@@ -5,8 +5,7 @@ window.tests = {};
 // Defines/generates all of our Jasmine unit tests from the node unit tests.
 // XXX: We need to list all of the backends here so they will register themselves
 //      with BFS. I need a better mechanism for doing this.
-require(['../tmp/core/setImmediate',
-         '../tmp/core/install_globals',
+require(['../tmp/core/install_globals',
          '../tmp/backend/dropbox',
          '../tmp/backend/html5fs',
          '../tmp/backend/in_memory',
