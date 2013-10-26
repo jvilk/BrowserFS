@@ -58,10 +58,10 @@ function checkFd(fd: file.BaseFile): void {
 }
 
 function normalizeMode(mode: any, def: number): number {
-  switch(typeof def) {
+  switch(typeof mode) {
     case 'number':
       // (path, flag, mode, cb?)
-      return def;
+      return mode;
     case 'string':
       // (path, flag, modeString, cb?)
       var trueMode = parseInt(mode, 8);
