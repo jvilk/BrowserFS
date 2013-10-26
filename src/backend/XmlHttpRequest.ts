@@ -35,7 +35,8 @@ export class XmlHttpRequestAbstract extends file_system.FileSystem {
       listing_url = 'index.json';
     }
     this.prefix_url = prefix_url != null ? prefix_url : '';
-    var listing = this._request_file(listing_url, 'json');
+    var listingString = this._request_file(listing_url, 'json');
+    var listing = JSON.parse(listingString);
     if (listing == null) {
       throw new Error("Unable to find listing at URL: " + listing_url);
     }
@@ -211,7 +212,10 @@ export class XmlHttpRequestModern extends XmlHttpRequestAbstract {
   public _request_file(path: string, data_type: string, cb?: (data: any) => void): any {
     var req = new XMLHttpRequest();
     req.open('GET', this.prefix_url + path, cb != null);
-    req.responseType = data_type;
+    // XXX: FF and Chrome refuse to set responseType on synchronous XHRs.
+    if (cb != null) {
+      req.responseType = data_type;
+    }
     var data = null;
     req.onerror = function(e) {
       console.error(req.statusText);
