@@ -35,7 +35,7 @@ function() {
   window.Buffer = obj.Buffer;
 
   // Polyfill for `process.on('exit')`.
-  process.on = function(trigger, cb) {
+  window.process.on = function(trigger, cb) {
     if (trigger == 'exit') {
       process._exitCb = cb;
     } else {
@@ -84,6 +84,10 @@ function() {
   };
 
   var generateAllTests = function() {
+    // XXX: TERRIBLE HACK: There's a race condition with defining tests and this
+    //      file loading.
+    setTimeout(function() {
+    console.log(Object.keys(window.tests));
     // programmatically create a single test suite for each filesystem we wish to
     // test
     var testGeneratorFactory = function(backend) {
@@ -94,6 +98,7 @@ function() {
       describe(_backend.getName(), testGeneratorFactory(_backend));
     }
     __karma__.start();
+   }, 1000);
   };
 
   // Add LocalStorage-backed filesystem

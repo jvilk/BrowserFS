@@ -11,12 +11,6 @@ export enum FileType {
 }
 
 export class Stats implements fs.Stats {
-  public item_type: FileType;
-  public size: number;
-  public mode: number;
-  public atime: Date;
-  public mtime: Date;
-  public ctime: Date;
   public blocks: number;
   public dev: number = 0;
   public ino: number = 0;
@@ -27,9 +21,13 @@ export class Stats implements fs.Stats {
   public gid: number = 0;
   // XXX: Some file systems stash a file on stats objects.
   public file_data: file.File;
-  constructor(item_type: FileType, size, mode = 0x1a4, atime = new Date(), mtime = new Date(), ctime = new Date()) {
-    this.item_type = item_type;
-    this.size = size;
+  constructor(
+    public item_type: FileType,
+    public size: number,
+    public mode: number = 0x1a4,
+    public atime: Date = new Date(),
+    public mtime: Date = new Date(),
+    public ctime: Date = new Date()) {
     this.blocks = Math.ceil(size / 512);
   }
 

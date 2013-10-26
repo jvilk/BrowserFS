@@ -87,8 +87,8 @@ function normalizeOptions(options: any, defEnc: string, defFlag: string, defMode
   switch (typeof options) {
     case 'object':
       return {
-        encoding: typeof options['encoding'] !== undefined ? options['encoding'] : defEnc,
-        flag: typeof options['flag'] !== undefined ? options['flag'] : defFlag,
+        encoding: typeof options['encoding'] !== 'undefined' ? options['encoding'] : defEnc,
+        flag: typeof options['flag'] !== 'undefined' ? options['flag'] : defFlag,
         mode: normalizeMode(options['mode'], defMode)
       };
     case 'string':
@@ -115,7 +115,7 @@ export class fs {
     if (!(<any> rootFS).constructor.isAvailable()) {
       throw new ApiError(ErrorType.INVALID_PARAM, 'Tried to instantiate BrowserFS with an unavailable file system.');
     }
-    return this.root = rootFS;
+    return fs.root = rootFS;
   }
 
   public static _toUnixTimestamp(time: Date);
@@ -130,8 +130,8 @@ export class fs {
   }
 
   public static getRootFS(): file_system.FileSystem {
-    if (this.root) {
-      return this.root;
+    if (fs.root) {
+      return fs.root;
     } else {
       return null;
     }
@@ -140,20 +140,20 @@ export class fs {
   public static rename(oldPath: string, newPath: string, cb: Function = nopCb): void {
     var newCb = wrapCb(cb, 1);
     try {
-      this.root.rename(normalizePath(oldPath), normalizePath(newPath), newCb);
+      fs.root.rename(normalizePath(oldPath), normalizePath(newPath), newCb);
     } catch (e) {
       newCb(e);
     }
   }
 
   public static renameSync(oldPath: string, newPath: string): void {
-    this.root.renameSync(normalizePath(oldPath), normalizePath(newPath));
+    fs.root.renameSync(normalizePath(oldPath), normalizePath(newPath));
   }
 
   public static exists(path: string, cb: (exists: boolean) => void = nopCb): void {
     var newCb = <(exists: boolean) => void> wrapCb(cb, 1);
     try {
-      return this.root.exists(normalizePath(path), newCb);
+      return fs.root.exists(normalizePath(path), newCb);
     } catch (e) {
       return newCb(false);
     }
@@ -161,7 +161,7 @@ export class fs {
 
   public static existsSync(path: string): boolean {
     try {
-      return this.root.existsSync(normalizePath(path));
+      return fs.root.existsSync(normalizePath(path));
     } catch (e) {
       return false;
     }
@@ -170,27 +170,27 @@ export class fs {
   public static stat(path: string, cb: (err: api_error.ApiError, stats?: node_fs_stats.Stats) => any = nopCb): void {
     var newCb = <(err: api_error.ApiError, stats?: node_fs_stats.Stats) => any> wrapCb(cb, 2);
     try {
-      return this.root.stat(normalizePath(path), false, newCb);
+      return fs.root.stat(normalizePath(path), false, newCb);
     } catch (e) {
       return newCb(e, null);
     }
   }
 
   public static statSync(path: string): node_fs_stats.Stats {
-    return this.root.statSync(normalizePath(path), false);
+    return fs.root.statSync(normalizePath(path), false);
   }
 
   public static lstat(path: string, cb: (err: api_error.ApiError, stats?: node_fs_stats.Stats) => any = nopCb): void {
     var newCb = <(err: api_error.ApiError, stats?: node_fs_stats.Stats) => any> wrapCb(cb, 2);
     try {
-      return this.root.stat(normalizePath(path), true, newCb);
+      return fs.root.stat(normalizePath(path), true, newCb);
     } catch (e) {
       return newCb(e, null);
     }
   }
 
   public static lstatSync(path: string): node_fs_stats.Stats {
-    return this.root.statSync(normalizePath(path), true);
+    return fs.root.statSync(normalizePath(path), true);
   }
 
   public static truncate(path: string, cb?: Function): void;
@@ -205,27 +205,27 @@ export class fs {
 
     var newCb = wrapCb(cb, 1);
     try {
-      return this.root.truncate(normalizePath(path), len, newCb);
+      return fs.root.truncate(normalizePath(path), len, newCb);
     } catch (e) {
       return newCb(e);
     }
   }
 
   public static truncateSync(path: string, len: number = 0): void {
-    return this.root.truncateSync(normalizePath(path), len);
+    return fs.root.truncateSync(normalizePath(path), len);
   }
 
   public static unlink(path: string, cb: Function = nopCb): void {
     var newCb = wrapCb(cb, 1);
     try {
-      return this.root.unlink(normalizePath(path), newCb);
+      return fs.root.unlink(normalizePath(path), newCb);
     } catch (e) {
       return newCb(e);
     }
   }
 
   public static unlinkSync(path: string): void {
-    return this.root.unlinkSync(normalizePath(path));
+    return fs.root.unlinkSync(normalizePath(path));
   }
 
   public static open(path: string, flag: string, cb?: (err: api_error.ApiError, fd?: file.BaseFile) => any): void;
@@ -236,7 +236,7 @@ export class fs {
     cb = typeof arg2 === 'function' ? arg2 : cb;
     var newCb = <(err: api_error.ApiError, fd?: file.BaseFile) => any> wrapCb(cb, 2);
     try {
-      return this.root.open(normalizePath(path), FileFlag.getFileFlag(flag), mode, newCb);
+      return fs.root.open(normalizePath(path), FileFlag.getFileFlag(flag), mode, newCb);
     } catch (e) {
       return newCb(e, null);
     }
@@ -245,7 +245,7 @@ export class fs {
   public static openSync(path: string, flag: string, mode?: string): file.BaseFile;
   public static openSync(path: string, flag: string, mode?: number): file.BaseFile;
   public static openSync(path: string, flag: string, mode: any = 0x1a4): file.BaseFile {
-    return this.root.openSync(normalizePath(path), FileFlag.getFileFlag(flag), mode);
+    return fs.root.openSync(normalizePath(path), FileFlag.getFileFlag(flag), mode);
   }
 
   public static readFile(filename: string, cb?: (err: api_error.ApiError, data?: any) => void ): void;
@@ -260,7 +260,7 @@ export class fs {
       if (!flag.isReadable()) {
         return newCb(new ApiError(ErrorType.INVALID_PARAM, 'Flag passed to readFile must allow for reading.'));
       }
-      return this.root.readFile(normalizePath(filename), options.encoding, flag, newCb);
+      return fs.root.readFile(normalizePath(filename), options.encoding, flag, newCb);
     } catch (e) {
       return newCb(e, null);
     }
@@ -274,7 +274,7 @@ export class fs {
     if (!flag.isReadable()) {
       throw new ApiError(ErrorType.INVALID_PARAM, 'Flag passed to readFile must allow for reading.');
     }
-    return this.root.readFileSync(normalizePath(filename), options.encoding, flag);
+    return fs.root.readFileSync(normalizePath(filename), options.encoding, flag);
   }
 
   public static writeFile(filename: string, data: any, cb?: (err?: api_error.ApiError) => void);
@@ -289,7 +289,7 @@ export class fs {
       if (!flag.isWriteable()) {
         return newCb(new ApiError(ErrorType.INVALID_PARAM, 'Flag passed to writeFile must allow for writing.'));
       }
-      return this.root.writeFile(normalizePath(filename), data, options.encoding, flag, options.mode, newCb);
+      return fs.root.writeFile(normalizePath(filename), data, options.encoding, flag, options.mode, newCb);
     } catch (e) {
       return newCb(e);
     }
@@ -303,7 +303,7 @@ export class fs {
     if (!flag.isWriteable()) {
       throw new ApiError(ErrorType.INVALID_PARAM, 'Flag passed to writeFile must allow for writing.');
     }
-    return this.root.writeFileSync(normalizePath(filename), data, options.encoding, flag, options.mode);
+    return fs.root.writeFileSync(normalizePath(filename), data, options.encoding, flag, options.mode);
   }
 
   public static appendFile(filename: string, data: any, cb?: (err: api_error.ApiError) => void): void;
@@ -318,7 +318,7 @@ export class fs {
       if (!flag.isAppendable()) {
         return newCb(new ApiError(ErrorType.INVALID_PARAM, 'Flag passed to appendFile must allow for appending.'));
       }
-      this.root.appendFile(normalizePath(filename), data, options.encoding, flag, options.mode, newCb);
+      fs.root.appendFile(normalizePath(filename), data, options.encoding, flag, options.mode, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -332,7 +332,7 @@ export class fs {
     if (!flag.isAppendable()) {
       throw new ApiError(ErrorType.INVALID_PARAM, 'Flag passed to appendFile must allow for appending.');
     }
-    return this.root.appendFileSync(normalizePath(filename), data, options.encoding, flag, options.mode);
+    return fs.root.appendFileSync(normalizePath(filename), data, options.encoding, flag, options.mode);
   }
 
   public static fstat(fd: file.BaseFile, cb: (err: api_error.ApiError, stats?: node_fs_stats.Stats) => any = nopCb): void {
@@ -445,7 +445,7 @@ export class fs {
           cb = typeof arg4 === 'function' ? arg4 : typeof arg5 === 'function' ? arg5 : cb;
           return cb(new ApiError(ErrorType.INVALID_PARAM, 'Invalid arguments.'));
       }
-      buffer = new buffer.Buffer(arg2, encoding);
+      buffer = new Buffer(arg2, encoding);
       offset = 0;
       length = buffer.length;
     } else {
@@ -478,7 +478,7 @@ export class fs {
       position = typeof arg3 === 'number' ? arg3 : null;
       var encoding = typeof arg4 === 'string' ? arg4 : 'utf8';
       offset = 0;
-      buffer = new buffer.Buffer(arg2, encoding);
+      buffer = new Buffer(arg2, encoding);
       length = buffer.length;
     } else {
       // Signature 2: (fd, buffer, offset, length, position?)
@@ -672,7 +672,7 @@ export class fs {
     var newCb = <(err: api_error.ApiError, files?: string[]) => void> wrapCb(cb, 2);
     try {
       path = normalizePath(path);
-      this.root.readdir(path, newCb);
+      fs.root.readdir(path, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -680,7 +680,7 @@ export class fs {
 
   public static readdirSync(path: string): string[] {
     path = normalizePath(path);
-    return this.root.readdirSync(path);
+    return fs.root.readdirSync(path);
   }
 
   public static link(srcpath: string, dstpath: string, cb: Function = nopCb): void {
@@ -688,7 +688,7 @@ export class fs {
     try {
       srcpath = normalizePath(srcpath);
       dstpath = normalizePath(dstpath);
-      this.root.link(srcpath, dstpath, newCb);
+      fs.root.link(srcpath, dstpath, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -697,7 +697,7 @@ export class fs {
   public static linkSync(srcpath: string, dstpath: string): void {
     srcpath = normalizePath(srcpath);
     dstpath = normalizePath(dstpath);
-    return this.root.linkSync(srcpath, dstpath);
+    return fs.root.linkSync(srcpath, dstpath);
   }
 
   public static symlink(srcpath: string, dstpath: string, cb?: Function): void;
@@ -712,7 +712,7 @@ export class fs {
       }
       srcpath = normalizePath(srcpath);
       dstpath = normalizePath(dstpath);
-      this.root.symlink(srcpath, dstpath, type, newCb);
+      fs.root.symlink(srcpath, dstpath, type, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -726,14 +726,14 @@ export class fs {
     }
     srcpath = normalizePath(srcpath);
     dstpath = normalizePath(dstpath);
-    return this.root.symlinkSync(srcpath, dstpath, type);
+    return fs.root.symlinkSync(srcpath, dstpath, type);
   }
 
   public static readlink(path: string, cb: (err: api_error.ApiError, linkString: string) => any = nopCb): void {
     var newCb = wrapCb(cb, 2);
     try {
       path = normalizePath(path);
-      this.root.readlink(path, newCb);
+      fs.root.readlink(path, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -741,14 +741,14 @@ export class fs {
 
   public static readlinkSync(path: string): string {
     path = normalizePath(path);
-    return this.root.readlinkSync(path);
+    return fs.root.readlinkSync(path);
   }
 
   public static chown(path: string, uid: number, gid: number, cb: Function = nopCb): void {
     var newCb = wrapCb(cb, 1);
     try {
       path = normalizePath(path);
-      this.root.chown(path, false, uid, gid, newCb);
+      fs.root.chown(path, false, uid, gid, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -756,14 +756,14 @@ export class fs {
 
   public static chownSync(path: string, uid: number, gid: number): void {
     path = normalizePath(path);
-    this.root.chownSync(path, false, uid, gid);
+    fs.root.chownSync(path, false, uid, gid);
   }
 
   public static lchown(path: string, uid: number, gid: number, cb: Function = nopCb): void {
     var newCb = wrapCb(cb, 1);
     try {
       path = normalizePath(path);
-      this.root.chown(path, true, uid, gid, newCb);
+      fs.root.chown(path, true, uid, gid, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -771,7 +771,7 @@ export class fs {
 
   public static lchownSync(path: string, uid: number, gid: number): void {
     path = normalizePath(path);
-    return this.root.chownSync(path, true, uid, gid);
+    return fs.root.chownSync(path, true, uid, gid);
   }
 
   public static chmod(path: string, mode: string, cb?: Function): void;
@@ -781,7 +781,7 @@ export class fs {
     try {
       mode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
       path = normalizePath(path);
-      this.root.chmod(path, false, mode, newCb);
+      fs.root.chmod(path, false, mode, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -792,7 +792,7 @@ export class fs {
   public static chmodSync(path: string, mode: any): void {
     mode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
     path = normalizePath(path);
-    return this.root.chmodSync(path, false, mode);
+    return fs.root.chmodSync(path, false, mode);
   }
 
   public static lchmod(path: string, mode: string, cb?: Function): void;
@@ -802,7 +802,7 @@ export class fs {
     try {
       mode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
       path = normalizePath(path);
-      this.root.chmod(path, true, mode, newCb);
+      fs.root.chmod(path, true, mode, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -813,7 +813,7 @@ export class fs {
   public static lchmodSync(path: string, mode: any): void {
     path = normalizePath(path);
     mode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
-    return this.root.chmodSync(path, true, mode);
+    return fs.root.chmodSync(path, true, mode);
   }
 
   public static utimes(path: string, atime: number, mtime: number, cb: Function): void;
@@ -828,7 +828,7 @@ export class fs {
       if (typeof mtime === 'number') {
         mtime = new Date(mtime * 1000);
       }
-      this.root.utimes(path, atime, mtime, newCb);
+      fs.root.utimes(path, atime, mtime, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -844,7 +844,7 @@ export class fs {
     if (typeof mtime === 'number') {
       mtime = new Date(mtime * 1000);
     }
-    return this.root.utimesSync(path, atime, mtime);
+    return fs.root.utimesSync(path, atime, mtime);
   }
 
   public static realpath(path: string, cb?: (err: api_error.ApiError, resolvedPath?: string) =>any): void;
@@ -855,7 +855,7 @@ export class fs {
     var newCb = <(err: api_error.ApiError, resolvedPath?: string) =>any> wrapCb(cb, 2);
     try {
       path = normalizePath(path);
-      this.root.realpath(path, cache, newCb);
+      fs.root.realpath(path, cache, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -863,6 +863,6 @@ export class fs {
 
   public static realpathSync(path: string, cache: {[path: string]: string} = {}): string {
     path = normalizePath(path);
-    return this.root.realpathSync(path, cache);
+    return fs.root.realpathSync(path, cache);
   }
 }

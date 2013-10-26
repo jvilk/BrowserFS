@@ -57,6 +57,9 @@ listings.json: tools/XHRIndexer.coffee $(FIXTURES)
 lib/browserfs.js: $(BINS) $(RJS)
 	$(RJS) -o build.js
 
+watch:
+	$(TSC) -w --outDir tmp --module amd --sourcemap $(SRCS)
+
 # Development build
 $(BINS): $(SRCS) $(TSC)
 	$(TSC) --outDir tmp --module amd --sourcemap $(SRCS)

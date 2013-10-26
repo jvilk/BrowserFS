@@ -21,9 +21,26 @@ module.exports = function(grunt) {
       unit: {
         configFile: 'karma.conf.js'
       }
+    },
+    ts: {
+        build: {
+            src: ["src/**/*.ts"],
+            outDir: 'tmp',
+            options: {
+                sourcemap: true,
+                module: 'amd',
+                comments: true
+            }
+        },
+    },
+    watch: {
+      files: 'src/**/*.ts',
+      tasks: ['ts', 'karma:unit:run']
     }
   });
 
+  grunt.loadNpmTasks('grunt-ts');
+  grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-karma');
 

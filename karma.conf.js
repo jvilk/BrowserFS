@@ -15,7 +15,8 @@ module.exports = function(config) {
       'vendor/dropbox-build/dropbox.js',
       'lib/load_fixtures.js',
       'test/setup.js',
-      'test/node/*.js'
+      'test/node/*.js',
+      {pattern: 'tmp/**/*.js', included: false, served: true}
     ],
 
     // list of files to exclude
@@ -58,7 +59,7 @@ module.exports = function(config) {
     // - Safari (only Mac)
     // - PhantomJS
     // - IE (only Windows)
-    browsers: ['Chrome'],
+    browsers: ['Opera'],
 
 
     // If browser does not capture in given timeout [ms], kill it
