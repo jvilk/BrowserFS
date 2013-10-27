@@ -20,8 +20,8 @@ export class Buffer implements NodeBuffer {
 
   /**
    * Checks if enc is a valid string encoding type.
-   * @param [String] enc Name of a string encoding type.
-   * @return [Boolean] Whether or not enc is a valid encoding type.
+   * @param {string} enc - Name of a string encoding type.
+   * @return {boolean} Whether or not enc is a valid encoding type.
    */
   public static isEncoding(enc: string): boolean {
     try {
@@ -34,8 +34,8 @@ export class Buffer implements NodeBuffer {
 
   /**
    * Tests if obj is a Buffer.
-   * @param [Object] obj An arbitrary object
-   * @return [Boolean] True if this object is a Buffer.
+   * @param {object} obj - An arbitrary object
+   * @return {boolean} True if this object is a Buffer.
    */
   public static isBuffer(obj: any): boolean {
     return obj instanceof Buffer;
@@ -45,9 +45,9 @@ export class Buffer implements NodeBuffer {
    * Gives the actual byte length of a string. This is not the same as
    * String.prototype.length since that returns the number of characters in a
    * string.
-   * @param [String] str The string to get the byte length of
-   * @param [?String] encoding Character encoding of the string
-   * @return [Number] The number of bytes in the string
+   * @param {string} str - The string to get the byte length of
+   * @param {string} [encoding=utf8] - Character encoding of the string
+   * @return {number} The number of bytes in the string
    */
   public static byteLength(str: string, encoding: string = 'utf8'): number {
     var strUtil = string_util.FindUtil(encoding);
@@ -65,9 +65,9 @@ export class Buffer implements NodeBuffer {
    * If totalLength is not provided, it is read from the buffers in the list.
    * However, this adds an additional loop to the function, so it is faster to
    * provide the length explicitly.
-   * @param [Array] list List of Buffer objects to concat
-   * @param [?Number] totalLength Total length of the buffers when concatenated
-   * @return [Buffer]
+   * @param {Buffer[]} list - List of Buffer objects to concat
+   * @param {number} [totalLength] - Total length of the buffers when concatenated
+   * @return {Buffer}
    */
   public static concat(list: Buffer[], totalLength: number): Buffer {
     var item;
@@ -101,9 +101,9 @@ export class Buffer implements NodeBuffer {
 
   /**
    * Constructs a buffer.
-   * @param [Number,Array,String] arg1 Instantiate a buffer of the indicated size, or
-   * from the indicated Array or String.
-   * @param [?String] arg2 Encoding to use if arg1 is a string
+   * @param {(number|DataView|ArrayBuffer|Buffer|string)} arg1 - Instantiate a buffer of the indicated size, or
+   *   from the indicated Array or String.
+   * @param {string} [arg2=utf8] - Encoding to use if arg1 is a string
    */
   constructor (size: number);
   constructor (data: any[]);
@@ -168,8 +168,8 @@ export class Buffer implements NodeBuffer {
   /**
    * **NONSTANDARD**: Set the octet at index. The values refer to individual
    * bytes, so the legal range is between 0x00 and 0xFF hex or 0 and 255.
-   * @param [Number] index the index to set the value at
-   * @param [Number] value the value to set at the given index
+   * @param {number} index - the index to set the value at
+   * @param {number} value - the value to set at the given index
    */
   public set(index: number, value: number) {
     return this.buff.setUint8(index, value);
@@ -177,8 +177,8 @@ export class Buffer implements NodeBuffer {
 
   /**
    * **NONSTANDARD**: Get the octet at index.
-   * @param [Number] index index to fetch the value at
-   * @return [Number] the value at the given index
+   * @param {number} index - index to fetch the value at
+   * @return {number} the value at the given index
    */
   public get(index: number): number {
     return this.buff.getUint8(index);
@@ -188,11 +188,11 @@ export class Buffer implements NodeBuffer {
    * Writes string to the buffer at offset using the given encoding.
    * If buffer did not contain enough space to fit the entire string, it will
    * write a partial amount of the string.
-   * @param [String] str Data to be written to buffer
-   * @param [?Number] offset Offset in the buffer to write to
-   * @param [?Number] length Number of bytes to write
-   * @param [?String] encoding Character encoding
-   * @return [Number] Number of octets written.
+   * @param {string} str - Data to be written to buffer
+   * @param {number} [offset=0] - Offset in the buffer to write to
+   * @param {number} [length=this.length] - Number of bytes to write
+   * @param {string} [encoding=utf8] - Character encoding
+   * @return {number} Number of octets written.
    */
   public write(str: string, offset = 0, length = this.length, encoding = 'utf8'): number {
     // I hate Node's optional arguments.
@@ -219,10 +219,10 @@ export class Buffer implements NodeBuffer {
 
   /**
    * Decodes a portion of the Buffer into a String.
-   * @param [?String] encoding Character encoding to decode to
-   * @param [?Number] start Start position in the buffer
-   * @param [?Number] end Ending position in the buffer
-   * @return [String] A string from buffer data encoded with encoding, beginning
+   * @param {string} encoding - Character encoding to decode to
+   * @param {number} [start=0] - Start position in the buffer
+   * @param {number} [end=this.length] - Ending position in the buffer
+   * @return {string} A string from buffer data encoded with encoding, beginning
    *   at start, and ending at end.
    */
   public toString(encoding = 'utf8', start = 0, end = this.length): string {
@@ -249,7 +249,7 @@ export class Buffer implements NodeBuffer {
    * Returns a JSON-representation of the Buffer instance, which is identical to
    * the output for JSON Arrays. JSON.stringify implicitly calls this function
    * when stringifying a Buffer instance.
-   * @return [Object] An object that can be used for JSON stringification.
+   * @return {object} An object that can be used for JSON stringification.
    */
   public toJSON(): {type: string; data: number[]} {
     var arr = new Array(this.length);
@@ -266,11 +266,11 @@ export class Buffer implements NodeBuffer {
    * Does copy between buffers. The source and target regions can be overlapped.
    * All values passed that are undefined/NaN or are out of bounds are set equal
    * to their respective defaults.
-   * @param [Buffer] target Buffer to copy into
-   * @param [?Number] targetStart Index to start copying to in the targetBuffer
-   * @param [?Number] sourceStart Index in this buffer to start copying from
-   * @param [?Number] sourceEnd Index in this buffer stop copying at
-   * @return [Number] The number of bytes copied into the target buffer.
+   * @param {Buffer} target - Buffer to copy into
+   * @param {number} [targetStart=0] - Index to start copying to in the targetBuffer
+   * @param {number} [sourceStart=0] - Index in this buffer to start copying from
+   * @param {number} [sourceEnd=this.length] - Index in this buffer stop copying at
+   * @return {number} The number of bytes copied into the target buffer.
    */
   public copy(target: Buffer, targetStart = 0, sourceStart = 0, sourceEnd = this.length): number {
     // The Node code is weird. It sets some out-of-bounds args to their defaults
@@ -304,9 +304,9 @@ export class Buffer implements NodeBuffer {
 
   /**
    * Returns a slice of this buffer.
-   * @param [?Number] start Index to start slicing from
-   * @param [?Number] end Index to stop slicing at
-   * @return [Buffer] A new buffer which references the same
+   * @param {number} [start=0] - Index to start slicing from
+   * @param {number} [end=this.length] - Index to stop slicing at
+   * @return {Buffer} A new buffer which references the same
    *   memory as the old, but offset and cropped by the start (defaults to 0) and
    *   end (defaults to buffer.length) indexes. Negative indexes start from the end
    *   of the buffer.
@@ -342,9 +342,9 @@ export class Buffer implements NodeBuffer {
   /**
    * Fills the buffer with the specified value. If the offset and end are not
    * given it will fill the entire buffer.
-   * @param [String, Number] value The value to fill the buffer with
-   * @param [Number] offset Optional
-   * @param [Number] end Optional
+   * @param {(string|number)} value - The value to fill the buffer with
+   * @param {number} [offset=0]
+   * @param {number} [end=this.length]
    */
   public fill(value: any, offset = 0, end = this.length): void {
     var i;

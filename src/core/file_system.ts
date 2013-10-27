@@ -15,98 +15,308 @@ var path = node_path.path;
 var fs = node_fs.fs;
 var Buffer = buffer.Buffer;
 
+/**
+ * Class for a filesystem. Provides some default functionality.
+ *
+ * The base FileSystem class. **All** BrowserFS FileSystems should extend this
+ * class.
+ *
+ * Below, we denote each API method as **Core**, **Supplemental**, or
+ * **Optional**.
+ *
+ * ### Core Methods
+ *
+ * **Core** API methods *need* to be implemented for basic read/write
+ * functionality.
+ *
+ * Note that read-only FileSystems can choose to not implement core methods
+ * that mutate files or metadata. The default implementation will pass a
+ * NOT_SUPPORTED error to the callback.
+ *
+ * ### Supplemental Methods
+ *
+ * **Supplemental** API methods do not need to be implemented by a filesystem.
+ * The default implementation implements all of the supplemental API methods in
+ * terms of the **core** API methods.
+ *
+ * Note that a file system may choose to implement supplemental methods for
+ * efficiency reasons.
+ *
+ * The code for some supplemental methods was adapted directly from NodeJS's
+ * fs.js source code.
+ *
+ * ### Optional Methods
+ *
+ * **Optional** API methods provide functionality that may not be available in
+ * all filesystems. For example, all symlink/hardlink-related API methods fall
+ * under this category.
+ *
+ * The default implementation will pass a NOT_SUPPORTED error to the callback.
+ *
+ * ### Argument Assumptions
+ *
+ * You can assume the following about arguments passed to each API method:
+ *
+ * * **Every path is an absolute path.** Meaning, `.`, `..`, and other items
+ *   are resolved into an absolute form.
+ * * **All arguments are present.** Any optional arguments at the Node API level
+ *   have been passed in with their default values.
+ * * **The callback will reset the stack depth.** When your filesystem calls the
+ *   callback with the requested information, it will use `setImmediate` to
+ *   reset the JavaScript stack depth before calling the user-supplied callback.
+ */
 export class FileSystem {
+  // Global information methods
 
+  /**
+   * **Optional**: Returns the name of the file system.
+   * @return [String]
+   */
   public getName(): string {
     return 'Unspecified';
   }
 
+  /**
+   * **Core**: Returns 'true' if this filesystem is available in the current
+   * environment. For example, a `localStorage`-backed filesystem will return
+   * 'false' if the browser does not support that API.
+   *
+   * Defaults to 'false', as the FileSystem base class isn't usable alone.
+   * @return [Boolean]
+   */
   public static isAvailable(): boolean {
     return false;
   }
 
+  /**
+   * **Optional**: Passes the following information to the callback:
+   *
+   * * Total number of bytes available on this file system.
+   * * Number of free bytes available on this file system.
+   *
+   * @todo This info is not available through the Node API. Perhaps we could do a
+   *   polyfill of diskspace.js, or add a new Node API function.
+   * @param [String] path The path to the location that is being queried. Only
+   *   useful for filesystems that support mount points.
+   * @param [Function(Number, Number)] cb
+   */
   public diskSpace(p: string, cb: (total: number, free: number) => any): void {
     cb(0, 0);
   }
 
+  /**
+   * **Core**: Is this filesystem read-only?
+   * @return [Boolean] True if this FileSystem is inherently read-only.
+   */
   public isReadOnly(): boolean {
     return true;
   }
 
+  /**
+   * **Core**: Does the filesystem support optional symlink/hardlink-related
+   *   commands?
+   * @return [Boolean] True if the FileSystem supports the optional
+   *   symlink/hardlink-related commands.
+   */
   public supportsLinks(): boolean {
     return false;
   }
 
+  /**
+   * **Core**: Does the filesystem support optional property-related commands?
+   * @return [Boolean] True if the FileSystem supports the optional
+   *   property-related commands (permissions, utimes, etc).
+   */
   public supportsProps(): boolean {
     return false;
   }
 
+  /**
+   * **Core**: Does the filesystem support the optional synchronous interface?
+   * @return [Boolean] True if the FileSystem supports synchronous operations.
+   */
   public supportsSynch(): boolean {
     return false;
   }
 
+  // **CORE API METHODS**
+
+  // File or directory operations
+
+  /**
+   * **Core**: Asynchronous rename. No arguments other than a possible exception
+   * are given to the completion callback.
+   * @param [String] oldPath
+   * @param [String] newPath
+   * @param [Function(BrowserFS.ApiError)] cb
+   */
   public rename(oldPath: string, newPath: string, cb: Function): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
+  /**
+   * **Core**: Synchronous rename.
+   * @param [String] oldPath
+   * @param [String] newPath
+   */
   public renameSync(oldPath: string, newPath: string): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
+  /**
+   * **Core**: Asynchronous `stat` or `lstat`.
+   * @param [String] path
+   * @param [Boolean] isLstat True if this is `lstat`, false if this is regular
+   *   `stat`.
+   * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] cb
+   */
   public stat(p: string, isLstat: boolean, cb: (err: api_error.ApiError, stat?: stat.Stats) => void): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
+  /**
+   * **Core**: Synchronous `stat` or `lstat`.
+   * @param [String] path
+   * @param [Boolean] isLstat True if this is `lstat`, false if this is regular
+   *   `stat`.
+   * @return [BrowserFS.node.fs.Stats]
+   */
   public statSync(p: string, isLstat: boolean): stat.Stats {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
+  // File operations
+
+  /**
+   * **Core**: Asynchronous file open.
+   * @see http://www.manpagez.com/man/2/open/
+   * @param [String] path
+   * @param [BrowserFS.FileMode] flags Handles the complexity of the various file
+   *   modes. See its API for more details.
+   * @param [Number] mode Mode to use to open the file. Can be ignored if the
+   *   filesystem doesn't support permissions.
+   * @param [Function(BrowserFS.ApiError, BrowserFS.File)] cb
+   */
   public open(p: string, flag:file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.BaseFile) => any): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
+  /**
+   * **Core**: Synchronous file open.
+   * @see http://www.manpagez.com/man/2/open/
+   * @param [String] path
+   * @param [BrowserFS.FileMode] flags Handles the complexity of the various file
+   *   modes. See its API for more details.
+   * @param [Number] mode Mode to use to open the file. Can be ignored if the
+   *   filesystem doesn't support permissions.
+   * @return [BrowserFS.File]
+   */
   public openSync(p: string, flag: file_flag.FileFlag, mode: number): file.BaseFile {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
+  /**
+   * **Core**: Asynchronous `unlink`.
+   * @param [String] path
+   * @param [Function(BrowserFS.ApiError)] cb
+   */
   public unlink(p: string, cb: Function): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
+  /**
+   * **Core**: Synchronous `unlink`.
+   * @param [String] path
+   */
   public unlinkSync(p: string): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
+  // Directory operations
+
+  /**
+   * **Core**: Asynchronous `rmdir`.
+   * @param [String] path
+   * @param [Function(BrowserFS.ApiError)] cb
+   */
   public rmdir(p: string, cb: Function): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
+  /**
+   * **Core**: Synchronous `rmdir`.
+   * @param [String] path
+   */
   public rmdirSync(p: string): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
+  /**
+   * **Core**: Asynchronous `mkdir`.
+   * @param [String] path
+   * @param [Number?] mode Mode to make the directory using. Can be ignored if
+   *   the filesystem doesn't support permissions.
+   * @param [Function(BrowserFS.ApiError)] cb
+   */
   public mkdir(p: string, mode: number, cb: Function): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
+  /**
+   * **Core**: Synchronous `mkdir`.
+   * @param [String] path
+   * @param [Number?] mode Mode to make the directory using. Can be ignored if
+   *   the filesystem doesn't support permissions.
+   */
   public mkdirSync(p: string, mode: number): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
+  /**
+   * **Core**: Asynchronous `readdir`. Reads the contents of a directory.
+   *
+   * The callback gets two arguments `(err, files)` where `files` is an array of
+   * the names of the files in the directory excluding `'.'` and `'..'`.
+   * @param [String] path
+   * @param [Function(BrowserFS.ApiError, String[])] cb
+   */
   public readdir(p: string, cb: (err: api_error.ApiError, files?: string[]) => void): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
+  /**
+   * **Core**: Synchronous `readdir`. Reads the contents of a directory.
+   *
+   * @param [String] path
+   * @return [String[]]
+   */
   public readdirSync(p: string): string[] {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
+  // **SUPPLEMENTAL INTERFACE METHODS**
+
+  // File or directory operations
+
+  /**
+   *
+   * **Supplemental**: Test whether or not the given path exists by checking with
+   * the file system. Then call the callback argument with either true or false.
+   * @param [String] path
+   * @param [Function(Boolean)] cb
+   */
   public exists(p: string, cb: (exists: boolean) => void): void {
     this.stat(p, null, function(err) {
       cb(err == null);
     });
   }
 
+  /**
+   * **Supplemental**: Test whether or not the given path exists by checking with
+   * the file system.
+   * @param [String] path
+   * @return [Boolean]
+   */
   public existsSync(p: string): boolean {
     try {
       this.statSync(p, true);
@@ -116,14 +326,29 @@ export class FileSystem {
     }
   }
 
+  /**
+   * **Supplemental**: Asynchronous `realpath`. The callback gets two arguments
+   * `(err, resolvedPath)`.
+   *
+   * Note that the Node API will resolve `path` to an absolute path.
+   * @param [String] path
+   * @param [Object] cache An object literal of mapped paths that can be used to
+   *   force a specific path resolution or avoid additional `fs.stat` calls for
+   *   known real paths. If not supplied by the user, it'll be an empty object.
+   * @param [Function(BrowserFS.ApiError, String)] cb
+   */
   public realpath(p: string, cache: {[path: string]: string}, cb: (err: api_error.ApiError, resolvedPath?: string) => any): void {
     if (this.supportsLinks()) {
+      // The path could contain symlinks. Split up the path,
+      // resolve any symlinks, return the resolved string.
       var splitPath = p.split(path.sep);
+      // TODO: Simpler to just pass through file, find sep and such.
       for (var i = 0; i < splitPath.length; i++) {
         var addPaths = splitPath.slice(0, i + 1);
         splitPath[i] = path.join.apply(null, addPaths);
       }
     } else {
+      // No symlinks. We just need to verify that it exists.
       this.exists(p, function(doesExist) {
         if (doesExist) {
           cb(null, p);
@@ -134,14 +359,28 @@ export class FileSystem {
     }
   }
 
+  /**
+   * **Supplemental**: Synchronous `realpath`.
+   *
+   * Note that the Node API will resolve `path` to an absolute path.
+   * @param [String] path
+   * @param [Object] cache An object literal of mapped paths that can be used to
+   *   force a specific path resolution or avoid additional `fs.stat` calls for
+   *   known real paths. If not supplied by the user, it'll be an empty object.
+   * @return [String]
+   */
   public realpathSync(p: string, cache: {[path: string]: string}): string {
     if (this.supportsLinks()) {
+      // The path could contain symlinks. Split up the path,
+      // resolve any symlinks, return the resolved string.
       var splitPath = p.split(path.sep);
+      // TODO: Simpler to just pass through file, find sep and such.
       for (var i = 0; i < splitPath.length; i++) {
         var addPaths = splitPath.slice(0, i + 1);
         splitPath[i] = path.join.apply(null, addPaths);
       }
     } else {
+      // No symlinks. We just need to verify that it exists.
       if (this.existsSync(p)) {
         return p;
       } else {
@@ -150,6 +389,14 @@ export class FileSystem {
     }
   }
 
+  /**
+   * File operations
+   *
+   * **Supplemental**: Asynchronous `truncate`.
+   * @param [String] path
+   * @param [Number] len
+   * @param [Function(BrowserFS.ApiError)] cb
+   */
   public truncate(p: string, len: number, cb: Function): void {
     fs.open(p, 'w', (function(er: api_error.ApiError, fd?: file.BaseFile) {
       if (er) {
@@ -163,8 +410,14 @@ export class FileSystem {
     }));
   }
 
+  /**
+   * **Supplemental**: Synchronous `truncate`.
+   * @param [String] path
+   * @param [Number] len
+   */
   public truncateSync(p: string, len: number): void {
     var fd = fs.openSync(p, 'w');
+    // Need to safely close FD, regardless of whether or not truncate succeeds.
     try {
       fs.ftruncateSync(fd, len);
     } catch (e) {
@@ -174,8 +427,20 @@ export class FileSystem {
     }
   }
 
+  /**
+   * **Supplemental**: Asynchronously reads the entire contents of a file.
+   * @param [String] filename
+   * @param [String] encoding If non-null, the file's contents should be decoded
+   *   into a string using that encoding. Otherwise, if encoding is null, fetch
+   *   the file's contents as a Buffer.
+   * @param [BrowserFS.FileMode] flag
+   * @param [Function(BrowserFS.ApiError, String | BrowserFS.node.Buffer)]
+   *   cb If no encoding is specified, then the raw buffer is returned.
+   */
   public readFile(fname: string, encoding: string, flag: file_flag.FileFlag, cb: (err: api_error.ApiError, data?: any) => void): void {
+    // Wrap cb in file closing code.
     var oldCb = cb;
+    // Get file.
     this.open(fname, flag, 0x1a4, function(err: api_error.ApiError, fd?: file.BaseFile) {
       if (err) {
         return cb(err);
@@ -192,6 +457,7 @@ export class FileSystem {
         if (err != null) {
           return cb(err);
         }
+        // Allocate buffer.
         var buf = new Buffer(stat.size);
         fs.read(fd, buf, 0, stat.size, 0, function(err) {
           if (err != null) {
@@ -209,10 +475,21 @@ export class FileSystem {
     });
   }
 
+  /**
+   * **Supplemental**: Synchronously reads the entire contents of a file.
+   * @param [String] filename
+   * @param [String] encoding If non-null, the file's contents should be decoded
+   *   into a string using that encoding. Otherwise, if encoding is null, fetch
+   *   the file's contents as a Buffer.
+   * @param [BrowserFS.FileMode] flag
+   * @return [String|BrowserFS.Buffer]
+   */
   public readFileSync(fname: string, encoding: string, flag: file_flag.FileFlag): any {
+    // Get file.
     var fd = this.openSync(fname, flag, 0x1a4);
     try {
       var stat = fs.fstatSync(fd);
+      // Allocate buffer.
       var buf = new Buffer(stat.size);
       fs.readSync(fd, buf, 0, stat.size, 0);
       fs.closeSync(fd);
@@ -226,8 +503,22 @@ export class FileSystem {
     }
   }
 
+  /**
+   * **Supplemental**: Asynchronously writes data to a file, replacing the file
+   * if it already exists.
+   *
+   * The encoding option is ignored if data is a buffer.
+   * @param [String] filename
+   * @param [String | BrowserFS.node.Buffer] data
+   * @param [String] encoding
+   * @param [BrowserFS.FileMode] flag
+   * @param [Number] mode
+   * @param [Function(BrowserFS.ApiError)] cb
+   */
   public writeFile(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError) => void): void {
+    // Wrap cb in file closing code.
     var oldCb = cb;
+    // Get file.
     this.open(fname, flag, 0x1a4, function(err: api_error.ApiError, fd?:file.BaseFile) {
       if (err != null) {
         return cb(err);
@@ -245,23 +536,48 @@ export class FileSystem {
       } catch (e) {
         return cb(e);
       }
+      // Write into file.
       fd.write(data, 0, data.length, 0, cb);
     });
   }
 
+  /**
+   * **Supplemental**: Synchronously writes data to a file, replacing the file
+   * if it already exists.
+   *
+   * The encoding option is ignored if data is a buffer.
+   * @param [String] filename
+   * @param [String | BrowserFS.node.Buffer] data
+   * @param [String] encoding
+   * @param [BrowserFS.FileMode] flag
+   * @param [Number] mode
+   */
   public writeFileSync(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number): void {
+    // Get file.
     var fd = this.openSync(fname, flag, mode);
     try {
       if (typeof data === 'string') {
         data = new Buffer(data, encoding);
       }
+      // Write into file.
       fd.writeSync(data, 0, data.length, 0);
     } finally {
       fs.closeSync(fd);
     }
   }
 
+  /**
+   * **Supplemental**: Asynchronously append data to a file, creating the file if
+   * it not yet exists.
+   * @param [String] filename
+   * @param [String | BrowserFS.node.Buffer] data
+   * @param [String] encoding
+   * @param [BrowserFS.FileMode] flag
+   * @param [Number] mode
+   * @param [Function(BrowserFS.ApiError)] cb
+   */
   public appendFile(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError) => void): void {
+    // Wrap cb in file closing code.
     var oldCb = cb;
     this.open(fname, flag, mode, function(err: api_error.ApiError, fd?: file.BaseFile) {
       if (err != null) {
@@ -279,6 +595,15 @@ export class FileSystem {
     });
   }
 
+  /**
+   * **Supplemental**: Synchronously append data to a file, creating the file if
+   * it not yet exists.
+   * @param [String] filename
+   * @param [String | BrowserFS.node.Buffer] data
+   * @param [String] encoding
+   * @param [BrowserFS.FileMode] flag
+   * @param [Number] mode
+   */
   public appendFileSync(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number): void {
     var fd = this.openSync(fname, flag, mode);
     try {
@@ -291,55 +616,146 @@ export class FileSystem {
     }
   }
 
+  // **OPTIONAL INTERFACE METHODS**
+
+  // Property operations
+  // This isn't always possible on some filesystem types (e.g. Dropbox).
+
+  /**
+   * **Optional**: Asynchronous `chmod` or `lchmod`.
+   * @param [String] path
+   * @param [Boolean] isLchmod `True` if `lchmod`, false if `chmod`. Has no
+   *   bearing on result if links aren't supported.
+   * @param [Number] mode
+   * @param [Function(BrowserFS.ApiError)] cb
+   */
   public chmod(p: string, isLchmod: boolean, mode: number, cb: Function): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
+  /**
+   * **Optional**: Synchronous `chmod` or `lchmod`.
+   * @param [String] path
+   * @param [Boolean] isLchmod `True` if `lchmod`, false if `chmod`. Has no
+   *   bearing on result if links aren't supported.
+   * @param [Number] mode
+   */
   public chmodSync(p: string, isLchmod: boolean, mode: number) {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
+  /**
+   * **Optional**: Asynchronous `chown` or `lchown`.
+   * @param [String] path
+   * @param [Boolean] isLchown `True` if `lchown`, false if `chown`. Has no
+   *   bearing on result if links aren't supported.
+   * @param [Number] uid
+   * @param [Number] gid
+   * @param [Function(BrowserFS.ApiError)] cb
+   */
   public chown(p: string, isLchown: boolean, uid: number, gid: number, cb: Function): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
+  /**
+   * **Optional**: Synchronous `chown` or `lchown`.
+   * @param [String] path
+   * @param [Boolean] isLchown `True` if `lchown`, false if `chown`. Has no
+   *   bearing on result if links aren't supported.
+   * @param [Number] uid
+   * @param [Number] gid
+   */
   public chownSync(p: string, isLchown: boolean, uid: number, gid: number): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
+  /**
+   * **Optional**: Change file timestamps of the file referenced by the supplied
+   * path.
+   * @param [String] path
+   * @param [Date] atime
+   * @param [Date] mtime
+   * @param [Function(BrowserFS.ApiError)] cb
+   */
   public utimes(p: string, atime: Date, mtime: Date, cb: Function): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
+  /**
+   * **Optional**: Change file timestamps of the file referenced by the supplied
+   * path.
+   * @param [String] path
+   * @param [Date] atime
+   * @param [Date] mtime
+   */
   public utimesSync(p: string, atime: Date, mtime: Date): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
+  // Symlink operations
+  // Symlinks aren't always supported.
+
+  /**
+   * **Optional**: Asynchronous `link`.
+   * @param [String] srcpath
+   * @param [String] dstpath
+   * @param [Function(BrowserFS.ApiError)] cb
+   */
   public link(srcpath: string, dstpath: string, cb: Function): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
+  /**
+   * **Optional**: Synchronous `link`.
+   * @param [String] srcpath
+   * @param [String] dstpath
+   */
   public linkSync(srcpath: string, dstpath: string): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
+  /**
+   * **Optional**: Asynchronous `symlink`.
+   * @param [String] srcpath
+   * @param [String] dstpath
+   * @param [String] type can be either `'dir'` or `'file'`
+   * @param [Function(BrowserFS.ApiError)] cb
+   */
   public symlink(srcpath: string, dstpath: string, type: string, cb: Function): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
+  /**
+   * **Optional**: Synchronous `symlink`.
+   * @param [String] srcpath
+   * @param [String] dstpath
+   * @param [String] type can be either `'dir'` or `'file'`
+   */
   public symlinkSync(srcpath: string, dstpath: string, type: string): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
+  /**
+   * **Optional**: Asynchronous readlink.
+   * @param [String] path
+   * @param [Function(BrowserFS.ApiError, String)] callback
+   */
   public readlink(p: string, cb: Function): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
+  /**
+   * **Optional**: Synchronous readlink.
+   * @param [String] path
+   */
   public readlinkSync(p: string): string {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 }
 
+/**
+ * Implements the asynchronous API in terms of the synchronous API.
+ */
 export class SynchronousFileSystem extends FileSystem {
   public supportsSynch(): boolean {
     return true;

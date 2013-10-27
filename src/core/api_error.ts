@@ -53,8 +53,8 @@ export class ApiError {
   /**
    * Represents a BrowserFS error.
    * @constructor
-   * @param {Number} type - The type of error. Use one of the static fields of this class as the type.
-   * @param {String?} message - A descriptive error message.
+   * @param {number} type - The type of error. Use one of the static fields of this class as the type.
+   * @param {string?} message - A descriptive error message.
    */
   constructor(type: ErrorType, message?:string) {
     this.type = type;
@@ -64,7 +64,7 @@ export class ApiError {
   }
 
   /**
-   * @return [String] A friendly error message.
+   * @return {string} A friendly error message.
    */
   public toString(): string {
     var typeStr = (function() {

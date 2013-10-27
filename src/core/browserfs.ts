@@ -16,7 +16,7 @@ import file_system = require('./file_system');
  * * require (we monkey-patch it)
  *
  * This allows you to write code as if you were running inside Node.
- * @param {Object} obj - The object to install things onto (e.g. window)
+ * @param {object} obj - The object to install things onto (e.g. window)
  */
 export function install(obj) {
   obj.Buffer = buffer.Buffer;

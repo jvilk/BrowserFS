@@ -182,7 +182,8 @@ function() {
 
   // Add HTML5 FileSystem API backed filesystem
   var HTML5FS = BrowserFS.getFsConstructor('HTML5FS');
-  if (HTML5FS.isAvailable()){
+  //if (HTML5FS.isAvailable()){
+  if (false) {
     var html5fs = new HTML5FS(10, window.TEMPORARY);
     backends.push(html5fs);
     html5fs.allocate(function(err){
