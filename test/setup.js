@@ -6,12 +6,9 @@ window.tests = {};
 // XXX: We need to list all of the backends here so they will register themselves
 //      with BFS. I need a better mechanism for doing this.
 require(['../tmp/core/install_globals',
-         '../tmp/backend/dropbox',
-         '../tmp/backend/html5fs',
          '../tmp/backend/in_memory',
          '../tmp/backend/localStorage',
-         '../tmp/backend/mountable_file_system',
-         '../tmp/backend/XmlHttpRequest'],
+         '../tmp/backend/mountable_file_system'],
 function() {
   "use strict";
   // Test-related setup code.
@@ -87,7 +84,6 @@ function() {
     // XXX: TERRIBLE HACK: There's a race condition with defining tests and this
     //      file loading.
     setTimeout(function() {
-    console.log(Object.keys(window.tests));
     // programmatically create a single test suite for each filesystem we wish to
     // test
     var testGeneratorFactory = function(backend) {
@@ -102,12 +98,12 @@ function() {
   };
 
   // Add LocalStorage-backed filesystem
-  var LocalStorage = BrowserFS.getFsConstructor('LocalStorage');
-  if (LocalStorage.isAvailable()) {
-    var lsfs = new LocalStorage();
-    lsfs.empty();
-    backends.push(lsfs);
-  }
+  //var LocalStorage = BrowserFS.getFsConstructor('LocalStorage');
+  //if (LocalStorage.isAvailable()) {
+  //  var lsfs = new LocalStorage();
+  //  lsfs.empty();
+  //  backends.push(lsfs);
+  //}
 
   // Add in-memory filesystem
   var InMemory = BrowserFS.getFsConstructor('InMemory');
@@ -119,15 +115,15 @@ function() {
   //  backends.push(new XmlHttpRequest('/listings.json'));
 
   // Add mountable filesystem
-  var im2 = new InMemory();
-  var im3 = new InMemory();
-  var MountableFileSystem = BrowserFS.getFsConstructor('MountableFileSystem');
-  var mfs = new MountableFileSystem();
-  mfs.mount('/', im2);
+  //var im2 = new InMemory();
+  //var im3 = new InMemory();
+  //var MountableFileSystem = BrowserFS.getFsConstructor('MountableFileSystem');
+  //var mfs = new MountableFileSystem();
+  //mfs.mount('/', im2);
   //TODO: Test when API Error has a 'file' attribute that MFS can appropriately
   // alter when an error is raised.
-  mfs.mount('/test', im2);
-  backends.push(mfs);
+  //mfs.mount('/test', im2);
+  //backends.push(mfs);
 
   var async_backends = 2;
 
@@ -181,7 +177,7 @@ function() {
 
 
   // Add HTML5 FileSystem API backed filesystem
-  var HTML5FS = BrowserFS.getFsConstructor('HTML5FS');
+  var HTML5FS;// = BrowserFS.getFsConstructor('HTML5FS');
   //if (HTML5FS.isAvailable()){
   if (false) {
     var html5fs = new HTML5FS(10, window.TEMPORARY);

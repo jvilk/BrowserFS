@@ -25,6 +25,7 @@
     "async": ">= 0.2.7",
     "karma": "*",
     "karma-opera-launcher": "*",
+    "karma-safari-launcher": "*",
     "coffee-script": ">= 1.6.2",
     "glob": ">= 3.1.21",
     "grunt-karma": "~0.6.1",

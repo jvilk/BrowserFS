@@ -11,8 +11,8 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       'tmp/core/setImmediate.js',
-      'vendor/*.js',
-      'vendor/dropbox-build/dropbox.js',
+      'vendor/assert.js',
+      'vendor/require.js',
       'lib/load_fixtures.js',
       'test/setup.js',
       'test/node/*.js',
@@ -59,7 +59,7 @@ module.exports = function(config) {
     // - Safari (only Mac)
     // - PhantomJS
     // - IE (only Windows)
-    browsers: ['Opera', 'Firefox'],
+    browsers: ['Opera', 'Firefox', 'Chrome', 'Safari'],
 
 
     // If browser does not capture in given timeout [ms], kill it
