@@ -1,12 +1,12 @@
 COFFEE    := $(shell npm bin)/coffee
 TSC       := $(shell npm bin)/tsc
 RJS       := $(shell npm bin)/r.js
-CODO      := $(shell npm bin)/codo
 KARMA     := $(shell npm bin)/karma
 GRUNT     := $(shell npm bin)/grunt
 BOWER     := $(shell npm bin)/bower
+JSDOC     := $(shell npm bin)/jsdoc
 # Convenience for expressing dependencies.
-NPM_MODS  := $(COFFEE) $(TSC) $(RJS) $(CODO) $(KARMA) $(GRUNT) $(BOWER)
+NPM_MODS  := $(COFFEE) $(TSC) $(RJS) $(KARMA) $(GRUNT) $(BOWER)
 # Bower dependencies.
 BOW_DEPS  := vendor/async/lib/async.js vendor/dropbox-build/dropbox.js \
              vendor/DefinitelyTyped/README.md
@@ -21,10 +21,12 @@ BINS      := $(call S2B,SRCS_CORE,core) $(call S2B,SRCS_GEN,generic) \
              $(call S2B,SRCS_BND,backend)
 FIXTURES  := $(shell find test/fixtures -name '*')
 
-.PHONY: dependencies release dev test doc clean dropbox_tokens
+.PHONY: dependencies release dev test doc clean dropbox_tokens watch
 
 release: lib/browserfs.js
 dev: $(BINS)
+watch:
+	$(TSC) -w --outDir tmp --module amd --sourcemap $(SRCS)
 
 dropbox_test: dropbox_tokens test
 
@@ -35,12 +37,13 @@ doc: doc/index.html
 clean:
 	@rm -f lib/*.js lib/*.map
 	@rm -rf tmp/
+	@rm -rf doc/
 	@rm -rf test/dropbox
 dependencies: $(NPM_MODS) $(BOW_DEPS)
 
-doc/index.html: $(SRCS) $(CODO) README.md
-	# TODO: Use JSDoc.
-	#$(CODO) --title "BrowserFS Documentation" $(SRCS)
+doc/index.html: $(BINS) README.md $(JSDOC)
+	rm -rf doc/
+	$(JSDOC) -d doc -r tmp/
 
 $(NPM_MODS):
 	@echo "Installing needed Node modules with 'npm install'..."
@@ -57,11 +60,8 @@ listings.json: tools/XHRIndexer.coffee $(FIXTURES)
 lib/browserfs.js: $(BINS) $(RJS)
 	$(RJS) -o build.js
 
-watch:
-	$(TSC) -w --outDir tmp --module amd --sourcemap $(SRCS)
-
 # Development build
-$(BINS): $(SRCS) $(TSC)
+$(BINS): $(SRCS) $(TSC) $(BOW_DEPS)
 	$(TSC) --outDir tmp --module amd --sourcemap $(SRCS)
 
 lib/load_fixtures.js: tools/FixtureLoaderMaker.coffee $(COFFEE) $(FIXTURES)

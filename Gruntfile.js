@@ -25,6 +25,7 @@ module.exports = function(grunt) {
     ts: {
         build: {
             src: ["src/**/*.ts"],
+            watch: 'src',
             outDir: 'tmp',
             options: {
                 sourcemap: true,

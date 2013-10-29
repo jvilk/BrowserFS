@@ -31,6 +31,7 @@ export interface File {
 /**
  * Base class that contains the interface for a file object. BrowserFS uses these
  * as a replacement for numeric file descriptors.
+ * @class
  */
 export class BaseFile implements File {
   /**

@@ -7,6 +7,7 @@ var process = node_process.process;
  * transformations. The file system is not consulted to check whether paths are
  * valid.
  * @see http://nodejs.org/api/path.html
+ * @class
  */
 export class path {
   /**

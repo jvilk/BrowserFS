@@ -64,6 +64,7 @@ var Buffer = buffer.Buffer;
  * * **The callback will reset the stack depth.** When your filesystem calls the
  *   callback with the requested information, it will use `setImmediate` to
  *   reset the JavaScript stack depth before calling the user-supplied callback.
+ * @class
  */
 export class FileSystem {
   // Global information methods
@@ -755,6 +756,7 @@ export class FileSystem {
 
 /**
  * Implements the asynchronous API in terms of the synchronous API.
+ * @class
  */
 export class SynchronousFileSystem extends FileSystem {
   public supportsSynch(): boolean {

@@ -1,5 +1,6 @@
 /**
  * Encapsulates all of the errors that BrowserFS can encounter.
+ * @class
  */
 export enum ErrorType {
   // XHR ERROR STATUSES
@@ -45,6 +46,7 @@ export enum ErrorType {
  * Special thanks to Dropbox-JS for some of the error names/descriptions.
  * @see https://raw.github.com/dropbox/dropbox-js/master/src/api_error.coffee
  * @todo Am I too tightly binding to the Dropbox API?
+ * @class
  */
 export class ApiError {
   public type: ErrorType;

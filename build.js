@@ -9,8 +9,7 @@
     generateSourceMaps: true,
     preserveLicenseComments: false,
     // List all of the backends you want in your build here.
-    include: ['../vendor/setImmediate',
-              '../vendor/typedarray',
+    include: ['../vendor/typedarray',
               'backend/dropbox',
               'backend/html5fs',
               'backend/in_memory',

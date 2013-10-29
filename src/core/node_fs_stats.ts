@@ -3,6 +3,9 @@
 import fs = require('fs');
 import file = require('./file');
 
+/**
+ * @class
+ */
 export enum FileType {
   FILE = 1,
   DIRECTORY = 2,
@@ -10,6 +13,9 @@ export enum FileType {
   SOCKET = 4
 }
 
+/**
+ * @class
+ */
 export class Stats implements fs.Stats {
   public blocks: number;
   public dev: number = 0;

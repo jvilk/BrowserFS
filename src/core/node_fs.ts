@@ -136,6 +136,7 @@ function nopCb() {};
  *   descriptor, as appropriate.
  * * Handling optional arguments and setting default arguments.
  * @see http://nodejs.org/api/fs.html
+ * @class
  */
 export class fs {
   private static root: file_system.FileSystem = null;

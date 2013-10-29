@@ -1,5 +1,8 @@
 import api_error = require('./api_error');
 
+/**
+ * @class
+ */
 export enum ActionType {
   // Indicates that the code should not do anything.
   NOP = 0,
@@ -28,6 +31,7 @@ export enum ActionType {
  * * `'ax+'` - Like 'a+' but opens the file in exclusive mode.
  *
  * Exclusive mode ensures that the file path is newly created.
+ * @class
  */
 export class FileFlag {
   // Contains cached FileMode instances.

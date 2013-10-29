@@ -5,6 +5,7 @@ var path = node_path.path;
  * Partial implementation of Node's `process` module.
  * We implement the portions that are relevant for the filesystem.
  * @see http://nodejs.org/api/process.html
+ * @class
  */
 export class process {
   private static startTime = Date.now();

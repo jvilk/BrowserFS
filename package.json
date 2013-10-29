@@ -39,6 +39,7 @@
     "dropbox": "~0.10.1",
     "bower": "~1.2.5",
     "typescript": "*",
-    "requirejs": "*"
+    "requirejs": "*",
+    "jsdoc": "*"
   }
 }

@@ -11,6 +11,7 @@ import string_util = require('./string_util');
  * @see http://nodejs.org/api/buffer.html
  * @todo Add option to add array accessors, if someone doesn't mind the *huge*
  *       speed hit for compatibility.
+ * @class
  */
 export class Buffer implements NodeBuffer {
   /**
