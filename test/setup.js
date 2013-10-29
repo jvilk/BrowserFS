@@ -131,7 +131,7 @@ function() {
   var async_backends = 2;
 
   // Set to 'true' to test the Dropbox FS (which is slow to test).
-  if (true) {
+  if (false) {
     var init_client = new db.Client({
       key: 'c6oex2qavccb2l3',
       sandbox: true
