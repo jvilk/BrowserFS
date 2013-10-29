@@ -8,7 +8,8 @@ window.tests = {};
 require(['../tmp/core/install_globals',
          '../tmp/backend/in_memory',
          '../tmp/backend/localStorage',
-         '../tmp/backend/mountable_file_system'],
+         '../tmp/backend/mountable_file_system',
+         '../tmp/backend/XmlHttpRequest'],
 function() {
   "use strict";
   // Test-related setup code.
@@ -98,32 +99,32 @@ function() {
   };
 
   // Add LocalStorage-backed filesystem
-  //var LocalStorage = BrowserFS.getFsConstructor('LocalStorage');
-  //if (LocalStorage.isAvailable()) {
-  //  var lsfs = new LocalStorage();
-  //  lsfs.empty();
-  //  backends.push(lsfs);
-  //}
+  var LocalStorage = BrowserFS.getFsConstructor('LocalStorage');
+  if (LocalStorage.isAvailable()) {
+    var lsfs = new LocalStorage();
+    lsfs.empty();
+    backends.push(lsfs);
+  }
 
   // Add in-memory filesystem
   var InMemory = BrowserFS.getFsConstructor('InMemory');
   backends.push(new InMemory());
 
   // Add AJAX filesystem
-  //var XmlHttpRequest = BrowserFS.getFsConstructor('XmlHttpRequest');
-  //if (XmlHttpRequest.isAvailable())
-  //  backends.push(new XmlHttpRequest('/listings.json'));
+  var XmlHttpRequest = BrowserFS.getFsConstructor('XmlHttpRequest');
+  if (XmlHttpRequest.isAvailable())
+    backends.push(new XmlHttpRequest('/listings.json'));
 
   // Add mountable filesystem
-  //var im2 = new InMemory();
-  //var im3 = new InMemory();
-  //var MountableFileSystem = BrowserFS.getFsConstructor('MountableFileSystem');
-  //var mfs = new MountableFileSystem();
-  //mfs.mount('/', im2);
+  var im2 = new InMemory();
+  var im3 = new InMemory();
+  var MountableFileSystem = BrowserFS.getFsConstructor('MountableFileSystem');
+  var mfs = new MountableFileSystem();
+  mfs.mount('/', im2);
   //TODO: Test when API Error has a 'file' attribute that MFS can appropriately
   // alter when an error is raised.
-  //mfs.mount('/test', im2);
-  //backends.push(mfs);
+  mfs.mount('/test', im2);
+  backends.push(mfs);
 
   var async_backends = 2;
 

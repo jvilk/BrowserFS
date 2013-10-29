@@ -15,15 +15,22 @@ var ErrorType = api_error.ErrorType;
 var FileFlag = file_flag.FileFlag;
 var ActionType = file_flag.ActionType;
 
-document.write("<!-- IEBinaryToArray_ByteStr -->\r\n" +
-  "<script type='text/vbscript'>\r\n" +
-  "Function getIEByteArray(byteArray, out)\r\n" +
-  "  Dim len, i\r\n" + "  len = LenB(byteArray)\r\n" +
-  "  For i = 1 to len\r\n" +
-  "    out.push(AscB(MidB(byteArray, i, 1)))\r\n" +
-  "  Next\r\n" +
-  "End Function\r\n" +
-  "</script>\r\n");
+// Inject VBScript into the page if the browser is IE.
+// NOTE: We *must* perform this check, as document.write causes a full page
+//       reload in Firefox, and does something bizarre in Chrome/Safari that
+//       causes all of our unit tests to fail.
+if (util.isIE) {
+  document.write("<!-- IEBinaryToArray_ByteStr -->\r\n" +
+    "<script type='text/vbscript'>\r\n" +
+    "Function getIEByteArray(byteArray, out)\r\n" +
+    "  Dim len, i\r\n" + "  len = LenB(byteArray)\r\n" +
+    "  For i = 1 to len\r\n" +
+    "    out.push(AscB(MidB(byteArray, i, 1)))\r\n" +
+    "  Next\r\n" +
+    "End Function\r\n" +
+    "</script>\r\n");
+}
+
 declare var getIEByteArray: (vbarr: any, arr: number[]) => void;
 
 export class XmlHttpRequestAbstract extends file_system.FileSystem {
