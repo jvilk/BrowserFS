@@ -141,7 +141,7 @@ export class Buffer implements NodeBuffer {
         this.buff.setUint8(i, arg1.get(i));
       }
       this.length = arg1.length;
-    } else if (Array.isArray(arg1) || ((arg1[0] != null) && typeof arg1[0] === 'number')) {
+    } else if (Array.isArray(arg1) || (arg1 != null && typeof arg1 === 'object' && typeof arg1[0] === 'number')) {
       // constructor (data: number[]);
       if ((DataView['isPolyfill'] != null) && Array.isArray(arg1)) {
         // XXX: Use the array as the buffer polyfill's data; prevents us from

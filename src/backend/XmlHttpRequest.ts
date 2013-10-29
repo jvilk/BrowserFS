@@ -182,10 +182,10 @@ export class XmlHttpRequestIE extends XmlHttpRequestAbstract {
     super(listing_url, prefix_url);
   }
 
-  public _request_file(path: string, data_type: string, cb?: (data: any) => void): any {
+  public _request_file(p: string, data_type: string, cb?: (data: any) => void): any {
     var _this = this;
     var req = new XMLHttpRequest();
-    req.open('GET', this.prefix_url + path, cb != null);
+    req.open('GET', this.prefix_url + p, cb != null);
     req.setRequestHeader("Accept-Charset", "x-user-defined");
     var data = null;
     req.onreadystatechange = function(e) {
@@ -216,9 +216,9 @@ export class XmlHttpRequestModern extends XmlHttpRequestAbstract {
     super(listing_url, prefix_url);
   }
 
-  public _request_file(path: string, data_type: string, cb?: (data: any) => void): any {
+  public _request_file(p: string, data_type: string, cb?: (data: any) => void): any {
     var req = new XMLHttpRequest();
-    req.open('GET', this.prefix_url + path, cb != null);
+    req.open('GET', this.prefix_url + p, cb != null);
     // XXX: FF and Chrome refuse to set responseType on synchronous XHRs.
     if (cb != null) {
       req.responseType = data_type;
@@ -232,7 +232,8 @@ export class XmlHttpRequestModern extends XmlHttpRequestAbstract {
         console.error(req.statusText);
       }
       if (data_type === 'arraybuffer') {
-        data = new Buffer(req.response);
+        // XXX: WebKit-based browsers return *null* when XHRing an empty file.
+        data = new Buffer(req.response ? req.response : 0);
       } else {
         data = req.response;
       }
