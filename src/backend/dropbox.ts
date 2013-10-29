@@ -17,10 +17,13 @@ var path = node_path.path;
 var FileType = node_fs_stats.FileType;
 window['db'] = window['Dropbox'];
 
+declare var db;
+
 // XXX: No typings available for the Dropbox client. :(
 
 // XXX: The typings for async on DefinitelyTyped are out of date.
 var async = require('../../vendor/async/lib/async');
+var Buffer = buffer.Buffer;
 
 export class DropboxFile extends preload_file.PreloadFile {
   constructor(_fs: file_system.FileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: buffer.Buffer) {
@@ -49,7 +52,9 @@ export class Dropbox extends file_system.FileSystem {
   }
 
   public static isAvailable(): boolean {
-    return true;
+    // Checks if the Dropbox library is loaded.
+    // @todo Check if the Dropbox library *can be used* in the current browser.
+    return typeof db !== 'undefined';
   }
 
   public isReadOnly(): boolean {
@@ -81,10 +86,8 @@ export class Dropbox extends file_system.FileSystem {
         };
         var finished = function(err) {
           if (err) {
-            console.error("Failed to empty Dropbox");
-            console.error(err);
+            main_cb(err);
           } else {
-            console.debug('Emptied sucessfully');
             main_cb();
           }
         };
@@ -130,11 +133,12 @@ export class Dropbox extends file_system.FileSystem {
             case 0:
               return console.error('No connection');
             case 404:
-              return self._writeFileStrict(path, new ArrayBuffer(0), function(error2, stat) {
+              var ab = new ArrayBuffer(0);
+              return self._writeFileStrict(path, ab, function(error2, stat) {
                 if (error2) {
                   self._sendError(cb, error2);
                 } else {
-                  var file = self._makeFile(path, flags, stat, new ArrayBuffer(0));
+                  var file = self._makeFile(path, flags, stat, new Buffer(ab));
                   cb(null, file);
                 }
               });
@@ -149,7 +153,7 @@ export class Dropbox extends file_system.FileSystem {
         } else {
           buffer = new Buffer(content);
         }
-        var file = self._makeFile(path, flags, db_stat, content);
+        var file = self._makeFile(path, flags, db_stat, buffer);
         return cb(null, file);
       }
     });
@@ -177,10 +181,9 @@ export class Dropbox extends file_system.FileSystem {
     return stat.isFile ? FileType.FILE : FileType.DIRECTORY;
   }
 
-  public _makeFile(path: string, flag: file_flag.FileFlag, stat, data: ArrayBuffer = new ArrayBuffer(0)): DropboxFile {
+  public _makeFile(path: string, flag: file_flag.FileFlag, stat, buffer: buffer.Buffer): DropboxFile {
     var type = this._statType(stat);
     var stats = new Stats(type, stat.size);
-    var buffer = new Buffer(data);
     return new DropboxFile(this, path, flag, stats, buffer);
   }
 

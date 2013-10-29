@@ -13,6 +13,7 @@ module.exports = function(config) {
       'tmp/core/setImmediate.js',
       'vendor/assert.js',
       'vendor/require.js',
+      'vendor/dropbox-build/dropbox.min.js',
       'lib/load_fixtures.js',
       'test/setup.js',
       'test/node/*.js',
@@ -59,7 +60,7 @@ module.exports = function(config) {
     // - Safari (only Mac)
     // - PhantomJS
     // - IE (only Windows)
-    browsers: ['Opera', 'Firefox', 'Chrome', 'Safari'],
+    browsers: ['Chrome'],
 
 
     // If browser does not capture in given timeout [ms], kill it

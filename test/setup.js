@@ -9,7 +9,9 @@ require(['../tmp/core/install_globals',
          '../tmp/backend/in_memory',
          '../tmp/backend/localStorage',
          '../tmp/backend/mountable_file_system',
-         '../tmp/backend/XmlHttpRequest'],
+         '../tmp/backend/XmlHttpRequest',
+         '../tmp/backend/html5fs',
+         '../tmp/backend/dropbox'],
 function() {
   "use strict";
   // Test-related setup code.
@@ -178,9 +180,8 @@ function() {
 
 
   // Add HTML5 FileSystem API backed filesystem
-  var HTML5FS;// = BrowserFS.getFsConstructor('HTML5FS');
-  //if (HTML5FS.isAvailable()){
-  if (false) {
+  var HTML5FS = BrowserFS.getFsConstructor('HTML5FS');
+  if (HTML5FS.isAvailable()){
     var html5fs = new HTML5FS(10, window.TEMPORARY);
     backends.push(html5fs);
     html5fs.allocate(function(err){
