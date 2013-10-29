@@ -1,4 +1,8 @@
 /**
+ * @module
+ */
+
+/**
  * Encapsulates all of the errors that BrowserFS can encounter.
  * @class
  */

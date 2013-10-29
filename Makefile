@@ -43,7 +43,7 @@ dependencies: $(NPM_MODS) $(BOW_DEPS)
 
 doc/index.html: $(BINS) README.md $(JSDOC)
 	rm -rf doc/
-	$(JSDOC) -d doc -r tmp/
+	$(JSDOC) -c jsdoc.json -d doc -r tmp/
 
 $(NPM_MODS):
 	@echo "Installing needed Node modules with 'npm install'..."
