@@ -45,7 +45,7 @@ function() {
 
   var backends = [];
 
-  var timeout = 5000;
+  var timeout = 10000;
 
   // Generates a unit test.
   var generateTest = function(testName, test) {
@@ -131,7 +131,7 @@ function() {
   var async_backends = 2;
 
   // Set to 'true' to test the Dropbox FS (which is slow to test).
-  if (false) {
+  if (true) {
     var init_client = new db.Client({
       key: 'c6oex2qavccb2l3',
       sandbox: true
@@ -139,7 +139,7 @@ function() {
 
     var auth = function(){
       init_client.authenticate(function(error, authed_client){
-        if(error){
+        if (error){
           console.error('Error: could not connect to Dropbox');
           console.error(error);
           return;
