@@ -114,9 +114,9 @@ function() {
   backends.push(new InMemory());
 
   // Add AJAX filesystem
-  var XmlHttpRequest = BrowserFS.getFsConstructor('XmlHttpRequest');
-  if (XmlHttpRequest.isAvailable())
-    backends.push(new XmlHttpRequest('/listings.json'));
+  //var XmlHttpRequest = BrowserFS.getFsConstructor('XmlHttpRequest');
+  //if (XmlHttpRequest.isAvailable())
+  //  backends.push(new XmlHttpRequest('/listings.json'));
 
   // Add mountable filesystem
   var im2 = new InMemory();
