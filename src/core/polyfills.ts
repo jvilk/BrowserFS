@@ -1,15 +1,6 @@
 /**
- * This script runs before the page loads and before any BFS code runs.
- * It installs the BrowserFS global, and all of the polyfills we need.
+ * This file installs all of the polyfills that BrowserFS requires.
  */
-import browserfs = require('./browserfs');
-
-// The library user uses this module to communicate with the rest of BrowserFS.
-if (typeof window !== "undefined" && window !== null) {
-  window['BrowserFS'] = browserfs;
-} else if (typeof self !== 'undefined' && self !== null) {
-  self['BrowserFS'] = browserfs;
-}
 
 // IE < 9 does not define this function.
 if (!Date.now) {
@@ -91,3 +82,60 @@ if (!Array.prototype.forEach) {
     }
   };
 }
+
+// Only IE10 has setImmediate.
+// @todo: Determine viability of switching to the 'proper' polyfill for this.
+if (typeof setImmediate === 'undefined') {
+  var timeouts = [];
+  var messageName = "zero-timeout-message";
+  var canUsePostMessage = function() {
+    if (!window.postMessage) {
+      return false;
+    }
+    var postMessageIsAsync = true;
+    var oldOnMessage = window.onmessage;
+    window.onmessage = function() {
+      postMessageIsAsync = false;
+    };
+    window.postMessage('', '*');
+    window.onmessage = oldOnMessage;
+    return postMessageIsAsync;
+  };
+  if (canUsePostMessage()) {
+    window['set'+'Immediate'] = function(fn) {
+      timeouts.push(fn);
+      window.postMessage(messageName, "*");
+    };
+    var handleMessage = function(event) {
+      if (event.source === self && event.data === messageName) {
+        if (event.stopPropagation) {
+          event.stopPropagation();
+        } else {
+          event.cancelBubble = true;
+        }
+        if (timeouts.length > 0) {
+          var fn = timeouts.shift();
+          return fn();
+        }
+      }
+    };
+    if (window.addEventListener) {
+      window.addEventListener('message', handleMessage, true);
+    } else {
+      window.attachEvent('onmessage', handleMessage);
+    }
+  } else {
+    window['set'+'Immediate'] = function(fn) {
+      return setTimeout(fn, 0);
+      var scriptEl = window.document.createElement("script");
+      scriptEl.onreadystatechange = function() {
+        fn();
+        scriptEl.onreadystatechange = null;
+        scriptEl.parentNode.removeChild(scriptEl);
+        return scriptEl = null;
+      };
+      window.document.documentElement.appendChild(scriptEl);
+    };
+  }
+}
+

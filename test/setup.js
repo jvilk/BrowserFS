@@ -5,15 +5,16 @@ window.tests = {};
 // Defines/generates all of our Jasmine unit tests from the node unit tests.
 // XXX: We need to list all of the backends here so they will register themselves
 //      with BFS. I need a better mechanism for doing this.
-require(['../tmp/core/install_globals',
+require(['../tmp/core/browserfs',
          '../tmp/backend/in_memory',
          '../tmp/backend/localStorage',
          '../tmp/backend/mountable_file_system',
          '../tmp/backend/XmlHttpRequest',
          '../tmp/backend/html5fs',
          '../tmp/backend/dropbox'],
-function() {
+function(BrowserFS) {
   "use strict";
+  window['BrowserFS'] = BrowserFS;
   // Test-related setup code.
   var obj = {};
   // Install to obj to prevent trampling on RequireJS's require

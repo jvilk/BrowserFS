@@ -10,7 +10,8 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'tmp/core/setImmediate.js',
+      'tmp/core/polyfills.js',
+      'vendor/typedarray.js',
       'vendor/assert.js',
       'vendor/require.js',
       'vendor/dropbox-build/dropbox.min.js',
