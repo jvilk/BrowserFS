@@ -185,8 +185,8 @@ export class fs {
    * @param [String] newPath
    * @param [Function(BrowserFS.ApiError)] callback
    */
-  public static rename(oldPath: string, newPath: string, cb: Function = nopCb): void {
-    var newCb = wrapCb(cb, 1);
+  public static rename(oldPath: string, newPath: string, cb: (err?: api_error.ApiError) => void = nopCb): void {
+    var newCb = <(err?: api_error.ApiError) => void> wrapCb(cb, 1);
     try {
       fs.root.rename(normalizePath(oldPath), normalizePath(newPath), newCb);
     } catch (e) {

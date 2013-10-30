@@ -17,7 +17,7 @@ export class Buffer implements NodeBuffer {
   /**
    * Added to satisfy TypeScript NodeBuffer typing.
    */
-  public static INSPECT_MAX_BYTES = 0;
+  public static INSPECT_MAX_BYTES: number = 0;
 
   /**
    * Checks if enc is a valid string encoding type.

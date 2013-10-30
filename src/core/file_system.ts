@@ -1,3 +1,6 @@
+/**
+ * @module core/file_system
+ */
 import api_error = require('./api_error');
 import stat = require('./node_fs_stats');
 
@@ -64,14 +67,57 @@ var Buffer = buffer.Buffer;
  * * **The callback will reset the stack depth.** When your filesystem calls the
  *   callback with the requested information, it will use `setImmediate` to
  *   reset the JavaScript stack depth before calling the user-supplied callback.
- * @class
+ * @class FileSystem
  */
 export class FileSystem {
+  // Callback Types
+
+  /**
+   * @callback FileSystem~diskSpaceCallback
+   * @param {number} totalSpace
+   * @param {number} freeSpace
+   */
+  /**
+   * @callback FileSystem~nodeCallback
+   * @param {api_error.ApiError} [error]
+   */
+  /**
+   * @callback FileSystem~nodeStatsCallback
+   * @param {api_error.ApiError} error
+   * @param {node_fs_stats.Stats} [stats]
+   */
+  /**
+   * @callback FileSystem~fileCallback
+   * @param {api_error.ApiError} error
+   * @param {file.File} [file]
+   */
+  /**
+   * @callback FileSystem~readdirCallback
+   * @param {api_error.ApiError} error
+   * @param {string[]} [dirContents]
+   */
+  /**
+   * @callback FileSystem~existsCallback
+   * @param {boolean} doesExist
+   */
+  /**
+   * @callback FileSystem~pathCallback
+   * @param {api_error.ApiError} error
+   * @param {string} [path]
+   */
+  /**
+   * @callback FileSystem~readCallback
+   * @param {api_error.ApiError} error
+   * @param {(buffer.Buffer | string)} [data]
+   */
+
+
   // Global information methods
 
   /**
    * **Optional**: Returns the name of the file system.
-   * @return [String]
+   * @method FileSystem#getName
+   * @return {string}
    */
   public getName(): string {
     return 'Unspecified';
@@ -83,7 +129,8 @@ export class FileSystem {
    * 'false' if the browser does not support that API.
    *
    * Defaults to 'false', as the FileSystem base class isn't usable alone.
-   * @return [Boolean]
+   * @method FileSystem.isAvailable
+   * @return {boolean}
    */
   public static isAvailable(): boolean {
     return false;
@@ -93,13 +140,14 @@ export class FileSystem {
    * **Optional**: Passes the following information to the callback:
    *
    * * Total number of bytes available on this file system.
-   * * Number of free bytes available on this file system.
+   * * number of free bytes available on this file system.
    *
+   * @method FileSystem#diskSpace
    * @todo This info is not available through the Node API. Perhaps we could do a
    *   polyfill of diskspace.js, or add a new Node API function.
-   * @param [String] path The path to the location that is being queried. Only
+   * @param {string} path The path to the location that is being queried. Only
    *   useful for filesystems that support mount points.
-   * @param [Function(Number, Number)] cb
+   * @param {FileSystem~diskSpaceCallback} cb
    */
   public diskSpace(p: string, cb: (total: number, free: number) => any): void {
     cb(0, 0);
@@ -107,7 +155,8 @@ export class FileSystem {
 
   /**
    * **Core**: Is this filesystem read-only?
-   * @return [Boolean] True if this FileSystem is inherently read-only.
+   * @method FileSystem#isReadOnly
+   * @return {boolean} True if this FileSystem is inherently read-only.
    */
   public isReadOnly(): boolean {
     return true;
@@ -116,7 +165,8 @@ export class FileSystem {
   /**
    * **Core**: Does the filesystem support optional symlink/hardlink-related
    *   commands?
-   * @return [Boolean] True if the FileSystem supports the optional
+   * @method FileSystem#supportsLinks
+   * @return {boolean} True if the FileSystem supports the optional
    *   symlink/hardlink-related commands.
    */
   public supportsLinks(): boolean {
@@ -125,7 +175,8 @@ export class FileSystem {
 
   /**
    * **Core**: Does the filesystem support optional property-related commands?
-   * @return [Boolean] True if the FileSystem supports the optional
+   * @method FileSystem#supportsProps
+   * @return {boolean} True if the FileSystem supports the optional
    *   property-related commands (permissions, utimes, etc).
    */
   public supportsProps(): boolean {
@@ -134,7 +185,8 @@ export class FileSystem {
 
   /**
    * **Core**: Does the filesystem support the optional synchronous interface?
-   * @return [Boolean] True if the FileSystem supports synchronous operations.
+   * @method FileSystem#supportsSynch
+   * @return {boolean} True if the FileSystem supports synchronous operations.
    */
   public supportsSynch(): boolean {
     return false;
@@ -147,18 +199,20 @@ export class FileSystem {
   /**
    * **Core**: Asynchronous rename. No arguments other than a possible exception
    * are given to the completion callback.
-   * @param [String] oldPath
-   * @param [String] newPath
-   * @param [Function(BrowserFS.ApiError)] cb
+   * @method FileSystem#rename
+   * @param {string} oldPath
+   * @param {string} newPath
+   * @param {FileSystem~nodeCallback} cb
    */
-  public rename(oldPath: string, newPath: string, cb: Function): void {
+  public rename(oldPath: string, newPath: string, cb: (err?: api_error.ApiError) => void): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
   /**
    * **Core**: Synchronous rename.
-   * @param [String] oldPath
-   * @param [String] newPath
+   * @method FileSystem#renameSync
+   * @param {string} oldPath
+   * @param {string} newPath
    */
   public renameSync(oldPath: string, newPath: string): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
@@ -166,10 +220,11 @@ export class FileSystem {
 
   /**
    * **Core**: Asynchronous `stat` or `lstat`.
-   * @param [String] path
-   * @param [Boolean] isLstat True if this is `lstat`, false if this is regular
+   * @method FileSystem#stat
+   * @param {string} path
+   * @param {boolean} isLstat True if this is `lstat`, false if this is regular
    *   `stat`.
-   * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] cb
+   * @param {FileSystem~nodeStatsCallback} cb
    */
   public stat(p: string, isLstat: boolean, cb: (err: api_error.ApiError, stat?: stat.Stats) => void): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
@@ -177,10 +232,11 @@ export class FileSystem {
 
   /**
    * **Core**: Synchronous `stat` or `lstat`.
-   * @param [String] path
-   * @param [Boolean] isLstat True if this is `lstat`, false if this is regular
+   * @method FileSystem#statSync
+   * @param {string} path
+   * @param {boolean} isLstat True if this is `lstat`, false if this is regular
    *   `stat`.
-   * @return [BrowserFS.node.fs.Stats]
+   * @return {BrowserFS.node.fs.Stats}
    */
   public statSync(p: string, isLstat: boolean): stat.Stats {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
@@ -191,12 +247,13 @@ export class FileSystem {
   /**
    * **Core**: Asynchronous file open.
    * @see http://www.manpagez.com/man/2/open/
-   * @param [String] path
-   * @param [BrowserFS.FileMode] flags Handles the complexity of the various file
+   * @method FileSystem#open
+   * @param {string} path
+   * @param {BrowserFS.FileMode} flags Handles the complexity of the various file
    *   modes. See its API for more details.
-   * @param [Number] mode Mode to use to open the file. Can be ignored if the
+   * @param {number} mode Mode to use to open the file. Can be ignored if the
    *   filesystem doesn't support permissions.
-   * @param [Function(BrowserFS.ApiError, BrowserFS.File)] cb
+   * @param {FileSystem~fileCallback} cb
    */
   public open(p: string, flag:file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.BaseFile) => any): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
@@ -205,12 +262,13 @@ export class FileSystem {
   /**
    * **Core**: Synchronous file open.
    * @see http://www.manpagez.com/man/2/open/
-   * @param [String] path
-   * @param [BrowserFS.FileMode] flags Handles the complexity of the various file
+   * @method FileSystem#openSync
+   * @param {string} path
+   * @param {BrowserFS.FileMode} flags Handles the complexity of the various file
    *   modes. See its API for more details.
-   * @param [Number] mode Mode to use to open the file. Can be ignored if the
+   * @param {number} mode Mode to use to open the file. Can be ignored if the
    *   filesystem doesn't support permissions.
-   * @return [BrowserFS.File]
+   * @return {BrowserFS.File}
    */
   public openSync(p: string, flag: file_flag.FileFlag, mode: number): file.BaseFile {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
@@ -218,8 +276,9 @@ export class FileSystem {
 
   /**
    * **Core**: Asynchronous `unlink`.
-   * @param [String] path
-   * @param [Function(BrowserFS.ApiError)] cb
+   * @method FileSystem#unlink
+   * @param [string] path
+   * @param [FileSystem~nodeCallback] cb
    */
   public unlink(p: string, cb: Function): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
@@ -227,7 +286,8 @@ export class FileSystem {
 
   /**
    * **Core**: Synchronous `unlink`.
-   * @param [String] path
+   * @method FileSystem#unlinkSync
+   * @param {string} path
    */
   public unlinkSync(p: string): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
@@ -237,8 +297,9 @@ export class FileSystem {
 
   /**
    * **Core**: Asynchronous `rmdir`.
-   * @param [String] path
-   * @param [Function(BrowserFS.ApiError)] cb
+   * @method FileSystem#rmdir
+   * @param {string} path
+   * @param {FileSystem~nodeCallback} cb
    */
   public rmdir(p: string, cb: Function): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
@@ -246,7 +307,8 @@ export class FileSystem {
 
   /**
    * **Core**: Synchronous `rmdir`.
-   * @param [String] path
+   * @method FileSystem#rmdirSync
+   * @param {string} path
    */
   public rmdirSync(p: string): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
@@ -254,10 +316,11 @@ export class FileSystem {
 
   /**
    * **Core**: Asynchronous `mkdir`.
-   * @param [String] path
-   * @param [Number?] mode Mode to make the directory using. Can be ignored if
+   * @method FileSystem#mkdir
+   * @param {string} path
+   * @param {number?} mode Mode to make the directory using. Can be ignored if
    *   the filesystem doesn't support permissions.
-   * @param [Function(BrowserFS.ApiError)] cb
+   * @param {FileSystem~nodeCallback} cb
    */
   public mkdir(p: string, mode: number, cb: Function): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
@@ -265,8 +328,9 @@ export class FileSystem {
 
   /**
    * **Core**: Synchronous `mkdir`.
-   * @param [String] path
-   * @param [Number?] mode Mode to make the directory using. Can be ignored if
+   * @method FileSystem#mkdirSync
+   * @param {string} path
+   * @param {number} mode Mode to make the directory using. Can be ignored if
    *   the filesystem doesn't support permissions.
    */
   public mkdirSync(p: string, mode: number): void {
@@ -278,8 +342,9 @@ export class FileSystem {
    *
    * The callback gets two arguments `(err, files)` where `files` is an array of
    * the names of the files in the directory excluding `'.'` and `'..'`.
-   * @param [String] path
-   * @param [Function(BrowserFS.ApiError, String[])] cb
+   * @method FileSystem#readdir
+   * @param {string} path
+   * @param {FileSystem~readdirCallback} cb
    */
   public readdir(p: string, cb: (err: api_error.ApiError, files?: string[]) => void): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
@@ -287,9 +352,9 @@ export class FileSystem {
 
   /**
    * **Core**: Synchronous `readdir`. Reads the contents of a directory.
-   *
-   * @param [String] path
-   * @return [String[]]
+   * @method FileSystem#readdirSync
+   * @param {string} path
+   * @return {string[]}
    */
   public readdirSync(p: string): string[] {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
@@ -300,11 +365,11 @@ export class FileSystem {
   // File or directory operations
 
   /**
-   *
    * **Supplemental**: Test whether or not the given path exists by checking with
    * the file system. Then call the callback argument with either true or false.
-   * @param [String] path
-   * @param [Function(Boolean)] cb
+   * @method FileSystem#exists
+   * @param {string} path
+   * @param {FileSystem~existsCallback} cb
    */
   public exists(p: string, cb: (exists: boolean) => void): void {
     this.stat(p, null, function(err) {
@@ -315,8 +380,9 @@ export class FileSystem {
   /**
    * **Supplemental**: Test whether or not the given path exists by checking with
    * the file system.
-   * @param [String] path
-   * @return [Boolean]
+   * @method FileSystem#existsSync
+   * @param {string} path
+   * @return {boolean}
    */
   public existsSync(p: string): boolean {
     try {
@@ -332,11 +398,12 @@ export class FileSystem {
    * `(err, resolvedPath)`.
    *
    * Note that the Node API will resolve `path` to an absolute path.
-   * @param [String] path
-   * @param [Object] cache An object literal of mapped paths that can be used to
+   * @method FileSystem#realpath
+   * @param {string} path
+   * @param {Object} cache An object literal of mapped paths that can be used to
    *   force a specific path resolution or avoid additional `fs.stat` calls for
    *   known real paths. If not supplied by the user, it'll be an empty object.
-   * @param [Function(BrowserFS.ApiError, String)] cb
+   * @param {FileSystem~pathCallback} cb
    */
   public realpath(p: string, cache: {[path: string]: string}, cb: (err: api_error.ApiError, resolvedPath?: string) => any): void {
     if (this.supportsLinks()) {
@@ -364,11 +431,12 @@ export class FileSystem {
    * **Supplemental**: Synchronous `realpath`.
    *
    * Note that the Node API will resolve `path` to an absolute path.
-   * @param [String] path
-   * @param [Object] cache An object literal of mapped paths that can be used to
+   * @method FileSystem#realpathSync
+   * @param {string} path
+   * @param {Object} cache An object literal of mapped paths that can be used to
    *   force a specific path resolution or avoid additional `fs.stat` calls for
    *   known real paths. If not supplied by the user, it'll be an empty object.
-   * @return [String]
+   * @return {string}
    */
   public realpathSync(p: string, cache: {[path: string]: string}): string {
     if (this.supportsLinks()) {
@@ -390,13 +458,15 @@ export class FileSystem {
     }
   }
 
+  // File operations
+
   /**
-   * File operations
    *
    * **Supplemental**: Asynchronous `truncate`.
-   * @param [String] path
-   * @param [Number] len
-   * @param [Function(BrowserFS.ApiError)] cb
+   * @method FileSystem#truncate
+   * @param {string} path
+   * @param {number} len
+   * @param {FileSystem~nodeCallback} cb
    */
   public truncate(p: string, len: number, cb: Function): void {
     fs.open(p, 'w', (function(er: api_error.ApiError, fd?: file.BaseFile) {
@@ -413,8 +483,9 @@ export class FileSystem {
 
   /**
    * **Supplemental**: Synchronous `truncate`.
-   * @param [String] path
-   * @param [Number] len
+   * @method FileSystem#truncateSync
+   * @param {string} path
+   * @param {number} len
    */
   public truncateSync(p: string, len: number): void {
     var fd = fs.openSync(p, 'w');
@@ -430,13 +501,14 @@ export class FileSystem {
 
   /**
    * **Supplemental**: Asynchronously reads the entire contents of a file.
-   * @param [String] filename
-   * @param [String] encoding If non-null, the file's contents should be decoded
+   * @method FileSystem#readFile
+   * @param {string} filename
+   * @param {string} encoding If non-null, the file's contents should be decoded
    *   into a string using that encoding. Otherwise, if encoding is null, fetch
    *   the file's contents as a Buffer.
-   * @param [BrowserFS.FileMode] flag
-   * @param [Function(BrowserFS.ApiError, String | BrowserFS.node.Buffer)]
-   *   cb If no encoding is specified, then the raw buffer is returned.
+   * @param {BrowserFS.FileMode} flag
+   * @param {FileSystem~readCallback} cb If no encoding is specified, then the
+   *   raw buffer is returned.
    */
   public readFile(fname: string, encoding: string, flag: file_flag.FileFlag, cb: (err: api_error.ApiError, data?: any) => void): void {
     // Wrap cb in file closing code.
@@ -478,12 +550,13 @@ export class FileSystem {
 
   /**
    * **Supplemental**: Synchronously reads the entire contents of a file.
-   * @param [String] filename
-   * @param [String] encoding If non-null, the file's contents should be decoded
+   * @method FileSystem#readFileSync
+   * @param {string} filename
+   * @param {string} encoding If non-null, the file's contents should be decoded
    *   into a string using that encoding. Otherwise, if encoding is null, fetch
    *   the file's contents as a Buffer.
-   * @param [BrowserFS.FileMode] flag
-   * @return [String|BrowserFS.Buffer]
+   * @param {BrowserFS.FileMode} flag
+   * @return {(string|BrowserFS.Buffer)}
    */
   public readFileSync(fname: string, encoding: string, flag: file_flag.FileFlag): any {
     // Get file.
@@ -509,12 +582,13 @@ export class FileSystem {
    * if it already exists.
    *
    * The encoding option is ignored if data is a buffer.
-   * @param [String] filename
-   * @param [String | BrowserFS.node.Buffer] data
-   * @param [String] encoding
-   * @param [BrowserFS.FileMode] flag
-   * @param [Number] mode
-   * @param [Function(BrowserFS.ApiError)] cb
+   * @method FileSystem#writeFile
+   * @param {string} filename
+   * @param {(string | BrowserFS.node.Buffer)} data
+   * @param {string} encoding
+   * @param {BrowserFS.FileMode} flag
+   * @param {number} mode
+   * @param {FileSystem~nodeCallback} cb
    */
   public writeFile(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError) => void): void {
     // Wrap cb in file closing code.
@@ -547,11 +621,12 @@ export class FileSystem {
    * if it already exists.
    *
    * The encoding option is ignored if data is a buffer.
-   * @param [String] filename
-   * @param [String | BrowserFS.node.Buffer] data
-   * @param [String] encoding
-   * @param [BrowserFS.FileMode] flag
-   * @param [Number] mode
+   * @method FileSystem#writeFileSync
+   * @param {string} filename
+   * @param {(string | BrowserFS.node.Buffer)} data
+   * @param {string} encoding
+   * @param {BrowserFS.FileMode} flag
+   * @param {number} mode
    */
   public writeFileSync(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number): void {
     // Get file.
@@ -570,12 +645,13 @@ export class FileSystem {
   /**
    * **Supplemental**: Asynchronously append data to a file, creating the file if
    * it not yet exists.
-   * @param [String] filename
-   * @param [String | BrowserFS.node.Buffer] data
-   * @param [String] encoding
-   * @param [BrowserFS.FileMode] flag
-   * @param [Number] mode
-   * @param [Function(BrowserFS.ApiError)] cb
+   * @method FileSystem#appendFile
+   * @param {string} filename
+   * @param {(string | BrowserFS.node.Buffer)} data
+   * @param {string} encoding
+   * @param {BrowserFS.FileMode} flag
+   * @param {number} mode
+   * @param {FileSystem~nodeCallback} cb
    */
   public appendFile(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError) => void): void {
     // Wrap cb in file closing code.
@@ -599,11 +675,12 @@ export class FileSystem {
   /**
    * **Supplemental**: Synchronously append data to a file, creating the file if
    * it not yet exists.
-   * @param [String] filename
-   * @param [String | BrowserFS.node.Buffer] data
-   * @param [String] encoding
-   * @param [BrowserFS.FileMode] flag
-   * @param [Number] mode
+   * @method FileSystem#appendFileSync
+   * @param {string} filename
+   * @param {(string | BrowserFS.node.Buffer)} data
+   * @param {string} encoding
+   * @param {BrowserFS.FileMode} flag
+   * @param {number} mode
    */
   public appendFileSync(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number): void {
     var fd = this.openSync(fname, flag, mode);
@@ -624,11 +701,12 @@ export class FileSystem {
 
   /**
    * **Optional**: Asynchronous `chmod` or `lchmod`.
-   * @param [String] path
-   * @param [Boolean] isLchmod `True` if `lchmod`, false if `chmod`. Has no
+   * @method FileSystem#chmod
+   * @param {string} path
+   * @param {boolean} isLchmod `True` if `lchmod`, false if `chmod`. Has no
    *   bearing on result if links aren't supported.
-   * @param [Number] mode
-   * @param [Function(BrowserFS.ApiError)] cb
+   * @param {number} mode
+   * @param {FileSystem~nodeCallback} cb
    */
   public chmod(p: string, isLchmod: boolean, mode: number, cb: Function): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
@@ -636,10 +714,11 @@ export class FileSystem {
 
   /**
    * **Optional**: Synchronous `chmod` or `lchmod`.
-   * @param [String] path
-   * @param [Boolean] isLchmod `True` if `lchmod`, false if `chmod`. Has no
+   * @method FileSystem#chmodSync
+   * @param {string} path
+   * @param {boolean} isLchmod `True` if `lchmod`, false if `chmod`. Has no
    *   bearing on result if links aren't supported.
-   * @param [Number] mode
+   * @param {number} mode
    */
   public chmodSync(p: string, isLchmod: boolean, mode: number) {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
@@ -647,12 +726,13 @@ export class FileSystem {
 
   /**
    * **Optional**: Asynchronous `chown` or `lchown`.
-   * @param [String] path
-   * @param [Boolean] isLchown `True` if `lchown`, false if `chown`. Has no
+   * @method FileSystem#chown
+   * @param {string} path
+   * @param {boolean} isLchown `True` if `lchown`, false if `chown`. Has no
    *   bearing on result if links aren't supported.
-   * @param [Number] uid
-   * @param [Number] gid
-   * @param [Function(BrowserFS.ApiError)] cb
+   * @param {number} uid
+   * @param {number} gid
+   * @param {FileSystem~nodeCallback} cb
    */
   public chown(p: string, isLchown: boolean, uid: number, gid: number, cb: Function): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
@@ -660,11 +740,12 @@ export class FileSystem {
 
   /**
    * **Optional**: Synchronous `chown` or `lchown`.
-   * @param [String] path
-   * @param [Boolean] isLchown `True` if `lchown`, false if `chown`. Has no
+   * @method FileSystem#chownSync
+   * @param {string} path
+   * @param {boolean} isLchown `True` if `lchown`, false if `chown`. Has no
    *   bearing on result if links aren't supported.
-   * @param [Number] uid
-   * @param [Number] gid
+   * @param {number} uid
+   * @param {number} gid
    */
   public chownSync(p: string, isLchown: boolean, uid: number, gid: number): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
@@ -673,10 +754,11 @@ export class FileSystem {
   /**
    * **Optional**: Change file timestamps of the file referenced by the supplied
    * path.
-   * @param [String] path
-   * @param [Date] atime
-   * @param [Date] mtime
-   * @param [Function(BrowserFS.ApiError)] cb
+   * @method FileSystem#utimes
+   * @param {string} path
+   * @param {Date} atime
+   * @param {Date} mtime
+   * @param {FileSystem~nodeCallback} cb
    */
   public utimes(p: string, atime: Date, mtime: Date, cb: Function): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
@@ -685,9 +767,10 @@ export class FileSystem {
   /**
    * **Optional**: Change file timestamps of the file referenced by the supplied
    * path.
-   * @param [String] path
-   * @param [Date] atime
-   * @param [Date] mtime
+   * @method FileSystem#utimesSync
+   * @param {string} path
+   * @param {Date} atime
+   * @param {Date} mtime
    */
   public utimesSync(p: string, atime: Date, mtime: Date): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
@@ -698,9 +781,10 @@ export class FileSystem {
 
   /**
    * **Optional**: Asynchronous `link`.
-   * @param [String] srcpath
-   * @param [String] dstpath
-   * @param [Function(BrowserFS.ApiError)] cb
+   * @method FileSystem#link
+   * @param {string} srcpath
+   * @param {string} dstpath
+   * @param {FileSystem~nodeCallback} cb
    */
   public link(srcpath: string, dstpath: string, cb: Function): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
@@ -708,8 +792,9 @@ export class FileSystem {
 
   /**
    * **Optional**: Synchronous `link`.
-   * @param [String] srcpath
-   * @param [String] dstpath
+   * @method FileSystem#linkSync
+   * @param {string} srcpath
+   * @param {string} dstpath
    */
   public linkSync(srcpath: string, dstpath: string): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
@@ -717,10 +802,11 @@ export class FileSystem {
 
   /**
    * **Optional**: Asynchronous `symlink`.
-   * @param [String] srcpath
-   * @param [String] dstpath
-   * @param [String] type can be either `'dir'` or `'file'`
-   * @param [Function(BrowserFS.ApiError)] cb
+   * @method FileSystem#symlink
+   * @param {string} srcpath
+   * @param {string} dstpath
+   * @param {string} type can be either `'dir'` or `'file'`
+   * @param {FileSystem~nodeCallback} cb
    */
   public symlink(srcpath: string, dstpath: string, type: string, cb: Function): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
@@ -728,9 +814,10 @@ export class FileSystem {
 
   /**
    * **Optional**: Synchronous `symlink`.
-   * @param [String] srcpath
-   * @param [String] dstpath
-   * @param [String] type can be either `'dir'` or `'file'`
+   * @method FileSystem#symlinkSync
+   * @param {string} srcpath
+   * @param {string} dstpath
+   * @param {string} type can be either `'dir'` or `'file'`
    */
   public symlinkSync(srcpath: string, dstpath: string, type: string): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
@@ -738,8 +825,9 @@ export class FileSystem {
 
   /**
    * **Optional**: Asynchronous readlink.
-   * @param [String] path
-   * @param [Function(BrowserFS.ApiError, String)] callback
+   * @method FileSystem#readlink
+   * @param {string} path
+   * @param {FileSystem~pathCallback} callback
    */
   public readlink(p: string, cb: Function): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
@@ -747,7 +835,8 @@ export class FileSystem {
 
   /**
    * **Optional**: Synchronous readlink.
-   * @param [String] path
+   * @method FileSystem#readlinkSync
+   * @param {string} path
    */
   public readlinkSync(p: string): string {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
@@ -756,7 +845,7 @@ export class FileSystem {
 
 /**
  * Implements the asynchronous API in terms of the synchronous API.
- * @class
+ * @class SynchronousFileSystem
  */
 export class SynchronousFileSystem extends FileSystem {
   public supportsSynch(): boolean {

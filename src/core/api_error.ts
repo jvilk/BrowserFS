@@ -1,10 +1,11 @@
 /**
- * @module
+ * @module core/api_error
  */
 
 /**
  * Encapsulates all of the errors that BrowserFS can encounter.
- * @class
+ * @readonly
+ * @enum {number} ErrorType
  */
 export enum ErrorType {
   // XHR ERROR STATUSES
@@ -44,23 +45,24 @@ export enum ErrorType {
   PERMISSIONS_ERROR = 900
 }
 
-/**
- * Information about a failed call to the BrowserFS API.
- *
- * Special thanks to Dropbox-JS for some of the error names/descriptions.
- * @see https://raw.github.com/dropbox/dropbox-js/master/src/api_error.coffee
- * @todo Am I too tightly binding to the Dropbox API?
- * @class
- */
 export class ApiError {
+  /**
+   * @field ApiError#type
+   */
   public type: ErrorType;
   public message: string;
 
   /**
-   * Represents a BrowserFS error.
-   * @constructor
+   * Represents a BrowserFS error. Passed back to applications after a failed
+   * call to the BrowserFS API.
+   *
+   * Error codes were stolen from Dropbox-JS, but may be changed in the future
+   * for better Node compatibility...
+   * @see https://raw.github.com/dropbox/dropbox-js/master/src/api_error.coffee
+   * @todo Switch to Node error codes.
+   * @constructor ApiError
    * @param {number} type - The type of error. Use one of the static fields of this class as the type.
-   * @param {string?} message - A descriptive error message.
+   * @param {string} [message] - A descriptive error message.
    */
   constructor(type: ErrorType, message?:string) {
     this.type = type;
@@ -70,6 +72,7 @@ export class ApiError {
   }
 
   /**
+   * @method ApiError#toString
    * @return {string} A friendly error message.
    */
   public toString(): string {
