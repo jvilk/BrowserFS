@@ -5,10 +5,10 @@
     // The main module that installs the BrowserFS global and needed polyfills.
     name: '../vendor/almond/almond',
     wrap: {
-      startFile: ['build/intro.js', 'tmp/core/polyfills.js', 'vendor/typedarray.js'],
-      endFile: 'build/outro.js'
+      startFile: ['intro.js', '../tmp/core/polyfills.js', '../vendor/typedarray.js'],
+      endFile: 'outro.js'
     },
-    out: 'lib/browserfs.js',
+    out: '../lib/browserfs.js',
     optimize: 'uglify2',
     generateSourceMaps: true,
     preserveLicenseComments: false,
