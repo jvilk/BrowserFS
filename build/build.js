@@ -1,7 +1,7 @@
 // Configuration file for RequireJS's optimizer.
 ({
     // The output of the TypeScript compiler goes into this directory.
-    baseUrl: 'tmp',
+    baseUrl: '../tmp',
     // The main module that installs the BrowserFS global and needed polyfills.
     name: '../vendor/almond/almond',
     wrap: {

@@ -35,6 +35,7 @@ test: dev $(GRUNT) $(KARMA) listings.json lib/load_fixtures.js \
 	$(GRUNT)
 doc: doc/index.html
 clean:
+	@rm listings.json
 	@rm -f lib/*.js lib/*.map
 	@rm -rf tmp/
 	@rm -rf doc/
@@ -43,7 +44,7 @@ dependencies: $(NPM_MODS) $(BOW_DEPS)
 
 doc/index.html: $(BINS) README.md $(JSDOC)
 	rm -rf doc/
-	$(JSDOC) -c jsdoc.json -d doc -r tmp/
+	$(JSDOC) -c build/jsdoc.json -d doc -r tmp/
 
 $(NPM_MODS):
 	@echo "Installing needed Node modules with 'npm install'..."
@@ -58,7 +59,7 @@ listings.json: tools/XHRIndexer.coffee $(FIXTURES)
 
 # Release build
 lib/browserfs.js: $(BINS) $(RJS)
-	$(RJS) -o build.js
+	$(RJS) -o build/build.js
 
 # Development build
 $(BINS): $(SRCS) $(TSC) $(BOW_DEPS)

@@ -16,6 +16,8 @@
     "async": "~0.2.5",
     "dropbox-build": "*",
     "DefinitelyTyped": "*",
-    "almond": "*"
+    "almond": "*",
+    "requirejs": "*",
+    "assert": "*"
   }
 }

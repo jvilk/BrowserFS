@@ -4,7 +4,7 @@
 module.exports = function(config) {
   config.set({
     // base path, that will be used to resolve files and exclude
-    basePath: '',
+    basePath: '../',
 
     frameworks: ['jasmine'],
 
@@ -12,8 +12,8 @@ module.exports = function(config) {
     files: [
       'tmp/core/polyfills.js',
       'vendor/typedarray.js',
-      'vendor/assert.js',
-      'vendor/require.js',
+      'vendor/assert/assert.js',
+      'vendor/requirejs/require.js',
       'vendor/dropbox-build/dropbox.min.js',
       'lib/load_fixtures.js',
       'test/setup.js',

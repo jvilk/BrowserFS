@@ -17,7 +17,7 @@ uid = 0
 debugPrint = (args...) -> if DEBUG then console.log.apply console, args
 
 # Sanity check
-unless fs.existsSync './src/core/install_globals.ts'
+unless fs.existsSync './src/core/browserfs.ts'
   throw new Error 'FixtureLoaderMaker must be run from the BrowserFS root!'
 
 debugPrint 'Opening load_fixtures.js...'
