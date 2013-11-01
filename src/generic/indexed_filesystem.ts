@@ -14,19 +14,29 @@ var Stats = node_fs_stats.Stats;
 var FileFlag = file_flag.FileFlag;
 var path = node_path.path;
 var DirInode = file_index.DirInode;
+/**
+ * A simple filesystem base class that uses an in-memory FileIndex.
+ */
 export class IndexedFileSystem extends file_system.SynchronousFileSystem {
   // XXX: Subclasses access the index directly.
   public _index: file_index.FileIndex;
+  /**
+   * Constructs the file system with the given FileIndex.
+   * @param [BrowserFS.FileIndex] _index
+   */
   constructor(_index: file_index.FileIndex) {
     super();
     this._index = _index;
   }
+
+  // File or directory operations
 
   public renameSync(oldPath: string, newPath: string): void {
     var oldInode = this._index.removePath(oldPath);
     if (oldInode === null) {
       throw new ApiError(ErrorType.NOT_FOUND, "" + oldPath + " not found.");
     }
+    // Remove the given path if it exists.
     this._index.removePath(newPath);
     this._index.addPath(newPath, oldInode);
   }
@@ -41,7 +51,10 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
     return stats;
   }
 
+  // File operations
+
   public openSync(p: string, flags: file_flag.FileFlag, mode: number): file.File {
+    // Check if the path exists, and is a file.
     var inode = this._index.getInode(p);
     if (inode !== null) {
       if (!inode.isFile()) {
@@ -62,6 +75,7 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
     } else {
       switch (flags.pathNotExistsAction()) {
         case ActionType.CREATE_FILE:
+          // Ensure the parent exists!
           var parentPath = path.dirname(p);
           var parentInode = this._index.getInode(parentPath);
           if (parentInode === null || parentInode.isFile()) {
@@ -78,7 +92,10 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
     }
   }
 
+  // Directory operations
+
   public unlinkSync(path: string): void {
+    // Check if it exists, and is a file.
     var inode = this._index.getInode(path);
     if (inode === null) {
       throw new ApiError(ErrorType.NOT_FOUND, "" + path + " not found.");
@@ -89,6 +106,7 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
   }
 
   public rmdirSync(path: string): void {
+    // Check if it exists, and is a directory.
     var inode = this._index.getInode(path);
     if (inode === null) {
       throw new ApiError(ErrorType.NOT_FOUND, "" + path + " not found.");
@@ -100,10 +118,12 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
   }
 
   public mkdirSync(p: string, mode: number): void {
+    // Check if it exists.
     var inode = this._index.getInode(p);
     if (inode !== null) {
       throw new ApiError(ErrorType.INVALID_PARAM, "" + p + " already exists.");
     }
+    // Check if it lives below an existing dir (that is, we can't mkdir -p).
     var parent = path.dirname(p);
     if (parent !== '/' && this._index.getInode(parent) === null) {
       throw new ApiError(ErrorType.INVALID_PARAM, "Can't create " + p + " because " + parent + " doesn't exist.");
@@ -116,6 +136,7 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
   }
 
   public readdirSync(path: string): string[] {
+    // Check if it exists.
     var inode = this._index.getInode(path);
     if (inode === null) {
       throw new ApiError(ErrorType.NOT_FOUND, "" + path + " not found.");
