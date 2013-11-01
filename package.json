@@ -37,7 +37,8 @@
     "open": "*",
     "dropbox": "~0.10.1",
     "typescript": "*",
-    "requirejs": "*"
+    "requirejs": "*",
+    "grunt-shell": "~0.5.0"
   },
   "scripts": {
     "install": "bower install",

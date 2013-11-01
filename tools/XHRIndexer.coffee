@@ -31,4 +31,4 @@ rdSync = (dpath, tree, name) ->
   return tree
 
 fs_listing = rdSync(process.cwd(), {}, '/')
-fs.writeFileSync('./listings.json', JSON.stringify(fs_listing))
+console.log(JSON.stringify(fs_listing))

@@ -1,12 +1,32 @@
 var fs = require('fs');
-var coffee_commands = require('coffee-script/lib/coffee-script/command');
-var run_coffeescript = function(script) {
-  var argv = process.argv;
-  process.argv = ['coffee', script];
-  // ASSUMPTION: Synchronous execution.
-  coffee_commands.run();
-  process.argv = argv;
-};
+var path = require('path');
+
+// Removes a directory if it exists.
+// Throws an exception if deletion fails.
+function removeDir(dir) {
+  if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
+    // Delete its contents, since you can't delete non-empty folders.
+    // :(
+    var files = fs.readdirSync(dir);
+    for (var i = 0; i < files.length; i++) {
+      var fname = dir + path.sep + files[i];
+      if (fs.statSync(fname).isDirectory()) {
+        removeDir(fname);
+      } else {
+        removeFile(fname);
+      }
+    }
+    fs.rmdirSync(dir);
+  }
+}
+
+// Removes a file if it exists.
+// Throws an exception if deletion fails.
+function removeFile(file) {
+  if (fs.existsSync(file) && fs.statSync(file).isFile()) {
+    fs.unlinkSync(file);
+  }
+}
 
 module.exports = function(grunt) {
   grunt.initConfig({
@@ -67,6 +87,33 @@ module.exports = function(grunt) {
                     'backend/XmlHttpRequest']
         }
       }
+    },
+    shell: {
+      gen_cert: {
+        command: [
+          // Short circuit if the certificate exists.
+          'test ! -e test/dropbox/cert.pem',
+          'mkdir -p test/dropbox',
+          'openssl req -new -x509 -days 365 -nodes -batch -out test/dropbox/cert.pem -keyout test/dropbox/cert.pem -subj /O=dropbox.js/OU=Testing/CN=localhost'
+        ].join('&&')
+      },
+      gen_token: {
+        command: './node_modules/.bin/coffee tools/get_db_credentials.coffee'
+      },
+      load_fixtures: {
+        command: './node_modules/.bin/coffee tools/FixtureLoaderMaker.coffee'
+      },
+      gen_listings: {
+        command: './node_modules/.bin/coffee tools/XHRIndexer.coffee',
+        options: {
+          callback: function(err, stdout, stderr, cb) {
+            if (err) throw err;
+            // Write listings to a file.
+            fs.writeFileSync('./listings.json', stdout);
+            cb();
+          }
+        }
+      }
     }
   });
 
@@ -75,34 +122,21 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-contrib-requirejs');
   grunt.loadNpmTasks('grunt-karma');
+  grunt.loadNpmTasks('grunt-shell');
 
-  grunt.registerTask('listings', 'Generates listings.json for XmlHttpRequest unit tests.', function() {
-    run_coffeescript('tools/XHRIndexer.coffee');
-  });
-
-  grunt.registerTask('load_fixtures', 'Generates load_fixtures.js for unit tests.', function() {
-    run_coffeescript('tools/FixtureLoaderMaker.coffee');
-  });
-
-  grunt.registerTask('cert', 'Generates an SSL certificate, which is required to generate login tokens.', function() {
-    // Do not run if the certificate exists.
-    if (!fs.existsSync('test/dropbox/cert.pem')) {
-      // TODO: Fix.
-      // mkdir -p test/dropbox
-      // openssl req -new -x509 -days 365 -nodes -batch -out test/dropbox/cert.pem -keyout test/dropbox/cert.pem -subj /O=dropbox.js/OU=Testing/CN=localhost
-    }
-  });
-
-  grunt.registerTask('tokens', 'Generates a dropbox token for dropboxfs unit tests.', function() {
-    var done = this.async();
-    // TODO: Fix.
-    done();
+  grunt.registerTask('clean', 'Removes all built files.', function() {
+    removeFile('./listings.json');
+    removeFile('./lib/browserfs.js');
+    removeFile('./lib/browserfs.js.map');
+    removeFile('./lib/load_fixtures.js');
+    removeDir('./tmp');
+    removeDir('./test/dropbox');
   });
 
   // test
-  grunt.registerTask('test', ['listings', 'load_fixtures', 'connect', 'karma']);
+  grunt.registerTask('test', ['ts:dev', 'shell:gen_listings', 'shell:load_fixtures', 'connect', 'karma']);
   // testing dropbox
-  grunt.registerTask('dropbox_test', ['listings', 'load_fixtures', 'cert', 'tokens', 'connect', 'karma']);
+  grunt.registerTask('dropbox_test', ['ts:dev', 'shell:gen_listings', 'shell:load_fixtures', 'shell:gen_cert', 'shell:gen_token', 'connect', 'karma']);
   // dev build
   grunt.registerTask('dev', ['ts:dev']);
   // dev build + watch for changes.
