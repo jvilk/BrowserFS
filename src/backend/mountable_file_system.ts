@@ -7,19 +7,34 @@ import browserfs = require('../core/browserfs');
 var ApiError = api_error.ApiError;
 var ErrorType = api_error.ErrorType;
 var fs = node_fs.fs;
+/**
+ * The MountableFileSystem allows you to mount multiple backend types or
+ * multiple instantiations of the same backend into a single file system tree.
+ * The file systems do not need to know about each other; all interactions are
+ * automatically facilitated through this interface.
+ *
+ * For example, if a file system is mounted at /mnt/blah, and a request came in
+ * for /mnt/blah/foo.txt, the file system would see a request for /foo.txt.
+ */
 export class MountableFileSystem extends file_system.FileSystem {
   private mntMap: {[path: string]: file_system.FileSystem};
   private rootFs: file_system.FileSystem;
   constructor() {
     super();
     this.mntMap = {};
+    // The InMemory file system serves purely to provide directory listings for
+    // mounted file systems.
     this.rootFs = new in_memory.InMemory();
   }
 
+  /**
+   * Mounts the file system at the given mount point.
+   */
   public mount(mnt_pt: string, fs: file_system.FileSystem): void {
     if (this.mntMap[mnt_pt]) {
       throw new ApiError(ErrorType.INVALID_PARAM, "Mount point " + mnt_pt + " is already taken.");
     }
+    // @todo Ensure new mount path is not subsumed by active mount paths.
     this.rootFs.mkdirSync(mnt_pt, 0x1ff);
     this.mntMap[mnt_pt] = fs;
   }
@@ -32,6 +47,9 @@ export class MountableFileSystem extends file_system.FileSystem {
     this.rootFs.rmdirSync(mnt_pt);
   }
 
+  /**
+   * Returns the file system that the path points to.
+   */
   public _get_fs(path: string): {fs: file_system.FileSystem; path: string} {
     for (var mnt_pt in this.mntMap) {
       var fs = this.mntMap[mnt_pt];
@@ -43,8 +61,11 @@ export class MountableFileSystem extends file_system.FileSystem {
         return {fs: fs, path: path};
       }
     }
+    // Query our root file system.
     return {fs: this.rootFs, path: path};
   }
+
+  // Global information methods
 
   public getName(): string {
     return 'MountableFileSystem';
@@ -63,6 +84,7 @@ export class MountableFileSystem extends file_system.FileSystem {
   }
 
   public supportsLinks(): boolean {
+    // I'm not ready for cross-FS links yet.
     return false;
   }
 
@@ -74,12 +96,21 @@ export class MountableFileSystem extends file_system.FileSystem {
     return true;
   }
 
+  // The following methods involve multiple file systems, and thus have custom
+  // logic.
+  // Note that we go through the Node API to use its robust default argument
+  // processing.
+
   public rename(oldPath: string, newPath: string, cb: (e?: api_error.ApiError) => void): void {
+    // Scenario 1: old and new are on same FS.
     var fs1_rv = this._get_fs(oldPath);
     var fs2_rv = this._get_fs(newPath);
     if (fs1_rv.fs === fs2_rv.fs) {
       return fs1_rv.fs.rename(fs1_rv.path, fs2_rv.path, cb);
     }
+
+    // Scenario 2: Different file systems.
+    // Read old file, write new file, delete old file.
     return fs.readFile(oldPath, function(err, data) {
       if (err) {
         return cb(err);
@@ -94,17 +125,25 @@ export class MountableFileSystem extends file_system.FileSystem {
   }
 
   public renameSync(oldPath: string, newPath: string): void {
+    // Scenario 1: old and new are on same FS.
     var fs1_rv = this._get_fs(oldPath);
     var fs2_rv = this._get_fs(newPath);
     if (fs1_rv.fs === fs2_rv.fs) {
       return fs1_rv.fs.renameSync(fs1_rv.path, fs2_rv.path);
     }
+    // Scenario 2: Different file systems.
     var data = fs.readFileSync(oldPath);
     fs.writeFileSync(newPath, data);
     return fs.unlinkSync(oldPath);
   }
 }
 
+/**
+ * Tricky: Define all of the functions that merely forward arguments to the
+ * relevant file system, or return/throw an error.
+ * Take advantage of the fact that the *first* argument is always the path, and
+ * the *last* is the callback function (if async).
+ */
 function defineFcn(name: string, isSync: boolean, numArgs: number): (...args: any[]) => any {
   return function(...args: any[]) {
     var rv = this._get_fs(args[0]);
@@ -113,7 +152,17 @@ function defineFcn(name: string, isSync: boolean, numArgs: number): (...args: an
   };
 }
 
-var fsCmdMap = [['readdir', 'exists', 'unlink', 'rmdir', 'readlink'], ['stat', 'mkdir', 'realpath', 'truncate'], ['open', 'readFile', 'chmod', 'utimes'], ['chown'], ['writeFile', 'appendFile']];
+var fsCmdMap = [
+   // 1 arg functions
+   ['readdir', 'exists', 'unlink', 'rmdir', 'readlink'],
+   // 2 arg functions
+   ['stat', 'mkdir', 'realpath', 'truncate'],
+   // 3 arg functions
+   ['open', 'readFile', 'chmod', 'utimes'],
+   // 4 arg functions
+   ['chown'],
+   // 5 arg functions
+   ['writeFile', 'appendFile']];
 
 for (var i = 0; i < fsCmdMap.length; i++) {
   var cmds = fsCmdMap[i];

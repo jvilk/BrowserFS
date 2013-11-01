@@ -38,10 +38,12 @@ export interface StringUtil {
   byteLength(str: string): number;
 }
 
-# Find the 'utility' object for the given string encoding. Throws an exception
-# if the encoding is invalid.
-# @param [String] encoding a string encoding
-# @return [BrowserFS.StringUtil.*] The StringUtil object for the given encoding
+/**
+ * Find the 'utility' object for the given string encoding. Throws an exception
+ * if the encoding is invalid.
+ * @param [String] encoding a string encoding
+ * @return [BrowserFS.StringUtil.*] The StringUtil object for the given encoding
+ */
 export function FindUtil(encoding: string): StringUtil {
   encoding = (function() {
     switch (typeof encoding) {

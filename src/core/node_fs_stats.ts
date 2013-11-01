@@ -63,7 +63,7 @@ export class Stats implements fs.Stats {
     public atime: Date = new Date(),
     public mtime: Date = new Date(),
     public ctime: Date = new Date()) {
-    # number of 512B blocks allocated
+    // number of 512B blocks allocated
     this.blocks = Math.ceil(size / 512);
     // XXX: Fix mode for emscripten.
     if (this.item_type === FileType.FILE) {
