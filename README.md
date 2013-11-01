@@ -11,7 +11,6 @@ Prerequisites:
 
 * Node and NPM
 * Grunt-CLI and Bower globally installed: `npm install -g grunt-cli bower`
-* Grunt locally installed: `npm install grunt`
 
 Release:
 ```
