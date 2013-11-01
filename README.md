@@ -10,7 +10,8 @@ For more information, see the [wiki](https://github.com/jvilk/BrowserFS/wiki) an
 Prerequisites:
 
 * Node and NPM
-* Grunt and Bower globally installed: `npm install -g grunt bower`
+* Grunt-CLI and Bower globally installed: `npm install -g grunt-cli bower`
+* Grunt locally installed: `npm install grunt`
 
 Release:
 ```
