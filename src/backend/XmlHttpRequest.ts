@@ -55,23 +55,8 @@ export class XmlHttpRequest extends file_system.FileSystem {
   /**
    * Only requests the HEAD content, for the file size.
    */
-  public _request_file_size(path: string, cb: (size: number) => void): void {
-    var req = new XMLHttpRequest();
-    req.open('HEAD', this.prefix_url + path);
-    req.onreadystatechange = function(e) {
-      if (req.readyState === 4) {
-        if (req.status !== 200) {
-          console.error(req.statusText);
-        }
-        try {
-          cb(parseInt(req.getResponseHeader('Content-Length'), 10));
-        } catch(e) {
-          // In the event that the header isn't present or there is an error...
-          cb(-1);
-        }
-      }
-    };
-    req.send();
+  public _requestFileSizeAsync(path: string, cb: (err: api_error.ApiError, size?: number) => void): void {
+    xhr.getFileSizeAsync(this.prefix_url + path, cb);
   }
 
   /**
@@ -149,7 +134,10 @@ export class XmlHttpRequest extends file_system.FileSystem {
       stats = <node_fs_stats.Stats> inode;
       // At this point, a non-opened file will still have default stats from the listing.
       if (stats.size < 0) {
-        this._request_file_size(path, function(size) {
+        this._requestFileSizeAsync(path, function(e: api_error.ApiError, size?: number) {
+          if (e) {
+            return cb(e);
+          }
           stats.size = size;
           cb(null, stats);
         });

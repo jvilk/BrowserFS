@@ -174,6 +174,27 @@ function syncDownloadFileModern(p: string, type: string): any {
   return data;
 }
 
+function getFileSize(async: boolean, p: string, cb: (err: api_error.ApiError, size?: number) => void): void {
+  var req = new XMLHttpRequest();
+  req.open('HEAD', p, async);
+  req.onreadystatechange = function(e) {
+    if (req.readyState === 4) {
+      if (req.status == 200) {
+        console.error(req.statusText);
+        try {
+          return cb(null, parseInt(req.getResponseHeader('Content-Length'), 10));
+        } catch(e) {
+          // In the event that the header isn't present or there is an error...
+          return cb(new ApiError(ErrorType.NETWORK_ERROR, "XHR HEAD error: Could not read content-length."));
+        }
+      } else {
+        return cb(new ApiError(req.status, "XHR HEAD error."));
+      }
+    }
+  };
+  req.send();
+}
+
 /**
  * Asynchronously download a file as a buffer or a JSON object.
  * Note that the third function signature with a non-specialized type is
@@ -197,3 +218,24 @@ export var syncDownloadFile: {
   (p: string, type: 'json'): any;
   (p: string, type: string): any;
 } = (util.isIE && typeof Blob === 'undefined') ? syncDownloadFileIE : syncDownloadFileModern;
+
+/**
+ * Synchronously retrieves the size of the given file in bytes.
+ */
+export function getFileSizeSync(p: string): number {
+  var rv: number;
+  getFileSize(false, p, function(err: api_error.ApiError, size?: number) {
+    if (err) {
+      throw err;
+    }
+    rv = size;
+  });
+  return rv;
+}
+
+/**
+ * Asynchronously retrieves the size of the given file in bytes.
+ */
+export function getFileSizeAsync(p: string, cb: (err: api_error.ApiError, size?: number) => void): void {
+  getFileSize(true, p, cb);
+}
