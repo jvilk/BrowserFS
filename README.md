@@ -12,11 +12,24 @@ Prerequisites:
 * Node and NPM
 * Grunt and Bower globally installed: `npm install -g grunt bower`
 
-Once you have the above prerequisites installed, type `grunt` to build BrowserFS. The minified library can then be found as `lib/browserfs.js`.
+Release:
+```
+grunt
+```
+
+The minified release build can be found in `lib/browserfs.js`.
+
+Development:
+```
+grunt dev
+```
+
+The development build can be found as multiple AMD modules in `tmp`.
 
 ### Testing
 
 Prerequisites:
+
 * Karma globally installed: `npm install -g karma`
 
 To run unit tests, simply run `grunt test` **(NOTE: This will launch multiple web browsers!)**. You may need to change `build/karma.conf.js` if you do not have Chrome, Safari, Opera, and Firefox installed.

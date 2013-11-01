@@ -73,10 +73,10 @@ module.exports = function(grunt) {
             endFile: 'build/outro.js'
           },
           out: 'lib/browserfs.js',
-          optimize: 'none',
-          // generateSourceMaps: true,
+          optimize: 'uglify2',
+          generateSourceMaps: true,
           // Need to set to false for source maps to work.
-          // preserveLicenseComments: false,
+          preserveLicenseComments: false,
           // List all of the backends you want in your build here.
           include: ['core/browserfs',
                     'backend/dropbox',
