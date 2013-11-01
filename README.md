@@ -57,8 +57,8 @@ Here's a simple example, using the LocalStorage-backed file system:
 Now, you can write code like this:
 ```javascript
 var fs = require('fs');
-fs.writeFile('./test.txt', 'Cool, I can do this in the browser!', function(err) {
-  fs.readFile('./test.txt', function(err, contents) {
+fs.writeFile('/test.txt', 'Cool, I can do this in the browser!', function(err) {
+  fs.readFile('/test.txt', function(err, contents) {
     console.log(contents.toString());
   });
 });
