@@ -8,6 +8,7 @@ import file = require('../core/file');
 import node_fs_stats = require('../core/node_fs_stats');
 import preload_file = require('../generic/preload_file');
 import browserfs = require('../core/browserfs');
+import xhr = require('../generic/xhr');
 
 var Buffer = buffer.Buffer;
 var ApiError = api_error.ApiError;
@@ -16,35 +17,9 @@ var FileFlag = file_flag.FileFlag;
 var ActionType = file_flag.ActionType;
 
 /**
- * IE9 and below only: Injects a VBScript function that converts the
- * 'responseBody' attribute of an XMLHttpRequest into a bytestring.
- * From ExtJS: http://docs-origin.sencha.com/extjs/4.1.3/source/Connection.html
- *
- * NOTE: We *must* perform this check, as document.write causes a full page
- *       reload in Firefox, and does something bizarre in Chrome/Safari that
- *       causes all of our unit tests to fail.
- */
-if (util.isIE) {
-  document.write("<!-- IEBinaryToArray_ByteStr -->\r\n" +
-    "<script type='text/vbscript'>\r\n" +
-    "Function getIEByteArray(byteArray, out)\r\n" +
-    "  Dim len, i\r\n" + "  len = LenB(byteArray)\r\n" +
-    "  For i = 1 to len\r\n" +
-    "    out.push(AscB(MidB(byteArray, i, 1)))\r\n" +
-    "  Next\r\n" +
-    "End Function\r\n" +
-    "</script>\r\n");
-}
-
-declare var getIEByteArray: (vbarr: any, arr: number[]) => void;
-
-/**
  * A simple filesystem backed by XmlHttpRequests.
- *
- * An abstract class; subclasses implement variants for browsers with differing
- * behavior.
  */
-export class XmlHttpRequestAbstract extends file_system.FileSystem {
+export class XmlHttpRequest extends file_system.FileSystem {
   private _index: file_index.FileIndex;
   public prefix_url: string;
   /**
@@ -60,8 +35,7 @@ export class XmlHttpRequestAbstract extends file_system.FileSystem {
       listing_url = 'index.json';
     }
     this.prefix_url = prefix_url != null ? prefix_url : '';
-    var listingString = this._request_file(listing_url, 'json');
-    var listing = JSON.parse(listingString);
+    var listing = this._requestFileSync(listing_url, 'json');
     if (listing == null) {
       throw new Error("Unable to find listing at URL: " + listing_url);
     }
@@ -101,11 +75,23 @@ export class XmlHttpRequestAbstract extends file_system.FileSystem {
   }
 
   /**
-   * Assumes that path is in @_index.
-   * TODO(jvilk): Separate into async / sync methods.
+   * Asynchronously download the given file.
    */
-  public _request_file(path: string, data_type: string, cb?: (data: any) => void): any {
-    throw new ApiError(ErrorType.NOT_SUPPORTED, 'XmlHttpRequestAbstract is an abstract class.');
+  private _requestFileAsync(p: string, type: 'buffer', cb: (err: api_error.ApiError, data?: buffer.Buffer) => void): void;
+  private _requestFileAsync(p: string, type: 'json', cb: (err: api_error.ApiError, data?: any) => void): void;
+  private _requestFileAsync(p: string, type: string, cb: (err: api_error.ApiError, data?: any) => void): void;
+  private _requestFileAsync(p: string, type: string, cb: (err: api_error.ApiError, data?: any) => void): void {
+    xhr.asyncDownloadFile(this.prefix_url + p, type, cb);
+  }
+
+  /**
+   * Synchronously download the given file.
+   */
+  private _requestFileSync(p: string, type: 'buffer'): buffer.Buffer;
+  private _requestFileSync(p: string, type: 'json'): any;
+  private _requestFileSync(p: string, type: string): any;
+  private _requestFileSync(p: string, type: string): any {
+    return xhr.syncDownloadFile(this.prefix_url + p, type);
   }
 
   public getName(): string {
@@ -197,7 +183,10 @@ export class XmlHttpRequestAbstract extends file_system.FileSystem {
           return cb(null, inode.file_data);
         }
         // @todo be lazier about actually requesting the file
-        this._request_file(path, 'arraybuffer', function(buffer) {
+        this._requestFileAsync(path, 'buffer', function(err: api_error.ApiError, buffer?: buffer.Buffer) {
+          if (err) {
+            return cb(err);
+          }
           // we don't initially have file sizes
           inode.size = buffer.length;
           inode.file_data = new preload_file.NoSyncFile(_this, path, flags, inode, buffer);
@@ -221,85 +210,4 @@ export class XmlHttpRequestAbstract extends file_system.FileSystem {
   }
 }
 
-/**
- * A version of XHRFS tailored for IE, which does not have Typed Array
- * support *OR* a way to download binary files in 100% JavaScript. :(
- */
-export class XmlHttpRequestIE extends XmlHttpRequestAbstract {
-  constructor(listing_url: string, prefix_url: string) {
-    super(listing_url, prefix_url);
-  }
-
-  public _request_file(p: string, data_type: string, cb?: (data: any) => void): any {
-    var _this = this;
-    var req = new XMLHttpRequest();
-    req.open('GET', this.prefix_url + p, cb != null);
-    req.setRequestHeader("Accept-Charset", "x-user-defined");
-    var data = null;
-    req.onreadystatechange = function(e) {
-      var data_array;
-      if (req.readyState === 4) {
-        if (req.status === 200) {
-          if (data_type === 'arraybuffer') {
-            // Call our VBScript method, which mutates data_array.
-            getIEByteArray(req.responseBody, data_array = []);
-            data = new Buffer(data_array);
-          } else {
-            data = req.responseText;
-          }
-          return typeof cb === "function" ? cb(data) : void 0;
-        } else {
-          console.error("ReadyState: " + req.readyState + " Status: " + req.status);
-        }
-      }
-    };
-    req.send();
-    if ((data != null) && data !== 'NOT FOUND') {
-      return data;
-    }
-  }
-}
-browserfs.registerFileSystem('XmlHttpRequestIE', XmlHttpRequestIE);
-
-/**
- * A version of XHRFS tailored to modern browsers with typed array support.
- */
-export class XmlHttpRequestModern extends XmlHttpRequestAbstract {
-  constructor(listing_url: string, prefix_url: string) {
-    super(listing_url, prefix_url);
-  }
-
-  public _request_file(p: string, data_type: string, cb?: (data: any) => void): any {
-    var req = new XMLHttpRequest();
-    req.open('GET', this.prefix_url + p, cb != null);
-    // XXX: FF and Chrome refuse to set responseType on synchronous XHRs.
-    if (cb != null) {
-      req.responseType = data_type;
-    }
-    var data = null;
-    req.onerror = function(e) {
-      console.error(req.statusText);
-    };
-    req.onload = function(e) {
-      if (!(req.readyState === 4 && req.status === 200)) {
-        console.error(req.statusText);
-      }
-      if (data_type === 'arraybuffer') {
-        // XXX: WebKit-based browsers return *null* when XHRing an empty file.
-        data = new Buffer(req.response ? req.response : 0);
-      } else {
-        data = req.response;
-      }
-      return typeof cb === "function" ? cb(data) : void 0;
-    };
-    req.send();
-    if ((data != null) && data !== 'NOT FOUND') {
-      return data;
-    }
-  }
-}
-browserfs.registerFileSystem('XmlHttpRequestModern', XmlHttpRequestModern);
-
-// Export the variant that works best in the current browser as the true XHRFS.
-export var XmlHttpRequest = (util.isIE && typeof window['Blob'] === 'undefined') ? XmlHttpRequestIE : XmlHttpRequestModern;
 browserfs.registerFileSystem('XmlHttpRequest', XmlHttpRequest);
