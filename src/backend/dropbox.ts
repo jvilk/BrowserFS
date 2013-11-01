@@ -15,6 +15,10 @@ var ApiError = api_error.ApiError;
 var ErrorType = api_error.ErrorType;
 var path = node_path.path;
 var FileType = node_fs_stats.FileType;
+
+// The name `Dropbox` gets clobbered by the filesystem, so save a reference
+// to the Dropbox.js client library
+// @todo Don't do this.
 window['db'] = window['Dropbox'];
 
 declare var db;
@@ -42,6 +46,9 @@ export class DropboxFile extends preload_file.PreloadFile {
 export class Dropbox extends file_system.FileSystem {
   // The Dropbox client.
   private client: any;
+  /**
+   * Arguments: an authenticated Dropbox.js client
+   */
   constructor(client: any) {
     super();
     this.client = client;
@@ -60,6 +67,8 @@ export class Dropbox extends file_system.FileSystem {
   public isReadOnly(): boolean {
     return false;
   }
+
+  // Dropbox doesn't support symlinks, properties, or synchronous calls
 
   public supportsSymlinks(): boolean {
     return false;
@@ -109,7 +118,11 @@ export class Dropbox extends file_system.FileSystem {
 
   public stat(path: string, isLstat: boolean, cb: (err: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void {
     var self = this;
+    // Ignore lstat case -- Dropbox doesn't support symlinks
+    // Stat the file
     self.client.stat(path, function(error, stat) {
+      // Dropbox keeps track of deleted files, so if a file has existed in the
+      // past but doesn't any longer, you wont get an error
       if (error || ((stat != null) && stat.isRemoved)) {
         return self._sendError(cb, "" + path + " doesn't exist");
       } else {
@@ -122,16 +135,21 @@ export class Dropbox extends file_system.FileSystem {
   public open(path: string, flags: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.BaseFile) => any): void {
     var self = this,
       _this = this;
+    // Try and get the file's contents
     self.client.readFile(path, {
       arrayBuffer: true
     }, function(error, content, db_stat, range) {
       if (error) {
+        // If the file's being opened for reading and doesn't exist, return an
+        // error
         if (flags.isReadable()) {
           return self._sendError(cb, "" + path + " doesn't exist");
         } else {
           switch (error.status) {
             case 0:
               return console.error('No connection');
+            // If it's being opened for writing or appending, create it so that
+            // it can be written to
             case 404:
               var ab = new ArrayBuffer(0);
               return self._writeFileStrict(path, ab, function(error2, stat) {
@@ -147,7 +165,10 @@ export class Dropbox extends file_system.FileSystem {
           }
         }
       } else {
+        // No error
         var buffer;
+        // Dropbox.js seems to set `content` to `null` rather than to an empty
+        // buffer when reading an empty file. Not sure why this is.
         if (content === null) {
           buffer = new Buffer(0);
         } else {
@@ -177,16 +198,32 @@ export class Dropbox extends file_system.FileSystem {
     });
   }
 
+  /**
+   * Private
+   * Returns a BrowserFS object representing the type of a Dropbox.js stat object
+   */
   public _statType(stat): node_fs_stats.FileType {
     return stat.isFile ? FileType.FILE : FileType.DIRECTORY;
   }
 
+  /**
+   * Private
+   * Returns a BrowserFS object representing a File, created from the data
+   * returned by calls to the Dropbox API.
+   */
   public _makeFile(path: string, flag: file_flag.FileFlag, stat, buffer: buffer.Buffer): DropboxFile {
     var type = this._statType(stat);
     var stats = new Stats(type, stat.size);
     return new DropboxFile(this, path, flag, stats, buffer);
   }
 
+  /**
+   * Private
+   * Delete a file or directory from Dropbox
+   * isFile should reflect which call was made to remove the it (`unlink` or
+   * `rmdir`). If this doesn't match what's actually at `path`, an error will be
+   * returned
+   */
   public _remove(path: string, cb: (e?: api_error.ApiError) => void, isFile: boolean): void {
     var self = this;
     self.client.stat(path, function(error, stat) {
@@ -211,19 +248,39 @@ export class Dropbox extends file_system.FileSystem {
     });
   }
 
+  /**
+   * Private
+   * Create a BrowserFS error object with message msg and pass it to cb
+   */
   public _sendError(cb: (e: api_error.ApiError) => void, msg: string): void {
     cb(new ApiError(ErrorType.INVALID_PARAM, msg));
   }
 
+  /**
+   * Delete a file
+   */
   public unlink(path: string, cb: (e?: api_error.ApiError) => void): void {
     this._remove(path, cb, true);
   }
 
+  /**
+   * Delete a directory
+   */
   public rmdir(path: string, cb: (e?: api_error.ApiError) => void): void {
     this._remove(path, cb, false);
   }
 
+  /**
+   * Create a directory
+   */
   public mkdir(p: string, mode: number, cb: (e?: api_error.ApiError) => void): void {
+    // Dropbox.js' client.mkdir() behaves like `mkdir -p`, i.e. it creates a
+    // directory and all its ancestors if they don't exist.
+    // Node's fs.mkdir() behaves like `mkdir`, i.e. it throws an error if an attempt
+    // is made to create a directory without a parent.
+    // To handle this inconsistency, a check for the existence of `path`'s parent
+    // must be performed before it is created, and an error thrown if it does
+    // not exist
     var self = this;
     var parent = path.dirname(p);
     self.client.stat(parent, function(error, stat) {
@@ -241,6 +298,9 @@ export class Dropbox extends file_system.FileSystem {
     });
   }
 
+  /**
+   * Get the names of the files in a directory
+   */
   public readdir(path: string, cb: (err: api_error.ApiError, files?: string[]) => void): void {
     this.client.readdir(path, function(error, files, dir_stat, content_stats) {
       if (error) {

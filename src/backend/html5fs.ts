@@ -49,6 +49,14 @@ function _toArray(list?: any[]): any[] {
   return Array.prototype.slice.call(list || [], 0);
 }
 
+// A note about getFile and getDirectory options:
+// These methods are called at numerous places in this file, and are passed
+// some combination of these two options:
+//   - create: If true, the entry will be created if it doesn't exist.
+//             If false, an error will be thrown if it doesn't exist.
+//   - exclusive: If true, only create the entry if it doesn't already exist,
+//                and throw an error if it does.
+
 export class HTML5FSFile extends preload_file.PreloadFile {
   constructor(_fs: HTML5FS, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: buffer.Buffer) {
     super(_fs, _path, _flag, _stat, contents);
@@ -56,6 +64,7 @@ export class HTML5FSFile extends preload_file.PreloadFile {
 
   public sync(cb: (e?: api_error.ApiError) => void): void {
     var self = this;
+    // Don't create the file (it should already have been created by `open`)
     var opts = {
       create: false
     };
@@ -91,6 +100,11 @@ export class HTML5FS extends file_system.FileSystem {
   private type: number;
   // HTML5File reaches into HTML5FS. :/
   public fs: FileSystem;
+  /**
+   * Arguments:
+   *   - type: PERSISTENT or TEMPORARY
+   *   - size: storage quota to request, in megabytes. Allocated value may be less.
+   */
   constructor(size: number, type?: number) {
     super();
     this.size = size != null ? size : 5;
@@ -124,6 +138,14 @@ export class HTML5FS extends file_system.FileSystem {
     return false;
   }
 
+  /**
+   * Private
+   * Returns a human-readable error message for the given DOMError
+   * Full list of values here:
+   * https://developer.mozilla.org/en-US/docs/Web/API/DOMError
+   * I've only implemented the most obvious ones, but more can be added to
+   * make errors more descriptive in the future.
+   */
   public _humanise(err: DOMException): string {
     switch (err.code) {
       case DOMException.QUOTA_EXCEEDED_ERR:
@@ -137,6 +159,10 @@ export class HTML5FS extends file_system.FileSystem {
     }
   }
 
+  /**
+   * Nonstandard
+   * Requests a storage quota from the browser to back this FS.
+   */
   public allocate(cb: (e?: api_error.ApiError) => void = function(){}): void {
     var self = this;
     var success = function(fs: FileSystem): void {
@@ -158,13 +184,21 @@ export class HTML5FS extends file_system.FileSystem {
     }
   }
 
+  /**
+   * Nonstandard
+   * Deletes everything in the FS. Used for testing.
+   * Karma clears the storage after you quit it but not between runs of the test
+   * suite, and the tests expect an empty FS every time.
+   */
   public empty(main_cb: (e?: api_error.ApiError) => void): void {
     var self = this;
+    // Get a list of all entries in the root directory to delete them
     self._readdir('/', function(err: api_error.ApiError, entries?: Entry[]): void {
       if (err) {
         console.error('Failed to empty FS');
         main_cb(err);
       } else {
+        // Called when every entry has been operated on
         var finished = function(er: api_error.ApiError): void {
           if (err) {
             console.error("Failed to empty FS");
@@ -173,6 +207,7 @@ export class HTML5FS extends file_system.FileSystem {
             main_cb();
           }
         };
+        // Removes files and recursively removes directories
         var deleteEntry = function(entry: Entry, cb: (e?: api_error.ApiError) => void): void {
           var succ = function() {
             cb();
@@ -186,6 +221,8 @@ export class HTML5FS extends file_system.FileSystem {
             (<DirectoryEntry> entry).removeRecursively(succ, error);
           }
         };
+        // Loop through the entries and remove them, then call the callback
+        // when they're all finished.
         async.each(entries, deleteEntry, finished);
       }
     });
@@ -208,9 +245,12 @@ export class HTML5FS extends file_system.FileSystem {
 
   public stat(path: string, isLstat: boolean, cb: (err: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void {
     var self = this;
+    // Throw an error if the entry doesn't exist, because then there's nothing
+    // to stat.
     var opts = {
       create: false
     };
+    // Called when the path has been successfully loaded as a file.
     var loadAsFile = function(entry: FileEntry): void {
       var fileFromEntry = function(file: File): void {
         var stat = new Stats(FileType.FILE, file.size);
@@ -218,17 +258,26 @@ export class HTML5FS extends file_system.FileSystem {
       };
       entry.file(fileFromEntry, failedToLoad);
     };
+    // Called when the path has been successfully loaded as a directory.
     var loadAsDir = function(dir: DirectoryEntry): void {
+      // Directory entry size can't be determined from the HTML5 FS API, and is
+      // implementation-dependant anyway, so a dummy value is used.
       var size = 4096;
       var stat = new Stats(FileType.DIRECTORY, size);
       cb(null, stat);
     };
+    // Called when the path couldn't be opened as a directory or a file.
     var failedToLoad = function(err: DOMException): void {
       self._sendError(cb, "Could not stat " + path);
     };
+    // Called when the path couldn't be opened as a file, but might still be a
+    // directory.
     var failedToLoadAsFile = function(): void {
       self.fs.root.getDirectory(path, opts, loadAsDir, failedToLoad);
     };
+    // No method currently exists to determine whether a path refers to a
+    // directory or a file, so this implementation tries both and uses the first
+    // one that succeeds.
     this.fs.root.getFile(path, opts, loadAsFile, failedToLoadAsFile);
   }
 
@@ -257,21 +306,41 @@ export class HTML5FS extends file_system.FileSystem {
     this.fs.root.getFile(path, opts, success, error);
   }
 
+  /**
+   * Private
+   * Create a BrowserFS error object with message msg and pass it to cb
+   */
   public _sendError(cb: (e: api_error.ApiError) => void, err: any): void {
     var msg = typeof err === 'string' ? err : this._humanise(err);
     cb(new ApiError(ErrorType.INVALID_PARAM, msg));
   }
 
+  /**
+   * Private
+   * Returns a BrowserFS object representing the type of a Dropbox.js stat object
+   */
   public _statType(stat: Entry): node_fs_stats.FileType {
     return stat.isFile ? FileType.FILE : FileType.DIRECTORY;
   }
 
+  /**
+   * Private
+   * Returns a BrowserFS object representing a File, created from the data
+   * returned by calls to the Dropbox API.
+   */
   public _makeFile(path: string, flag: file_flag.FileFlag, stat: File, data: ArrayBuffer = new ArrayBuffer(0)): HTML5FSFile {
     var stats = new Stats(FileType.FILE, stat.size);
     var buffer = new Buffer(data);
     return new HTML5FSFile(this, path, flag, stats, buffer);
   }
 
+  /**
+   * Private
+   * Delete a file or directory from the file system
+   * isFile should reflect which call was made to remove the it (`unlink` or
+   * `rmdir`). If this doesn't match what's actually at `path`, an error will be
+   * returned
+   */
   public _remove(path: string, cb: (e?: api_error.ApiError) => void, isFile: boolean): void {
     var self = this;
     var success = function(entry: Entry): void {
@@ -286,6 +355,7 @@ export class HTML5FS extends file_system.FileSystem {
     var error = function(err: DOMException): void {
       self._sendError(cb, "Failed to remove " + path);
     };
+    // Deleting the entry, so don't create it
     var opts = {
       create: false
     };
@@ -307,6 +377,8 @@ export class HTML5FS extends file_system.FileSystem {
 
   public mkdir(path: string, mode: number, cb: (e?: api_error.ApiError) => void): void {
     var self = this;
+    // Create the directory, but throw an error if it already exists, as per
+    // mkdir(1)
     var opts = {
       create: true,
       exclusive: true
@@ -320,6 +392,10 @@ export class HTML5FS extends file_system.FileSystem {
     this.fs.root.getDirectory(path, opts, success, error);
   }
 
+  /**
+   * Private
+   * Returns an array of `FileEntry`s. Used internally by empty and readdir.
+   */
   public _readdir(path: string, cb: (e: api_error.ApiError, entries?: Entry[]) => void): void {
     var self = this;
     var reader = this.fs.root.createReader();
@@ -327,6 +403,7 @@ export class HTML5FS extends file_system.FileSystem {
     var error = function(err: DOMException): void {
       self._sendError(cb, err);
     };
+    // Call the reader.readEntries() until no more results are returned.
     var readEntries = function() {
       reader.readEntries((function(results) {
         if (results.length) {
@@ -340,6 +417,9 @@ export class HTML5FS extends file_system.FileSystem {
     readEntries();
   }
 
+  /**
+   * Map _readdir's list of `FileEntry`s to their names and return that.
+   */
   public readdir(path: string, cb: (err: api_error.ApiError, files?: string[]) => void): void {
     this._readdir(path, function(e: api_error.ApiError, entries?: Entry[]): void {
       if (e != null) {

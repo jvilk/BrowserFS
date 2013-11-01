@@ -10,11 +10,23 @@ import browserfs = require('../core/browserfs');
 
 var Buffer = buffer.Buffer;
 var NoSyncFile = preload_file.NoSyncFile;
+/**
+ * A simple filesystem that exists only in memory.
+ *
+ * Note: This hacks a file_data property into each file inode,
+ *   which are actually just fs.Stats objects.
+ */
 export class InMemory extends indexed_filesystem.IndexedFileSystem {
+  /**
+   * Constructs the file system, with no files or directories.
+   */
   constructor() {
     super(new file_index.FileIndex());
   }
 
+  /**
+   * Clears all data, resetting to the 'just-initialized' state.
+   */
   public empty(): void {
     this._index = new file_index.FileIndex();
   }
@@ -27,6 +39,13 @@ export class InMemory extends indexed_filesystem.IndexedFileSystem {
     return true;
   }
 
+  /**
+   * Passes the size and taken space in bytes to the callback.
+   *
+   * **Note**: We can use all available memory on the system, so we return +Inf.
+   * @param [String] path Unused in the implementation.
+   * @param [Function(Number, Number)] cb
+   */
   public diskSpace(path: string, cb: (total: number, free: number) => void): void {
     return cb(Infinity, util.roughSizeOfObject(this._index));
   }
