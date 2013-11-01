@@ -9,15 +9,68 @@ For more information, see the [wiki](https://github.com/jvilk/BrowserFS/wiki) an
 
 Prerequisites:
 
-* GNU Make (tested with v3.81)
-* Node and NPM (tested with v0.10.4)
-* Typical Unix command-line tools (`find` and `dirname`)
+* Node and NPM
+* Grunt and Bower globally installed: `npm install -g grunt bower`
 
-Once you have the above prerequisites installed, type `make` to build BrowserFS. The minified library can then be found as `lib/browserfs.min.js`.
+Release:
+```
+grunt
+```
+
+The minified release build can be found in `lib/browserfs.js`.
+
+Development:
+```
+grunt dev
+```
+
+The development build can be found as multiple AMD modules in `tmp`.
+
+Custom builds:
+
+If you want to build BrowserFS with a subset of the available backends,
+remove unwanted backends listed in `Gruntfile.js` under the `include`
+property of the `compile` task, and remove the `require` statements for
+unwanted backends in `build/outro.js`. Then, perform a release build.
+
+### Using
+Here's a simple example, using the LocalStorage-backed file system:
+```html
+<script type="text/javascript" src="browserfs.js"></script>
+<script type="text/javascript">
+  // Installs globals onto window:
+  // * Buffer
+  // * require (monkey-patches if already defined)
+  // * process
+  // You can pass in an arbitrary object if you do not wish to pollute
+  // the global namespace.
+  BrowserFS.install(window);
+  // Grabs the constructor for the LocalStorage-backed file system.
+  var lsfsCons = BrowserFS.getFsConstructor('LocalStorage');
+  // Constructs an instance of the LocalStorage-backed file system.
+  var lsfs = new lsfsCons();
+  // Initialize it as the root file system.
+  BrowserFS.initialize(lsfs);
+</script>
+```
+
+Now, you can write code like this:
+```javascript
+var fs = require('fs');
+fs.writeFile('/test.txt', 'Cool, I can do this in the browser!', function(err) {
+  fs.readFile('/test.txt', function(err, contents) {
+    console.log(contents.toString());
+  });
+});
+```
 
 ### Testing
 
-To run unit tests, simply run `make test` **(NOTE: This will launch multiple web browsers!)**. You may need to change `karma.conf.js` if you do not have Chrome, Safari, Opera, and Firefox installed.
+Prerequisites:
+
+* Karma globally installed: `npm install -g karma`
+
+To run unit tests, simply run `grunt test` **(NOTE: This will launch multiple web browsers!)**. You may need to change `build/karma.conf.js` if you do not have Chrome, Safari, Opera, and Firefox installed.
 
 ### License
 

@@ -4,22 +4,21 @@
 module.exports = function(config) {
   config.set({
     // base path, that will be used to resolve files and exclude
-    basePath: '',
+    basePath: '../',
 
     frameworks: ['jasmine'],
 
     // list of files / patterns to load in the browser
     files: [
-      'vendor/*.js',
-      'vendor/async/lib/async.js',
-      'vendor/dropbox-build/dropbox.js',
-      'src/core/*.coffee',
-      'src/generic/*.coffee',
-      'src/backend/*.coffee',
+      'tmp/core/polyfills.js',
+      'vendor/typedarray.js',
+      'vendor/assert/assert.js',
+      'vendor/requirejs/require.js',
+      'vendor/dropbox-build/dropbox.min.js',
       'lib/load_fixtures.js',
-      'test/000-setup.js',
+      'test/setup.js',
       'test/node/*.js',
-      'test/zzz-test_def.js'
+      {pattern: 'tmp/**/*.js', included: false, served: true}
     ],
 
     // list of files to exclude
@@ -27,11 +26,6 @@ module.exports = function(config) {
       'test/node/test-fs-realpath.js',
       'test/node/test-fs-sir-writes-alot.js'
     ],
-
-    // compile coffee scripts
-    preprocessors: {
-      'src/**/*.coffee': 'coffee'
-    },
 
     // test results reporter to use
     // possible values: 'dots', 'progress', 'junit'

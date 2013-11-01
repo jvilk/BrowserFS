@@ -1,73 +1,37 @@
-/*global module:false*/
-module.exports = function(grunt) {
+var fs = require('fs');
+var path = require('path');
 
-  // Project configuration.
+// Removes a directory if it exists.
+// Throws an exception if deletion fails.
+function removeDir(dir) {
+  if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
+    // Delete its contents, since you can't delete non-empty folders.
+    // :(
+    var files = fs.readdirSync(dir);
+    for (var i = 0; i < files.length; i++) {
+      var fname = dir + path.sep + files[i];
+      if (fs.statSync(fname).isDirectory()) {
+        removeDir(fname);
+      } else {
+        removeFile(fname);
+      }
+    }
+    fs.rmdirSync(dir);
+  }
+}
+
+// Removes a file if it exists.
+// Throws an exception if deletion fails.
+function removeFile(file) {
+  if (fs.existsSync(file) && fs.statSync(file).isFile()) {
+    fs.unlinkSync(file);
+  }
+}
+
+module.exports = function(grunt) {
   grunt.initConfig({
     // Metadata.
     pkg: grunt.file.readJSON('package.json'),
-    banner: '/*! <%= pkg.title || pkg.name %> - v<%= pkg.version %> - ' +
-      '<%= grunt.template.today("yyyy-mm-dd") %>\n' +
-      '<%= pkg.homepage ? "* " + pkg.homepage + "\\n" : "" %>' +
-      '* Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author.name %>;' +
-      ' Licensed <%= _.pluck(pkg.licenses, "type").join(", ") %> */\n',
-    // Task configuration.
-    concat: {
-      options: {
-        banner: '<%= banner %>',
-        stripBanners: true
-      },
-      dist: {
-        src: ['lib/<%= pkg.name %>.js'],
-        dest: 'dist/<%= pkg.name %>.js'
-      }
-    },
-    uglify: {
-      options: {
-        banner: '<%= banner %>'
-      },
-      dist: {
-        src: '<%= concat.dist.dest %>',
-        dest: 'dist/<%= pkg.name %>.min.js'
-      }
-    },
-    jshint: {
-      options: {
-        curly: true,
-        eqeqeq: true,
-        immed: true,
-        latedef: true,
-        newcap: true,
-        noarg: true,
-        sub: true,
-        undef: true,
-        unused: true,
-        boss: true,
-        eqnull: true,
-        browser: true,
-        globals: {
-          jQuery: true
-        }
-      },
-      gruntfile: {
-        src: 'Gruntfile.js'
-      },
-      lib_test: {
-        src: ['lib/**/*.js', 'test/**/*.js']
-      }
-    },
-    qunit: {
-      files: ['test/**/*.html']
-    },
-    watch: {
-      gruntfile: {
-        files: '<%= jshint.gruntfile.src %>',
-        tasks: ['jshint:gruntfile']
-      },
-      lib_test: {
-        files: '<%= jshint.lib_test.src %>',
-        tasks: ['jshint:lib_test', 'qunit']
-      }
-    },
     connect: {
       server: {
         options: {
@@ -77,21 +41,106 @@ module.exports = function(grunt) {
     },
     karma: {
       unit: {
-        configFile: 'karma.conf.js'
+        configFile: 'build/karma.conf.js'
+      }
+    },
+    ts: {
+      options: {
+        sourcemap: true,
+        module: 'amd',
+        comments: true
+      },
+      dev: {
+        src: ["src/**/*.ts"],
+        outDir: 'tmp'
+      },
+      watch: {
+        // Performs a dev build and rebuilds when changes are made.
+        src: ["src/**/*.ts"],
+        outDir: 'tmp',
+        watch: 'src'
+      }
+    },
+    requirejs: {
+      compile: {
+        options: {
+          // The output of the TypeScript compiler goes into this directory.
+          baseUrl: 'tmp',
+          // The main module that installs the BrowserFS global and needed polyfills.
+          name: '../vendor/almond/almond',
+          wrap: {
+            startFile: ['build/intro.js', 'tmp/core/polyfills.js', 'vendor/typedarray.js'],
+            endFile: 'build/outro.js'
+          },
+          out: 'lib/browserfs.js',
+          optimize: 'uglify2',
+          generateSourceMaps: true,
+          // Need to set to false for source maps to work.
+          preserveLicenseComments: false,
+          // List all of the backends you want in your build here.
+          include: ['core/browserfs',
+                    'backend/dropbox',
+                    'backend/html5fs',
+                    'backend/in_memory',
+                    'backend/localStorage',
+                    'backend/mountable_file_system',
+                    'backend/XmlHttpRequest']
+        }
+      }
+    },
+    shell: {
+      gen_cert: {
+        command: [
+          // Short circuit if the certificate exists.
+          'test ! -e test/dropbox/cert.pem',
+          'mkdir -p test/dropbox',
+          'openssl req -new -x509 -days 365 -nodes -batch -out test/dropbox/cert.pem -keyout test/dropbox/cert.pem -subj /O=dropbox.js/OU=Testing/CN=localhost'
+        ].join('&&')
+      },
+      gen_token: {
+        command: './node_modules/.bin/coffee tools/get_db_credentials.coffee'
+      },
+      load_fixtures: {
+        command: './node_modules/.bin/coffee tools/FixtureLoaderMaker.coffee'
+      },
+      gen_listings: {
+        command: './node_modules/.bin/coffee tools/XHRIndexer.coffee',
+        options: {
+          callback: function(err, stdout, stderr, cb) {
+            if (err) throw err;
+            // Write listings to a file.
+            fs.writeFileSync('./listings.json', stdout);
+            cb();
+          }
+        }
       }
     }
   });
 
-  // These plugins provide necessary tasks.
-  // grunt.loadNpmTasks('grunt-contrib-concat');
-  // grunt.loadNpmTasks('grunt-contrib-uglify');
-  // grunt.loadNpmTasks('grunt-contrib-qunit');
-  // grunt.loadNpmTasks('grunt-contrib-jshint');
-  // grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-ts');
+  grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-connect');
+  grunt.loadNpmTasks('grunt-contrib-requirejs');
   grunt.loadNpmTasks('grunt-karma');
+  grunt.loadNpmTasks('grunt-shell');
 
-  // Default task.
-  grunt.registerTask('default', ['connect', 'karma']);
+  grunt.registerTask('clean', 'Removes all built files.', function() {
+    removeFile('./listings.json');
+    removeFile('./lib/browserfs.js');
+    removeFile('./lib/browserfs.js.map');
+    removeFile('./lib/load_fixtures.js');
+    removeDir('./tmp');
+    removeDir('./test/dropbox');
+  });
 
+  // test
+  grunt.registerTask('test', ['ts:dev', 'shell:gen_listings', 'shell:load_fixtures', 'connect', 'karma']);
+  // testing dropbox
+  grunt.registerTask('dropbox_test', ['ts:dev', 'shell:gen_listings', 'shell:load_fixtures', 'shell:gen_cert', 'shell:gen_token', 'connect', 'karma']);
+  // dev build
+  grunt.registerTask('dev', ['ts:dev']);
+  // dev build + watch for changes.
+  grunt.registerTask('watch', ['ts:watch']);
+  // release build (default)
+  grunt.registerTask('default', ['ts:dev', 'requirejs']);
 };
