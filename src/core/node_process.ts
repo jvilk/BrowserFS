@@ -7,10 +7,10 @@ var path = node_path.path;
  * @see http://nodejs.org/api/process.html
  * @class
  */
-export class process {
-  private static startTime = Date.now();
+export class Process {
+  private startTime = Date.now();
 
-  private static _cwd: string = '/';
+  private _cwd: string = '/';
   /**
    * Changes the current working directory.
    *
@@ -22,7 +22,7 @@ export class process {
    *   console.log('New directory: ' + process.cwd());
    * @param [String] dir The directory to change to.
    */
-  public static chdir(dir: string): void {
+  public chdir(dir: string): void {
     this._cwd = path.resolve(dir);
   }
   /**
@@ -31,19 +31,30 @@ export class process {
    *   console.log('Current directory: ' + process.cwd());
    * @return [String] The current working directory.
    */
-  public static cwd(): string {
+  public cwd(): string {
     return this._cwd;
   }
   /**
    * Returns what platform you are running on.
    * @return [String]
    */
-  public static platform: string = 'browser';
+  public platform: string = 'browser';
   /**
    * Number of seconds BrowserFS has been running.
    * @return [Number]
    */
-  public static uptime(): number {
+  public uptime(): number {
     return ((Date.now() - this.startTime) / 1000) | 0;
   }
+
+  public argv: string[] = [];
+  public stdout(print: string) {
+    window.alert(print);
+  }
+  public stdin(prompt?: string) {
+    return window.prompt(prompt ? prompt : 'Input: ');
+  }
 }
+
+// process is a singleton.
+export var process = new Process();

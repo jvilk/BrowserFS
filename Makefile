@@ -26,14 +26,13 @@ FIXTURES  := $(shell find test/fixtures -name '*')
 release: lib/browserfs.js
 dev: $(BINS)
 watch:
-	$(TSC) -w --outDir tmp --module amd --sourcemap $(SRCS)
+	grunt watch
 
 dropbox_test: dropbox_tokens test
 
 test: dev $(GRUNT) $(KARMA) listings.json lib/load_fixtures.js \
 	vendor/async/lib/async.js vendor/dropbox-build/dropbox.js
-	$(GRUNT)
-doc: doc/index.html
+	grunt test
 clean:
 	@rm listings.json
 	@rm -f lib/*.js lib/*.map
@@ -55,15 +54,15 @@ $(BOW_DEPS): $(BOWER)
 	$(BOWER) install
 
 listings.json: tools/XHRIndexer.coffee $(FIXTURES)
-	$(COFFEE) tools/XHRIndexer.coffee > listings.json
+	$(COFFEE) tools/XHRIndexer.coffee
 
 # Release build
-lib/browserfs.js: $(BINS) $(RJS)
-	$(RJS) -o build/build.js
+lib/browserfs.js:
+	grunt
 
 # Development build
-$(BINS): $(SRCS) $(TSC) $(BOW_DEPS)
-	$(TSC) --outDir tmp --module amd --sourcemap $(SRCS)
+$(BINS):
+	grunt dev
 
 lib/load_fixtures.js: tools/FixtureLoaderMaker.coffee $(COFFEE) $(FIXTURES)
 	$(COFFEE) $<
