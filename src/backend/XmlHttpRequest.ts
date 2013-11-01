@@ -58,6 +58,9 @@ export class XmlHttpRequest extends file_system.FileSystem {
   public _requestFileSizeAsync(path: string, cb: (err: api_error.ApiError, size?: number) => void): void {
     xhr.getFileSizeAsync(this.prefix_url + path, cb);
   }
+  public _requestFileSizeSync(path: string): number {
+    return xhr.getFileSizeSync(this.prefix_url + path);
+  }
 
   /**
    * Asynchronously download the given file.
@@ -107,7 +110,7 @@ export class XmlHttpRequest extends file_system.FileSystem {
   }
 
   public supportsSynch(): boolean {
-    return false;
+    return true;
   }
 
   /**
@@ -150,6 +153,24 @@ export class XmlHttpRequest extends file_system.FileSystem {
     }
   }
 
+  public statSync(path: string, isLstat: boolean): node_fs_stats.Stats {
+    var inode = this._index.getInode(path);
+    if (inode === null) {
+      throw new ApiError(ErrorType.NOT_FOUND, "" + path + " not found.");
+    }
+    var stats: node_fs_stats.Stats;
+    if (inode.isFile()) {
+      stats = <node_fs_stats.Stats> inode;
+      // At this point, a non-opened file will still have default stats from the listing.
+      if (stats.size < 0) {
+        stats.size = this._requestFileSizeSync(path);
+      }
+    } else {
+      stats = (<file_index.DirInode> inode).getStats();
+    }
+    return stats;
+  }
+
   public open(path: string, flags: file_flag.FileFlag, mode: number, cb: (e: api_error.ApiError, file?: file.File) => void): void {
     var _this = this;
     // Check if the path exists, and is a file.
@@ -186,15 +207,53 @@ export class XmlHttpRequest extends file_system.FileSystem {
     }
   }
 
+  public openSync(path: string, flags: file_flag.FileFlag, mode: number): file.File {
+    // Check if the path exists, and is a file.
+    var inode = <node_fs_stats.Stats> this._index.getInode(path);
+    if (inode === null) {
+      throw new ApiError(ErrorType.NOT_FOUND, "" + path + " is not in the FileIndex.");
+    }
+    if (inode.isDirectory()) {
+      throw new ApiError(ErrorType.NOT_FOUND, "" + path + " is a directory.");
+    }
+    switch (flags.pathExistsAction()) {
+      case ActionType.THROW_EXCEPTION:
+      case ActionType.TRUNCATE_FILE:
+        throw new ApiError(ErrorType.NOT_FOUND, "" + path + " already exists.");
+      case ActionType.NOP:
+        // Use existing file contents.
+        // XXX: Uh, this maintains the previously-used flag.
+        if (inode.file_data != null) {
+          return inode.file_data;
+        }
+        // @todo be lazier about actually requesting the file
+        var buffer = this._requestFileSync(path, 'buffer');
+        // we don't initially have file sizes
+        inode.size = buffer.length;
+        inode.file_data = new preload_file.NoSyncFile(this, path, flags, inode, buffer);
+        return inode.file_data;
+      default:
+        throw new ApiError(ErrorType.INVALID_PARAM, 'Invalid FileMode object.');
+    }
+  }
+
   public readdir(path: string, cb: (e: api_error.ApiError, listing?: string[]) => void): void {
+    try {
+      cb(null, this.readdirSync(path));
+    } catch (e) {
+      cb(e);
+    }
+  }
+
+  public readdirSync(path: string): string[] {
     // Check if it exists.
     var inode = this._index.getInode(path);
     if (inode === null) {
-      return cb(new ApiError(ErrorType.NOT_FOUND, "" + path + " not found."));
+      throw new ApiError(ErrorType.NOT_FOUND, "" + path + " not found.");
     } else if (inode.isFile()) {
-      return cb(new ApiError(ErrorType.NOT_FOUND, "" + path + " is a file, not a directory."));
+      throw new ApiError(ErrorType.NOT_FOUND, "" + path + " is a file, not a directory.");
     }
-    return cb(null, (<file_index.DirInode> inode).getListing());
+    return (<file_index.DirInode> inode).getListing();
   }
 }
 
