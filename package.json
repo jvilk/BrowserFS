@@ -23,7 +23,6 @@
   "main": "lib/browserfs.js",
   "devDependencies": {
     "async": ">= 0.2.7",
-    "karma": "*",
     "karma-opera-launcher": "*",
     "karma-safari-launcher": "*",
     "coffee-script": ">= 1.6.2",
@@ -34,12 +33,14 @@
     "grunt-contrib-requirejs": "*",
     "grunt-contrib-watch": "*",
     "grunt-ts": "*",
-    "grunt": "~0.4.1",
     "xhr2": "*",
     "open": "*",
     "dropbox": "~0.10.1",
-    "bower": "*",
     "typescript": "*",
     "requirejs": "*"
+  },
+  "scripts": {
+    "install": "bower install",
+    "test": "grunt test"
   }
 }
