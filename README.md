@@ -31,7 +31,7 @@ Custom builds:
 If you want to build BrowserFS with a subset of the available backends,
 remove unwanted backends listed in `Gruntfile.js` under the `include`
 property of the `compile` task, and remove the `require` statements for
-unwanted backends in `build/outro.js'. Then, perform a release build.
+unwanted backends in `build/outro.js`. Then, perform a release build.
 
 ### Using
 Here's a simple example, using the LocalStorage-backed file system:
