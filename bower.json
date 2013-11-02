@@ -18,6 +18,7 @@
     "DefinitelyTyped": "*",
     "almond": "*",
     "requirejs": "*",
-    "assert": "*"
+    "assert": "*",
+    "jasmine": "*"
   }
 }

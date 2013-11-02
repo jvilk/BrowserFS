@@ -40,7 +40,8 @@
     "requirejs": "*",
     "grunt-shell": "~0.5.0",
     "bower": "*",
-    "grunt-cli": "*"
+    "grunt-cli": "*",
+    "jasmine-tapreporter": "*"
   },
   "scripts": {
     "install": "./node_modules/.bin/bower install && ./node_modules/.bin/grunt dev",
@@ -51,6 +52,8 @@
       "chrome": [20]
     },
     "scripts": [
+      "vendor/jasmine/lib/jasmine-core/jasmine.js",
+      "node_modules/jasmine-tapreporter/src/tapreporter.js",
       "tmp/core/polyfills.js",
       "vendor/typedarray.js",
       "vendor/assert/assert.js",

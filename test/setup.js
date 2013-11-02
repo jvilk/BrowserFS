@@ -1,6 +1,12 @@
 // Prevent Karma from auto-executing.
-__karma__.loaded = function() {};
+// There's no Karma in the Testling environment.
+if (typeof __karma__ !== 'undefined') {
+  __karma__.loaded = function() {};
+}
 window.tests = {};
+
+// Add a TAP reporter so we get decent console output.
+jasmine.getEnv().addReporter(new TAPReporter(console.log));
 
 // Defines/generates all of our Jasmine unit tests from the node unit tests.
 // XXX: We need to list all of the backends here so they will register themselves
@@ -51,7 +57,6 @@ function(BrowserFS) {
   // Generates a unit test.
   var generateTest = function(testName, test) {
     it (testName, function() {
-      console.log("Running " + testName);
       runs(function() {
         // Reset the exit callback.
         process.on('exit', function(){});
@@ -97,7 +102,13 @@ function(BrowserFS) {
       var _backend = backends[i];
       describe(_backend.getName(), testGeneratorFactory(_backend));
     }
-    __karma__.start();
+    if (typeof __karma__ !== 'undefined') {
+      // Normal unit testing.
+      __karma__.start();
+    } else {
+      // Testling environment.
+      jasmine.getEnv().execute();
+    }
    }, 1000);
   };
 
