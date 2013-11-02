@@ -143,4 +143,6 @@ module.exports = function(grunt) {
   grunt.registerTask('watch', ['ts:watch']);
   // release build (default)
   grunt.registerTask('default', ['ts:dev', 'requirejs']);
+  // testling
+  grunt.registerTask('testling', ['default', 'shell:gen_listings', 'shell:load_fixtures']);
 };
