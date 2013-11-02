@@ -38,10 +38,12 @@
     "dropbox": "~0.10.1",
     "typescript": "*",
     "requirejs": "*",
-    "grunt-shell": "~0.5.0"
+    "grunt-shell": "~0.5.0",
+    "bower": "*",
+    "grunt-cli": "*"
   },
   "scripts": {
-    "install": "bower install && grunt dev",
+    "install": "./node_modules/.bin/bower install && ./node_modules/.bin/grunt dev",
     "test": "grunt test"
   },
   "testling": {
