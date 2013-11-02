@@ -19,7 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-window.test.fs_realpath = function() {
+window.tests.fs_realpath = function() {
 
 var async_completed = 0, async_expected = 0, unlink = [];
 var isWindows = process.platform === 'win32';
