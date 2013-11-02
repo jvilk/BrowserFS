@@ -189,7 +189,7 @@ function syncDownloadFileIE10(p: string, type: string): any {
       req.responseType = 'arraybuffer';
       break;
     case 'json':
-      req.responseType = 'json';
+      // IE10 does not support the JSON type.
       break;
     default:
       throw new ApiError(ErrorType.INVALID_PARAM, "Invalid download type: " + type);
@@ -202,8 +202,10 @@ function syncDownloadFileIE10(p: string, type: string): any {
         switch(type) {
           case 'buffer':
             data = new Buffer(req.response);
+            break;
           case 'json':
-            data = req.response;
+            data = JSON.parse(req.response);
+            break;
         }
       } else {
         err = new ApiError(req.status, "XHR error.");
