@@ -10,6 +10,7 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
+      'node_modules/jasmine-tapreporter/src/tapreporter.js',
       'tmp/core/polyfills.js',
       'vendor/typedarray.js',
       'vendor/assert/assert.js',
@@ -23,8 +24,6 @@ module.exports = function(config) {
 
     // list of files to exclude
     exclude: [
-      'test/node/test-fs-realpath.js',
-      'test/node/test-fs-sir-writes-alot.js'
     ],
 
     // test results reporter to use
@@ -61,7 +60,7 @@ module.exports = function(config) {
     // - Safari (only Mac)
     // - PhantomJS
     // - IE (only Windows)
-    browsers: ['Chrome', 'Opera', 'Firefox', 'Safari'],
+    browsers: ['Chrome'],
 
 
     // If browser does not capture in given timeout [ms], kill it
