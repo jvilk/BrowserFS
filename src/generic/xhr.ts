@@ -20,7 +20,7 @@ var Buffer = buffer.Buffer;
  *       reload in Firefox, and does something bizarre in Chrome/Safari that
  *       causes all of our unit tests to fail.
  */
-if (util.isIE) {
+if (util.isIE && typeof Blob === 'undefined') {
   document.write("<!-- IEBinaryToArray_ByteStr -->\r\n" +
     "<script type='text/vbscript'>\r\n" +
     "Function getIEByteArray(byteArray, out)\r\n" +
@@ -174,6 +174,49 @@ function syncDownloadFileModern(p: string, type: string): any {
   return data;
 }
 
+/**
+ * IE10 allows us to perform synchronous binary file downloads.
+ * @todo Feature detect this, as older versions of FF/Chrome do too!
+ */
+function syncDownloadFileIE10(p: string, type: 'buffer'): buffer.Buffer;
+function syncDownloadFileIE10(p: string, type: 'json'): any;
+function syncDownloadFileIE10(p: string, type: string): any;
+function syncDownloadFileIE10(p: string, type: string): any {
+  var req = new XMLHttpRequest();
+  req.open('GET', p, false);
+  switch(type) {
+    case 'buffer':
+      req.responseType = 'arraybuffer';
+      break;
+    case 'json':
+      req.responseType = 'json';
+      break;
+    default:
+      throw new ApiError(ErrorType.INVALID_PARAM, "Invalid download type: " + type);
+  }
+  var data;
+  var err;
+  req.onreadystatechange = function(e) {
+    if (req.readyState === 4) {
+      if (req.status === 200) {
+        switch(type) {
+          case 'buffer':
+            data = new Buffer(req.response);
+          case 'json':
+            data = req.response;
+        }
+      } else {
+        err = new ApiError(req.status, "XHR error.");
+      }
+    }
+  };
+  req.send();
+  if (err) {
+    throw err;
+  }
+  return data;
+}
+
 function getFileSize(async: boolean, p: string, cb: (err: api_error.ApiError, size?: number) => void): void {
   var req = new XMLHttpRequest();
   req.open('HEAD', p, async);
@@ -217,7 +260,7 @@ export var syncDownloadFile: {
   (p: string, type: 'buffer'): buffer.Buffer;
   (p: string, type: 'json'): any;
   (p: string, type: string): any;
-} = (util.isIE && typeof Blob === 'undefined') ? syncDownloadFileIE : syncDownloadFileModern;
+} = (util.isIE && typeof Blob === 'undefined') ? syncDownloadFileIE : (util.isIE && typeof Blob !== 'undefined') ? syncDownloadFileIE10 : syncDownloadFileModern;
 
 /**
  * Synchronously retrieves the size of the given file in bytes.

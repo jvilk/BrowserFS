@@ -38,10 +38,25 @@
     "dropbox": "~0.10.1",
     "typescript": "*",
     "requirejs": "*",
-    "grunt-shell": "~0.5.0"
+    "grunt-shell": "~0.5.0",
   },
   "scripts": {
-    "install": "bower install",
+    "install": "bower install && grunt dev",
     "test": "grunt test"
+  },
+  "testling": {
+    "browsers": {
+      "chrome": [ 20 ]
+    },
+    "scripts": [
+      "tmp/core/polyfills.js",
+      "vendor/typedarray.js",
+      "vendor/assert/assert.js",
+      "vendor/requirejs/require.js",
+      "vendor/dropbox-build/dropbox.min.js",
+      "lib/load_fixtures.js",
+      "test/setup.js",
+      "test/node/*.js"
+    ]
   }
 }
