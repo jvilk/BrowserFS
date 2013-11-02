@@ -38,7 +38,7 @@
     "dropbox": "~0.10.1",
     "typescript": "*",
     "requirejs": "*",
-    "grunt-shell": "~0.5.0",
+    "grunt-shell": "~0.5.0"
   },
   "scripts": {
     "install": "bower install && grunt dev",
