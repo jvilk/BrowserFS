@@ -11,26 +11,7 @@ var ApiError = api_error.ApiError;
 var ErrorType = api_error.ErrorType;
 var Buffer = buffer.Buffer;
 
-/**
- * IE9 and below only: Injects a VBScript function that converts the
- * 'responseBody' attribute of an XMLHttpRequest into a bytestring.
- * From ExtJS: http://docs-origin.sencha.com/extjs/4.1.3/source/Connection.html
- *
- * NOTE: We *must* perform this check, as document.write causes a full page
- *       reload in Firefox, and does something bizarre in Chrome/Safari that
- *       causes all of our unit tests to fail.
- */
-if (util.isIE && typeof Blob === 'undefined') {
-  document.write("<!-- IEBinaryToArray_ByteStr -->\r\n" +
-    "<script type='text/vbscript'>\r\n" +
-    "Function getIEByteArray(byteArray, out)\r\n" +
-    "  Dim len, i\r\n" + "  len = LenB(byteArray)\r\n" +
-    "  For i = 1 to len\r\n" +
-    "    out.push(AscB(MidB(byteArray, i, 1)))\r\n" +
-    "  Next\r\n" +
-    "End Function\r\n" +
-    "</script>\r\n");
-}
+// See core/polyfills for the VBScript definition of this function.
 declare var getIEByteArray: (vbarr: any, arr: number[]) => void;
 
 function downloadFileIE(async: boolean, p: string, type: string, cb: (err: api_error.ApiError, data?: any) => void): void {
@@ -65,14 +46,14 @@ function downloadFileIE(async: boolean, p: string, type: string, cb: (err: api_e
   req.send();
 }
 
-function asyncDownloadFileIE(p: string, type: 'buffer', cb: (err: api_error.ApiError, data?: buffer.Buffer) => void): void;
+function asyncDownloadFileIE(p: string, type: 'buffer', cb: (err: api_error.ApiError, data?: NodeBuffer) => void): void;
 function asyncDownloadFileIE(p: string, type: 'json', cb: (err: api_error.ApiError, data?: any) => void): void;
 function asyncDownloadFileIE(p: string, type: string, cb: (err: api_error.ApiError, data?: any) => void): void;
 function asyncDownloadFileIE(p: string, type: string, cb: (err: api_error.ApiError, data?: any) => void): void {
   downloadFileIE(true, p, type, cb);
 }
 
-function syncDownloadFileIE(p: string, type: 'buffer'): buffer.Buffer;
+function syncDownloadFileIE(p: string, type: 'buffer'): NodeBuffer;
 function syncDownloadFileIE(p: string, type: 'json'): any;
 function syncDownloadFileIE(p: string, type: string): any;
 function syncDownloadFileIE(p: string, type: string): any {
@@ -84,7 +65,7 @@ function syncDownloadFileIE(p: string, type: string): any {
   return rv;
 }
 
-function asyncDownloadFileModern(p: string, type: 'buffer', cb: (err: api_error.ApiError, data?: buffer.Buffer) => void): void;
+function asyncDownloadFileModern(p: string, type: 'buffer', cb: (err: api_error.ApiError, data?: NodeBuffer) => void): void;
 function asyncDownloadFileModern(p: string, type: 'json', cb: (err: api_error.ApiError, data?: any) => void): void;
 function asyncDownloadFileModern(p: string, type: string, cb: (err: api_error.ApiError, data?: any) => void): void;
 function asyncDownloadFileModern(p: string, type: string, cb: (err: api_error.ApiError, data?: any) => void): void {
@@ -131,7 +112,7 @@ function asyncDownloadFileModern(p: string, type: string, cb: (err: api_error.Ap
   req.send();
 }
 
-function syncDownloadFileModern(p: string, type: 'buffer'): buffer.Buffer;
+function syncDownloadFileModern(p: string, type: 'buffer'): NodeBuffer;
 function syncDownloadFileModern(p: string, type: 'json'): any;
 function syncDownloadFileModern(p: string, type: string): any;
 function syncDownloadFileModern(p: string, type: string): any {
@@ -178,7 +159,7 @@ function syncDownloadFileModern(p: string, type: string): any {
  * IE10 allows us to perform synchronous binary file downloads.
  * @todo Feature detect this, as older versions of FF/Chrome do too!
  */
-function syncDownloadFileIE10(p: string, type: 'buffer'): buffer.Buffer;
+function syncDownloadFileIE10(p: string, type: 'buffer'): NodeBuffer;
 function syncDownloadFileIE10(p: string, type: 'json'): any;
 function syncDownloadFileIE10(p: string, type: string): any;
 function syncDownloadFileIE10(p: string, type: string): any {
@@ -247,7 +228,7 @@ function getFileSize(async: boolean, p: string, cb: (err: api_error.ApiError, si
  * constants.
  */
 export var asyncDownloadFile: {
-  (p: string, type: 'buffer', cb: (err: api_error.ApiError, data?: buffer.Buffer) => void): void;
+  (p: string, type: 'buffer', cb: (err: api_error.ApiError, data?: NodeBuffer) => void): void;
   (p: string, type: 'json', cb: (err: api_error.ApiError, data?: any) => void): void;
   (p: string, type: string, cb: (err: api_error.ApiError, data?: any) => void): void;
 } = (util.isIE && typeof Blob === 'undefined') ? asyncDownloadFileIE : asyncDownloadFileModern;
@@ -259,7 +240,7 @@ export var asyncDownloadFile: {
  * constants.
  */
 export var syncDownloadFile: {
-  (p: string, type: 'buffer'): buffer.Buffer;
+  (p: string, type: 'buffer'): NodeBuffer;
   (p: string, type: 'json'): any;
   (p: string, type: string): any;
 } = (util.isIE && typeof Blob === 'undefined') ? syncDownloadFileIE : (util.isIE && typeof Blob !== 'undefined') ? syncDownloadFileIE10 : syncDownloadFileModern;

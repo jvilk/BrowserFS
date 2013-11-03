@@ -438,9 +438,9 @@ export class fs {
    * @option options [String] flag Defaults to `'r'`.
    * @return [String | BrowserFS.node.Buffer]
    */
-  public static readFileSync(filename: string, encoding?: string): buffer.Buffer;
-  public static readFileSync(filename: string, options?: { encoding?: string; flag?: string; }): buffer.Buffer;
-  public static readFileSync(filename: string, arg2: any = {}): buffer.Buffer {
+  public static readFileSync(filename: string, encoding?: string): NodeBuffer;
+  public static readFileSync(filename: string, options?: { encoding?: string; flag?: string; }): NodeBuffer;
+  public static readFileSync(filename: string, arg2: any = {}): NodeBuffer {
     var options = normalizeOptions(arg2, null, 'r', null);
     var flag = FileFlag.getFileFlag(options.flag);
     if (!flag.isReadable()) {
@@ -719,13 +719,13 @@ export class fs {
    * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
    *   callback The number specifies the number of bytes written into the file.
    */
-  public static write(fd: file.BaseFile, buffer: buffer.Buffer, offset: number, length: number, cb?: (err: api_error.ApiError, written?: number, buffer?: buffer.Buffer) => any): void;
-  public static write(fd: file.BaseFile, buffer: buffer.Buffer, offset: number, length: number, position?: number, cb?: (err: api_error.ApiError, written?: number, buffer?: buffer.Buffer) => any): void;
-  public static write(fd: file.BaseFile, data: string, cb?: (err: api_error.ApiError, written?: number, buffer?: buffer.Buffer) => any): void;
-  public static write(fd: file.BaseFile, data: string, position: number, cb?: (err: api_error.ApiError, written?: number, buffer?: buffer.Buffer) => any): void;
-  public static write(fd: file.BaseFile, data: string, position: number, encoding: string, cb?: (err: api_error.ApiError, written?: number, buffer?: buffer.Buffer) => any): void;
-  public static write(fd: file.BaseFile, arg2: any, arg3?: any, arg4?: any, arg5?: any, cb: (err: api_error.ApiError, written?: number, buffer?: buffer.Buffer) => any = nopCb): void {
-    var buffer: buffer.Buffer, offset: number, length: number, position: number = null;
+  public static write(fd: file.BaseFile, buffer: NodeBuffer, offset: number, length: number, cb?: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
+  public static write(fd: file.BaseFile, buffer: NodeBuffer, offset: number, length: number, position?: number, cb?: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
+  public static write(fd: file.BaseFile, data: string, cb?: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
+  public static write(fd: file.BaseFile, data: string, position: number, cb?: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
+  public static write(fd: file.BaseFile, data: string, position: number, encoding: string, cb?: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
+  public static write(fd: file.BaseFile, arg2: any, arg3?: any, arg4?: any, arg5?: any, cb: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any = nopCb): void {
+    var buffer: NodeBuffer, offset: number, length: number, position: number = null;
     if (typeof arg2 === 'string') {
       // Signature 1: (fd, string, [position?, [encoding?]], cb?)
       var encoding = 'utf8';
@@ -757,7 +757,7 @@ export class fs {
       cb = typeof arg5 === 'function' ? arg5 : cb;
     }
 
-    var newCb = <(err: api_error.ApiError, written?: number, buffer?: buffer.Buffer) => any> wrapCb(cb, 3);
+    var newCb = <(err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any> wrapCb(cb, 3);
     try {
       checkFd(fd);
       if (position == null) {
@@ -783,10 +783,10 @@ export class fs {
    *   the current position.
    * @return [Number]
    */
-  public static writeSync(fd: file.BaseFile, buffer: buffer.Buffer, offset: number, length: number, position?: number): void;
+  public static writeSync(fd: file.BaseFile, buffer: NodeBuffer, offset: number, length: number, position?: number): void;
   public static writeSync(fd: file.BaseFile, data: string, position?: number, encoding?: string): void;
   public static writeSync(fd: file.BaseFile, arg2: any, arg3?: any, arg4?: any, arg5?: any): number {
-    var buffer: buffer.Buffer, offset: number = 0, length: number, position: number;
+    var buffer: NodeBuffer, offset: number = 0, length: number, position: number;
     if (typeof arg2 === 'string') {
       // Signature 1: (fd, string, [position?, [encoding?]])
       position = typeof arg3 === 'number' ? arg3 : null;
@@ -824,9 +824,9 @@ export class fs {
    *   callback The number is the number of bytes read
    */
   public static read(fd: file.BaseFile, length: number, position: number, encoding: string, cb?: (err: api_error.ApiError, data?: string, bytesRead?: number) => void): void;
-  public static read(fd: file.BaseFile, buffer: buffer.Buffer, offset: number, length: number, position: number, cb?: (err: api_error.ApiError, bytesRead?: number, buffer?: buffer.Buffer) => void): void;
+  public static read(fd: file.BaseFile, buffer: NodeBuffer, offset: number, length: number, position: number, cb?: (err: api_error.ApiError, bytesRead?: number, buffer?: NodeBuffer) => void): void;
   public static read(fd: file.BaseFile, arg2: any, arg3: any, arg4: any, arg5?: any, cb: (err: api_error.ApiError, arg2?: any, arg3?: any) => void = nopCb): void {
-    var position: number, offset: number, length: number, buffer: buffer.Buffer, newCb: (err: api_error.ApiError, bytesRead?: number, buffer?: buffer.Buffer) => void;
+    var position: number, offset: number, length: number, buffer: NodeBuffer, newCb: (err: api_error.ApiError, bytesRead?: number, buffer?: NodeBuffer) => void;
     if (typeof arg2 === 'number') {
       // legacy interface
       // (fd, length, position, encoding, callback)
@@ -839,7 +839,7 @@ export class fs {
       // XXX: Inefficient.
       // Wrap the cb so we shelter upper layers of the API from these
       // shenanigans.
-      newCb = <(err: api_error.ApiError, bytesRead?: number, buffer?: buffer.Buffer) => void> wrapCb((function(err, bytesRead, buf) {
+      newCb = <(err: api_error.ApiError, bytesRead?: number, buffer?: NodeBuffer) => void> wrapCb((function(err, bytesRead, buf) {
         if (err) {
           return cb(err);
         }
@@ -850,7 +850,7 @@ export class fs {
       offset = arg3;
       length = arg4;
       position = arg5;
-      newCb = <(err: api_error.ApiError, bytesRead?: number, buffer?: buffer.Buffer) => void> wrapCb(cb, 3);
+      newCb = <(err: api_error.ApiError, bytesRead?: number, buffer?: NodeBuffer) => void> wrapCb(cb, 3);
     }
 
     try {
@@ -878,10 +878,10 @@ export class fs {
    * @return [Number]
    */
   public static readSync(fd: file.BaseFile, length: number, position: number, encoding: string): string;
-  public static readSync(fd: file.BaseFile, buffer: buffer.Buffer, offset: number, length: number, position: number): number;
+  public static readSync(fd: file.BaseFile, buffer: NodeBuffer, offset: number, length: number, position: number): number;
   public static readSync(fd: file.BaseFile, arg2: any, arg3: any, arg4: any, arg5?: any): any {
     var shenanigans = false;
-    var buffer: buffer.Buffer, offset: number, length: number, position: number;
+    var buffer: NodeBuffer, offset: number, length: number, position: number;
     if (typeof arg2 === 'number') {
       length = arg2;
       position = arg3;

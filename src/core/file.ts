@@ -14,10 +14,10 @@ export interface File {
   truncateSync(len: number): void;
   sync(cb: Function): void;
   syncSync(): void;
-  write(buffer: buffer.Buffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, written?: number, buffer?: buffer.Buffer) => any): void;
-  writeSync(buffer: buffer.Buffer, offset: number, length: number, position: number): number;
-  read(buffer: buffer.Buffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, bytesRead?: number, buffer?: buffer.Buffer) => void): void;
-  readSync(buffer: buffer.Buffer, offset: number, length: number, position: number): number;
+  write(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
+  writeSync(buffer: NodeBuffer, offset: number, length: number, position: number): number;
+  read(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, bytesRead?: number, buffer?: NodeBuffer) => void): void;
+  readSync(buffer: NodeBuffer, offset: number, length: number, position: number): number;
   datasync(cb: Function): void;
   datasyncSync(): void;
   chown(uid: number, gid: number, cb: Function): void;
@@ -119,7 +119,7 @@ export class BaseFile implements File {
    * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
    *   cb The number specifies the number of bytes written into the file.
    */
-  public write(buffer: buffer.Buffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, written?: number, buffer?: buffer.Buffer) => any): void {
+  public write(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
@@ -136,7 +136,7 @@ export class BaseFile implements File {
    *   the current position.
    * @return [Number]
    */
-  public writeSync(buffer: buffer.Buffer, offset: number, length: number, position: number): number {
+  public writeSync(buffer: NodeBuffer, offset: number, length: number, position: number): number {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
@@ -153,7 +153,7 @@ export class BaseFile implements File {
    * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)] cb The
    *   number is the number of bytes read
    */
-  public read(buffer: buffer.Buffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, bytesRead?: number, buffer?: buffer.Buffer) => void): void {
+  public read(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, bytesRead?: number, buffer?: NodeBuffer) => void): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
@@ -169,7 +169,7 @@ export class BaseFile implements File {
    *   position.
    * @return [Number]
    */
-  public readSync(buffer: buffer.Buffer, offset: number, length: number, position: number): number {
+  public readSync(buffer: NodeBuffer, offset: number, length: number, position: number): number {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 

@@ -139,3 +139,22 @@ if (typeof setImmediate === 'undefined') {
   }
 }
 
+/**
+ * IE9 and below only: Injects a VBScript function that converts the
+ * 'responseBody' attribute of an XMLHttpRequest into a bytestring.
+ * From ExtJS: http://docs-origin.sencha.com/extjs/4.1.3/source/Connection.html
+ *
+ * This must be performed *before* the page finishes loading, otherwise
+ * document.write will refresh the page. :(
+ *
+ * This is harmless to inject into non-IE browsers.
+ */
+document.write("<!-- IEBinaryToArray_ByteStr -->\r\n" +
+  "<script type='text/vbscript'>\r\n" +
+  "Function getIEByteArray(byteArray, out)\r\n" +
+  "  Dim len, i\r\n" + "  len = LenB(byteArray)\r\n" +
+  "  For i = 1 to len\r\n" +
+  "    out.push(AscB(MidB(byteArray, i, 1)))\r\n" +
+  "  Next\r\n" +
+  "End Function\r\n" +
+  "</script>\r\n");

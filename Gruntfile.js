@@ -69,7 +69,7 @@ module.exports = function(grunt) {
           // The main module that installs the BrowserFS global and needed polyfills.
           name: '../vendor/almond/almond',
           wrap: {
-            startFile: ['build/intro.js', 'tmp/core/polyfills.js', 'vendor/typedarray.js'],
+            startFile: ['build/intro.js', 'tmp/core/polyfills.js'],
             endFile: 'build/outro.js'
           },
           out: 'lib/browserfs.js',

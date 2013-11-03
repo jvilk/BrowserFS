@@ -26,7 +26,7 @@ export class PreloadFile extends file.BaseFile {
   public _fs: file_system.FileSystem;
   public _stat: node_fs_stats.Stats;
   public _flag: file_flag.FileFlag;
-  public _buffer: buffer.Buffer;
+  public _buffer: NodeBuffer;
   /**
    * Creates a file with the given path and, optionally, the given contents. Note
    * that, if contents is specified, it will be mutated by the file!
@@ -41,7 +41,7 @@ export class PreloadFile extends file.BaseFile {
    *   contents of the file. PreloadFile will mutate this buffer. If not
    *   specified, we assume it is a new file.
    */
-  constructor(_fs: file_system.FileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: buffer.Buffer) {
+  constructor(_fs: file_system.FileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: NodeBuffer) {
     super();
     this._fs = _fs;
     this._path = _path;
@@ -221,7 +221,7 @@ export class PreloadFile extends file.BaseFile {
    * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
    *   cb The number specifies the number of bytes written into the file.
    */
-  public write(buffer: buffer.Buffer, offset: number, length: number, position: number, cb: (e: api_error.ApiError, len?: number, buff?: buffer.Buffer) => void): void {
+  public write(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (e: api_error.ApiError, len?: number, buff?: NodeBuffer) => void): void {
     try {
       cb(null, this.writeSync(buffer, offset, length, position), buffer);
     } catch (e) {
@@ -242,7 +242,7 @@ export class PreloadFile extends file.BaseFile {
    *   the current position.
    * @return [Number]
    */
-  public writeSync(buffer: buffer.Buffer, offset: number, length: number, position: number): number {
+  public writeSync(buffer: NodeBuffer, offset: number, length: number, position: number): number {
     if (position == null) {
       position = this.getPos();
     }
@@ -282,7 +282,7 @@ export class PreloadFile extends file.BaseFile {
    * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)] cb The
    *   number is the number of bytes read
    */
-  public read(buffer: buffer.Buffer, offset: number, length: number, position: number, cb: (e: api_error.ApiError, len?: number, buff?: buffer.Buffer) => void): void {
+  public read(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (e: api_error.ApiError, len?: number, buff?: NodeBuffer) => void): void {
     try {
       cb(null, this.readSync(buffer, offset, length, position), buffer);
     } catch (e) {
@@ -302,7 +302,7 @@ export class PreloadFile extends file.BaseFile {
    *   position.
    * @return [Number]
    */
-  public readSync(buffer: buffer.Buffer, offset: number, length: number, position: number): number {
+  public readSync(buffer: NodeBuffer, offset: number, length: number, position: number): number {
     if (!this._flag.isReadable()) {
       throw new ApiError(ErrorType.PERMISSIONS_ERROR, 'File not opened with a readable mode.');
     }
@@ -351,7 +351,7 @@ export class PreloadFile extends file.BaseFile {
  * Doesn't sync to anything, so it works nicely for memory-only files.
  */
 export class NoSyncFile extends PreloadFile {
-  constructor(_fs: file_system.FileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: buffer.Buffer) {
+  constructor(_fs: file_system.FileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: NodeBuffer) {
     super(_fs, _path, _flag, _stat, contents);
   }
   /**

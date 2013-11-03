@@ -7,6 +7,12 @@
   }
   // All of our tests will be defined in this hashmap.
   window.tests = {};
+  // Calleable things aren't always Functions... IE9 is dumb :(
+  // http://stackoverflow.com/questions/5538972/console-log-apply-not-working-in-ie9
+  if (typeof console.log == "object") {
+    // Let us use Function.apply, dangit!
+    console.log = Function.prototype.bind.call(console.log, console);
+  }
   // Add a TAP reporter so we get decent console output.
   jasmine.getEnv().addReporter(new TAPReporter(function() {
     console.log.apply(console, arguments);
@@ -120,9 +126,9 @@
     backends.push(new InMemory());
 
     // Add AJAX filesystem
-    var XmlHttpRequest = BrowserFS.getFsConstructor('XmlHttpRequest');
-    if (XmlHttpRequest.isAvailable())
-      backends.push(new XmlHttpRequest('/listings.json'));
+    //var XmlHttpRequest = BrowserFS.getFsConstructor('XmlHttpRequest');
+    //if (XmlHttpRequest.isAvailable())
+    //  backends.push(new XmlHttpRequest('/listings.json'));
 
     // Add mountable filesystem
     var im2 = new InMemory();
@@ -188,8 +194,7 @@
 
     // Add HTML5 FileSystem API backed filesystem
     var HTML5FS = BrowserFS.getFsConstructor('HTML5FS');
-    if (false) {
-    //if (HTML5FS.isAvailable()){
+    if (HTML5FS.isAvailable()){
       var html5fs = new HTML5FS(10, window.TEMPORARY);
       backends.push(html5fs);
       html5fs.allocate(function(err){

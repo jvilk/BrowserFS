@@ -8,6 +8,7 @@ import node_fs_stats = require('../core/node_fs_stats');
 import buffer = require('../core/buffer');
 import file = require('../core/file');
 import browserfs = require('../core/browserfs');
+import buffer_modern = require('../core/buffer_modern');
 
 var Buffer = buffer.Buffer;
 var Stats = node_fs_stats.Stats;
@@ -58,7 +59,7 @@ function _toArray(list?: any[]): any[] {
 //                and throw an error if it does.
 
 export class HTML5FSFile extends preload_file.PreloadFile {
-  constructor(_fs: HTML5FS, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: buffer.Buffer) {
+  constructor(_fs: HTML5FS, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: NodeBuffer) {
     super(_fs, _path, _flag, _stat, contents);
   }
 
@@ -71,7 +72,7 @@ export class HTML5FSFile extends preload_file.PreloadFile {
     var _fs = <HTML5FS> this._fs;
     var success = function(entry) {
       entry.createWriter(function(writer) {
-        var blob = new Blob([self._buffer.buff]);
+        var blob = new Blob([(<buffer_modern.Buffer> self._buffer).buff]);
         var length = blob.size;
         writer.onwriteend = function(event) {
           writer.onwriteend = null;

@@ -20,7 +20,7 @@ export interface StringUtil {
    *   can write
    * @return [Number] number of bytes written into the buffer
    */
-  str2byte(buf: buffer.Buffer, str: string, offset: number, length: number): number;
+  str2byte(buf: NodeBuffer, str: string, offset: number, length: number): number;
   /**
    * Converts the data in the byte array into a string.
    * @todo Is this the best API? Are we doing needless copying?
@@ -105,7 +105,7 @@ export function FindUtil(encoding: string): StringUtil {
  * @see http://en.wikipedia.org/wiki/UTF-8
  */
 export class UTF8 implements StringUtil {
-  public static str2byte(buf: buffer.Buffer, str: string, offset: number, length: number): number {
+  public static str2byte(buf: NodeBuffer, str: string, offset: number, length: number): number {
     var i = 0;
     var j = offset;
     var maxJ = offset + length;
@@ -161,7 +161,6 @@ export class UTF8 implements StringUtil {
         buf.writeUInt8((code & 0x3F) | 0x80, j++);
       }
     }
-    buf._charsWritten = numChars;
     return j - offset;
   }
 
@@ -211,12 +210,11 @@ export class UTF8 implements StringUtil {
  * @see http://en.wikipedia.org/wiki/ASCII
  */
 export class ASCII implements StringUtil {
-  public static str2byte(buf: buffer.Buffer, str: string, offset: number, length: number): number {
+  public static str2byte(buf: NodeBuffer, str: string, offset: number, length: number): number {
     length = str.length > length ? length : str.length;
     for (var i = 0; i < length; i++) {
       buf.writeUInt8(str.charCodeAt(i) % 256, offset + i);
     }
-    buf._charsWritten = length;
     return length;
   }
 
@@ -284,7 +282,7 @@ export class BASE64 implements StringUtil {
     return output;
   }
 
-  public static str2byte(buf: buffer.Buffer, str: string, offset: number, length: number): number {
+  public static str2byte(buf: NodeBuffer, str: string, offset: number, length: number): number {
     var output = '';
     var i = 0;
     str = str.replace(/[^A-Za-z0-9\+\/\=\-\_]/g, '');
@@ -314,8 +312,6 @@ export class BASE64 implements StringUtil {
         break;
       }
     }
-    // Conditional, since BASE64 can pad the end with extra characters.
-    buf._charsWritten = i > str.length ? str.length : i;
     return j;
   }
 
@@ -332,7 +328,7 @@ export class BASE64 implements StringUtil {
  * @see http://en.wikipedia.org/wiki/UCS2
  */
 export class UCS2 implements StringUtil {
-  public static str2byte(buf: buffer.Buffer, str: string, offset: number, length: number): number {
+  public static str2byte(buf: NodeBuffer, str: string, offset: number, length: number): number {
     var len = str.length;
     // Clip length to longest string of valid characters that can fit in the
     // byte range.
@@ -342,7 +338,6 @@ export class UCS2 implements StringUtil {
     for (var i = 0; i < len; i++) {
       buf.writeUInt16LE(str.charCodeAt(i), offset + i * 2);
     }
-    buf._charsWritten = len;
     return len * 2;
   }
 
@@ -393,7 +388,7 @@ export class HEX implements StringUtil {
     return obj;
   })();
 
-  public static str2byte(buf: buffer.Buffer, str: string, offset: number, length: number): number {
+  public static str2byte(buf: NodeBuffer, str: string, offset: number, length: number): number {
     if (str.length % 2 === 1) {
       throw new Error('Invalid hex string');
     }
@@ -408,7 +403,6 @@ export class HEX implements StringUtil {
       var char2 = this.hex2num[str.charAt(2 * i + 1)];
       buf.writeUInt8((char1 << 4) | char2, offset + i);
     }
-    buf._charsWritten = 2 * numBytes;
     return numBytes;
   }
 
@@ -442,10 +436,9 @@ export class HEX implements StringUtil {
  * Everything is little endian.
  */
 export class BINSTR implements StringUtil {
-  public static str2byte(buf: buffer.Buffer, str: string, offset: number, length: number): number {
+  public static str2byte(buf: NodeBuffer, str: string, offset: number, length: number): number {
     // Special case: Empty string
     if (str.length === 0) {
-      buf._charsWritten = 0;
       return 0;
     }
     var numBytes = BINSTR.byteLength(str);
@@ -472,7 +465,6 @@ export class BINSTR implements StringUtil {
         buf.writeUInt16BE(chr, i);
       }
     }
-    buf._charsWritten = Math.floor(numBytes / 2) + 1;
     return numBytes;
   }
 
@@ -516,12 +508,11 @@ export class BINSTR implements StringUtil {
  * IE/older FF version of binary string. One byte per character, offset by 0x20.
  */
 export class BINSTRIE implements StringUtil {
-  public static str2byte(buf: buffer.Buffer, str: string, offset: number, length: number): number {
+  public static str2byte(buf: NodeBuffer, str: string, offset: number, length: number): number {
     length = str.length > length ? length : str.length;
     for (var i = 0; i < length; i++) {
       buf.writeUInt8(str.charCodeAt(i) - 0x20, offset + i);
     }
-    buf._charsWritten = length;
     return length;
   }
 

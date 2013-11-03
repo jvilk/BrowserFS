@@ -15,7 +15,7 @@
   "dependencies": {
     "async": "~0.2.5",
     "dropbox-build": "*",
-    "DefinitelyTyped": "*",
+    "DefinitelyTyped": "latest",
     "almond": "*",
     "requirejs": "*",
     "assert": "*",

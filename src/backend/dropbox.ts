@@ -8,6 +8,7 @@ import api_error = require('../core/api_error');
 import file = require('../core/file');
 import node_path = require('../core/node_path');
 import browserfs = require('../core/browserfs');
+import buffer_modern = require('../core/buffer_modern');
 
 var Buffer = buffer.Buffer;
 var Stats = node_fs_stats.Stats;
@@ -30,12 +31,12 @@ var async = require('../../vendor/async/lib/async');
 var Buffer = buffer.Buffer;
 
 export class DropboxFile extends preload_file.PreloadFile {
-  constructor(_fs: file_system.FileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: buffer.Buffer) {
+  constructor(_fs: file_system.FileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: NodeBuffer) {
     super(_fs, _path, _flag, _stat, contents)
   }
 
   public sync(cb: (e?: api_error.ApiError) => void): void {
-    (<Dropbox> this._fs)._writeFileStrict(this._path, this._buffer.buff.buffer, cb);
+    (<Dropbox> this._fs)._writeFileStrict(this._path, (<buffer_modern.Buffer> this._buffer).buff.buffer, cb);
   }
 
   public close(cb: (e?: api_error.ApiError) => void): void {
@@ -211,7 +212,7 @@ export class Dropbox extends file_system.FileSystem {
    * Returns a BrowserFS object representing a File, created from the data
    * returned by calls to the Dropbox API.
    */
-  public _makeFile(path: string, flag: file_flag.FileFlag, stat, buffer: buffer.Buffer): DropboxFile {
+  public _makeFile(path: string, flag: file_flag.FileFlag, stat, buffer: NodeBuffer): DropboxFile {
     var type = this._statType(stat);
     var stats = new Stats(type, stat.size);
     return new DropboxFile(this, path, flag, stats, buffer);

@@ -12,7 +12,6 @@ module.exports = function(config) {
     files: [
       'node_modules/jasmine-tapreporter/src/tapreporter.js',
       'tmp/core/polyfills.js',
-      'vendor/typedarray.js',
       'vendor/assert/assert.js',
       'vendor/requirejs/require.js',
       'vendor/dropbox-build/dropbox.min.js',

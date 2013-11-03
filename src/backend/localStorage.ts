@@ -74,7 +74,7 @@ export class LocalStorageAbstract extends indexed_filesystem.IndexedFileSystem {
    * @param [BrowserFS.FileInode] inode
    * @return [BrowserFS.node.fs.Stats]
    */
-  public _syncSync(path: string, data: buffer.Buffer, inode: node_fs_stats.Stats): void {
+  public _syncSync(path: string, data: NodeBuffer, inode: node_fs_stats.Stats): void {
     var dataStr = this._convertToBinaryString(data, inode);
     try {
       window.localStorage.setItem(path, dataStr);
@@ -164,7 +164,7 @@ export class LocalStorageAbstract extends indexed_filesystem.IndexedFileSystem {
     }
   }
 
-  public _convertToBinaryString(data: buffer.Buffer, inode: node_fs_stats.Stats): string {
+  public _convertToBinaryString(data: NodeBuffer, inode: node_fs_stats.Stats): string {
     throw new ApiError(ErrorType.NOT_SUPPORTED, 'LocalStorageAbstract is an abstract class.');
   }
   public _convertFromBinaryString(path: string, data: string, flags: file_flag.FileFlag, inode: node_fs_stats.Stats): LocalStorageFile {
@@ -180,7 +180,7 @@ export class LocalStorageModern extends LocalStorageAbstract {
     super();
   }
 
-  public _convertToBinaryString(data: buffer.Buffer, inode: node_fs_stats.Stats): string {
+  public _convertToBinaryString(data: NodeBuffer, inode: node_fs_stats.Stats): string {
     var dataStr = data.toString('binary_string');
     // Append fixed-size header with mode (16-bits) and mtime/atime (64-bits each).
     // I don't care about uid/gid right now.
@@ -221,7 +221,7 @@ export class LocalStorageOld extends LocalStorageAbstract {
     super();
   }
 
-  public _convertToBinaryString(data: buffer.Buffer, inode: node_fs_stats.Stats): string {
+  public _convertToBinaryString(data: NodeBuffer, inode: node_fs_stats.Stats): string {
     var dataStr = data.toString('binary_string_ie');
     var headerBuff = new Buffer(18);
     headerBuff.writeUInt16BE(inode.mode, 0);
@@ -254,7 +254,7 @@ export class LocalStorageOld extends LocalStorageAbstract {
 }
 
 export class LocalStorageFile extends preload_file.PreloadFile {
-  constructor(_fs: LocalStorageAbstract, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: buffer.Buffer) {
+  constructor(_fs: LocalStorageAbstract, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: NodeBuffer) {
     super(_fs, _path, _flag, _stat, contents);
   }
 
