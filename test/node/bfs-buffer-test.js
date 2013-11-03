@@ -1,0 +1,151 @@
+/**
+ * Sanity checks our buffer implementation. The Node tests assume that all
+ * numerical transformations work, so they do not test these cases.
+ */
+window.tests.bfs_buffer_test = function() {
+  var buff = new Buffer(8);
+  var i;
+
+  /**
+   * Simple get/set tests
+   */
+
+  function testFunction(readFunc, writeFunc) {
+    return function(nums) {
+      var writeNum = nums;
+      var expectNum = nums;
+      if (Array.isArray(nums)) {
+        writeNum = nums[0];
+        expectNum = nums[1];
+      }
+      buff[writeFunc](writeNum, 0, true);
+      if (!isNaN(expectNum)) {
+        assert.strictEqual(expectNum, buff[readFunc](0));
+      } else {
+        assert(isNaN(buff[readFunc](0)));
+      }
+    };
+  }
+
+  var oneByteInts = [
+    0, 0x7F, [0xFF, -1], -1*0x7F, -1
+  ];
+  oneByteInts.forEach(testFunction('readInt8', 'writeInt8'));
+
+  var readMethods = ['readInt16LE', 'readInt16BE'];
+  var writeMethods = ['writeInt16LE', 'writeInt16BE'];
+  var twoByteInts = [
+    0, 0x7FFF, [0xFFFF, -1], -1*0x7FFF, -1
+  ];
+  for (i = 0; i < 2; i++) {
+    twoByteInts.forEach(testFunction(readMethods[i], writeMethods[i]));
+  }
+
+  var fourByteInts = [
+    0, 0x7FFFFFFF, [0xFFFFFFFF, 0xFFFFFFFF|0], -1, -1*0x7FFFFFFF
+  ];
+  var readMethods4B = ['readInt32LE', 'readInt32BE'];
+  var writeMethods4B = ['writeInt32LE', 'writeInt32BE'];
+  for (i = 0; i < 2; i++) {
+    fourByteInts.forEach(testFunction(readMethods4B[i], writeMethods4B[i]));
+  }
+
+  var floatVals = [
+    0, -1, 1,
+    [Math.pow(2, 128), Number.POSITIVE_INFINITY],
+    [-1 * Math.pow(2, 128), Number.NEGATIVE_INFINITY],
+    NaN
+  ];
+  floatVals.forEach(testFunction('readFloatLE', 'writeFloatLE'));
+  floatVals.forEach(testFunction('readFloatBE', 'writeFloatBE'));
+
+  // int -> float
+  var int2float = [[0x7F800000, Number.POSITIVE_INFINITY],
+                   [-8388608, Number.NEGATIVE_INFINITY],
+                   [0x7fc00000, Number.NaN]];
+  int2float.forEach(testFunction('readFloatLE', 'writeInt32LE'));
+  int2float.forEach(testFunction('readFloatBE', 'writeInt32BE'));
+
+  var doubleVals = [
+    0, -1, 1, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, NaN
+  ];
+  doubleVals.forEach(testFunction('readDoubleLE', 'writeDoubleLE'));
+  doubleVals.forEach(testFunction('readDoubleBE', 'writeDoubleBE'));
+
+  // long -> double
+  var long2double = [
+    [0, 0, 0],
+    [0x80000000, 0, 0],
+    [0x7FF00000, 0, Number.POSITIVE_INFINITY],
+    [0xFFF00000, 0, Number.NEGATIVE_INFINITY],
+    [0x7FF00001, 0, Number.NaN],
+    [0xFFF00001, 0, Number.NaN],
+    // Denormalized
+    [0, 1, 4.94065645841246544176568792868E-324]
+  ];
+
+  long2double.forEach(function(nums) {
+    // LE
+    buff.writeUInt32LE(nums[1], 0);
+    buff.writeUInt32LE(nums[0], 4);
+    if (isNaN(nums[2])) {
+      assert(isNaN(buff.readDoubleLE(0)));
+    } else {
+      assert.strictEqual(nums[2], buff.readDoubleLE(0));
+    }
+
+    // BE
+    buff.writeUInt32BE(nums[0], 0);
+    buff.writeUInt32BE(nums[1], 4);
+    if (isNaN(nums[2])) {
+      assert(isNaN(buff.readDoubleBE(0)));
+    } else {
+      assert.strictEqual(nums[2], buff.readDoubleBE(0));
+    }
+
+  });
+
+  // signed vs unsigned
+  buff.writeUInt8(0xFF, 0);
+  assert.strictEqual(-1, buff.readInt8(0));
+  buff.writeInt8(-1, 0);
+  assert.strictEqual(0xFF, buff.readUInt8(0));
+
+  buff.writeUInt16LE(0xFFFF, 0);
+  assert.strictEqual(-1, buff.readInt16LE(0));
+  assert.strictEqual(-1, buff.readInt16BE(0));
+  buff.writeInt16LE(-1, 0);
+  assert.strictEqual(0xFFFF, buff.readUInt16LE(0));
+  assert.strictEqual(0xFFFF, buff.readUInt16BE(0));
+
+  buff.writeUInt32LE(0xFFFFFFFF, 0);
+  assert.strictEqual(-1, buff.readInt32LE(0));
+  assert.strictEqual(-1, buff.readInt32BE(0));
+  buff.writeInt32LE(-1, 0);
+  assert.strictEqual(0xFFFFFFFF, buff.readUInt32LE(0));
+  assert.strictEqual(0xFFFFFFFF, buff.readUInt32BE(0));
+
+  /**
+   * Endianness Fun Time (tm)
+   */
+  buff.writeUInt8(1 << 7, 0);
+  buff.writeUInt8(1, 1);
+  assert.strictEqual(384, buff.readInt16LE(0));
+  assert.strictEqual(-32767, buff.readInt16BE(0));
+
+  buff.writeUInt8(1, 0);
+  buff.writeUInt8(1 << 1, 1);
+  buff.writeUInt8(1 << 2, 2);
+  buff.writeUInt8(1 << 3, 3);
+  assert.strictEqual(134480385, buff.readInt32LE(0));
+  assert.strictEqual(16909320, buff.readInt32BE(0));
+  assert.strictEqual(3.972466068346319e-34, buff.readFloatLE(0));
+  assert.strictEqual(2.388012128110808e-38, buff.readFloatBE(0));
+
+  buff.writeUInt8(1 << 4, 4);
+  buff.writeUInt8(1 << 5, 5);
+  buff.writeUInt8(1 << 6, 6);
+  buff.writeUInt8(1 << 7, 7);
+  assert.strictEqual(-1.793993013121266e-307, buff.readDoubleLE(0));
+  assert.strictEqual(8.209688573201296e-304, buff.readDoubleBE(0));
+};
