@@ -19,7 +19,7 @@ var ActionType = file_flag.ActionType;
 /**
  * A simple filesystem backed by XmlHttpRequests.
  */
-export class XmlHttpRequest extends file_system.FileSystem {
+export class XmlHttpRequest extends file_system.BaseFileSystem implements file_system.FileSystem {
   private _index: file_index.FileIndex;
   public prefix_url: string;
   /**

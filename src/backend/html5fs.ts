@@ -96,7 +96,7 @@ export class HTML5FSFile extends preload_file.PreloadFile implements file.File {
   }
 }
 
-export class HTML5FS extends file_system.FileSystem {
+export class HTML5FS extends file_system.BaseFileSystem implements file_system.FileSystem {
   private size: number;
   private type: number;
   // HTML5File reaches into HTML5FS. :/

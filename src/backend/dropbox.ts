@@ -44,7 +44,7 @@ export class DropboxFile extends preload_file.PreloadFile implements file.File {
   }
 }
 
-export class Dropbox extends file_system.FileSystem {
+export class Dropbox extends file_system.BaseFileSystem implements file_system.FileSystem {
   // The Dropbox client.
   private client: any;
   /**

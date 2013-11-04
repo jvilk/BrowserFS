@@ -7,6 +7,7 @@ import buffer = require('../core/buffer');
 import preload_file = require('../generic/preload_file');
 import util = require('../core/util');
 import browserfs = require('../core/browserfs');
+import file_system = require('../core/file_system');
 
 var Buffer = buffer.Buffer;
 var NoSyncFile = preload_file.NoSyncFile;
@@ -16,7 +17,7 @@ var NoSyncFile = preload_file.NoSyncFile;
  * Note: This hacks a file_data property into each file inode,
  *   which are actually just fs.Stats objects.
  */
-export class InMemory extends indexed_filesystem.IndexedFileSystem {
+export class InMemory extends indexed_filesystem.IndexedFileSystem implements file_system.FileSystem {
   /**
    * Constructs the file system, with no files or directories.
    */

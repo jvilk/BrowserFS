@@ -16,7 +16,7 @@ var fs = node_fs.fs;
  * For example, if a file system is mounted at /mnt/blah, and a request came in
  * for /mnt/blah/foo.txt, the file system would see a request for /foo.txt.
  */
-export class MountableFileSystem extends file_system.FileSystem {
+export class MountableFileSystem extends file_system.BaseFileSystem implements file_system.FileSystem {
   private mntMap: {[path: string]: file_system.FileSystem};
   private rootFs: file_system.FileSystem;
   constructor() {

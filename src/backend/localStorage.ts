@@ -28,7 +28,7 @@ var path = node_path.path;
  *   key doesn't have to be the full-path. That would conserve space in
  *   localStorage.
  */
-export class LocalStorageAbstract extends indexed_filesystem.IndexedFileSystem {
+export class LocalStorageAbstract extends indexed_filesystem.IndexedFileSystem implements file_system.FileSystem {
   /**
    * Constructs the file system. Loads up any existing files stored in local
    * storage into a simple file index.
