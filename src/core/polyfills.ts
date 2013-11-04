@@ -154,7 +154,7 @@ if (!Array.prototype.indexOf) {
 
     var pivot = fromIndex;
     if (pivot < 0) {
-      pivot = length - Math.abs(pivot);
+      pivot = length + pivot;
     }
 
     for (var i = pivot; i < length; i++) {
