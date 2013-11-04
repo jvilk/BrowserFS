@@ -304,18 +304,33 @@ export class Buffer extends buffer_static.BufferStatic implements NodeBuffer {
 
   public readInt8(offset: number, noAssert = false): number {
     this.boundsCheck(offset);
-    // OR the 7-bit value with the sign bit.
-    return (this.buff[offset] & 0x7F) | ((this.buff[offset] & 0x80) << 24);
+    var val = this.buff[offset];
+    if (val & 0x80) {
+      // Sign bit is set, so perform sign extension.
+      return val | 0xFFFFFF80;
+    } else {
+      return val;
+    }
   }
 
   public readInt16LE(offset: number, noAssert = false): number {
-    var uint16LE = this.readUInt16LE(offset, noAssert);
-    return (uint16LE & 0x7FFF) | ((uint16LE & 0x8000) << 16);
+    var val = this.readUInt16LE(offset, noAssert);
+    if (val & 0x8000) {
+      // Sign bit is set, so perform sign extension.
+      return val | 0xFFFF8000;
+    } else {
+      return val;
+    }
   }
 
   public readInt16BE(offset: number, noAssert = false): number {
-    var uint16BE = this.readUInt16BE(offset, noAssert);
-    return (uint16BE & 0x7FFF) | ((uint16BE & 0x8000) << 16);
+    var val = this.readUInt16BE(offset, noAssert);
+    if (val & 0x8000) {
+      // Sign bit is set, so perform sign extension.
+      return val | 0xFFFF8000;
+    } else {
+      return val;
+    }
   }
 
   public readInt32LE(offset: number, noAssert = false): number {
@@ -327,21 +342,21 @@ export class Buffer extends buffer_static.BufferStatic implements NodeBuffer {
   }
 
   public readFloatLE(offset: number, noAssert = false): number {
-    return this.intbits2float(this.readUInt32LE(offset, noAssert));
+    return this.intbits2float(this.readInt32LE(offset, noAssert));
   }
 
   public readFloatBE(offset: number, noAssert = false): number {
-    return this.intbits2float(this.readUInt32BE(offset, noAssert));
+    return this.intbits2float(this.readInt32BE(offset, noAssert));
   }
 
   public readDoubleLE(offset: number, noAssert = false): number {
     this.boundsCheck(offset+7);
-    return this.longbits2double(this.readUInt32LE(offset+4, noAssert), this.readUInt32LE(offset, noAssert));
+    return this.longbits2double(this.readInt32LE(offset+4, noAssert), this.readInt32LE(offset, noAssert));
   }
 
   public readDoubleBE(offset: number, noAssert = false): number {
     this.boundsCheck(offset+7);
-    return this.longbits2double(this.readUInt32BE(offset, noAssert), this.readUInt32BE(offset+4, noAssert));
+    return this.longbits2double(this.readInt32BE(offset, noAssert), this.readInt32BE(offset+4, noAssert));
   }
 
   public writeUInt8(value: number, offset: number, noAssert = false): void {
@@ -380,21 +395,27 @@ export class Buffer extends buffer_static.BufferStatic implements NodeBuffer {
   public writeInt8(value: number, offset: number, noAssert = false): void {
     this.boundsCheck(offset);
     // Pack the sign bit as the highest bit.
-    this.buff[offset] = (value & 0x7F) | (value >>> 24);
+    // Note that we keep the highest bit in the value byte as the sign bit if it
+    // exists.
+    this.buff[offset] = (value & 0xFF) | ((value & 0x80000000) >>> 24);
   }
 
   public writeInt16LE(value: number, offset: number, noAssert = false): void {
     this.boundsCheck(offset+1);
     this.buff[offset] = value & 0xFF;
     // Pack the sign bit as the highest bit.
-    this.buff[offset+1] = ((value >>> 8) & 0x7F) | (value >>> 24);
+    // Note that we keep the highest bit in the value byte as the sign bit if it
+    // exists.
+    this.buff[offset+1] = ((value >>> 8) & 0xFF) | ((value & 0x80000000) >>> 24);
   }
 
   public writeInt16BE(value: number, offset: number, noAssert = false): void {
     this.boundsCheck(offset+1);
     this.buff[offset+1] = value & 0xFF;
     // Pack the sign bit as the highest bit.
-    this.buff[offset] = ((value >>> 8) & 0x7F) | (value >>> 24);
+    // Note that we keep the highest bit in the value byte as the sign bit if it
+    // exists.
+    this.buff[offset] = ((value >>> 8) & 0xFF) | ((value & 0x80000000) >>> 24);
   }
 
   public writeInt32LE(value: number, offset: number, noAssert = false): void {
@@ -427,13 +448,13 @@ export class Buffer extends buffer_static.BufferStatic implements NodeBuffer {
     this.boundsCheck(offset+7);
     var doubleBits = this.double2longbits(value);
     this.writeInt32LE(doubleBits[0], offset, noAssert);
-    this.writeInt32LE(doubleBits[1], offset+1, noAssert);
+    this.writeInt32LE(doubleBits[1], offset+4, noAssert);
   }
 
   public writeDoubleBE(value: number, offset: number, noAssert = false): void {
     this.boundsCheck(offset+7);
     var doubleBits = this.double2longbits(value);
-    this.writeInt32BE(doubleBits[0], offset+1, noAssert);
+    this.writeInt32BE(doubleBits[0], offset+4, noAssert);
     this.writeInt32BE(doubleBits[1], offset, noAssert);
   }
 
@@ -533,7 +554,7 @@ export class Buffer extends buffer_static.BufferStatic implements NodeBuffer {
     }
 
     // Simulate >> 32
-    high_bits = ((sig & Math.pow(2, -32)) | 0) | sign | exp;
+    high_bits = ((sig * Math.pow(2, -32)) | 0) | sign | exp;
     return [sig & 0xFFFF, high_bits];
   }
 
@@ -563,7 +584,7 @@ export class Buffer extends buffer_static.BufferStatic implements NodeBuffer {
   private longbits2double(uint32_a: number, uint32_b: number): number {
     var sign = (uint32_a & 0x80000000) >>> 31;
     var exponent = (uint32_a & 0x7FF00000) >>> 20;
-    var significand = ((uint32_a & 0x000FFFFF) & Math.pow(2, 32)) + uint32_b;
+    var significand = ((uint32_a & 0x000FFFFF) * Math.pow(2, 32)) + uint32_b;
 
     // Special values!
     if (exponent === 0 && significand === 0) {
