@@ -86,7 +86,7 @@ removeFile(file2);
 // Verify that all opened files were closed.
 // BFS: Not necessarily applicable to mountable file system with the way
 // this is counted.
-if (!(rootFS instanceof BrowserFS.getFsConstructor('MountableFileSystem')))
+if (!(rootFS instanceof BrowserFS.FileSystem.MountableFileSystem))
   assert.equal(0, openCount);
 
 // Removes a file if it exists.

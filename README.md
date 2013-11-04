@@ -46,10 +46,8 @@ Here's a simple example, using the LocalStorage-backed file system:
   // You can pass in an arbitrary object if you do not wish to pollute
   // the global namespace.
   BrowserFS.install(window);
-  // Grabs the constructor for the LocalStorage-backed file system.
-  var lsfsCons = BrowserFS.getFsConstructor('LocalStorage');
   // Constructs an instance of the LocalStorage-backed file system.
-  var lsfs = new lsfsCons();
+  var lsfs = new BrowserFS.FileSystem.LocalStorage();
   // Initialize it as the root file system.
   BrowserFS.initialize(lsfs);
 </script>

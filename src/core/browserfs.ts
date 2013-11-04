@@ -33,13 +33,9 @@ export function install(obj) {
   };
 }
 
-var fsTypes: {[name: string]: any} = {};
+export var FileSystem: {[name: string]: any} = {};
 export function registerFileSystem(name: string, fs: any) {
-  fsTypes[name] = fs;
-}
-
-export function getFsConstructor(name: string): any {
-  return fsTypes[name];
+  FileSystem[name] = fs;
 }
 
 export function require(module: string) {
@@ -53,7 +49,7 @@ export function require(module: string) {
     case 'process':
       return node_process.process;
     default:
-      return getFsConstructor(module);
+      return FileSystem[module];
   }
 }
 

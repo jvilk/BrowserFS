@@ -139,7 +139,7 @@
     };
 
     // Add LocalStorage-backed filesystem
-    var LocalStorage = BrowserFS.getFsConstructor('LocalStorage');
+    var LocalStorage = BrowserFS.FileSystem.LocalStorage;
     if (LocalStorage.isAvailable()) {
       var lsfs = new LocalStorage();
       lsfs.empty();
@@ -147,18 +147,18 @@
     }
 
     // Add in-memory filesystem
-    var InMemory = BrowserFS.getFsConstructor('InMemory');
+    var InMemory = BrowserFS.FileSystem.InMemory;
     backends.push(new InMemory());
 
     // Add AJAX filesystem
-    var XmlHttpRequest = BrowserFS.getFsConstructor('XmlHttpRequest');
+    var XmlHttpRequest = BrowserFS.FileSystem.XmlHttpRequest;
     if (XmlHttpRequest.isAvailable())
       backends.push(new XmlHttpRequest('/listings.json'));
 
     // Add mountable filesystem
     var im2 = new InMemory();
     var im3 = new InMemory();
-    var MountableFileSystem = BrowserFS.getFsConstructor('MountableFileSystem');
+    var MountableFileSystem = BrowserFS.FileSystem.MountableFileSystem;
     var mfs = new MountableFileSystem();
     mfs.mount('/', im2);
     //TODO: Test when API Error has a 'file' attribute that MFS can appropriately
@@ -187,7 +187,7 @@
             console.debug("Successfully connected to " + info.name + "'s Dropbox");
           });
 
-          var Dropbox = BrowserFS.getFsConstructor('Dropbox');
+          var Dropbox = BrowserFS.FileSystem.Dropbox;
           var dbfs = new Dropbox(authed_client);
           backends.push(dbfs);
           dbfs.empty(function(){
@@ -218,7 +218,7 @@
 
 
     // Add HTML5 FileSystem API backed filesystem
-    var HTML5FS = BrowserFS.getFsConstructor('HTML5FS');
+    var HTML5FS = BrowserFS.FileSystem.HTML5FS;
     if (HTML5FS.isAvailable()){
       var html5fs = new HTML5FS(10, window.TEMPORARY);
       backends.push(html5fs);
