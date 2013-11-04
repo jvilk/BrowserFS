@@ -5,106 +5,50 @@ var ApiError = api_error.ApiError;
 var ErrorType = api_error.ErrorType;
 
 export interface File {
-  getPos(): number;
-  stat(cb: (err: api_error.ApiError, stats?: stats.Stats) => any): void;
-  statSync(): stats.Stats;
-  close(cb: Function): void;
-  closeSync(): void;
-  truncate(len: number, cb: Function): void;
-  truncateSync(len: number): void;
-  sync(cb: Function): void;
-  syncSync(): void;
-  write(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
-  writeSync(buffer: NodeBuffer, offset: number, length: number, position: number): number;
-  read(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, bytesRead?: number, buffer?: NodeBuffer) => void): void;
-  readSync(buffer: NodeBuffer, offset: number, length: number, position: number): number;
-  datasync(cb: Function): void;
-  datasyncSync(): void;
-  chown(uid: number, gid: number, cb: Function): void;
-  chownSync(uid: number, gid: number): void;
-  chmod(mode: number, cb: Function): void;
-  chmodSync(mode: number): void;
-  utimes(atime: number, mtime: number, cb: Function): void;
-  utimesSync(atime: number, mtime: number): void;
-}
-
-/**
- * Base class that contains the interface for a file object. BrowserFS uses these
- * as a replacement for numeric file descriptors.
- * @class
- */
-export class BaseFile implements File {
   /**
    * **Core**: Get the current file position.
    * @return [Number]
    */
-  public getPos(): number {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
-  }
-
+  getPos(): number;
   /**
    * **Core**: Asynchronous `stat`.
    * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] cb
    */
-  public stat(cb: (err: api_error.ApiError, stats?: stats.Stats) => any): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
-  }
-
+  stat(cb: (err: api_error.ApiError, stats?: stats.Stats) => any): void;
   /**
    * **Core**: Synchronous `stat`.
    * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] cb
    */
-  public statSync(): stats.Stats {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
-  }
-
+  statSync(): stats.Stats;
   /**
    * **Core**: Asynchronous close.
    * @param [Function(BrowserFS.ApiError)] cb
    */
-  public close(cb: Function): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
-  }
-
+  close(cb: Function): void;
   /**
    * **Core**: Synchronous close.
    */
-  public closeSync(): void {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
-  }
-
+  closeSync(): void;
   /**
    * **Core**: Asynchronous truncate.
    * @param [Number] len
    * @param [Function(BrowserFS.ApiError)] cb
    */
-  public truncate(len: number, cb: Function): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
-  }
-
+  truncate(len: number, cb: Function): void;
   /**
    * **Core**: Synchronous truncate.
    * @param [Number] len
    */
-  public truncateSync(len: number): void {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
-  }
-
+  truncateSync(len: number): void;
   /**
    * **Core**: Asynchronous sync.
    * @param [Function(BrowserFS.ApiError)] cb
    */
-  public sync(cb: Function): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
-  }
-
+  sync(cb: Function): void;
   /**
    * **Core**: Synchronous sync.
    */
-  public syncSync(): void {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
-  }
-
+  syncSync(): void;
   /**
    * **Core**: Write buffer to the file.
    * Note that it is unsafe to use fs.write multiple times on the same file
@@ -119,10 +63,7 @@ export class BaseFile implements File {
    * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
    *   cb The number specifies the number of bytes written into the file.
    */
-  public write(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
-  }
-
+  write(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
   /**
    * **Core**: Write buffer to the file.
    * Note that it is unsafe to use fs.writeSync multiple times on the same file
@@ -136,10 +77,7 @@ export class BaseFile implements File {
    *   the current position.
    * @return [Number]
    */
-  public writeSync(buffer: NodeBuffer, offset: number, length: number, position: number): number {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
-  }
-
+  writeSync(buffer: NodeBuffer, offset: number, length: number, position: number): number;
   /**
    * **Core**: Read data from the file.
    * @param [BrowserFS.node.Buffer] buffer The buffer that the data will be
@@ -153,10 +91,7 @@ export class BaseFile implements File {
    * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)] cb The
    *   number is the number of bytes read
    */
-  public read(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, bytesRead?: number, buffer?: NodeBuffer) => void): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
-  }
-
+  read(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, bytesRead?: number, buffer?: NodeBuffer) => void): void;
   /**
    * **Core**: Read data from the file.
    * @param [BrowserFS.node.Buffer] buffer The buffer that the data will be
@@ -169,80 +104,92 @@ export class BaseFile implements File {
    *   position.
    * @return [Number]
    */
-  public readSync(buffer: NodeBuffer, offset: number, length: number, position: number): number {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
-  }
-
+  readSync(buffer: NodeBuffer, offset: number, length: number, position: number): number;
   /**
    * **Supplementary**: Asynchronous `datasync`.
    *
    * Default implementation maps to `sync`.
    * @param [Function(BrowserFS.ApiError)] cb
    */
-  public datasync(cb: Function): void {
-    this.sync(cb);
-  }
-
+  datasync(cb: Function): void;
   /**
    * **Supplementary**: Synchronous `datasync`.
    *
    * Default implementation maps to `syncSync`.
    */
-  public datasyncSync(): void {
-    return this.syncSync();
-  }
-
+  datasyncSync(): void;
   /**
    * **Optional**: Asynchronous `chown`.
    * @param [Number] uid
    * @param [Number] gid
    * @param [Function(BrowserFS.ApiError)] cb
    */
-  public chown(uid: number, gid: number, cb: Function): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
-  }
-
+  chown(uid: number, gid: number, cb: Function): void;
   /**
    * **Optional**: Synchronous `chown`.
    * @param [Number] uid
    * @param [Number] gid
    */
-  public chownSync(uid: number, gid: number): void {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
-  }
-
+  chownSync(uid: number, gid: number): void;
   /**
    * **Optional**: Asynchronous `fchmod`.
    * @param [Number] mode
    * @param [Function(BrowserFS.ApiError)] cb
    */
-  public chmod(mode: number, cb: Function): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
-  }
-
+  chmod(mode: number, cb: Function): void;
   /**
    * **Optional**: Synchronous `fchmod`.
    * @param [Number] mode
    */
-  public chmodSync(mode: number): void {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
-  }
-
+  chmodSync(mode: number): void;
   /**
    * **Optional**: Change the file timestamps of the file.
    * @param [Date] atime
    * @param [Date] mtime
    * @param [Function(BrowserFS.ApiError)] cb
    */
-  public utimes(atime: number, mtime: number, cb: Function): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
-  }
-
+  utimes(atime: number, mtime: number, cb: Function): void;
   /**
    * **Optional**: Change the file timestamps of the file.
    * @param [Date] atime
    * @param [Date] mtime
    */
+  utimesSync(atime: number, mtime: number): void;
+}
+
+/**
+ * Base class that contains shared implementations of functions for the file
+ * object.
+ * @class
+ */
+export class BaseFile {
+  public sync(cb: Function): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  }
+  public syncSync(): void {
+    throw new ApiError(ErrorType.NOT_SUPPORTED);
+  }
+  public datasync(cb: Function): void {
+    this.sync(cb);
+  }
+  public datasyncSync(): void {
+    return this.syncSync();
+  }
+  public chown(uid: number, gid: number, cb: Function): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  }
+  public chownSync(uid: number, gid: number): void {
+    throw new ApiError(ErrorType.NOT_SUPPORTED);
+  }
+  public chmod(mode: number, cb: Function): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  }
+  public chmodSync(mode: number): void {
+    throw new ApiError(ErrorType.NOT_SUPPORTED);
+  }
+  public utimes(atime: number, mtime: number, cb: Function): void {
+    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+  }
   public utimesSync(atime: number, mtime: number): void {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }

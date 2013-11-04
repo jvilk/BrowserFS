@@ -30,7 +30,7 @@ declare var db;
 var async = require('../../vendor/async/lib/async');
 var Buffer = buffer.Buffer;
 
-export class DropboxFile extends preload_file.PreloadFile {
+export class DropboxFile extends preload_file.PreloadFile implements file.File {
   constructor(_fs: file_system.FileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: NodeBuffer) {
     super(_fs, _path, _flag, _stat, contents)
   }

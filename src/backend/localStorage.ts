@@ -9,6 +9,7 @@ import api_error = require('../core/api_error');
 import node_path = require('../core/node_path');
 import file_system = require('../core/file_system');
 import browserfs = require('../core/browserfs');
+import file = require('../core/file');
 
 var Buffer = buffer.Buffer;
 var Stats = node_fs_stats.Stats;
@@ -253,7 +254,7 @@ export class LocalStorageOld extends LocalStorageAbstract {
   }
 }
 
-export class LocalStorageFile extends preload_file.PreloadFile {
+export class LocalStorageFile extends preload_file.PreloadFile implements file.File {
   constructor(_fs: LocalStorageAbstract, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: NodeBuffer) {
     super(_fs, _path, _flag, _stat, contents);
   }

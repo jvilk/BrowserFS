@@ -350,7 +350,7 @@ export class PreloadFile extends file.BaseFile {
  * File class for the InMemory and XHR file systems.
  * Doesn't sync to anything, so it works nicely for memory-only files.
  */
-export class NoSyncFile extends PreloadFile {
+export class NoSyncFile extends PreloadFile implements file.File {
   constructor(_fs: file_system.FileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: NodeBuffer) {
     super(_fs, _path, _flag, _stat, contents);
   }
