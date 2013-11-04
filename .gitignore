@@ -8,3 +8,4 @@ doc/*
 *.json
 vendor/*/
 test/dropbox
+tscommand.tmp.txt

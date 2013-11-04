@@ -20,7 +20,7 @@ export interface BufferConstructor {
 export var OldBuffer: BufferConstructor = buffer_old.Buffer;
 export var ModernBuffer: BufferConstructor = buffer_modern.Buffer;
 
-// Typing copied from ndoe.d.ts.
+// Typing copied from node.d.ts.
 export var Buffer: BufferConstructor = typeof ArrayBuffer !== 'undefined' ?
   <BufferConstructor> buffer_modern.Buffer :
   <BufferConstructor> buffer_old.Buffer;
