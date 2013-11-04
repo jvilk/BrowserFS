@@ -255,7 +255,7 @@ export class FileSystem {
    *   filesystem doesn't support permissions.
    * @param {FileSystem~fileCallback} cb
    */
-  public open(p: string, flag:file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.BaseFile) => any): void {
+  public open(p: string, flag:file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.File) => any): void {
     cb(new ApiError(ErrorType.NOT_SUPPORTED));
   }
 
@@ -270,7 +270,7 @@ export class FileSystem {
    *   filesystem doesn't support permissions.
    * @return {BrowserFS.File}
    */
-  public openSync(p: string, flag: file_flag.FileFlag, mode: number): file.BaseFile {
+  public openSync(p: string, flag: file_flag.FileFlag, mode: number): file.File {
     throw new ApiError(ErrorType.NOT_SUPPORTED);
   }
 
@@ -469,7 +469,7 @@ export class FileSystem {
    * @param {FileSystem~nodeCallback} cb
    */
   public truncate(p: string, len: number, cb: Function): void {
-    fs.open(p, 'w', (function(er: api_error.ApiError, fd?: file.BaseFile) {
+    fs.open(p, 'w', (function(er: api_error.ApiError, fd?: file.File) {
       if (er) {
         return cb(er);
       }
@@ -514,11 +514,11 @@ export class FileSystem {
     // Wrap cb in file closing code.
     var oldCb = cb;
     // Get file.
-    this.open(fname, flag, 0x1a4, function(err: api_error.ApiError, fd?: file.BaseFile) {
+    this.open(fname, flag, 0x1a4, function(err: api_error.ApiError, fd?: file.File) {
       if (err) {
         return cb(err);
       }
-      cb = function(err: api_error.ApiError, arg?: file.BaseFile) {
+      cb = function(err: api_error.ApiError, arg?: file.File) {
         fd.close(function(err2) {
           if (err == null) {
             err = err2;
@@ -594,7 +594,7 @@ export class FileSystem {
     // Wrap cb in file closing code.
     var oldCb = cb;
     // Get file.
-    this.open(fname, flag, 0x1a4, function(err: api_error.ApiError, fd?:file.BaseFile) {
+    this.open(fname, flag, 0x1a4, function(err: api_error.ApiError, fd?:file.File) {
       if (err != null) {
         return cb(err);
       }
@@ -656,7 +656,7 @@ export class FileSystem {
   public appendFile(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError) => void): void {
     // Wrap cb in file closing code.
     var oldCb = cb;
-    this.open(fname, flag, mode, function(err: api_error.ApiError, fd?: file.BaseFile) {
+    this.open(fname, flag, mode, function(err: api_error.ApiError, fd?: file.File) {
       if (err != null) {
         return cb(err);
       }

@@ -133,7 +133,7 @@ export class Dropbox extends file_system.FileSystem {
     });
   }
 
-  public open(path: string, flags: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.BaseFile) => any): void {
+  public open(path: string, flags: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.File) => any): void {
     var self = this,
       _this = this;
     // Try and get the file's contents

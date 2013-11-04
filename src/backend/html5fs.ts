@@ -282,7 +282,7 @@ export class HTML5FS extends file_system.FileSystem {
     this.fs.root.getFile(path, opts, loadAsFile, failedToLoadAsFile);
   }
 
-  public open(path: string, flags: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.BaseFile) => any): void {
+  public open(path: string, flags: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.File) => any): void {
     var self = this;
     var opts = {
       create: flags.pathNotExistsAction() === ActionType.CREATE_FILE,

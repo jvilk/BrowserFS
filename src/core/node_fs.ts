@@ -65,8 +65,8 @@ function wrapCb(cb: Function, numArgs: number): Function {
  * @return [Boolean, BrowserFS.ApiError] Returns `true` if the FD is OK,
  *   otherwise returns an ApiError.
  */
-function checkFd(fd: file.BaseFile): void {
-  if (!(fd instanceof file.BaseFile)) {
+function checkFd(fd: file.File): void {
+  if (typeof fd['write'] !== 'function') {
     throw new ApiError(ErrorType.INVALID_PARAM, 'Invalid file descriptor.');
   }
 }
@@ -371,13 +371,13 @@ export class fs {
    * @param [Number?] mode defaults to `0644`
    * @param [Function(BrowserFS.ApiError, BrowserFS.File)] callback
    */
-  public static open(path: string, flag: string, cb?: (err: api_error.ApiError, fd?: file.BaseFile) => any): void;
-  public static open(path: string, flag: string, mode: string, cb?: (err: api_error.ApiError, fd?: file.BaseFile) => any): void;
-  public static open(path: string, flag: string, mode: number, cb?: (err: api_error.ApiError, fd?: file.BaseFile) => any): void;
-  public static open(path: string, flag: string, arg2?: any, cb: (err: api_error.ApiError, fd?: file.BaseFile) => any = nopCb): void {
+  public static open(path: string, flag: string, cb?: (err: api_error.ApiError, fd?: file.File) => any): void;
+  public static open(path: string, flag: string, mode: string, cb?: (err: api_error.ApiError, fd?: file.File) => any): void;
+  public static open(path: string, flag: string, mode: number, cb?: (err: api_error.ApiError, fd?: file.File) => any): void;
+  public static open(path: string, flag: string, arg2?: any, cb: (err: api_error.ApiError, fd?: file.File) => any = nopCb): void {
     var mode = normalizeMode(arg2, 0x1a4);
     cb = typeof arg2 === 'function' ? arg2 : cb;
-    var newCb = <(err: api_error.ApiError, fd?: file.BaseFile) => any> wrapCb(cb, 2);
+    var newCb = <(err: api_error.ApiError, fd?: file.File) => any> wrapCb(cb, 2);
     try {
       return fs.root.open(normalizePath(path), FileFlag.getFileFlag(flag), mode, newCb);
     } catch (e) {
@@ -393,9 +393,9 @@ export class fs {
    * @param [Number?] mode defaults to `0644`
    * @return [BrowserFS.File]
    */
-  public static openSync(path: string, flag: string, mode?: string): file.BaseFile;
-  public static openSync(path: string, flag: string, mode?: number): file.BaseFile;
-  public static openSync(path: string, flag: string, mode: any = 0x1a4): file.BaseFile {
+  public static openSync(path: string, flag: string, mode?: string): file.File;
+  public static openSync(path: string, flag: string, mode?: number): file.File;
+  public static openSync(path: string, flag: string, mode: any = 0x1a4): file.File {
     return fs.root.openSync(normalizePath(path), FileFlag.getFileFlag(flag), mode);
   }
 
@@ -580,7 +580,7 @@ export class fs {
    * @param [BrowserFS.File] fd
    * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] callback
    */
-  public static fstat(fd: file.BaseFile, cb: (err: api_error.ApiError, stats?: node_fs_stats.Stats) => any = nopCb): void {
+  public static fstat(fd: file.File, cb: (err: api_error.ApiError, stats?: node_fs_stats.Stats) => any = nopCb): void {
     var newCb = <(err: api_error.ApiError, stats?: node_fs_stats.Stats) => any> wrapCb(cb, 2);
     try {
       checkFd(fd);
@@ -597,7 +597,7 @@ export class fs {
    * @param [BrowserFS.File] fd
    * @return [BrowserFS.node.fs.Stats]
    */
-  public static fstatSync(fd: file.BaseFile): node_fs_stats.Stats {
+  public static fstatSync(fd: file.File): node_fs_stats.Stats {
     checkFd(fd);
     return fd.statSync();
   }
@@ -607,7 +607,7 @@ export class fs {
    * @param [BrowserFS.File] fd
    * @param [Function(BrowserFS.ApiError)] callback
    */
-  public static close(fd: file.BaseFile, cb: Function = nopCb): void {
+  public static close(fd: file.File, cb: Function = nopCb): void {
     var newCb = wrapCb(cb, 1);
     try {
       checkFd(fd);
@@ -621,7 +621,7 @@ export class fs {
    * Synchronous close.
    * @param [BrowserFS.File] fd
    */
-  public static closeSync(fd: file.BaseFile): void {
+  public static closeSync(fd: file.File): void {
     checkFd(fd);
     return fd.closeSync();
   }
@@ -632,9 +632,9 @@ export class fs {
    * @param [Number] len
    * @param [Function(BrowserFS.ApiError)] callback
    */
-  public static ftruncate(fd: file.BaseFile, cb?:Function);
-  public static ftruncate(fd: file.BaseFile, len?: number, cb?:Function);
-  public static ftruncate(fd: file.BaseFile, arg2?: any, cb:Function = nopCb) {
+  public static ftruncate(fd: file.File, cb?:Function);
+  public static ftruncate(fd: file.File, len?: number, cb?:Function);
+  public static ftruncate(fd: file.File, arg2?: any, cb:Function = nopCb) {
     var length = typeof arg2 === 'number' ? arg2 : 0;
     cb = typeof arg2 === 'function' ? arg2 : cb;
     var newCb = wrapCb(cb, 1);
@@ -651,7 +651,7 @@ export class fs {
    * @param [BrowserFS.File] fd
    * @param [Number] len
    */
-  public static ftruncateSync(fd: file.BaseFile, len: number = 0) {
+  public static ftruncateSync(fd: file.File, len: number = 0) {
     checkFd(fd);
     return fd.truncateSync(len);
   }
@@ -661,7 +661,7 @@ export class fs {
    * @param [BrowserFS.File] fd
    * @param [Function(BrowserFS.ApiError)] callback
    */
-  public static fsync(fd: file.BaseFile, cb: Function = nopCb): void {
+  public static fsync(fd: file.File, cb: Function = nopCb): void {
     var newCb = wrapCb(cb, 1);
     try {
       checkFd(fd);
@@ -675,7 +675,7 @@ export class fs {
    * Synchronous fsync.
    * @param [BrowserFS.File] fd
    */
-  public static fsyncSync(fd: file.BaseFile): void {
+  public static fsyncSync(fd: file.File): void {
     checkFd(fd);
     return fd.syncSync();
   }
@@ -685,7 +685,7 @@ export class fs {
    * @param [BrowserFS.File] fd
    * @param [Function(BrowserFS.ApiError)] callback
    */
-  public static fdatasync(fd: file.BaseFile, cb: Function = nopCb): void {
+  public static fdatasync(fd: file.File, cb: Function = nopCb): void {
     var newCb = wrapCb(cb, 1);
     try {
       checkFd(fd);
@@ -699,7 +699,7 @@ export class fs {
    * Synchronous fdatasync.
    * @param [BrowserFS.File] fd
    */
-  public static fdatasyncSync(fd: file.BaseFile): void {
+  public static fdatasyncSync(fd: file.File): void {
     checkFd(fd);
     fd.datasyncSync();
   }
@@ -719,12 +719,12 @@ export class fs {
    * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
    *   callback The number specifies the number of bytes written into the file.
    */
-  public static write(fd: file.BaseFile, buffer: NodeBuffer, offset: number, length: number, cb?: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
-  public static write(fd: file.BaseFile, buffer: NodeBuffer, offset: number, length: number, position?: number, cb?: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
-  public static write(fd: file.BaseFile, data: string, cb?: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
-  public static write(fd: file.BaseFile, data: string, position: number, cb?: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
-  public static write(fd: file.BaseFile, data: string, position: number, encoding: string, cb?: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
-  public static write(fd: file.BaseFile, arg2: any, arg3?: any, arg4?: any, arg5?: any, cb: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any = nopCb): void {
+  public static write(fd: file.File, buffer: NodeBuffer, offset: number, length: number, cb?: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
+  public static write(fd: file.File, buffer: NodeBuffer, offset: number, length: number, position?: number, cb?: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
+  public static write(fd: file.File, data: string, cb?: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
+  public static write(fd: file.File, data: string, position: number, cb?: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
+  public static write(fd: file.File, data: string, position: number, encoding: string, cb?: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
+  public static write(fd: file.File, arg2: any, arg3?: any, arg4?: any, arg5?: any, cb: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any = nopCb): void {
     var buffer: NodeBuffer, offset: number, length: number, position: number = null;
     if (typeof arg2 === 'string') {
       // Signature 1: (fd, string, [position?, [encoding?]], cb?)
@@ -783,9 +783,9 @@ export class fs {
    *   the current position.
    * @return [Number]
    */
-  public static writeSync(fd: file.BaseFile, buffer: NodeBuffer, offset: number, length: number, position?: number): void;
-  public static writeSync(fd: file.BaseFile, data: string, position?: number, encoding?: string): void;
-  public static writeSync(fd: file.BaseFile, arg2: any, arg3?: any, arg4?: any, arg5?: any): number {
+  public static writeSync(fd: file.File, buffer: NodeBuffer, offset: number, length: number, position?: number): void;
+  public static writeSync(fd: file.File, data: string, position?: number, encoding?: string): void;
+  public static writeSync(fd: file.File, arg2: any, arg3?: any, arg4?: any, arg5?: any): number {
     var buffer: NodeBuffer, offset: number = 0, length: number, position: number;
     if (typeof arg2 === 'string') {
       // Signature 1: (fd, string, [position?, [encoding?]])
@@ -823,9 +823,9 @@ export class fs {
    * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
    *   callback The number is the number of bytes read
    */
-  public static read(fd: file.BaseFile, length: number, position: number, encoding: string, cb?: (err: api_error.ApiError, data?: string, bytesRead?: number) => void): void;
-  public static read(fd: file.BaseFile, buffer: NodeBuffer, offset: number, length: number, position: number, cb?: (err: api_error.ApiError, bytesRead?: number, buffer?: NodeBuffer) => void): void;
-  public static read(fd: file.BaseFile, arg2: any, arg3: any, arg4: any, arg5?: any, cb: (err: api_error.ApiError, arg2?: any, arg3?: any) => void = nopCb): void {
+  public static read(fd: file.File, length: number, position: number, encoding: string, cb?: (err: api_error.ApiError, data?: string, bytesRead?: number) => void): void;
+  public static read(fd: file.File, buffer: NodeBuffer, offset: number, length: number, position: number, cb?: (err: api_error.ApiError, bytesRead?: number, buffer?: NodeBuffer) => void): void;
+  public static read(fd: file.File, arg2: any, arg3: any, arg4: any, arg5?: any, cb: (err: api_error.ApiError, arg2?: any, arg3?: any) => void = nopCb): void {
     var position: number, offset: number, length: number, buffer: NodeBuffer, newCb: (err: api_error.ApiError, bytesRead?: number, buffer?: NodeBuffer) => void;
     if (typeof arg2 === 'number') {
       // legacy interface
@@ -877,9 +877,9 @@ export class fs {
    *   position.
    * @return [Number]
    */
-  public static readSync(fd: file.BaseFile, length: number, position: number, encoding: string): string;
-  public static readSync(fd: file.BaseFile, buffer: NodeBuffer, offset: number, length: number, position: number): number;
-  public static readSync(fd: file.BaseFile, arg2: any, arg3: any, arg4: any, arg5?: any): any {
+  public static readSync(fd: file.File, length: number, position: number, encoding: string): string;
+  public static readSync(fd: file.File, buffer: NodeBuffer, offset: number, length: number, position: number): number;
+  public static readSync(fd: file.File, arg2: any, arg3: any, arg4: any, arg5?: any): any {
     var shenanigans = false;
     var buffer: NodeBuffer, offset: number, length: number, position: number;
     if (typeof arg2 === 'number') {
@@ -915,7 +915,7 @@ export class fs {
    * @param [Number] gid
    * @param [Function(BrowserFS.ApiError)] callback
    */
-  public static fchown(fd: file.BaseFile, uid: number, gid: number, callback: Function = nopCb): void {
+  public static fchown(fd: file.File, uid: number, gid: number, callback: Function = nopCb): void {
     var newCb = wrapCb(callback, 1);
     try {
       checkFd(fd);
@@ -931,7 +931,7 @@ export class fs {
    * @param [Number] uid
    * @param [Number] gid
    */
-  public static fchownSync(fd: file.BaseFile, uid: number, gid: number): void {
+  public static fchownSync(fd: file.File, uid: number, gid: number): void {
     checkFd(fd);
     return fd.chownSync(uid, gid);
   }
@@ -942,9 +942,9 @@ export class fs {
    * @param [Number] mode
    * @param [Function(BrowserFS.ApiError)] callback
    */
-  public static fchmod(fd: file.BaseFile, mode: string, cb?: Function): void;
-  public static fchmod(fd: file.BaseFile, mode: number, cb?: Function): void;
-  public static fchmod(fd: file.BaseFile, mode: any, cb: Function = nopCb): void {
+  public static fchmod(fd: file.File, mode: string, cb?: Function): void;
+  public static fchmod(fd: file.File, mode: number, cb?: Function): void;
+  public static fchmod(fd: file.File, mode: any, cb: Function = nopCb): void {
     var newCb = wrapCb(cb, 1);
     try {
       mode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
@@ -960,9 +960,9 @@ export class fs {
    * @param [BrowserFS.File] fd
    * @param [Number] mode
    */
-  public static fchmodSync(fd: file.BaseFile, mode: string): void;
-  public static fchmodSync(fd: file.BaseFile, mode: number): void;
-  public static fchmodSync(fd: file.BaseFile, mode: any): void {
+  public static fchmodSync(fd: file.File, mode: string): void;
+  public static fchmodSync(fd: file.File, mode: number): void;
+  public static fchmodSync(fd: file.File, mode: any): void {
     mode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
     checkFd(fd);
     return fd.chmodSync(mode);
@@ -976,9 +976,9 @@ export class fs {
    * @param [Date] mtime
    * @param [Function(BrowserFS.ApiError)] callback
    */
-  public static futimes(fd: file.BaseFile, atime: number, mtime: number, cb: Function): void;
-  public static futimes(fd: file.BaseFile, atime: Date, mtime: Date, cb: Function): void;
-  public static futimes(fd: file.BaseFile, atime: any, mtime: any, cb: Function = nopCb): void {
+  public static futimes(fd: file.File, atime: number, mtime: number, cb: Function): void;
+  public static futimes(fd: file.File, atime: Date, mtime: Date, cb: Function): void;
+  public static futimes(fd: file.File, atime: any, mtime: any, cb: Function = nopCb): void {
     var newCb = wrapCb(cb, 1);
     try {
       checkFd(fd);
@@ -1001,9 +1001,9 @@ export class fs {
    * @param [Date] atime
    * @param [Date] mtime
    */
-  public static futimesSync(fd: file.BaseFile, atime: number, mtime: number): void;
-  public static futimesSync(fd: file.BaseFile, atime: Date, mtime: Date): void;
-  public static futimesSync(fd: file.BaseFile, atime: any, mtime: any): void {
+  public static futimesSync(fd: file.File, atime: number, mtime: number): void;
+  public static futimesSync(fd: file.File, atime: Date, mtime: Date): void;
+  public static futimesSync(fd: file.File, atime: any, mtime: any): void {
     checkFd(fd);
     if (typeof atime === 'number') {
       atime = new Date(atime * 1000);
