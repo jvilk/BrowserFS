@@ -1,5 +1,4 @@
-import node_path = require('./node_path');
-var path = node_path.path;
+var path = null;
 
 /**
  * Partial implementation of Node's `process` module.
@@ -23,6 +22,10 @@ export class Process {
    * @param [String] dir The directory to change to.
    */
   public chdir(dir: string): void {
+    // XXX: Circular dependency hack.
+    if (path === null) {
+      path = require('./node_path').path;
+    }
     this._cwd = path.resolve(dir);
   }
   /**
