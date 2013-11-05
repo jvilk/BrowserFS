@@ -17,6 +17,15 @@ export interface BufferConstructor {
   concat(list: NodeBuffer[], totalLength?: number): NodeBuffer;
 }
 
+/**
+ * BFS Buffers add a few support methods to allow code re-use via BufferCommon.
+ */
+export interface BFSBuffer extends NodeBuffer {
+  _fill(value: number, start: number, end: number): void;
+  _slice(start: number, end: number): NodeBuffer;
+  _getByteArray(start: number, end: number): number[];
+}
+
 export var OldBuffer: BufferConstructor = buffer_old.Buffer;
 export var ModernBuffer: BufferConstructor = buffer_modern.Buffer;
 

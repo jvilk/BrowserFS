@@ -148,4 +148,13 @@ window.tests.bfs_buffer_test = function() {
   buff.writeUInt8(1 << 7, 7);
   assert.strictEqual(-1.793993013121266e-307, buff.readDoubleLE(0));
   assert.strictEqual(8.209688573201296e-304, buff.readDoubleBE(0));
+
+  /**
+   * Slice test! Ensure that sliced buffers share the same backing memory.
+   */
+  var buff1 = new Buffer(4);
+  var buff2 = buff1.slice(2);
+  buff1.writeInt16LE(-203, 2);
+  assert.strictEqual(-203, buff1.readInt16LE(2));
+  assert.strictEqual(-203, buff2.readInt16LE(0));
 };
