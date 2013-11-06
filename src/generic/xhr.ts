@@ -206,7 +206,6 @@ function getFileSize(async: boolean, p: string, cb: (err: api_error.ApiError, si
   req.onreadystatechange = function(e) {
     if (req.readyState === 4) {
       if (req.status == 200) {
-        console.error(req.statusText);
         try {
           return cb(null, parseInt(req.getResponseHeader('Content-Length'), 10));
         } catch(e) {
