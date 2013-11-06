@@ -90,7 +90,7 @@ export class BufferCommon {
    * @param {number} index - the index to set the value at
    * @param {number} value - the value to set at the given index
    */
-  public set(index: number, value: number) {
+  public set(index: number, value: number): void {
     return (<NodeBuffer><any> this).writeUInt8(value, index);
   }
 

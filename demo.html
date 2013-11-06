@@ -9,8 +9,9 @@
 #contents { display: inline-block; font-family: monospace; width: 600px; margin-bottom: 1em; }
 </style>
 <script type='text/javascript'>
-fs = BrowserFS.node.fs;
-path = BrowserFS.node.path;
+BrowserFS.install(window);
+fs = require('fs');
+path = require('path');
 function touch_file(fname) {
   fs.writeFileSync(fname, '');
   refresh_all();

@@ -21,6 +21,8 @@ export interface BufferConstructor {
  * BFS Buffers add a few support methods to allow code re-use via BufferCommon.
  */
 export interface BFSBuffer extends NodeBuffer {
+  get(index: number): number;
+  set(index: number, value: number): void;
   _fill(value: number, start: number, end: number): void;
   _slice(start: number, end: number): NodeBuffer;
   _getByteArray(start: number, end: number): number[];

@@ -26,7 +26,7 @@ export function install(obj) {
   obj.require = function(arg) {
     var rv = require(arg);
     if (rv == null) {
-      return oldRequire.call(null, Array.prototype.slice.call(arguments, 0))
+      return oldRequire.apply(null, Array.prototype.slice.call(arguments, 0))
     } else {
       return rv;
     }
