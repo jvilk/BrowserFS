@@ -11,8 +11,24 @@ var ApiError = api_error.ApiError;
 var ErrorType = api_error.ErrorType;
 var Buffer = buffer.Buffer;
 
-// See core/polyfills for the VBScript definition of this function.
-declare var getIEByteArray: (vbarr: any, arr: number[]) => void;
+// See core/polyfills for the VBScript definition of these functions.
+declare var IEBinaryToArray_ByteStr: (vbarr: any) => string;
+declare var IEBinaryToArray_ByteStr_Last: (vbarr: any) => string;
+// Converts 'responseBody' in IE into the equivalent 'responseText' that other
+// browsers would generate.
+function getIEByteArray(IEByteArray: any): number[] {
+  var rawBytes = IEBinaryToArray_ByteStr(IEByteArray);
+  var lastChr = IEBinaryToArray_ByteStr_Last(IEByteArray);
+  var data_str = rawBytes.replace(/[\s\S]/g, function(match) {
+    var v = match.charCodeAt(0)
+    return String.fromCharCode(v&0xff, v>>8)
+  }) + lastChr;
+  var data_array = new Array(data_str.length);
+  for (var i = 0; i < data_str.length; i++) {
+    data_array[i] = data_str.charCodeAt(i);
+  }
+  return data_array;
+}
 
 function downloadFileIE(async: boolean, p: string, type: string, cb: (err: api_error.ApiError, data?: any) => void): void {
   switch(type) {
@@ -33,7 +49,7 @@ function downloadFileIE(async: boolean, p: string, type: string, cb: (err: api_e
       if (req.status === 200) {
         switch(type) {
           case 'buffer':
-            getIEByteArray(req.responseBody, data_array = []);
+            data_array = getIEByteArray(req.responseBody);
             return cb(null, new Buffer(data_array));
           case 'json':
             return cb(null, JSON.parse(req.responseText));

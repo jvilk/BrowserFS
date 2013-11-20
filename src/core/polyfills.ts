@@ -239,19 +239,25 @@ if (!Array.prototype.map) {
 /**
  * IE9 and below only: Injects a VBScript function that converts the
  * 'responseBody' attribute of an XMLHttpRequest into a bytestring.
- * From ExtJS: http://docs-origin.sencha.com/extjs/4.1.3/source/Connection.html
+ * From: http://miskun.com/javascript/internet-explorer-and-binary-files-data-access/#comment-17
  *
  * This must be performed *before* the page finishes loading, otherwise
  * document.write will refresh the page. :(
  *
  * This is harmless to inject into non-IE browsers.
  */
-document.write("<!-- IEBinaryToArray_ByteStr -->\r\n" +
-  "<script type='text/vbscript'>\r\n" +
-  "Function getIEByteArray(byteArray, out)\r\n" +
-  "  Dim len, i\r\n" + "  len = LenB(byteArray)\r\n" +
-  "  For i = 1 to len\r\n" +
-  "    out.push(AscB(MidB(byteArray, i, 1)))\r\n" +
-  "  Next\r\n" +
-  "End Function\r\n" +
+document.write("<!-- IEBinaryToArray_ByteStr -->\r\n"+
+  "<script type='text/vbscript'>\r\n"+
+  "Function IEBinaryToArray_ByteStr(Binary)\r\n"+
+  " IEBinaryToArray_ByteStr = CStr(Binary)\r\n"+
+  "End Function\r\n"+
+  "Function IEBinaryToArray_ByteStr_Last(Binary)\r\n"+
+  " Dim lastIndex\r\n"+
+  " lastIndex = LenB(Binary)\r\n"+
+  " if lastIndex mod 2 Then\r\n"+
+  " IEBinaryToArray_ByteStr_Last = Chr( AscB( MidB( Binary, lastIndex, 1 ) ) )\r\n"+
+  " Else\r\n"+
+  " IEBinaryToArray_ByteStr_Last = "+'""'+"\r\n"+
+  " End If\r\n"+
+  "End Function\r\n"+
   "</script>\r\n");
