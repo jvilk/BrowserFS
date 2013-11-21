@@ -157,4 +157,12 @@ window.tests.bfs_buffer_test = function() {
   buff1.writeInt16LE(-203, 2);
   assert.strictEqual(-203, buff1.readInt16LE(2));
   assert.strictEqual(-203, buff2.readInt16LE(0));
+
+  /**
+   * Testing that the 'binary' encoding !== 'ascii' encoding.
+   */
+  buff.write(String.fromCharCode(0xFF), 0, 1, 'binary');
+  assert(buff.toString('binary', 0, 1) === String.fromCharCode(0xFF));
+  buff.write(String.fromCharCode(0xFF), 0, 1, 'ascii');
+  assert(buff.toString('ascii', 0, 1) === String.fromCharCode(0x7F));
 };

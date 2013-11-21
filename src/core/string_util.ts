@@ -62,9 +62,9 @@ export function FindUtil(encoding: string): StringUtil {
     case 'utf-8':
       return UTF8;
     case 'ascii':
-    case 'binary':
-      // @todo How is binary different from ascii?
       return ASCII;
+    case 'binary':
+      return BINARY;
     case 'ucs2':
     case 'ucs-2':
     case 'utf16le':
@@ -222,6 +222,32 @@ export class ASCII implements StringUtil {
     var chars = new Array(byteArray.length);
     for (var i = 0; i < byteArray.length; i++) {
       chars[i] = String.fromCharCode(byteArray[i] & 0x7F);
+    }
+    return chars.join('');
+  }
+
+  public static byteLength(str: string): number {
+    return str.length;
+  }
+}
+
+/**
+ * String utility functions for Node's BINARY strings, which represent a single
+ * byte per character.
+ */
+export class BINARY implements StringUtil {
+  public static str2byte(buf: NodeBuffer, str: string, offset: number, length: number): number {
+    length = str.length > length ? length : str.length;
+    for (var i = 0; i < length; i++) {
+      buf.writeUInt8(str.charCodeAt(i) & 0xFF, offset + i);
+    }
+    return length;
+  }
+
+  public static byte2str(byteArray: number[]): string {
+    var chars = new Array(byteArray.length);
+    for (var i = 0; i < byteArray.length; i++) {
+      chars[i] = String.fromCharCode(byteArray[i] & 0xFF);
     }
     return chars.join('');
   }
