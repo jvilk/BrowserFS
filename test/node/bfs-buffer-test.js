@@ -161,8 +161,10 @@ window.tests.bfs_buffer_test = function() {
   /**
    * Testing that the 'binary' encoding !== 'ascii' encoding.
    */
-  buff.write(String.fromCharCode(0xFF), 0, 1, 'binary');
+  // Characters are truncated at 0xFF.
+  assert(buff.write(String.fromCharCode(0xFFF),0,10,'binary'), 1);
   assert(buff.toString('binary', 0, 1) === String.fromCharCode(0xFF));
+  // Characters are truncated at 0x7F.
   buff.write(String.fromCharCode(0xFF), 0, 1, 'ascii');
   assert(buff.toString('ascii', 0, 1) === String.fromCharCode(0x7F));
 };
