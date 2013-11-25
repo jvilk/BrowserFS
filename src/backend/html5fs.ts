@@ -8,7 +8,7 @@ import node_fs_stats = require('../core/node_fs_stats');
 import buffer = require('../core/buffer');
 import file = require('../core/file');
 import browserfs = require('../core/browserfs');
-import buffer_modern = require('../core/buffer_modern');
+import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
 
 var Buffer = buffer.Buffer;
 var Stats = node_fs_stats.Stats;
@@ -72,7 +72,20 @@ export class HTML5FSFile extends preload_file.PreloadFile implements file.File {
     var _fs = <HTML5FS> this._fs;
     var success = function(entry) {
       entry.createWriter(function(writer) {
-        var blob = new Blob([(<buffer_modern.Buffer> self._buffer).buff]);
+        // XXX: Typing hack.
+        var buffer = self._buffer;
+        var backing_mem: buffer_core_arraybuffer.BufferCoreArrayBuffer = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>self._buffer).getBufferCore();
+        if (!(backing_mem instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer)) {
+          // Copy into an ArrayBuffer-backed Buffer.
+          buffer = new Buffer(self._buffer.length);
+          self._buffer.copy(buffer);
+          backing_mem = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>buffer).getBufferCore();
+        }
+        // Reach into the BC, grab the DV.
+        var dv = backing_mem.getDataView();
+        // Create an appropriate view on the array buffer.
+        var abv = new DataView(dv.buffer, dv.byteOffset + (<buffer.BFSBuffer><any>buffer).getOffset(), buffer.length);
+        var blob = new Blob([abv]);
         var length = blob.size;
         writer.onwriteend = function(event) {
           writer.onwriteend = null;

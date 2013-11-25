@@ -20,14 +20,14 @@ export interface StringUtil {
    *   can write
    * @return [Number] number of bytes written into the buffer
    */
-  str2byte(buf: NodeBuffer, str: string, offset: number, length: number): number;
+  str2byte(str: string, buf: NodeBuffer): number;
   /**
    * Converts the data in the byte array into a string.
    * @todo Is this the best API? Are we doing needless copying?
    * @param [Array] byteArray an array of bytes
    * @return [String] the array interpreted as a binary string
    */
-  byte2str(byteArray: number[]): string;
+  byte2str(buf: NodeBuffer): string;
   /**
    * Returns the number of bytes that the string will take up using the given
    * encoding.
@@ -105,10 +105,11 @@ export function FindUtil(encoding: string): StringUtil {
  * @see http://en.wikipedia.org/wiki/UTF-8
  */
 export class UTF8 implements StringUtil {
-  public static str2byte(buf: NodeBuffer, str: string, offset: number, length: number): number {
+  public static str2byte(str: string, buf: NodeBuffer): number {
+    var length = buf.length;
     var i = 0;
-    var j = offset;
-    var maxJ = offset + length;
+    var j = 0;
+    var maxJ = length;
     var rv = [];
     var numChars = 0;
     while (i < str.length && j < maxJ) {
@@ -161,14 +162,14 @@ export class UTF8 implements StringUtil {
         buf.writeUInt8((code & 0x3F) | 0x80, j++);
       }
     }
-    return j - offset;
+    return j;
   }
 
-  public static byte2str(byteArray: number[]): string {
+  public static byte2str(buff: NodeBuffer): string {
     var chars = [];
     var i = 0;
-    while (i < byteArray.length) {
-      var code = byteArray[i++];
+    while (i < buff.length) {
+      var code = buff.readUInt8(i++);
       if (code < 0x80) {
         chars.push(String.fromCharCode(code));
       } else if (code < 0xC0) {
@@ -177,17 +178,17 @@ export class UTF8 implements StringUtil {
         throw new Error('Found incomplete part of character in string.');
       } else if (code < 0xE0) {
         // 2 bytes: 5 and 6 bits
-        chars.push(String.fromCharCode(((code & 0x1F) << 6) | (byteArray[i++] & 0x3F)));
+        chars.push(String.fromCharCode(((code & 0x1F) << 6) | (buff.readUInt8(i++) & 0x3F)));
       } else if (code < 0xF0) {
         // 3 bytes: 4, 6, and 6 bits
-        chars.push(String.fromCharCode(((code & 0xF) << 12) | ((byteArray[i++] & 0x3F) << 6) | (byteArray[i++] & 0x3F)));
+        chars.push(String.fromCharCode(((code & 0xF) << 12) | ((buff.readUInt8(i++) & 0x3F) << 6) | (buff.readUInt8(i++) & 0x3F)));
       } else if (code < 0xF8) {
         // 4 bytes: 3, 6, 6, 6 bits; surrogate pairs time!
         // First 11 bits; remove 11th bit as per UTF-16 standard
-        var byte3 = byteArray[i + 2];
-        chars.push(String.fromCharCode(((((code & 0x7) << 8) | ((byteArray[i++] & 0x3F) << 2) | ((byteArray[i++] & 0x3F) >> 4)) & 0x3FF) | 0xD800));
+        var byte3 = buff.readUInt8(i + 2);
+        chars.push(String.fromCharCode(((((code & 0x7) << 8) | ((buff.readUInt8(i++) & 0x3F) << 2) | ((buff.readUInt8(i++) & 0x3F) >> 4)) & 0x3FF) | 0xD800));
         // Final 10 bits
-        chars.push(String.fromCharCode((((byte3 & 0xF) << 6) | (byteArray[i++] & 0x3F)) | 0xDC00));
+        chars.push(String.fromCharCode((((byte3 & 0xF) << 6) | (buff.readUInt8(i++) & 0x3F)) | 0xDC00));
       } else {
         throw new Error('Unable to represent UTF-8 string as UTF-16 JavaScript string.');
       }
@@ -210,18 +211,18 @@ export class UTF8 implements StringUtil {
  * @see http://en.wikipedia.org/wiki/ASCII
  */
 export class ASCII implements StringUtil {
-  public static str2byte(buf: NodeBuffer, str: string, offset: number, length: number): number {
-    length = str.length > length ? length : str.length;
+  public static str2byte(str: string, buf: NodeBuffer): number {
+    var length = str.length > buf.length ? buf.length : str.length;
     for (var i = 0; i < length; i++) {
-      buf.writeUInt8(str.charCodeAt(i) % 256, offset + i);
+      buf.writeUInt8(str.charCodeAt(i) % 256, i);
     }
     return length;
   }
 
-  public static byte2str(byteArray: number[]): string {
-    var chars = new Array(byteArray.length);
-    for (var i = 0; i < byteArray.length; i++) {
-      chars[i] = String.fromCharCode(byteArray[i] & 0x7F);
+  public static byte2str(buff: NodeBuffer): string {
+    var chars = new Array(buff.length);
+    for (var i = 0; i < buff.length; i++) {
+      chars[i] = String.fromCharCode(buff.readUInt8(i) & 0x7F);
     }
     return chars.join('');
   }
@@ -236,18 +237,18 @@ export class ASCII implements StringUtil {
  * byte per character.
  */
 export class BINARY implements StringUtil {
-  public static str2byte(buf: NodeBuffer, str: string, offset: number, length: number): number {
-    length = str.length > length ? length : str.length;
+  public static str2byte(str: string, buf: NodeBuffer): number {
+    var length = str.length > buf.length ? buf.length : str.length;
     for (var i = 0; i < length; i++) {
-      buf.writeUInt8(str.charCodeAt(i) & 0xFF, offset + i);
+      buf.writeUInt8(str.charCodeAt(i) & 0xFF, i);
     }
     return length;
   }
 
-  public static byte2str(byteArray: number[]): string {
-    var chars = new Array(byteArray.length);
-    for (var i = 0; i < byteArray.length; i++) {
-      chars[i] = String.fromCharCode(byteArray[i] & 0xFF);
+  public static byte2str(buff: NodeBuffer): string {
+    var chars = new Array(buff.length);
+    for (var i = 0; i < buff.length; i++) {
+      chars[i] = String.fromCharCode(buff.readUInt8(i) & 0xFF);
     }
     return chars.join('');
   }
@@ -287,13 +288,13 @@ export class BASE64 implements StringUtil {
     return obj;
   })();
 
-  public static byte2str(byteArray: number[]): string {
+  public static byte2str(buff: NodeBuffer): string {
     var output = '';
     var i = 0;
-    while (i < byteArray.length) {
-      var chr1 = byteArray[i++];
-      var chr2 = byteArray[i++];
-      var chr3 = byteArray[i++];
+    while (i < buff.length) {
+      var chr1 = buff.readUInt8(i++);
+      var chr2 = i < buff.length ? buff.readUInt8(i++) : NaN;
+      var chr3 = i < buff.length ? buff.readUInt8(i++) : NaN;
       var enc1 = chr1 >> 2;
       var enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
       var enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
@@ -308,7 +309,8 @@ export class BASE64 implements StringUtil {
     return output;
   }
 
-  public static str2byte(buf: NodeBuffer, str: string, offset: number, length: number): number {
+  public static str2byte(str: string, buf: NodeBuffer): number {
+    var length = buf.length;
     var output = '';
     var i = 0;
     str = str.replace(/[^A-Za-z0-9\+\/\=\-\_]/g, '');
@@ -321,18 +323,18 @@ export class BASE64 implements StringUtil {
       var chr1 = (enc1 << 2) | (enc2 >> 4);
       var chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
       var chr3 = ((enc3 & 3) << 6) | enc4;
-      buf.writeUInt8(chr1, offset + j++);
+      buf.writeUInt8(chr1, j++);
       if (j === length) {
         break;
       }
       if (enc3 !== 64) {
-        output += buf.writeUInt8(chr2, offset + j++);
+        output += buf.writeUInt8(chr2, j++);
       }
       if (j === length) {
         break;
       }
       if (enc4 !== 64) {
-        output += buf.writeUInt8(chr3, offset + j++);
+        output += buf.writeUInt8(chr3, j++);
       }
       if (j === length) {
         break;
@@ -354,26 +356,26 @@ export class BASE64 implements StringUtil {
  * @see http://en.wikipedia.org/wiki/UCS2
  */
 export class UCS2 implements StringUtil {
-  public static str2byte(buf: NodeBuffer, str: string, offset: number, length: number): number {
+  public static str2byte(str: string, buf: NodeBuffer): number {
     var len = str.length;
     // Clip length to longest string of valid characters that can fit in the
     // byte range.
-    if (len * 2 > length) {
-      len = length % 2 === 1 ? (length - 1) / 2 : length / 2;
+    if (len * 2 > buf.length) {
+      len = buf.length % 2 === 1 ? (buf.length - 1) / 2 : buf.length / 2;
     }
     for (var i = 0; i < len; i++) {
-      buf.writeUInt16LE(str.charCodeAt(i), offset + i * 2);
+      buf.writeUInt16LE(str.charCodeAt(i), i * 2);
     }
     return len * 2;
   }
 
-  public static byte2str(byteArray: number[]): string {
-    if (byteArray.length % 2 !== 0) {
+  public static byte2str(buff: NodeBuffer): string {
+    if (buff.length % 2 !== 0) {
       throw new Error('Invalid UCS2 byte array.');
     }
-    var chars = new Array(byteArray.length / 2);
-    for (var i = 0; i < byteArray.length; i += 2) {
-      chars[i / 2] = String.fromCharCode(byteArray[i] | (byteArray[i + 1] << 8));
+    var chars = new Array(buff.length / 2);
+    for (var i = 0; i < buff.length; i += 2) {
+      chars[i / 2] = String.fromCharCode(buff.readUInt8(i) | (buff.readUInt8(i + 1) << 8));
     }
     return chars.join('');
   }
@@ -414,31 +416,31 @@ export class HEX implements StringUtil {
     return obj;
   })();
 
-  public static str2byte(buf: NodeBuffer, str: string, offset: number, length: number): number {
+  public static str2byte(str: string, buf: NodeBuffer): number {
     if (str.length % 2 === 1) {
       throw new Error('Invalid hex string');
     }
     // Each character is 1 byte encoded as two hex characters; so 1 byte becomes
     // 2 bytes.
-    var numBytes = str.length / 2;
-    if (numBytes > length) {
-      numBytes = length;
+    var numBytes = str.length >> 1;
+    if (numBytes > buf.length) {
+      numBytes = buf.length;
     }
     for (var i = 0; i < numBytes; i++) {
-      var char1 = this.hex2num[str.charAt(2 * i)];
-      var char2 = this.hex2num[str.charAt(2 * i + 1)];
-      buf.writeUInt8((char1 << 4) | char2, offset + i);
+      var char1 = this.hex2num[str.charAt(i << 1)];
+      var char2 = this.hex2num[str.charAt((i << 1) + 1)];
+      buf.writeUInt8((char1 << 4) | char2, i);
     }
     return numBytes;
   }
 
-  public static byte2str(byteArray: number[]): string {
-    var len = byteArray.length;
-    var chars = new Array(len * 2);
+  public static byte2str(buff: NodeBuffer): string {
+    var len = buff.length;
+    var chars = new Array(len << 1);
     var j = 0;
     for (var i = 0; i < len; i++) {
-      var hex2 = byteArray[i] & 0xF;
-      var hex1 = byteArray[i] >> 4;
+      var hex2 = buff.readUInt8(i) & 0xF;
+      var hex1 = buff.readUInt8(i) >> 4;
       chars[j++] = this.num2hex[hex1];
       chars[j++] = this.num2hex[hex2];
     }
@@ -446,7 +448,8 @@ export class HEX implements StringUtil {
   }
 
   public static byteLength(str: string): number {
-    return str.length / 2;
+    // Assuming a valid string.
+    return str.length >> 1;
   }
 }
 
@@ -462,23 +465,23 @@ export class HEX implements StringUtil {
  * Everything is little endian.
  */
 export class BINSTR implements StringUtil {
-  public static str2byte(buf: NodeBuffer, str: string, offset: number, length: number): number {
+  public static str2byte(str: string, buf: NodeBuffer): number {
     // Special case: Empty string
     if (str.length === 0) {
       return 0;
     }
     var numBytes = BINSTR.byteLength(str);
-    if (numBytes > length) {
-      numBytes = length;
+    if (numBytes > buf.length) {
+      numBytes = buf.length;
     }
     var j = 0;
-    var startByte = offset;
+    var startByte = 0;
     var endByte = startByte + numBytes;
     // Handle first character separately
     var firstChar = str.charCodeAt(j++);
     if (firstChar !== 0) {
-      buf.writeUInt8(firstChar & 0xFF, offset);
-      startByte = offset + 1;
+      buf.writeUInt8(firstChar & 0xFF, 0);
+      startByte = 1;
     }
     for (var i = startByte; i < endByte; i += 2) {
       var chr = str.charCodeAt(j++);
@@ -494,23 +497,23 @@ export class BINSTR implements StringUtil {
     return numBytes;
   }
 
-  public static byte2str(byteArray: number[]): string {
-    var len = byteArray.length;
+  public static byte2str(buff: NodeBuffer): string {
+    var len = buff.length;
     // Special case: Empty string
     if (len === 0) {
       return '';
     }
-    var chars = new Array(Math.floor(len / 2) + 1);
+    var chars = new Array((len >> 1) + 1);
     var j = 0;
     for (var i = 0; i < chars.length; i++) {
       if (i === 0) {
         if (len % 2 === 1) {
-          chars[i] = String.fromCharCode((1 << 8) | byteArray[j++]);
+          chars[i] = String.fromCharCode((1 << 8) | buff.readUInt8(j++));
         } else {
           chars[i] = String.fromCharCode(0);
         }
       } else {
-        chars[i] = String.fromCharCode((byteArray[j++] << 8) | byteArray[j++]);
+        chars[i] = String.fromCharCode((buff.readUInt8(j++) << 8) | buff.readUInt8(j++));
       }
     }
     return chars.join('');
@@ -522,7 +525,7 @@ export class BINSTR implements StringUtil {
       return 0;
     }
     var firstChar = str.charCodeAt(0);
-    var bytelen = (str.length - 1) * 2;
+    var bytelen = (str.length - 1) << 1;
     if (firstChar !== 0) {
       bytelen++;
     }
@@ -534,18 +537,18 @@ export class BINSTR implements StringUtil {
  * IE/older FF version of binary string. One byte per character, offset by 0x20.
  */
 export class BINSTRIE implements StringUtil {
-  public static str2byte(buf: NodeBuffer, str: string, offset: number, length: number): number {
-    length = str.length > length ? length : str.length;
+  public static str2byte(str: string, buf: NodeBuffer): number {
+    var length = str.length > buf.length ? buf.length : str.length;
     for (var i = 0; i < length; i++) {
-      buf.writeUInt8(str.charCodeAt(i) - 0x20, offset + i);
+      buf.writeUInt8(str.charCodeAt(i) - 0x20, i);
     }
     return length;
   }
 
-  public static byte2str(byteArray: number[]): string {
-    var chars = new Array(byteArray.length);
-    for (var i = 0; i < byteArray.length; i++) {
-      chars[i] = String.fromCharCode(byteArray[i] + 0x20);
+  public static byte2str(buff: NodeBuffer): string {
+    var chars = new Array(buff.length);
+    for (var i = 0; i < buff.length; i++) {
+      chars[i] = String.fromCharCode(buff.readUInt8(i) + 0x20);
     }
     return chars.join('');
   }

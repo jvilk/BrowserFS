@@ -8,7 +8,7 @@ import api_error = require('../core/api_error');
 import file = require('../core/file');
 import node_path = require('../core/node_path');
 import browserfs = require('../core/browserfs');
-import buffer_modern = require('../core/buffer_modern');
+import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
 
 var Buffer = buffer.Buffer;
 var Stats = node_fs_stats.Stats;
@@ -36,7 +36,20 @@ export class DropboxFile extends preload_file.PreloadFile implements file.File {
   }
 
   public sync(cb: (e?: api_error.ApiError) => void): void {
-    (<Dropbox> this._fs)._writeFileStrict(this._path, (<buffer_modern.Buffer> this._buffer).buff.buffer, cb);
+    var buffer = this._buffer;
+    // XXX: Typing hack.
+    var backing_mem: buffer_core_arraybuffer.BufferCoreArrayBuffer = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>this._buffer).getBufferCore();
+    if (!(backing_mem instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer)) {
+      // Copy into an ArrayBuffer-backed Buffer.
+      buffer = new Buffer(this._buffer.length);
+      this._buffer.copy(buffer);
+      backing_mem = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>buffer).getBufferCore();
+    }
+    // Reach into the BC, grab the DV.
+    var dv = backing_mem.getDataView();
+    // Create an appropriate view on the array buffer.
+    var abv = new DataView(dv.buffer, dv.byteOffset + (<buffer.BFSBuffer><any>buffer).getOffset(), buffer.length);
+    (<Dropbox> this._fs)._writeFileStrict(this._path, abv, cb);
   }
 
   public close(cb: (e?: api_error.ApiError) => void): void {
@@ -181,7 +194,9 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
     });
   }
 
-  public _writeFileStrict(p: string, data: ArrayBuffer, cb): void {
+  public _writeFileStrict(p: string, data: ArrayBuffer, cb): void;
+  public _writeFileStrict(p: string, data: ArrayBufferView, cb): void;
+  public _writeFileStrict(p: string, data: any, cb): void {
     var self = this;
     var parent = path.dirname(p);
     self.stat(parent, false, function(error: api_error.ApiError, stat?: node_fs_stats.Stats): void {
