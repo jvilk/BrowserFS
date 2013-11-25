@@ -1,5 +1,8 @@
 import buffer_core = require('./buffer_core');
 
+// Used to clear segments of an array index.
+var clearMasks: number[] = [0xFFFFFF00, 0xFFFF00FF, 0xFF00FFFF, 0x00FFFFFF];
+
 /**
  * Implementation of BufferCore that is backed by an array of 32-bit ints.
  * Data is stored little endian.
@@ -18,6 +21,11 @@ export class BufferCoreArray extends buffer_core.BufferCoreCommon implements buf
     super();
     this.length = length;
     this.buff = new Array(Math.ceil(length/4));
+    // Zero-fill the array.
+    var bufflen = this.buff.length;
+    for (var i = 0; i < bufflen; i++) {
+      this.buff[i] = 0;
+    }
   }
   public getLength(): number {
     return this.length;
@@ -28,6 +36,7 @@ export class BufferCoreArray extends buffer_core.BufferCoreCommon implements buf
     var arrIdx = i >> 2;
     // Which offset? (Equivalent to i - arrIdx*4)
     var intIdx = i & 3;
+    this.buff[arrIdx] = this.buff[arrIdx] & clearMasks[intIdx];
     this.buff[arrIdx] = this.buff[arrIdx] | (data << (intIdx << 3));
   }
   public readUInt8(i: number): number {

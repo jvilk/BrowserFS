@@ -80,11 +80,11 @@ export class Buffer implements BFSBuffer {
       }
       this.length = arg1;
       this.data = new PreferredBufferCore(arg1);
-    } else if (arg1 instanceof DataView) {
+    } else if (typeof DataView !== 'undefined' && arg1 instanceof DataView) {
       // constructor (data: DataView);
       this.data = new buffer_core_arraybuffer.BufferCoreArrayBuffer(<DataView> arg1);
       this.length = arg1.byteLength;
-    } else if (arg1 instanceof ArrayBuffer) {
+    } else if (typeof ArrayBuffer !== 'undefined' && arg1 instanceof ArrayBuffer) {
       // constructor (data: ArrayBuffer);
       this.data = new buffer_core_arraybuffer.BufferCoreArrayBuffer(<ArrayBuffer> arg1);
       this.length = arg1.byteLength;

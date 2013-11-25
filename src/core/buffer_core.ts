@@ -230,8 +230,8 @@ export class BufferCoreCommon {
   }
   public writeDoubleBE(i: number, data: number): void {
     var doubleBits = this.double2longbits(data);
-    this.writeInt32LE(i+4, doubleBits[0]);
-    this.writeInt32LE(i, doubleBits[1]);
+    this.writeInt32BE(i+4, doubleBits[0]);
+    this.writeInt32BE(i, doubleBits[1]);
   }
   public readInt8(i: number): number {
     var val = this.readUInt8(i);
