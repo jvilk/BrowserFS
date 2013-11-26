@@ -4,13 +4,12 @@ import fs = require('fs');
 import file = require('./file');
 
 /**
- * @class
+ * Indicates the type of the given file. Applied to 'mode'.
  */
 export enum FileType {
-  FILE = 1,
-  DIRECTORY = 2,
-  SYMLINK = 3,
-  SOCKET = 4
+  FILE = 0x8000,
+  DIRECTORY = 0x4000,
+  SYMLINK = 0xA000
 }
 
 /**
@@ -57,7 +56,7 @@ export class Stats implements fs.Stats {
    * @param [Date?] ctime time of creation
    */
   constructor(
-    public item_type: FileType,
+    item_type: FileType,
     public size: number,
     public mode: number = 0x1a4,
     public atime: Date = new Date(),
@@ -65,12 +64,7 @@ export class Stats implements fs.Stats {
     public ctime: Date = new Date()) {
     // number of 512B blocks allocated
     this.blocks = Math.ceil(size / 512);
-    // XXX: Fix mode for emscripten.
-    if (this.item_type === FileType.FILE) {
-      this.mode |= 0x8000;
-    } else {
-      this.mode |= 0x4000;
-    }
+    this.mode |= item_type;
   }
 
   /**
@@ -78,55 +72,52 @@ export class Stats implements fs.Stats {
    * @return [BrowserFS.node.fs.Stats]
    */
   public clone(): Stats {
-    return new Stats(this.item_type, this.size, this.mode, this.atime, this.mtime, this.ctime);
+    return new Stats(this.mode & 0xF000, this.size, this.mode & 0xFFF, this.atime, this.mtime, this.ctime);
   }
 
   /**
    * @return [Boolean] True if this item is a file.
    */
   public isFile(): boolean {
-    return this.item_type === FileType.FILE;
+    return (this.mode & 0xF000) === FileType.FILE;
   }
 
   /**
    * @return [Boolean] True if this item is a directory.
    */
   public isDirectory(): boolean {
-    return this.item_type === FileType.DIRECTORY;
+    return (this.mode & 0xF000) === FileType.DIRECTORY;
   }
 
   /**
    * @return [Boolean] True if this item is a symbolic link (only valid through lstat)
    */
   public isSymbolicLink(): boolean {
-    return this.item_type === FileType.SYMLINK;
+    return (this.mode & 0xF000) === FileType.SYMLINK;
   }
 
   /**
-   * @return [Boolean] True if this item is a socket
+   * Change the mode of the file. We use this helper function to prevent messing
+   * up the type of the file, which is encoded in mode.
    */
+  public chmod(mode: number): void {
+    this.mode = (this.mode & 0xF000) | mode;
+  }
+
+  // We don't support the following types of files.
+
   public isSocket(): boolean {
-    return this.item_type === FileType.SOCKET;
+    return false;
   }
 
-  /**
-   * Until a character/FIFO filesystem comes about, everything is block based.
-   * @return [Boolean] True; we currently only support block devices.
-   */
   public isBlockDevice(): boolean {
-    return true;
+    return false;
   }
 
-  /**
-   * @return [Boolean] False; we currently only support block devices.
-   */
   public isCharacterDevice(): boolean {
     return false;
   }
 
-  /**
-   * @return [Boolean] False; we currently only support block devices.
-   */
   public isFIFO(): boolean {
     return false;
   }

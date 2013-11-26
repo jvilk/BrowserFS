@@ -341,7 +341,7 @@ export class PreloadFile extends file.BaseFile {
     if (!this._fs.supportsProps()) {
       throw new ApiError(ErrorCode.ENOTSUP);
     }
-    this._stat.mode = mode;
+    this._stat.chmod(mode);
     this.syncSync();
   }
 }

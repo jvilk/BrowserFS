@@ -148,7 +148,7 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
 
   public chmodSync(path: string, isLchmod: boolean, mode: number): void {
     var fd = this.openSync(path, FileFlag.getFileFlag('r+'), 0x1a4);
-    (<any> fd)._stat.mode = mode;
+    (<any> fd)._stat.chmod(mode);
     fd.closeSync();
   }
 
