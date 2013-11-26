@@ -8,7 +8,7 @@ import buffer = require('../core/buffer');
 import api_error = require('../core/api_error');
 
 var ApiError = api_error.ApiError;
-var ErrorType = api_error.ErrorType;
+var ErrorCode = api_error.ErrorCode;
 var Buffer = buffer.Buffer;
 
 // See core/polyfills for the VBScript definition of these functions.
@@ -37,7 +37,7 @@ function downloadFileIE(async: boolean, p: string, type: string, cb: (err: api_e
     case 'json':
       break;
     default:
-      return cb(new ApiError(ErrorType.INVALID_PARAM, "Invalid download type: " + type));
+      return cb(new ApiError(ErrorCode.EINVAL, "Invalid download type: " + type));
   }
 
   var req = new XMLHttpRequest();
@@ -104,7 +104,7 @@ function asyncDownloadFileModern(p: string, type: string, cb: (err: api_error.Ap
       }
       break;
     default:
-      return cb(new ApiError(ErrorType.INVALID_PARAM, "Invalid download type: " + type));
+      return cb(new ApiError(ErrorCode.EINVAL, "Invalid download type: " + type));
   }
   req.onreadystatechange = function(e) {
     if (req.readyState === 4) {
@@ -189,7 +189,7 @@ function syncDownloadFileIE10(p: string, type: string): any {
       // IE10 does not support the JSON type.
       break;
     default:
-      throw new ApiError(ErrorType.INVALID_PARAM, "Invalid download type: " + type);
+      throw new ApiError(ErrorCode.EINVAL, "Invalid download type: " + type);
   }
   var data;
   var err;
@@ -226,7 +226,7 @@ function getFileSize(async: boolean, p: string, cb: (err: api_error.ApiError, si
           return cb(null, parseInt(req.getResponseHeader('Content-Length'), 10));
         } catch(e) {
           // In the event that the header isn't present or there is an error...
-          return cb(new ApiError(ErrorType.NETWORK_ERROR, "XHR HEAD error: Could not read content-length."));
+          return cb(new ApiError(ErrorCode.EIO, "XHR HEAD error: Could not read content-length."));
         }
       } else {
         return cb(new ApiError(req.status, "XHR HEAD error."));

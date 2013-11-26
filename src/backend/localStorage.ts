@@ -15,7 +15,7 @@ var Buffer = buffer.Buffer;
 var Stats = node_fs_stats.Stats;
 var FileType = node_fs_stats.FileType;
 var ApiError = api_error.ApiError;
-var ErrorType = api_error.ErrorType;
+var ErrorCode = api_error.ErrorCode;
 var path = node_path.path;
 /**
  * A simple filesystem backed by local storage.
@@ -81,7 +81,7 @@ export class LocalStorageAbstract extends indexed_filesystem.IndexedFileSystem i
       window.localStorage.setItem(path, dataStr);
       this._index.addPath(path, inode);
     } catch (e) {
-      throw new ApiError(ErrorType.DRIVE_FULL, "Unable to sync " + path);
+      throw new ApiError(ErrorCode.ENOSPC, "Unable to sync " + path);
     }
   }
 
@@ -166,13 +166,13 @@ export class LocalStorageAbstract extends indexed_filesystem.IndexedFileSystem i
   }
 
   public _convertToBinaryString(data: NodeBuffer, inode: node_fs_stats.Stats): string {
-    throw new ApiError(ErrorType.NOT_SUPPORTED, 'LocalStorageAbstract is an abstract class.');
+    throw new ApiError(ErrorCode.ENOTSUP, 'LocalStorageAbstract is an abstract class.');
   }
   public _convertFromBinaryString(path: string, data: string, flags: file_flag.FileFlag, inode: node_fs_stats.Stats): LocalStorageFile {
-    throw new ApiError(ErrorType.NOT_SUPPORTED, 'LocalStorageAbstract is an abstract class.');
+    throw new ApiError(ErrorCode.ENOTSUP, 'LocalStorageAbstract is an abstract class.');
   }
   public _getFileLength(data: string): number {
-    throw new ApiError(ErrorType.NOT_SUPPORTED, 'LocalStorageAbstract is an abstract class.');
+    throw new ApiError(ErrorCode.ENOTSUP, 'LocalStorageAbstract is an abstract class.');
   }
 }
 

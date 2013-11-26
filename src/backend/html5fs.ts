@@ -14,7 +14,7 @@ var Buffer = buffer.Buffer;
 var Stats = node_fs_stats.Stats;
 var FileType = node_fs_stats.FileType;
 var ApiError = api_error.ApiError;
-var ErrorType = api_error.ErrorType;
+var ErrorCode = api_error.ErrorCode;
 var ActionType = file_flag.ActionType;
 
 // XXX: The typings for async on DefinitelyTyped are out of date.
@@ -326,7 +326,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
    */
   public _sendError(cb: (e: api_error.ApiError) => void, err: any): void {
     var msg = typeof err === 'string' ? err : this._humanise(err);
-    cb(new ApiError(ErrorType.INVALID_PARAM, msg));
+    cb(new ApiError(ErrorCode.EINVAL, msg));
   }
 
   /**

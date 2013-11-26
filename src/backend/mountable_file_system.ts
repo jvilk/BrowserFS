@@ -5,7 +5,7 @@ import node_fs = require('../core/node_fs');
 import browserfs = require('../core/browserfs');
 
 var ApiError = api_error.ApiError;
-var ErrorType = api_error.ErrorType;
+var ErrorCode = api_error.ErrorCode;
 var fs = node_fs.fs;
 /**
  * The MountableFileSystem allows you to mount multiple backend types or
@@ -32,7 +32,7 @@ export class MountableFileSystem extends file_system.BaseFileSystem implements f
    */
   public mount(mnt_pt: string, fs: file_system.FileSystem): void {
     if (this.mntMap[mnt_pt]) {
-      throw new ApiError(ErrorType.INVALID_PARAM, "Mount point " + mnt_pt + " is already taken.");
+      throw new ApiError(ErrorCode.EINVAL, "Mount point " + mnt_pt + " is already taken.");
     }
     // @todo Ensure new mount path is not subsumed by active mount paths.
     this.rootFs.mkdirSync(mnt_pt, 0x1ff);
@@ -41,7 +41,7 @@ export class MountableFileSystem extends file_system.BaseFileSystem implements f
 
   public umount(mnt_pt: string): void {
     if (!this.mntMap[mnt_pt]) {
-      throw new ApiError(ErrorType.INVALID_PARAM, "Mount point " + mnt_pt + " is already unmounted.");
+      throw new ApiError(ErrorCode.EINVAL, "Mount point " + mnt_pt + " is already unmounted.");
     }
     delete this.mntMap[mnt_pt];
     this.rootFs.rmdirSync(mnt_pt);

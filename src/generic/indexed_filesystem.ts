@@ -7,7 +7,7 @@ import api_error = require('../core/api_error');
 import node_path = require('../core/node_path');
 
 var ApiError = api_error.ApiError;
-var ErrorType = api_error.ErrorType;
+var ErrorCode = api_error.ErrorCode;
 var ActionType = file_flag.ActionType;
 var FileType = node_fs_stats.FileType;
 var Stats = node_fs_stats.Stats;
@@ -34,7 +34,7 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
   public renameSync(oldPath: string, newPath: string): void {
     var oldInode = this._index.removePath(oldPath);
     if (oldInode === null) {
-      throw new ApiError(ErrorType.NOT_FOUND, "" + oldPath + " not found.");
+      throw new ApiError(ErrorCode.ENOENT, "" + oldPath + " not found.");
     }
     // Remove the given path if it exists.
     this._index.removePath(newPath);
@@ -44,7 +44,7 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
   public statSync(path: string, isLstat: boolean): node_fs_stats.Stats {
     var inode = this._index.getInode(path);
     if (inode === null) {
-      throw new ApiError(ErrorType.NOT_FOUND, "" + path + " not found.");
+      throw new ApiError(ErrorCode.ENOENT, "" + path + " not found.");
     }
 
     var stats = typeof inode['getStats'] === 'function' ? (<file_index.DirInode> inode).getStats() : <node_fs_stats.Stats> inode;
@@ -58,18 +58,18 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
     var inode = this._index.getInode(p);
     if (inode !== null) {
       if (!inode.isFile()) {
-        throw new ApiError(ErrorType.NOT_FOUND, "" + p + " is a directory.");
+        throw new ApiError(ErrorCode.EISDIR, "" + p + " is a directory.");
       } else {
         switch (flags.pathExistsAction()) {
           case ActionType.THROW_EXCEPTION:
-            throw new ApiError(ErrorType.INVALID_PARAM, "" + p + " already exists.");
+            throw new ApiError(ErrorCode.EEXIST, "" + p + " already exists.");
             break;
           case ActionType.TRUNCATE_FILE:
             return this._truncate(p, flags, inode);
           case ActionType.NOP:
             return this._fetch(p, flags, inode);
           default:
-            throw new ApiError(ErrorType.INVALID_PARAM, 'Invalid FileFlag object.');
+            throw new ApiError(ErrorCode.EINVAL, 'Invalid FileFlag object.');
         }
       }
     } else {
@@ -79,15 +79,15 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
           var parentPath = path.dirname(p);
           var parentInode = this._index.getInode(parentPath);
           if (parentInode === null || parentInode.isFile()) {
-            throw new ApiError(ErrorType.INVALID_PARAM, "" + parentPath + " doesn't exist.");
+            throw new ApiError(ErrorCode.ENOENT, "" + parentPath + " doesn't exist.");
           }
           inode = new Stats(FileType.FILE, 0, mode);
           return this._create(p, flags, inode);
         case ActionType.THROW_EXCEPTION:
-          throw new ApiError(ErrorType.INVALID_PARAM, "" + p + " doesn't exist.");
+          throw new ApiError(ErrorCode.ENOENT, "" + p + " doesn't exist.");
           break;
         default:
-          throw new ApiError(ErrorType.INVALID_PARAM, 'Invalid FileFlag object.');
+          throw new ApiError(ErrorCode.EINVAL, 'Invalid FileFlag object.');
       }
     }
   }
@@ -98,9 +98,9 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
     // Check if it exists, and is a file.
     var inode = this._index.getInode(path);
     if (inode === null) {
-      throw new ApiError(ErrorType.NOT_FOUND, "" + path + " not found.");
+      throw new ApiError(ErrorCode.ENOENT, "" + path + " not found.");
     } else if (!inode.isFile()) {
-      throw new ApiError(ErrorType.NOT_FOUND, "" + path + " is a directory, not a file.");
+      throw new ApiError(ErrorCode.EISDIR, "" + path + " is a directory, not a file.");
     }
     this._index.removePath(path);
   }
@@ -109,9 +109,9 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
     // Check if it exists, and is a directory.
     var inode = this._index.getInode(path);
     if (inode === null) {
-      throw new ApiError(ErrorType.NOT_FOUND, "" + path + " not found.");
+      throw new ApiError(ErrorCode.ENOENT, "" + path + " not found.");
     } else if (inode.isFile()) {
-      throw new ApiError(ErrorType.NOT_FOUND, "" + path + " is a file, not a directory.");
+      throw new ApiError(ErrorCode.ENOTDIR, "" + path + " is a file, not a directory.");
     }
     this._index.removePath(path);
     this._rmdirSync(path, inode);
@@ -121,27 +121,27 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
     // Check if it exists.
     var inode = this._index.getInode(p);
     if (inode !== null) {
-      throw new ApiError(ErrorType.INVALID_PARAM, "" + p + " already exists.");
+      throw new ApiError(ErrorCode.EEXIST, "" + p + " already exists.");
     }
     // Check if it lives below an existing dir (that is, we can't mkdir -p).
     var parent = path.dirname(p);
     if (parent !== '/' && this._index.getInode(parent) === null) {
-      throw new ApiError(ErrorType.INVALID_PARAM, "Can't create " + p + " because " + parent + " doesn't exist.");
+      throw new ApiError(ErrorCode.ENOENT, "Can't create " + p + " because " + parent + " doesn't exist.");
     }
     var success = this._index.addPath(p, new DirInode());
     if (success) {
       return;
     }
-    throw new ApiError(ErrorType.INVALID_PARAM, "Could not add " + path + " for some reason.");
+    throw new ApiError(ErrorCode.EINVAL, "Could not add " + path + " for some reason.");
   }
 
   public readdirSync(path: string): string[] {
     // Check if it exists.
     var inode = this._index.getInode(path);
     if (inode === null) {
-      throw new ApiError(ErrorType.NOT_FOUND, "" + path + " not found.");
+      throw new ApiError(ErrorCode.ENOENT, "" + path + " not found.");
     } else if (inode.isFile()) {
-      throw new ApiError(ErrorType.NOT_FOUND, "" + path + " is a file, not a directory.");
+      throw new ApiError(ErrorCode.ENOTDIR, "" + path + " is a file, not a directory.");
     }
     return (<file_index.DirInode> inode).getListing();
   }
@@ -167,15 +167,15 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
   }
 
   public _rmdirSync(path: string, inode: file_index.Inode): void {
-    throw new ApiError(ErrorType.NOT_SUPPORTED, '_rmdirSync is not implemented.');
+    throw new ApiError(ErrorCode.ENOTSUP, '_rmdirSync is not implemented.');
   }
   public _create(path: string, flag: file_flag.FileFlag, inode: file_index.Inode): file.File {
-    throw new ApiError(ErrorType.NOT_SUPPORTED, '_create is not implemented.');
+    throw new ApiError(ErrorCode.ENOTSUP, '_create is not implemented.');
   }
   public _fetch(path: string, flag: file_flag.FileFlag, inode: file_index.Inode): file.File {
-    throw new ApiError(ErrorType.NOT_SUPPORTED, '_fetch is not implemented.');
+    throw new ApiError(ErrorCode.ENOTSUP, '_fetch is not implemented.');
   }
   public _truncate(path: string, flag: file_flag.FileFlag, inode: file_index.Inode): file.File {
-    throw new ApiError(ErrorType.NOT_SUPPORTED, '_truncate is not implemented.');
+    throw new ApiError(ErrorCode.ENOTSUP, '_truncate is not implemented.');
   }
 }

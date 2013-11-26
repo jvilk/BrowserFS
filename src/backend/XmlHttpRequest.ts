@@ -12,7 +12,7 @@ import xhr = require('../generic/xhr');
 
 var Buffer = buffer.Buffer;
 var ApiError = api_error.ApiError;
-var ErrorType = api_error.ErrorType;
+var ErrorCode = api_error.ErrorCode;
 var FileFlag = file_flag.FileFlag;
 var ActionType = file_flag.ActionType;
 
@@ -121,7 +121,7 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
   public preloadFile(path: string, buffer: NodeBuffer): void {
     var inode = <node_fs_stats.Stats> this._index.getInode(path);
     if (inode === null) {
-      throw new ApiError(ErrorType.NOT_FOUND, "" + path + " not found.");
+      throw new ApiError(ErrorCode.ENOENT, "" + path + " not found.");
     }
     inode.size = buffer.length;
     inode.file_data = new preload_file.NoSyncFile(this, path, FileFlag.getFileFlag('r'), inode, buffer);
@@ -130,7 +130,7 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
   public stat(path: string, isLstat: boolean, cb: (e: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void {
     var inode = this._index.getInode(path);
     if (inode === null) {
-      return cb(new ApiError(ErrorType.NOT_FOUND, "" + path + " not found."));
+      return cb(new ApiError(ErrorCode.ENOENT, "" + path + " not found."));
     }
     var stats: node_fs_stats.Stats;
     if (inode.isFile()) {
@@ -156,7 +156,7 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
   public statSync(path: string, isLstat: boolean): node_fs_stats.Stats {
     var inode = this._index.getInode(path);
     if (inode === null) {
-      throw new ApiError(ErrorType.NOT_FOUND, "" + path + " not found.");
+      throw new ApiError(ErrorCode.ENOENT, "" + path + " not found.");
     }
     var stats: node_fs_stats.Stats;
     if (inode.isFile()) {
@@ -176,15 +176,15 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
     // Check if the path exists, and is a file.
     var inode = <node_fs_stats.Stats> this._index.getInode(path);
     if (inode === null) {
-      return cb(new ApiError(ErrorType.NOT_FOUND, "" + path + " is not in the FileIndex."));
+      return cb(new ApiError(ErrorCode.ENOENT, "" + path + " is not in the FileIndex."));
     }
     if (inode.isDirectory()) {
-      return cb(new ApiError(ErrorType.NOT_FOUND, "" + path + " is a directory."));
+      return cb(new ApiError(ErrorCode.EISDIR, "" + path + " is a directory."));
     }
     switch (flags.pathExistsAction()) {
       case ActionType.THROW_EXCEPTION:
       case ActionType.TRUNCATE_FILE:
-        return cb(new ApiError(ErrorType.NOT_FOUND, "" + path + " already exists."));
+        return cb(new ApiError(ErrorCode.EEXIST, "" + path + " already exists."));
       case ActionType.NOP:
         // Use existing file contents.
         // XXX: Uh, this maintains the previously-used flag.
@@ -203,7 +203,7 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
         });
         break;
       default:
-        return cb(new ApiError(ErrorType.INVALID_PARAM, 'Invalid FileMode object.'));
+        return cb(new ApiError(ErrorCode.EINVAL, 'Invalid FileMode object.'));
     }
   }
 
@@ -211,15 +211,15 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
     // Check if the path exists, and is a file.
     var inode = <node_fs_stats.Stats> this._index.getInode(path);
     if (inode === null) {
-      throw new ApiError(ErrorType.NOT_FOUND, "" + path + " is not in the FileIndex.");
+      throw new ApiError(ErrorCode.ENOENT, "" + path + " is not in the FileIndex.");
     }
     if (inode.isDirectory()) {
-      throw new ApiError(ErrorType.NOT_FOUND, "" + path + " is a directory.");
+      throw new ApiError(ErrorCode.EISDIR, "" + path + " is a directory.");
     }
     switch (flags.pathExistsAction()) {
       case ActionType.THROW_EXCEPTION:
       case ActionType.TRUNCATE_FILE:
-        throw new ApiError(ErrorType.NOT_FOUND, "" + path + " already exists.");
+        throw new ApiError(ErrorCode.EEXIST, "" + path + " already exists.");
       case ActionType.NOP:
         // Use existing file contents.
         // XXX: Uh, this maintains the previously-used flag.
@@ -233,7 +233,7 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
         inode.file_data = new preload_file.NoSyncFile(this, path, flags, inode, buffer);
         return inode.file_data;
       default:
-        throw new ApiError(ErrorType.INVALID_PARAM, 'Invalid FileMode object.');
+        throw new ApiError(ErrorCode.EINVAL, 'Invalid FileMode object.');
     }
   }
 
@@ -249,9 +249,9 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
     // Check if it exists.
     var inode = this._index.getInode(path);
     if (inode === null) {
-      throw new ApiError(ErrorType.NOT_FOUND, "" + path + " not found.");
+      throw new ApiError(ErrorCode.ENOENT, "" + path + " not found.");
     } else if (inode.isFile()) {
-      throw new ApiError(ErrorType.NOT_FOUND, "" + path + " is a file, not a directory.");
+      throw new ApiError(ErrorCode.ENOTDIR, "" + path + " is a file, not a directory.");
     }
     return (<file_index.DirInode> inode).getListing();
   }

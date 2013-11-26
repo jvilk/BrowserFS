@@ -62,7 +62,7 @@ export class FileFlag {
   constructor(flagStr: string) {
     this.flagStr = flagStr;
     if (FileFlag.validFlagStrs.indexOf(flagStr) < 0) {
-      throw new api_error.ApiError(api_error.ErrorType.INVALID_PARAM, "Invalid flag: " + flagStr);
+      throw new api_error.ApiError(api_error.ErrorCode.EINVAL, "Invalid flag: " + flagStr);
     }
   }
 

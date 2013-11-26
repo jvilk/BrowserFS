@@ -7,7 +7,7 @@ import api_error = require('../core/api_error');
 import node_fs = require('../core/node_fs');
 
 var ApiError = api_error.ApiError;
-var ErrorType = api_error.ErrorType;
+var ErrorCode = api_error.ErrorCode;
 var fs = node_fs.fs;
 var Buffer = buffer.Buffer;
 /**
@@ -118,7 +118,7 @@ export class PreloadFile extends file.BaseFile {
    * **Core**: Synchronous sync.
    */
   public syncSync(): void {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
+    throw new ApiError(ErrorCode.ENOTSUP);
   }
 
   /**
@@ -139,7 +139,7 @@ export class PreloadFile extends file.BaseFile {
    * **Core**: Synchronous close.
    */
   public closeSync(): void {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
+    throw new ApiError(ErrorCode.ENOTSUP);
   }
 
   /**
@@ -184,7 +184,7 @@ export class PreloadFile extends file.BaseFile {
    */
   public truncateSync(len: number): void {
     if (!this._flag.isWriteable()) {
-      throw new ApiError(ErrorType.PERMISSIONS_ERROR, 'File not opened with a writeable mode.');
+      throw new ApiError(ErrorCode.EPERM, 'File not opened with a writeable mode.');
     }
     this._stat.mtime = new Date();
     if (len > this._buffer.length) {
@@ -247,7 +247,7 @@ export class PreloadFile extends file.BaseFile {
       position = this.getPos();
     }
     if (!this._flag.isWriteable()) {
-      throw new ApiError(ErrorType.PERMISSIONS_ERROR, 'File not opened with a writeable mode.');
+      throw new ApiError(ErrorCode.EPERM, 'File not opened with a writeable mode.');
     }
     var endFp = position + length;
     if (endFp > this._stat.size) {
@@ -304,7 +304,7 @@ export class PreloadFile extends file.BaseFile {
    */
   public readSync(buffer: NodeBuffer, offset: number, length: number, position: number): number {
     if (!this._flag.isReadable()) {
-      throw new ApiError(ErrorType.PERMISSIONS_ERROR, 'File not opened with a readable mode.');
+      throw new ApiError(ErrorCode.EPERM, 'File not opened with a readable mode.');
     }
     if (position == null) {
       position = this.getPos();
@@ -339,7 +339,7 @@ export class PreloadFile extends file.BaseFile {
    */
   public chmodSync(mode: number): void {
     if (!this._fs.supportsProps()) {
-      throw new ApiError(ErrorType.NOT_SUPPORTED);
+      throw new ApiError(ErrorCode.ENOTSUP);
     }
     this._stat.mode = mode;
     this.syncSync();

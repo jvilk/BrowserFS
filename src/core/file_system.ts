@@ -13,7 +13,7 @@ import node_fs = require('./node_fs');
 import buffer = require('./buffer');
 
 var ApiError = api_error.ApiError;
-var ErrorType = api_error.ErrorType;
+var ErrorCode = api_error.ErrorCode;
 var path = node_path.path;
 var fs = node_fs.fs;
 var Buffer = buffer.Buffer;
@@ -503,46 +503,46 @@ export class BaseFileSystem {
     cb(0, 0);
   }
   public open(p: string, flag:file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.BaseFile) => any): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+    cb(new ApiError(ErrorCode.ENOTSUP));
   }
   public rename(oldPath: string, newPath: string, cb: (err?: api_error.ApiError) => void): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+    cb(new ApiError(ErrorCode.ENOTSUP));
   }
   public renameSync(oldPath: string, newPath: string): void {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
+    throw new ApiError(ErrorCode.ENOTSUP);
   }
   public stat(p: string, isLstat: boolean, cb: (err: api_error.ApiError, stat?: stat.Stats) => void): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+    cb(new ApiError(ErrorCode.ENOTSUP));
   }
   public statSync(p: string, isLstat: boolean): stat.Stats {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
+    throw new ApiError(ErrorCode.ENOTSUP);
   }
   public openSync(p: string, flag: file_flag.FileFlag, mode: number): file.File {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
+    throw new ApiError(ErrorCode.ENOTSUP);
   }
   public unlink(p: string, cb: Function): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+    cb(new ApiError(ErrorCode.ENOTSUP));
   }
   public unlinkSync(p: string): void {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
+    throw new ApiError(ErrorCode.ENOTSUP);
   }
   public rmdir(p: string, cb: Function): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+    cb(new ApiError(ErrorCode.ENOTSUP));
   }
   public rmdirSync(p: string): void {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
+    throw new ApiError(ErrorCode.ENOTSUP);
   }
   public mkdir(p: string, mode: number, cb: Function): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+    cb(new ApiError(ErrorCode.ENOTSUP));
   }
   public mkdirSync(p: string, mode: number): void {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
+    throw new ApiError(ErrorCode.ENOTSUP);
   }
   public readdir(p: string, cb: (err: api_error.ApiError, files?: string[]) => void): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+    cb(new ApiError(ErrorCode.ENOTSUP));
   }
   public readdirSync(p: string): string[] {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
+    throw new ApiError(ErrorCode.ENOTSUP);
   }
   public exists(p: string, cb: (exists: boolean) => void): void {
     this.stat(p, null, function(err) {
@@ -573,7 +573,7 @@ export class BaseFileSystem {
         if (doesExist) {
           cb(null, p);
         } else {
-          cb(new ApiError(ErrorType.NOT_FOUND, "File " + p + " not found."));
+          cb(new ApiError(ErrorCode.ENOENT, "File " + p + " not found."));
         }
       });
     }
@@ -593,7 +593,7 @@ export class BaseFileSystem {
       if (this.existsSync(p)) {
         return p;
       } else {
-        throw new ApiError(ErrorType.NOT_FOUND, "File " + p + " not found.");
+        throw new ApiError(ErrorCode.ENOENT, "File " + p + " not found.");
       }
     }
   }
@@ -743,40 +743,40 @@ export class BaseFileSystem {
     }
   }
   public chmod(p: string, isLchmod: boolean, mode: number, cb: Function): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+    cb(new ApiError(ErrorCode.ENOTSUP));
   }
   public chmodSync(p: string, isLchmod: boolean, mode: number) {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
+    throw new ApiError(ErrorCode.ENOTSUP);
   }
   public chown(p: string, isLchown: boolean, uid: number, gid: number, cb: Function): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+    cb(new ApiError(ErrorCode.ENOTSUP));
   }
   public chownSync(p: string, isLchown: boolean, uid: number, gid: number): void {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
+    throw new ApiError(ErrorCode.ENOTSUP);
   }
   public utimes(p: string, atime: Date, mtime: Date, cb: Function): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+    cb(new ApiError(ErrorCode.ENOTSUP));
   }
   public utimesSync(p: string, atime: Date, mtime: Date): void {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
+    throw new ApiError(ErrorCode.ENOTSUP);
   }
   public link(srcpath: string, dstpath: string, cb: Function): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+    cb(new ApiError(ErrorCode.ENOTSUP));
   }
   public linkSync(srcpath: string, dstpath: string): void {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
+    throw new ApiError(ErrorCode.ENOTSUP);
   }
   public symlink(srcpath: string, dstpath: string, type: string, cb: Function): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+    cb(new ApiError(ErrorCode.ENOTSUP));
   }
   public symlinkSync(srcpath: string, dstpath: string, type: string): void {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
+    throw new ApiError(ErrorCode.ENOTSUP);
   }
   public readlink(p: string, cb: Function): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+    cb(new ApiError(ErrorCode.ENOTSUP));
   }
   public readlinkSync(p: string): string {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
+    throw new ApiError(ErrorCode.ENOTSUP);
   }
 }
 

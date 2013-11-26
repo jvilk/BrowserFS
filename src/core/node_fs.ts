@@ -6,7 +6,7 @@ import buffer = require('./buffer');
 import node_path = require('./node_path');
 import node_fs_stats = require('./node_fs_stats');
 var ApiError = api_error.ApiError;
-var ErrorType = api_error.ErrorType;
+var ErrorCode = api_error.ErrorCode;
 var FileFlag = file_flag.FileFlag;
 var Buffer = buffer.Buffer;
 var path = node_path.path;
@@ -22,7 +22,7 @@ declare var setImmediate: (cb: Function) => void;
  */
 function wrapCb(cb: Function, numArgs: number): Function {
   if (typeof cb !== 'function') {
-    throw new ApiError(ErrorType.INVALID_PARAM, 'Callback must be a function.');
+    throw new ApiError(ErrorCode.EINVAL, 'Callback must be a function.');
   }
   // @todo This is used for unit testing. Maybe we should inject this logic
   //       dynamically rather than bundle it in 'production' code.
@@ -67,7 +67,7 @@ function wrapCb(cb: Function, numArgs: number): Function {
  */
 function checkFd(fd: file.File): void {
   if (typeof fd['write'] !== 'function') {
-    throw new ApiError(ErrorType.INVALID_PARAM, 'Invalid file descriptor.');
+    throw new ApiError(ErrorCode.EBADF, 'Invalid file descriptor.');
   }
 }
 
@@ -91,9 +91,9 @@ function normalizeMode(mode: any, def: number): number {
 function normalizePath(p: string): string {
   // Node doesn't allow null characters in paths.
   if (p.indexOf('\u0000') >= 0) {
-    throw new ApiError(ErrorType.INVALID_PARAM, 'Path must be a string without null bytes.');
+    throw new ApiError(ErrorCode.EINVAL, 'Path must be a string without null bytes.');
   } else if (p === '') {
-    throw new ApiError(ErrorType.INVALID_PARAM, 'Path must not be empty.');
+    throw new ApiError(ErrorCode.EINVAL, 'Path must not be empty.');
   }
   return path.resolve(p);
 }
@@ -143,7 +143,7 @@ export class fs {
 
   public static _initialize(rootFS: file_system.FileSystem): file_system.FileSystem {
     if (!(<any> rootFS).constructor.isAvailable()) {
-      throw new ApiError(ErrorType.INVALID_PARAM, 'Tried to instantiate BrowserFS with an unavailable file system.');
+      throw new ApiError(ErrorCode.EINVAL, 'Tried to instantiate BrowserFS with an unavailable file system.');
     }
     return fs.root = rootFS;
   }
@@ -422,7 +422,7 @@ export class fs {
     try {
       var flag = FileFlag.getFileFlag(options['flag']);
       if (!flag.isReadable()) {
-        return newCb(new ApiError(ErrorType.INVALID_PARAM, 'Flag passed to readFile must allow for reading.'));
+        return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to readFile must allow for reading.'));
       }
       return fs.root.readFile(normalizePath(filename), options.encoding, flag, newCb);
     } catch (e) {
@@ -444,7 +444,7 @@ export class fs {
     var options = normalizeOptions(arg2, null, 'r', null);
     var flag = FileFlag.getFileFlag(options.flag);
     if (!flag.isReadable()) {
-      throw new ApiError(ErrorType.INVALID_PARAM, 'Flag passed to readFile must allow for reading.');
+      throw new ApiError(ErrorCode.EINVAL, 'Flag passed to readFile must allow for reading.');
     }
     return fs.root.readFileSync(normalizePath(filename), options.encoding, flag);
   }
@@ -478,7 +478,7 @@ export class fs {
     try {
       var flag = FileFlag.getFileFlag(options.flag);
       if (!flag.isWriteable()) {
-        return newCb(new ApiError(ErrorType.INVALID_PARAM, 'Flag passed to writeFile must allow for writing.'));
+        return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to writeFile must allow for writing.'));
       }
       return fs.root.writeFile(normalizePath(filename), data, options.encoding, flag, options.mode, newCb);
     } catch (e) {
@@ -504,7 +504,7 @@ export class fs {
     var options = normalizeOptions(arg3, 'utf8', 'w', 0x1a4);
     var flag = FileFlag.getFileFlag(options.flag);
     if (!flag.isWriteable()) {
-      throw new ApiError(ErrorType.INVALID_PARAM, 'Flag passed to writeFile must allow for writing.');
+      throw new ApiError(ErrorCode.EINVAL, 'Flag passed to writeFile must allow for writing.');
     }
     return fs.root.writeFileSync(normalizePath(filename), data, options.encoding, flag, options.mode);
   }
@@ -536,7 +536,7 @@ export class fs {
     try {
       var flag = FileFlag.getFileFlag(options.flag);
       if (!flag.isAppendable()) {
-        return newCb(new ApiError(ErrorType.INVALID_PARAM, 'Flag passed to appendFile must allow for appending.'));
+        return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to appendFile must allow for appending.'));
       }
       fs.root.appendFile(normalizePath(filename), data, options.encoding, flag, options.mode, newCb);
     } catch (e) {
@@ -566,7 +566,7 @@ export class fs {
     var options = normalizeOptions(arg3, 'utf8', 'a', 0x1a4);
     var flag = FileFlag.getFileFlag(options.flag);
     if (!flag.isAppendable()) {
-      throw new ApiError(ErrorType.INVALID_PARAM, 'Flag passed to appendFile must allow for appending.');
+      throw new ApiError(ErrorCode.EINVAL, 'Flag passed to appendFile must allow for appending.');
     }
     return fs.root.appendFileSync(normalizePath(filename), data, options.encoding, flag, options.mode);
   }
@@ -743,7 +743,7 @@ export class fs {
         default:
           // ...try to find the callback and get out of here!
           cb = typeof arg4 === 'function' ? arg4 : typeof arg5 === 'function' ? arg5 : cb;
-          return cb(new ApiError(ErrorType.INVALID_PARAM, 'Invalid arguments.'));
+          return cb(new ApiError(ErrorCode.EINVAL, 'Invalid arguments.'));
       }
       buffer = new Buffer(arg2, encoding);
       offset = 0;
@@ -1145,7 +1145,7 @@ export class fs {
     var newCb = wrapCb(cb, 1);
     try {
       if (type !== 'file' && type !== 'dir') {
-        return newCb(new ApiError(ErrorType.INVALID_PARAM, "Invalid type: " + type));
+        return newCb(new ApiError(ErrorCode.EINVAL, "Invalid type: " + type));
       }
       srcpath = normalizePath(srcpath);
       dstpath = normalizePath(dstpath);
@@ -1165,7 +1165,7 @@ export class fs {
     if (type == null) {
       type = 'file';
     } else if (type !== 'file' && type !== 'dir') {
-      throw new ApiError(ErrorType.INVALID_PARAM, "Invalid type: " + type);
+      throw new ApiError(ErrorCode.EINVAL, "Invalid type: " + type);
     }
     srcpath = normalizePath(srcpath);
     dstpath = normalizePath(dstpath);

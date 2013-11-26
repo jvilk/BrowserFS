@@ -13,7 +13,7 @@ import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
 var Buffer = buffer.Buffer;
 var Stats = node_fs_stats.Stats;
 var ApiError = api_error.ApiError;
-var ErrorType = api_error.ErrorType;
+var ErrorCode = api_error.ErrorCode;
 var path = node_path.path;
 var FileType = node_fs_stats.FileType;
 
@@ -269,7 +269,7 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
    * Create a BrowserFS error object with message msg and pass it to cb
    */
   public _sendError(cb: (e: api_error.ApiError) => void, msg: string): void {
-    cb(new ApiError(ErrorType.INVALID_PARAM, msg));
+    cb(new ApiError(ErrorCode.EINVAL, msg));
   }
 
   /**

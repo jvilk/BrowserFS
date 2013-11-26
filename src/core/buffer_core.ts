@@ -166,7 +166,7 @@ export interface BufferCoreImplementation {
  */
 export class BufferCoreCommon {
   public getLength(): number {
-    throw new api_error.ApiError(api_error.ErrorType.NOT_SUPPORTED, 'BufferCore implementations should implement getLength.');
+    throw new api_error.ApiError(api_error.ErrorCode.ENOTSUP, 'BufferCore implementations should implement getLength.');
   }
   public writeInt8(i: number, data: number): void {
     // Pack the sign bit as the highest bit.
@@ -201,7 +201,7 @@ export class BufferCoreCommon {
     this.writeUInt8(i, (data >>> 24) & 0xFF);
   }
   public writeUInt8(i: number, data: number): void {
-    throw new api_error.ApiError(api_error.ErrorType.NOT_SUPPORTED, 'BufferCore implementations should implement writeUInt8.');
+    throw new api_error.ApiError(api_error.ErrorCode.ENOTSUP, 'BufferCore implementations should implement writeUInt8.');
   }
   public writeUInt16LE(i: number, data: number): void {
     this.writeUInt8(i, data & 0xFF);
@@ -267,7 +267,7 @@ export class BufferCoreCommon {
     return this.readUInt32BE(i) | 0;
   }
   public readUInt8(i: number): number {
-    throw new api_error.ApiError(api_error.ErrorType.NOT_SUPPORTED, 'BufferCore implementations should implement readUInt8.');
+    throw new api_error.ApiError(api_error.ErrorCode.ENOTSUP, 'BufferCore implementations should implement readUInt8.');
   }
   public readUInt16LE(i: number): number {
     return (this.readUInt8(i+1) << 8) | this.readUInt8(i);
@@ -294,7 +294,7 @@ export class BufferCoreCommon {
     return this.longbits2double(this.readInt32BE(i), this.readInt32BE(i+4));
   }
   public copy(start: number, end: number): BufferCore {
-    throw new api_error.ApiError(api_error.ErrorType.NOT_SUPPORTED, 'BufferCore implementations should implement copy.');
+    throw new api_error.ApiError(api_error.ErrorCode.ENOTSUP, 'BufferCore implementations should implement copy.');
   }
   public fill(value: number, start: number, end: number): void {
     // Stupid unoptimized fill: Byte-by-byte.

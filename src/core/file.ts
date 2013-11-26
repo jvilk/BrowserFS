@@ -2,7 +2,7 @@ import api_error = require('./api_error');
 import stats = require('./node_fs_stats');
 import buffer = require('./buffer');
 var ApiError = api_error.ApiError;
-var ErrorType = api_error.ErrorType;
+var ErrorCode = api_error.ErrorCode;
 
 export interface File {
   /**
@@ -164,10 +164,10 @@ export interface File {
  */
 export class BaseFile {
   public sync(cb: Function): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+    cb(new ApiError(ErrorCode.ENOTSUP));
   }
   public syncSync(): void {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
+    throw new ApiError(ErrorCode.ENOTSUP);
   }
   public datasync(cb: Function): void {
     this.sync(cb);
@@ -176,21 +176,21 @@ export class BaseFile {
     return this.syncSync();
   }
   public chown(uid: number, gid: number, cb: Function): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+    cb(new ApiError(ErrorCode.ENOTSUP));
   }
   public chownSync(uid: number, gid: number): void {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
+    throw new ApiError(ErrorCode.ENOTSUP);
   }
   public chmod(mode: number, cb: Function): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+    cb(new ApiError(ErrorCode.ENOTSUP));
   }
   public chmodSync(mode: number): void {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
+    throw new ApiError(ErrorCode.ENOTSUP);
   }
   public utimes(atime: number, mtime: number, cb: Function): void {
-    cb(new ApiError(ErrorType.NOT_SUPPORTED));
+    cb(new ApiError(ErrorCode.ENOTSUP));
   }
   public utimesSync(atime: number, mtime: number): void {
-    throw new ApiError(ErrorType.NOT_SUPPORTED);
+    throw new ApiError(ErrorCode.ENOTSUP);
   }
 }
