@@ -92,13 +92,12 @@ if (!(rootFS instanceof BrowserFS.FileSystem.MountableFileSystem))
 // Removes a file if it exists.
 function removeFile(file) {
   try {
-    if (isWindows)
-      fs.chmodSync(file, 0666);
+    //if (isWindows)
+    //  fs.chmodSync(file, 0666);
     fs.unlinkSync(file);
   } catch (err) {
-    // BFS: We don't attach codes like that.
-    //if (err && err.code !== 'ENOENT')
-    //  throw err;
+    if (err && err.code !== 'ENOENT')
+      throw err;
   }
 }
 

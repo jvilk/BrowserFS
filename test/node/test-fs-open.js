@@ -22,19 +22,18 @@
 this.tests.fs_open = function(){
   var filename = path.join(common.fixturesDir, 'a.js');
 
-/*
-var caughtException = false;
-try {
-  // should throw ENOENT, not EBADF
-  // see https://github.com/joyent/node/pull/1228
-  fs.openSync('/path/to/file/that/does/not/exist', 'r');
-}
-catch (e) {
-  assert.equal(e.code, 'ENOENT');
-  caughtException = true;
-}
-assert.ok(caughtException);
-*/
+
+  var caughtException = false;
+  try {
+    // should throw ENOENT, not EBADF
+    // see https://github.com/joyent/node/pull/1228
+    fs.openSync('/path/to/file/that/does/not/exist', 'r');
+  }
+  catch (e) {
+    assert.equal(e.code, 'ENOENT');
+    caughtException = true;
+  }
+  assert.ok(caughtException);
 
   fs.open(filename, 'r', function(err, fd) {
     if (err) {
