@@ -24,16 +24,25 @@ this.tests.fs_open = function(){
 
 
   var caughtException = false;
-  try {
-    // should throw ENOENT, not EBADF
-    // see https://github.com/joyent/node/pull/1228
-    fs.openSync('/path/to/file/that/does/not/exist', 'r');
+  // Only run if the FS supports sync ops.
+  var rootFS = fs.getRootFS();
+  if (rootFS.supportsSynch()) {
+    try {
+      // should throw ENOENT, not EBADF
+      // see https://github.com/joyent/node/pull/1228
+      fs.openSync('/path/to/file/that/does/not/exist', 'r');
+    }
+    catch (e) {
+      assert.equal(e.code, 'ENOENT');
+      caughtException = true;
+    }
+    assert.ok(caughtException);
   }
-  catch (e) {
+
+  fs.open('/path/to/file/that/does/not/exist', 'r', function(e) {
+    assert(e != null);
     assert.equal(e.code, 'ENOENT');
-    caughtException = true;
-  }
-  assert.ok(caughtException);
+  });
 
   fs.open(filename, 'r', function(err, fd) {
     if (err) {

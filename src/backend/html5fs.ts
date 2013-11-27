@@ -93,13 +93,13 @@ export class HTML5FSFile extends preload_file.PreloadFile implements file.File {
           cb();
         };
         writer.onerror = function(err) {
-          _fs._sendError(cb, 'Write failed');
+          cb(_fs.convert(err));
         };
         writer.write(blob);
       });
     };
     var error = function(err) {
-      _fs._sendError(cb, err);
+      cb(_fs.convert(err));
     };
     _fs.fs.root.getFile(this._path, opts, success, error);
   }
@@ -153,24 +153,35 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
   }
 
   /**
-   * Private
-   * Returns a human-readable error message for the given DOMError
+   * Converts the given DOMError into an appropriate ApiError.
    * Full list of values here:
    * https://developer.mozilla.org/en-US/docs/Web/API/DOMError
    * I've only implemented the most obvious ones, but more can be added to
    * make errors more descriptive in the future.
    */
-  public _humanise(err: DOMException): string {
-    switch (err.code) {
-      case DOMException.QUOTA_EXCEEDED_ERR:
-        return 'Filesystem full. Please delete some files to free up space.';
-      case DOMException.NOT_FOUND_ERR:
-        return 'File does not exist.';
-      case DOMException.SECURITY_ERR:
-        return 'Insecure file access.';
+  public convert(err: DOMError, message: string = ""): api_error.ApiError {
+    switch (err.name) {
+      case 'QuotaExceededError':
+        return new ApiError(ErrorCode.ENOSPC, message);
+      case 'NotFoundError':
+        return new ApiError(ErrorCode.ENOENT, message);
+      case 'SecurityError':
+        return new ApiError(ErrorCode.EACCES, message);
+      case 'SyntaxError':
+      case 'TypeMismatchError':
+        return new ApiError(ErrorCode.EINVAL, message);
       default:
-        return "Unknown Error: " + err.name;
+        console.log("Unknown Error: " + err.name);
+        return new ApiError(ErrorCode.EINVAL, message);
     }
+  }
+
+  /**
+   * Converts the given ErrorEvent (from a FileReader) into an appropriate
+   * APIError.
+   */
+  public convertErrorEvent(err: ErrorEvent, message: string = ""): api_error.ApiError {
+    return new ApiError(ErrorCode.ENOENT, err.message + "; " + message);
   }
 
   /**
@@ -184,10 +195,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
       cb()
     };
     var error = function(err: DOMException): void {
-      var msg = self._humanise(err);
-      console.error("Failed to create FS");
-      console.error(msg);
-      self._sendError(cb, err);
+      cb(self.convert(err));
     };
     if (this.type === window.PERSISTENT) {
       _requestQuota(this.type, this.size, function(granted: number) {
@@ -226,8 +234,8 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
           var succ = function() {
             cb();
           };
-          var error = function() {
-            self._sendError(cb, "Failed to remove " + entry.fullPath);
+          var error = function(err: DOMException) {
+            cb(self.convert(err, entry.fullPath));
           };
           if (entry.isFile) {
             entry.remove(succ, error);
@@ -252,7 +260,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
       cb();
     };
     var error = function(err: DOMException): void {
-      self._sendError(cb, "Could not rename " + oldPath + " to " + newPath);
+      cb(self.convert(err, "Failed to rename " + oldPath + " to " + newPath + "."));
     };
     this.fs.root.getFile(oldPath, {}, success, error);
   }
@@ -282,7 +290,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
     };
     // Called when the path couldn't be opened as a directory or a file.
     var failedToLoad = function(err: DOMException): void {
-      self._sendError(cb, "Could not stat " + path);
+      cb(self.convert(err, path));
     };
     // Called when the path couldn't be opened as a file, but might still be a
     // directory.
@@ -301,9 +309,11 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
       create: flags.pathNotExistsAction() === ActionType.CREATE_FILE,
       exclusive: flags.isExclusive()
     };
-    // Type of err differs between getFile and file.
-    var error = function(err: any): void {
-      self._sendError(cb, "Could not open " + path);
+    var error = function(err: ErrorEvent): void {
+      cb(self.convertErrorEvent(err, path));
+    };
+    var error2 = function(err: DOMError): void {
+      cb(self.convert(err, path));
     };
     var success = function(entry: FileEntry): void {
       var success2 = function(file: File): void {
@@ -315,59 +325,47 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
         reader.onerror = error;
         reader.readAsArrayBuffer(file);
       };
-      entry.file(success2, error);
+      entry.file(success2, error2);
     };
     this.fs.root.getFile(path, opts, success, error);
   }
 
   /**
-   * Private
-   * Create a BrowserFS error object with message msg and pass it to cb
-   */
-  public _sendError(cb: (e: api_error.ApiError) => void, err: any): void {
-    var msg = typeof err === 'string' ? err : this._humanise(err);
-    cb(new ApiError(ErrorCode.EINVAL, msg));
-  }
-
-  /**
-   * Private
    * Returns a BrowserFS object representing the type of a Dropbox.js stat object
    */
-  public _statType(stat: Entry): node_fs_stats.FileType {
+  private _statType(stat: Entry): node_fs_stats.FileType {
     return stat.isFile ? FileType.FILE : FileType.DIRECTORY;
   }
 
   /**
-   * Private
    * Returns a BrowserFS object representing a File, created from the data
    * returned by calls to the Dropbox API.
    */
-  public _makeFile(path: string, flag: file_flag.FileFlag, stat: File, data: ArrayBuffer = new ArrayBuffer(0)): HTML5FSFile {
+  private _makeFile(path: string, flag: file_flag.FileFlag, stat: File, data: ArrayBuffer = new ArrayBuffer(0)): HTML5FSFile {
     var stats = new Stats(FileType.FILE, stat.size);
     var buffer = new Buffer(data);
     return new HTML5FSFile(this, path, flag, stats, buffer);
   }
 
   /**
-   * Private
    * Delete a file or directory from the file system
    * isFile should reflect which call was made to remove the it (`unlink` or
    * `rmdir`). If this doesn't match what's actually at `path`, an error will be
    * returned
    */
-  public _remove(path: string, cb: (e?: api_error.ApiError) => void, isFile: boolean): void {
+  private _remove(path: string, cb: (e?: api_error.ApiError) => void, isFile: boolean): void {
     var self = this;
     var success = function(entry: Entry): void {
       var succ = function() {
         cb();
       };
-      var err = function() {
-        self._sendError(cb, "Failed to remove " + path);
+      var err = function(err: DOMException) {
+        cb(self.convert(err, path));
       };
       entry.remove(succ, err);
     };
     var error = function(err: DOMException): void {
-      self._sendError(cb, "Failed to remove " + path);
+      cb(self.convert(err, path));
     };
     // Deleting the entry, so don't create it
     var opts = {
@@ -401,21 +399,20 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
       cb();
     };
     var error = function(err: DOMException): void {
-      self._sendError(cb, "Could not create directory: " + path);
+      cb(self.convert(err, path));
     };
     this.fs.root.getDirectory(path, opts, success, error);
   }
 
   /**
-   * Private
    * Returns an array of `FileEntry`s. Used internally by empty and readdir.
    */
-  public _readdir(path: string, cb: (e: api_error.ApiError, entries?: Entry[]) => void): void {
+  private _readdir(path: string, cb: (e: api_error.ApiError, entries?: Entry[]) => void): void {
     var self = this;
     var reader = this.fs.root.createReader();
     var entries = [];
     var error = function(err: DOMException): void {
-      self._sendError(cb, err);
+      cb(self.convert(err, path));
     };
     // Call the reader.readEntries() until no more results are returned.
     var readEntries = function() {
