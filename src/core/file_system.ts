@@ -8,14 +8,12 @@ import file = require('./file');
 import file_flag = require('./file_flag');
 
 import node_path = require('./node_path');
-import node_fs = require('./node_fs');
 
 import buffer = require('./buffer');
 
 var ApiError = api_error.ApiError;
 var ErrorCode = api_error.ErrorCode;
 var path = node_path.path;
-var fs = node_fs.fs;
 var Buffer = buffer.Buffer;
 
 /**
@@ -598,26 +596,26 @@ export class BaseFileSystem {
     }
   }
   public truncate(p: string, len: number, cb: Function): void {
-    fs.open(p, 'w', (function(er: api_error.ApiError, fd?: file.File) {
+    this.open(p, file_flag.FileFlag.getFileFlag('w'), 0x1a4, (function(er: api_error.ApiError, fd?: file.File) {
       if (er) {
         return cb(er);
       }
-      fs.ftruncate(fd, len, (function(er) {
-        fs.close(fd, (function(er2) {
+      fd.truncate(len, (function(er) {
+        fd.close((function(er2) {
           cb(er || er2);
         }));
       }));
     }));
   }
   public truncateSync(p: string, len: number): void {
-    var fd = fs.openSync(p, 'w');
+    var fd = this.openSync(p, file_flag.FileFlag.getFileFlag('w'), 0x1a4);
     // Need to safely close FD, regardless of whether or not truncate succeeds.
     try {
-      fs.ftruncateSync(fd, len);
+      fd.truncateSync(len);
     } catch (e) {
       throw e;
     } finally {
-      fs.closeSync(fd);
+      fd.closeSync();
     }
   }
   public readFile(fname: string, encoding: string, flag: file_flag.FileFlag, cb: (err: api_error.ApiError, data?: any) => void): void {
@@ -636,13 +634,13 @@ export class BaseFileSystem {
           return oldCb(err, arg);
         });
       };
-      fs.fstat(fd, function(err: api_error.ApiError, stat?: stat.Stats) {
+      fd.stat(function(err: api_error.ApiError, stat?: stat.Stats) {
         if (err != null) {
           return cb(err);
         }
         // Allocate buffer.
         var buf = new Buffer(stat.size);
-        fs.read(fd, buf, 0, stat.size, 0, function(err) {
+        fd.read(buf, 0, stat.size, 0, function(err) {
           if (err != null) {
             return cb(err);
           } else if (encoding === null) {
@@ -661,17 +659,17 @@ export class BaseFileSystem {
     // Get file.
     var fd = this.openSync(fname, flag, 0x1a4);
     try {
-      var stat = fs.fstatSync(fd);
+      var stat = fd.statSync();
       // Allocate buffer.
       var buf = new Buffer(stat.size);
-      fs.readSync(fd, buf, 0, stat.size, 0);
-      fs.closeSync(fd);
+      fd.readSync(buf, 0, stat.size, 0);
+      fd.closeSync();
       if (encoding === null) {
         return buf;
       }
       return buf.toString(encoding);
     } catch (e) {
-      fs.closeSync(fd);
+      fd.closeSync();
       throw e;
     }
   }
@@ -710,7 +708,7 @@ export class BaseFileSystem {
       // Write into file.
       fd.writeSync(data, 0, data.length, 0);
     } finally {
-      fs.closeSync(fd);
+      fd.closeSync();
     }
   }
   public appendFile(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError) => void): void {
@@ -739,7 +737,7 @@ export class BaseFileSystem {
       }
       fd.writeSync(data, 0, data.length, null);
     } finally {
-      fs.closeSync(fd);
+      fd.closeSync();
     }
   }
   public chmod(p: string, isLchmod: boolean, mode: number, cb: Function): void {

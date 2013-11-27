@@ -157,11 +157,13 @@
 
     // Add mountable filesystem
     var im2 = new InMemory();
+    var im3 = new InMemory();
     var MountableFileSystem = BrowserFS.FileSystem.MountableFileSystem;
     var mfs = new MountableFileSystem();
     //TODO: Test when API Error has a 'file' attribute that MFS can appropriately
     // alter when an error is raised.
-    //mfs.mount('/', im2);
+    mfs.mount('/test', im2);
+    mfs.mount('/tmp', im3);
     backends.push(mfs);
 
     var async_backends = 2;

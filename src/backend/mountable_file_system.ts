@@ -96,6 +96,19 @@ export class MountableFileSystem extends file_system.BaseFileSystem implements f
     return true;
   }
 
+  /**
+   * Fixes up error messages so they mention the mounted file location relative
+   * to the MFS root, not to the particular FS's root.
+   * Mutates the input error, and returns it.
+   */
+  private standardizeError(err: api_error.ApiError, path, realPath): api_error.ApiError {
+    var index: number;
+    if (-1 !== (index = err.message.indexOf(path))) {
+      err.message = err.message.substr(0, index) + realPath + err.message.substr(index + path.length);
+    }
+    return err;
+  }
+
   // The following methods involve multiple file systems, and thus have custom
   // logic.
   // Note that we go through the Node API to use its robust default argument
@@ -106,7 +119,11 @@ export class MountableFileSystem extends file_system.BaseFileSystem implements f
     var fs1_rv = this._get_fs(oldPath);
     var fs2_rv = this._get_fs(newPath);
     if (fs1_rv.fs === fs2_rv.fs) {
-      return fs1_rv.fs.rename(fs1_rv.path, fs2_rv.path, cb);
+      var _this = this;
+      return fs1_rv.fs.rename(fs1_rv.path, fs2_rv.path, function(e?: api_error.ApiError) {
+        if (e) _this.standardizeError(_this.standardizeError(e, fs1_rv.path, oldPath), fs2_rv.path, newPath);
+        cb(e);
+      });
     }
 
     // Scenario 2: Different file systems.
@@ -129,7 +146,12 @@ export class MountableFileSystem extends file_system.BaseFileSystem implements f
     var fs1_rv = this._get_fs(oldPath);
     var fs2_rv = this._get_fs(newPath);
     if (fs1_rv.fs === fs2_rv.fs) {
-      return fs1_rv.fs.renameSync(fs1_rv.path, fs2_rv.path);
+      try {
+        return fs1_rv.fs.renameSync(fs1_rv.path, fs2_rv.path);
+      } catch(e) {
+        this.standardizeError(this.standardizeError(e, fs1_rv.path, oldPath), fs2_rv.path, newPath);
+        throw e;
+      }
     }
     // Scenario 2: Different file systems.
     var data = fs.readFileSync(oldPath);
@@ -145,11 +167,36 @@ export class MountableFileSystem extends file_system.BaseFileSystem implements f
  * the *last* is the callback function (if async).
  */
 function defineFcn(name: string, isSync: boolean, numArgs: number): (...args: any[]) => any {
-  return function(...args: any[]) {
-    var rv = this._get_fs(args[0]);
-    args[0] = rv.path;
-    return rv.fs[name].apply(rv.fs, args);
-  };
+  if (isSync) {
+    return function(...args: any[]) {
+      var path = args[0];
+      var rv = this._get_fs(path);
+      args[0] = rv.path;
+      try {
+        return rv.fs[name].apply(rv.fs, args);
+      } catch (e) {
+        this.standardizeError(e, rv.path, path);
+        throw e;
+      }
+    };
+  } else {
+    return function(...args: any[]) {
+      var path = args[0];
+      var rv = this._get_fs(path);
+      args[0] = rv.path;
+      if (typeof args[args.length-1] === 'function') {
+        var cb = args[args.length - 1];
+        var _this = this;
+        args[args.length - 1] = function(...args: any[]) {
+          if (args.length > 0 && args[0] instanceof api_error.ApiError) {
+            _this.standardizeError(args[0], rv.path, path);
+          }
+          cb.apply(null, args);
+        }
+      }
+      return rv.fs[name].apply(rv.fs, args);
+    };
+  }
 }
 
 var fsCmdMap = [
