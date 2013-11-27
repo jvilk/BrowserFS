@@ -12,9 +12,9 @@ var path = node_path.path;
  * for the former purpose, especially when directories are concerned.
  */
 export class FileIndex {
-  // XXX: Public so backends can efficiently iterate over it to empty stashed
-  //      files. :(
-  public _index: {[path: string]: Inode}
+  // Maps directory paths to directory inodes, which contain files.
+  private _index: {[path: string]: DirInode}
+
   /**
    * Constructs a new FileIndex.
    */
@@ -22,6 +22,8 @@ export class FileIndex {
     // _index is a single-level key,value store that maps *directory* paths to
     // DirInodes. File information is only contained in DirInodes themselves.
     this._index = {};
+    // Create the root directory.
+    this.addPath('/', new DirInode());
   }
 
   /**
@@ -31,6 +33,22 @@ export class FileIndex {
     var dirpath = path.dirname(p);
     var itemname = p.substr(dirpath.length + (dirpath === "/" ? 0 : 1));
     return [dirpath, itemname];
+  }
+
+  /**
+   * Runs the given function over all files in the index.
+   */
+  public fileIterator(cb: (file: node_fs_stats.Stats) => void): void {
+    for (var path in this._index) {
+      var dir = this._index[path];
+      var files = dir.getListing();
+      for (var i = 0; i < files.length; i++) {
+        var item = dir.getItem(files[i]);
+        if (item.isFile()) {
+          cb(<node_fs_stats.Stats> item);
+        }
+      }
+    }
   }
 
   /**
@@ -62,7 +80,7 @@ export class FileIndex {
     var dirpath = splitPath[0];
     var itemname = splitPath[1];
     // Try to add to its parent directory first.
-    var parent = <DirInode> this._index[dirpath];
+    var parent = this._index[dirpath];
     if (parent === undefined && path !== '/') {
       // Create parent.
       parent = new DirInode();
@@ -78,7 +96,7 @@ export class FileIndex {
     }
     // If I'm a directory, add myself to the index.
     if (!inode.isFile()) {
-      this._index[path] = inode;
+      this._index[path] = <DirInode> inode;
     }
     return true;
   }
@@ -92,8 +110,9 @@ export class FileIndex {
     var splitPath = this._split_path(path);
     var dirpath = splitPath[0];
     var itemname = splitPath[1];
+
     // Try to remove it from its parent directory first.
-    var parent = <DirInode> this._index[dirpath];
+    var parent = this._index[dirpath];
     if (parent === undefined) {
       return null;
     }
@@ -102,11 +121,18 @@ export class FileIndex {
     if (inode === null) {
       return null;
     }
-    // If I'm a directory, remove myself from the index.
-    // We assume that the presence of the inode in its parent's inode indicates
-    // that it must also be in _index.
+    // If I'm a directory, remove myself from the index, and remove my children.
     if (!inode.isFile()) {
-      delete this._index[path];
+      var dirInode = <DirInode> inode;
+      var children = dirInode.getListing();
+      for (var i = 0; i < children.length; i++) {
+        this.removePath(path + '/' + children[i]);
+      }
+
+      // Remove the directory from the index, unless it's the root.
+      if (path !== '/') {
+        delete this._index[path];
+      }
     }
     return inode;
   }
@@ -117,7 +143,7 @@ export class FileIndex {
    *   not exist.
    */
   public ls(path: string): string[] {
-    var item = <DirInode> this._index[path];
+    var item = this._index[path];
     if (item === undefined) {
       return null;
     }
@@ -135,7 +161,7 @@ export class FileIndex {
     var dirpath = splitPath[0];
     var itemname = splitPath[1];
     // Retrieve from its parent directory.
-    var parent = <DirInode> this._index[dirpath];
+    var parent = this._index[dirpath];
     if (parent === undefined) {
       return null;
     }
@@ -171,7 +197,8 @@ export class FileIndex {
           queue.push([name, children, inode]);
         } else {
           // This inode doesn't have correct size information, noted with -1.
-          idx._index[name] = inode = new Stats(node_fs_stats.FileType.FILE, -1);
+          //idx._index[name] = 
+          inode = new Stats(node_fs_stats.FileType.FILE, -1);
         }
         if (parent != null) {
           parent._ls[node] = inode;

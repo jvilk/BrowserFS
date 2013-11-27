@@ -65,7 +65,7 @@ fs.writeSync outfile, """
     var nextDir;
     var dirs = #{JSON.stringify(dirs)};
     var mcb = function(err) {
-      if (err) throw err;
+      if (err && err.code !== 'EEXIST') throw err;
       nextDir++;
       if (nextDir === dirs.length) {
         __fixturesAddFiles();
@@ -101,7 +101,11 @@ fs.writeSync outfile, """
   window.loadFixtures = function() {
     if (fs.getRootFS().isReadOnly()) { return; }
     nextDir = -1;
-    mcb();
+    // Ensure that root directory works.
+    fs.exists('/', function(doesExist) {
+      if (!doesExist) throw new Error("Invalid filesystem: Root does not exist.");
+      mcb();
+    });
   };
 })(this);
 """

@@ -43,13 +43,9 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
   }
 
   public empty(): void {
-    var idx = this._index._index;
-    for (var k in idx) {
-      var v = <node_fs_stats.Stats> idx[k];
-      if (v.file_data != null) {
-        v.file_data = null;
-      }
-    }
+    this._index.fileIterator(function(file: node_fs_stats.Stats) {
+      file.file_data = null;
+    });
   }
 
   /**
