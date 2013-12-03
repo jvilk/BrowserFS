@@ -100,16 +100,16 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
     var self = this;
     self.client.readdir('/', function(error, paths, dir, files) {
       if (error) {
-        main_cb(error);
+        main_cb(self.convert(error));
       } else {
         var deleteFile = function(file, cb) {
           self.client.remove(file.path, function(err, stat) {
-            cb(err);
+            cb(err ? self.convert(err) : err);
           });
         };
         var finished = function(err) {
           if (err) {
-            main_cb(err);
+            main_cb(self.convert(err));
           } else {
             main_cb();
           }
@@ -123,7 +123,9 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
     var self = this;
     self.client.move(oldPath, newPath, function(error, stat) {
       if (error) {
-        self._sendError(cb, "" + oldPath + " doesn't exist");
+        // XXX: Assume 404 for now.
+        var missingPath = error.response.error.indexOf(oldPath) > -1 ? oldPath : newPath;
+        cb(new ApiError(ErrorCode.ENOENT, missingPath + " doesn't exist"));
       } else {
         cb();
       }
@@ -138,7 +140,7 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
       // Dropbox keeps track of deleted files, so if a file has existed in the
       // past but doesn't any longer, you wont get an error
       if (error || ((stat != null) && stat.isRemoved)) {
-        return self._sendError(cb, "" + path + " doesn't exist");
+        cb(new ApiError(ErrorCode.ENOENT, path + " doesn't exist"));
       } else {
         var stats = new Stats(self._statType(stat), stat.size);
         return cb(null, stats);
@@ -157,7 +159,7 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
         // If the file's being opened for reading and doesn't exist, return an
         // error
         if (flags.isReadable()) {
-          return self._sendError(cb, "" + path + " doesn't exist");
+          cb(new ApiError(ErrorCode.ENOENT, path + " doesn't exist"));
         } else {
           switch (error.status) {
             case 0:
@@ -166,9 +168,9 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
             // it can be written to
             case 404:
               var ab = new ArrayBuffer(0);
-              return self._writeFileStrict(path, ab, function(error2, stat) {
+              return self._writeFileStrict(path, ab, function(error2: api_error.ApiError, stat?: node_fs_stats.Stats) {
                 if (error2) {
-                  self._sendError(cb, error2);
+                  cb(error2);
                 } else {
                   var file = self._makeFile(path, flags, stat, new Buffer(ab));
                   cb(null, file);
@@ -194,18 +196,18 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
     });
   }
 
-  public _writeFileStrict(p: string, data: ArrayBuffer, cb): void;
-  public _writeFileStrict(p: string, data: ArrayBufferView, cb): void;
-  public _writeFileStrict(p: string, data: any, cb): void {
+  public _writeFileStrict(p: string, data: ArrayBuffer, cb: (e: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void;
+  public _writeFileStrict(p: string, data: ArrayBufferView, cb: (e: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void;
+  public _writeFileStrict(p: string, data: any, cb: (e: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void {
     var self = this;
     var parent = path.dirname(p);
     self.stat(parent, false, function(error: api_error.ApiError, stat?: node_fs_stats.Stats): void {
       if (error) {
-        self._sendError(cb, "Can't create " + p + " because " + parent + " doesn't exist");
+        cb(new ApiError(ErrorCode.ENOENT, "Can't create " + p + " because " + parent + " doesn't exist"));
       } else {
         self.client.writeFile(p, data, function(error2, stat) {
           if (error2) {
-            cb(error2);
+            cb(self.convert(error2));
           } else {
             cb(null, stat);
           }
@@ -245,16 +247,17 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
     self.client.stat(path, function(error, stat) {
       var message = null;
       if (error) {
-        self._sendError(cb, "" + path + " doesn't exist");
+        cb(new ApiError(ErrorCode.ENOENT, path + " doesn't exist"));
       } else {
         if (stat.isFile && !isFile) {
-          self._sendError(cb, "Can't remove " + path + " with rmdir -- it's a file, not a directory. Use `unlink` instead.");
+          cb(new ApiError(ErrorCode.ENOTDIR, path + " is a file."));
         } else if (!stat.isFile && isFile) {
-          self._sendError(cb, "Can't remove " + path + " with unlink -- it's a directory, not a file. Use `rmdir` instead.");
+          cb(new ApiError(ErrorCode.EISDIR, path + " is a directory."));
         } else {
           self.client.remove(path, function(error, stat) {
             if (error) {
-              self._sendError(cb, "Failed to remove " + path);
+              // @todo Make this more specific.
+              cb(new ApiError(ErrorCode.EIO, "Failed to remove " + path));
             } else {
               cb(null);
             }
@@ -262,14 +265,6 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
         }
       }
     });
-  }
-
-  /**
-   * Private
-   * Create a BrowserFS error object with message msg and pass it to cb
-   */
-  public _sendError(cb: (e: api_error.ApiError) => void, msg: string): void {
-    cb(new ApiError(ErrorCode.EINVAL, msg));
   }
 
   /**
@@ -301,11 +296,11 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
     var parent = path.dirname(p);
     self.client.stat(parent, function(error, stat) {
       if (error) {
-        self._sendError(cb, "Can't create " + p + " because " + parent + " doesn't exist");
+        cb(new ApiError(ErrorCode.ENOENT, "Can't create " + p + " because " + parent + " doesn't exist"));
       } else {
         self.client.mkdir(p, function(error, stat) {
           if (error) {
-            self._sendError(cb, "" + p + " already exists");
+            cb(new ApiError(ErrorCode.EEXIST, p + " already exists"));
           } else {
             cb(null);
           }
@@ -318,13 +313,47 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
    * Get the names of the files in a directory
    */
   public readdir(path: string, cb: (err: api_error.ApiError, files?: string[]) => void): void {
+    var self = this;
     this.client.readdir(path, function(error, files, dir_stat, content_stats) {
       if (error) {
-        return cb(error);
+        return cb(self.convert(error));
       } else {
         return cb(null, files);
       }
     });
+  }
+
+  /**
+   * Converts a Dropbox-JS error into a BFS error.
+   */
+  public convert(err: any, message: string = ""): api_error.ApiError {
+    switch(err.status) {
+      case 400:
+        // INVALID_PARAM
+        return new ApiError(ErrorCode.EINVAL, message);
+      case 401:
+        // INVALID_TOKEN (OAuth)
+      case 403:
+        // OAUTH_ERROR
+        return new ApiError(ErrorCode.EIO, message);
+      case 404:
+        // NOT_FOUND
+        return new ApiError(ErrorCode.ENOENT, message);
+      case 405:
+        // INVALID_METHOD
+        return new ApiError(ErrorCode.ENOTSUP, message);
+      // Non-specific errors
+      case 0:
+        // NETWORK_ERROR
+      case 304:
+        // NO_CONTENT
+      case 406:
+        // NOT_ACCEPTABLE (too much content in result)
+      case 409:
+        // CONFLICT (should never happen).
+      default:
+        return new ApiError(ErrorCode.EIO, message);
+    }
   }
 }
 
