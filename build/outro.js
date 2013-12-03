@@ -5,4 +5,5 @@ require('./backend/html5fs');
 require('./backend/in_memory');
 require('./backend/mountable_file_system');
 require('./backend/XmlHttpRequest');
+require('./generic/emscripten_fs');
 })();
