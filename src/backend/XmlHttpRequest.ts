@@ -251,6 +251,42 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
     }
     return (<file_index.DirInode> inode).getListing();
   }
+
+  /**
+   * We have the entire file as a buffer; optimize readFile.
+   */
+  public readFile(fname: string, encoding: string, flag: file_flag.FileFlag, cb: (err: api_error.ApiError, data?: any) => void): void {
+    // Wrap cb in file closing code.
+    var oldCb = cb;
+    // Get file.
+    this.open(fname, flag, 0x1a4, function(err: api_error.ApiError, fd?: file.File) {
+      if (err) {
+        return cb(err);
+      }
+      cb = function(err: api_error.ApiError, arg?: buffer.Buffer) {
+        fd.close(function(err2) {
+          if (err == null) {
+            err = err2;
+          }
+          return oldCb(err, arg);
+        });
+      };
+      var fdCast = <preload_file.NoSyncFile> fd;
+      var fdBuff = <buffer.Buffer> fdCast._buffer;
+      if (encoding === null) {
+        if (fdBuff.length > 0) {
+          return cb(err, fdBuff.sliceCopy());
+        } else {
+          return cb(err, new buffer.Buffer(0));
+        }
+      }
+      try {
+        cb(null, fdBuff.toString(encoding));
+      } catch (e) {
+        cb(e);
+      }
+    });
+  }
 }
 
 browserfs.registerFileSystem('XmlHttpRequest', XmlHttpRequest);

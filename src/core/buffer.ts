@@ -22,6 +22,8 @@ export interface BFSBuffer extends NodeBuffer {
   // property to determine which segment of the backing memory is applicable
   // for a given operation.
   getOffset(): number;
+  // Like Buffer.slice, but copies the Buffer contents.
+  sliceCopy(start?: number, end?: number): NodeBuffer
 }
 
 /**
@@ -293,6 +295,39 @@ export class Buffer implements BFSBuffer {
     }
     // Create a new buffer backed by the same BufferCore.
     return new Buffer(this.data, start + this.offset, end + this.offset);
+  }
+
+  /**
+   * [NONSTANDARD] A copy-based version of Buffer.slice.
+   */
+  public sliceCopy(start: number = 0, end: number = this.length): NodeBuffer {
+    // Translate negative indices to positive ones.
+    if (start < 0) {
+      start += this.length;
+      if (start < 0) {
+        start = 0;
+      }
+    }
+    if (end < 0) {
+      end += this.length;
+      if (end < 0) {
+        end = 0;
+      }
+    }
+    if (end > this.length) {
+      end = this.length;
+    }
+    if (start > end) {
+      start = end;
+    }
+
+    // Sanity check.
+    if (start < 0 || end < 0 || start >= this.length || end > this.length) {
+      throw new Error("Invalid slice indices.");
+    }
+
+    // Copy the BufferCore.
+    return new Buffer(this.data.copy(start + this.offset, end + this.offset));
   }
 
   /**
