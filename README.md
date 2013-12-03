@@ -67,9 +67,12 @@ fs.writeFile('/test.txt', 'Cool, I can do this in the browser!', function(err) {
 
 You can now use any *synchronous* BrowserFS file systems with Emscripten! Persist particular folders in the Emscripten file system to `localStorage`, or enable Emscripten to synchronously download files from another folder as they are requested.
 
-Include `browserfs.js` into the page, and add the following function to your `Module`'s `preRun` array:
+Include `browserfs.js` into the page, and add code similar to the following to your `Module`'s `preRun` array:
 
 ```javascript
+/**
+ * Mounts a localStorage-backed file system into the /home folder of Emscripten's file system.
+ */
 function setupBFS() {
   // Constructs an instance of the LocalStorage-backed file system.
   var lsfs = new BrowserFS.FileSystem.LocalStorage();
