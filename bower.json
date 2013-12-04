@@ -2,8 +2,8 @@
   "name": "BrowserFS",
   "version": "0.3.0",
   "main": [
-    "./dist/browserfs.min.js",
-    "./dist/browserfs.js"
+    "./dist/browserfs.js",
+    "./dist/browserfs.js.map"
   ],
   "ignore": [
     "**/.*",
