@@ -1,7 +1,16 @@
 BrowserFS
 =========
 
-BrowserFS is an in-browser file system that emulates the [Node JS file system API](http://nodejs.org/api/fs.html) and supports storing and retrieving files from various backends.
+BrowserFS is an in-browser file system that emulates the [Node JS file system API](http://nodejs.org/api/fs.html) and supports storing and retrieving files from various backends. BrowserFS also integrates nicely into the Emscripten file system.
+
+Provided backends:
+* `XmlHttpRequest` (downloads files on-demand from a webserver)
+* `localStorage`
+* HTML5 `FileSystem`
+* Dropbox
+* In-memory
+
+More backends can be defined by separate libraries, so long as they extend the `BaseFileSystem`. Multiple backends can be active at once at different locations in the directory hierarchy.
 
 For more information, see the [wiki](https://github.com/jvilk/BrowserFS/wiki).
 
@@ -65,7 +74,7 @@ fs.writeFile('/test.txt', 'Cool, I can do this in the browser!', function(err) {
 
 ### Using with Emscripten
 
-You can now use any *synchronous* BrowserFS file systems with Emscripten! Persist particular folders in the Emscripten file system to `localStorage`, or enable Emscripten to synchronously download files from another folder as they are requested.
+You can use any *synchronous* BrowserFS file systems with Emscripten! Persist particular folders in the Emscripten file system to `localStorage`, or enable Emscripten to synchronously download files from another folder as they are requested.
 
 Include `browserfs.js` into the page, and add code similar to the following to your `Module`'s `preRun` array:
 
