@@ -668,9 +668,8 @@ export class BaseFileSystem {
         return buf;
       }
       return buf.toString(encoding);
-    } catch (e) {
+    } finally {
       fd.closeSync();
-      throw e;
     }
   }
   public writeFile(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError) => void): void {

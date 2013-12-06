@@ -151,7 +151,9 @@ function syncDownloadFileModern(p: string, type: string): any {
             data = new Buffer(text.length);
             // Throw away the upper bits of each character.
             for (var i = 0; i < text.length; i++) {
-              data.set(i, text.charCodeAt(i) & 0xff);
+              // This will automatically throw away the upper bit of each
+              // character for us.
+              data.writeUInt8(i, text.charCodeAt(i));
             }
             return;
           case 'json':

@@ -287,6 +287,28 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
       }
     });
   }
+
+  /**
+   * Specially-optimized readfile.
+   */
+  public readFileSync(fname: string, encoding: string, flag: file_flag.FileFlag): any {
+    // Get file.
+    var fd = this.openSync(fname, flag, 0x1a4);
+    try {
+      var fdCast = <preload_file.NoSyncFile> fd;
+      var fdBuff = <buffer.Buffer> fdCast._buffer;
+      if (encoding === null) {
+        if (fdBuff.length > 0) {
+          return fdBuff.sliceCopy();
+        } else {
+          return new buffer.Buffer(0);
+        }
+      }
+      return fdBuff.toString(encoding);
+    } finally {
+      fd.closeSync();
+    }
+  }
 }
 
 browserfs.registerFileSystem('XmlHttpRequest', XmlHttpRequest);
