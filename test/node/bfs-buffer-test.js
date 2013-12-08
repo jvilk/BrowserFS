@@ -167,4 +167,15 @@ window.tests.bfs_buffer_test = function() {
   // Characters are truncated at 0x7F.
   buff.write(String.fromCharCode(0xFF), 0, 1, 'ascii');
   assert(buff.toString('ascii', 0, 1) === String.fromCharCode(0x7F));
+
+  /**
+   * Testing extended ASCII support.
+   */
+  // Write as UTF-8, read as ASCII/Extended ASCII. Boundary condition.
+  buff.write("Hello" + String.fromCharCode(0x7F) + "World");
+  assert(buff.toString('ascii', 0, 11) === buff.toString('extended_ascii', 0, 11));
+  buff.write('\u00A6', 0, 1, 'extended_ascii');
+  assert(buff.toString('ascii', 0, 1) !== buff.toString('extended_ascii', 0, 1));
+  assert(buff.toString('ascii', 0, 1) !== '\u00A6');
+  assert(buff.toString('extended_ascii', 0, 1) === '\u00A6');
 };
