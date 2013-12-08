@@ -47,7 +47,7 @@ export class LocalStorageAbstract extends indexed_filesystem.IndexedFileSystem i
         data = '';
       }
       var len = this._getFileLength(data);
-      var inode = new Stats(FileType.FILE, len);
+      var inode = new file_index.FileInode<node_fs_stats.Stats>(new Stats(FileType.FILE, len));
       this._index.addPath(path, inode);
     }
   }
@@ -56,30 +56,30 @@ export class LocalStorageAbstract extends indexed_filesystem.IndexedFileSystem i
    * Retrieve the indicated file from `localStorage`.
    * @param [String] path
    * @param [BrowserFS.FileMode] flags
-   * @param [BrowserFS.FileInode] inode
+   * @param [BrowserFS.FileInode] stats
    * @return [BrowserFS.File.PreloadFile] Returns a preload file with the file's
    *   contents, or null if it does not exist.
    */
-  public _getFile(path: string, flags: file_flag.FileFlag, inode: node_fs_stats.Stats): LocalStorageFile {
+  public _getFile(path: string, flags: file_flag.FileFlag, stats: node_fs_stats.Stats): LocalStorageFile {
     var data = window.localStorage.getItem(path);
     if (data === null) {
       return null;
     }
-    return this._convertFromBinaryString(path, data, flags, inode);
+    return this._convertFromBinaryString(path, data, flags, stats);
   }
 
   /**
    * Handles syncing file data with `localStorage`.
    * @param [String] path
    * @param [String] data
-   * @param [BrowserFS.FileInode] inode
+   * @param [BrowserFS.FileInode] stats
    * @return [BrowserFS.node.fs.Stats]
    */
-  public _syncSync(path: string, data: NodeBuffer, inode: node_fs_stats.Stats): void {
-    var dataStr = this._convertToBinaryString(data, inode);
+  public _syncSync(path: string, data: NodeBuffer, stats: node_fs_stats.Stats): void {
+    var dataStr = this._convertToBinaryString(data, stats);
     try {
       window.localStorage.setItem(path, dataStr);
-      this._index.addPath(path, inode);
+      this._index.addPath(path, new file_index.FileInode<node_fs_stats.Stats>(stats));
     } catch (e) {
       throw new ApiError(ErrorCode.ENOSPC, "Unable to sync " + path);
     }
@@ -142,17 +142,17 @@ export class LocalStorageAbstract extends indexed_filesystem.IndexedFileSystem i
     window.localStorage.removeItem(path);
   }
 
-  public _truncate(path: string, flags: file_flag.FileFlag, inode: node_fs_stats.Stats): LocalStorageFile {
-    inode.size = 0;
-    return new LocalStorageFile(this, path, flags, inode);
+  public _truncate(path: string, flags: file_flag.FileFlag, stats: node_fs_stats.Stats): LocalStorageFile {
+    stats.size = 0;
+    return new LocalStorageFile(this, path, flags, stats);
   }
 
-  public _fetch(path: string, flags: file_flag.FileFlag, inode: node_fs_stats.Stats): LocalStorageFile {
-    return this._getFile(path, flags, inode);
+  public _fetch(path: string, flags: file_flag.FileFlag, stats: node_fs_stats.Stats): LocalStorageFile {
+    return this._getFile(path, flags, stats);
   }
 
-  public _create(path: string, flags: file_flag.FileFlag, inode: node_fs_stats.Stats): LocalStorageFile {
-    return new LocalStorageFile(this, path, flags, inode);
+  public _create(path: string, flags: file_flag.FileFlag, inode: file_index.FileInode<node_fs_stats.Stats>): LocalStorageFile {
+    return new LocalStorageFile(this, path, flags, inode.getData());
   }
 
   public _rmdirSync(p: string, inode: file_index.DirInode): void {
@@ -165,10 +165,10 @@ export class LocalStorageAbstract extends indexed_filesystem.IndexedFileSystem i
     }
   }
 
-  public _convertToBinaryString(data: NodeBuffer, inode: node_fs_stats.Stats): string {
+  public _convertToBinaryString(data: NodeBuffer, stats: node_fs_stats.Stats): string {
     throw new ApiError(ErrorCode.ENOTSUP, 'LocalStorageAbstract is an abstract class.');
   }
-  public _convertFromBinaryString(path: string, data: string, flags: file_flag.FileFlag, inode: node_fs_stats.Stats): LocalStorageFile {
+  public _convertFromBinaryString(path: string, data: string, flags: file_flag.FileFlag, stats: node_fs_stats.Stats): LocalStorageFile {
     throw new ApiError(ErrorCode.ENOTSUP, 'LocalStorageAbstract is an abstract class.');
   }
   public _getFileLength(data: string): number {
@@ -181,26 +181,26 @@ export class LocalStorageModern extends LocalStorageAbstract {
     super();
   }
 
-  public _convertToBinaryString(data: NodeBuffer, inode: node_fs_stats.Stats): string {
+  public _convertToBinaryString(data: NodeBuffer, stats: node_fs_stats.Stats): string {
     var dataStr = data.toString('binary_string');
     // Append fixed-size header with mode (16-bits) and mtime/atime (64-bits each).
     // I don't care about uid/gid right now.
     // That amounts to 18 bytes/9 characters + 1 character header
     var headerBuff = new Buffer(18);
-    headerBuff.writeUInt16BE(inode.mode, 0);
+    headerBuff.writeUInt16BE(stats.mode, 0);
     // Well, they're doubles and are going to be 64-bit regardless...
-    headerBuff.writeDoubleBE(inode.mtime.getTime(), 2);
-    headerBuff.writeDoubleBE(inode.atime.getTime(), 10);
+    headerBuff.writeDoubleBE(stats.mtime.getTime(), 2);
+    headerBuff.writeDoubleBE(stats.atime.getTime(), 10);
     var headerDat = headerBuff.toString('binary_string');
     dataStr = headerDat + dataStr;
     return dataStr;
   }
 
-  public _convertFromBinaryString(path: string, data: string, flags: file_flag.FileFlag, inode: node_fs_stats.Stats): LocalStorageFile {
+  public _convertFromBinaryString(path: string, data: string, flags: file_flag.FileFlag, stats: node_fs_stats.Stats): LocalStorageFile {
     var headerBuff = new Buffer(data.substr(0, 10), 'binary_string');
     data = data.substr(10);
     var buffer = new Buffer(data, 'binary_string');
-    var file = new LocalStorageFile(this, path, flags, inode, buffer);
+    var file = new LocalStorageFile(this, path, flags, stats, buffer);
     file._stat.mode = headerBuff.readUInt16BE(0);
     file._stat.mtime = new Date(headerBuff.readDoubleBE(2));
     file._stat.atime = new Date(headerBuff.readDoubleBE(10));
@@ -222,23 +222,23 @@ export class LocalStorageOld extends LocalStorageAbstract {
     super();
   }
 
-  public _convertToBinaryString(data: NodeBuffer, inode: node_fs_stats.Stats): string {
+  public _convertToBinaryString(data: NodeBuffer, stats: node_fs_stats.Stats): string {
     var dataStr = data.toString('binary_string_ie');
     var headerBuff = new Buffer(18);
-    headerBuff.writeUInt16BE(inode.mode, 0);
+    headerBuff.writeUInt16BE(stats.mode, 0);
     // Well, they're doubles and are going to be 64-bit regardless...
-    headerBuff.writeDoubleBE(inode.mtime.getTime(), 2);
-    headerBuff.writeDoubleBE(inode.atime.getTime(), 10);
+    headerBuff.writeDoubleBE(stats.mtime.getTime(), 2);
+    headerBuff.writeDoubleBE(stats.atime.getTime(), 10);
     var headerDat = headerBuff.toString('binary_string_ie');
     dataStr = headerDat + dataStr;
     return dataStr;
   }
 
-  public _convertFromBinaryString(path: string, data: string, flags: file_flag.FileFlag, inode: node_fs_stats.Stats): LocalStorageFile {
+  public _convertFromBinaryString(path: string, data: string, flags: file_flag.FileFlag, stats: node_fs_stats.Stats): LocalStorageFile {
     var headerBuff = new Buffer(data.substr(0, 18), 'binary_string_ie');
     data = data.substr(18);
     var buffer = new Buffer(data, 'binary_string_ie');
-    var file = new LocalStorageFile(this, path, flags, inode, buffer);
+    var file = new LocalStorageFile(this, path, flags, stats, buffer);
     file._stat.mode = headerBuff.readUInt16BE(0);
     file._stat.mtime = new Date(headerBuff.readDoubleBE(2));
     file._stat.atime = new Date(headerBuff.readDoubleBE(10));

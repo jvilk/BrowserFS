@@ -46,9 +46,7 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
     if (inode === null) {
       throw new ApiError(ErrorCode.ENOENT, "" + path + " not found.");
     }
-
-    var stats = typeof inode['getStats'] === 'function' ? (<file_index.DirInode> inode).getStats() : <node_fs_stats.Stats> inode;
-    return stats;
+    return inode.isDir() ? (<file_index.DirInode> inode).getStats() : (<file_index.FileInode<node_fs_stats.Stats>> inode).getData();
   }
 
   // File operations
@@ -60,14 +58,15 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
       if (!inode.isFile()) {
         throw new ApiError(ErrorCode.EISDIR, "" + p + " is a directory.");
       } else {
+        var stats = (<file_index.FileInode<node_fs_stats.Stats>> inode).getData();
         switch (flags.pathExistsAction()) {
           case ActionType.THROW_EXCEPTION:
             throw new ApiError(ErrorCode.EEXIST, "" + p + " already exists.");
             break;
           case ActionType.TRUNCATE_FILE:
-            return this._truncate(p, flags, inode);
+            return this._truncate(p, flags, stats);
           case ActionType.NOP:
-            return this._fetch(p, flags, inode);
+            return this._fetch(p, flags, stats);
           default:
             throw new ApiError(ErrorCode.EINVAL, 'Invalid FileFlag object.');
         }
@@ -81,8 +80,8 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
           if (parentInode === null || parentInode.isFile()) {
             throw new ApiError(ErrorCode.ENOENT, "" + parentPath + " doesn't exist.");
           }
-          inode = new Stats(FileType.FILE, 0, mode);
-          return this._create(p, flags, inode);
+          var fileInode = new file_index.FileInode<node_fs_stats.Stats>(new Stats(FileType.FILE, 0, mode));
+          return this._create(p, flags, fileInode);
         case ActionType.THROW_EXCEPTION:
           throw new ApiError(ErrorCode.ENOENT, "" + p + " doesn't exist.");
           break;
@@ -107,7 +106,7 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
 
   public rmdirSync(path: string): void {
     // Check if it exists, and is a directory.
-    var inode = this._index.getInode(path);
+    var inode = <file_index.DirInode> this._index.getInode(path);
     if (inode === null) {
       throw new ApiError(ErrorCode.ENOENT, "" + path + " not found.");
     } else if (inode.isFile()) {
@@ -148,12 +147,14 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
 
   public chmodSync(path: string, isLchmod: boolean, mode: number): void {
     var fd = this.openSync(path, FileFlag.getFileFlag('r+'), 0x1a4);
+    // XXX: This is terrible.
     (<any> fd)._stat.chmod(mode);
     fd.closeSync();
   }
 
   public chownSync(path: string, isLchown: boolean, uid: number, gid: number): void {
     var fd = this.openSync(path, FileFlag.getFileFlag('r+'), 0x1a4);
+    // XXX: This is terrible.
     (<any> fd)._stat.uid = uid;
     (<any> fd)._stat.gid = gid;
     fd.closeSync();
@@ -161,21 +162,22 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
 
   public utimesSync(path: string, atime: Date, mtime: Date): void {
     var fd = this.openSync(path, FileFlag.getFileFlag('r+'), 0x1a4);
+    // XXX: This is terrible.
     (<any> fd)._stat.atime = atime;
     (<any> fd)._stat.mtime = mtime;
     fd.closeSync();
   }
 
-  public _rmdirSync(path: string, inode: file_index.Inode): void {
+  public _rmdirSync(path: string, inode: file_index.DirInode): void {
     throw new ApiError(ErrorCode.ENOTSUP, '_rmdirSync is not implemented.');
   }
-  public _create(path: string, flag: file_flag.FileFlag, inode: file_index.Inode): file.File {
+  public _create(path: string, flag: file_flag.FileFlag, inode: file_index.FileInode<node_fs_stats.Stats>): file.File {
     throw new ApiError(ErrorCode.ENOTSUP, '_create is not implemented.');
   }
-  public _fetch(path: string, flag: file_flag.FileFlag, inode: file_index.Inode): file.File {
+  public _fetch(path: string, flag: file_flag.FileFlag, stats: node_fs_stats.Stats): file.File {
     throw new ApiError(ErrorCode.ENOTSUP, '_fetch is not implemented.');
   }
-  public _truncate(path: string, flag: file_flag.FileFlag, inode: file_index.Inode): file.File {
+  public _truncate(path: string, flag: file_flag.FileFlag, stats: node_fs_stats.Stats): file.File {
     throw new ApiError(ErrorCode.ENOTSUP, '_truncate is not implemented.');
   }
 }

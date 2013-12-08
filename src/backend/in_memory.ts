@@ -63,29 +63,30 @@ export class InMemory extends indexed_filesystem.IndexedFileSystem implements fi
     return false;
   }
 
-  public _truncate(path: string, flags: file_flag.FileFlag, inode: node_fs_stats.Stats): file.File {
-    inode.size = 0;
-    inode.mtime = new Date();
-    var file = <preload_file.NoSyncFile> inode.file_data;
+  public _truncate(path: string, flags: file_flag.FileFlag, stats: node_fs_stats.Stats): file.File {
+    stats.size = 0;
+    stats.mtime = new Date();
+    var file = <preload_file.NoSyncFile> stats.file_data;
     file._flag = flags;
     file._buffer = new Buffer(0);
     return file;
   }
 
-  public _fetch(path: string, flags: file_flag.FileFlag, inode: node_fs_stats.Stats): file.File {
-    var file = <preload_file.NoSyncFile> inode.file_data;
+  public _fetch(path: string, flags: file_flag.FileFlag, stats: node_fs_stats.Stats): file.File {
+    var file = <preload_file.NoSyncFile> stats.file_data;
     file._flag = flags;
     return file;
   }
 
-  public _create(path: string, flags: file_flag.FileFlag, inode: node_fs_stats.Stats): file.File {
-    var file = new NoSyncFile(this, path, flags, inode);
-    inode.file_data = file;
+  public _create(path: string, flags: file_flag.FileFlag, inode: file_index.FileInode<node_fs_stats.Stats>): file.File {
+    var stats = inode.getData();
+    var file = new NoSyncFile(this, path, flags, stats);
+    stats.file_data = file;
     this._index.addPath(path, inode);
     return file;
   }
 
-  public _rmdirSync(path: string, inode: file_index.Inode): void {}
+  public _rmdirSync(path: string, inode: file_index.DirInode): void {}
 }
 
 browserfs.registerFileSystem('InMemory', InMemory);

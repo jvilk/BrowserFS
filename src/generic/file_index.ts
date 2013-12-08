@@ -45,7 +45,7 @@ export class FileIndex {
       for (var i = 0; i < files.length; i++) {
         var item = dir.getItem(files[i]);
         if (item.isFile()) {
-          cb(<node_fs_stats.Stats> item);
+          cb((<FileInode<node_fs_stats.Stats>> item).getData());
         }
       }
     }
@@ -197,8 +197,7 @@ export class FileIndex {
           queue.push([name, children, inode]);
         } else {
           // This inode doesn't have correct size information, noted with -1.
-          //idx._index[name] = 
-          inode = new Stats(node_fs_stats.FileType.FILE, -1);
+          inode = new FileInode<node_fs_stats.Stats>(new Stats(node_fs_stats.FileType.FILE, -1));
         }
         if (parent != null) {
           parent._ls[node] = inode;
@@ -217,7 +216,18 @@ export interface Inode {
   // Is this an inode for a file?
   isFile(): boolean;
   // Is this an inode for a directory?
-  isDirectory(): boolean;
+  isDir(): boolean;
+}
+
+/**
+ * Inode for a file. Stores an arbitrary (filesystem-specific) data payload.
+ */
+export class FileInode<T> implements Inode {
+  constructor(private data: T) { }
+  public isFile(): boolean { return true; }
+  public isDir(): boolean { return false; }
+  public getData(): T { return this.data; }
+  public setData(data: T): void { this.data = data; }
 }
 
 /**
@@ -232,12 +242,14 @@ export class DirInode implements Inode {
   public isFile(): boolean {
     return false;
   }
-  public isDirectory(): boolean {
+  public isDir(): boolean {
     return true;
   }
 
   /**
    * Return a Stats object for this inode.
+   * @todo Should probably remove this at some point. This isn't the
+   *       responsibility of the FileIndex.
    * @return [BrowserFS.node.fs.Stats]
    */
   public getStats(): node_fs_stats.Stats {

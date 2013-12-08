@@ -115,12 +115,13 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
    * @param [BrowserFS.Buffer] buffer
    */
   public preloadFile(path: string, buffer: NodeBuffer): void {
-    var inode = <node_fs_stats.Stats> this._index.getInode(path);
+    var inode = <file_index.FileInode<node_fs_stats.Stats>> this._index.getInode(path);
     if (inode === null) {
       throw new ApiError(ErrorCode.ENOENT, "" + path + " not found.");
     }
-    inode.size = buffer.length;
-    inode.file_data = new preload_file.NoSyncFile(this, path, FileFlag.getFileFlag('r'), inode, buffer);
+    var stats = inode.getData();
+    stats.size = buffer.length;
+    stats.file_data = new preload_file.NoSyncFile(this, path, FileFlag.getFileFlag('r'), stats, buffer);
   }
 
   public stat(path: string, isLstat: boolean, cb: (e: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void {
@@ -130,7 +131,7 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
     }
     var stats: node_fs_stats.Stats;
     if (inode.isFile()) {
-      stats = <node_fs_stats.Stats> inode;
+      stats = (<file_index.FileInode<node_fs_stats.Stats>> inode).getData();
       // At this point, a non-opened file will still have default stats from the listing.
       if (stats.size < 0) {
         this._requestFileSizeAsync(path, function(e: api_error.ApiError, size?: number) {
@@ -156,7 +157,7 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
     }
     var stats: node_fs_stats.Stats;
     if (inode.isFile()) {
-      stats = <node_fs_stats.Stats> inode;
+      stats = (<file_index.FileInode<node_fs_stats.Stats>> inode).getData();
       // At this point, a non-opened file will still have default stats from the listing.
       if (stats.size < 0) {
         stats.size = this._requestFileSizeSync(path);
@@ -170,13 +171,14 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
   public open(path: string, flags: file_flag.FileFlag, mode: number, cb: (e: api_error.ApiError, file?: file.File) => void): void {
     var _this = this;
     // Check if the path exists, and is a file.
-    var inode = <node_fs_stats.Stats> this._index.getInode(path);
+    var inode = <file_index.FileInode<node_fs_stats.Stats>> this._index.getInode(path);
     if (inode === null) {
       return cb(new ApiError(ErrorCode.ENOENT, "" + path + " is not in the FileIndex."));
     }
-    if (inode.isDirectory()) {
+    if (inode.isDir()) {
       return cb(new ApiError(ErrorCode.EISDIR, "" + path + " is a directory."));
     }
+    var stats = inode.getData();
     switch (flags.pathExistsAction()) {
       case ActionType.THROW_EXCEPTION:
       case ActionType.TRUNCATE_FILE:
@@ -184,8 +186,8 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
       case ActionType.NOP:
         // Use existing file contents.
         // XXX: Uh, this maintains the previously-used flag.
-        if (inode.file_data != null) {
-          return cb(null, inode.file_data);
+        if (stats.file_data != null) {
+          return cb(null, stats.file_data);
         }
         // @todo be lazier about actually requesting the file
         this._requestFileAsync(path, 'buffer', function(err: api_error.ApiError, buffer?: NodeBuffer) {
@@ -193,9 +195,9 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
             return cb(err);
           }
           // we don't initially have file sizes
-          inode.size = buffer.length;
-          inode.file_data = new preload_file.NoSyncFile(_this, path, flags, inode, buffer);
-          return cb(null, inode.file_data);
+          stats.size = buffer.length;
+          stats.file_data = new preload_file.NoSyncFile(_this, path, flags, stats, buffer);
+          return cb(null, stats.file_data);
         });
         break;
       default:
@@ -205,13 +207,14 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
 
   public openSync(path: string, flags: file_flag.FileFlag, mode: number): file.File {
     // Check if the path exists, and is a file.
-    var inode = <node_fs_stats.Stats> this._index.getInode(path);
+    var inode = <file_index.FileInode<node_fs_stats.Stats>> this._index.getInode(path);
     if (inode === null) {
       throw new ApiError(ErrorCode.ENOENT, "" + path + " is not in the FileIndex.");
     }
-    if (inode.isDirectory()) {
+    if (inode.isDir()) {
       throw new ApiError(ErrorCode.EISDIR, "" + path + " is a directory.");
     }
+    var stats = inode.getData();
     switch (flags.pathExistsAction()) {
       case ActionType.THROW_EXCEPTION:
       case ActionType.TRUNCATE_FILE:
@@ -219,15 +222,15 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
       case ActionType.NOP:
         // Use existing file contents.
         // XXX: Uh, this maintains the previously-used flag.
-        if (inode.file_data != null) {
-          return inode.file_data;
+        if (stats.file_data != null) {
+          return stats.file_data;
         }
         // @todo be lazier about actually requesting the file
         var buffer = this._requestFileSync(path, 'buffer');
         // we don't initially have file sizes
-        inode.size = buffer.length;
-        inode.file_data = new preload_file.NoSyncFile(this, path, flags, inode, buffer);
-        return inode.file_data;
+        stats.size = buffer.length;
+        stats.file_data = new preload_file.NoSyncFile(this, path, flags, stats, buffer);
+        return stats.file_data;
       default:
         throw new ApiError(ErrorCode.EINVAL, 'Invalid FileMode object.');
     }
