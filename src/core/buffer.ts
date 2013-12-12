@@ -213,7 +213,7 @@ export class Buffer implements BFSBuffer {
     var len = this.length;
     var byteArr = new Array(len);
     for (var i = 0; i < len; i++) {
-      byteArr[i] = this.readUInt8(this.offset + i);
+      byteArr[i] = this.readUInt8(i);
     }
     return {
       type: 'Buffer',
