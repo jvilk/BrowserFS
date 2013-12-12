@@ -237,7 +237,6 @@ export class FileData {
     switch (compressionMethod) {
       case CompressionMethod.DEFLATE:
         // Convert to Uint8Array or an array of bytes for the library.
-        // XXX: We should truncate this to the compressed file size.
         if (buff.getBufferCore() instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer) {
           // Grab a slice of the zip file that contains the compressed data
           // (avoids copying).
