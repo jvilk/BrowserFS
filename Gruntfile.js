@@ -85,7 +85,13 @@ module.exports = function(grunt) {
                     'backend/localStorage',
                     'backend/mountable_file_system',
                     'backend/XmlHttpRequest',
-                    'generic/emscripten_fs']
+                    'backend/zipfs',
+                    'generic/emscripten_fs'],
+          shim: {
+            'vendor/zlib.js/rawinflate.min': {
+              exports: 'Zlib.RawInflate'
+            }
+          }
         }
       }
     },
