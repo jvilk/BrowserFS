@@ -9,6 +9,7 @@ Provided backends:
 * HTML5 `FileSystem`
 * Dropbox
 * In-memory
+* Zip file-backed FS (currently read only)
 
 More backends can be defined by separate libraries, so long as they extend the `BaseFileSystem`. Multiple backends can be active at once at different locations in the directory hierarchy.
 
