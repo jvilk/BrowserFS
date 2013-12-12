@@ -73,16 +73,6 @@ export interface FileSystem {
    */
   getName(): string;
   /**
-   * **Core**: Returns 'true' if this filesystem is available in the current
-   * environment. For example, a `localStorage`-backed filesystem will return
-   * 'false' if the browser does not support that API.
-   *
-   * Defaults to 'false', as the FileSystem base class isn't usable alone.
-   * @method FileSystem.isAvailable
-   * @return {boolean}
-   */
-  isAvailable(): boolean;
-  /**
    * **Optional**: Passes the following information to the callback:
    *
    * * Total number of bytes available on this file system.
@@ -487,6 +477,22 @@ export interface FileSystem {
    * @param {string} path
    */
   readlinkSync(p: string): string;
+}
+
+/**
+ * Contains typings for static functions on the file system constructor.
+ */
+export interface FileSystemConstructor {
+  /**
+   * **Core**: Returns 'true' if this filesystem is available in the current
+   * environment. For example, a `localStorage`-backed filesystem will return
+   * 'false' if the browser does not support that API.
+   *
+   * Defaults to 'false', as the FileSystem base class isn't usable alone.
+   * @method FileSystem.isAvailable
+   * @return {boolean}
+   */
+  isAvailable(): boolean;
 }
 
 /**

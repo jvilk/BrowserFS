@@ -106,7 +106,7 @@ export function FindUtil(encoding: string): StringUtil {
  * expressed in terms of JavaScript UTF-16 strings.
  * @see http://en.wikipedia.org/wiki/UTF-8
  */
-export class UTF8 implements StringUtil {
+export class UTF8 {
   public static str2byte(str: string, buf: NodeBuffer): number {
     var length = buf.length;
     var i = 0;
@@ -212,7 +212,7 @@ export class UTF8 implements StringUtil {
  * characters in JavaScript UTF-16 strings.
  * @see http://en.wikipedia.org/wiki/ASCII
  */
-export class ASCII implements StringUtil {
+export class ASCII {
   public static str2byte(str: string, buf: NodeBuffer): number {
     var length = str.length > buf.length ? buf.length : str.length;
     for (var i = 0; i < length; i++) {
@@ -237,7 +237,7 @@ export class ASCII implements StringUtil {
  * character set. Unlike the ASCII above, we do not mask the high bits.
  * @see http://en.wikipedia.org/wiki/Extended_ASCII
  */
-export class ExtendedASCII implements StringUtil {
+export class ExtendedASCII {
   private static extendedChars = [ '\u00C7', '\u00FC', '\u00E9', '\u00E2', '\u00E4',
     '\u00E0', '\u00E5', '\u00E7', '\u00EA', '\u00EB', '\u00E8', '\u00EF',
     '\u00EE', '\u00EC', '\u00C4', '\u00C5', '\u00C9', '\u00E6', '\u00C6',
@@ -293,7 +293,7 @@ export class ExtendedASCII implements StringUtil {
  * String utility functions for Node's BINARY strings, which represent a single
  * byte per character.
  */
-export class BINARY implements StringUtil {
+export class BINARY {
   public static str2byte(str: string, buf: NodeBuffer): number {
     var length = str.length > buf.length ? buf.length : str.length;
     for (var i = 0; i < length; i++) {
@@ -321,7 +321,7 @@ export class BINARY implements StringUtil {
  * @see http://en.wikipedia.org/wiki/Base64
  * @todo Bake in support for btoa() and atob() if available.
  */
-export class BASE64 implements StringUtil {
+export class BASE64 {
   private static b64chars = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/', '='];
   private static num2b64: string[] = (function() {
     var obj = new Array(BASE64.b64chars.length);
@@ -332,8 +332,8 @@ export class BASE64 implements StringUtil {
     return obj;
   })();
 
-  private static b642num: {[chr: string]: number} = (function() {
-    var obj = {};
+  private static b642num: {[chr: string]: number} = (function(): {[chr: string]: number} {
+    var obj: {[chr: string]: number} = {};
     for (var idx = 0; idx < BASE64.b64chars.length; idx++) {
       var i = BASE64.b64chars[idx];
       obj[i] = idx;
@@ -410,7 +410,7 @@ export class BASE64 implements StringUtil {
  * Note: UCS-2 handling is identical to UTF-16.
  * @see http://en.wikipedia.org/wiki/UCS2
  */
-export class UCS2 implements StringUtil {
+export class UCS2 {
   public static str2byte(str: string, buf: NodeBuffer): number {
     var len = str.length;
     // Clip length to longest string of valid characters that can fit in the
@@ -444,7 +444,7 @@ export class UCS2 implements StringUtil {
  * Contains string utility functions for hex encoding.
  * @see http://en.wikipedia.org/wiki/Hexadecimal
  */
-export class HEX implements StringUtil {
+export class HEX {
   private static HEXCHARS = '0123456789abcdef';
 
   private static num2hex: string[] = (function() {
@@ -456,9 +456,9 @@ export class HEX implements StringUtil {
     return obj;
   })();
 
-  private static hex2num: {[chr: string]: number} = (function() {
+  private static hex2num: {[chr: string]: number} = (function(): {[chr: string]: number} {
     var idx, i;
-    var obj = {};
+    var obj: {[chr: string]: number} = {};
     for (idx = 0; idx < HEX.HEXCHARS.length; idx++) {
       i = HEX.HEXCHARS[idx];
       obj[i] = idx;
@@ -519,7 +519,7 @@ export class HEX implements StringUtil {
  *
  * Everything is little endian.
  */
-export class BINSTR implements StringUtil {
+export class BINSTR {
   public static str2byte(str: string, buf: NodeBuffer): number {
     // Special case: Empty string
     if (str.length === 0) {
@@ -591,7 +591,7 @@ export class BINSTR implements StringUtil {
 /**
  * IE/older FF version of binary string. One byte per character, offset by 0x20.
  */
-export class BINSTRIE implements StringUtil {
+export class BINSTRIE {
   public static str2byte(str: string, buf: NodeBuffer): number {
     var length = str.length > buf.length ? buf.length : str.length;
     for (var i = 0; i < length; i++) {

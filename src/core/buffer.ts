@@ -44,6 +44,9 @@ export interface BFSBufferImplementation {
  * for actually writing/reading data from some data representation in memory.
  */
 export class Buffer implements BFSBuffer {
+  // Note: This array property is *not* true, but it's required to satisfy
+  //       TypeScript typings.
+  [idx: number]: number;
   private data: buffer_core.BufferCore;
   private offset: number = 0;
   public length: number;
@@ -496,11 +499,6 @@ export class Buffer implements BFSBuffer {
   }
 
   ///**************************STATIC METHODS********************************///
-
-  /**
-   * Added to satisfy TypeScript NodeBuffer typing.
-   */
-  public static INSPECT_MAX_BYTES: number = 0;
 
   /**
    * Checks if enc is a valid string encoding type.

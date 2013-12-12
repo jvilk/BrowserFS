@@ -24,7 +24,7 @@ export function install(obj) {
   var oldRequire = obj.require != null ? obj.require : null;
   // Monkey-patch require for Node-style code.
   obj.require = function(arg) {
-    var rv = require(arg);
+    var rv = BFSRequire(arg);
     if (rv == null) {
       return oldRequire.apply(null, Array.prototype.slice.call(arguments, 0))
     } else {
@@ -34,11 +34,11 @@ export function install(obj) {
 }
 
 export var FileSystem: {[name: string]: any} = {};
-export function registerFileSystem(name: string, fs: any) {
+export function registerFileSystem(name: string, fs: file_system.FileSystemConstructor) {
   FileSystem[name] = fs;
 }
 
-export function require(module: string) {
+export function BFSRequire(module: string) {
   switch(module) {
     case 'fs':
       return node_fs.fs;

@@ -159,7 +159,6 @@
       var zipFiles = ['0', '4', '9'];
       // Leverage the XHRFS to download the fixtures for this FS.
       BrowserFS.initialize(xhrfs);
-      var fs = BrowserFS.require('fs');
       for (var i = 0; i < zipFiles.length; i++) {
         var zipFileName = '/test/zipfs_fixtures_l' + zipFiles[i] + '.zip';
         backends.push(new BrowserFS.FileSystem.ZipFS(fs.readFileSync(zipFileName), zipFileName));

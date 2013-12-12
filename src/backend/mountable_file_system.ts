@@ -128,7 +128,7 @@ export class MountableFileSystem extends file_system.BaseFileSystem implements f
 
     // Scenario 2: Different file systems.
     // Read old file, write new file, delete old file.
-    return fs.readFile(oldPath, function(err, data) {
+    return fs.readFile(oldPath, function(err: api_error.ApiError, data?: any) {
       if (err) {
         return cb(err);
       }
