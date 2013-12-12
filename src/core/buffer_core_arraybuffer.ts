@@ -122,19 +122,10 @@ export class BufferCoreArrayBuffer extends buffer_core.BufferCoreCommon implemen
     } else {
       var len = end - start;
       newBuff = new ArrayBuffer(len);
-      var nbdv = new DataView(newBuff);
-      var intBytes = (((len)/4)|0)*4;
-      var i;
-      // Optimization: Copy 4 bytes at a time.
-      // TODO: Could we copy 8 bytes at a time using Float64, or could we
-      //       lose precision?
-      for (i = 0; i < intBytes; i += 4) {
-        nbdv.setInt32(i, this.buff.getInt32(start+i));
-      }
-      // Copy the rest.
-      for (i = intBytes; i < len; i++) {
-        nbdv.setUint8(i, this.buff.getUint8(start + i));
-      }
+      // Copy the old contents in.
+      var newUintArray = new Uint8Array(newBuff);
+      var oldUintArray = new Uint8Array(aBuff);
+      newUintArray.set(oldUintArray.subarray(start, end));
     }
     return new BufferCoreArrayBuffer(newBuff);
   }

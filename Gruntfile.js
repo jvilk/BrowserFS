@@ -120,6 +120,9 @@ module.exports = function(grunt) {
             cb();
           }
         }
+      },
+      gen_zipfs_fixtures: {
+        command: './node_modules/.bin/coffee tools/ZipFixtureMaker.coffee'
       }
     }
   });
@@ -141,9 +144,9 @@ module.exports = function(grunt) {
   });
 
   // test
-  grunt.registerTask('test', ['ts:dev', 'shell:gen_listings', 'shell:load_fixtures', 'connect', 'karma']);
+  grunt.registerTask('test', ['ts:dev', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect', 'karma']);
   // testing dropbox
-  grunt.registerTask('dropbox_test', ['ts:dev', 'shell:gen_listings', 'shell:load_fixtures', 'shell:gen_cert', 'shell:gen_token', 'connect', 'karma']);
+  grunt.registerTask('dropbox_test', ['ts:dev', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'shell:gen_cert', 'shell:gen_token', 'connect', 'karma']);
   // dev build
   grunt.registerTask('dev', ['ts:dev']);
   // dev build + watch for changes.
@@ -151,5 +154,5 @@ module.exports = function(grunt) {
   // release build (default)
   grunt.registerTask('default', ['ts:dev', 'requirejs']);
   // testling
-  grunt.registerTask('testling', ['default', 'shell:gen_listings', 'shell:load_fixtures']);
+  grunt.registerTask('testling', ['default', 'shell:gen_listings', 'shell:gen_zipfs_fixtures', 'shell:load_fixtures']);
 };

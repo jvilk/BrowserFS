@@ -188,8 +188,19 @@ export class FileHeader {
     return msdos2date(this.data.readUInt16LE(10), this.data.readUInt16LE(12));
   }
   public crc32(): number { return this.data.readUInt32LE(14); }
-  public compressedSize(): number { return this.data.readUInt32LE(18); }
-  public uncompressedSize(): number { return this.data.readUInt32LE(22); }
+  /**
+   * These two values are COMPLETELY USELESS.
+   *
+   * Section 4.4.9:
+   *   If bit 3 of the general purpose bit flag is set,
+   *   these fields are set to zero in the local header and the
+   *   correct values are put in the data descriptor and
+   *   in the central directory.
+   *
+   * So we'll just use the central directory's values.
+   */
+  // public compressedSize(): number { return this.data.readUInt32LE(18); }
+  // public uncompressedSize(): number { return this.data.readUInt32LE(22); }
   public fileNameLength(): number { return this.data.readUInt16LE(26); }
   public extraFieldLength(): number { return this.data.readUInt16LE(28); }
   public fileName(): string {
@@ -218,7 +229,7 @@ export class FileHeader {
     contain no content MUST not include file data.
 */
 export class FileData {
-  constructor(private header: FileHeader, private data: NodeBuffer) {}
+  constructor(private header: FileHeader, private record: CentralDirectory, private data: NodeBuffer) {}
   public decompress(): NodeBuffer {
     var buff = <buffer.Buffer> this.data;
     // Check the compression
@@ -226,6 +237,7 @@ export class FileData {
     switch (compressionMethod) {
       case CompressionMethod.DEFLATE:
         // Convert to Uint8Array or an array of bytes for the library.
+        // XXX: We should truncate this to the compressed file size.
         if (buff.getBufferCore() instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer) {
           // Grab a slice of the zip file that contains the compressed data
           // (avoids copying).
@@ -233,17 +245,18 @@ export class FileData {
           var bcore = <buffer_core_arraybuffer.BufferCoreArrayBuffer> buff.getBufferCore();
           var dview = bcore.getDataView();
           var start = dview.byteOffset + buff.getOffset();
-          var uarray = (new Uint8Array(dview.buffer)).subarray(start, start + buff.length);
+          var uarray = (new Uint8Array(dview.buffer)).subarray(start, start + this.record.compressedSize());
           var data: Uint8Array = (new RawInflate(uarray)).decompress();
           return new buffer.Buffer(new buffer_core_arraybuffer.BufferCoreArrayBuffer(data.buffer), data.byteOffset, data.byteOffset + data.length);
         } else {
           // Convert to an array of bytes and decompress, then write into a new
           // buffer :(
-          return new buffer.Buffer(<number[]><any>(new RawInflate(<any> buff.toJSON().data)).decompress());
+          var newBuff = <buffer.Buffer> buff.slice(0, this.record.compressedSize());
+          return new buffer.Buffer(<number[]><any>(new RawInflate(<any> newBuff.toJSON().data)).decompress());
         }
       case CompressionMethod.STORED:
         // Grab and copy.
-        return buff.sliceCopy(0, this.header.uncompressedSize());
+        return buff.sliceCopy(0, this.record.uncompressedSize());
       default:
         var name: string = CompressionMethod[compressionMethod];
         name = name ? name : "Unknown: " + compressionMethod;
@@ -421,7 +434,7 @@ export class CentralDirectory {
     // compressed data starts.
     var start = this.headerRelativeOffset();
     var header = new FileHeader(this.zipData.slice(start));
-    var filedata = new FileData(header, this.zipData.slice(start + header.totalSize()));
+    var filedata = new FileData(header, this, this.zipData.slice(start + header.totalSize()));
     return filedata.decompress();
   }
   public getStats(): node_fs_stats.Stats {
@@ -465,13 +478,18 @@ export class EndOfCentralDirectory {
 
 export class ZipFS extends file_system.SynchronousFileSystem implements file_system.FileSystem {
   private _index: file_index.FileIndex = new file_index.FileIndex();
-  constructor(private data: NodeBuffer) {
+  /**
+   * Constructs a ZipFS from the given zip file data. Name is optional, and is
+   * used primarily for our unit tests' purposes to differentiate different
+   * test zip files in test output.
+   */
+  constructor(private data: NodeBuffer, private name: string = '') {
     super();
     this.populateIndex();
   }
 
   public getName(): string {
-    return 'ZipFS';
+    return 'ZipFS' + (this.name !== '' ? ' ' + this.name : '');
   }
 
   public static isAvailable(): boolean { return true; }

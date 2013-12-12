@@ -152,8 +152,19 @@
 
     // Add AJAX filesystem
     var XmlHttpRequest = BrowserFS.FileSystem.XmlHttpRequest;
-    if (XmlHttpRequest.isAvailable())
-      backends.push(new XmlHttpRequest('/listings.json'));
+    if (XmlHttpRequest.isAvailable()) {
+      var xhrfs = new XmlHttpRequest('/listings.json');
+      backends.push(xhrfs);
+      // Add three Zip FS variants for different zip files.
+      var zipFiles = ['0', '4', '9'];
+      // Leverage the XHRFS to download the fixtures for this FS.
+      BrowserFS.initialize(xhrfs);
+      var fs = BrowserFS.require('fs');
+      for (var i = 0; i < zipFiles.length; i++) {
+        var zipFileName = '/test/zipfs_fixtures_l' + zipFiles[i] + '.zip';
+        backends.push(new BrowserFS.FileSystem.ZipFS(fs.readFileSync(zipFileName), zipFileName));
+      }
+    }
 
     // Add mountable filesystem
     var im2 = new InMemory();
@@ -258,6 +269,7 @@
              '../tmp/backend/mountable_file_system',
              '../tmp/backend/XmlHttpRequest',
              '../tmp/backend/html5fs',
-             '../tmp/backend/dropbox'], startTests);
+             '../tmp/backend/dropbox',
+             '../tmp/backend/zipfs'], startTests);
   }
 })();
