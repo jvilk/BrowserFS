@@ -45,7 +45,8 @@ export function BFSRequire(module: string) {
     case 'path':
       return node_path.path;
     case 'buffer':
-      return buffer.Buffer;
+      // The 'buffer' module has 'Buffer' as a property.
+      return buffer;
     case 'process':
       return node_process.process;
     default:
