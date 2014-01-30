@@ -34,4 +34,8 @@ export function roughSizeOfObject(object) {
   return bytes;
 }
 
-export var isIE: boolean = (/(msie) ([\w.]+)/.exec(navigator.userAgent.toLowerCase()) != null);
+/**
+ * Checks for any IE version, including IE11 which removed MSIE from the
+ * userAgent string.
+ */
+export var isIE: boolean = (/(msie) ([\w.]+)/.exec(navigator.userAgent.toLowerCase()) != null || navigator.userAgent.indexOf('Trident') !== -1);
