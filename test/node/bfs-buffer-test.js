@@ -178,4 +178,10 @@ window.tests.bfs_buffer_test = function() {
   assert(buff.toString('ascii', 0, 1) !== buff.toString('extended_ascii', 0, 1));
   assert(buff.toString('ascii', 0, 1) !== '\u00A6');
   assert(buff.toString('extended_ascii', 0, 1) === '\u00A6');
+
+  /**
+   * Array setter accepts signed numbers.
+   */
+  buff.set(0, -5);
+  assert(buff.get(0) === 251);
 };

@@ -5,8 +5,26 @@
 import buffer_core = require('./buffer_core');
 import buffer_core_array = require('./buffer_core_array');
 import buffer_core_arraybuffer = require('./buffer_core_arraybuffer');
+import buffer_core_imagedata = require('./buffer_core_imagedata');
 import string_util = require('./string_util');
-var PreferredBufferCore: buffer_core.BufferCoreImplementation = buffer_core_arraybuffer.BufferCoreArrayBuffer.isAvailable() ? <buffer_core.BufferCoreImplementation> buffer_core_arraybuffer.BufferCoreArrayBuffer : <buffer_core.BufferCoreImplementation> buffer_core_array.BufferCoreArray;
+
+// BC implementations earlier in the array are preferred.
+var BufferCorePreferences: buffer_core.BufferCoreImplementation[] = [
+  buffer_core_arraybuffer.BufferCoreArrayBuffer,
+  buffer_core_imagedata.BufferCoreImageData,
+  buffer_core_array.BufferCoreArray
+];
+
+var PreferredBufferCore: buffer_core.BufferCoreImplementation = (function(): buffer_core.BufferCoreImplementation {
+  var i: number, bci: buffer_core.BufferCoreImplementation;
+  for (i = 0; i < BufferCorePreferences.length; i++) {
+    bci = BufferCorePreferences[i];
+    if (bci.isAvailable()) return bci;
+  }
+  // Should never happen; Array works in all browsers.
+  throw new Error("This browser does not support any available BufferCore implementations.");
+})();
+
 /**
  * We extend Node's buffer interface to account for differences in the browser
  * environment.
@@ -125,13 +143,20 @@ export class Buffer implements BFSBuffer {
   }
 
   /**
-   * **NONSTANDARD**: Set the octet at index. The values refer to individual
-   * bytes, so the legal range is between 0x00 and 0xFF hex or 0 and 255.
+   * **NONSTANDARD**: Set the octet at index. Emulates NodeJS buffer's index
+   * operation. Octet can be signed or unsigned.
    * @param {number} index - the index to set the value at
    * @param {number} value - the value to set at the given index
    */
   public set(index: number, value: number): void {
-    return this.writeUInt8(value, index);
+    // In Node, the following happens:
+    // buffer[0] = -1;
+    // buffer[0]; // 255
+    if (value < 0) {
+      return this.writeInt8(value, index);
+    } else {
+      return this.writeUInt8(value, index);
+    }
   }
 
   /**
