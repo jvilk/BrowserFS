@@ -1,54 +1,5 @@
+import eventemitter = require('./node_eventemitter');
 var path = null;
-
-/**
- * Simple emulation of NodeJS's standard input.
- */
-export class Stdin {
-  private paused: boolean = true;
-  private dataCallbacks: {(chunk: NodeBuffer): void;}[] = [];
-
-  public on(type: string, cb: (chunk: NodeBuffer) => void) {
-    if (type === 'data') {
-      this.dataCallbacks.push(cb);
-    }
-  }
-  public resume(): void {
-    this.paused = false;
-  }
-  public pause(): void {
-    this.paused = true;
-  }
-  /**
-   * [BFS]
-   * Alert BrowserFS to an input event.
-   */
-  public write(chunk: NodeBuffer) {
-    var i: number;
-    if (!this.paused) {
-      for (i = 0; i <  this.dataCallbacks.length; i++) {
-        this.dataCallbacks[i](chunk);
-      }
-    }
-  }
-}
-
-/**
- * Simple emulation of NodeJS's standard output.
- * Also used for Stderr.
- */
-export class Stdout {
-  public write(data: string): void {
-    this.writeCb(data);
-  }
-  /**
-   * [BFS]
-   * Set a callback here that writes to your terminal emulator for stdout
-   * support.
-   */
-  public writeCb: (data: string) => void = function(data: string) {
-    // NOP.
-  };
-}
 
 /**
  * Partial implementation of Node's `process` module.
@@ -101,9 +52,9 @@ export class Process {
   }
 
   public argv: string[] = [];
-  public stdout = new Stdout();
-  public stderr = new Stdout();
-  public stdin = new Stdin();
+  public stdout = new eventemitter.AbstractDuplexStream(true, true);
+  public stderr = new eventemitter.AbstractDuplexStream(true, true);
+  public stdin = new eventemitter.AbstractDuplexStream(true, true);
 }
 
 // process is a singleton.
