@@ -31,7 +31,7 @@ class BufferedEvent {
   public getData(encoding?: string): any {
     if (encoding == null) {
       if (typeof(this.data) === 'string') {
-        return new Buffer(this.data, this.encoding);
+        return new Buffer(this.data, this.encoding != null ? this.encoding : undefined);
       } else {
         return this.data;
       }
@@ -40,7 +40,7 @@ class BufferedEvent {
         if (encoding === this.encoding) {
           return this.data;
         } else {
-          return (new Buffer(this.data, this.encoding)).toString(encoding);
+          return (new Buffer(this.data, this.encoding != null ? this.encoding : undefined)).toString(encoding);
         }
       } else {
         return this.data.toString(encoding);
