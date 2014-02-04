@@ -1,6 +1,58 @@
 import eventemitter = require('./node_eventemitter');
 var path = null;
 
+export class TTY extends eventemitter.AbstractDuplexStream {
+  public isRaw: boolean = false;
+  public columns: number = 80;
+  public rows: number = 120;
+  public isTTY: boolean = true;
+
+  constructor() {
+    super(true, true);
+  }
+
+  /**
+   * Set read mode to 'true' to enable raw mode.
+   */
+  public setReadMode(mode: boolean): void {
+    if (this.isRaw !== mode) {
+      this.isRaw = mode;
+      // [BFS] TTY implementations can use this to change their event emitting
+      //       patterns.
+      this.emit('modeChange');
+    }
+  }
+
+  /**
+   * [BFS] Update the number of columns available on the terminal.
+   */
+  public changeColumns(columns: number): void {
+    if (columns !== this.columns) {
+      this.columns = columns;
+      // Resize event.
+      this.emit('resize');
+    }
+  }
+
+  /**
+   * [BFS] Update the number of rows available on the terminal.
+   */
+  public changeRows(rows: number): void {
+    if (rows !== this.rows) {
+      this.rows = rows;
+      // Resize event.
+      this.emit('resize');
+    }
+  }
+
+  /**
+   * Returns 'true' if the given object is a TTY.
+   */
+  public static isatty(fd: any): boolean {
+    return fd instanceof TTY;
+  }
+}
+
 /**
  * Partial implementation of Node's `process` module.
  * We implement the portions that are relevant for the filesystem.
@@ -52,9 +104,9 @@ export class Process {
   }
 
   public argv: string[] = [];
-  public stdout = new eventemitter.AbstractDuplexStream(true, true);
-  public stderr = new eventemitter.AbstractDuplexStream(true, true);
-  public stdin = new eventemitter.AbstractDuplexStream(true, true);
+  public stdout = new TTY();
+  public stderr = new TTY();
+  public stdin = new TTY();
 }
 
 // process is a singleton.

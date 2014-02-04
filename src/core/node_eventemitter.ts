@@ -64,7 +64,7 @@ export class AbstractEventEmitter implements EventEmitter {
       this._listeners[event] = [];
     }
     if (this._listeners[event].push(listener) > this.maxListeners) {
-      process.stdout.write("Warning: Event " + event + " has more than " + this.maxListeners + " listeners.");
+      process.stdout.write("Warning: Event " + event + " has more than " + this.maxListeners + " listeners.\n");
     }
     return this;
   }
