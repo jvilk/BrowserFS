@@ -329,20 +329,26 @@ export class AbstractDuplexStream extends AbstractEventEmitter implements Writab
   /**
    * Read a given number of bytes from the buffer. Should only be called in
    * non-flowing mode.
+   * If we do not have `size` bytes available, return null.
    */
-  public read(size: number = 4294967295): any {
+  public read(size?: number): any {
     var events: NodeBuffer[] = [],
         eventsCbs: Function[] = [],
         lastCb: Function,
         eventsSize: number = 0,
         event: BufferedEvent,
         buff: NodeBuffer,
-        trueSize: number;
+        trueSize: number,
+        i: number = 0,
+        sizeUnspecified: boolean = typeof(size) !== 'number';
+
+    // I do this so I do not need to specialize the loop below.
+    if (sizeUnspecified) size = 4294967295;
 
     // Figure out how many scheduled write events we need to process before we
     // satisfy the requested size.
-    while (this.buffer.length > 0 && eventsSize < size) {
-      event = this.buffer.shift();
+    for (i = 0; i < this.buffer.length && eventsSize < size; i++) {
+      event = this.buffer[i];
       events.push(event.getData());
       if (event.cb) {
         eventsCbs.push(event.cb);
@@ -350,6 +356,16 @@ export class AbstractDuplexStream extends AbstractEventEmitter implements Writab
       eventsSize += event.size;
       lastCb = event.cb;
     }
+
+    if (!sizeUnspecified && eventsSize < size) {
+      // For some reason, the Node stream API specifies that we either return
+      // 'size' bytes of data, or nothing at all.
+      return null;
+    }
+
+    // Remove all of the events we are processing from the buffer.
+    this.buffer = this.buffer.slice(events.length);
+
     // The 'true size' of the final event we're going to send out.
     trueSize = eventsSize > size ? size : eventsSize;
 
