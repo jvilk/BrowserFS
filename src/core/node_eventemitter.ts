@@ -66,6 +66,7 @@ export class AbstractEventEmitter implements EventEmitter {
     if (this._listeners[event].push(listener) > this.maxListeners) {
       process.stdout.write("Warning: Event " + event + " has more than " + this.maxListeners + " listeners.\n");
     }
+    this.emit('newListener', event, listener);
     return this;
   }
 
@@ -94,6 +95,19 @@ export class AbstractEventEmitter implements EventEmitter {
   }
 
   /**
+   * Emits the 'removeListener' event for the specified listeners.
+   */
+  private _emitRemoveListener(event: string, listeners: Function[]): void {
+    var i: number;
+    // Only emit the event if someone is listening.
+    if (this._listeners['removeListener'] && this._listeners['removeListener'].length > 0) {
+      for (i = 0; i < listeners.length; i++) {
+        this.emit('removeListener', event, listeners[i]);
+      }
+    }
+  }
+
+  /**
    * Removes the particular listener for the given event.
    */
   public removeListener(event: string, listener: Function): EventEmitter {
@@ -105,6 +119,7 @@ export class AbstractEventEmitter implements EventEmitter {
         listeners.splice(idx, 1);
       }
     }
+    this.emit('removeListener', event, listener);
     return this;
   }
 
@@ -112,12 +127,18 @@ export class AbstractEventEmitter implements EventEmitter {
    * Removes all listeners, or those of the specified event.
    */
   public removeAllListeners(event?: string): EventEmitter {
+    var removed: Function[], keys: string[], i: number;
     if (typeof(event) !== 'undefined') {
+      removed = this._listeners[event];
       // Clear one event.
       this._listeners[event] = [];
+      this._emitRemoveListener(event, removed);
     } else {
       // Clear all events.
-      this._listeners = {};
+      keys = Object.keys(this._listeners);
+      for (i = 0; i < keys.length; i++) {
+        this.removeAllListeners(keys[i]);
+      }
     }
     return this;
   }
@@ -137,7 +158,8 @@ export class AbstractEventEmitter implements EventEmitter {
     if (typeof(this._listeners[event]) === 'undefined') {
       this._listeners[event] = [];
     }
-    return this._listeners[event];
+    // Return a *copy* of our internal structure.
+    return this._listeners[event].slice(0);
   }
 
   /**
