@@ -52,14 +52,14 @@ class BufferedEvent {
 /**
  * Provides an abstract implementation of the EventEmitter interface.
  */
-export class AbstractEventEmitter implements EventEmitter {
+export class AbstractEventEmitter implements NodeEventEmitter {
   private _listeners: {[event: string]: Function[]} = {};
   private maxListeners: number = 10;
 
   /**
    * Adds a listener for the particular event.
    */
-  public addListener(event: string, listener: Function): EventEmitter {
+  public addListener(event: string, listener: Function): NodeEventEmitter {
     if (typeof(this._listeners[event]) === 'undefined') {
       this._listeners[event] = [];
     }
@@ -73,14 +73,14 @@ export class AbstractEventEmitter implements EventEmitter {
   /**
    * Adds a listener for the particular event.
    */
-  public on(event: string, listener: Function): EventEmitter {
+  public on(event: string, listener: Function): NodeEventEmitter {
     return this.addListener(event, listener);
   }
 
   /**
    * Adds a listener for the particular event that fires only once.
    */
-  public once(event: string, listener: Function): EventEmitter {
+  public once(event: string, listener: Function): NodeEventEmitter {
     // Create a new callback that will only fire once.
     var fired: boolean = false,
         newListener: Function = function() {
@@ -110,7 +110,7 @@ export class AbstractEventEmitter implements EventEmitter {
   /**
    * Removes the particular listener for the given event.
    */
-  public removeListener(event: string, listener: Function): EventEmitter {
+  public removeListener(event: string, listener: Function): NodeEventEmitter {
     var listeners = this._listeners[event];
     if (typeof(listeners) !== 'undefined') {
       // Remove listener, if present.
@@ -126,7 +126,7 @@ export class AbstractEventEmitter implements EventEmitter {
   /**
    * Removes all listeners, or those of the specified event.
    */
-  public removeAllListeners(event?: string): EventEmitter {
+  public removeAllListeners(event?: string): NodeEventEmitter {
     var removed: Function[], keys: string[], i: number;
     if (typeof(event) !== 'undefined') {
       removed = this._listeners[event];
@@ -184,7 +184,7 @@ export class AbstractEventEmitter implements EventEmitter {
  * interfaces.
  * @todo: Check readable/writable status.
  */
-export class AbstractDuplexStream extends AbstractEventEmitter implements WritableStream, ReadableStream {
+export class AbstractDuplexStream extends AbstractEventEmitter implements ReadWriteStream {
   /**
    * How should the data output be encoded? 'null' means 'Buffer'.
    */
@@ -224,7 +224,7 @@ export class AbstractDuplexStream extends AbstractEventEmitter implements Writab
    * Implemented here so that we can capture data EventListeners, which trigger
    * us to 'resume'.
    */
-  public addListener(event: string, listener: Function): EventEmitter {
+  public addListener(event: string, listener: Function): NodeEventEmitter {
     var rv = super.addListener(event, listener),
         _this = this;
     if (event === 'data' && !this.flowing) {
@@ -310,19 +310,6 @@ export class AbstractDuplexStream extends AbstractEventEmitter implements Writab
     this.ended = true;
     this.endEvent = event;
     this._processEvents();
-  }
-
-  /**
-   * I'm pretty sure this is deprecated. Implemented to satiate TS interface.
-   */
-  public destroy(): void {
-    throw new ApiError(ErrorCode.EPERM, "Unimplemented.");
-  }
-  /**
-   * I'm pretty sure this is deprecated. Implemented to satiate TS interface.
-   */
-  public destroySoon(): void {
-    throw new ApiError(ErrorCode.EPERM, "Unimplemented.");
   }
 
   /**** Readable Interface ****/
@@ -443,10 +430,10 @@ export class AbstractDuplexStream extends AbstractEventEmitter implements Writab
   /**
    * Pipe a readable stream into a writable stream. Currently unimplemented.
    */
-  public pipe(destination: WritableStream, options?: { end?: boolean; }): void {
+  public pipe<T extends WritableStream>(destination: T, options?: { end?: boolean; }): T {
     throw new ApiError(ErrorCode.EPERM, "Unimplemented.");
   }
-  public unpipe(destination: WritableStream): void {}
+  public unpipe<T extends WritableStream>(destination?: T): void {}
 
   /**
    * 'Unshift' the given piece of data back into the buffer.
@@ -474,7 +461,7 @@ export class AbstractDuplexStream extends AbstractEventEmitter implements Writab
    * Enables backwards-compatibility with older versions of Node and their
    * stream interface. Unimplemented.
    */
-  public wrap(stream: any): void {
+  public wrap(stream: ReadableStream): ReadableStream {
     throw new ApiError(ErrorCode.EPERM, "Unimplemented.");
   }
 }
