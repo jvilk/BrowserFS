@@ -261,12 +261,13 @@ export class AbstractDuplexStream extends AbstractEventEmitter implements Writab
         // @todo: Is this event relevant in flowing mode?
         this.emit('readable');
       }
-      this.drained = drained;
     }
 
     if (this.flowing && this.buffer.length !== 0) {
       this.emit('data', this.read());
     }
+    // Are we drained? Check.
+    this.drained = this.buffer.length === 0;
   }
 
   /**
@@ -405,6 +406,9 @@ export class AbstractDuplexStream extends AbstractEventEmitter implements Writab
     if (events.length === 0) {
       // Buffer was empty. We're supposed to return 'null', as opposed to an
       // empty buffer or string.
+      // [BFS] Emit a '_read' event to signal that maybe the write-end of this
+      //       should push some data into the pipe.
+      this.emit('_read');
       return null;
     } else if (this.encoding === null) {
       return buff.slice(0, trueSize);
