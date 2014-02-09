@@ -423,7 +423,10 @@ export class CentralDirectory {
     //       commonplace.
     //       According to the spec, the layout of external attributes is
     //       platform-dependent.
-    return this.externalAttributes() & 0x10 ? true : false;
+    //       If that fails, we also check if the name of the file ends in '/',
+    //       which is what Java's ZipFile implementation does.
+    var fileName = this.fileName();
+    return (this.externalAttributes() & 0x10 ? true : false) || (fileName.charAt(fileName.length-1) === '/');
   }
   public isFile(): boolean { return !this.isDirectory(); }
   public useUTF8(): boolean { return (this.flag() & 0x800) === 0x800; }
