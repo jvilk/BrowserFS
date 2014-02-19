@@ -81,6 +81,7 @@ module.exports = function(grunt) {
           include: ['core/browserfs',
                     'backend/dropbox',
                     'backend/html5fs',
+                    'backend/IndexedDB',
                     'backend/in_memory',
                     'backend/localStorage',
                     'backend/mountable_file_system',
@@ -105,24 +106,24 @@ module.exports = function(grunt) {
         ].join('&&')
       },
       gen_token: {
-        command: './node_modules/.bin/coffee tools/get_db_credentials.coffee'
+        command: path.resolve('node_modules', '.bin', 'coffee') + " " + path.resolve('tools', 'get_db_credentials.coffee')
       },
       load_fixtures: {
-        command: './node_modules/.bin/coffee tools/FixtureLoaderMaker.coffee'
+        command: path.resolve('node_modules', '.bin', 'coffee') + " " + path.resolve('tools', 'FixtureLoaderMaker.coffee')
       },
       gen_listings: {
-        command: './node_modules/.bin/coffee tools/XHRIndexer.coffee',
+        command: path.resolve('node_modules', '.bin', 'coffee') + " " + path.resolve('tools', 'XHRIndexer.coffee'),
         options: {
           callback: function(err, stdout, stderr, cb) {
             if (err) throw err;
             // Write listings to a file.
-            fs.writeFileSync('./listings.json', stdout);
+            fs.writeFileSync('listings.json', stdout);
             cb();
           }
         }
       },
       gen_zipfs_fixtures: {
-        command: './node_modules/.bin/coffee tools/ZipFixtureMaker.coffee'
+        command: path.resolve('node_modules', '.bin', 'coffee') + " " + path.resolve('tools', 'ZipFixtureMaker.coffee')
       }
     }
   });

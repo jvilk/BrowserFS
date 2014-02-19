@@ -176,10 +176,11 @@
     mfs.mount('/tmp', im3);
     backends.push(mfs);
 
-    var async_backends = 2;
+    var async_backends = 0;
 
     // Set to 'true' to test the Dropbox FS (which is slow to test).
     if (false) {
+      async_backends++;
       var init_client = new db.Client({
         key: 'c6oex2qavccb2l3',
         sandbox: true
@@ -221,37 +222,51 @@
         auth();
       };
       req.send();
-    } else {
-      async_backends--;
-      if (async_backends === 0) generateAllTests();
     }
 
 
     // Add HTML5 FileSystem API backed filesystem
     var HTML5FS = BrowserFS.FileSystem.HTML5FS;
-    if (HTML5FS.isAvailable()){
+    if (HTML5FS.isAvailable()) {
+      async_backends++;
       var html5fs = new HTML5FS(10, window.TEMPORARY);
       backends.push(html5fs);
       html5fs.allocate(function(err){
         if (err){
           console.error(err);
-        }
-        else {
+        } else {
           html5fs.empty(function(err2){
             if (err2) {
               console.error(err2);
-            }
-            else {
+            } else {
               async_backends--;
               if (async_backends === 0) generateAllTests();
             }
           });
         }
       });
-    } else {
-      async_backends--;
-      if (async_backends === 0) generateAllTests();
     }
+
+    var IDBFS = BrowserFS.FileSystem.IndexedDB;
+    if (IDBFS.isAvailable()) {
+      async_backends++;
+      var idbfs = new IDBFS(function (e, idbfs) {
+        if (e) {
+          console.error(e);
+        } else {
+          idbfs.empty(function (e) {
+            if (e) {
+              console.error(e);
+            } else {
+              backends.push(idbfs);
+              if (--async_backends === 0) generateAllTests();
+            }
+          });
+        }
+      }, 'test');
+    }
+
+    if (async_backends === 0) generateAllTests();
   };
 
   if (typeof BrowserFS !== 'undefined') {
@@ -263,6 +278,7 @@
     // Dev mode.
     // Defines/generates all of our Jasmine unit tests from the node unit tests.
     require(['../tmp/core/browserfs',
+             '../tmp/backend/IndexedDB',
              '../tmp/backend/in_memory',
              '../tmp/backend/localStorage',
              '../tmp/backend/mountable_file_system',
