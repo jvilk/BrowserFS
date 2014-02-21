@@ -53,6 +53,8 @@ export class ApiError {
     this.code = ErrorCode[type];
     if (message != null) {
       this.message = message;
+    } else {
+      this.message = ErrorStrings[type];
     }
   }
 

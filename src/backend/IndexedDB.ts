@@ -55,7 +55,7 @@ function path2nodekey(path: string): string {
 function wrapCb(cb: Function): any {
   return function (...args: any[]) {
     setTimeout(function () {
-      console.log("IDB: COMMITTED.");
+      //console.log("IDB: COMMITTED.");
       cb.apply(null, args);
     }, 0);
   };
@@ -76,9 +76,21 @@ function path2datakey(path: string): string {
 function onErrorHandler(cb: (e: api_error.ApiError) => void,
   code: api_error.ErrorCode = ErrorCode.EIO, message: string = null): (e?: any) => void {
   return function(e?: any): void {
-    console.error("RECEIVED ERROR: " + e);
+    // console.error("RECEIVED ERROR: " + e);
     cb(new ApiError(code, message));
   };
+}
+
+/**
+ * Converts a Blob into an ArrayBuffer. There's no synchronous way to do
+ * this outside of a WebWorker.
+ */
+function blob2arraybuffer(data: Blob, cb: (e: any, data?: ArrayBuffer) => void): void {
+  var reader = new FileReader();
+  reader.addEventListener("loadend", function () {
+    cb(null, reader.result);
+  });
+  reader.readAsArrayBuffer(data);
 }
 
 /**
@@ -132,9 +144,7 @@ export class IDBFile extends preload_file.PreloadFile implements file.File {
     }
     // Reach into the BC, grab the DV.
     var dv = backing_mem.getDataView();
-    // Create an appropriate view on the array buffer.
-    var abv = new DataView(dv.buffer, dv.byteOffset + (<buffer.BFSBuffer><any>buffer).getOffset(), buffer.length);
-    (<any> this._fs)._writeFile(this._path, abv, cb);
+    (<IndexedDB> this._fs)._writeFile(this._path, this._stat, new Blob([dv]), cb);
   }
 
   public close(cb: (e?: api_error.ApiError) => void): void {
@@ -161,10 +171,9 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
     super();
     cb = wrapCb(cb);
 
-    var openReq: IDBOpenDBRequest = indexedDB.open(this.objectStoreName, 1),
-        _this: IndexedDB = this;
+    var openReq: IDBOpenDBRequest = indexedDB.open(this.objectStoreName, 1);
 
-    openReq.onupgradeneeded = function onupgradeneeded(event) {
+    openReq.onupgradeneeded = (event) => {
       var db: IDBDatabase = (<any>event.target).result;
       // Huh. This should never happen; we're at version 1. Why does another
       // database exist?
@@ -174,18 +183,18 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
       db.createObjectStore(fileStoreName);
     };
 
-    openReq.onsuccess = function onsuccess(event) {
-      _this.db = (<any>event.target).result;
+    openReq.onsuccess = (event) => {
+      this.db = (<any>event.target).result;
 
       // Check if we need to create the root directory.
-      var objStore: IDBObjectStore = _this._beginTransaction(RO);
-      _this._getStats('/', objStore, (e?) => {
+      var objStore: IDBObjectStore = this._beginTransaction(RO);
+      this._getStats('/', objStore, (e?) => {
         if (e) {
-          _this.mkdir('/', 0, (e?) => {
-            cb(e, _this);
+          this.mkdir('/', 0, (e?) => {
+            cb(e, this);
           });
         } else {
-          cb(null, _this);
+          cb(null, this);
         }
       });
     };
@@ -233,13 +242,20 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
    * Retrieves a key from the file store.
    */
   private _get<T>(key: string, objStore: IDBObjectStore, cb: (e: api_error.ApiError, result?: T) => void): void {
-    console.log("IDB: GET " + key);
+    //console.log("IDB: GET " + key);
     var request: IDBRequest;
     try {
       request = objStore.get(key);
       request.onerror = onErrorHandler(cb);
       request.onsuccess = (event) => {
-        cb(null, (<any>event.target).result);
+        // IDB returns the value 'undefined' when you try to get keys that don't exist.
+        // We turn this into an error.
+        var result: any = (<any>event.target).result;
+        if (result === undefined) {
+          cb(new ApiError(ErrorCode.ENOENT, "Key doesn't exist."));
+        } else {
+          cb(null, (<any>event.target).result);
+        }
       };
     } catch(e) {
       cb(convertError(e));
@@ -252,7 +268,7 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
    */
   private _put<T>(key: string, data: T, overwrite: boolean, objStore: IDBObjectStore, cb: (e?: api_error.ApiError) => void): void {
     var request: IDBRequest;
-    console.log("IDB: PUT " + key + " " + JSON.stringify(data));
+    //console.log("IDB: PUT " + key + " " + JSON.stringify(data));
     try {
       if (overwrite) {
         request = objStore.put(data, key);
@@ -273,7 +289,7 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
    * Deletes a key and the content associated with it from the object store.
    */
   private _delete(key: string, objStore: IDBObjectStore, cb: (e?: api_error.ApiError) => void): void {
-    console.log("IDB: DELETE " + key);
+    //console.log("IDB: DELETE " + key);
     var request: IDBRequest;
     try {
       request = objStore.delete(key);
@@ -318,7 +334,7 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
 
   /**
    * Deletes all data associated with the given path.
-   * DO NOT CALL THIS DIRECTLY, EVER! If you call _del on a non-empty directory,
+   * DO NOT CALL THIS DIRECTLY, EVER! If you call _deletePath on a non-empty directory,
    * then its contents will be orphaned in IndexedDB. `rmdir` performs the
    * empty check for us. This is a convenience function that both `rmdir` and
    * `unlink` share.
@@ -326,19 +342,19 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
   private _deletePath(p: string, objStore: IDBObjectStore, cb: (e?: api_error.ApiError) => void): void {
     try {
       // Query 1: Delete data.
-      var _this: IndexedDB = this, objStore: IDBObjectStore = this._beginTransaction();
+      var objStore: IDBObjectStore = this._beginTransaction();
       this._delete(path2datakey(p), objStore, (e?: api_error.ApiError) => {
         if (e) {
           cb(e);
         } else {
           // Query 2: Delete stats.
-          _this._delete(path2nodekey(p), objStore, (e?: api_error.ApiError) => {
+          this._delete(path2nodekey(p), objStore, (e?: api_error.ApiError) => {
             if (e) {
               cb(e);
             } else {
               // Query 3: Get data from parent.
               var parent: string = path.dirname(p);
-              _this._getData(parent, objStore, (e: api_error.ApiError, data?: any) => {
+              this._getData(parent, objStore, (e: api_error.ApiError, data?: any) => {
                 var dirList: string[] = data, index: number,
                     fileName: string = path.basename(p);
                 if (e) {
@@ -351,7 +367,7 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
                   } else {
                     dirList.splice(index, 1);
                     // Query 4: Update parent's directory listing.
-                    _this._putData(parent, dirList, true, objStore, cb);
+                    this._putData(parent, dirList, true, objStore, cb);
                   }
                 }
               });
@@ -368,7 +384,6 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
    * Ensures that the directory listing of directory `parent` contains `filename`.
    */
   private _updateDirectory(parent: string, filename: string, objStore: IDBObjectStore, cb: (e?: api_error.ApiError) => void): void {
-    var _this = this;
     if (parent === '/' && filename === '') {
       // Special case: Root directory. No parents. :'(
       cb();
@@ -383,7 +398,7 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
             // It does.
             dirList.push(filename);
             // Update directory listing.
-            _this._putData(parent, dirList, true, objStore, cb);
+            this._putData(parent, dirList, true, objStore, cb);
           } else {
             // It doesn't. We're done.
             cb();
@@ -393,25 +408,24 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
     }
   }
 
-  public _writeFile(p: string, stats: node_fs_stats.Stats, data: DataView, cb: (e?: api_error.ApiError) => void): void {
+  public _writeFile(p: string, stats: node_fs_stats.Stats, data: Blob, cb: (e?: api_error.ApiError) => void): void {
     cb = wrapCb(cb);
     try {
-      var objectStore: IDBObjectStore = this._beginTransaction(),
-          _this = this;
+      var objectStore: IDBObjectStore = this._beginTransaction();
       // Query 1: Store node object.
       this._putStats(p, stats, true, objectStore, (e?: api_error.ApiError) => {
         if (e) {
           cb(e);
         } else {
           // Query 2: Store data.
-          _this._putData(p, data, true, objectStore, (e?: api_error.ApiError) => {
+          this._putData(p, data, true, objectStore, (e?: api_error.ApiError) => {
             if (e) {
               cb(e);
             } else {
               // Query 3/4: Update parent directory listing, if needed.
               var parent: string = path.dirname(p),
                   filename: string = path.basename(p);
-              _this._updateDirectory(parent, filename, objectStore, cb);
+              this._updateDirectory(parent, filename, objectStore, cb);
             }
           });
         }
@@ -424,13 +438,12 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
   public empty(cb: (e?: api_error.ApiError) => void): void {
     cb = wrapCb(cb);
     try {
-      var request: IDBRequest = this._beginTransaction().clear(),
-        _this = this;
-      request.onsuccess = function (event) {
+      var request: IDBRequest = this._beginTransaction().clear();
+      request.onsuccess = (event) => {
         // Use setTimeout to commit transaction prior to starting a
         // new one for mkdir.
-        setTimeout(function () {
-          _this.mkdir('/', 0, cb);
+        setTimeout(() => {
+          this.mkdir('/', 0, cb);
         }, 0);
       };
       request.onerror = onErrorHandler(cb);
@@ -451,8 +464,8 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
   public open(path: string, flags: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.File) => any): void {
     cb = wrapCb(cb);
     try {
-      var _this: IndexedDB = this, objStore: IDBObjectStore = this._beginTransaction();
-      this._getStats(path, objStore, function (err, stats?) {
+      var objStore: IDBObjectStore = this._beginTransaction();
+      this._getStats(path, objStore, (err, stats?) => {
         if (err) {
           switch (flags.pathNotExistsAction()) {
             case ActionType.CREATE_FILE:
@@ -473,14 +486,16 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
               case ActionType.TRUNCATE_FILE:
                 stats.size = 0;
                 stats.mtime = new Date();
-                return cb(null, new IDBFile(_this, path, flags, stats, new Buffer(0)));
+                return cb(null, new IDBFile(this, path, flags, stats, new Buffer(0)));
             }
             // case ActionType.NOP: Below.
-            _this._getData(path, objStore, (e: api_error.ApiError, data?: any) => {
+            this._getData(path, objStore, (e: api_error.ApiError, data?: any) => {
               if (e) {
                 cb(e);
               } else {
-                cb(null, new IDBFile(_this, path, flags, stats, new Buffer(data)));
+                blob2arraybuffer(data, (e, data?: ArrayBuffer): void => {
+                  cb(null, new IDBFile(this, path, flags, stats, new Buffer(data)));
+                });
               }
             });
           }
@@ -494,15 +509,14 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
   public unlink(path: string, cb: (e?: api_error.ApiError) => void): void {
     cb = wrapCb(cb);
     try {
-      var objStore: IDBObjectStore = this._beginTransaction(),
-          _this = this;
+      var objStore: IDBObjectStore = this._beginTransaction()
       this._getStats(path, objStore, (e: api_error.ApiError, stats?: node_fs_stats.Stats) => {
         if (e) {
           cb(e);
         } else if (stats.isDirectory()) {
           cb(new ApiError(ErrorCode.EISDIR, path + " is a directory"));
         } else {
-          _this._deletePath(path, objStore, cb);
+          this._deletePath(path, objStore, cb);
         }
       });
     } catch (e) {
@@ -513,15 +527,14 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
   public rmdir(path: string, cb: (e?: api_error.ApiError) => void): void {
     cb = wrapCb(cb);
     try {
-      var objStore: IDBObjectStore = this._beginTransaction(),
-          _this = this;
+      var objStore: IDBObjectStore = this._beginTransaction();
       this._getData(path, objStore, (e: api_error.ApiError, data?: any) => {
         if (e) {
           cb(e);
         } else if (!Array.isArray(data)) {
           cb(new ApiError(ErrorCode.ENOTDIR, path + " is not a directory"));
         } else {
-          _this._deletePath(path, objStore, cb);
+          this._deletePath(path, objStore, cb);
         }
       });
     } catch (e) {
@@ -533,17 +546,16 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
     cb = wrapCb(cb);
     try {
       var objStore: IDBObjectStore = this._beginTransaction(),
-        stats = new node_fs_stats.Stats(node_fs_stats.FileType.DIRECTORY, 4096),
-        _this = this;
+        stats = new node_fs_stats.Stats(node_fs_stats.FileType.DIRECTORY, 4096);
       this._putStats(p, stats, false, objStore, (e?: api_error.ApiError): void => {
         if (e) {
           cb(e);
         } else {
-          _this._putData(p, [], false, objStore, (e?: api_error.ApiError): void => {
+          this._putData(p, [], false, objStore, (e?: api_error.ApiError): void => {
             if (e) {
               cb(e);
             } else {
-              _this._updateDirectory(path.dirname(p), path.basename(p), objStore, cb);
+              this._updateDirectory(path.dirname(p), path.basename(p), objStore, cb);
             }
           });
         }
