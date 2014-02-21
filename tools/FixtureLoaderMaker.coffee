@@ -17,11 +17,11 @@ uid = 0
 debugPrint = (args...) -> if DEBUG then console.log.apply console, args
 
 # Sanity check
-unless fs.existsSync './src/core/browserfs.ts'
+unless fs.existsSync(path.resolve('.', 'src', 'core', 'browserfs.ts'))
   throw new Error 'FixtureLoaderMaker must be run from the BrowserFS root!'
 
 debugPrint 'Opening load_fixtures.js...'
-outfile = fs.openSync './lib/load_fixtures.js', 'w+'
+outfile = fs.openSync(path.resolve('.', 'lib', 'load_fixtures.js'), 'w+')
 
 # path0, data0
 # mkdir occurs one by one
