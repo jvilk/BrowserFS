@@ -49,6 +49,19 @@ function path2nodekey(path: string): string {
 }
 
 /**
+ * IndexedDB transactions are committed once the program returns to the browser event loop.
+ * We must wrap all BFS-supplied cbs so they explicitly return to the event loop.
+ */
+function wrapCb(cb: Function): any {
+  return function (...args: any[]) {
+    setTimeout(function () {
+      console.log("IDB: COMMITTED.");
+      cb.apply(null, args);
+    }, 0);
+  };
+}
+
+/**
  * Returns the key to the data for the given file path.
  */
 function path2datakey(path: string): string {
@@ -146,6 +159,7 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
    */
   constructor(cb: (e: api_error.ApiError, fs?: IndexedDB) => void, private objectStoreName: string = "default") {
     super();
+    cb = wrapCb(cb);
 
     var openReq: IDBOpenDBRequest = indexedDB.open(this.objectStoreName, 1),
         _this: IndexedDB = this;
@@ -162,8 +176,17 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
 
     openReq.onsuccess = function onsuccess(event) {
       _this.db = (<any>event.target).result;
-      _this.mkdir('/', 0, function (e?) {
-        cb(e, _this);
+
+      // Check if we need to create the root directory.
+      var objStore: IDBObjectStore = _this._beginTransaction(RO);
+      _this._getStats('/', objStore, (e?) => {
+        if (e) {
+          _this.mkdir('/', 0, (e?) => {
+            cb(e, _this);
+          });
+        } else {
+          cb(null, _this);
+        }
       });
     };
 
@@ -203,13 +226,14 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
     if (mode !== RW && mode !== RO) {
       throw new Error("Invalid transaction mode!");
     }
-    return this.db.transaction(fileStoreName, mode).objectStore(fileStoreName);
+    return this.db.transaction([fileStoreName], mode).objectStore(fileStoreName);
   }
 
   /**
    * Retrieves a key from the file store.
    */
   private _get<T>(key: string, objStore: IDBObjectStore, cb: (e: api_error.ApiError, result?: T) => void): void {
+    console.log("IDB: GET " + key);
     var request: IDBRequest;
     try {
       request = objStore.get(key);
@@ -228,6 +252,7 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
    */
   private _put<T>(key: string, data: T, overwrite: boolean, objStore: IDBObjectStore, cb: (e?: api_error.ApiError) => void): void {
     var request: IDBRequest;
+    console.log("IDB: PUT " + key + " " + JSON.stringify(data));
     try {
       if (overwrite) {
         request = objStore.put(data, key);
@@ -248,6 +273,7 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
    * Deletes a key and the content associated with it from the object store.
    */
   private _delete(key: string, objStore: IDBObjectStore, cb: (e?: api_error.ApiError) => void): void {
+    console.log("IDB: DELETE " + key);
     var request: IDBRequest;
     try {
       request = objStore.delete(key);
@@ -343,26 +369,32 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
    */
   private _updateDirectory(parent: string, filename: string, objStore: IDBObjectStore, cb: (e?: api_error.ApiError) => void): void {
     var _this = this;
-    this._getData(parent, objStore, (e: api_error.ApiError, data?: any) => {
-      var dirList: string[] = data;
-      if (e) {
-        cb(e);
-      } else {
-        // Check if the file needs to be added to the parent's directory listing
-        if (dirList.indexOf(filename) === -1) {
-          // It does.
-          dirList.push(filename);
-          // Update directory listing.
-          _this._putData(parent, dirList, true, objStore, cb);
+    if (parent === '/' && filename === '') {
+      // Special case: Root directory. No parents. :'(
+      cb();
+    } else {
+      this._getData(parent, objStore, (e: api_error.ApiError, data?: any) => {
+        var dirList: string[] = data;
+        if (e) {
+          cb(e);
         } else {
-          // It doesn't. We're done.
-          cb();
+          // Check if the file needs to be added to the parent's directory listing
+          if (dirList.indexOf(filename) === -1) {
+            // It does.
+            dirList.push(filename);
+            // Update directory listing.
+            _this._putData(parent, dirList, true, objStore, cb);
+          } else {
+            // It doesn't. We're done.
+            cb();
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   public _writeFile(p: string, stats: node_fs_stats.Stats, data: DataView, cb: (e?: api_error.ApiError) => void): void {
+    cb = wrapCb(cb);
     try {
       var objectStore: IDBObjectStore = this._beginTransaction(),
           _this = this;
@@ -390,10 +422,16 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
   }
 
   public empty(cb: (e?: api_error.ApiError) => void): void {
+    cb = wrapCb(cb);
     try {
-      var request: IDBRequest = this._beginTransaction().clear();
+      var request: IDBRequest = this._beginTransaction().clear(),
+        _this = this;
       request.onsuccess = function (event) {
-        cb();
+        // Use setTimeout to commit transaction prior to starting a
+        // new one for mkdir.
+        setTimeout(function () {
+          _this.mkdir('/', 0, cb);
+        }, 0);
       };
       request.onerror = onErrorHandler(cb);
     } catch (e) {
@@ -402,6 +440,7 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
   }
 
   public stat(path: string, isLstat: boolean, cb: (err: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void {
+    cb = wrapCb(cb);
     try {
       this._getStats(path, this._beginTransaction(RO), cb);
     } catch (e) {
@@ -410,6 +449,7 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
   }
 
   public open(path: string, flags: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.File) => any): void {
+    cb = wrapCb(cb);
     try {
       var _this: IndexedDB = this, objStore: IDBObjectStore = this._beginTransaction();
       this._getStats(path, objStore, function (err, stats?) {
@@ -452,6 +492,7 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
   }
 
   public unlink(path: string, cb: (e?: api_error.ApiError) => void): void {
+    cb = wrapCb(cb);
     try {
       var objStore: IDBObjectStore = this._beginTransaction(),
           _this = this;
@@ -470,6 +511,7 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
   }
 
   public rmdir(path: string, cb: (e?: api_error.ApiError) => void): void {
+    cb = wrapCb(cb);
     try {
       var objStore: IDBObjectStore = this._beginTransaction(),
           _this = this;
@@ -488,6 +530,7 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
   }
 
   public mkdir(p: string, mode: number, cb: (e?: api_error.ApiError) => void): void {
+    cb = wrapCb(cb);
     try {
       var objStore: IDBObjectStore = this._beginTransaction(),
         stats = new node_fs_stats.Stats(node_fs_stats.FileType.DIRECTORY, 4096),
@@ -511,6 +554,7 @@ class IndexedDB extends file_system.BaseFileSystem implements file_system.FileSy
   }
 
   public readdir(path: string, cb: (err: api_error.ApiError, files?: string[]) => void): void {
+    cb = wrapCb(cb);
     try {
       var objStore: IDBObjectStore = this._beginTransaction(RO);
       this._getData(path, objStore, (e: api_error.ApiError, data?: any): void => {
