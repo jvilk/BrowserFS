@@ -97,19 +97,18 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
   }
 
   public empty(main_cb: (e?: api_error.ApiError) => void): void {
-    var self = this;
-    self.client.readdir('/', function(error, paths, dir, files) {
+    this.client.readdir('/', (error, paths, dir, files) => {
       if (error) {
-        main_cb(self.convert(error));
+        main_cb(this.convert(error));
       } else {
-        var deleteFile = function(file, cb) {
-          self.client.remove(file.path, function(err, stat) {
-            cb(err ? self.convert(err) : err);
+        var deleteFile = (file, cb) => {
+          this.client.remove(file.path, (err, stat) => {
+            cb(err ? this.convert(err) : err);
           });
         };
-        var finished = function(err) {
+        var finished = (err) => {
           if (err) {
-            main_cb(self.convert(err));
+            main_cb(this.convert(err));
           } else {
             main_cb();
           }
@@ -120,8 +119,7 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
   }
 
  public rename(oldPath: string, newPath: string, cb: (e?: api_error.ApiError) => void): void {
-    var self = this;
-    self.client.move(oldPath, newPath, function(error, stat) {
+    this.client.move(oldPath, newPath, (error, stat) => {
       if (error) {
         // XXX: Assume 404 for now.
         var missingPath = error.response.error.indexOf(oldPath) > -1 ? oldPath : newPath;
@@ -133,28 +131,25 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
   }
 
   public stat(path: string, isLstat: boolean, cb: (err: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void {
-    var self = this;
     // Ignore lstat case -- Dropbox doesn't support symlinks
     // Stat the file
-    self.client.stat(path, function(error, stat) {
+    this.client.stat(path, (error, stat) => {
       // Dropbox keeps track of deleted files, so if a file has existed in the
       // past but doesn't any longer, you wont get an error
       if (error || ((stat != null) && stat.isRemoved)) {
         cb(new ApiError(ErrorCode.ENOENT, path + " doesn't exist"));
       } else {
-        var stats = new Stats(self._statType(stat), stat.size);
+        var stats = new Stats(this._statType(stat), stat.size);
         return cb(null, stats);
       }
     });
   }
 
   public open(path: string, flags: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.File) => any): void {
-    var self = this,
-      _this = this;
     // Try and get the file's contents
-    self.client.readFile(path, {
+    this.client.readFile(path, {
       arrayBuffer: true
-    }, function(error, content, db_stat, range) {
+    }, (error, content, db_stat, range) => {
       if (error) {
         // If the file's being opened for reading and doesn't exist, return an
         // error
@@ -168,11 +163,11 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
             // it can be written to
             case 404:
               var ab = new ArrayBuffer(0);
-              return self._writeFileStrict(path, ab, function(error2: api_error.ApiError, stat?: node_fs_stats.Stats) {
+              return this._writeFileStrict(path, ab, (error2: api_error.ApiError, stat?: node_fs_stats.Stats) => {
                 if (error2) {
                   cb(error2);
                 } else {
-                  var file = self._makeFile(path, flags, stat, new Buffer(ab));
+                  var file = this._makeFile(path, flags, stat, new Buffer(ab));
                   cb(null, file);
                 }
               });
@@ -190,7 +185,7 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
         } else {
           buffer = new Buffer(content);
         }
-        var file = self._makeFile(path, flags, db_stat, buffer);
+        var file = this._makeFile(path, flags, db_stat, buffer);
         return cb(null, file);
       }
     });
@@ -199,15 +194,14 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
   public _writeFileStrict(p: string, data: ArrayBuffer, cb: (e: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void;
   public _writeFileStrict(p: string, data: ArrayBufferView, cb: (e: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void;
   public _writeFileStrict(p: string, data: any, cb: (e: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void {
-    var self = this;
     var parent = path.dirname(p);
-    self.stat(parent, false, function(error: api_error.ApiError, stat?: node_fs_stats.Stats): void {
+    this.stat(parent, false, (error: api_error.ApiError, stat?: node_fs_stats.Stats): void => {
       if (error) {
         cb(new ApiError(ErrorCode.ENOENT, "Can't create " + p + " because " + parent + " doesn't exist"));
       } else {
-        self.client.writeFile(p, data, function(error2, stat) {
+        this.client.writeFile(p, data, (error2, stat) => {
           if (error2) {
-            cb(self.convert(error2));
+            cb(this.convert(error2));
           } else {
             cb(null, stat);
           }
@@ -243,8 +237,7 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
    * returned
    */
   public _remove(path: string, cb: (e?: api_error.ApiError) => void, isFile: boolean): void {
-    var self = this;
-    self.client.stat(path, function(error, stat) {
+    this.client.stat(path, (error, stat) => {
       var message = null;
       if (error) {
         cb(new ApiError(ErrorCode.ENOENT, path + " doesn't exist"));
@@ -254,7 +247,7 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
         } else if (!stat.isFile && isFile) {
           cb(new ApiError(ErrorCode.EISDIR, path + " is a directory."));
         } else {
-          self.client.remove(path, function(error, stat) {
+          this.client.remove(path, (error, stat) => {
             if (error) {
               // @todo Make this more specific.
               cb(new ApiError(ErrorCode.EIO, "Failed to remove " + path));
@@ -292,13 +285,12 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
     // To handle this inconsistency, a check for the existence of `path`'s parent
     // must be performed before it is created, and an error thrown if it does
     // not exist
-    var self = this;
     var parent = path.dirname(p);
-    self.client.stat(parent, function(error, stat) {
+    this.client.stat(parent, (error, stat) => {
       if (error) {
         cb(new ApiError(ErrorCode.ENOENT, "Can't create " + p + " because " + parent + " doesn't exist"));
       } else {
-        self.client.mkdir(p, function(error, stat) {
+        this.client.mkdir(p, (error, stat) => {
           if (error) {
             cb(new ApiError(ErrorCode.EEXIST, p + " already exists"));
           } else {
@@ -313,10 +305,9 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
    * Get the names of the files in a directory
    */
   public readdir(path: string, cb: (err: api_error.ApiError, files?: string[]) => void): void {
-    var self = this;
-    this.client.readdir(path, function(error, files, dir_stat, content_stats) {
+    this.client.readdir(path, (error, files, dir_stat, content_stats) => {
       if (error) {
-        return cb(self.convert(error));
+        return cb(this.convert(error));
       } else {
         return cb(null, files);
       }
