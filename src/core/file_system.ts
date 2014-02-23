@@ -507,8 +507,68 @@ export class BaseFileSystem {
   public diskSpace(p: string, cb: (total: number, free: number) => any): void {
     cb(0, 0);
   }
+  /**
+   * Opens the file at path p with the given flag. The file must exist.
+   * @param p The path to open.
+   * @param flag The flag to use when opening the file.
+   */
+  public openFile(p: string, flag: file_flag.FileFlag, cb: (e: api_error.ApiError, file?: file.File) => void): void {
+    throw new ApiError(ErrorCode.ENOTSUP);
+  }
+  /**
+   * Create the file at path p with the given mode. Then, open it with the given
+   * flag.
+   */
+  public createFile(p: string, flag: file_flag.FileFlag, mode: number, cb: (e: api_error.ApiError, file?: file.File) => void): void {
+    throw new ApiError(ErrorCode.ENOTSUP);
+  }
   public open(p: string, flag:file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.BaseFile) => any): void {
-    cb(new ApiError(ErrorCode.ENOTSUP));
+    var must_be_file = (e: api_error.ApiError, stats?: stat.Stats): void => {
+      if (e) {
+        // File does not exist.
+        switch (flag.pathNotExistsAction()) {
+          case ActionType.CREATE_FILE:
+            // Ensure parent exists.
+            return this.stat(path.dirname(p), false, (e: api_error.ApiError, parentStats?: stat.Stats) => {
+              if (e) {
+                cb(e);
+              } else if (!parentStats.isDirectory()) {
+                cb(new ApiError(ErrorCode.ENOTDIR, path.dirname(p) + " is not a directory."));
+              } else {
+                this.createFile(p, flag, mode, cb);
+              }
+            });
+          case ActionType.THROW_EXCEPTION:
+            return cb(new ApiError(ErrorCode.ENOENT, "" + p + " doesn't exist."));
+          default:
+            return cb(new ApiError(ErrorCode.EINVAL, 'Invalid FileFlag object.'));
+        }
+      } else {
+        // File exists.
+        if (stats.isDirectory()) {
+          return cb(new ApiError(ErrorCode.EISDIR, p + " is a directory."));
+        }
+        switch (flag.pathExistsAction()) {
+          case ActionType.THROW_EXCEPTION:
+            return cb(new ApiError(ErrorCode.EEXIST, p + " already exists."));
+          case ActionType.TRUNCATE_FILE:
+            // Delete file.
+            this.unlink(p, (e?: api_error.ApiError) => {
+              if (e) {
+                return cb(e);
+              } else {
+                // Create a 0-length file.
+                this.createFile(p, flag, stats.mode, cb);
+              }
+            });
+          case ActionType.NOP:
+            return this.openFile(p, flag, cb);
+          default:
+            return cb(new ApiError(ErrorCode.EINVAL, 'Invalid FileFlag object.'));
+        }
+      }
+    }
+    this.stat(p, false, must_be_file);
   }
   public rename(oldPath: string, newPath: string, cb: (err?: api_error.ApiError) => void): void {
     cb(new ApiError(ErrorCode.ENOTSUP));
