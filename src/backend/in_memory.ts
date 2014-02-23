@@ -63,26 +63,18 @@ export class InMemory extends indexed_filesystem.IndexedFileSystem implements fi
     return false;
   }
 
-  public _truncate(path: string, flags: file_flag.FileFlag, stats: node_fs_stats.Stats): file.File {
-    stats.size = 0;
-    stats.mtime = new Date();
+  public openFileSync(p: string, flag: file_flag.FileFlag): file.File {
+    var stats = (<file_index.FileInode<node_fs_stats.Stats>>this._index.getInode(p)).getData();
     var file = <preload_file.NoSyncFile> stats.file_data;
-    file._flag = flags;
-    file._buffer = new Buffer(0);
+    file._flag = flag;
     return file;
   }
 
-  public _fetch(path: string, flags: file_flag.FileFlag, stats: node_fs_stats.Stats): file.File {
-    var file = <preload_file.NoSyncFile> stats.file_data;
-    file._flag = flags;
-    return file;
-  }
-
-  public _create(path: string, flags: file_flag.FileFlag, inode: file_index.FileInode<node_fs_stats.Stats>): file.File {
-    var stats = inode.getData();
-    var file = new NoSyncFile(this, path, flags, stats);
+  public createFileSync(p: string, flag: file_flag.FileFlag, mode: number): file.File {
+    var stats = new node_fs_stats.Stats(node_fs_stats.FileType.FILE, 0, mode);
+    var file = new NoSyncFile(this, p, flag, stats);
     stats.file_data = file;
-    this._index.addPath(path, inode);
+    this._index.addPath(p, new file_index.FileInode(stats));
     return file;
   }
 

@@ -15,6 +15,7 @@ var ApiError = api_error.ApiError;
 var ErrorCode = api_error.ErrorCode;
 var path = node_path.path;
 var Buffer = buffer.Buffer;
+var ActionType = file_flag.ActionType;
 
 /**
  * Interface for a filesystem. **All** BrowserFS FileSystems should implement
@@ -521,8 +522,62 @@ export class BaseFileSystem {
   public statSync(p: string, isLstat: boolean): stat.Stats {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
-  public openSync(p: string, flag: file_flag.FileFlag, mode: number): file.File {
+  /**
+   * Opens the file at path p with the given flag. The file must exist.
+   * @param p The path to open.
+   * @param flag The flag to use when opening the file.
+   * @return A File object corresponding to the opened file.
+   */
+  public openFileSync(p: string, flag: file_flag.FileFlag): file.File {
     throw new ApiError(ErrorCode.ENOTSUP);
+  }
+  /**
+   * Create the file at path p with the given mode. Then, open it with the given
+   * flag.
+   */
+  public createFileSync(p: string, flag: file_flag.FileFlag, mode: number): file.File {
+    throw new ApiError(ErrorCode.ENOTSUP);
+  }
+  public openSync(p: string, flag: file_flag.FileFlag, mode: number): file.File {
+    // Check if the path exists, and is a file.
+    try {
+      var stats = this.statSync(p, false);
+      // File exists.
+      if (stats.isDirectory()) {
+        throw new ApiError(ErrorCode.EISDIR, p + " is a directory.");
+      }
+      switch (flag.pathExistsAction()) {
+        case ActionType.THROW_EXCEPTION:
+          throw new ApiError(ErrorCode.EEXIST, p + " already exists.");
+        case ActionType.TRUNCATE_FILE:
+          // Delete file.
+          this.unlinkSync(p);
+          // Create file. Use the same mode as the old file.
+          // Node itself modifies the ctime when this occurs, so this action
+          // will preserve that behavior if the underlying file system
+          // supports those properties.
+          return this.createFileSync(p, flag, stats.mode);
+        case ActionType.NOP:
+          return this.openFileSync(p, flag);
+        default:
+          throw new ApiError(ErrorCode.EINVAL, 'Invalid FileFlag object.');
+      }
+    } catch (e) {
+      // File does not exist.
+      switch (flag.pathNotExistsAction()) {
+        case ActionType.CREATE_FILE:
+          // Ensure parent exists.
+          var parentStats = this.statSync(path.dirname(p), false);
+          if (!parentStats.isDirectory()) {
+            throw new ApiError(ErrorCode.ENOTDIR, path.dirname(p) + " is not a directory.");
+          }
+          return this.createFileSync(p, flag, mode);
+        case ActionType.THROW_EXCEPTION:
+          throw new ApiError(ErrorCode.ENOENT, "" + p + " doesn't exist.");
+        default:
+          throw new ApiError(ErrorCode.EINVAL, 'Invalid FileFlag object.');
+      }
+    }
   }
   public unlink(p: string, cb: Function): void {
     cb(new ApiError(ErrorCode.ENOTSUP));

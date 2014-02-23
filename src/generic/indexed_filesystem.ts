@@ -51,45 +51,7 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
 
   // File operations
 
-  public openSync(p: string, flags: file_flag.FileFlag, mode: number): file.File {
-    // Check if the path exists, and is a file.
-    var inode = this._index.getInode(p);
-    if (inode !== null) {
-      if (!inode.isFile()) {
-        throw new ApiError(ErrorCode.EISDIR, "" + p + " is a directory.");
-      } else {
-        var stats = (<file_index.FileInode<node_fs_stats.Stats>> inode).getData();
-        switch (flags.pathExistsAction()) {
-          case ActionType.THROW_EXCEPTION:
-            throw new ApiError(ErrorCode.EEXIST, "" + p + " already exists.");
-            break;
-          case ActionType.TRUNCATE_FILE:
-            return this._truncate(p, flags, stats);
-          case ActionType.NOP:
-            return this._fetch(p, flags, stats);
-          default:
-            throw new ApiError(ErrorCode.EINVAL, 'Invalid FileFlag object.');
-        }
-      }
-    } else {
-      switch (flags.pathNotExistsAction()) {
-        case ActionType.CREATE_FILE:
-          // Ensure the parent exists!
-          var parentPath = path.dirname(p);
-          var parentInode = this._index.getInode(parentPath);
-          if (parentInode === null || parentInode.isFile()) {
-            throw new ApiError(ErrorCode.ENOENT, "" + parentPath + " doesn't exist.");
-          }
-          var fileInode = new file_index.FileInode<node_fs_stats.Stats>(new Stats(FileType.FILE, 0, mode));
-          return this._create(p, flags, fileInode);
-        case ActionType.THROW_EXCEPTION:
-          throw new ApiError(ErrorCode.ENOENT, "" + p + " doesn't exist.");
-          break;
-        default:
-          throw new ApiError(ErrorCode.EINVAL, 'Invalid FileFlag object.');
-      }
-    }
-  }
+  // All implemented by the file system.
 
   // Directory operations
 
@@ -170,14 +132,5 @@ export class IndexedFileSystem extends file_system.SynchronousFileSystem {
 
   public _rmdirSync(path: string, inode: file_index.DirInode): void {
     throw new ApiError(ErrorCode.ENOTSUP, '_rmdirSync is not implemented.');
-  }
-  public _create(path: string, flag: file_flag.FileFlag, inode: file_index.FileInode<node_fs_stats.Stats>): file.File {
-    throw new ApiError(ErrorCode.ENOTSUP, '_create is not implemented.');
-  }
-  public _fetch(path: string, flag: file_flag.FileFlag, stats: node_fs_stats.Stats): file.File {
-    throw new ApiError(ErrorCode.ENOTSUP, '_fetch is not implemented.');
-  }
-  public _truncate(path: string, flag: file_flag.FileFlag, stats: node_fs_stats.Stats): file.File {
-    throw new ApiError(ErrorCode.ENOTSUP, '_truncate is not implemented.');
   }
 }

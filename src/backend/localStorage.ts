@@ -27,6 +27,7 @@ var path = node_path.path;
  *   have directory information contain the keys for each subitem, where the
  *   key doesn't have to be the full-path. That would conserve space in
  *   localStorage.
+ *   ACTUALLY, could do the ZipFile thing and postfix directories with '/'.
  */
 export class LocalStorageAbstract extends indexed_filesystem.IndexedFileSystem implements file_system.FileSystem {
   /**
@@ -56,16 +57,15 @@ export class LocalStorageAbstract extends indexed_filesystem.IndexedFileSystem i
    * Retrieve the indicated file from `localStorage`.
    * @param [String] path
    * @param [BrowserFS.FileMode] flags
-   * @param [BrowserFS.FileInode] stats
    * @return [BrowserFS.File.PreloadFile] Returns a preload file with the file's
    *   contents, or null if it does not exist.
    */
-  public _getFile(path: string, flags: file_flag.FileFlag, stats: node_fs_stats.Stats): LocalStorageFile {
+  public _getFile(path: string, flags: file_flag.FileFlag): LocalStorageFile {
     var data = window.localStorage.getItem(path);
     if (data === null) {
       return null;
     }
-    return this._convertFromBinaryString(path, data, flags, stats);
+    return this._convertFromBinaryString(path, data, flags);
   }
 
   /**
@@ -79,7 +79,10 @@ export class LocalStorageAbstract extends indexed_filesystem.IndexedFileSystem i
     var dataStr = this._convertToBinaryString(data, stats);
     try {
       window.localStorage.setItem(path, dataStr);
-      this._index.addPath(path, new file_index.FileInode<node_fs_stats.Stats>(stats));
+      // XXX: Hackfix.
+      if (!this._index.addPath(path, new file_index.FileInode<node_fs_stats.Stats>(stats))) {
+        (<file_index.FileInode<node_fs_stats.Stats>>this._index.getInode(path)).setData(stats);
+      }
     } catch (e) {
       throw new ApiError(ErrorCode.ENOSPC, "Unable to sync " + path);
     }
@@ -142,17 +145,12 @@ export class LocalStorageAbstract extends indexed_filesystem.IndexedFileSystem i
     window.localStorage.removeItem(path);
   }
 
-  public _truncate(path: string, flags: file_flag.FileFlag, stats: node_fs_stats.Stats): LocalStorageFile {
-    stats.size = 0;
-    return new LocalStorageFile(this, path, flags, stats);
+  public openFileSync(p: string, flag: file_flag.FileFlag): file.File {
+    return this._getFile(p, flag);
   }
 
-  public _fetch(path: string, flags: file_flag.FileFlag, stats: node_fs_stats.Stats): LocalStorageFile {
-    return this._getFile(path, flags, stats);
-  }
-
-  public _create(path: string, flags: file_flag.FileFlag, inode: file_index.FileInode<node_fs_stats.Stats>): LocalStorageFile {
-    return new LocalStorageFile(this, path, flags, inode.getData());
+  public createFileSync(p: string, flag: file_flag.FileFlag, mode: number): file.File {
+    return new LocalStorageFile(this, p, flag, new Stats(FileType.FILE, 0, mode));
   }
 
   public _rmdirSync(p: string, inode: file_index.DirInode): void {
@@ -168,7 +166,7 @@ export class LocalStorageAbstract extends indexed_filesystem.IndexedFileSystem i
   public _convertToBinaryString(data: NodeBuffer, stats: node_fs_stats.Stats): string {
     throw new ApiError(ErrorCode.ENOTSUP, 'LocalStorageAbstract is an abstract class.');
   }
-  public _convertFromBinaryString(path: string, data: string, flags: file_flag.FileFlag, stats: node_fs_stats.Stats): LocalStorageFile {
+  public _convertFromBinaryString(path: string, data: string, flags: file_flag.FileFlag): LocalStorageFile {
     throw new ApiError(ErrorCode.ENOTSUP, 'LocalStorageAbstract is an abstract class.');
   }
   public _getFileLength(data: string): number {
@@ -196,14 +194,12 @@ export class LocalStorageModern extends LocalStorageAbstract {
     return dataStr;
   }
 
-  public _convertFromBinaryString(path: string, data: string, flags: file_flag.FileFlag, stats: node_fs_stats.Stats): LocalStorageFile {
+  public _convertFromBinaryString(path: string, data: string, flags: file_flag.FileFlag): LocalStorageFile {
     var headerBuff = new Buffer(data.substr(0, 10), 'binary_string');
     data = data.substr(10);
     var buffer = new Buffer(data, 'binary_string');
+    var stats = new Stats(FileType.FILE, buffer.length, headerBuff.readUInt16BE(0), new Date(headerBuff.readDoubleBE(10)), new Date(headerBuff.readDoubleBE(2)));
     var file = new LocalStorageFile(this, path, flags, stats, buffer);
-    file._stat.mode = headerBuff.readUInt16BE(0);
-    file._stat.mtime = new Date(headerBuff.readDoubleBE(2));
-    file._stat.atime = new Date(headerBuff.readDoubleBE(10));
     return file;
   }
 
@@ -234,14 +230,12 @@ export class LocalStorageOld extends LocalStorageAbstract {
     return dataStr;
   }
 
-  public _convertFromBinaryString(path: string, data: string, flags: file_flag.FileFlag, stats: node_fs_stats.Stats): LocalStorageFile {
+  public _convertFromBinaryString(path: string, data: string, flags: file_flag.FileFlag): LocalStorageFile {
     var headerBuff = new Buffer(data.substr(0, 18), 'binary_string_ie');
     data = data.substr(18);
     var buffer = new Buffer(data, 'binary_string_ie');
+    var stats = new Stats(FileType.FILE, buffer.length, headerBuff.readUInt16BE(0), new Date(headerBuff.readDoubleBE(10)), new Date(headerBuff.readDoubleBE(2)));
     var file = new LocalStorageFile(this, path, flags, stats, buffer);
-    file._stat.mode = headerBuff.readUInt16BE(0);
-    file._stat.mtime = new Date(headerBuff.readDoubleBE(2));
-    file._stat.atime = new Date(headerBuff.readDoubleBE(10));
     return file;
   }
 

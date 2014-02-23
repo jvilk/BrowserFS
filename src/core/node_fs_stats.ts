@@ -74,7 +74,11 @@ export class Stats implements fs.Stats {
     }
     // number of 512B blocks allocated
     this.blocks = Math.ceil(size / 512);
-    this.mode |= item_type;
+    // Check if mode also includes top-most bits, which indicate the file's
+    // type.
+    if (this.mode < 0x1000) {
+      this.mode |= item_type;
+    }
   }
 
   /**
