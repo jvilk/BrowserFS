@@ -64,21 +64,20 @@ export class HTML5FSFile extends preload_file.PreloadFile implements file.File {
   }
 
   public sync(cb: (e?: api_error.ApiError) => void): void {
-    var self = this;
     // Don't create the file (it should already have been created by `open`)
     var opts = {
       create: false
     };
     var _fs = <HTML5FS> this._fs;
-    var success = function(entry) {
-      entry.createWriter(function(writer) {
+    var success = (entry) => {
+      entry.createWriter((writer) => {
         // XXX: Typing hack.
-        var buffer = self._buffer;
-        var backing_mem: buffer_core_arraybuffer.BufferCoreArrayBuffer = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>self._buffer).getBufferCore();
+        var buffer = this._buffer;
+        var backing_mem: buffer_core_arraybuffer.BufferCoreArrayBuffer = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>this._buffer).getBufferCore();
         if (!(backing_mem instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer)) {
           // Copy into an ArrayBuffer-backed Buffer.
-          buffer = new Buffer(self._buffer.length);
-          self._buffer.copy(buffer);
+          buffer = new Buffer(this._buffer.length);
+          this._buffer.copy(buffer);
           backing_mem = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>buffer).getBufferCore();
         }
         // Reach into the BC, grab the DV.
@@ -87,18 +86,18 @@ export class HTML5FSFile extends preload_file.PreloadFile implements file.File {
         var abv = new DataView(dv.buffer, dv.byteOffset + (<buffer.BFSBuffer><any>buffer).getOffset(), buffer.length);
         var blob = new Blob([abv]);
         var length = blob.size;
-        writer.onwriteend = function(event) {
+        writer.onwriteend = (event) => {
           writer.onwriteend = null;
           writer.truncate(length);
           cb();
         };
-        writer.onerror = function(err) {
+        writer.onerror = (err) => {
           cb(_fs.convert(err));
         };
         writer.write(blob);
       });
     };
-    var error = function(err) {
+    var error = (err) => {
       cb(_fs.convert(err));
     };
     _fs.fs.root.getFile(this._path, opts, success, error);
@@ -189,16 +188,15 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
    * Requests a storage quota from the browser to back this FS.
    */
   public allocate(cb: (e?: api_error.ApiError) => void = function(){}): void {
-    var self = this;
-    var success = function(fs: FileSystem): void {
-      self.fs = fs;
+    var success = (fs: FileSystem): void => {
+      this.fs = fs;
       cb()
     };
-    var error = function(err: DOMException): void {
-      cb(self.convert(err));
+    var error = (err: DOMException): void => {
+      cb(this.convert(err));
     };
     if (this.type === window.PERSISTENT) {
-      _requestQuota(this.type, this.size, function(granted: number) {
+      _requestQuota(this.type, this.size, (granted: number) => {
         _getFS(this.type, granted, success, error);
       }, error);
     } else {
@@ -213,15 +211,14 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
    * suite, and the tests expect an empty FS every time.
    */
   public empty(main_cb: (e?: api_error.ApiError) => void): void {
-    var self = this;
     // Get a list of all entries in the root directory to delete them
-    self._readdir('/', function(err: api_error.ApiError, entries?: Entry[]): void {
+    this._readdir('/', (err: api_error.ApiError, entries?: Entry[]): void => {
       if (err) {
         console.error('Failed to empty FS');
         main_cb(err);
       } else {
         // Called when every entry has been operated on
-        var finished = function(er: api_error.ApiError): void {
+        var finished = (er: api_error.ApiError): void => {
           if (err) {
             console.error("Failed to empty FS");
             main_cb(err);
@@ -230,12 +227,12 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
           }
         };
         // Removes files and recursively removes directories
-        var deleteEntry = function(entry: Entry, cb: (e?: api_error.ApiError) => void): void {
-          var succ = function() {
+        var deleteEntry = (entry: Entry, cb: (e?: api_error.ApiError) => void): void => {
+          var succ = () => {
             cb();
           };
-          var error = function(err: DOMException) {
-            cb(self.convert(err, entry.fullPath));
+          var error = (err: DOMException) => {
+            cb(this.convert(err, entry.fullPath));
           };
           if (entry.isFile) {
             entry.remove(succ, error);
@@ -251,37 +248,35 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
   }
 
   public rename(oldPath: string, newPath: string, cb: (e?: api_error.ApiError) => void): void {
-    var self = this;
-    var success = function(file: Entry): void {
+    var success = (file: Entry): void => {
       // XXX: Um, I don't think this quite works, since oldPath is a string.
       // The spec says we need the DirectoryEntry corresponding to the file's
       // parent directory.
       file.moveTo((<any> oldPath), newPath);
       cb();
     };
-    var error = function(err: DOMException): void {
-      cb(self.convert(err, "Failed to rename " + oldPath + " to " + newPath + "."));
+    var error = (err: DOMException): void => {
+      cb(this.convert(err, "Failed to rename " + oldPath + " to " + newPath + "."));
     };
     this.fs.root.getFile(oldPath, {}, success, error);
   }
 
   public stat(path: string, isLstat: boolean, cb: (err: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void {
-    var self = this;
     // Throw an error if the entry doesn't exist, because then there's nothing
     // to stat.
     var opts = {
       create: false
     };
     // Called when the path has been successfully loaded as a file.
-    var loadAsFile = function(entry: FileEntry): void {
-      var fileFromEntry = function(file: File): void {
+    var loadAsFile = (entry: FileEntry): void => {
+      var fileFromEntry = (file: File): void => {
         var stat = new Stats(FileType.FILE, file.size);
         cb(null, stat);
       };
       entry.file(fileFromEntry, failedToLoad);
     };
     // Called when the path has been successfully loaded as a directory.
-    var loadAsDir = function(dir: DirectoryEntry): void {
+    var loadAsDir = (dir: DirectoryEntry): void => {
       // Directory entry size can't be determined from the HTML5 FS API, and is
       // implementation-dependant anyway, so a dummy value is used.
       var size = 4096;
@@ -289,13 +284,13 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
       cb(null, stat);
     };
     // Called when the path couldn't be opened as a directory or a file.
-    var failedToLoad = function(err: DOMException): void {
-      cb(self.convert(err, path));
+    var failedToLoad = (err: DOMException): void => {
+      cb(this.convert(err, path));
     };
     // Called when the path couldn't be opened as a file, but might still be a
     // directory.
-    var failedToLoadAsFile = function(): void {
-      self.fs.root.getDirectory(path, opts, loadAsDir, failedToLoad);
+    var failedToLoadAsFile = (): void => {
+      this.fs.root.getDirectory(path, opts, loadAsDir, failedToLoad);
     };
     // No method currently exists to determine whether a path refers to a
     // directory or a file, so this implementation tries both and uses the first
@@ -304,22 +299,21 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
   }
 
   public open(path: string, flags: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.File) => any): void {
-    var self = this;
     var opts = {
       create: flags.pathNotExistsAction() === ActionType.CREATE_FILE,
       exclusive: flags.isExclusive()
     };
-    var error = function(err: ErrorEvent): void {
-      cb(self.convertErrorEvent(err, path));
+    var error = (err: ErrorEvent): void => {
+      cb(this.convertErrorEvent(err, path));
     };
-    var error2 = function(err: DOMError): void {
-      cb(self.convert(err, path));
+    var error2 = (err: DOMError): void => {
+      cb(this.convert(err, path));
     };
-    var success = function(entry: FileEntry): void {
-      var success2 = function(file: File): void {
+    var success = (entry: FileEntry): void => {
+      var success2 = (file: File): void => {
         var reader = new FileReader();
-        reader.onloadend = function(event: Event): void {
-          var bfs_file = self._makeFile(path, flags, file, <ArrayBuffer> reader.result);
+        reader.onloadend = (event: Event): void => {
+          var bfs_file = this._makeFile(path, flags, file, <ArrayBuffer> reader.result);
           cb(null, bfs_file);
         };
         reader.onerror = error;
@@ -354,18 +348,17 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
    * returned
    */
   private _remove(path: string, cb: (e?: api_error.ApiError) => void, isFile: boolean): void {
-    var self = this;
-    var success = function(entry: Entry): void {
-      var succ = function() {
+    var success = (entry: Entry): void => {
+      var succ = () => {
         cb();
       };
-      var err = function(err: DOMException) {
-        cb(self.convert(err, path));
+      var err = (err: DOMException) => {
+        cb(this.convert(err, path));
       };
       entry.remove(succ, err);
     };
-    var error = function(err: DOMException): void {
-      cb(self.convert(err, path));
+    var error = (err: DOMException): void => {
+      cb(this.convert(err, path));
     };
     // Deleting the entry, so don't create it
     var opts = {
@@ -388,18 +381,17 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
   }
 
   public mkdir(path: string, mode: number, cb: (e?: api_error.ApiError) => void): void {
-    var self = this;
     // Create the directory, but throw an error if it already exists, as per
     // mkdir(1)
     var opts = {
       create: true,
       exclusive: true
     };
-    var success = function(dir: DirectoryEntry): void {
+    var success = (dir: DirectoryEntry): void => {
       cb();
     };
-    var error = function(err: DOMException): void {
-      cb(self.convert(err, path));
+    var error = (err: DOMException): void => {
+      cb(this.convert(err, path));
     };
     this.fs.root.getDirectory(path, opts, success, error);
   }
@@ -408,15 +400,14 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
    * Returns an array of `FileEntry`s. Used internally by empty and readdir.
    */
   private _readdir(path: string, cb: (e: api_error.ApiError, entries?: Entry[]) => void): void {
-    var self = this;
     var reader = this.fs.root.createReader();
     var entries = [];
-    var error = function(err: DOMException): void {
-      cb(self.convert(err, path));
+    var error = (err: DOMException): void => {
+      cb(this.convert(err, path));
     };
     // Call the reader.readEntries() until no more results are returned.
-    var readEntries = function() {
-      reader.readEntries((function(results) {
+    var readEntries = () => {
+      reader.readEntries(((results) => {
         if (results.length) {
           entries = entries.concat(_toArray(results));
           readEntries();
@@ -432,7 +423,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
    * Map _readdir's list of `FileEntry`s to their names and return that.
    */
   public readdir(path: string, cb: (err: api_error.ApiError, files?: string[]) => void): void {
-    this._readdir(path, function(e: api_error.ApiError, entries?: Entry[]): void {
+    this._readdir(path, (e: api_error.ApiError, entries?: Entry[]): void => {
       if (e != null) {
         return cb(e);
       }
