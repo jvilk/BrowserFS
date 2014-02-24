@@ -31,6 +31,10 @@ ErrorStrings[ErrorCode.EROFS] = 'Cannot modify a read-only file system.';
 ErrorStrings[ErrorCode.ENOTEMPTY] = 'Directory is not empty.';
 ErrorStrings[ErrorCode.ENOTSUP] = 'Operation is not supported.';
 
+/**
+ * Represents a BrowserFS error. Passed back to applications after a failed
+ * call to the BrowserFS API.
+ */
 export class ApiError {
   public type: ErrorCode;
   public message: string;
@@ -40,13 +44,11 @@ export class ApiError {
    * Represents a BrowserFS error. Passed back to applications after a failed
    * call to the BrowserFS API.
    *
-   * Error codes were stolen from Dropbox-JS, but may be changed in the future
-   * for better Node compatibility...
-   * @see https://raw.github.com/dropbox/dropbox-js/master/src/api_error.coffee
-   * @todo Switch to Node error codes.
+   * Error codes mirror those returned by regular Unix file operations, which is
+   * what Node returns.
    * @constructor ApiError
-   * @param {number} type - The type of error. Use one of the static fields of this class as the type.
-   * @param {string} [message] - A descriptive error message.
+   * @param type The type of the error.
+   * @param [message] A descriptive error message.
    */
   constructor(type: ErrorCode, message?:string) {
     this.type = type;
@@ -59,10 +61,28 @@ export class ApiError {
   }
 
   /**
-   * @method ApiError#toString
-   * @return {string} A friendly error message.
+   * @return A friendly error message.
    */
   public toString(): string {
     return this.code +  ": " + ErrorStrings[this.type] + " " + this.message;
+  }
+
+  public static FileError(code: ErrorCode, p: string): ApiError {
+    return new ApiError(code, p + ": " + ErrorStrings[code]);
+  }
+  public static ENOENT(path: string): ApiError {
+    return this.FileError(ErrorCode.ENOENT, path);
+  }
+
+  public static EEXIST(path: string): ApiError {
+    return this.FileError(ErrorCode.EEXIST, path);
+  }
+
+  public static EISDIR(path: string): ApiError {
+    return this.FileError(ErrorCode.EISDIR, path);
+  }
+
+  public static ENOTDIR(path: string): ApiError {
+    return this.FileError(ErrorCode.ENOTDIR, path);
   }
 }

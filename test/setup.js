@@ -248,7 +248,7 @@
     }
 
     var IDBFS = BrowserFS.FileSystem.IndexedDB;
-    if (IDBFS.isAvailable()) {
+    if (false) { //IDBFS.isAvailable()) {
       async_backends++;
       var idbfs = new IDBFS(function (e, idbfs) {
         if (e) {

@@ -1,271 +1,17 @@
-import indexed_filesystem = require('../generic/indexed_filesystem');
-import preload_file = require('../generic/preload_file');
-import node_fs_stats = require('../core/node_fs_stats');
-import file_flag = require('../core/file_flag');
 import buffer = require('../core/buffer');
-import file_index = require('../generic/file_index');
-import string_util = require('../core/string_util');
-import api_error = require('../core/api_error');
-import node_path = require('../core/node_path');
-import file_system = require('../core/file_system');
 import browserfs = require('../core/browserfs');
-import file = require('../core/file');
+import kvfs = require('../generic/key_value_filesystem');
+import api_error = require('../core/api_error');
 
-var Buffer = buffer.Buffer;
-var Stats = node_fs_stats.Stats;
-var FileType = node_fs_stats.FileType;
-var ApiError = api_error.ApiError;
-var ErrorCode = api_error.ErrorCode;
-var path = node_path.path;
-/**
- * A simple filesystem backed by local storage.
- *
- * Note that your program should only ever have one instance of this class.
- * @todo Pack names efficiently: Convert to UTF-8, then convert to a packed
- *   UTF-16 representation (each character is 2 bytes).
- * @todo Store directory information explicitly. Could do something cool, like
- *   have directory information contain the keys for each subitem, where the
- *   key doesn't have to be the full-path. That would conserve space in
- *   localStorage.
- *   ACTUALLY, could do the ZipFile thing and postfix directories with '/'.
- */
-export class LocalStorageAbstract extends indexed_filesystem.IndexedFileSystem implements file_system.FileSystem {
-  /**
-   * Constructs the file system. Loads up any existing files stored in local
-   * storage into a simple file index.
-   */
-  constructor() {
-    super(new file_index.FileIndex());
-    for (var i = 0; i < window.localStorage.length; i++) {
-      var path = window.localStorage.key(i);
-      if (path[0] !== '/') {
-        // Ignore keys that don't look like absolute paths.
-        continue;
-      }
-      var data = window.localStorage.getItem(path);
-      if (data == null) {
-        // XXX: I don't know *how*, but sometimes these items become null.
-        data = '';
-      }
-      var len = this._getFileLength(data);
-      var inode = new file_index.FileInode<node_fs_stats.Stats>(new Stats(FileType.FILE, len));
-      this._index.addPath(path, inode);
-    }
-  }
-
-  /**
-   * Retrieve the indicated file from `localStorage`.
-   * @param [String] path
-   * @param [BrowserFS.FileMode] flags
-   * @return [BrowserFS.File.PreloadFile] Returns a preload file with the file's
-   *   contents, or null if it does not exist.
-   */
-  public _getFile(path: string, flags: file_flag.FileFlag): LocalStorageFile {
-    var data = window.localStorage.getItem(path);
-    if (data === null) {
-      return null;
-    }
-    return this._convertFromBinaryString(path, data, flags);
-  }
-
-  /**
-   * Handles syncing file data with `localStorage`.
-   * @param [String] path
-   * @param [String] data
-   * @param [BrowserFS.FileInode] stats
-   * @return [BrowserFS.node.fs.Stats]
-   */
-  public _syncSync(path: string, data: NodeBuffer, stats: node_fs_stats.Stats): void {
-    var dataStr = this._convertToBinaryString(data, stats);
-    try {
-      window.localStorage.setItem(path, dataStr);
-      // XXX: Hackfix.
-      if (!this._index.addPath(path, new file_index.FileInode<node_fs_stats.Stats>(stats))) {
-        (<file_index.FileInode<node_fs_stats.Stats>>this._index.getInode(path)).setData(stats);
-      }
-    } catch (e) {
-      throw new ApiError(ErrorCode.ENOSPC, "Unable to sync " + path);
-    }
-  }
-
-  /**
-   * Removes all data from localStorage.
-   */
-  public empty(): void {
-    window.localStorage.clear();
-    this._index = new file_index.FileIndex();
-  }
-
-  public getName(): string {
-    return 'localStorage';
-  }
-
-  public static isAvailable(): boolean {
-    return typeof window !== 'undefined' && window !== null && typeof window['localStorage'] !== 'undefined'
-  }
-
-  public diskSpace(path: string, cb: (total: number, free: number) => void): void {
-    // Guesstimate (5MB)
-    var storageLimit = 5242880;
-    // Assume everything is stored as UTF-16 (2 bytes per character)
-    var usedSpace = 0;
-    for (var i = 0; i < window.localStorage.length; i++) {
-      var key = window.localStorage.key(i);
-      usedSpace += key.length * 2;
-      var data = window.localStorage.getItem(key);
-      usedSpace += data.length * 2;
-    }
-
-    /**
-     * IE has a useful function for this purpose, but it's not available
-     * elsewhere. :(
-     */
-    if (typeof window.localStorage['remainingSpace'] !== 'undefined') {
-      var remaining = window.localStorage.remainingSpace;
-      // We can extract a more precise upper-limit from this.
-      storageLimit = usedSpace + remaining;
-    }
-    cb(storageLimit, usedSpace);
-  }
-
-  public isReadOnly(): boolean {
-    return false;
-  }
-
-  public supportsLinks(): boolean {
-    return false;
-  }
-
-  public supportsProps(): boolean {
-    return true;
-  }
-
-  public unlinkSync(path: string): void {
-    super.unlinkSync(path);
-    window.localStorage.removeItem(path);
-  }
-
-  public openFileSync(p: string, flag: file_flag.FileFlag): file.File {
-    return this._getFile(p, flag);
-  }
-
-  public createFileSync(p: string, flag: file_flag.FileFlag, mode: number): file.File {
-    return new LocalStorageFile(this, p, flag, new Stats(FileType.FILE, 0, mode));
-  }
-
-  public _rmdirSync(p: string, inode: file_index.DirInode): void {
-    // Remove all files belonging to the path from `localStorage`.
-    var files = inode.getListing();
-    var sep = path.sep;
-    for (var i = 0; i < files.length; i++) {
-      var file = files[i];
-      window.localStorage.removeItem("" + p + sep + file);
-    }
-  }
-
-  public _convertToBinaryString(data: NodeBuffer, stats: node_fs_stats.Stats): string {
-    throw new ApiError(ErrorCode.ENOTSUP, 'LocalStorageAbstract is an abstract class.');
-  }
-  public _convertFromBinaryString(path: string, data: string, flags: file_flag.FileFlag): LocalStorageFile {
-    throw new ApiError(ErrorCode.ENOTSUP, 'LocalStorageAbstract is an abstract class.');
-  }
-  public _getFileLength(data: string): number {
-    throw new ApiError(ErrorCode.ENOTSUP, 'LocalStorageAbstract is an abstract class.');
-  }
-}
-
-export class LocalStorageModern extends LocalStorageAbstract {
-  constructor() {
-    super();
-  }
-
-  public _convertToBinaryString(data: NodeBuffer, stats: node_fs_stats.Stats): string {
-    var dataStr = data.toString('binary_string');
-    // Append fixed-size header with mode (16-bits) and mtime/atime (64-bits each).
-    // I don't care about uid/gid right now.
-    // That amounts to 18 bytes/9 characters + 1 character header
-    var headerBuff = new Buffer(18);
-    headerBuff.writeUInt16BE(stats.mode, 0);
-    // Well, they're doubles and are going to be 64-bit regardless...
-    headerBuff.writeDoubleBE(stats.mtime.getTime(), 2);
-    headerBuff.writeDoubleBE(stats.atime.getTime(), 10);
-    var headerDat = headerBuff.toString('binary_string');
-    dataStr = headerDat + dataStr;
-    return dataStr;
-  }
-
-  public _convertFromBinaryString(path: string, data: string, flags: file_flag.FileFlag): LocalStorageFile {
-    var headerBuff = new Buffer(data.substr(0, 10), 'binary_string');
-    data = data.substr(10);
-    var buffer = new Buffer(data, 'binary_string');
-    var stats = new Stats(FileType.FILE, buffer.length, headerBuff.readUInt16BE(0), new Date(headerBuff.readDoubleBE(10)), new Date(headerBuff.readDoubleBE(2)));
-    var file = new LocalStorageFile(this, path, flags, stats, buffer);
-    return file;
-  }
-
-  public _getFileLength(data: string): number {
-    // 10 character header for metadata (9 char data + 1 char header)
-    if (data.length > 10) {
-      return string_util.FindUtil('binary_string').byteLength(data.substr(10));
-    } else {
-      return 0;
-    }
-  }
-}
-
-export class LocalStorageOld extends LocalStorageAbstract {
-  constructor() {
-    super();
-  }
-
-  public _convertToBinaryString(data: NodeBuffer, stats: node_fs_stats.Stats): string {
-    var dataStr = data.toString('binary_string_ie');
-    var headerBuff = new Buffer(18);
-    headerBuff.writeUInt16BE(stats.mode, 0);
-    // Well, they're doubles and are going to be 64-bit regardless...
-    headerBuff.writeDoubleBE(stats.mtime.getTime(), 2);
-    headerBuff.writeDoubleBE(stats.atime.getTime(), 10);
-    var headerDat = headerBuff.toString('binary_string_ie');
-    dataStr = headerDat + dataStr;
-    return dataStr;
-  }
-
-  public _convertFromBinaryString(path: string, data: string, flags: file_flag.FileFlag): LocalStorageFile {
-    var headerBuff = new Buffer(data.substr(0, 18), 'binary_string_ie');
-    data = data.substr(18);
-    var buffer = new Buffer(data, 'binary_string_ie');
-    var stats = new Stats(FileType.FILE, buffer.length, headerBuff.readUInt16BE(0), new Date(headerBuff.readDoubleBE(10)), new Date(headerBuff.readDoubleBE(2)));
-    var file = new LocalStorageFile(this, path, flags, stats, buffer);
-    return file;
-  }
-
-  public _getFileLength(data: string): number {
-    if (data.length > 0) {
-      return data.length - 18;
-    } else {
-      return 0;
-    }
-  }
-}
-
-export class LocalStorageFile extends preload_file.PreloadFile implements file.File {
-  constructor(_fs: LocalStorageAbstract, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: NodeBuffer) {
-    super(_fs, _path, _flag, _stat, contents);
-  }
-
-  public syncSync(): void {
-    (<LocalStorageAbstract> this._fs)._syncSync(this._path, this._buffer, this._stat);
-  }
-
-  public closeSync(): void {
-    this.syncSync();
-  }
-}
+var Buffer = buffer.Buffer,
+  ApiError = api_error.ApiError,
+  ErrorCode = api_error.ErrorCode;
 
 // Some versions of FF and all versions of IE do not support the full range of
 // 16-bit numbers encoded as characters, as they enforce UTF-16 restrictions.
 // http://stackoverflow.com/questions/11170716/are-there-any-characters-that-are-not-allowed-in-localstorage/11173673#11173673
-var supportsBinaryString: boolean = false;
+var supportsBinaryString: boolean = false,
+  binaryEncoding: string;
 try {
   window.localStorage.setItem("__test__", String.fromCharCode(0xD800));
   supportsBinaryString = window.localStorage.getItem("__test__") === String.fromCharCode(0xD800);
@@ -273,6 +19,116 @@ try {
   // IE throws an exception.
   supportsBinaryString = false;
 }
-export var LocalStorage = supportsBinaryString ? LocalStorageModern : LocalStorageOld;
+binaryEncoding = supportsBinaryString ? 'binary_string' : 'binary_string_ie';
 
-browserfs.registerFileSystem('LocalStorage', LocalStorage);
+/**
+ * Encapsulates a single transaction. Has the ability to roll back
+ * modifications that occur during a transaction.
+ */
+export class LocalStorageRWTransaction implements kvfs.SyncKeyValueRWTransaction {
+  /**
+   * Stores data in the keys we modify prior to modifying them.
+   * Allows us to roll back commits.
+   */
+  private originalData: { [key: string]: string } = {};
+  /**
+   * List of keys modified in this transaction, if any.
+   */
+  private modifiedKeys: string[] = [];
+  /**
+   * Stashes the key value into `originalData` prior to mutation.
+   */
+  private stashOldValue(key: string) {
+    // Keep only the earliest value in the transaction.
+    if (!this.originalData[key]) {
+      this.originalData[key] = window.localStorage.getItem(key);
+      this.modifiedKeys.push(key);
+    }
+  }
+
+  public get(key: string): NodeBuffer {
+    try {
+      var data = window.localStorage.getItem(key);
+      if (data !== null) {
+        return new Buffer(data, binaryEncoding);
+      }
+    } catch (e) {
+      
+    }
+    // Key doesn't exist, or a failure occurred. 
+    return undefined;
+  }
+
+  public put(key: string, data: NodeBuffer, overwrite: boolean): boolean {
+    try {
+      if (!overwrite && window.localStorage.getItem(key) !== null) {
+        // Don't want to overwrite the key!
+        return false;
+      }
+      this.stashOldValue(key);
+      window.localStorage.setItem(key, data.toString(binaryEncoding));
+      return true;
+    } catch (e) {
+      throw new ApiError(ErrorCode.ENOSPC, "LocalStorage is full.");
+    }
+  }
+
+  public delete(key: string): void {
+    try {
+      this.stashOldValue(key);
+      window.localStorage.removeItem(key);
+    } catch (e) {
+      throw new ApiError(ErrorCode.EIO, "Unable to delete key " + key + ": " + e);
+    }
+  }
+
+  public commit(): void {/* NOP */}
+  public abort(): void {
+    // Rollback old values.
+    var i: number, key: string, value: string;
+    for (i = 0; i < this.modifiedKeys.length; i++) {
+      key = this.modifiedKeys[i];
+      value = this.originalData[key];
+      if (value === null) {
+        // Key didn't exist.
+        window.localStorage.removeItem(key);
+      } else {
+        // Key existed. Store old value.
+        window.localStorage.setItem(key, this.originalData[key]);
+      }
+    }
+  }
+}
+
+/**
+ * A synchronous key-value store backed by localStorage.
+ */
+export class LocalStorageStore implements kvfs.SyncKeyValueStore {
+  constructor() { }
+
+  public name(): string {
+    return 'LocalStorage';
+  }
+
+  public clear(): void {
+    window.localStorage.clear();
+  }
+
+  public beginTransaction(type: string): kvfs.SyncKeyValueRWTransaction {
+    // No need to differentiate.
+    return new LocalStorageRWTransaction();
+  }
+}
+
+/**
+ * A synchronous file system backed by localStorage. Connects our
+ * LocalStorageStore to our SyncKeyValueFileSystem.
+ */
+export class LocalStorageFileSystem extends kvfs.SyncKeyValueFileSystem {
+  constructor() { super({ store: new LocalStorageStore() }); }
+  public static isAvailable(): boolean {
+    return typeof window.localStorage !== 'undefined';
+  }
+}
+
+browserfs.registerFileSystem('LocalStorage', LocalStorageFileSystem);
