@@ -67,7 +67,7 @@ export interface SyncKeyValueRWTransaction extends SyncKeyValueROTransaction {
    * @param key The key to add the data under.
    * @param data The data to add to the store.
    * @param overwrite If 'true', overwrite any existing data. If 'false',
-   *   throws an error if the key already exists.
+   *   avoids storing the data if the key exists.
    * @return True if storage succeeded, false otherwise.
    */
   put(key: string, data: NodeBuffer, overwrite: boolean): boolean;
@@ -167,40 +167,6 @@ export class SimpleSyncRWTransaction implements SyncKeyValueRWTransaction {
       }
     }
   }
-}
-
-/**
- * Represents an *asynchronous* key-value store.
- */
-export interface AsyncKeyValueStore {
-  /**
-   * The name of the key-value store.
-   */
-  name(): string;
-  /**
-   * Empties the key-value store completely.
-   */
-  clear(cb: (e?: api_error.ApiError) => void): void;
-  /**
-   * Adds the data to the store under the given key. Overwrites any existing
-   * data.
-   * @param key The key to add the data under.
-   * @param data The data to add to the store.
-   * @param overwrite If 'true', overwrite any existing data. If 'false',
-   *   throws an error if the key already exists.
-   */
-  put(key: string, data: NodeBuffer, overwrite: boolean, cb: (e: api_error.ApiError,
-    data?: NodeBuffer) => void): void;
-  /**
-   * Retrieves the data at the given key.
-   * @param key The key to look under for data.
-   */
-  get<T>(key: string, cb: (e: api_error.ApiError, data?: NodeBuffer) => void): void;
-  /**
-   * Deletes the data at the given key.
-   * @param key The key to delete from the store.
-   */
-  delete(key: string, cb: (e?: api_error.ApiError) => void): void;
 }
 
 export interface SyncKeyValueFileSystemOptions {
@@ -562,9 +528,117 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
 }
 
 /**
+ * Represents an *asynchronous* key-value store.
+ */
+export interface AsyncKeyValueStore {
+  /**
+   * The name of the key-value store.
+   */
+  name(): string;
+  /**
+   * Empties the key-value store completely.
+   */
+  clear(cb: (e?: api_error.ApiError) => void): void;
+  /**
+   * Begins a read-write transaction.
+   */
+  beginTransaction(type: 'readwrite'): AsyncKeyValueRWTransaction;
+  /**
+   * Begins a read-only transaction.
+   */
+  beginTransaction(type: 'readonly'): AsyncKeyValueROTransaction;
+  beginTransaction(type: string): AsyncKeyValueROTransaction;
+}
+
+/**
+ * Represents an asynchronous read-only transaction.
+ */
+export interface AsyncKeyValueROTransaction {
+  /**
+   * Retrieves the data at the given key.
+   * @param key The key to look under for data.
+   */
+  get(key: string, cb: (e: api_error.ApiError, data?: NodeBuffer) => void): void;
+}
+
+/**
+ * Represents an asynchronous read-write transaction.
+ */
+export interface AsyncKeyValueRWTransaction extends AsyncKeyValueROTransaction {
+  /**
+   * Adds the data to the store under the given key. Overwrites any existing
+   * data.
+   * @param key The key to add the data under.
+   * @param data The data to add to the store.
+   * @param overwrite If 'true', overwrite any existing data. If 'false',
+   *   avoids writing the data if the key exists.
+   * @param cb Triggered with an error and whether or not the value was
+   *   committed.
+   */
+  put(key: string, data: NodeBuffer, overwrite: boolean, cb: (e: api_error.ApiError,
+    committed?: boolean) => void): void;
+  /**
+   * Deletes the data at the given key.
+   * @param key The key to delete from the store.
+   */
+  delete(key: string, cb: (e?: api_error.ApiError) => void): void;
+  /**
+   * Commits the transaction.
+   */
+  commit(cb: (e?: api_error.ApiError) => void): void;
+  /**
+   * Aborts and rolls back the transaction.
+   */
+  abort(cb: (e?: api_error.ApiError) => void): void;
+}
+
+/**
  * An "Asynchronous key-value file system". Stores data to/retrieves data from
  * an underlying asynchronous key-value store.
  */
 export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
+  private store: AsyncKeyValueStore;
+  constructor(store: AsyncKeyValueStore, cb: (e?: api_error.ApiError) => void) {
+    super();
+    this.store = store;
+    // INVARIANT: Ensure that the root exists.
+    this.makeRootDirectory(cb);
+  }
 
+  /**
+   * Checks if the root directory exists. Creates it if it doesn't.
+   */
+  private makeRootDirectory(cb: (e?: api_error.ApiError) => void) {
+    var tx = this.store.beginTransaction('readwrite');
+    tx.get(ROOT_NODE_ID, (e: api_error.ApiError, data?: NodeBuffer) => {
+      if (e || data === undefined) {
+        // Create new inode.
+        var currTime = (new Date()).getTime(),
+          // Mode 0666
+          dirInode = new Inode(GenerateRandomID(), 4096, 438 | node_fs_stats.FileType.DIRECTORY, currTime, currTime, currTime);
+        // If the root doesn't exist, the first random ID shouldn't exist,
+        // either.
+        tx.put(dirInode.id, new Buffer("{}"), false, (e?: api_error.ApiError) => {
+          if (e) {
+            tx.abort(() => { cb(e); } );
+          } else {
+            tx.put(ROOT_NODE_ID, dirInode.toBuffer(), false, (e?: api_error.ApiError) => {
+              if (e) {
+                tx.abort(() => { cb(e); });
+              } else {
+                tx.commit(cb);
+              }
+            });
+          }
+        });
+      }
+    });
+  }
+
+  public static isAvailable(): boolean { return true; }
+  public getName(): string { return this.store.name(); }
+  public isReadOnly(): boolean { return false; }
+  public supportsSymlinks(): boolean { return false; }
+  public supportsProps(): boolean { return false; }
+  public supportsSynch(): boolean { return true; }
 }
