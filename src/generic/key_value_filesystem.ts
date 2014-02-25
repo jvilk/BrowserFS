@@ -87,6 +87,89 @@ export interface SyncKeyValueRWTransaction extends SyncKeyValueROTransaction {
 }
 
 /**
+ * An interface for simple synchronous key-value stores that don't have special
+ * support for transactions and such.
+ */
+export interface SimpleSyncStore {
+  get(key: string): NodeBuffer;
+  put(key: string, data: NodeBuffer, overwrite: boolean): boolean;
+  delete(key: string): void;
+}
+
+/**
+ * A simple RW transaction for simple synchronous key-value stores.
+ */
+export class SimpleSyncRWTransaction implements SyncKeyValueRWTransaction {
+  constructor(private store: SimpleSyncStore) { }
+  /**
+   * Stores data in the keys we modify prior to modifying them.
+   * Allows us to roll back commits.
+   */
+  private originalData: { [key: string]: NodeBuffer } = {};
+  /**
+   * List of keys modified in this transaction, if any.
+   */
+  private modifiedKeys: string[] = [];
+  /**
+   * Stashes given key value pair into `originalData` if it doesn't already
+   * exist. Allows us to stash values the program is requesting anyway to
+   * prevent needless `get` requests if the program modifies the data later
+   * on during the transaction.
+   */
+  private stashOldValue(key: string, value: NodeBuffer) {
+    // Keep only the earliest value in the transaction.
+    if (!this.originalData.hasOwnProperty(key)) {
+      this.originalData[key] = value
+    }
+  }
+  /**
+   * Marks the given key as modified, and stashes its value if it has not been
+   * stashed already.
+   */
+  private markModified(key: string) {
+    if (this.modifiedKeys.indexOf(key) === -1) {
+      this.modifiedKeys.push(key);
+      if (!this.originalData.hasOwnProperty(key)) {
+        this.originalData[key] = this.store.get(key);
+      }
+    }
+  }
+
+  public get(key: string): NodeBuffer {
+    var val = this.store.get(key);
+    this.stashOldValue(key, val);
+    return val;
+  }
+
+  public put(key: string, data: NodeBuffer, overwrite: boolean): boolean {
+    this.markModified(key);
+    return this.store.put(key, data, overwrite);
+  }
+
+  public delete(key: string): void {
+    this.markModified(key);
+    this.store.delete(key);
+  }
+
+  public commit(): void {/* NOP */}
+  public abort(): void {
+    // Rollback old values.
+    var i: number, key: string, value: NodeBuffer;
+    for (i = 0; i < this.modifiedKeys.length; i++) {
+      key = this.modifiedKeys[i];
+      value = this.originalData[key];
+      if (value === null) {
+        // Key didn't exist.
+        this.store.delete(key);
+      } else {
+        // Key existed. Store old value.
+        this.store.put(key, value, true);
+      }
+    }
+  }
+}
+
+/**
  * Represents an *asynchronous* key-value store.
  */
 export interface AsyncKeyValueStore {
@@ -216,8 +299,13 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
       }
     }
     if (parent === '/') {
-      // BASE CASE: Return the root's ID.
-      return ROOT_NODE_ID;
+      if (filename === '') {
+        // BASE CASE #1: Return the root's ID.
+        return ROOT_NODE_ID;
+      } else {
+        // BASE CASE #2: Find the item in the root ndoe.
+        return read_directory(this.getINode(tx, parent, ROOT_NODE_ID));
+      }
     } else {
       return read_directory(this.getINode(tx, parent + path.sep + filename, 
         this._findINode(tx, path.dirname(parent), path.basename(parent))));

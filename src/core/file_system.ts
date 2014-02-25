@@ -600,28 +600,9 @@ export class BaseFileSystem {
   }
   public openSync(p: string, flag: file_flag.FileFlag, mode: number): file.File {
     // Check if the path exists, and is a file.
+    var stats: stat.Stats;
     try {
-      var stats = this.statSync(p, false);
-      // File exists.
-      if (stats.isDirectory()) {
-        throw new ApiError(ErrorCode.EISDIR, p + " is a directory.");
-      }
-      switch (flag.pathExistsAction()) {
-        case ActionType.THROW_EXCEPTION:
-          throw new ApiError(ErrorCode.EEXIST, p + " already exists.");
-        case ActionType.TRUNCATE_FILE:
-          // Delete file.
-          this.unlinkSync(p);
-          // Create file. Use the same mode as the old file.
-          // Node itself modifies the ctime when this occurs, so this action
-          // will preserve that behavior if the underlying file system
-          // supports those properties.
-          return this.createFileSync(p, flag, stats.mode);
-        case ActionType.NOP:
-          return this.openFileSync(p, flag);
-        default:
-          throw new ApiError(ErrorCode.EINVAL, 'Invalid FileFlag object.');
-      }
+      stats = this.statSync(p, false);
     } catch (e) {
       // File does not exist.
       switch (flag.pathNotExistsAction()) {
@@ -637,6 +618,27 @@ export class BaseFileSystem {
         default:
           throw new ApiError(ErrorCode.EINVAL, 'Invalid FileFlag object.');
       }
+    }
+
+    // File exists.
+    if (stats.isDirectory()) {
+      throw new ApiError(ErrorCode.EISDIR, p + " is a directory.");
+    }
+    switch (flag.pathExistsAction()) {
+      case ActionType.THROW_EXCEPTION:
+        throw new ApiError(ErrorCode.EEXIST, p + " already exists.");
+      case ActionType.TRUNCATE_FILE:
+        // Delete file.
+        this.unlinkSync(p);
+        // Create file. Use the same mode as the old file.
+        // Node itself modifies the ctime when this occurs, so this action
+        // will preserve that behavior if the underlying file system
+        // supports those properties.
+        return this.createFileSync(p, flag, stats.mode);
+      case ActionType.NOP:
+        return this.openFileSync(p, flag);
+      default:
+        throw new ApiError(ErrorCode.EINVAL, 'Invalid FileFlag object.');
     }
   }
   public unlink(p: string, cb: Function): void {

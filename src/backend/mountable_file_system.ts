@@ -24,7 +24,7 @@ export class MountableFileSystem extends file_system.BaseFileSystem implements f
     this.mntMap = {};
     // The InMemory file system serves purely to provide directory listings for
     // mounted file systems.
-    this.rootFs = new in_memory.InMemory();
+    this.rootFs = new in_memory.InMemoryFileSystem();
   }
 
   /**
