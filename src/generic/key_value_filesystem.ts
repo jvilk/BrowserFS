@@ -23,6 +23,32 @@ function GenerateRandomID(): string {
 }
 
 /**
+ * Helper function. Checks if 'e' is defined. If so, it triggers the callback
+ * with 'e' and returns false. Otherwise, returns true.
+ */
+function noError(e: api_error.ApiError, cb: (e: api_error.ApiError) => void): boolean {
+  if (e) {
+    cb(e);
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Helper function. Checks if 'e' is defined. If so, it aborts the transaction,
+ * triggers the callback with 'e', and returns false. Otherwise, returns true.
+ */
+function noErrorTx(e: api_error.ApiError, tx: AsyncKeyValueRWTransaction, cb: (e: api_error.ApiError) => void): boolean {
+  if (e) {
+    tx.abort(() => {
+      cb(e);
+    });
+    return false;
+  }
+  return true;
+}
+
+/**
  * Represents a *synchronous* key-value store.
  */
 export interface SyncKeyValueStore {
@@ -263,7 +289,7 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
       } else {
         throw ApiError.ENOENT(path.resolve(parent, filename));
       }
-    }
+    };
     if (parent === '/') {
       if (filename === '') {
         // BASE CASE #1: Return the root's ID.
@@ -321,6 +347,7 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
    * Commits a new node under a random ID. Retries 5 times before giving up in
    * the exceedingly unlikely chance that we try to reuse a random GUID.
    * @return The GUID that the data was stored under.
+   * @todo Misnomer. Does not actually tx.commit().
    */
   private commitNewNode(tx: SyncKeyValueRWTransaction, data: NodeBuffer): string {
     var retries = 0, currId: string;
@@ -396,10 +423,18 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
     }
     var nodeId: string = oldDirList[oldName];
     delete oldDirList[oldName];
-    
+
     // Add newPath to parent's directory listing.
-    var newDirNode = this.findINode(tx, newParent);
-    var newDirList = this.getDirListing(tx, newParent, newDirNode);
+    var newDirNode: Inode, newDirList;
+    if (newParent === oldParent) {
+      // Prevent us from re-grabbing the same directory listing, which still
+      // contains oldName.
+      newDirNode = oldDirNode;
+      newDirList = oldDirList;
+    } else {
+      newDirNode = this.findINode(tx, newParent);
+      newDirList = this.getDirListing(tx, newParent, newDirNode);
+    }
     if (newDirList[newName]) {
       throw ApiError.EEXIST(newPath);
     }
@@ -605,6 +640,13 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
     this.makeRootDirectory(cb);
   }
 
+  public static isAvailable(): boolean { return true; }
+  public getName(): string { return this.store.name(); }
+  public isReadOnly(): boolean { return false; }
+  public supportsSymlinks(): boolean { return false; }
+  public supportsProps(): boolean { return false; }
+  public supportsSynch(): boolean { return true; }
+
   /**
    * Checks if the root directory exists. Creates it if it doesn't.
    */
@@ -619,9 +661,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
         // If the root doesn't exist, the first random ID shouldn't exist,
         // either.
         tx.put(dirInode.id, new Buffer("{}"), false, (e?: api_error.ApiError) => {
-          if (e) {
-            tx.abort(() => { cb(e); } );
-          } else {
+          if (noErrorTx(e, tx, cb)) {
             tx.put(ROOT_NODE_ID, dirInode.toBuffer(), false, (e?: api_error.ApiError) => {
               if (e) {
                 tx.abort(() => { cb(e); });
@@ -635,10 +675,307 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
     });
   }
 
-  public static isAvailable(): boolean { return true; }
-  public getName(): string { return this.store.name(); }
-  public isReadOnly(): boolean { return false; }
-  public supportsSymlinks(): boolean { return false; }
-  public supportsProps(): boolean { return false; }
-  public supportsSynch(): boolean { return true; }
+  /**
+   * Helper function for findINode.
+   * @param parent The parent directory of the file we are attempting to find.
+   * @param filename The filename of the inode we are attempting to find, minus
+   *   the parent.
+   * @param cb Passed an error or the ID of the file's inode in the file system.
+   */
+  private _findINode(tx: AsyncKeyValueROTransaction, parent: string, filename: string, cb: (e: api_error.ApiError, id?: string) => void): void {
+    var handle_directory_listings = (e: api_error.ApiError, inode?: Inode, dirList?): void => {
+      if (e) {
+        cb(e)
+      } else if (dirList[filename]) {
+        cb(null, dirList[filename]);
+      } else {
+        cb(ApiError.ENOENT(path.resolve(parent, filename)));
+      }
+    };
+
+    if (parent === '/') {
+      if (filename === '') {
+        // BASE CASE #1: Return the root's ID.
+        cb(null, ROOT_NODE_ID);
+      } else {
+        // BASE CASE #2: Find the item in the root node.
+        this.getINode(tx, parent, ROOT_NODE_ID, (e: api_error.ApiError, inode?: Inode): void => {
+          if (noError(e, cb)) {
+            this.getDirListing(tx, parent, inode, (e: api_error.ApiError, dirList?): void => {
+              // handle_directory_listings will handle e for us.
+              handle_directory_listings(e, inode, dirList);
+            });
+          }
+        });
+      }
+    } else {
+      // Get the parent directory's INode, and find the file in its directory
+      // listing.
+      this.findINodeAndDirListing(tx, parent, handle_directory_listings);
+    }
+  }
+
+  /**
+   * Finds the Inode of the given path.
+   * @param p The path to look up.
+   * @param cb Passed an error or the Inode of the path p.
+   * @todo memoize/cache
+   */
+  private findINode(tx: AsyncKeyValueROTransaction, p: string, cb: (e: api_error.ApiError, inode?: Inode) => void): void {
+    this._findINode(tx, path.dirname(p), path.basename(p), (e: api_error.ApiError, id?: string): void => {
+      if (noError(e, cb)) {
+        this.getINode(tx, p, id, cb);
+      }
+    });
+  }
+
+  /**
+   * Given the ID of a node, retrieves the corresponding Inode.
+   * @param tx The transaction to use.
+   * @param p The corresponding path to the file (used for error messages).
+   * @param id The ID to look up.
+   * @param cb Passed an error or the inode under the given id.
+   */
+  private getINode(tx: AsyncKeyValueROTransaction, p: string, id: string, cb: (e: api_error.ApiError, inode?: Inode) => void): void {
+    tx.get(id, (e: api_error.ApiError, data?: NodeBuffer): void => {
+      if (noError(e, cb)) {
+        try {
+          cb(null, Inode.fromBuffer(data));
+        } catch (e) {
+          // Occurs when data is undefined, or corresponds to something other
+          // than an inode. The latter should never occur unless the file
+          // system is corrupted.
+          cb(ApiError.ENOENT(p));
+        }
+      }
+    });
+  }
+
+  /**
+   * Given the Inode of a directory, retrieves the corresponding directory
+   * listing.
+   */
+  private getDirListing(tx: AsyncKeyValueROTransaction, p: string, inode: Inode, cb: (e: api_error.ApiError, listing?: { [fileName: string]: string }) => void): void {
+    if (!inode.isDirectory()) {
+      cb(ApiError.ENOTDIR(p));
+    } else {
+      tx.get(inode.id, (e: api_error.ApiError, data?: NodeBuffer): void => {
+        if (noError(e, cb)) {
+          try {
+            cb(null, JSON.parse(data.toString()));
+          } catch (e) {
+            // Occurs when data is undefined, or corresponds to something other
+            // than a directory listing. The latter should never occur unless
+            // the file system is corrupted.
+            cb(ApiError.ENOENT(p));
+          }
+        }
+      });
+    }
+  }
+
+  /**
+   * Given a path to a directory, retrieves the corresponding INode and
+   * directory listing.
+   */
+  private findINodeAndDirListing(tx: AsyncKeyValueROTransaction, p: string, cb: (e: api_error.ApiError, inode?: Inode, listing?: { [fileName: string]: string }) => void): void {
+    this.findINode(tx, p, (e: api_error.ApiError, inode?: Inode): void => {
+      if (noError(e, cb)) {
+        this.getDirListing(tx, p, inode, (e, listing?) => {
+          if (noError(e, cb)) {
+            cb(null, inode, listing);
+          }
+        });
+      }
+    });
+  }
+
+  /**
+   * Commits a new node under a random ID. Retries 5 times before giving up in
+   * the exceedingly unlikely chance that we try to reuse a random GUID.
+   * @param cb Passed an error or the GUID that the data was stored under.
+   * @todo Misnomer. Does not actually tx.commit().
+   */
+  private commitNewNode(tx: AsyncKeyValueRWTransaction, data: NodeBuffer, cb: (e: api_error.ApiError, guid?: string) => void): void {
+    var retries = 0, currId: string,
+      reroll = () => {
+        if (++retries === 5) {
+          // Max retries hit. Return with an error.
+          cb(new ApiError(api_error.ErrorCode.EIO, 'Unable to commit data to key-value store.'));
+        } else {
+          currId = GenerateRandomID();
+          tx.put(currId, data, false, (e: api_error.ApiError, committed?: boolean) => {
+            if (e || !committed) {
+              reroll();
+            } else {
+              // Successfully stored under 'currId'.
+              cb(null, currId);
+            }
+          });
+        }
+      };
+    reroll();
+  }
+
+  /**
+   * Commits a new file (well, a FILE or a DIRECTORY) to the file system with
+   * the given mode.
+   * Note: This will commit the transaction.
+   * @param p The path to the new file.
+   * @param type The type of the new file.
+   * @param mode The mode to create the new file with.
+   * @param data The data to store at the file's data node.
+   * @param cb Passed an error or the Inode for the new file.
+   */
+  private commitNewFile(tx: AsyncKeyValueRWTransaction, p: string, type: node_fs_stats.FileType, mode: number, data: NodeBuffer, cb: (e: api_error.ApiError, inode?: Inode) => void): void {
+    var parentDir = path.dirname(p),
+      fname = path.basename(p),
+      currTime = (new Date()).getTime();
+
+    // Let's build a pyramid of code!
+
+    // Step 1: Get the parent directory's inode and directory listing
+    this.findINodeAndDirListing(tx, parentDir, (e: api_error.ApiError, parentNode?: Inode, dirListing?): void => {
+      if (noErrorTx(e, tx, cb)) {
+        if (dirListing[fname]) {
+          // File already exists.
+          cb(ApiError.EEXIST(p));
+        } else {
+          // Step 2: Commit data to store.
+          this.commitNewNode(tx, data, (e: api_error.ApiError, dataId?: string): void => {
+            if (noErrorTx(e, tx, cb)) {
+              // Step 3: Commit the file's inode to the store.
+              var fileInode = new Inode(dataId, data.length, mode | type, currTime, currTime, currTime);
+              this.commitNewNode(tx, fileInode.toBuffer(), (e: api_error.ApiError, fileInodeId?: string): void => {
+                if (noErrorTx(e, tx, cb)) {
+                  // Step 4: Update parent directory's listing.
+                  dirListing[fname] = fileInodeId;
+                  tx.put(parentNode.id, new Buffer(JSON.stringify(dirListing)), true, (e: api_error.ApiError): void => {
+                    if (noErrorTx(e, tx, cb)) {
+                      // Step 5: Commit and return the new inode.
+                      tx.commit((e?: api_error.ApiError): void => {
+                        if (noErrorTx(e, tx, cb)) {
+                          cb(null, fileInode);
+                        }
+                      });
+                    }
+                  });
+                }
+              });
+            }
+          });
+        }
+      }
+    });
+  }
+
+  /**
+   * Delete all contents stored in the file system.
+   */
+  public empty(cb: (e?: api_error.ApiError) => void): void {
+    this.store.clear((e?) => {
+      if (noError(e, cb)) {
+        // INVARIANT: Root always exists.
+        this.makeRootDirectory(cb);
+      }
+    });
+  }
+
+  /**
+   * @todo Parallelize old/new lookups.
+   */
+  public rename(oldPath: string, newPath: string, cb: (e?: api_error.ApiError) => void): void {
+    var tx = this.store.beginTransaction('readwrite'),
+      oldParent = path.dirname(oldPath), oldName = path.basename(oldPath),
+      newParent = path.dirname(newPath), newName = path.basename(newPath),
+      oldParentINode: Inode, oldParentList,
+      newParentINode: Inode, newParentList,
+      errorOccurred: boolean = false;
+
+    /**
+     * Responsible for Phase 2 of the rename operation: Modifying and
+     * committing the directory listings. Called once we have successfully
+     * retrieved both the old and new parent's inodes and listings.
+     */
+    function theOleSwitcharoo() {
+      // Delete file from old parent.
+      if (!oldParentList[oldName]) {
+        cb(ApiError.ENOENT(oldPath));
+      } else {
+        var fileId = oldParentList[oldName];
+        delete oldParentList[oldName];
+        // Add file to new parent.
+        if (newParentList[newName]) {
+          cb(ApiError.EEXIST(newPath));
+        } else {
+          newParentList[newName] = fileId;
+          // Commit old parent's list.
+          tx.put(oldParentINode.id, new Buffer(JSON.stringify(oldParentList)), true, (e: api_error.ApiError) => {
+            if (noErrorTx(e, tx, cb)) {
+              if (oldParent === newParent) {
+                // DONE!
+                tx.commit(cb);
+              } else {
+                // Commit new parent's list.
+                tx.put(newParentINode.id, new Buffer(JSON.stringify(newParentList)), true, (e: api_error.ApiError) => {
+                  if (noErrorTx(e, tx, cb)) {
+                    tx.commit(cb);
+                  }
+                });
+              }
+            }
+          });
+        }
+      }
+    }
+
+    // PARALLEL: Grab old and new directory's inodes/listings.
+    // @todo This is bad. Generalize this logic. :( Maybe have a hash from
+    //       path => nodes?
+    if (newParent === oldParent) {
+      newParent = null;
+    } else {
+      this.findINodeAndDirListing(tx, newParent, (e: api_error.ApiError, node?: Inode, dirList?): void => {
+        if (e) {
+          if (!errorOccurred) {
+            errorOccurred = true;
+            tx.abort(() => {
+              cb(e);
+            });
+          }
+          // If error has occurred already, just stop here.
+        } else {
+          newParentINode = node;
+          newParentList = dirList;
+          if (oldParentINode !== undefined) {
+            theOleSwitcharoo();
+          }
+        }
+      });
+    }
+
+    this.findINodeAndDirListing(tx, oldParent, (e: api_error.ApiError, node?: Inode, dirList?): void => {
+      if (e) {
+        if (!errorOccurred) {
+          errorOccurred = true;
+          tx.abort(() => {
+            cb(e);
+          });
+        }
+        // If error has occurred already, just stop here.
+      } else {
+        oldParentINode = node;
+        oldParentList = dirList;
+        // Begin next phase if the new node has been fetched.
+        if (newParentINode !== undefined) {
+          // SPECIAL CASE: New parent === old parent.
+          if (newParentINode === null) {
+            newParentINode = node;
+            newParentList = dirList;
+          }
+          theOleSwitcharoo();
+        }
+      }
+    });
+  }
 }
