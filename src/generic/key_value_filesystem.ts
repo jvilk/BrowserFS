@@ -688,6 +688,9 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
             });
           }
         });
+      } else {
+        // We're good.
+        tx.commit(cb);
       }
     });
   }

@@ -45,21 +45,9 @@ function onErrorHandler(cb: (e: api_error.ApiError) => void,
 }
 
 /**
- * Converts a Blob into an ArrayBuffer. There's no synchronous way to do
- * this outside of a WebWorker.
+ * Converts a NodeBuffer into an ArrayBuffer.
  */
-function blob2arraybuffer(data: Blob, cb: (e: any, data?: ArrayBuffer) => void): void {
-  var reader = new FileReader();
-  reader.addEventListener("loadend", function () {
-    cb(null, reader.result);
-  });
-  reader.readAsArrayBuffer(data);
-}
-
-/**
- * Converts a NodeBuffer into a Blob.
- */
-function buffer2blob(data: NodeBuffer): Blob {
+function buffer2arraybuffer(data: NodeBuffer): ArrayBuffer {
   // XXX: Typing hack.
   var backing_mem: buffer_core_arraybuffer.BufferCoreArrayBuffer = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>data).getBufferCore();
   if (!(backing_mem instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer)) {
@@ -70,7 +58,7 @@ function buffer2blob(data: NodeBuffer): Blob {
   }
   // Reach into the BC, grab the DV.
   var dv = backing_mem.getDataView();
-  return new Blob([dv]);
+  return dv.buffer;
 }
 
 export class IndexedDBROTransaction implements kvfs.AsyncKeyValueROTransaction {
@@ -87,11 +75,8 @@ export class IndexedDBROTransaction implements kvfs.AsyncKeyValueROTransaction {
         if (result === undefined) {
           cb(null, result);
         } else {
-          // IDB data is stored as a blob. Convert back to an ArrayBuffer.
-          // XXX: This is invalidating our transactions :(
-          blob2arraybuffer(result, (e, data?: ArrayBuffer): void => {
-            cb(null, new Buffer(data));
-          });
+          // IDB data is stored as an ArrayBuffer
+          cb(null, new Buffer(result));
         }
       };
     } catch (e) {
@@ -107,13 +92,13 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements kv
 
   public put(key: string, data: NodeBuffer, overwrite: boolean, cb: (e: api_error.ApiError, committed?: boolean) => void): void {
     try {
-      var blob = buffer2blob(data),
+      var arraybuffer = buffer2arraybuffer(data),
         r: IDBRequest;
       if (overwrite) {
-        r = this.store.put(blob, key);
+        r = this.store.put(arraybuffer, key);
       } else {
         // 'add' will never overwrite an existing key.
-        r = this.store.add(blob, key);
+        r = this.store.add(arraybuffer, key);
       }
       // XXX: NEED TO RETURN FALSE WHEN ADD HAS A KEY CONFLICT. NO ERROR.
       r.onerror = onErrorHandler(cb);
