@@ -662,7 +662,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
   public isReadOnly(): boolean { return false; }
   public supportsSymlinks(): boolean { return false; }
   public supportsProps(): boolean { return false; }
-  public supportsSynch(): boolean { return true; }
+  public supportsSynch(): boolean { return false; }
 
   /**
    * Checks if the root directory exists. Creates it if it doesn't.
@@ -759,13 +759,10 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
   private getINode(tx: AsyncKeyValueROTransaction, p: string, id: string, cb: (e: api_error.ApiError, inode?: Inode) => void): void {
     tx.get(id, (e: api_error.ApiError, data?: NodeBuffer): void => {
       if (noError(e, cb)) {
-        try {
-          cb(null, Inode.fromBuffer(data));
-        } catch (e) {
-          // Occurs when data is undefined, or corresponds to something other
-          // than an inode. The latter should never occur unless the file
-          // system is corrupted.
+        if (data === undefined) {
           cb(ApiError.ENOENT(p));
+        } else {
+          cb(null, Inode.fromBuffer(data));
         }
       }
     });
@@ -992,7 +989,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
     });
   }
 
-  public createFileAsync(p: string, flag: file_flag.FileFlag, mode: number, cb: (e: api_error.ApiError, file?: file.File) => void): void {
+  public createFile(p: string, flag: file_flag.FileFlag, mode: number, cb: (e: api_error.ApiError, file?: file.File) => void): void {
     var tx = this.store.beginTransaction('readwrite'),
       data = new Buffer(0);
 
@@ -1003,7 +1000,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
     });
   }
 
-  public openFileAsync(p: string, flag: file_flag.FileFlag, cb: (e: api_error.ApiError, file?: file.File) => void): void {
+  public openFile(p: string, flag: file_flag.FileFlag, cb: (e: api_error.ApiError, file?: file.File) => void): void {
     var tx = this.store.beginTransaction('readonly');
     // Step 1: Grab the file's inode.
     this.findINode(tx, p, (e: api_error.ApiError, inode?: Inode) => {
