@@ -856,7 +856,9 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
       if (noErrorTx(e, tx, cb)) {
         if (dirListing[fname]) {
           // File already exists.
-          cb(ApiError.EEXIST(p));
+          tx.abort(() => {
+            cb(ApiError.EEXIST(p));
+          });
         } else {
           // Step 2: Commit data to store.
           this.addNewNode(tx, data, (e: api_error.ApiError, dataId?: string): void => {

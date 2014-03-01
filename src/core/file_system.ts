@@ -552,13 +552,19 @@ export class BaseFileSystem {
           case ActionType.THROW_EXCEPTION:
             return cb(new ApiError(ErrorCode.EEXIST, p + " already exists."));
           case ActionType.TRUNCATE_FILE:
-            // Delete file.
-            this.unlink(p, (e?: api_error.ApiError) => {
+            // NOTE: In a previous implementation, we deleted the file and
+            // re-created it. However, this created a race condition if another
+            // asynchronous request was trying to read the file, as the file
+            // would not exist for a small period of time.
+            return this.openFile(p, flag, (e: api_error.ApiError, fd?: file.File): void => {
               if (e) {
-                return cb(e);
+                cb(e);
               } else {
-                // Create a 0-length file.
-                this.createFile(p, flag, stats.mode, cb);
+                fd.truncate(0, () => {
+                  fd.sync(() => {
+                    cb(null, fd);
+                  });
+                });
               }
             });
           case ActionType.NOP:
@@ -567,7 +573,7 @@ export class BaseFileSystem {
             return cb(new ApiError(ErrorCode.EINVAL, 'Invalid FileFlag object.'));
         }
       }
-    }
+    };
     this.stat(p, false, must_be_file);
   }
   public rename(oldPath: string, newPath: string, cb: (err?: api_error.ApiError) => void): void {
@@ -719,7 +725,7 @@ export class BaseFileSystem {
     }
   }
   public truncate(p: string, len: number, cb: Function): void {
-    this.open(p, file_flag.FileFlag.getFileFlag('w'), 0x1a4, (function(er: api_error.ApiError, fd?: file.File) {
+    this.open(p, file_flag.FileFlag.getFileFlag('r+'), 0x1a4, (function(er: api_error.ApiError, fd?: file.File) {
       if (er) {
         return cb(er);
       }
@@ -731,7 +737,7 @@ export class BaseFileSystem {
     }));
   }
   public truncateSync(p: string, len: number): void {
-    var fd = this.openSync(p, file_flag.FileFlag.getFileFlag('w'), 0x1a4);
+    var fd = this.openSync(p, file_flag.FileFlag.getFileFlag('r+'), 0x1a4);
     // Need to safely close FD, regardless of whether or not truncate succeeds.
     try {
       fd.truncateSync(len);
