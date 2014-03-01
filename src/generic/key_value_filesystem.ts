@@ -913,7 +913,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
      * committing the directory listings. Called once we have successfully
      * retrieved both the old and new parent's inodes and listings.
      */
-    function theOleSwitcharoo(): void {
+    var theOleSwitcharoo = (): void => {
       // Sanity check: Ensure both paths are present, and no error has occurred.
       if (errorOccurred || !lists.hasOwnProperty(oldParent) || !lists.hasOwnProperty(newParent)) {
         return;
@@ -950,13 +950,13 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
           });
         }
       }
-    }
+    };
 
     /**
      * Grabs a path's inode and directory listing, and shoves it into the
      * inodes and lists hashes.
      */
-    function processInodeAndListings(p: string): void {
+    var processInodeAndListings = (p: string): void => {
       this.findINodeAndDirListing(tx, p, (e: api_error.ApiError, node?: Inode, dirList?): void => {
         if (e) {
           if (!errorOccurred) {
@@ -972,7 +972,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
           theOleSwitcharoo();
         }
       });
-    }
+    };
 
     processInodeAndListings(oldParent);
     if (oldParent !== newParent) {
@@ -1111,23 +1111,25 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
       if (noErrorTx(e, tx, cb)) {
         // Step 2: Get the file inode.
         this.getINode(tx, p, fileInodeId, (e: api_error.ApiError, fileInode?: Inode): void => {
-          var inodeChanged: boolean = fileInode.update(stats);
-          // Step 3: Sync the data.
-          tx.put(fileInode.id, data, true, (e: api_error.ApiError): void => {
-            if (noErrorTx(e, tx, cb)) {
-              // Step 4: Sync the metadata (if it changed)!
-              if (inodeChanged) {
-                tx.put(fileInodeId, fileInode.toBuffer(), true, (e: api_error.ApiError): void => {
-                  if (noErrorTx(e, tx, cb)) {
-                    tx.commit(cb);
-                  }
-                });
-              } else {
-                // No need to sync metadata; return.
-                tx.commit(cb);
+          if (noErrorTx(e, tx, cb)) {
+            var inodeChanged: boolean = fileInode.update(stats);
+            // Step 3: Sync the data.
+            tx.put(fileInode.id, data, true, (e: api_error.ApiError): void => {
+              if (noErrorTx(e, tx, cb)) {
+                // Step 4: Sync the metadata (if it changed)!
+                if (inodeChanged) {
+                  tx.put(fileInodeId, fileInode.toBuffer(), true, (e: api_error.ApiError): void => {
+                    if (noErrorTx(e, tx, cb)) {
+                      tx.commit(cb);
+                    }
+                  });
+                } else {
+                  // No need to sync metadata; return.
+                  tx.commit(cb);
+                }
               }
-            }
-          });
+            });
+          }
         });
       }
     });
