@@ -42,8 +42,8 @@ export class Stats implements fs.Stats {
   public uid: number = 0;
   // group ID of owner
   public gid: number = 0;
-  // XXX: Some file systems stash a file on stats objects.
-  public file_data: file.File;
+  // XXX: Some file systems stash data on stats objects.
+  public file_data: NodeBuffer;
 
   /**
    * Provides information about a particular entry in the file system.

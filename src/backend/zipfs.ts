@@ -440,7 +440,7 @@ export class CentralDirectory {
     return filedata.decompress();
   }
   public getStats(): node_fs_stats.Stats {
-    return new node_fs_stats.Stats(node_fs_stats.FileType.FILE, this.uncompressedSize(), 0x1a4, new Date(), this.lastModFileTime());
+    return new node_fs_stats.Stats(node_fs_stats.FileType.FILE, this.uncompressedSize(), 0x16D, new Date(), this.lastModFileTime());
   }
 }
 

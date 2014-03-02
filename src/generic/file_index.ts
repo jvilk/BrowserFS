@@ -197,7 +197,7 @@ export class FileIndex {
           queue.push([name, children, inode]);
         } else {
           // This inode doesn't have correct size information, noted with -1.
-          inode = new FileInode<node_fs_stats.Stats>(new Stats(node_fs_stats.FileType.FILE, -1));
+          inode = new FileInode<node_fs_stats.Stats>(new Stats(node_fs_stats.FileType.FILE, -1, 0x16D));
         }
         if (parent != null) {
           parent._ls[node] = inode;
@@ -253,7 +253,7 @@ export class DirInode implements Inode {
    * @return [BrowserFS.node.fs.Stats]
    */
   public getStats(): node_fs_stats.Stats {
-    return new Stats(node_fs_stats.FileType.DIRECTORY, 4096);
+    return new Stats(node_fs_stats.FileType.DIRECTORY, 4096, 0x16D);
   }
   /**
    * Returns the directory listing for this directory. Paths in the directory are
