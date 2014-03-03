@@ -263,7 +263,7 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
       // Create new inode.
       var currTime = (new Date()).getTime(),
         // Mode 0666
-        dirInode = new Inode(GenerateRandomID(), 4096, 438 | node_fs_stats.FileType.DIRECTORY, currTime, currTime, currTime);
+        dirInode = new Inode(GenerateRandomID(), 4096, 511 | node_fs_stats.FileType.DIRECTORY, currTime, currTime, currTime);
       // If the root doesn't exist, the first random ID shouldn't exist,
       // either.
       tx.put(dirInode.id, new Buffer("{}"), false);
@@ -674,7 +674,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
         // Create new inode.
         var currTime = (new Date()).getTime(),
           // Mode 0666
-          dirInode = new Inode(GenerateRandomID(), 4096, 438 | node_fs_stats.FileType.DIRECTORY, currTime, currTime, currTime);
+          dirInode = new Inode(GenerateRandomID(), 4096, 511 | node_fs_stats.FileType.DIRECTORY, currTime, currTime, currTime);
         // If the root doesn't exist, the first random ID shouldn't exist,
         // either.
         tx.put(dirInode.id, new Buffer("{}"), false, (e?: api_error.ApiError) => {
