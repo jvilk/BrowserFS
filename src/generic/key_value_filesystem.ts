@@ -379,6 +379,13 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
       dirListing = this.getDirListing(tx, parentDir, parentNode),
       currTime = (new Date()).getTime();
 
+    // Invariant: The root always exists.
+    // If we don't check this prior to taking steps below, we will create a
+    // file with name '' in root should p == '/'.
+    if (p === '/') {
+      throw ApiError.EEXIST(p);
+    }
+
     // Check if file already exists.
     if (dirListing[fname]) {
       throw ApiError.EEXIST(p);
@@ -848,6 +855,13 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
     var parentDir = path.dirname(p),
       fname = path.basename(p),
       currTime = (new Date()).getTime();
+
+    // Invariant: The root always exists.
+    // If we don't check this prior to taking steps below, we will create a
+    // file with name '' in root should p == '/'.
+    if (p === '/') {
+      return cb(ApiError.EEXIST(p));
+    }
 
     // Let's build a pyramid of code!
 
