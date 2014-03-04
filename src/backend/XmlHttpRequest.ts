@@ -139,10 +139,10 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
             return cb(e);
           }
           stats.size = size;
-          cb(null, stats);
+          cb(null, stats.clone());
         });
       } else {
-        cb(null, stats);
+        cb(null, stats.clone());
       }
     } else {
       stats = (<file_index.DirInode> inode).getStats();
@@ -169,6 +169,10 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
   }
 
   public open(path: string, flags: file_flag.FileFlag, mode: number, cb: (e: api_error.ApiError, file?: file.File) => void): void {
+    // INVARIANT: You can't write to files on this file system.
+    if (flags.isWriteable()) {
+      return cb(new ApiError(ErrorCode.EPERM, path));
+    }
     var _this = this;
     // Check if the path exists, and is a file.
     var inode = <file_index.FileInode<node_fs_stats.Stats>> this._index.getInode(path);
@@ -206,6 +210,10 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
   }
 
   public openSync(path: string, flags: file_flag.FileFlag, mode: number): file.File {
+    // INVARIANT: You can't write to files on this file system.
+    if (flags.isWriteable()) {
+      throw new ApiError(ErrorCode.EPERM, path);
+    }
     // Check if the path exists, and is a file.
     var inode = <file_index.FileInode<node_fs_stats.Stats>> this._index.getInode(path);
     if (inode === null) {

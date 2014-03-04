@@ -532,6 +532,10 @@ export class ZipFS extends file_system.SynchronousFileSystem implements file_sys
   }
 
   public openSync(path: string, flags: file_flag.FileFlag, mode: number): file.File {
+    // INVARIANT: Cannot write to RO file systems.
+    if (flags.isWriteable()) {
+      throw new ApiError(ErrorCode.EPERM, path);
+    }
     // Check if the path exists, and is a file.
     var inode = <file_index.FileInode<CentralDirectory>> this._index.getInode(path);
     if (inode === null) {
