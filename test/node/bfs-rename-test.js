@@ -196,4 +196,19 @@ window.tests.bfs_rename_test = function () {
       });
     });
   });
+
+  // cannot rename a directory inside itself
+  var renDir1 = '/renamedir_1', renDir2 = '/renamedir_1/lol';
+  fs.mkdir(renDir1, function (e) {
+    if (e) {
+      throw e;
+    }
+    fs.rename(renDir1, renDir2, function (e) {
+      if (e == null) {
+        throw new Error("Failed invariant: Cannot move a directory inside itself.");
+      } else {
+        assert(e.code === 'EBUSY');
+      }
+    });
+  });
 };

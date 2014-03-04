@@ -430,6 +430,14 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
     var nodeId: string = oldDirList[oldName];
     delete oldDirList[oldName];
 
+    // Invariant: Can't move a folder inside itself.
+    // This funny little hack ensures that the check passes only if oldPath
+    // is a subpath of newParent. We append '/' to avoid matching folders that
+    // are a substring of the bottom-most folder in the path.
+    if ((newParent + '/').indexOf(oldPath + '/') === 0) {
+      throw new ApiError(api_error.ErrorCode.EBUSY, oldParent);
+    }
+
     // Add newPath to parent's directory listing.
     var newDirNode: Inode, newDirList;
     if (newParent === oldParent) {
@@ -937,6 +945,14 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
         [path: string]: { [file: string]: string }
       } = {},
       errorOccurred: boolean = false;
+
+    // Invariant: Can't move a folder inside itself.
+    // This funny little hack ensures that the check passes only if oldPath
+    // is a subpath of newParent. We append '/' to avoid matching folders that
+    // are a substring of the bottom-most folder in the path.
+    if ((newParent + '/').indexOf(oldPath + '/') === 0) {
+      return cb(new ApiError(api_error.ErrorCode.EBUSY, oldParent));
+    }
 
     /**
      * Responsible for Phase 2 of the rename operation: Modifying and
