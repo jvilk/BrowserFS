@@ -441,8 +441,22 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
       newDirNode = this.findINode(tx, newParent);
       newDirList = this.getDirListing(tx, newParent, newDirNode);
     }
+
     if (newDirList[newName]) {
-      throw ApiError.EEXIST(newPath);
+      // If it's a file, delete it.
+      var newNameNode = this.getINode(tx, newPath, newDirList[newName]);
+      if (newNameNode.isFile()) {
+        try {
+          tx.delete(newNameNode.id);
+          tx.delete(newDirList[newName]);
+        } catch (e) {
+          tx.abort();
+          throw e;
+        }
+      } else {
+        // If it's a directory, throw a permissions error.
+        throw ApiError.EPERM(newPath);
+      }
     }
     newDirList[newName] = nodeId;
 
@@ -943,10 +957,10 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
       } else {
         var fileId = oldParentList[oldName];
         delete oldParentList[oldName];
-        // Add file to new parent.
-        if (newParentList[newName]) {
-          cb(ApiError.EEXIST(newPath));
-        } else {
+
+        // Finishes off the renaming process by adding the file to the new
+        // parent.
+        var completeRename = () => {
           newParentList[newName] = fileId;
           // Commit old parent's list.
           tx.put(oldParentINode.id, new Buffer(JSON.stringify(oldParentList)), true, (e: api_error.ApiError) => {
@@ -964,6 +978,34 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
               }
             }
           });
+        };
+
+        if (newParentList[newName]) {
+          // 'newPath' already exists. Check if it's a file or a directory, and
+          // act accordingly.
+          this.getINode(tx, newPath, newParentList[newName], (e: api_error.ApiError, inode?: Inode) => {
+            if (noErrorTx(e, tx, cb)) {
+              if (inode.isFile()) {
+                // Delete the file and continue.
+                tx.delete(inode.id, (e?: api_error.ApiError) => {
+                  if (noErrorTx(e, tx, cb)) {
+                    tx.delete(newParentList[newName], (e?: api_error.ApiError) => {
+                      if (noErrorTx(e, tx, cb)) {
+                        completeRename();
+                      }
+                    });
+                  }
+                });
+              } else {
+                // Can't overwrite a directory using rename.
+                tx.abort((e?) => {
+                  cb(ApiError.EPERM(newPath));
+                });
+              }
+            }
+          });
+        } else {
+          completeRename();
         }
       }
     };

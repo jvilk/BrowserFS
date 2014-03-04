@@ -102,7 +102,7 @@ window.tests.bfs_rename_test = function () {
                   }
                   check_directory(newDir, function () {
                     fs.exists(oldDir, function (exists) {
-                      if (!exists) {
+                      if (exists) {
                         throw new Error("Failed invariant: Renamed directory still exists at old name.");
                       }
                       // Renaming directories with *different* parent directories.

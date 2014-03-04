@@ -85,4 +85,8 @@ export class ApiError {
   public static ENOTDIR(path: string): ApiError {
     return this.FileError(ErrorCode.ENOTDIR, path);
   }
+
+  public static EPERM(path: string): ApiError {
+    return this.FileError(ErrorCode.EPERM, path);
+  }
 }
