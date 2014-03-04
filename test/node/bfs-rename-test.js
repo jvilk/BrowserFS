@@ -88,6 +88,9 @@ window.tests.bfs_rename_test = function () {
             fs.rename(oldDir, newDir, function (e) {
               if (e == null) {
                 throw new Error('Failed invariant: CANNOT rename a directory over another directory.');
+              } else {
+                // it's a permissions error for whatever reason (tested in node)
+                assert(e.code === 'EPERM');
               }
               fs.rmdir(newDir, function (e) {
                 if (e) {
@@ -167,4 +170,30 @@ window.tests.bfs_rename_test = function () {
     });
   });
 
+  // file-2-dir and dir-2-file rename
+  var dir = '/rename_filedir_test',
+    file = '/rename_filedir_test.txt';
+  fs.mkdir(dir, function (e) {
+    if (e) {
+      throw e;
+    }
+    fs.writeFile(file, new Buffer("file contents go here"), function (e) {
+      if (e) {
+        throw e;
+      }
+      fs.rename(file, dir, function (e) {
+        if (e == null) {
+          throw new Error("Failed invariant: Cannot rename a file over an existing directory.");
+        } else {
+          // it's a permissions error for some reason (tested in node).
+          assert(e.code === 'EPERM');
+        }
+        fs.rename(dir, file, function (e) {
+          if (e) {
+            throw new Error("Failed invariant: Can rename a directory over a file.");
+          }
+        });
+      });
+    });
+  });
 };
