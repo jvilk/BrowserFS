@@ -400,23 +400,26 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
    * Returns an array of `FileEntry`s. Used internally by empty and readdir.
    */
   private _readdir(path: string, cb: (e: api_error.ApiError, entries?: Entry[]) => void): void {
-    var reader = this.fs.root.createReader();
-    var entries = [];
-    var error = (err: DOMException): void => {
-      cb(this.convert(err, path));
-    };
-    // Call the reader.readEntries() until no more results are returned.
-    var readEntries = () => {
-      reader.readEntries(((results) => {
-        if (results.length) {
-          entries = entries.concat(_toArray(results));
-          readEntries();
-        } else {
-          cb(null, entries);
-        }
-      }), error);
-    };
-    readEntries();
+    // Grab the requested directory.
+    this.fs.root.getDirectory(path, { create: false }, (dirEntry) => {
+      var reader = dirEntry.createReader();
+      var entries = [];
+      var error = (err: DOMException): void => {
+        cb(this.convert(err, path));
+      };
+      // Call the reader.readEntries() until no more results are returned.
+      var readEntries = () => {
+        reader.readEntries(((results) => {
+          if (results.length) {
+            entries = entries.concat(_toArray(results));
+            readEntries();
+          } else {
+            cb(null, entries);
+          }
+        }), error);
+      };
+      readEntries();
+    });
   }
 
   /**
