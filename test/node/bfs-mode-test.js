@@ -90,7 +90,7 @@ window.tests.bfs_mode_test = function () {
       }
 
       // Try to write a file into the directory.
-      /*var testFile = path.resolve(p, '__test_file_plz_ignore.txt');
+      var testFile = path.resolve(p, '__test_file_plz_ignore.txt');
       fs.writeFile(testFile, testFileContents, function(e) {
         if (e) {
           if (e.code === 'EPERM') {
@@ -106,7 +106,7 @@ window.tests.bfs_mode_test = function () {
         assert(is_writable(dirMode));
         // Clean up.
         fs.unlink(testFile, function() {});
-      });*/
+      });
     });
   }
 
