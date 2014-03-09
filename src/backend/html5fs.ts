@@ -170,7 +170,6 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
       case 'TypeMismatchError':
         return new ApiError(ErrorCode.EINVAL, message);
       default:
-        console.log("Unknown Error: " + err.name);
         return new ApiError(ErrorCode.EINVAL, message);
     }
   }

@@ -78,7 +78,7 @@
 
     var backends = [];
 
-    var timeout = 10000;
+    var timeout = 20000;
 
     // Generates a unit test.
     var generateTest = function(testName, test) {

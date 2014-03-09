@@ -309,6 +309,9 @@ export class fs {
 
     var newCb = wrapCb(cb, 1);
     try {
+      if (len < 0) {
+        throw new ApiError(ErrorCode.EINVAL);
+      }
       return fs.root.truncate(normalizePath(path), len, newCb);
     } catch (e) {
       return newCb(e);
@@ -321,6 +324,9 @@ export class fs {
    * @param [Number] len
    */
   public static truncateSync(path: string, len: number = 0): void {
+    if (len < 0) {
+      throw new ApiError(ErrorCode.EINVAL);
+    }
     return fs.root.truncateSync(normalizePath(path), len);
   }
 
@@ -640,6 +646,9 @@ export class fs {
     var newCb = wrapCb(cb, 1);
     try {
       checkFd(fd);
+      if (length < 0) {
+        throw new ApiError(ErrorCode.EINVAL);
+      }
       fd.truncate(length, newCb);
     } catch (e) {
       newCb(e);
