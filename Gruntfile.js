@@ -1,5 +1,5 @@
-var fs = require('fs');
-var path = require('path');
+var fs = require('fs'),
+  path = require('path');
 
 // Removes a directory if it exists.
 // Throws an exception if deletion fails.
@@ -53,12 +53,12 @@ module.exports = function(grunt) {
       },
       dev: {
         src: ["src/**/*.ts"],
-        outDir: 'tmp'
+        outDir: path.join('build', 'dev')
       },
       watch: {
         // Performs a dev build and rebuilds when changes are made.
         src: ["src/**/*.ts"],
-        outDir: 'tmp',
+        outDir: path.join('build', 'dev'),
         watch: 'src'
       }
     },
@@ -66,14 +66,14 @@ module.exports = function(grunt) {
       compile: {
         options: {
           // The output of the TypeScript compiler goes into this directory.
-          baseUrl: 'tmp',
+          baseUrl: path.join('build', 'dev'),
           // The main module that installs the BrowserFS global and needed polyfills.
-          name: '../vendor/almond/almond',
+          name: '../../vendor/almond/almond',
           wrap: {
-            startFile: ['build/intro.js', 'tmp/core/polyfills.js'],
+            startFile: ['build/intro.js', 'build/dev/core/polyfills.js'],
             endFile: 'build/outro.js'
           },
-          out: 'lib/browserfs.js',
+          out: 'build/release/browserfs.js',
           optimize: 'uglify2',
           generateSourceMaps: true,
           // Need to set to false for source maps to work.
@@ -136,13 +136,13 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-shell');
 
-  grunt.registerTask('clean', 'Removes all built files.', function() {
-    removeFile('./listings.json');
-    removeFile('./lib/browserfs.js');
-    removeFile('./lib/browserfs.js.map');
+  grunt.registerTask('clean', 'Removes all built files.', function () {
     removeFile('./test/harness/load_fixtures.js');
-    removeDir('./tmp');
+    removeFile('./listings.json');
+    removeDir('./build/dev');
+    removeDir('./build/release');
     removeDir('./test/fixtures/dropbox');
+    removeDir('./test/fixtures/zipfs');
   });
 
   // test

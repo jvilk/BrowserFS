@@ -11,13 +11,13 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       'node_modules/jasmine-tapreporter/src/tapreporter.js',
-      'tmp/core/polyfills.js',
+      'build/dev/core/polyfills.js',
       'vendor/assert/assert.js',
       'vendor/requirejs/require.js',
       'vendor/dropbox-build/dropbox.min.js',
       'test/harness/*.js',
       'test/tests/node/*.js',
-      {pattern: 'tmp/**/*.js', included: false, served: true}
+      {pattern: 'build/dev/**/*.js', included: false, served: true}
     ],
 
     // list of files to exclude

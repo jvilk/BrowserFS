@@ -277,14 +277,14 @@
   } else {
     // Dev mode.
     // Defines/generates all of our Jasmine unit tests from the node unit tests.
-    require(['../tmp/core/browserfs',
-             '../tmp/backend/IndexedDB',
-             '../tmp/backend/in_memory',
-             '../tmp/backend/localStorage',
-             '../tmp/backend/mountable_file_system',
-             '../tmp/backend/XmlHttpRequest',
-             '../tmp/backend/html5fs',
-             '../tmp/backend/dropbox',
-             '../tmp/backend/zipfs'], startTests);
+    require(['../build/dev/core/browserfs',
+             '../build/dev/backend/IndexedDB',
+             '../build/dev/backend/in_memory',
+             '../build/dev/backend/localStorage',
+             '../build/dev/backend/mountable_file_system',
+             '../build/dev/backend/XmlHttpRequest',
+             '../build/dev/backend/html5fs',
+             '../build/dev/backend/dropbox',
+             '../build/dev/backend/zipfs'], startTests);
   }
 })();
