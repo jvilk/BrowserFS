@@ -48,7 +48,8 @@ module.exports = function(grunt) {
       options: {
         sourcemap: true,
         module: 'amd',
-        comments: true
+        comments: true,
+        declaration: true
       },
       dev: {
         src: ["src/**/*.ts"],

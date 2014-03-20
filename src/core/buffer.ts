@@ -82,7 +82,7 @@ export class Buffer implements BFSBuffer {
   constructor (data: NodeBuffer);
   constructor (data: string, encoding?: string);
   constructor (data: buffer_core.BufferCore, start?: number, end?: number);
-  constructor (arg1: any, arg2='utf8', arg3?: number) {
+  constructor (arg1: any, arg2: any = 'utf8', arg3?: number) {
     var i;
     // Node apparently allows you to construct buffers w/o 'new'.
     if (!(this instanceof Buffer)) {
