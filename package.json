@@ -25,9 +25,11 @@
     "async": ">= 0.2.7",
     "karma-opera-launcher": "*",
     "karma-safari-launcher": "*",
+    "karma-firefox-launcher": "*",
+    "karma-jasmine": "*",
     "coffee-script": ">= 1.6.2",
     "glob": ">= 3.1.21",
-    "grunt-karma": "~0.6.1",
+    "grunt-karma": "*",
     "grunt": "*",
     "grunt-contrib-connect": "~0.3.0",
     "grunt-contrib-requirejs": "*",
@@ -48,25 +50,5 @@
     "//": "Testling doesn't have Bower installed globally.",
     "install": "./node_modules/.bin/bower install",
     "test": "grunt test"
-  },
-  "testling": {
-    "//": "Testling doesn't have grunt installed globally.",
-    "preprocess": "./node_modules/.bin/grunt testling",
-    "browsers": {
-      "chrome": [20]
-    },
-    "scripts": [
-      "vendor/jasmine/lib/jasmine-core/jasmine.js",
-      "node_modules/jasmine-tapreporter/src/tapreporter.js",
-      "tmp/core/polyfills.js",
-      "vendor/typedarray.js",
-      "vendor/assert/assert.js",
-      "vendor/requirejs/require.js",
-      "vendor/dropbox-build/dropbox.min.js",
-      "lib/browserfs.js",
-      "lib/load_fixtures.js",
-      "test/setup.js",
-      "test/node/*.js"
-    ]
   }
 }
