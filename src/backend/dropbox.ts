@@ -10,19 +10,13 @@ import node_path = require('../core/node_path');
 import browserfs = require('../core/browserfs');
 import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
 
+declare var Dropbox;
 var Buffer = buffer.Buffer;
 var Stats = node_fs_stats.Stats;
 var ApiError = api_error.ApiError;
 var ErrorCode = api_error.ErrorCode;
 var path = node_path.path;
 var FileType = node_fs_stats.FileType;
-
-// The name `Dropbox` gets clobbered by the filesystem, so save a reference
-// to the Dropbox.js client library
-// @todo Don't do this.
-window['db'] = window['Dropbox'];
-
-declare var db;
 
 // XXX: No typings available for the Dropbox client. :(
 
@@ -49,7 +43,7 @@ export class DropboxFile extends preload_file.PreloadFile implements file.File {
     var dv = backing_mem.getDataView();
     // Create an appropriate view on the array buffer.
     var abv = new DataView(dv.buffer, dv.byteOffset + (<buffer.BFSBuffer><any>buffer).getOffset(), buffer.length);
-    (<Dropbox> this._fs)._writeFileStrict(this._path, abv, cb);
+    (<DropboxFileSystem> this._fs)._writeFileStrict(this._path, abv, cb);
   }
 
   public close(cb: (e?: api_error.ApiError) => void): void {
@@ -57,7 +51,7 @@ export class DropboxFile extends preload_file.PreloadFile implements file.File {
   }
 }
 
-export class Dropbox extends file_system.BaseFileSystem implements file_system.FileSystem {
+export class DropboxFileSystem extends file_system.BaseFileSystem implements file_system.FileSystem {
   // The Dropbox client.
   private client: any;
   /**
@@ -75,7 +69,7 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
   public static isAvailable(): boolean {
     // Checks if the Dropbox library is loaded.
     // @todo Check if the Dropbox library *can be used* in the current browser.
-    return typeof db !== 'undefined';
+    return typeof Dropbox !== 'undefined';
   }
 
   public isReadOnly(): boolean {
@@ -348,4 +342,4 @@ export class Dropbox extends file_system.BaseFileSystem implements file_system.F
   }
 }
 
-browserfs.registerFileSystem('Dropbox', Dropbox);
+browserfs.registerFileSystem('Dropbox', DropboxFileSystem);
