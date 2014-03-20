@@ -6,7 +6,7 @@
 path = require 'path'
 fs = require 'fs'
 
-fixturesPath = 'test/fixtures'
+fixturesPath = 'test/fixtures/files'
 outfile = null
 files = []
 dirs = ['tmp']
@@ -21,7 +21,7 @@ unless fs.existsSync(path.resolve('.', 'src', 'core', 'browserfs.ts'))
   throw new Error 'FixtureLoaderMaker must be run from the BrowserFS root!'
 
 debugPrint 'Opening load_fixtures.js...'
-outfile = fs.openSync(path.resolve('.', 'lib', 'load_fixtures.js'), 'w+')
+outfile = fs.openSync(path.resolve('.', 'test', 'harness', 'load_fixtures.js'), 'w+')
 
 # path0, data0
 # mkdir occurs one by one

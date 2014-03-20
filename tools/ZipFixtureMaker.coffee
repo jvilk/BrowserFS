@@ -4,12 +4,13 @@ fs = require 'fs'
 path = require 'path'
 archiver = require 'archiver'
 
-srcFolder = "#{__dirname}/../test/fixtures"
-destFolder = 'test/fixtures'
+baseFolder = "#{__dirname}/.."
+srcFolder = "#{baseFolder}/test/fixtures/files"
+outputFolder = "#{baseFolder}/test/fixtures/zipfs"
 
 # Create a zip file of the fixture data using the given zlib compression level.
 createZip = (level) ->
-  output = fs.createWriteStream "#{__dirname}/../test/zipfs_fixtures_l#{level}.zip"
+  output = fs.createWriteStream "#{outputFolder}/zipfs_fixtures_l#{level}.zip"
   options = zlib: level: level
   archive = archiver 'zip', options
   archive.on 'error', (err) -> throw err
@@ -31,9 +32,13 @@ addFolder = (archive, folder) ->
 
 # Add the given file to the zip file.
 addFile = (archive, fileName) ->
-  fileNameRelative = path.relative srcFolder, fileName
-  archive.append(fs.createReadStream(fileName), {name: path.join(destFolder, fileNameRelative)})
+  fileNameRelative = path.relative baseFolder, fileName
+  archive.append(fs.createReadStream(fileName), {name: fileNameRelative})
   return
+
+# Ensure output folder exists
+unless fs.existsSync outputFolder
+  fs.mkdirSync outputFolder
 
 # Store
 createZip 0

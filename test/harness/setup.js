@@ -60,7 +60,7 @@
     // Polyfill for Node's 'common' module that it uses for its unit tests.
     window.common = {
         tmpDir: '/tmp/',
-        fixturesDir: '/test/fixtures/node',
+        fixturesDir: '/test/fixtures/files/node',
         // NodeJS uses 'common.error' for test messages, but this is inappropriate.
         // I map it to log, instead.
         error: function() { console.log.apply(console, arguments); }
@@ -160,7 +160,7 @@
       // Leverage the XHRFS to download the fixtures for this FS.
       BrowserFS.initialize(xhrfs);
       for (var i = 0; i < zipFiles.length; i++) {
-        var zipFileName = '/test/zipfs_fixtures_l' + zipFiles[i] + '.zip';
+        var zipFileName = '/test/fixtures/zipfs/zipfs_fixtures_l' + zipFiles[i] + '.zip';
         backends.push(new BrowserFS.FileSystem.ZipFS(fs.readFileSync(zipFileName), zipFileName));
       }
     }
@@ -210,7 +210,7 @@
 
       // Authenticate with pregenerated unit testing credentials.
       var req = new XMLHttpRequest();
-      req.open('GET', '/test/dropbox/token.json');
+      req.open('GET', '/test/fixtures/dropbox/token.json');
       var data = null;
       req.onerror = function(e){ console.error(req.statusText); };
       req.onload = function(e){

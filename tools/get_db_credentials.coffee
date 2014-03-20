@@ -9,7 +9,7 @@ client = new dropbox.Client({
   secret: 'cb0sxc9e09itvrn'
 })
 
-root = 'test/dropbox/'
+root = 'test/fixtures/dropbox/'
 certPath = "#{root}cert.pem"
 tokenPath = "#{root}token.json"
 

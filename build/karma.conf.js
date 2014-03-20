@@ -15,9 +15,8 @@ module.exports = function(config) {
       'vendor/assert/assert.js',
       'vendor/requirejs/require.js',
       'vendor/dropbox-build/dropbox.min.js',
-      'lib/load_fixtures.js',
-      'test/setup.js',
-      'test/node/*.js',
+      'test/harness/*.js',
+      'test/tests/node/*.js',
       {pattern: 'tmp/**/*.js', included: false, served: true}
     ],
 

@@ -101,9 +101,9 @@ module.exports = function(grunt) {
       gen_cert: {
         command: [
           // Short circuit if the certificate exists.
-          'test ! -e test/dropbox/cert.pem',
-          'mkdir -p test/dropbox',
-          'openssl req -new -x509 -days 365 -nodes -batch -out test/dropbox/cert.pem -keyout test/dropbox/cert.pem -subj /O=dropbox.js/OU=Testing/CN=localhost'
+          'test ! -e test/fixtures/dropbox/cert.pem',
+          'mkdir -p test/fixtures/dropbox',
+          'openssl req -new -x509 -days 365 -nodes -batch -out test/fixtures/dropbox/cert.pem -keyout test/fixtures/dropbox/cert.pem -subj /O=dropbox.js/OU=Testing/CN=localhost'
         ].join('&&')
       },
       gen_token: {
@@ -140,9 +140,9 @@ module.exports = function(grunt) {
     removeFile('./listings.json');
     removeFile('./lib/browserfs.js');
     removeFile('./lib/browserfs.js.map');
-    removeFile('./lib/load_fixtures.js');
+    removeFile('./test/harness/load_fixtures.js');
     removeDir('./tmp');
-    removeDir('./test/dropbox');
+    removeDir('./test/fixtures/dropbox');
   });
 
   // test
