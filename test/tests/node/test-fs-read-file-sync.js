@@ -19,8 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-window.tests.fs_read_file_sync = function() {
-
+define([], function() { return function(){
 var rootFS = fs.getRootFS();
 var fn = path.join(common.fixturesDir, 'elipses.txt');
 
@@ -32,4 +31,4 @@ if (rootFS.supportsSynch()) {
   assert.equal(10000, s.length);
 }
 
-};
+};});

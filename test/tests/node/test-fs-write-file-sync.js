@@ -19,7 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-window.tests.fs_write_file_sync = function() {
+define([], function() { return function(){
 var openCount = 0;
 var mode;
 var content;
@@ -109,4 +109,4 @@ function closeSync() {
   return fs._closeSync.apply(fs, arguments);
 }
 
-};
+};});

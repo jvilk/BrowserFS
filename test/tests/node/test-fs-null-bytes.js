@@ -19,8 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-window.tests.fs_null_bytes = (function() {
-
+define([], function() { return function(){
 var rootFS = fs.getRootFS();
 
 function check(async, sync) {
@@ -82,4 +81,4 @@ if (rootFS.supportsSynch()) {
   assert(!fs.existsSync('foo\u0000bar'));
 }
 
-});
+};});

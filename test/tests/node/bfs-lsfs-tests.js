@@ -1,7 +1,7 @@
 /**
  * Unit tests specifically crafted for the LocalStorage file system.
  */
-window.tests.bfs_lsfs_tests = function() {
+define([], function() { return function(){
   if (!(fs.getRootFS() instanceof BrowserFS.FileSystem.LocalStorage)) return;
 
   // While LocalStorage is supposed to only store 5MB, our compression enables
@@ -16,4 +16,4 @@ window.tests.bfs_lsfs_tests = function() {
     assert(e.code === 'ENOSPC');
   }
   assert(errorThrown);
-};
+};});

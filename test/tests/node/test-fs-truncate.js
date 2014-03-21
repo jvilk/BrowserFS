@@ -19,7 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-window.tests.fs_truncate = function() {
+define([], function() { return function(){
 var rootFS = fs.getRootFS();
 if (rootFS.isReadOnly()) return;
 
@@ -144,4 +144,4 @@ function testFtruncate(cb) {
   });
 }
 
-};
+};});

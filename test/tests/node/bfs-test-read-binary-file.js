@@ -1,4 +1,4 @@
-this.tests.bfs_read_binary_file = function () {
+define([], function() { return function(){
   // Read a file and check its binary bytes.
   fs.readFile(path.join(common.fixturesDir, 'elipses.txt'), function(err, buff) {
     if (err) throw err;
@@ -10,4 +10,4 @@ this.tests.bfs_read_binary_file = function () {
     var buff = fs.readFileSync(path.join(common.fixturesDir, 'elipses.txt'));
     assert(buff.readUInt16LE(0) === 32994);
   }
-};
+};});

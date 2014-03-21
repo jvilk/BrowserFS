@@ -19,7 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-window.tests.fs_utimes = function() {
+define([], function() { return function(){
 var tests_ok = 0;
 var tests_run = 0;
 var rootFS = fs.getRootFS();
@@ -155,4 +155,4 @@ process.on('exit', function() {
       tests_ok + ' OK / ' + tests_run + ' total tests.');
 });
 
-};
+};});

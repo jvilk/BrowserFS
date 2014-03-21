@@ -19,8 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-this.tests.fs_stat = function(){
-
+define([], function() { return function(){
 var got_error = false;
 var success_count = 0;
 var existing_dir = common.fixturesDir;
@@ -113,4 +112,4 @@ process.on('exit', function() {
   assert.equal(false, got_error);
 });
 
-};
+};});

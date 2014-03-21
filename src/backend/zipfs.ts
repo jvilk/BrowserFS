@@ -1,4 +1,4 @@
-/// <amd-dependency path="../../vendor/zlib.js/rawinflate.min" />
+/// <amd-dependency path="zlib" />
 
 /**
  * Zip file-backed filesystem

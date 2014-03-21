@@ -19,8 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-window.tests.fs_read_buffer = function() {
-
+define([], function() { return function(){
 var filepath = path.join(common.fixturesDir, 'x.txt'),
     expected = 'xyz\n',
     bufferAsync = new Buffer(expected.length),
@@ -48,4 +47,4 @@ process.on('exit', function() {
   assert.equal(readCalled, 1);
 });
 
-};
+};});

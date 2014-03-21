@@ -19,7 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-this.tests.fs_exists = function(){
+define([], function() { return function(){
 var f = path.join(common.fixturesDir, 'x.txt');
 var exists;
 var doesNotExist;
@@ -42,4 +42,4 @@ process.on('exit', function() {
   assert.strictEqual(doesNotExist, false);
 });
 
-};
+};});

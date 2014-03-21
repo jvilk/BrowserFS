@@ -19,8 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-window.tests.fs_error_messages = function() {
-
+define([], function() { return function(){
 var rootFS = fs.getRootFS();
 var canWrite = !rootFS.isReadOnly();
 var fn = path.join(common.fixturesDir, 'non-existent'),
@@ -205,4 +204,4 @@ process.on('exit', function() {
   }
 });
 
-};
+};});

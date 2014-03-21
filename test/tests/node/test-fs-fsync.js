@@ -19,8 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-window.tests.fs_fsync = function() {
-
+define([], function() { return function(){
 var successes = 0;
 
 var file = path.join(common.fixturesDir, 'a.js');
@@ -56,4 +55,4 @@ process.on('exit', function() {
   }
 });
 
-};
+};});

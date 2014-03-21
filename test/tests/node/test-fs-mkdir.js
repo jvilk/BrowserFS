@@ -19,7 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-this.tests.fs_mkdir = function(){
+define([], function() { return function(){
   if (fs.getRootFS().isReadOnly()) return;
 
   var pathname1 = common.tmpDir + '/mkdir-test1';
@@ -50,4 +50,4 @@ this.tests.fs_mkdir = function(){
     assert.notEqual(err, null, 'fs.mkdir(' + pathname3 + ') reports null error');
   });
 
-};
+};});

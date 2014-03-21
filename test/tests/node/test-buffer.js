@@ -19,8 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-this.tests.buffer = function() {
-
+define([], function() { return function(){
 // counter to ensure unique value is always copied
 var cntr = 0;
 
@@ -827,4 +826,4 @@ var buf = new Buffer(0);
   }
 })();
 
-};
+};});

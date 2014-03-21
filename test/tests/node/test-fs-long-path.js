@@ -19,7 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-this.tests.fs_long_path = function(){
+define([], function() { return function(){
 if (fs.getRootFS().isReadOnly()) return;
 // make a path that will be at least 260 chars long.
 var fileNameLen = Math.max(260 - common.tmpDir.length - 1, 1);
@@ -40,5 +40,4 @@ process.on('exit', function() {
   fs.unlink(fullPath);
   //assert.equal(2, successes);
 });
-};
-
+};});

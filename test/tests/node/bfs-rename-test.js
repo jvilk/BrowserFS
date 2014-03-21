@@ -1,7 +1,7 @@
 /**
  * Tests basic file and directory renaming in writable file systems.
  */
-window.tests.bfs_rename_test = function () {
+define([], function() { return function(){
   var rootFS = fs.getRootFS(),
     isReadOnly = rootFS.isReadOnly(),
     oldParentName = '/_renameTest',
@@ -211,4 +211,4 @@ window.tests.bfs_rename_test = function () {
       }
     });
   });
-};
+};});

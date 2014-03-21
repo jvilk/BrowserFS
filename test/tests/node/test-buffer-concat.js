@@ -19,8 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-this.tests.buffer_concat = function() {
-
+define([], function() { return function(){
 var zero = [];
 var one  = [ new Buffer('asdf') ];
 var _long = [];
@@ -36,4 +35,4 @@ assert(flatOne.toString() === 'asdf');
 assert(flatOne === one[0]);
 assert(flatLong.toString() === (new Array(10+1).join('asdf')));
 assert(flatLongLen.toString() === (new Array(10+1).join('asdf')));
-};
+};});

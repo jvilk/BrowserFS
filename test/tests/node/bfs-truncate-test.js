@@ -1,7 +1,7 @@
 /**
  * Extensively tests fs.truncate.
  */
-window.tests.bfs_rename_test = function () {
+define([], function() { return function(){
   var rootFS = fs.getRootFS(),
     isReadOnly = rootFS.isReadOnly();
 
@@ -44,4 +44,4 @@ window.tests.bfs_rename_test = function () {
       });
     });
   });
-};
+};});

@@ -1,12 +1,5 @@
 // Wrap in a function closure to avoid polluting the global namespace.
 (function() {
-  // Prevent Karma from auto-executing.
-  // There's no Karma in the Testling environment.
-  if (typeof __karma__ !== 'undefined') {
-    __karma__.loaded = function() {};
-  }
-  // All of our tests will be defined in this hashmap.
-  window.tests = {};
   // Calleable things aren't always Functions... IE9 is dumb :(
   // http://stackoverflow.com/questions/5538972/console-log-apply-not-working-in-ie9
   if (typeof console.log == "object") {
@@ -16,36 +9,41 @@
     } else {
       // IE<9 does not define bind. :(
       // Use a half-assed polyfill function.
-      var oglog = console.log;
-      console.log = function() {
-        switch(arguments.length) {
-          case 0:
-            return oglog();
-          case 1:
-            return oglog(arguments[0]);
-          case 2:
-            return oglog(arguments[0], arguments[1]);
-          case 3:
-            return oglog(arguments[0], arguments[1], arguments[2]);
-          case 4:
-            return oglog(arguments[0], arguments[1], arguments[2], arguments[3]);
-          case 5:
-            return oglog(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]);
-          default:
-            oglog("WARNING: Calling console.log with > 5 arguments...");
-            return oglog(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]);
+      console.log = (function(oglog) {
+        return function() {
+          switch(arguments.length) {
+            case 0:
+              return oglog();
+            case 1:
+              return oglog(arguments[0]);
+            case 2:
+              return oglog(arguments[0], arguments[1]);
+            case 3:
+              return oglog(arguments[0], arguments[1], arguments[2]);
+            case 4:
+              return oglog(arguments[0], arguments[1], arguments[2], arguments[3]);
+            case 5:
+              return oglog(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]);
+            default:
+              oglog("WARNING: Calling console.log with > 5 arguments...");
+              return oglog(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4]);
+          }
         }
-      };
+      })(console.log);
     }
   }
-  // Add a TAP reporter so we get decent console output.
-  jasmine.getEnv().addReporter(new TAPReporter(function() {
-    console.log.apply(console, arguments);
-  }));
 
   // Defines and starts all of our unit tests.
-  var startTests = function(BrowserFS) {
+  var startTests = function(BrowserFS, TAPReporter) {
     "use strict";
+    // Arguments: Essential followed by tests.
+    var testFcns = Array.prototype.slice.call(arguments, essentialModules.length);
+
+    // Add a TAP reporter so we get decent console output.
+    jasmine.getEnv().addReporter(new TAPReporter(function() {
+      console.log.apply(console, arguments);
+    }));
+
     window['BrowserFS'] = BrowserFS;
     // Test-related setup code.
     var obj = {};
@@ -107,18 +105,14 @@
         BrowserFS.initialize(backend);
       });
       generateTest("Load fixtures", window.loadFixtures);
-      for (var testName in window.tests) {
-        if (window.tests.hasOwnProperty(testName)) {
-          // Generate a unit test for this Node test
-          generateTest(testName, window.tests[testName]);
-        }
+      var i;
+      for (i = 0; i < allTestFiles.length; i++) {
+        // Generate a unit test for this Node test
+        generateTest(allTestFiles[i], testFcns[i]);
       }
     };
 
     var generateAllTests = function() {
-      // XXX: TERRIBLE HACK: There's a race condition with defining tests and this
-      //      file loading.
-      setTimeout(function() {
       // programmatically create a single test suite for each filesystem we wish to
       // test
       var testGeneratorFactory = function(backend) {
@@ -135,7 +129,6 @@
         // Testling environment.
         jasmine.getEnv().execute();
       }
-     }, 1000);
     };
 
     // Add LocalStorage-backed filesystem
@@ -269,22 +262,48 @@
     if (async_backends === 0) generateAllTests();
   };
 
-  if (typeof BrowserFS !== 'undefined') {
-    // Release mode.
-    setTimeout(function() {
-      startTests(BrowserFS);
-    }, 10);
-  } else {
-    // Dev mode.
-    // Defines/generates all of our Jasmine unit tests from the node unit tests.
-    require(['../build/dev/core/browserfs',
-             '../build/dev/backend/IndexedDB',
-             '../build/dev/backend/in_memory',
-             '../build/dev/backend/localStorage',
-             '../build/dev/backend/mountable_file_system',
-             '../build/dev/backend/XmlHttpRequest',
-             '../build/dev/backend/html5fs',
-             '../build/dev/backend/dropbox',
-             '../build/dev/backend/zipfs'], startTests);
+  var allTestFiles = [];
+  var TEST_REGEXP = /test\/tests\/node\/.*\.js$/;
+  var BACKEND_REGEXP = /backend\/.*\.js$/;
+  // TODO: Can grab from files.
+  var essentialModules = ['core/browserfs', '../../node_modules/jasmine-tapreporter/src/tapreporter'];
+
+  var pathToModule = function(path) {
+    return path.replace(/^\/base\//, '../../').replace(/\.js$/, '');
+  };
+
+  var pathToModule2 = function(path) {
+    return path.replace(/^\/base\/build\/dev\//, '').replace(/\.js$/, '');
+  };
+
+  var file;
+  for (file in window.__karma__.files) {
+    if (window.__karma__.files.hasOwnProperty(file)) {
+      if (TEST_REGEXP.test(file)) {
+        // Normalize paths to RequireJS module names.
+        allTestFiles.push(pathToModule(file));
+      } else if (BACKEND_REGEXP.test(file)) {
+        essentialModules.push(pathToModule2(file));
+      }
+    }
   }
+
+  require.config({
+    // Karma serves files under /base, which is the basePath from your config file
+    baseUrl: '/base/build/dev',
+    paths: {
+      'zlib': '../../vendor/zlib.js/rawinflate.min',
+      'async': '../../vendor/async/lib/async',
+    },
+
+    shim: {
+      'zlib': {
+        exports: 'Zlib'
+      }
+    },
+    // dynamically load all test files
+    deps: essentialModules.concat(allTestFiles),
+    // we have to kickoff jasmine, as it is asynchronous
+    callback: startTests
+  });
 })();

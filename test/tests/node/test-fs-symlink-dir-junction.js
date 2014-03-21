@@ -19,7 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-window.tests.fs_symlink_dir_junction = function() {
+define([], function() { return function(){
 var completed = 0;
 var expected_tests = 4;
 
@@ -65,4 +65,4 @@ process.on('exit', function() {
   assert.equal(completed, expected_tests);
 });
 
-};
+};});

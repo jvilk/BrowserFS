@@ -2,7 +2,7 @@
  * Sanity checks our buffer implementation. The Node tests assume that all
  * numerical transformations work, so they do not test these cases.
  */
-window.tests.bfs_buffer_test = function() {
+define([], function() { return function(){
   var buff = new Buffer(8);
   var i;
 
@@ -184,4 +184,4 @@ window.tests.bfs_buffer_test = function() {
    */
   buff.set(0, -5);
   assert(buff.get(0) === 251);
-};
+};});

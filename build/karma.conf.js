@@ -6,23 +6,27 @@ module.exports = function(config) {
     // base path, that will be used to resolve files and exclude
     basePath: '../',
 
-    frameworks: ['jasmine'],
+    frameworks: ['jasmine', 'requirejs'],
 
     // list of files / patterns to load in the browser
     files: [
-      'node_modules/jasmine-tapreporter/src/tapreporter.js',
       'build/dev/core/polyfills.js',
       'vendor/assert/assert.js',
-      'vendor/requirejs/require.js',
       'vendor/dropbox-build/dropbox.min.js',
-      'test/harness/*.js',
-      'test/tests/node/*.js',
-      {pattern: 'build/dev/**/*.js', included: false, served: true}
+      /* AMD modules */
+      // Tests
+      {pattern: 'test/tests/node/*.js', included: false},
+      // BFS modules
+      {pattern: 'build/dev/**/*.js', included: false},
+      {pattern: 'vendor/async/lib/async.js', included: false},
+      {pattern: 'vendor/zlib.js/*.js', included: false},
+      {pattern: 'node_modules/jasmine-tapreporter/src/tapreporter.js', included: false},
+      // Main module and fixtures loader
+      'test/harness/*.js'
     ],
 
     // list of files to exclude
-    exclude: [
-    ],
+    exclude: [],
 
     // test results reporter to use
     // possible values: 'dots', 'progress', 'junit'

@@ -19,7 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-this.tests.fs_open = function(){
+define([], function() { return function(){
   var filename = path.join(common.fixturesDir, 'a.js');
 
 
@@ -57,4 +57,4 @@ this.tests.fs_open = function(){
     }
     assert.ok(fd, 'failed to open with mode `rs`: ' + filename);
   });
-};
+};});

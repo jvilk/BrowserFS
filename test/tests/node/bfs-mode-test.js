@@ -19,7 +19,7 @@
  *       invariants. Or only iterate on test item directory? Hard to do for
  *       e.g. ZipFS.
  */
-window.tests.bfs_mode_test = function () {
+define([], function() { return function(){
   var rootFS = fs.getRootFS(),
       isReadOnly = rootFS.isReadOnly(),
       testFileContents = new Buffer('this is a test file, plz ignore.');
@@ -137,4 +137,4 @@ window.tests.bfs_mode_test = function () {
 
   // Should always be able to stat the root.
   process_item('/', 0x1FF);
-};
+};});

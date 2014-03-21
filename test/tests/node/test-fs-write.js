@@ -19,7 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-window.tests.fs_write = function() {
+define([], function() { return function(){
 if (fs.getRootFS().isReadOnly()) return;
 var fn = path.join(common.tmpDir, 'write.txt');
 var fn2 = path.join(common.tmpDir, 'write2.txt');
@@ -65,4 +65,4 @@ fs.open(fn2, 'w', 0644,
         });
       });
     });
-};
+};});

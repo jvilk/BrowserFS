@@ -19,8 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-this.tests.buffer_ascii = function() {
-
+define([], function() { return function(){
 // ASCII conversion in node.js simply masks off the high bits,
 // it doesn't do transliteration.
 assert.equal(Buffer('hérité').toString('ascii'), 'hC)ritC)');
@@ -42,5 +41,4 @@ for (var i = 0; i < expected.length; ++i) {
   if (input.charCodeAt(i) > 65535) ++i;
   if (input.charCodeAt(i) > 127) ++i;
 }
-
-};
+};});

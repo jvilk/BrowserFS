@@ -1,4 +1,4 @@
-this.tests.bfs_test_std = function() {
+define([], function() { return function(){
   var datStr = "hey\nhere's some data.",
       cb = function(data) {
         if (currentEncoding === null) {
@@ -32,4 +32,4 @@ this.tests.bfs_test_std = function() {
     // Remove all listeners.
     streams[i].removeAllListeners();
   }
-};
+};});

@@ -1,4 +1,4 @@
-this.tests.bfs_mkdir = function () {
+define([], function() { return function(){
   var rootFS = fs.getRootFS();
   if (rootFS.isReadOnly()) return;
   fs.writeFile('does/not/exist.txt', 'BFS plz don\'t create this', function(err) {
@@ -13,4 +13,4 @@ this.tests.bfs_mkdir = function () {
       });
     });
   });
-};
+};});

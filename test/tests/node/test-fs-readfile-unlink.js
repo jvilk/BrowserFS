@@ -19,7 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-window.tests.fs_readfile_unlink = function() {
+define([], function() { return function(){
 if (fs.getRootFS().isReadOnly()) return;
 
 var dirName = path.resolve(common.fixturesDir, 'test-readfile-unlink'),
@@ -47,4 +47,4 @@ fs.mkdir(dirName, function(err) {
   });
 });
 
-};
+};});

@@ -19,8 +19,7 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-
-window.tests.test_fs_symlink = function() {
+define([], function() { return function(){
 var completed = 0;
 var expected_tests = 2;
 var rootFS = fs.getRootFS();
@@ -89,5 +88,4 @@ process.on('exit', function() {
   assert.equal(completed, expected_tests);
 });
 
-};
-
+};});
