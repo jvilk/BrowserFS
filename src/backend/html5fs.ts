@@ -9,6 +9,7 @@ import buffer = require('../core/buffer');
 import file = require('../core/file');
 import browserfs = require('../core/browserfs');
 import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
+import node_path = require('../core/node_path');
 
 var Buffer = buffer.Buffer;
 var Stats = node_fs_stats.Stats;
@@ -166,6 +167,8 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
         return new ApiError(ErrorCode.ENOENT, message);
       case 'SecurityError':
         return new ApiError(ErrorCode.EACCES, message);
+      case 'InvalidModificationError':
+        return new ApiError(ErrorCode.EPERM, message);
       case 'SyntaxError':
       case 'TypeMismatchError':
         return new ApiError(ErrorCode.EINVAL, message);
@@ -247,17 +250,36 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
   }
 
   public rename(oldPath: string, newPath: string, cb: (e?: api_error.ApiError) => void): void {
-    var success = (file: Entry): void => {
-      // XXX: Um, I don't think this quite works, since oldPath is a string.
-      // The spec says we need the DirectoryEntry corresponding to the file's
-      // parent directory.
-      file.moveTo((<any> oldPath), newPath);
-      cb();
-    };
-    var error = (err: DOMException): void => {
-      cb(this.convert(err, "Failed to rename " + oldPath + " to " + newPath + "."));
-    };
-    this.fs.root.getFile(oldPath, {}, success, error);
+    var semaphore: number = 2,
+      successCount: number = 0,
+      root: DirectoryEntry = this.fs.root,
+      error = (err: DOMException): void => {
+        if (--semaphore === 0) {
+          cb(this.convert(err, "Failed to rename " + oldPath + " to " + newPath + "."));
+        }
+      };
+
+    function success(file: Entry): void {
+      if (++successCount === 2) {
+        console.error("Something was identified as both a file and a directory. This should never happen.");
+        return;
+      }
+      // Get the new parent directory.
+      root.getDirectory(node_path.path.dirname(newPath), {}, (parentDir: DirectoryEntry): void => {
+        file.moveTo(parentDir, node_path.path.basename(newPath), (entry: Entry): void => { cb(); }, (err: DOMException): void => {
+          if (oldPath === newPath) {
+            cb();
+          } else {
+            error(err);
+          }
+        });
+      }, error);
+    }
+
+    // We don't know if oldPath is a *file* or a *directory*, and there's no
+    // way to stat items. So launch both requests, see which one succeeds.
+    root.getFile(oldPath, {}, success, error);
+    root.getDirectory(oldPath, {}, success, error);
   }
 
   public stat(path: string, isLstat: boolean, cb: (err: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void {
@@ -302,7 +324,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
       create: flags.pathNotExistsAction() === ActionType.CREATE_FILE,
       exclusive: flags.isExclusive()
     };
-    var error = (err: ErrorEvent): void => {
+    var error = (err: any): void => {
       cb(this.convertErrorEvent(err, path));
     };
     var error2 = (err: DOMError): void => {
@@ -400,7 +422,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
    */
   private _readdir(path: string, cb: (e: api_error.ApiError, entries?: Entry[]) => void): void {
     // Grab the requested directory.
-    this.fs.root.getDirectory(path, { create: false }, (dirEntry) => {
+    this.fs.root.getDirectory(path, { create: false }, (dirEntry: DirectoryEntry) => {
       var reader = dirEntry.createReader();
       var entries = [];
       var error = (err: DOMException): void => {
