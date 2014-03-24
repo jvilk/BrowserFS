@@ -55,6 +55,10 @@ module.exports = function(grunt) {
         src: ["src/**/*.ts"],
         outDir: path.join('build', 'dev')
       },
+      test: {
+        src: ["src/**/*.ts", "test/harness/**/*.ts"],
+        outDir: path.join('build', 'test')
+      },
       watch: {
         // Performs a dev build and rebuilds when changes are made.
         src: ["src/**/*.ts"],
@@ -146,7 +150,7 @@ module.exports = function(grunt) {
   });
 
   // test
-  grunt.registerTask('test', ['ts:dev', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect', 'karma']);
+  grunt.registerTask('test', ['ts:test', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect', 'karma']);
   // testing dropbox
   grunt.registerTask('dropbox_test', ['ts:dev', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'shell:gen_cert', 'shell:gen_token', 'connect', 'karma']);
   // dev build

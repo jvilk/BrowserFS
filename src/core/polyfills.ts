@@ -169,14 +169,14 @@ if (!Array.prototype.indexOf) {
 // IE<9 does not support forEach
 // From: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach
 if (!Array.prototype.forEach) {
-    Array.prototype.forEach = function(fn: (value: string, index: number, array: string[]) => void, scope?: any) {
-        var i: number, len: number;
-        for (i = 0, len = this.length; i < len; ++i) {
-            if (i in this) {
-                fn.call(scope, this[i], i, this);
-            }
-        }
-    };
+  Array.prototype.forEach = function(fn: (value: string, index: number, array: string[]) => void, scope?: any) {
+    var i: number, len: number;
+    for (i = 0, len = this.length; i < len; ++i) {
+      if (i in this) {
+        fn.call(scope, this[i], i, this);
+      }
+    }
+  };
 }
 
 // IE<9 does not support map

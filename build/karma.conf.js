@@ -10,19 +10,21 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'build/dev/core/polyfills.js',
+	  'vendor/xrayquire.js',
+	  // Special: 'polyfills' is not a module.
+      'build/test/src/core/polyfills.js',
       'vendor/assert/assert.js',
-      'vendor/dropbox-build/dropbox.min.js',
+	  // Main module and fixtures loader
+	  'test/harness/load_fixtures.js',
+	  'build/test/test/harness/setup.js',
       /* AMD modules */
       // Tests
       {pattern: 'test/tests/node/*.js', included: false},
       // BFS modules
-      {pattern: 'build/dev/**/*.js', included: false},
+      {pattern: 'build/test/**/*.js', included: false},
       {pattern: 'vendor/async/lib/async.js', included: false},
       {pattern: 'vendor/zlib.js/*.js', included: false},
-      {pattern: 'node_modules/jasmine-tapreporter/src/tapreporter.js', included: false},
-      // Main module and fixtures loader
-      'test/harness/*.js'
+      {pattern: 'node_modules/jasmine-tapreporter/src/tapreporter.js', included: false}
     ],
 
     // list of files to exclude
@@ -62,7 +64,7 @@ module.exports = function(config) {
     // - Safari (only Mac)
     // - PhantomJS
     // - IE (only Windows)
-    browsers: ['Firefox'],
+    browsers: ['Chrome'],
 
 
     // If browser does not capture in given timeout [ms], kill it
