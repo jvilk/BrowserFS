@@ -257,24 +257,41 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
         if (--semaphore === 0) {
           cb(this.convert(err, "Failed to rename " + oldPath + " to " + newPath + "."));
         }
-      };
+      },
+      success = (file: Entry): void => {
+        if (++successCount === 2) {
+          console.error("Something was identified as both a file and a directory. This should never happen.");
+          return;
+        }
 
-    function success(file: Entry): void {
-      if (++successCount === 2) {
-        console.error("Something was identified as both a file and a directory. This should never happen.");
-        return;
-      }
-      // Get the new parent directory.
-      root.getDirectory(node_path.path.dirname(newPath), {}, (parentDir: DirectoryEntry): void => {
-        file.moveTo(parentDir, node_path.path.basename(newPath), (entry: Entry): void => { cb(); }, (err: DOMException): void => {
-          if (oldPath === newPath) {
-            cb();
-          } else {
-            error(err);
-          }
-        });
-      }, error);
-    }
+        // SPECIAL CASE: If newPath === oldPath, and the path exists, then
+        // this operation trivially succeeds.
+        if (oldPath === newPath) {
+          return cb();
+        } 
+
+        // Get the new parent directory.
+        root.getDirectory(node_path.path.dirname(newPath), {}, (parentDir: DirectoryEntry): void => {
+          file.moveTo(parentDir, node_path.path.basename(newPath), (entry: Entry): void => { cb(); }, (err: DOMException): void => {
+            // SPECIAL CASE: If oldPath is a directory, and newPath is a
+            // file, rename should delete the file and perform the move.
+            if (file.isDirectory) {
+              // Unlink only works on files. Try to delete newPath.
+              this.unlink(newPath, (e?): void => {
+                if (e) {
+                  // newPath is probably a directory.
+                  error(err);
+                } else {
+                  // Recurse, now that newPath doesn't exist.
+                  this.rename(oldPath, newPath, cb);
+                }
+              });
+            } else {
+              error(err);
+            }
+          });
+        }, error);
+      };
 
     // We don't know if oldPath is a *file* or a *directory*, and there's no
     // way to stat items. So launch both requests, see which one succeeds.
