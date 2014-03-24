@@ -10,13 +10,12 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-	  'vendor/xrayquire.js',
-	  // Special: 'polyfills' is not a module.
+	    // Special: 'polyfills' is not a module.
       'build/test/src/core/polyfills.js',
       'vendor/assert/assert.js',
-	  // Main module and fixtures loader
-	  'test/harness/load_fixtures.js',
-	  'build/test/test/harness/setup.js',
+      // Main module and fixtures loader
+      'test/harness/load_fixtures.js',
+      'build/test/test/harness/setup.js',
       /* AMD modules */
       // Tests
       {pattern: 'test/tests/node/*.js', included: false},
