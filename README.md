@@ -28,14 +28,14 @@ Release:
 grunt
 ```
 
-The minified release build can be found in `lib/browserfs.js`.
+The minified release build can be found in `build/release/browserfs.js`.
 
 Development:
 ```
 grunt dev
 ```
 
-The development build can be found as multiple AMD modules in `tmp`.
+The development build can be found as multiple AMD modules in `build/dev`.
 
 Custom builds:
 
