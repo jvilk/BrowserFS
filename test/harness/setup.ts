@@ -167,7 +167,7 @@ declare var loadFixtures: Function;
     function preStartTests(BrowserFS, TAPReporter) {
       // Arguments: Essential followed by factories followed by tests.
       var testFcns = Array.prototype.slice.call(arguments, essentialModules.length + factoryModules.length),
-        backendFactories = Array.prototype.slice.call(arguments, essentialModules.length, factoryModules.length);
+        backendFactories = Array.prototype.slice.call(arguments, essentialModules.length, essentialModules.length + factoryModules.length);
       startTests(BrowserFS, TAPReporter, unitTestModules, testFcns, backendFactories);
     }
 
@@ -198,7 +198,7 @@ declare var loadFixtures: Function;
 
       shim: {
         'zlib': {
-          exports: 'Zlib'
+          exports: 'Zlib.RawInflate'
         }
       },
       // dynamically load all test files

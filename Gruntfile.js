@@ -1,8 +1,10 @@
 var fs = require('fs'),
   path = require('path');
 
-// Removes a directory if it exists.
-// Throws an exception if deletion fails.
+/**
+ * Removes a directory if it exists.
+ * Throws an exception if deletion fails.
+ */
 function removeDir(dir) {
   if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
     // Delete its contents, since you can't delete non-empty folders.
@@ -18,6 +20,51 @@ function removeDir(dir) {
     }
     fs.rmdirSync(dir);
   }
+}
+
+/**
+ * Retrieves a file listing of backends.
+ */
+function getBackends() {
+  var rv = [];
+  fs.readdirSync('src/backend').forEach(function (backend) {
+    // Don't use path.join; R.JS uses Unix slashes.
+    // Trim the .ts extension.
+    rv.push('backend/' + backend.slice(0, -3));
+  });
+  return rv;
+}
+
+/**
+ * Returns an array of essential modules that need to be loaded when BFS
+ * loads.
+ */
+function getEssentialModules() {
+  return ['core/browserfs', 'generic/emscripten_fs'].concat(getBackends());
+}
+
+/**
+ * Get the snippet of JavaScript code that should precede the release version
+ * of the library.
+ */
+function getIntro() {
+  return "(function() {" + fs.readFileSync('build/dev/core/polyfills.js', 'utf8');
+}
+
+/**
+ * Get the snippet of JavaScript code that should end the release version of
+ * the library.
+ */
+function getOutro() {
+  var modules = getEssentialModules(),
+    bfsModule = modules.shift(),
+    outro = [], i;
+  outro.push("window['BrowserFS']=require('" + bfsModule + "');");
+  for (i = 0; i < modules.length; i++) {
+    outro.push("require('" + modules[i] + "');");
+  }
+  outro.push("})();");
+  return outro.join("");
 }
 
 // Removes a file if it exists.
@@ -74,30 +121,24 @@ module.exports = function(grunt) {
           // The main module that installs the BrowserFS global and needed polyfills.
           name: '../../vendor/almond/almond',
           wrap: {
-            startFile: ['build/intro.js', 'build/dev/core/polyfills.js'],
-            endFile: 'build/outro.js'
+            start: getIntro(),
+            end: getOutro()
           },
           out: 'build/release/browserfs.js',
           optimize: 'uglify2',
           generateSourceMaps: true,
           // Need to set to false for source maps to work.
           preserveLicenseComments: false,
-          // List all of the backends you want in your build here.
-          include: ['core/browserfs',
-                    'backend/dropbox',
-                    'backend/html5fs',
-                    'backend/IndexedDB',
-                    'backend/in_memory',
-                    'backend/localStorage',
-                    'backend/mountable_file_system',
-                    'backend/XmlHttpRequest',
-                    'backend/zipfs',
-                    'generic/emscripten_fs'],
+          include: getEssentialModules(),
+          paths: {
+            'zlib': '../../vendor/zlib.js/rawinflate.min',
+            'async': '../../vendor/async/lib/async',
+          },
           shim: {
-            'vendor/zlib.js/rawinflate.min': {
+            'zlib': {
               exports: 'Zlib.RawInflate'
             }
-          }
+          },
         }
       }
     },
@@ -122,7 +163,10 @@ module.exports = function(grunt) {
           callback: function(err, stdout, stderr, cb) {
             if (err) throw err;
             // Write listings to a file.
-            fs.writeFileSync('listings.json', stdout);
+            if (!fs.existsSync('test/fixtures/xhrfs')) {
+              fs.mkdirSync('test/fixtures/xhrfs');
+            }
+            fs.writeFileSync('test/fixtures/xhrfs/listings.json', stdout);
             cb();
           }
         }
@@ -152,7 +196,7 @@ module.exports = function(grunt) {
   // test
   grunt.registerTask('test', ['ts:test', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect', 'karma']);
   // testing dropbox
-  grunt.registerTask('dropbox_test', ['ts:dev', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'shell:gen_cert', 'shell:gen_token', 'connect', 'karma']);
+  grunt.registerTask('dropbox_test', ['ts:test', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'shell:gen_cert', 'shell:gen_token', 'connect', 'karma']);
   // dev build
   grunt.registerTask('dev', ['ts:dev']);
   // dev build + watch for changes.

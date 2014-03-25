@@ -4,7 +4,7 @@ import BackendFactory = require('../BackendFactory');
 
 function XHRFSFactory(cb: (objs: file_system.FileSystem[]) => void): void {
   if (xhr_fs.XmlHttpRequest.isAvailable()) {
-    cb([new xhr_fs.XmlHttpRequest('./listings.json')]);
+    cb([new xhr_fs.XmlHttpRequest('test/fixtures/xhrfs/listings.json', '../')]);
   } else {
     cb([]);
   }

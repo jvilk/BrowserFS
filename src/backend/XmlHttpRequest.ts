@@ -33,6 +33,9 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
     if (listing_url == null) {
       listing_url = 'index.json';
     }
+    if (prefix_url.charAt(prefix_url.length - 1) === '/') {
+      prefix_url = prefix_url.slice(0, prefix_url.length - 1);
+    }
     var listing = this._requestFileSync(listing_url, 'json');
     if (listing == null) {
       throw new Error("Unable to find listing at URL: " + listing_url);

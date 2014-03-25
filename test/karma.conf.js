@@ -23,7 +23,7 @@ module.exports = function(config) {
       {pattern: 'build/test/**/*.js', included: false},
       {pattern: 'vendor/async/lib/async.js', included: false},
       {pattern: 'vendor/zlib.js/*.js', included: false},
-      {pattern: 'node_modules/jasmine-tapreporter/src/tapreporter.js', included: false}
+      { pattern: 'node_modules/jasmine-tapreporter/src/tapreporter.js', included: false }
     ],
 
     // list of files to exclude
@@ -69,15 +69,14 @@ module.exports = function(config) {
     // If browser does not capture in given timeout [ms], kill it
     captureTimeout: 60000,
 
-
-    // Continuous Integration mode
-    // if true, it capture browsers, run tests and exit
-    singleRun: false,
-
     // Avoid hardcoding and cross-origin issues.
     proxies: {
       '/': 'http://localhost:8000/'
     },
+
+    // Continuous Integration mode
+    // if true, it capture browsers, run tests and exit
+    singleRun: false,
 
     urlRoot: '/karma/'
 
