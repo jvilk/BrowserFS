@@ -1,6 +1,10 @@
 var fs = require('fs'),
   path = require('path');
 
+if (!fs.existsSync('build')) {
+  fs.mkdirSync('build');
+}
+
 /**
  * Removes a directory if it exists.
  * Throws an exception if deletion fails.
@@ -48,7 +52,8 @@ function getEssentialModules() {
  * of the library.
  */
 function getIntro() {
-  return "(function() {" + fs.readFileSync('build/dev/core/polyfills.js', 'utf8');
+  fs.writeFileSync('build/intro.frag', "(function() {");
+  return 'build/intro.frag';
 }
 
 /**
@@ -64,7 +69,8 @@ function getOutro() {
     outro.push("require('" + modules[i] + "');");
   }
   outro.push("})();");
-  return outro.join("");
+  fs.writeFileSync('build/outro.frag', outro.join(""));
+  return 'build/outro.frag';
 }
 
 // Removes a file if it exists.
@@ -121,8 +127,8 @@ module.exports = function(grunt) {
           // The main module that installs the BrowserFS global and needed polyfills.
           name: '../../vendor/almond/almond',
           wrap: {
-            start: getIntro(),
-            end: getOutro()
+            startFile: [getIntro(), 'build/dev/core/polyfills.js'],
+            endFile: [getOutro()]
           },
           out: 'build/release/browserfs.js',
           optimize: 'uglify2',

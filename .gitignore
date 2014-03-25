@@ -1,6 +1,4 @@
 node_modules/*
-lib/*
-tmp/*
 doc/*
 *.DS_Store
 *.log
@@ -12,3 +10,4 @@ test/harness/load_fixtures.js
 !test/fixtures/README.md
 tscommand*
 tools/*.js*
+build/*
