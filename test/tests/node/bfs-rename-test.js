@@ -85,37 +85,29 @@ define([], function() { return function(){
             if (e) {
               throw e;
             }
-            fs.rename(oldDir, newDir, function (e) {
-              if (e == null) {
-                throw new Error('Failed invariant: CANNOT rename a directory over another directory.');
-              } else {
-                // it's a permissions error for whatever reason (tested in node)
-                assert(e.code === 'EPERM');
+            fs.rmdir(newDir, function (e) {
+              if (e) {
+                throw e;
               }
-              fs.rmdir(newDir, function (e) {
+              fs.rename(oldDir, newDir, function (e) {
                 if (e) {
-                  throw e;
+                  throw new Error("Failed to rename directory.");
                 }
-                fs.rename(oldDir, newDir, function (e) {
-                  if (e) {
-                    throw new Error("Failed to rename directory.");
-                  }
-                  check_directory(newDir, function () {
-                    fs.exists(oldDir, function (exists) {
-                      if (exists) {
-                        throw new Error("Failed invariant: Renamed directory still exists at old name.");
+                check_directory(newDir, function () {
+                  fs.exists(oldDir, function (exists) {
+                    if (exists) {
+                      throw new Error("Failed invariant: Renamed directory still exists at old name.");
+                    }
+                    // Renaming directories with *different* parent directories.
+                    fs.mkdir(oldDir, function (e) {
+                      if (e) {
+                        throw e;
                       }
-                      // Renaming directories with *different* parent directories.
-                      fs.mkdir(oldDir, function (e) {
-                        if (e) {
-                          throw e;
-                        }
-                        populate_directory(oldDir, function () {
-                          fs.rename(oldDir, path.resolve(newDir, 'newDir'), function (e) {
-                            if (e) {
-                              throw new Error("Failed to rename directories with different parents.");
-                            }
-                          });
+                      populate_directory(oldDir, function () {
+                        fs.rename(oldDir, path.resolve(newDir, 'newDir'), function (e) {
+                          if (e) {
+                            throw new Error("Failed to rename directories with different parents.");
+                          }
                         });
                       });
                     });
