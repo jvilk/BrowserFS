@@ -81,6 +81,25 @@ function removeFile(file) {
   }
 }
 
+// The files that karma should load up. Stashed in a variable here so we can
+// append to it in the dropbox test case.
+var karmaFiles = [
+  // Special: 'polyfills' is not a module.
+  'build/test/src/core/polyfills.js',
+  'vendor/assert/assert.js',
+  // Main module and fixtures loader
+  'test/fixtures/load_fixtures.js',
+  'build/test/test/harness/setup.js',
+  /* AMD modules */
+  // Tests
+  { pattern: 'test/tests/**/*.js', included: false },
+  // BFS modules
+  { pattern: 'build/test/**/*.js', included: false },
+  { pattern: 'vendor/async/lib/async.js', included: false },
+  { pattern: 'vendor/zlib.js/*.js', included: false },
+  { pattern: 'node_modules/jasmine-tapreporter/src/tapreporter.js', included: false }
+];
+
 module.exports = function(grunt) {
   grunt.initConfig({
     // Metadata.
@@ -97,22 +116,7 @@ module.exports = function(grunt) {
         // base path, that will be used to resolve files and exclude
         basePath: '.',
         frameworks: ['jasmine', 'requirejs'],
-        files: [
-          // Special: 'polyfills' is not a module.
-          'build/test/src/core/polyfills.js',
-          'vendor/assert/assert.js',
-          // Main module and fixtures loader
-          'test/fixtures/load_fixtures.js',
-          'build/test/test/harness/setup.js',
-          /* AMD modules */
-          // Tests
-          { pattern: 'test/tests/**/*.js', included: false },
-          // BFS modules
-          { pattern: 'build/test/**/*.js', included: false },
-          { pattern: 'vendor/async/lib/async.js', included: false },
-          { pattern: 'vendor/zlib.js/*.js', included: false },
-          { pattern: 'node_modules/jasmine-tapreporter/src/tapreporter.js', included: false }
-        ],
+        files: karmaFiles,
         exclude: [],
         reporters: ['progress'],
         port: 9876,
@@ -131,7 +135,9 @@ module.exports = function(grunt) {
       },
       test: {},
       dropbox_test: {
-
+        options: {
+          files: karmaFiles.concat('vendor/dropbox-build/dropbox.min.js')
+        }
       }
     },
     ts: {
