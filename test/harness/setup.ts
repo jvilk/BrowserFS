@@ -47,7 +47,7 @@ declare var loadFixtures: Function;
   }
 
   // Defines and starts all of our unit tests.
-  function startTests(BrowserFS, TAPReporter, unitTestModules: string[], testFcns: Function[], backendFactories: any[]) {
+  function startTests(BrowserFS, TAPReporter, tests: any, backendFactories: any[]) {
     // Install all needed test globals.
     window['BrowserFS'] = BrowserFS;
     BrowserFS.install(window);
@@ -92,27 +92,49 @@ declare var loadFixtures: Function;
       });
     }
 
-    function generateTests(backend) {
+    function generateBackendTests(name: string, backend) {
+      var testName: string;
       generateTest("Load filesystem", function () {
         __numWaiting = 0;
         BrowserFS.initialize(backend);
       });
       generateTest("Load fixtures", loadFixtures);
-      // Generate a unit test for each node test.
-      unitTestModules.forEach((testModule, i) => {
-        generateTest(testModule, testFcns[i]);
-      });
+      if (tests.fs.hasOwnProperty(name)) {
+        // Generate each unit test specific to this backend.
+        for (testName in tests.fs[name]) {
+          if (tests.fs[name].hasOwnProperty(testName)) {
+            generateTest(testName, tests.fs[name][testName]);
+          }
+        }
+      }
+      // Generate unit test for each general FS test.
+      for (testName in tests.fs.all) {
+        if (tests.fs.all.hasOwnProperty(testName)) {
+          generateTest(testName, tests.fs.all[testName]);
+        }
+      }
     }
 
     function generateAllTests() {
       // programmatically create a single test suite for each filesystem we wish to
       // test
       var factorySemaphore: number = backendFactories.length;
-      function testGeneratorFactory(backend) {
-        return () => { generateTests(backend); };
+      function testGeneratorFactory(name: string, backend) {
+        return () => { generateBackendTests(name, backend); };
       }
+
+      // generate generic non-backend specific tests
+      describe('General BrowserFS Tests', (): void => {
+        var genericTests = tests.general, testName: string;
+        for (testName in genericTests) {
+          if (genericTests.hasOwnProperty(testName)) {
+            generateTest(testName, genericTests[testName]);
+          }
+        }
+      });
+
       backendFactories.forEach((factory) => {
-        factory((backends) => {
+        factory((name: string, backends) => {
           var backendSemaphore: number = backends.length;
           // XXX: 0 backend case.
           if (backendSemaphore === 0) {
@@ -128,7 +150,7 @@ declare var loadFixtures: Function;
             }
           }
           backends.forEach((backend) => {
-            describe(backend.getName(), testGeneratorFactory(backend));
+            describe(backend.getName(), testGeneratorFactory(name, backend));
             if (--backendSemaphore === 0) {
               if (--factorySemaphore === 0) {
                 // LAUNCH THE TESTS!
@@ -156,7 +178,7 @@ declare var loadFixtures: Function;
   }
 
   function bootstrap() {
-    var unitTestModules = [],
+    var unitTestModules: string[] = [],
       factoryModules = [],
       essentialModules = ['src/core/browserfs',
         '../../node_modules/jasmine-tapreporter/src/tapreporter'];
@@ -167,8 +189,26 @@ declare var loadFixtures: Function;
     function preStartTests(BrowserFS, TAPReporter) {
       // Arguments: Essential followed by factories followed by tests.
       var testFcns = Array.prototype.slice.call(arguments, essentialModules.length + factoryModules.length),
-        backendFactories = Array.prototype.slice.call(arguments, essentialModules.length, essentialModules.length + factoryModules.length);
-      startTests(BrowserFS, TAPReporter, unitTestModules, testFcns, backendFactories);
+        backendFactories = Array.prototype.slice.call(arguments, essentialModules.length, essentialModules.length + factoryModules.length),
+        tests = {}, i: number, path = BrowserFS.BFSRequire('path');
+
+      for (i = 0; i < unitTestModules.length; i++) {
+        var mod: string = unitTestModules[i],
+          modDir: string = path.dirname(mod),
+          componentStack: string[] = modDir.split('/'),
+          testDir = tests;
+        while (componentStack.length > 0) {
+          var component = componentStack.shift();
+          if (component === '..' || component === 'test' || component === 'tests') continue;
+          if (!testDir.hasOwnProperty(component)) {
+            testDir[component] = {};
+          }
+          testDir = testDir[component];
+        }
+        testDir[path.basename(mod)] = testFcns[i];
+      }
+
+      startTests(BrowserFS, TAPReporter, tests, backendFactories);
     }
 
     function pathToModule(path: string): string {
@@ -178,7 +218,7 @@ declare var loadFixtures: Function;
     var file;
     for (file in __karma__.files) {
       if (__karma__.files.hasOwnProperty(file)) {
-        if (/test\/tests\/node\/.*\.js$/.test(file)) {
+        if (/test\/tests\/.*\.js$/.test(file)) {
           // Normalize paths to RequireJS module names.
           unitTestModules.push(pathToModule(file));
         } else if (/test\/harness\/factories\/.*\.js$/.test(file)) {

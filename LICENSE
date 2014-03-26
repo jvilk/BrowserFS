@@ -26,8 +26,8 @@ SOFTWARE.
 
 This license applies to all parts of BrowserFS, except for the following items:
 
-- The unit tests from Node, located in `test/node`, and their test fixtures,
-  located in `test/fixtures/node`. Their license follows:
+- The unit tests from Node, located in `test/tests/**/node-*.js`, and their
+  test fixtures, located in `test/fixtures/files/node`. Their license follows:
   """
     Copyright Joyent, Inc. and other Node contributors. All rights reserved.
     Permission is hereby granted, free of charge, to any person obtaining a copy

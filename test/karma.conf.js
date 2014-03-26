@@ -18,7 +18,7 @@ module.exports = function(config) {
       'build/test/test/harness/setup.js',
       /* AMD modules */
       // Tests
-      {pattern: 'test/tests/node/*.js', included: false},
+      {pattern: 'test/tests/**/*.js', included: false},
       // BFS modules
       {pattern: 'build/test/**/*.js', included: false},
       {pattern: 'vendor/async/lib/async.js', included: false},

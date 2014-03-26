@@ -4,7 +4,7 @@ import file_system = require('../../../src/core/file_system');
 
 declare var Dropbox;
 
-function DBFSFactory(cb: (obj: file_system.FileSystem[]) => void): void {
+function DBFSFactory(cb: (name: string, obj: file_system.FileSystem[]) => void): void {
   if (dbfs.DropboxFileSystem.isAvailable()) {
     var init_client = new Dropbox.Client({
       key: 'c6oex2qavccb2l3',
@@ -15,7 +15,7 @@ function DBFSFactory(cb: (obj: file_system.FileSystem[]) => void): void {
         if (error) {
           console.error('Error: could not connect to Dropbox');
           console.error(error);
-          return cb([]);
+          return cb('Dropbox', []);
         }
 
         authed_client.getUserInfo((error, info) => {
@@ -24,7 +24,7 @@ function DBFSFactory(cb: (obj: file_system.FileSystem[]) => void): void {
 
         var fs = new dbfs.DropboxFileSystem(authed_client);
         fs.empty(() => {
-          cb([fs]);
+          cb('Dropbox', [fs]);
         });
       });
     };
@@ -43,7 +43,7 @@ function DBFSFactory(cb: (obj: file_system.FileSystem[]) => void): void {
     };
     req.send();
   } else {
-    cb([]);
+    cb('Dropbox', []);
   }
 }
 

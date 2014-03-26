@@ -5,11 +5,11 @@ import BackendFactory = require('../BackendFactory');
 import BrowserFS = require('../../../src/core/browserfs');
 import node_fs = require('../../../src/core/node_fs');
 
-function ZipFSFactory(cb: (objs: file_system.FileSystem[]) => void): void {
+function ZipFSFactory(cb: (name: string, objs: file_system.FileSystem[]) => void): void {
   if (zipfs.ZipFS.isAvailable()) {
-    XHRFSFactory((xhrfs) => {
+    XHRFSFactory((_, xhrfs) => {
       if (xhrfs.length === 0) {
-        return cb(xhrfs);
+        return cb('ZipFS', xhrfs);
       }
 
       // Add three Zip FS variants for different zip files.
@@ -22,14 +22,14 @@ function ZipFSFactory(cb: (objs: file_system.FileSystem[]) => void): void {
           fs.readFile(zipFilename, (e, data?) => {
             if (e) throw e;
             if (rv.push(new zipfs.ZipFS(data, zipFilename)) === zipFiles.length) {
-              cb(rv);
+              cb('zipfs', rv);
             }
           });
         })('/test/fixtures/zipfs/zipfs_fixtures_l' + zipFiles[i] + '.zip');
       }
     });
   } else {
-    cb([]);
+    cb('ZipFS', []);
   }
 }
 

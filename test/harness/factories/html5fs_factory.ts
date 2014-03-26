@@ -2,7 +2,7 @@ import html5fs = require('../../../src/backend/html5fs');
 import BackendFactory = require('../BackendFactory');
 import file_system = require('../../../src/core/file_system');
 
-function HTML5FSFactory(cb: (obj: file_system.FileSystem[]) => void): void {
+function HTML5FSFactory(cb: (name: string, obj: file_system.FileSystem[]) => void): void {
   if (html5fs.HTML5FS.isAvailable()) {
     var fs = new html5fs.HTML5FS(10, window.TEMPORARY);
     fs.allocate((err?) => {
@@ -13,13 +13,13 @@ function HTML5FSFactory(cb: (obj: file_system.FileSystem[]) => void): void {
           if (err2) {
             throw err2;
           } else {
-            cb([fs]);
+            cb('HTML5FS', [fs]);
           }
         });
       }
     });
   } else {
-    cb([]);
+    cb('HTML5FS', []);
   }
 }
 
