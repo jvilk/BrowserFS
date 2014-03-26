@@ -138,7 +138,7 @@ module.exports = function(grunt) {
           include: getEssentialModules(),
           paths: {
             'zlib': '../../vendor/zlib.js/rawinflate.min',
-            'async': '../../vendor/async/lib/async',
+            'async': '../../vendor/async/lib/async'
           },
           shim: {
             'zlib': {
@@ -191,7 +191,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-shell');
 
   grunt.registerTask('clean', 'Removes all built files.', function () {
-    removeFile('./test/harness/load_fixtures.js');
+    removeFile('./test/fixtures/load_fixtures.js');
     removeFile('./listings.json');
     removeDir('./build/dev');
     removeDir('./build/release');

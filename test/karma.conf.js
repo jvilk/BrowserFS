@@ -14,7 +14,7 @@ module.exports = function(config) {
       'build/test/src/core/polyfills.js',
       'vendor/assert/assert.js',
       // Main module and fixtures loader
-      'test/harness/load_fixtures.js',
+      'test/fixtures/load_fixtures.js',
       'build/test/test/harness/setup.js',
       /* AMD modules */
       // Tests
