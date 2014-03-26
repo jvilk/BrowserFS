@@ -93,8 +93,45 @@ module.exports = function(grunt) {
       }
     },
     karma: {
-      unit: {
-        configFile: 'test/karma.conf.js'
+      options: {
+        // base path, that will be used to resolve files and exclude
+        basePath: '.',
+        frameworks: ['jasmine', 'requirejs'],
+        files: [
+          // Special: 'polyfills' is not a module.
+          'build/test/src/core/polyfills.js',
+          'vendor/assert/assert.js',
+          // Main module and fixtures loader
+          'test/fixtures/load_fixtures.js',
+          'build/test/test/harness/setup.js',
+          /* AMD modules */
+          // Tests
+          { pattern: 'test/tests/**/*.js', included: false },
+          // BFS modules
+          { pattern: 'build/test/**/*.js', included: false },
+          { pattern: 'vendor/async/lib/async.js', included: false },
+          { pattern: 'vendor/zlib.js/*.js', included: false },
+          { pattern: 'node_modules/jasmine-tapreporter/src/tapreporter.js', included: false }
+        ],
+        exclude: [],
+        reporters: ['progress'],
+        port: 9876,
+        runnerPort: 9100,
+        colors: true,
+        logLevel: 'INFO',
+        autoWatch: true,
+        browsers: ['Chrome'],
+        captureTimeout: 60000,
+        // Avoid hardcoding and cross-origin issues.
+        proxies: {
+          '/': 'http://localhost:8000/'
+        },
+        singleRun: false,
+        urlRoot: '/karma/'
+      },
+      test: {},
+      dropbox_test: {
+
       }
     },
     ts: {
@@ -208,9 +245,9 @@ module.exports = function(grunt) {
   });
 
   // test
-  grunt.registerTask('test', ['ts:test', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect', 'karma']);
+  grunt.registerTask('test', ['ts:test', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect', 'karma:test']);
   // testing dropbox
-  grunt.registerTask('dropbox_test', ['ts:test', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'shell:gen_cert', 'shell:gen_token', 'connect', 'karma']);
+  grunt.registerTask('dropbox_test', ['ts:test', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'shell:gen_cert', 'shell:gen_token', 'connect', 'karma:dropbox_test']);
   // dev build
   grunt.registerTask('dev', ['ts:dev']);
   // dev build + watch for changes.
