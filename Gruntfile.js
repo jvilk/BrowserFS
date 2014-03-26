@@ -120,31 +120,39 @@ module.exports = function(grunt) {
       }
     },
     requirejs: {
-      compile: {
+      options: {
+        // The output of the TypeScript compiler goes into this directory.
+        baseUrl: path.join('build', 'dev'),
+        // The main module that installs the BrowserFS global and needed polyfills.
+        name: '../../vendor/almond/almond',
+        wrap: {
+          startFile: [getIntro(), 'build/dev/core/polyfills.js'],
+          endFile: [getOutro()]
+        },
+        optimize: 'none',
+        generateSourceMaps: true,
+        // Need to set to false for source maps to work.
+        preserveLicenseComments: false,
+        include: getEssentialModules(),
+        paths: {
+          'zlib': '../../vendor/zlib.js/rawinflate.min',
+          'async': '../../vendor/async/lib/async'
+        },
+        shim: {
+          'zlib': {
+            exports: 'Zlib.RawInflate'
+          }
+        },
+      },
+      optimize: {
         options: {
-          // The output of the TypeScript compiler goes into this directory.
-          baseUrl: path.join('build', 'dev'),
-          // The main module that installs the BrowserFS global and needed polyfills.
-          name: '../../vendor/almond/almond',
-          wrap: {
-            startFile: [getIntro(), 'build/dev/core/polyfills.js'],
-            endFile: [getOutro()]
-          },
-          out: 'build/release/browserfs.js',
-          optimize: 'uglify2',
-          generateSourceMaps: true,
-          // Need to set to false for source maps to work.
-          preserveLicenseComments: false,
-          include: getEssentialModules(),
-          paths: {
-            'zlib': '../../vendor/zlib.js/rawinflate.min',
-            'async': '../../vendor/async/lib/async'
-          },
-          shim: {
-            'zlib': {
-              exports: 'Zlib.RawInflate'
-            }
-          },
+          out: 'build/release/browserfs.min.js',
+          optimize: 'uglify2'
+        }
+      },
+      cat: {
+        options: {
+          out: 'build/release/browserfs.js'
         }
       }
     },
