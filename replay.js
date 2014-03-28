@@ -3,15 +3,18 @@ function ReplayStart() {
    * Replays a log file.
    */
   var fname = 'log_0.txt',
-    descHash = {}, parsedData, i = 0, inNode = false;
+    descHash = {}, parsedData, i = 0, inNode = false,
+    fs = require('fs'), Buffer;
 
-  if (typeof fs === 'undefined') {
-    var fs = require('fs');
+  if (typeof BrowserFS === 'undefined') {
     inNode = true;
     fs.mkdirSync('tmp');
+    Buffer = require('buffer').Buffer;
+  } else {
+    var Buffer = BrowserFS.BFSRequire('buffer').Buffer;
   }
 
-  function fixPath(p) {
+  function fixPath2(p) {
     // Maps browser path to local path, if needed.
     var parts = p.split('/');
     // In the browser, fix some relative paths.
@@ -46,6 +49,15 @@ function ReplayStart() {
         // From a FD (path local to FS backend); append /tmp mountpoint.
         return 'tmp' + p;
     }
+  }
+
+  // XXX: hackfix for /sys statting
+  function fixPath(p) {
+    p = fixPath2(p);
+    if (p === '') {
+      return '.';
+    }
+    return p;
   }
 
   function getFd(p) {
