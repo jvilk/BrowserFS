@@ -4,7 +4,10 @@ function ReplayStart() {
    */
   var fname = 'log_0.txt',
     descHash = {}, parsedData, i = 0, inNode = false,
-    fs = require('fs'), Buffer;
+    fs = require('fs'), Buffer, getTime = (function() {
+      return typeof performance !== 'undefined' ? function() { return performance.now(); } : function() { return Date.now(); };
+    })(),
+    timeNow = getTime();
 
   if (typeof BrowserFS === 'undefined') {
     inNode = true;
@@ -88,6 +91,7 @@ function ReplayStart() {
 
     if (i === parsedData.length) {
       // done
+      console.log("Benchmark time: " + (getTime() - timeNow) + " ms");
       console.log(JSON.stringify(errors));
       return;
     }
