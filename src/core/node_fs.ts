@@ -10,6 +10,67 @@ var ErrorCode = api_error.ErrorCode;
 var FileFlag = file_flag.FileFlag;
 var Buffer = buffer.Buffer;
 var path = node_path.path;
+var events: any[] = [];
+var nextEventId: number = 0;
+
+// Install events globally.
+window['BFSEvents'] = events;
+
+function addEvent(name: string, args: any) {
+  /*var lastArg = args[args.length - 1],
+    eventId: number = nextEventId++,
+    argCpy = Array.prototype.slice.call(arguments);
+  if (typeof lastArg === 'function') {
+    // Wrap CB so we know when it ends.
+    args[args.length - 1] = () => {
+      // Event is over.
+      events.push([eventId]);
+      lastArg.apply(null, arguments);
+    };
+    // Don't save CB in the array.
+    argCpy = argCpy.slice(0, argCpy.length - 1);
+  }*/
+  var thisEvent = [name];
+
+  if (args.length > 0) {
+    if (typeof args[0] === 'string') {
+      // Grab path
+      thisEvent.push(args[0]);
+    } else if (typeof args[0] === 'object') {
+      // Grab path from FD.
+      if (args[0].hasOwnProperty('_path')) {
+        thisEvent.push(args[0]['_path']);
+      } else {
+        console.error("WARNING: Unable to get path from argument.");
+      }
+    }
+  }
+
+  // Special secondary information.
+  switch(name) {
+    case 'open':
+      // Open flag.
+      thisEvent.push(args[1]);
+      break;
+    case 'write':
+    case 'read':
+      // Read/write data
+      // offset, length, position
+      thisEvent.push(args[3], args[4], args[5]);
+      break;
+    default:
+      // Nothing.
+      break;
+  }
+  events.push(thisEvent);
+}
+
+function wrapFcn(name: string, fcn: Function): Function {
+  return () => {
+    addEvent(name, arguments);
+    return fcn.apply(null, arguments);
+  };
+}
 
 declare var __numWaiting: number;
 declare var setImmediate: (cb: Function) => void;
@@ -1414,5 +1475,11 @@ export class fs {
   public static realpathSync(path: string, cache: {[path: string]: string} = {}): string {
     path = normalizePath(path);
     return fs.root.realpathSync(path, cache);
+  }
+}
+
+for (var fcnName in fs) {
+  if (fs.hasOwnProperty(fcnName)) {
+    fs[fcnName] = wrapFcn(fcnName, fs[fcnName]);
   }
 }
