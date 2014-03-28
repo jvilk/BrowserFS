@@ -22,6 +22,7 @@
   },
   "main": "lib/browserfs.js",
   "devDependencies": {
+    "express": "*",
     "async": ">= 0.2.7",
 	"karma-chrome-launcher": "*",
     "karma-opera-launcher": "*",

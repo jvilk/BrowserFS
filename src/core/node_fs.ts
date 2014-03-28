@@ -10,11 +10,9 @@ var ErrorCode = api_error.ErrorCode;
 var FileFlag = file_flag.FileFlag;
 var Buffer = buffer.Buffer;
 var path = node_path.path;
-var events: any[] = [];
-var nextEventId: number = 0;
 
-// Install events globally.
-window['BFSEvents'] = events;
+// Super hax: We'll have jQuery loaded.
+declare var $;
 
 function addEvent(name: string, args: any) {
   /*var lastArg = args[args.length - 1],
@@ -62,7 +60,14 @@ function addEvent(name: string, args: any) {
       // Nothing.
       break;
   }
-  events.push(thisEvent);
+  // Send to server
+  $.ajax({
+    url: '/BFSEvent',
+    type: 'PUT',
+    contentType: 'application/json',
+    data: JSON.stringify(thisEvent),
+    dataType: 'json'
+  });
 }
 
 function wrapFcn(name: string, fcn: Function): Function {
