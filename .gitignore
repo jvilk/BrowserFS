@@ -11,3 +11,4 @@ test/harness/load_fixtures.js
 tscommand*
 tools/*.js*
 build/*
+src/ignoreBaseDirFile.ts

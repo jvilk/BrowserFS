@@ -2,6 +2,7 @@ import buffer = require('../core/buffer');
 import browserfs = require('../core/browserfs');
 import kvfs = require('../generic/key_value_filesystem');
 import api_error = require('../core/api_error');
+import global = require('../core/global');
 
 var Buffer = buffer.Buffer,
   ApiError = api_error.ApiError,
@@ -13,8 +14,8 @@ var Buffer = buffer.Buffer,
 var supportsBinaryString: boolean = false,
   binaryEncoding: string;
 try {
-  window.localStorage.setItem("__test__", String.fromCharCode(0xD800));
-  supportsBinaryString = window.localStorage.getItem("__test__") === String.fromCharCode(0xD800);
+  global.localStorage.setItem("__test__", String.fromCharCode(0xD800));
+  supportsBinaryString = global.localStorage.getItem("__test__") === String.fromCharCode(0xD800);
 } catch (e) {
   // IE throws an exception.
   supportsBinaryString = false;
@@ -33,7 +34,7 @@ export class LocalStorageStore implements kvfs.SyncKeyValueStore, kvfs.SimpleSyn
   }
 
   public clear(): void {
-    window.localStorage.clear();
+    global.localStorage.clear();
   }
 
   public beginTransaction(type: string): kvfs.SyncKeyValueRWTransaction {
@@ -43,7 +44,7 @@ export class LocalStorageStore implements kvfs.SyncKeyValueStore, kvfs.SimpleSyn
 
   public get(key: string): NodeBuffer {
     try {
-      var data = window.localStorage.getItem(key);
+      var data = global.localStorage.getItem(key);
       if (data !== null) {
         return new Buffer(data, binaryEncoding);
       }
@@ -56,11 +57,11 @@ export class LocalStorageStore implements kvfs.SyncKeyValueStore, kvfs.SimpleSyn
 
   public put(key: string, data: NodeBuffer, overwrite: boolean): boolean {
     try {
-      if (!overwrite && window.localStorage.getItem(key) !== null) {
+      if (!overwrite && global.localStorage.getItem(key) !== null) {
         // Don't want to overwrite the key!
         return false;
       }
-      window.localStorage.setItem(key, data.toString(binaryEncoding));
+      global.localStorage.setItem(key, data.toString(binaryEncoding));
       return true;
     } catch (e) {
       throw new ApiError(ErrorCode.ENOSPC, "LocalStorage is full.");
@@ -69,7 +70,7 @@ export class LocalStorageStore implements kvfs.SyncKeyValueStore, kvfs.SimpleSyn
 
   public delete(key: string): void {
     try {
-      window.localStorage.removeItem(key);
+      global.localStorage.removeItem(key);
     } catch (e) {
       throw new ApiError(ErrorCode.EIO, "Unable to delete key " + key + ": " + e);
     }
@@ -83,7 +84,7 @@ export class LocalStorageStore implements kvfs.SyncKeyValueStore, kvfs.SimpleSyn
 export class LocalStorageFileSystem extends kvfs.SyncKeyValueFileSystem {
   constructor() { super({ store: new LocalStorageStore() }); }
   public static isAvailable(): boolean {
-    return typeof window.localStorage !== 'undefined';
+    return typeof global.localStorage !== 'undefined';
   }
 }
 

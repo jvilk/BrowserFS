@@ -3,16 +3,17 @@ import browserfs = require('../core/browserfs');
 import kvfs = require('../generic/key_value_filesystem');
 import api_error = require('../core/api_error');
 import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
+import global = require('../core/global');
 var Buffer = buffer.Buffer,
   ApiError = api_error.ApiError,
   ErrorCode = api_error.ErrorCode,
   /**
    * Get the indexedDB constructor for the current browser.
    */
-  indexedDB: IDBFactory = window.indexedDB ||
-                          (<any>window).mozIndexedDB ||
-                          (<any>window).webkitIndexedDB ||
-                          window.msIndexedDB;
+  indexedDB: IDBFactory = global.indexedDB ||
+                          (<any>global).mozIndexedDB ||
+                          (<any>global).webkitIndexedDB ||
+                          global.msIndexedDB;
 
 /**
  * Converts a DOMException or a DOMError from an IndexedDB event into a

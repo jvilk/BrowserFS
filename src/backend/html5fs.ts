@@ -10,6 +10,7 @@ import file = require('../core/file');
 import browserfs = require('../core/browserfs');
 import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
 import node_path = require('../core/node_path');
+import global = require('../core/global');
 
 var Buffer = buffer.Buffer;
 var Stats = node_fs_stats.Stats;
@@ -21,7 +22,7 @@ var ActionType = file_flag.ActionType;
 // XXX: The typings for async on DefinitelyTyped are out of date.
 var async = require('async');
 
-var _getFS: (type:number, size:number, successCallback: FileSystemCallback, errorCallback?: ErrorCallback) => void = window.webkitRequestFileSystem || window.requestFileSystem || null;
+var _getFS: (type:number, size:number, successCallback: FileSystemCallback, errorCallback?: ErrorCallback) => void = global.webkitRequestFileSystem || global.requestFileSystem || null;
 
 function _requestQuota(type: number, size: number, success: (size: number) => void, errorCallback: ErrorCallback) {
   // We cast navigator and window to '<any>' because everything here is
@@ -31,10 +32,10 @@ function _requestQuota(type: number, size: number, success: (size: number) => vo
   // present in the DefinitelyTyped TypeScript typings for FileSystem.
   if (typeof navigator['webkitPersistentStorage'] !== 'undefined') {
     switch(type) {
-      case window.PERSISTENT:
+      case global.PERSISTENT:
         (<any> navigator).webkitPersistentStorage.requestQuota(size, success, errorCallback);
         break;
-      case window.TEMPORARY:
+      case global.TEMPORARY:
         (<any> navigator).webkitTemporaryStorage.requestQuota(size, success, errorCallback);
         break
       default:
@@ -43,7 +44,7 @@ function _requestQuota(type: number, size: number, success: (size: number) => vo
         break;
     }
   } else {
-    (<any> window).webkitStorageInfo.requestQuota(type, size, success, errorCallback);
+    (<any> global).webkitStorageInfo.requestQuota(type, size, success, errorCallback);
   }
 }
 
@@ -122,7 +123,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
   constructor(size: number, type?: number) {
     super();
     this.size = size != null ? size : 5;
-    this.type = type != null ? type : window.PERSISTENT;
+    this.type = type != null ? type : global.PERSISTENT;
     var kb = 1024;
     var mb = kb * kb;
     this.size *= mb;
@@ -197,7 +198,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
     var error = (err: DOMException): void => {
       cb(this.convert(err));
     };
-    if (this.type === window.PERSISTENT) {
+    if (this.type === global.PERSISTENT) {
       _requestQuota(this.type, this.size, (granted: number) => {
         _getFS(this.type, granted, success, error);
       }, error);
