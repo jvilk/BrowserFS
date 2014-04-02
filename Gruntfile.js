@@ -32,9 +32,11 @@ function removeDir(dir) {
 function getBackends() {
   var rv = [];
   fs.readdirSync('src/backend').forEach(function (backend) {
-    // Don't use path.join; R.JS uses Unix slashes.
-    // Trim the .ts extension.
-    rv.push('backend/' + backend.slice(0, -3));
+    if (backend.slice(-3) === '.ts') {
+      // Don't use path.join; R.JS uses Unix slashes.
+      // Trim the .ts extension.
+      rv.push('backend/' + backend.slice(0, -3));
+    }
   });
   return rv;
 }
