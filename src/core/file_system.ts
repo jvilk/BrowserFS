@@ -522,7 +522,7 @@ export class BaseFileSystem {
   public createFile(p: string, flag: file_flag.FileFlag, mode: number, cb: (e: api_error.ApiError, file?: file.File) => void): void {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
-  public open(p: string, flag:file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.BaseFile) => any): void {
+  public open(p: string, flag:file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.File) => any): void {
     var must_be_file = (e: api_error.ApiError, stats?: stat.Stats): void => {
       if (e) {
         // File does not exist.

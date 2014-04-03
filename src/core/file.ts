@@ -155,14 +155,17 @@ export interface File {
    * @param [Date] mtime
    */
   utimesSync(atime: number, mtime: number): void;
+  toString(): string;
 }
 
+var count: number = 3;
 /**
  * Base class that contains shared implementations of functions for the file
  * object.
  * @class
  */
 export class BaseFile {
+  private _num: number = count++;
   public sync(cb: Function): void {
     cb(new ApiError(ErrorCode.ENOTSUP));
   }
@@ -192,5 +195,8 @@ export class BaseFile {
   }
   public utimesSync(atime: number, mtime: number): void {
     throw new ApiError(ErrorCode.ENOTSUP);
+  }
+  public toString() {
+    return "" + this._num;
   }
 }
