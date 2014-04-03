@@ -86,25 +86,27 @@ if (!Array.prototype.forEach) {
 // Only IE10 has setImmediate.
 // @todo: Determine viability of switching to the 'proper' polyfill for this.
 if (typeof setImmediate === 'undefined') {
+  // XXX avoid importing the global module.
+  var gScope = typeof window !== 'undefined' ? window : typeof self !== 'undefined' ? self : global;
   var timeouts = [];
   var messageName = "zero-timeout-message";
   var canUsePostMessage = function() {
-    if (!window.postMessage) {
+    if (typeof gScope.importScripts !== 'undefined' || !gScope.postMessage) {
       return false;
     }
     var postMessageIsAsync = true;
-    var oldOnMessage = window.onmessage;
-    window.onmessage = function() {
+    var oldOnMessage = gScope.onmessage;
+    gScope.onmessage = function() {
       postMessageIsAsync = false;
     };
-    window.postMessage('', '*');
-    window.onmessage = oldOnMessage;
+    gScope.postMessage('', '*');
+    gScope.onmessage = oldOnMessage;
     return postMessageIsAsync;
   };
   if (canUsePostMessage()) {
-    window['set'+'Immediate'] = function(fn) {
+    gScope.setImmediate = function(fn) {
       timeouts.push(fn);
-      window.postMessage(messageName, "*");
+      gScope.postMessage(messageName, "*");
     };
     var handleMessage = function(event) {
       if (event.source === self && event.data === messageName) {
@@ -119,13 +121,25 @@ if (typeof setImmediate === 'undefined') {
         }
       }
     };
-    if (window.addEventListener) {
-      window.addEventListener('message', handleMessage, true);
+    if (gScope.addEventListener) {
+      gScope.addEventListener('message', handleMessage, true);
     } else {
-      window.attachEvent('onmessage', handleMessage);
+      gScope.attachEvent('onmessage', handleMessage);
     }
+  } else if (gScope.MessageChannel) {
+    // WebWorker MessageChannel
+    var channel = new gScope.MessageChannel();
+    channel.port1.onmessage = (event) => {
+      if (timeouts.length > 0) {
+        return timeouts.shift()();
+      }
+    };
+    gScope.setImmediate = (fn) => {
+      timeouts.push(fn);
+      channel.port2.postMessage('');
+    };
   } else {
-    window['set'+'Immediate'] = function(fn) {
+    gScope.setImmediate = function(fn) {
       return setTimeout(fn, 0);
       var scriptEl = window.document.createElement("script");
       scriptEl.onreadystatechange = function() {
@@ -134,7 +148,7 @@ if (typeof setImmediate === 'undefined') {
         scriptEl.parentNode.removeChild(scriptEl);
         return scriptEl = null;
       };
-      window.document.documentElement.appendChild(scriptEl);
+      gScope.document.documentElement.appendChild(scriptEl);
     };
   }
 }
@@ -246,18 +260,20 @@ if (!Array.prototype.map) {
  *
  * This is harmless to inject into non-IE browsers.
  */
-document.write("<!-- IEBinaryToArray_ByteStr -->\r\n"+
-  "<script type='text/vbscript'>\r\n"+
-  "Function IEBinaryToArray_ByteStr(Binary)\r\n"+
-  " IEBinaryToArray_ByteStr = CStr(Binary)\r\n"+
-  "End Function\r\n"+
-  "Function IEBinaryToArray_ByteStr_Last(Binary)\r\n"+
-  " Dim lastIndex\r\n"+
-  " lastIndex = LenB(Binary)\r\n"+
-  " if lastIndex mod 2 Then\r\n"+
-  " IEBinaryToArray_ByteStr_Last = Chr( AscB( MidB( Binary, lastIndex, 1 ) ) )\r\n"+
-  " Else\r\n"+
-  " IEBinaryToArray_ByteStr_Last = "+'""'+"\r\n"+
-  " End If\r\n"+
-  "End Function\r\n"+
-  "</script>\r\n");
+if (typeof document !== 'undefined') {
+  document.write("<!-- IEBinaryToArray_ByteStr -->\r\n"+
+    "<script type='text/vbscript'>\r\n"+
+    "Function IEBinaryToArray_ByteStr(Binary)\r\n"+
+    " IEBinaryToArray_ByteStr = CStr(Binary)\r\n"+
+    "End Function\r\n"+
+    "Function IEBinaryToArray_ByteStr_Last(Binary)\r\n"+
+    " Dim lastIndex\r\n"+
+    " lastIndex = LenB(Binary)\r\n"+
+    " if lastIndex mod 2 Then\r\n"+
+    " IEBinaryToArray_ByteStr_Last = Chr( AscB( MidB( Binary, lastIndex, 1 ) ) )\r\n"+
+    " Else\r\n"+
+    " IEBinaryToArray_ByteStr_Last = "+'""'+"\r\n"+
+    " End If\r\n"+
+    "End Function\r\n"+
+    "</script>\r\n");
+}

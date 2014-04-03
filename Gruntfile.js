@@ -66,7 +66,7 @@ function getOutro() {
   var modules = getEssentialModules(),
     bfsModule = modules.shift(),
     outro = [], i;
-  outro.push("window['BrowserFS']=require('" + bfsModule + "');");
+  outro.push("require('core/global').BrowserFS=require('" + bfsModule + "');");
   for (i = 0; i < modules.length; i++) {
     outro.push("require('" + modules[i] + "');");
   }
