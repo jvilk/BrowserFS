@@ -44,9 +44,7 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
   }
 
   public empty(): void {
-    this._index.fileIterator(function(file: node_fs_stats.Stats) {
-      file.file_data = null;
-    });
+    // NOP
   }
 
   /**
@@ -110,21 +108,6 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
     return true;
   }
 
-  /**
-   * Special XHR function: Preload the given file into the index.
-   * @param [String] path
-   * @param [BrowserFS.Buffer] buffer
-   */
-  public preloadFile(path: string, buffer: NodeBuffer): void {
-    var inode = <file_index.FileInode<node_fs_stats.Stats>> this._index.getInode(path);
-    if (inode === null) {
-      throw ApiError.ENOENT(path);
-    }
-    var stats = inode.getData();
-    stats.size = buffer.length;
-    stats.file_data = buffer;
-  }
-
   public stat(path: string, isLstat: boolean, cb: (e: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void {
     var inode = this._index.getInode(path);
     if (inode === null) {
@@ -174,7 +157,6 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
     if (flags.isWriteable()) {
       return cb(new ApiError(ErrorCode.EPERM, path));
     }
-    var _this = this;
     // Check if the path exists, and is a file.
     var inode = <file_index.FileInode<node_fs_stats.Stats>> this._index.getInode(path);
     if (inode === null) {
@@ -189,20 +171,13 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
       case ActionType.TRUNCATE_FILE:
         return cb(ApiError.EEXIST(path));
       case ActionType.NOP:
-        // Use existing file contents.
-        // XXX: Uh, this maintains the previously-used flag.
-        if (stats.file_data != null) {
-          return cb(null, new preload_file.NoSyncFile(_this, path, flags, stats.clone(), stats.file_data));
-        }
-        // @todo be lazier about actually requesting the file
-        this._requestFileAsync(path, 'buffer', function(err: api_error.ApiError, buffer?: NodeBuffer) {
+        this._requestFileAsync(path, 'buffer', (err: api_error.ApiError, buffer?: NodeBuffer) => {
           if (err) {
             return cb(err);
           }
           // we don't initially have file sizes
           stats.size = buffer.length;
-          stats.file_data = buffer;
-          return cb(null, new preload_file.NoSyncFile(_this, path, flags, stats.clone(), buffer));
+          return cb(null, new preload_file.NoSyncFile(this, path, flags, stats.clone(), buffer));
         });
         break;
       default:
@@ -229,16 +204,9 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
       case ActionType.TRUNCATE_FILE:
         throw ApiError.EEXIST(path);
       case ActionType.NOP:
-        // Use existing file contents.
-        // XXX: Uh, this maintains the previously-used flag.
-        if (stats.file_data != null) {
-          return new preload_file.NoSyncFile(this, path, flags, stats.clone(), stats.file_data);
-        }
-        // @todo be lazier about actually requesting the file
         var buffer = this._requestFileSync(path, 'buffer');
         // we don't initially have file sizes
         stats.size = buffer.length;
-        stats.file_data = buffer;
         return new preload_file.NoSyncFile(this, path, flags, stats.clone(), buffer);
       default:
         throw new ApiError(ErrorCode.EINVAL, 'Invalid FileMode object.');
