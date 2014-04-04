@@ -116,18 +116,13 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
     var stats: node_fs_stats.Stats;
     if (inode.isFile()) {
       stats = (<file_index.FileInode<node_fs_stats.Stats>> inode).getData();
-      // At this point, a non-opened file will still have default stats from the listing.
-      if (stats.size < 0) {
-        this._requestFileSizeAsync(path, function(e: api_error.ApiError, size?: number) {
-          if (e) {
-            return cb(e);
-          }
-          stats.size = size;
-          cb(null, stats.clone());
-        });
-      } else {
+      this._requestFileSizeAsync(path, function(e: api_error.ApiError, size?: number) {
+        if (e) {
+          return cb(e);
+        }
+        stats.size = size;
         cb(null, stats.clone());
-      }
+      });
     } else {
       stats = (<file_index.DirInode> inode).getStats();
       cb(null, stats);
@@ -142,14 +137,11 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
     var stats: node_fs_stats.Stats;
     if (inode.isFile()) {
       stats = (<file_index.FileInode<node_fs_stats.Stats>> inode).getData();
-      // At this point, a non-opened file will still have default stats from the listing.
-      if (stats.size < 0) {
-        stats.size = this._requestFileSizeSync(path);
-      }
+      stats.size = this._requestFileSizeSync(path);
     } else {
       stats = (<file_index.DirInode> inode).getStats();
     }
-    return stats;
+    return stats.clone();
   }
 
   public open(path: string, flags: file_flag.FileFlag, mode: number, cb: (e: api_error.ApiError, file?: file.File) => void): void {
