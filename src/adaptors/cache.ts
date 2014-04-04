@@ -30,7 +30,13 @@ export class NopSyncCache implements SyncCache {
   public put(key: string, data: NodeBuffer): void { }
 }
 
+var getTime: () => number = (() => {
+  return typeof performance !== 'undefined' ? () => { return performance.now(); } : () => { return Date.now(); };
+})();
+
 export class InMemoryCache implements SyncCache {
+  private delay: number = 500;
+  private countDown: number = 5000;
   /**
    * Lookup table from key to cache entry.
    */
@@ -45,12 +51,31 @@ export class InMemoryCache implements SyncCache {
    */
   private freeList: number[] = [];
   private size: number = 0;
-  constructor(private maxSize: number, private secondLevelCache: AsyncCache = new NopAsyncCache()) {}
+  private lastUpdateTime: number = getTime();
+  constructor(private maxSize: number, private secondLevelCache: AsyncCache = new NopAsyncCache()) {
+    setInterval(() => {
+      this.reset();
+    }, this.delay);
+  }
 
   private reset() {
-    var i: number, cache = this.cache, cacheLength: number = cache.length;
-    for (i = 0; i < cacheLength; i++) {
-      cache[i].metadata = false;
+    var time: number = getTime();
+    if (time - this.lastUpdateTime >= this.delay) {
+      this.lastUpdateTime = time;
+      var i: number, cache = this.cache, cacheLength: number = cache.length;
+      for (i = 0; i < cacheLength; i++) {
+        var cacheItem = cache[i];
+        if (cache[i] != null) {
+          cache[i].metadata = false;
+        }
+      }
+    }
+  }
+
+  private tryReset() {
+    if (--this.countDown === 0) {
+      this.countDown = this.delay * 200;
+      this.reset();
     }
   }
 
@@ -60,8 +85,7 @@ export class InMemoryCache implements SyncCache {
    */
   private discard() {
     var i: number, cache = this.cache, cacheLength: number = cache.length,
-      maxCandidateSize: number = 0,
-      item: {data: NodeBuffer; metadata: boolean},
+      maxCandidateSize: number = 0, item: {data: NodeBuffer; metadata: boolean},
       candidate: number;
     for (i = 0; i < cacheLength; i++) {
       item = cache[i];
@@ -73,7 +97,9 @@ export class InMemoryCache implements SyncCache {
     }
     if (candidate == null) {
       // All items have been recently used; remove randomly.
-      candidate = Math.floor(Math.random() * this.cache.length);
+      do {
+        candidate = Math.floor(Math.random() * (this.cache.length - 1));
+      } while (cache[candidate] == null);
     }
     this._remove(cache[candidate].key, candidate);
   }
@@ -93,6 +119,7 @@ export class InMemoryCache implements SyncCache {
   public put(key: string, data: NodeBuffer): void {
     var idx: number = this.lookup[key], size: number, dataLength: number,
       maxSize: number;
+    this.tryReset();
     if (idx) {
       // Value update.
       this._remove(key, idx);
@@ -126,6 +153,7 @@ export class InMemoryCache implements SyncCache {
 
   public get(key: string): NodeBuffer {
     var idx: number = this.lookup[key];
+    this.tryReset();
     if (idx) {
       return this.cache[idx].data;
     }
@@ -134,6 +162,7 @@ export class InMemoryCache implements SyncCache {
 
   public del(key: string): boolean {
     var idx: number = this.lookup[key];
+    this.tryReset();
     if (idx) {
       this._remove(key, idx);
       return true;
