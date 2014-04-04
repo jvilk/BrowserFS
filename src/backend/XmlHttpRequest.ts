@@ -9,12 +9,14 @@ import node_fs_stats = require('../core/node_fs_stats');
 import preload_file = require('../generic/preload_file');
 import browserfs = require('../core/browserfs');
 import xhr = require('../generic/xhr');
+import cache = require('../adaptors/cache');
 
 var Buffer = buffer.Buffer;
 var ApiError = api_error.ApiError;
 var ErrorCode = api_error.ErrorCode;
 var FileFlag = file_flag.FileFlag;
 var ActionType = file_flag.ActionType;
+var NopSyncCache = cache.NopSyncCache;
 
 /**
  * A simple filesystem backed by XmlHttpRequests.
@@ -28,7 +30,7 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
    *   or absolutely specified.
    * @param [String] prefix_url The url prefix to use for all web-server requests.
    */
-  constructor(listing_url: string, public prefix_url: string = '') {
+  constructor(listing_url: string, public prefix_url: string = '', private cache: cache.SyncCache = new NopSyncCache()) {
     super();
     if (listing_url == null) {
       listing_url = 'index.json';
@@ -51,10 +53,33 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
    * Only requests the HEAD content, for the file size.
    */
   public _requestFileSizeAsync(path: string, cb: (err: api_error.ApiError, size?: number) => void): void {
-    xhr.getFileSizeAsync(this.prefix_url + path, cb);
+    var size: NodeBuffer = this.cache.get('/size' + path);
+    if (size != null) {
+      cb(null, size.readUInt32LE(0));
+    } else {
+      xhr.getFileSizeAsync(this.prefix_url + path, (err: api_error.ApiError, size?: number) => {
+        var sizeBuff: NodeBuffer;
+        if (!err) {
+          sizeBuff = new Buffer(4);
+          sizeBuff.writeUInt32LE(size, 0);
+          this.cache.put('/size' + path, sizeBuff);
+        }
+        cb(err, size);
+      });
+    }
   }
   public _requestFileSizeSync(path: string): number {
-    return xhr.getFileSizeSync(this.prefix_url + path);
+    var size: NodeBuffer = this.cache.get('/size' + path),
+      sizeNum: number;
+    if (size != null) {
+      sizeNum = size.readUInt32LE(0);
+    } else {
+      sizeNum = xhr.getFileSizeSync(this.prefix_url + path);
+      size = new Buffer(4);
+      size.writeUInt32LE(sizeNum, 0);
+      this.cache.put('/size' + path, size);
+    }
+    return sizeNum;
   }
 
   /**
@@ -64,7 +89,20 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
   private _requestFileAsync(p: string, type: 'json', cb: (err: api_error.ApiError, data?: any) => void): void;
   private _requestFileAsync(p: string, type: string, cb: (err: api_error.ApiError, data?: any) => void): void;
   private _requestFileAsync(p: string, type: string, cb: (err: api_error.ApiError, data?: any) => void): void {
-    xhr.asyncDownloadFile(this.prefix_url + p, type, cb);
+    var contents: NodeBuffer;
+    if (type === 'buffer') {
+      // Try the cache.
+      contents = this.cache.get('/data' + p);
+      if (contents != null) {
+        return cb(null, contents);
+      }
+    }
+    xhr.asyncDownloadFile(this.prefix_url + p, type, (err: api_error.ApiError, data?: any) => {
+      if (!err) {
+        if (type === 'buffer') this.cache.put('/data' + p, data);
+      }
+      cb(err, data);
+    });
   }
 
   /**
@@ -74,7 +112,16 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
   private _requestFileSync(p: string, type: 'json'): any;
   private _requestFileSync(p: string, type: string): any;
   private _requestFileSync(p: string, type: string): any {
-    return xhr.syncDownloadFile(this.prefix_url + p, type);
+    var contents: NodeBuffer;
+    if (type === 'buffer') {
+      contents = this.cache.get('/data' + p);
+      if (contents != null) {
+        return contents;
+      }
+    }
+    contents = xhr.syncDownloadFile(this.prefix_url + p, type);
+    if (type === 'buffer') this.cache.put('/data' + p, contents);
+    return contents;
   }
 
   public getName(): string {
