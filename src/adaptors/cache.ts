@@ -1,3 +1,4 @@
+/// <reference path="../../vendor/DefinitelyTyped/node/node.d.ts" />
 export interface SyncCache {
   get(key: string): NodeBuffer;
   del(key: string): boolean;
@@ -37,6 +38,11 @@ var getTime: () => number = (() => {
 export class InMemoryCache implements SyncCache {
   private delay: number = 500;
   private countDown: number = 5000;
+  private hits: number = 0;
+  private misses: number = 0;
+  public hitRate(): number {
+    return this.hits / (this.hits + this.misses);
+  }
   /**
    * Lookup table from key to cache entry.
    */
@@ -155,8 +161,10 @@ export class InMemoryCache implements SyncCache {
     var idx: number = this.lookup[key];
     this.tryReset();
     if (idx) {
+      this.hits++;
       return this.cache[idx].data;
     }
+    this.misses++;
     return null;
   }
 
@@ -170,3 +178,4 @@ export class InMemoryCache implements SyncCache {
     return false;
   }
 }
+window['InMemoryCache'] = InMemoryCache;
