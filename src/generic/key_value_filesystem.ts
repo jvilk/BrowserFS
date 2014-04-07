@@ -663,7 +663,11 @@ export class AsyncKeyValueFile extends preload_file.PreloadFile implements file.
   }
 
   public sync(cb: (e?: api_error.ApiError) => void): void {
-    (<AsyncKeyValueFileSystem> this._fs)._sync(this._path, this._buffer, this._stat, cb);
+    if (this._stat.mtime !== this._startMtime) {
+      (<AsyncKeyValueFileSystem> this._fs)._sync(this._path, this._buffer, this._stat, cb);
+    } else {
+      cb();
+    }
   }
 
   public close(cb: (e?: api_error.ApiError) => void): void {
