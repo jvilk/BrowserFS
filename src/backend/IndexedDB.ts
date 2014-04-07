@@ -4,6 +4,7 @@ import kvfs = require('../generic/key_value_filesystem');
 import api_error = require('../core/api_error');
 import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
 import global = require('../core/global');
+import cache = require('../adaptors/cache');
 var Buffer = buffer.Buffer,
   ApiError = api_error.ApiError,
   ErrorCode = api_error.ErrorCode,
@@ -63,10 +64,14 @@ function buffer2arraybuffer(data: NodeBuffer): ArrayBuffer {
 }
 
 export class IndexedDBROTransaction implements kvfs.AsyncKeyValueROTransaction {
-  constructor(public tx: IDBTransaction, public store: IDBObjectStore) { }
+  constructor(public tx: IDBTransaction, public store: IDBObjectStore,
+    public cache: cache.SyncCache) { }
 
   get(key: string, cb: (e: api_error.ApiError, data?: NodeBuffer) => void): void {
     try {
+      var cache_data: NodeBuffer = this.cache.get(key);
+      if (cache_data != null) cb(null, cache_data);
+
       var r: IDBRequest = this.store.get(key);
       r.onerror = onErrorHandler(cb);
       r.onsuccess = (event) => {
@@ -77,7 +82,9 @@ export class IndexedDBROTransaction implements kvfs.AsyncKeyValueROTransaction {
           cb(null, result);
         } else {
           // IDB data is stored as an ArrayBuffer
-          cb(null, new Buffer(result));
+          cache_data = new Buffer(result);
+          this.cache.put(key, cache_data);
+          cb(null, cache_data);
         }
       };
     } catch (e) {
@@ -87,8 +94,8 @@ export class IndexedDBROTransaction implements kvfs.AsyncKeyValueROTransaction {
 }
 
 export class IndexedDBRWTransaction extends IndexedDBROTransaction implements kvfs.AsyncKeyValueRWTransaction, kvfs.AsyncKeyValueROTransaction {
-  constructor(tx: IDBTransaction, store: IDBObjectStore) {
-    super(tx, store);
+  constructor(tx: IDBTransaction, store: IDBObjectStore, cache: cache.SyncCache) {
+    super(tx, store, cache);
   }
 
   public put(key: string, data: NodeBuffer, overwrite: boolean, cb: (e: api_error.ApiError, committed?: boolean) => void): void {
@@ -104,6 +111,7 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements kv
       // XXX: NEED TO RETURN FALSE WHEN ADD HAS A KEY CONFLICT. NO ERROR.
       r.onerror = onErrorHandler(cb);
       r.onsuccess = (event) => {
+        this.cache.put(key, data);
         cb(null, true);
       };
     } catch (e) {
@@ -116,6 +124,7 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements kv
       var r: IDBRequest = this.store.delete(key);
       r.onerror = onErrorHandler(cb);
       r.onsuccess = (event) => {
+        this.cache.del(key);
         cb();
       };
     } catch (e) {
@@ -151,7 +160,7 @@ export class IndexedDBStore implements kvfs.AsyncKeyValueStore {
    *   multiple IndexedDB file systems operating at once, but each must have
    *   a different name.
    */
-  constructor(cb: (e: api_error.ApiError, store?: IndexedDBStore) => void, private storeName: string = 'browserfs') {
+  constructor(cb: (e: api_error.ApiError, store?: IndexedDBStore) => void, private storeName: string = 'browserfs', private _cache: cache.SyncCache = new cache.NopSyncCache()) {
     var openReq: IDBOpenDBRequest = indexedDB.open(this.storeName, 1);
 
     openReq.onupgradeneeded = (event) => {
@@ -195,9 +204,9 @@ export class IndexedDBStore implements kvfs.AsyncKeyValueStore {
     var tx = this.db.transaction(this.storeName, type),
       objectStore = tx.objectStore(this.storeName);
     if (type === 'readwrite') {
-      return new IndexedDBRWTransaction(tx, objectStore);
+      return new IndexedDBRWTransaction(tx, objectStore, this._cache);
     } else if (type === 'readonly') {
-      return new IndexedDBROTransaction(tx, objectStore);
+      return new IndexedDBROTransaction(tx, objectStore, this._cache);
     } else {
       throw new ApiError(ErrorCode.EINVAL, 'Invalid transaction type.');
     }
@@ -208,7 +217,8 @@ export class IndexedDBStore implements kvfs.AsyncKeyValueStore {
  * A file system that uses the IndexedDB key value file system.
  */
 export class IndexedDBFileSystem extends kvfs.AsyncKeyValueFileSystem {
-  constructor(cb: (e: api_error.ApiError, fs?: IndexedDBFileSystem) => void, storeName?: string) {
+  constructor(cb: (e: api_error.ApiError, fs?: IndexedDBFileSystem) => void, storeName?: string,
+    _cache?: cache.SyncCache) {
     super();
     new IndexedDBStore((e, store?): void => {
       if (e) {
@@ -218,7 +228,7 @@ export class IndexedDBFileSystem extends kvfs.AsyncKeyValueFileSystem {
           cb(e, this);
         });
       }
-    }, storeName);
+    }, storeName, _cache);
   }
 
   public static isAvailable(): boolean {
