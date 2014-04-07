@@ -211,16 +211,21 @@ export class IndexedDBStore implements kvfs.AsyncKeyValueStore {
       throw new ApiError(ErrorCode.EINVAL, 'Invalid transaction type.');
     }
   }
+
+  public resetCache(newCache: cache.SyncCache) {
+    this._cache = newCache;
+  }
 }
 
 /**
  * A file system that uses the IndexedDB key value file system.
  */
 export class IndexedDBFileSystem extends kvfs.AsyncKeyValueFileSystem {
+  private idbStore: IndexedDBStore;
   constructor(cb: (e: api_error.ApiError, fs?: IndexedDBFileSystem) => void, storeName?: string,
     _cache?: cache.SyncCache) {
     super();
-    new IndexedDBStore((e, store?): void => {
+    this.idbStore = new IndexedDBStore((e, store?): void => {
       if (e) {
         cb(e);
       } else {
@@ -229,6 +234,10 @@ export class IndexedDBFileSystem extends kvfs.AsyncKeyValueFileSystem {
         });
       }
     }, storeName, _cache);
+  }
+
+  public resetCache(newCache: cache.SyncCache) {
+    this.idbStore.resetCache(newCache);
   }
 
   public static isAvailable(): boolean {
