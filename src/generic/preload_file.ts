@@ -27,6 +27,7 @@ export class PreloadFile extends file.BaseFile {
   public _stat: node_fs_stats.Stats;
   public _flag: file_flag.FileFlag;
   public _buffer: NodeBuffer;
+  public _startMtime: Date;
   /**
    * Creates a file with the given path and, optionally, the given contents. Note
    * that, if contents is specified, it will be mutated by the file!
@@ -58,6 +59,7 @@ export class PreloadFile extends file.BaseFile {
     if (this._stat.size !== this._buffer.length) {
       throw new Error("Invalid buffer: Buffer is " + this._buffer.length + " long, yet Stats object specifies that file is " + this._stat.size + " long.");
     }
+    this._startMtime = this._stat.mtime;
   }
 
   /**

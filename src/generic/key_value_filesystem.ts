@@ -221,7 +221,9 @@ export class SyncKeyValueFile extends preload_file.PreloadFile implements file.F
   }
 
   public syncSync(): void {
-    (<SyncKeyValueFileSystem> this._fs)._syncSync(this._path, this._buffer, this._stat);
+    if (this._stat.mtime !== this._startMtime) {
+      (<SyncKeyValueFileSystem> this._fs)._syncSync(this._path, this._buffer, this._stat);
+    }
   }
 
   public closeSync(): void {
