@@ -52,14 +52,14 @@ class BufferedEvent {
 /**
  * Provides an abstract implementation of the EventEmitter interface.
  */
-export class AbstractEventEmitter implements NodeEventEmitter {
+export class AbstractEventEmitter implements NodeJS.EventEmitter {
   private _listeners: {[event: string]: Function[]} = {};
   private maxListeners: number = 10;
 
   /**
    * Adds a listener for the particular event.
    */
-  public addListener(event: string, listener: Function): NodeEventEmitter {
+  public addListener(event: string, listener: Function): NodeJS.EventEmitter {
     if (typeof(this._listeners[event]) === 'undefined') {
       this._listeners[event] = [];
     }
@@ -73,14 +73,14 @@ export class AbstractEventEmitter implements NodeEventEmitter {
   /**
    * Adds a listener for the particular event.
    */
-  public on(event: string, listener: Function): NodeEventEmitter {
+  public on(event: string, listener: Function): NodeJS.EventEmitter {
     return this.addListener(event, listener);
   }
 
   /**
    * Adds a listener for the particular event that fires only once.
    */
-  public once(event: string, listener: Function): NodeEventEmitter {
+  public once(event: string, listener: Function): NodeJS.EventEmitter {
     // Create a new callback that will only fire once.
     var fired: boolean = false,
         newListener: Function = function() {
@@ -110,7 +110,7 @@ export class AbstractEventEmitter implements NodeEventEmitter {
   /**
    * Removes the particular listener for the given event.
    */
-  public removeListener(event: string, listener: Function): NodeEventEmitter {
+  public removeListener(event: string, listener: Function): NodeJS.EventEmitter {
     var listeners = this._listeners[event];
     if (typeof(listeners) !== 'undefined') {
       // Remove listener, if present.
@@ -126,7 +126,7 @@ export class AbstractEventEmitter implements NodeEventEmitter {
   /**
    * Removes all listeners, or those of the specified event.
    */
-  public removeAllListeners(event?: string): NodeEventEmitter {
+  public removeAllListeners(event?: string): NodeJS.EventEmitter {
     var removed: Function[], keys: string[], i: number;
     if (typeof(event) !== 'undefined') {
       removed = this._listeners[event];
@@ -184,7 +184,7 @@ export class AbstractEventEmitter implements NodeEventEmitter {
  * interfaces.
  * @todo: Check readable/writable status.
  */
-export class AbstractDuplexStream extends AbstractEventEmitter implements ReadWriteStream {
+export class AbstractDuplexStream extends AbstractEventEmitter implements NodeJS.ReadWriteStream {
   /**
    * How should the data output be encoded? 'null' means 'Buffer'.
    */
@@ -224,7 +224,7 @@ export class AbstractDuplexStream extends AbstractEventEmitter implements ReadWr
    * Implemented here so that we can capture data EventListeners, which trigger
    * us to 'resume'.
    */
-  public addListener(event: string, listener: Function): NodeEventEmitter {
+  public addListener(event: string, listener: Function): NodeJS.EventEmitter {
     var rv = super.addListener(event, listener),
         _this = this;
     if (event === 'data' && !this.flowing) {
@@ -430,10 +430,10 @@ export class AbstractDuplexStream extends AbstractEventEmitter implements ReadWr
   /**
    * Pipe a readable stream into a writable stream. Currently unimplemented.
    */
-  public pipe<T extends WritableStream>(destination: T, options?: { end?: boolean; }): T {
+  public pipe<T extends NodeJS.WritableStream>(destination: T, options?: { end?: boolean; }): T {
     throw new ApiError(ErrorCode.EPERM, "Unimplemented.");
   }
-  public unpipe<T extends WritableStream>(destination?: T): void {}
+  public unpipe<T extends NodeJS.WritableStream>(destination?: T): void {}
 
   /**
    * 'Unshift' the given piece of data back into the buffer.
@@ -461,7 +461,7 @@ export class AbstractDuplexStream extends AbstractEventEmitter implements ReadWr
    * Enables backwards-compatibility with older versions of Node and their
    * stream interface. Unimplemented.
    */
-  public wrap(stream: ReadableStream): ReadableStream {
+  public wrap(stream: NodeJS.ReadableStream): NodeJS.ReadableStream {
     throw new ApiError(ErrorCode.EPERM, "Unimplemented.");
   }
 }
