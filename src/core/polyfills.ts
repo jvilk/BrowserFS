@@ -260,7 +260,7 @@ if (!Array.prototype.map) {
  *
  * This is harmless to inject into non-IE browsers.
  */
-if (typeof document !== 'undefined') {
+if (typeof document !== 'undefined' && window['chrome'] === undefined) {
   document.write("<!-- IEBinaryToArray_ByteStr -->\r\n"+
     "<script type='text/vbscript'>\r\n"+
     "Function IEBinaryToArray_ByteStr(Binary)\r\n"+
