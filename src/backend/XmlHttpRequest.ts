@@ -33,8 +33,9 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
     if (listing_url == null) {
       listing_url = 'index.json';
     }
-    if (prefix_url.charAt(prefix_url.length - 1) === '/') {
-      prefix_url = prefix_url.slice(0, prefix_url.length - 1);
+    // prefix_url must end in a directory separator.
+    if (prefix_url.length > 0 && prefix_url.charAt(prefix_url.length - 1) !== '/') {
+      prefix_url = prefix_url + '/';
     }
     var listing = this._requestFileSync(listing_url, 'json');
     if (listing == null) {
@@ -49,14 +50,21 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
     });
   }
 
+  private getXhrPath(filePath: string): string {
+    if (filePath.charAt(0) === '/') {
+      filePath = filePath.slice(1);
+    }
+    return this.prefix_url + filePath;
+  }
+
   /**
    * Only requests the HEAD content, for the file size.
    */
   public _requestFileSizeAsync(path: string, cb: (err: api_error.ApiError, size?: number) => void): void {
-    xhr.getFileSizeAsync(this.prefix_url + path, cb);
+    xhr.getFileSizeAsync(this.getXhrPath(path), cb);
   }
   public _requestFileSizeSync(path: string): number {
-    return xhr.getFileSizeSync(this.prefix_url + path);
+    return xhr.getFileSizeSync(this.getXhrPath(path));
   }
 
   /**
@@ -66,7 +74,7 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
   private _requestFileAsync(p: string, type: 'json', cb: (err: api_error.ApiError, data?: any) => void): void;
   private _requestFileAsync(p: string, type: string, cb: (err: api_error.ApiError, data?: any) => void): void;
   private _requestFileAsync(p: string, type: string, cb: (err: api_error.ApiError, data?: any) => void): void {
-    xhr.asyncDownloadFile(this.prefix_url + p, type, cb);
+    xhr.asyncDownloadFile(this.getXhrPath(p), type, cb);
   }
 
   /**
@@ -76,7 +84,7 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
   private _requestFileSync(p: string, type: 'json'): any;
   private _requestFileSync(p: string, type: string): any;
   private _requestFileSync(p: string, type: string): any {
-    return xhr.syncDownloadFile(this.prefix_url + p, type);
+    return xhr.syncDownloadFile(this.getXhrPath(p), type);
   }
 
   public getName(): string {
