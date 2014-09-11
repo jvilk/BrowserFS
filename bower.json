@@ -3,7 +3,9 @@
   "version": "0.3.4",
   "main": [
     "./dist/browserfs.js",
-    "./dist/browserfs.js.map"
+    "./dist/browserfs.js.map",
+    "./dist/browserfs.min.js",
+    "./dist/browserfs.min.js.map"
   ],
   "ignore": [
     "**/.*",

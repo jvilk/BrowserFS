@@ -1,5 +1,11840 @@
-!function(){if(Date.now||(Date.now=function(){return(new Date).getTime()}),Array.isArray||(Array.isArray=function(t){return"[object Array]"===Object.prototype.toString.call(t)}),Object.keys||(Object.keys=function(){var t=Object.prototype.hasOwnProperty,e=!{toString:null}.propertyIsEnumerable("toString"),n=["toString","toLocaleString","valueOf","hasOwnProperty","isPrototypeOf","propertyIsEnumerable","constructor"],r=n.length;return function(o){if("object"!=typeof o&&("function"!=typeof o||null===o))throw new TypeError("Object.keys called on non-object");var i,a,s=[];for(i in o)t.call(o,i)&&s.push(i);if(e)for(a=0;r>a;a++)t.call(o,n[a])&&s.push(n[a]);return s}}()),"b"!=="ab".substr(-1)&&(String.prototype.substr=function(t){return function(e,n){return 0>e&&(e=this.length+e),t.call(this,e,n)}}(String.prototype.substr)),Array.prototype.forEach||(Array.prototype.forEach=function(t,e){for(var n=0;n<this.length;++n)n in this&&t.call(e,this[n],n,this)}),"undefined"==typeof setImmediate){var t=[],e="zero-timeout-message",n=function(){if(!window.postMessage)return!1;var t=!0,e=window.onmessage;return window.onmessage=function(){t=!1},window.postMessage("","*"),window.onmessage=e,t};if(n()){window.setImmediate=function(n){t.push(n),window.postMessage(e,"*")};var r=function(n){if(n.source===self&&n.data===e&&(n.stopPropagation?n.stopPropagation():n.cancelBubble=!0,t.length>0)){var r=t.shift();return r()}};window.addEventListener?window.addEventListener("message",r,!0):window.attachEvent("onmessage",r)}else window.setImmediate=function(t){return setTimeout(t,0)}}Array.prototype.indexOf||(Array.prototype.indexOf=function(t,e){if("undefined"==typeof e&&(e=0),!this)throw new TypeError;var n=this.length;if(0===n||r>=n)return-1;var r=e;0>r&&(r=n+r);for(var o=r;n>o;o++)if(this[o]===t)return o;return-1}),Array.prototype.forEach||(Array.prototype.forEach=function(t,e){var n,r;for(n=0,r=this.length;r>n;++n)n in this&&t.call(e,this[n],n,this)}),Array.prototype.map||(Array.prototype.map=function(t,e){var n,r,o;if(null==this)throw new TypeError(" this is null or not defined");var i=Object(this),a=i.length>>>0;if("function"!=typeof t)throw new TypeError(t+" is not a function");for(e&&(n=e),r=new Array(a),o=0;a>o;){var s,u;o in i&&(s=i[o],u=t.call(n,s,o,i),r[o]=u),o++}return r}),document.write("<!-- IEBinaryToArray_ByteStr -->\r\n<script type='text/vbscript'>\r\nFunction IEBinaryToArray_ByteStr(Binary)\r\n IEBinaryToArray_ByteStr = CStr(Binary)\r\nEnd Function\r\nFunction IEBinaryToArray_ByteStr_Last(Binary)\r\n Dim lastIndex\r\n lastIndex = LenB(Binary)\r\n if lastIndex mod 2 Then\r\n IEBinaryToArray_ByteStr_Last = Chr( AscB( MidB( Binary, lastIndex, 1 ) ) )\r\n Else\r\n IEBinaryToArray_ByteStr_Last = \"\"\r\n End If\r\nEnd Function\r\n</script>\r\n");var o,i,a;!function(t){function e(t,e){return S.call(t,e)}function n(t,e){var n,r,o,i,a,s,u,f,c,p,l=e&&e.split("/"),h=v.map,d=h&&h["*"]||{};if(t&&"."===t.charAt(0))if(e){for(l=l.slice(0,l.length-1),t=l.concat(t.split("/")),f=0;f<t.length;f+=1)if(p=t[f],"."===p)t.splice(f,1),f-=1;else if(".."===p){if(1===f&&(".."===t[2]||".."===t[0]))break;f>0&&(t.splice(f-1,2),f-=2)}t=t.join("/")}else 0===t.indexOf("./")&&(t=t.substring(2));if((l||d)&&h){for(n=t.split("/"),f=n.length;f>0;f-=1){if(r=n.slice(0,f).join("/"),l)for(c=l.length;c>0;c-=1)if(o=h[l.slice(0,c).join("/")],o&&(o=o[r])){i=o,a=f;break}if(i)break;!s&&d&&d[r]&&(s=d[r],u=f)}!i&&s&&(i=s,a=u),i&&(n.splice(0,a,i),t=n.join("/"))}return t}function r(e,n){return function(){return h.apply(t,b.call(arguments,0).concat([e,n]))}}function s(t){return function(e){return n(e,t)}}function u(t){return function(e){w[t]=e}}function f(n){if(e(g,n)){var r=g[n];delete g[n],m[n]=!0,l.apply(t,r)}if(!e(w,n)&&!e(m,n))throw new Error("No "+n);return w[n]}function c(t){var e,n=t?t.indexOf("!"):-1;return n>-1&&(e=t.substring(0,n),t=t.substring(n+1,t.length)),[e,t]}function p(t){return function(){return v&&v.config&&v.config[t]||{}}}var l,h,d,y,w={},g={},v={},m={},S=Object.prototype.hasOwnProperty,b=[].slice;d=function(t,e){var r,o=c(t),i=o[0];return t=o[1],i&&(i=n(i,e),r=f(i)),i?t=r&&r.normalize?r.normalize(t,s(e)):n(t,e):(t=n(t,e),o=c(t),i=o[0],t=o[1],i&&(r=f(i))),{f:i?i+"!"+t:t,n:t,pr:i,p:r}},y={require:function(t){return r(t)},exports:function(t){var e=w[t];return"undefined"!=typeof e?e:w[t]={}},module:function(t){return{id:t,uri:"",exports:w[t],config:p(t)}}},l=function(n,o,i,a){var s,c,p,l,h,v,S=[],b=typeof i;if(a=a||n,"undefined"===b||"function"===b){for(o=!o.length&&i.length?["require","exports","module"]:o,h=0;h<o.length;h+=1)if(l=d(o[h],a),c=l.f,"require"===c)S[h]=y.require(n);else if("exports"===c)S[h]=y.exports(n),v=!0;else if("module"===c)s=S[h]=y.module(n);else if(e(w,c)||e(g,c)||e(m,c))S[h]=f(c);else{if(!l.p)throw new Error(n+" missing "+c);l.p.load(l.n,r(a,!0),u(c),{}),S[h]=w[c]}p=i?i.apply(w[n],S):void 0,n&&(s&&s.exports!==t&&s.exports!==w[n]?w[n]=s.exports:p===t&&v||(w[n]=p))}else n&&(w[n]=i)},o=i=h=function(e,n,r,o,i){return"string"==typeof e?y[e]?y[e](n):f(d(e,n).f):(e.splice||(v=e,n.splice?(e=n,n=r,r=null):e=t),n=n||function(){},"function"==typeof r&&(r=o,o=i),o?l(t,e,n,r):setTimeout(function(){l(t,e,n,r)},4),h)},h.config=function(t){return v=t,v.deps&&h(v.deps,v.callback),h},o._defined=w,a=function(t,n,r){n.splice||(r=n,n=[]),e(w,t)||e(g,t)||(g[t]=[t,n,r])},a.amd={jQuery:!0}}(),a("../vendor/almond/almond",function(){}),a("core/api_error",["require","exports"],function(t,e){!function(t){t[t.EPERM=0]="EPERM",t[t.ENOENT=1]="ENOENT",t[t.EIO=2]="EIO",t[t.EBADF=3]="EBADF",t[t.EACCES=4]="EACCES",t[t.EBUSY=5]="EBUSY",t[t.EEXIST=6]="EEXIST",t[t.ENOTDIR=7]="ENOTDIR",t[t.EISDIR=8]="EISDIR",t[t.EINVAL=9]="EINVAL",t[t.EFBIG=10]="EFBIG",t[t.ENOSPC=11]="ENOSPC",t[t.EROFS=12]="EROFS",t[t.ENOTEMPTY=13]="ENOTEMPTY",t[t.ENOTSUP=14]="ENOTSUP"}(e.ErrorCode||(e.ErrorCode={}));var n=e.ErrorCode,r={};r[0]="Operation not permitted.",r[1]="No such file or directory.",r[2]="Input/output error.",r[3]="Bad file descriptor.",r[4]="Permission denied.",r[5]="Resource busy.",r[6]="File exists.",r[7]="File is not a directory.",r[8]="File is a directory.",r[9]="Invalid argument.",r[10]="File is too big.",r[11]="No space left on disk.",r[12]="Cannot modify a read-only file system.",r[13]="Directory is not empty.",r[14]="Operation is not supported.";var o=function(){function t(t,e){this.type=t,this.code=n[t],null!=e&&(this.message=e)}return t.prototype.toString=function(){return this.code+": "+r[this.type]+" "+this.message},t}();e.ApiError=o}),a("core/buffer_core",["require","exports","./api_error"],function(t,e,n){var r=Math.pow(2,128),o=-1*r,i=2139095040,a=-8388608,s=2143289344,u=function(){function t(){}return t.prototype.getLength=function(){throw new n.ApiError(14,"BufferCore implementations should implement getLength.")},t.prototype.writeInt8=function(t,e){this.writeUInt8(t,255&e|(2147483648&e)>>>24)},t.prototype.writeInt16LE=function(t,e){this.writeUInt8(t,255&e),this.writeUInt8(t+1,255&e>>>8|(2147483648&e)>>>24)},t.prototype.writeInt16BE=function(t,e){this.writeUInt8(t+1,255&e),this.writeUInt8(t,255&e>>>8|(2147483648&e)>>>24)},t.prototype.writeInt32LE=function(t,e){this.writeUInt8(t,255&e),this.writeUInt8(t+1,255&e>>>8),this.writeUInt8(t+2,255&e>>>16),this.writeUInt8(t+3,255&e>>>24)},t.prototype.writeInt32BE=function(t,e){this.writeUInt8(t+3,255&e),this.writeUInt8(t+2,255&e>>>8),this.writeUInt8(t+1,255&e>>>16),this.writeUInt8(t,255&e>>>24)},t.prototype.writeUInt8=function(){throw new n.ApiError(14,"BufferCore implementations should implement writeUInt8.")},t.prototype.writeUInt16LE=function(t,e){this.writeUInt8(t,255&e),this.writeUInt8(t+1,255&e>>8)},t.prototype.writeUInt16BE=function(t,e){this.writeUInt8(t+1,255&e),this.writeUInt8(t,255&e>>8)},t.prototype.writeUInt32LE=function(t,e){this.writeInt32LE(t,0|e)},t.prototype.writeUInt32BE=function(t,e){this.writeInt32BE(t,0|e)},t.prototype.writeFloatLE=function(t,e){this.writeInt32LE(t,this.float2intbits(e))},t.prototype.writeFloatBE=function(t,e){this.writeInt32BE(t,this.float2intbits(e))},t.prototype.writeDoubleLE=function(t,e){var n=this.double2longbits(e);this.writeInt32LE(t,n[0]),this.writeInt32LE(t+4,n[1])},t.prototype.writeDoubleBE=function(t,e){var n=this.double2longbits(e);this.writeInt32BE(t+4,n[0]),this.writeInt32BE(t,n[1])},t.prototype.readInt8=function(t){var e=this.readUInt8(t);return 128&e?4294967168|e:e},t.prototype.readInt16LE=function(t){var e=this.readUInt16LE(t);return 32768&e?4294934528|e:e},t.prototype.readInt16BE=function(t){var e=this.readUInt16BE(t);return 32768&e?4294934528|e:e},t.prototype.readInt32LE=function(t){return 0|this.readUInt32LE(t)},t.prototype.readInt32BE=function(t){return 0|this.readUInt32BE(t)},t.prototype.readUInt8=function(){throw new n.ApiError(14,"BufferCore implementations should implement readUInt8.")},t.prototype.readUInt16LE=function(t){return this.readUInt8(t+1)<<8|this.readUInt8(t)},t.prototype.readUInt16BE=function(t){return this.readUInt8(t)<<8|this.readUInt8(t+1)},t.prototype.readUInt32LE=function(t){return(this.readUInt8(t+3)<<24|this.readUInt8(t+2)<<16|this.readUInt8(t+1)<<8|this.readUInt8(t))>>>0},t.prototype.readUInt32BE=function(t){return(this.readUInt8(t)<<24|this.readUInt8(t+1)<<16|this.readUInt8(t+2)<<8|this.readUInt8(t+3))>>>0},t.prototype.readFloatLE=function(t){return this.intbits2float(this.readInt32LE(t))},t.prototype.readFloatBE=function(t){return this.intbits2float(this.readInt32BE(t))},t.prototype.readDoubleLE=function(t){return this.longbits2double(this.readInt32LE(t+4),this.readInt32LE(t))},t.prototype.readDoubleBE=function(t){return this.longbits2double(this.readInt32BE(t),this.readInt32BE(t+4))},t.prototype.copy=function(){throw new n.ApiError(14,"BufferCore implementations should implement copy.")},t.prototype.fill=function(t,e,n){for(var r=e;n>r;r++)this.writeUInt8(r,t)},t.prototype.float2intbits=function(t){var e,n,r;return 0===t?0:t===Number.POSITIVE_INFINITY?i:t===Number.NEGATIVE_INFINITY?a:isNaN(t)?s:(r=0>t?1:0,t=Math.abs(t),1.1754942106924411e-38>=t&&t>=1.401298464324817e-45?(e=0,n=Math.round(t/Math.pow(2,-126)*Math.pow(2,23)),r<<31|e<<23|n):(e=Math.floor(Math.log(t)/Math.LN2),n=Math.round((t/Math.pow(2,e)-1)*Math.pow(2,23)),r<<31|e+127<<23|n))},t.prototype.double2longbits=function(t){var e,n,r,o;return 0===t?[0,0]:t===Number.POSITIVE_INFINITY?[0,2146435072]:t===Number.NEGATIVE_INFINITY?[0,-1048576]:isNaN(t)?[0,2146959360]:(o=0>t?1<<31:0,t=Math.abs(t),2.225073858507201e-308>=t&&t>=5e-324?(e=0,r=t/Math.pow(2,-1022)*Math.pow(2,52)):(e=Math.floor(Math.log(t)/Math.LN2),t<Math.pow(2,e)&&(e-=1),r=(t/Math.pow(2,e)-1)*Math.pow(2,52),e=e+1023<<20),n=0|r*Math.pow(2,-32)|o|e,[65535&r,n])},t.prototype.intbits2float=function(t){if(t===i)return Number.POSITIVE_INFINITY;if(t===a)return Number.NEGATIVE_INFINITY;var e,n=(2147483648&t)>>>31,s=(2139095040&t)>>>23,u=8388607&t;return e=0===s?Math.pow(-1,n)*u*Math.pow(2,-149):Math.pow(-1,n)*(1+u*Math.pow(2,-23))*Math.pow(2,s-127),(o>e||e>r)&&(e=0/0),e},t.prototype.longbits2double=function(t,e){var n=(2147483648&t)>>>31,r=(2146435072&t)>>>20,o=(1048575&t)*Math.pow(2,32)+e;return 0===r&&0===o?0:2047===r?0===o?1===n?Number.NEGATIVE_INFINITY:Number.POSITIVE_INFINITY:0/0:0===r?Math.pow(-1,n)*o*Math.pow(2,-1074):Math.pow(-1,n)*(1+o*Math.pow(2,-52))*Math.pow(2,r-1023)},t}();e.BufferCoreCommon=u});var s=this.__extends||function(t,e){function n(){this.constructor=t}for(var r in e)e.hasOwnProperty(r)&&(t[r]=e[r]);n.prototype=e.prototype,t.prototype=new n};a("core/buffer_core_array",["require","exports","./buffer_core"],function(t,e,n){var r=[4294967040,4294902015,4278255615,16777215],o=function(t){function e(e){t.call(this),this.length=e,this.buff=new Array(Math.ceil(e/4));for(var n=this.buff.length,r=0;n>r;r++)this.buff[r]=0}return s(e,t),e.isAvailable=function(){return!0},e.prototype.getLength=function(){return this.length},e.prototype.writeUInt8=function(t,e){e&=255;var n=t>>2,o=3&t;this.buff[n]=this.buff[n]&r[o],this.buff[n]=this.buff[n]|e<<(o<<3)},e.prototype.readUInt8=function(t){var e=t>>2,n=3&t;return 255&this.buff[e]>>(n<<3)},e.prototype.copy=function(t,n){for(var r=new e(n-t),o=t;n>o;o++)r.writeUInt8(o-t,this.readUInt8(o));return r},e}(n.BufferCoreCommon);e.BufferCoreArray=o});var s=this.__extends||function(t,e){function n(){this.constructor=t}for(var r in e)e.hasOwnProperty(r)&&(t[r]=e[r]);n.prototype=e.prototype,t.prototype=new n};a("core/buffer_core_arraybuffer",["require","exports","./buffer_core"],function(t,e,n){var r=function(t){function e(e){t.call(this),this.buff="number"==typeof e?new DataView(new ArrayBuffer(e)):e instanceof DataView?e:new DataView(e),this.length=this.buff.byteLength}return s(e,t),e.isAvailable=function(){return"undefined"!=typeof DataView},e.prototype.getLength=function(){return this.length},e.prototype.writeInt8=function(t,e){this.buff.setInt8(t,e)},e.prototype.writeInt16LE=function(t,e){this.buff.setInt16(t,e,!0)},e.prototype.writeInt16BE=function(t,e){this.buff.setInt16(t,e,!1)},e.prototype.writeInt32LE=function(t,e){this.buff.setInt32(t,e,!0)},e.prototype.writeInt32BE=function(t,e){this.buff.setInt32(t,e,!1)},e.prototype.writeUInt8=function(t,e){this.buff.setUint8(t,e)},e.prototype.writeUInt16LE=function(t,e){this.buff.setUint16(t,e,!0)},e.prototype.writeUInt16BE=function(t,e){this.buff.setUint16(t,e,!1)},e.prototype.writeUInt32LE=function(t,e){this.buff.setUint32(t,e,!0)},e.prototype.writeUInt32BE=function(t,e){this.buff.setUint32(t,e,!1)},e.prototype.writeFloatLE=function(t,e){this.buff.setFloat32(t,e,!0)},e.prototype.writeFloatBE=function(t,e){this.buff.setFloat32(t,e,!1)},e.prototype.writeDoubleLE=function(t,e){this.buff.setFloat64(t,e,!0)},e.prototype.writeDoubleBE=function(t,e){this.buff.setFloat64(t,e,!1)},e.prototype.readInt8=function(t){return this.buff.getInt8(t)},e.prototype.readInt16LE=function(t){return this.buff.getInt16(t,!0)},e.prototype.readInt16BE=function(t){return this.buff.getInt16(t,!1)},e.prototype.readInt32LE=function(t){return this.buff.getInt32(t,!0)},e.prototype.readInt32BE=function(t){return this.buff.getInt32(t,!1)},e.prototype.readUInt8=function(t){return this.buff.getUint8(t)},e.prototype.readUInt16LE=function(t){return this.buff.getUint16(t,!0)},e.prototype.readUInt16BE=function(t){return this.buff.getUint16(t,!1)},e.prototype.readUInt32LE=function(t){return this.buff.getUint32(t,!0)},e.prototype.readUInt32BE=function(t){return this.buff.getUint32(t,!1)},e.prototype.readFloatLE=function(t){return this.buff.getFloat32(t,!0)},e.prototype.readFloatBE=function(t){return this.buff.getFloat32(t,!1)},e.prototype.readDoubleLE=function(t){return this.buff.getFloat64(t,!0)},e.prototype.readDoubleBE=function(t){return this.buff.getFloat64(t,!1)},e.prototype.copy=function(t,n){var r,o=this.buff.buffer;if(ArrayBuffer.prototype.slice)r=o.slice(t,n);else{var i=n-t;r=new ArrayBuffer(i);var a=new Uint8Array(r),s=new Uint8Array(o);a.set(s.subarray(t,n))}return new e(r)},e.prototype.fill=function(t,e,n){t=255&t;var r,o=n-e,i=4*(0|o/4),a=t<<24|t<<16|t<<8|t;for(r=0;i>r;r+=4)this.writeInt32LE(r+e,a);for(r=i;o>r;r++)this.writeUInt8(r+e,t)},e.prototype.getDataView=function(){return this.buff},e}(n.BufferCoreCommon);e.BufferCoreArrayBuffer=r});var s=this.__extends||function(t,e){function n(){this.constructor=t}for(var r in e)e.hasOwnProperty(r)&&(t[r]=e[r]);n.prototype=e.prototype,t.prototype=new n};a("core/buffer_core_imagedata",["require","exports","./buffer_core"],function(t,e,n){var r=function(t){function e(n){t.call(this),this.length=n,this.buff=e.getCanvasPixelArray(n)}return s(e,t),e.getCanvasPixelArray=function(t){var n=e.imageDataFactory;return void 0===n&&(e.imageDataFactory=n=document.createElement("canvas").getContext("2d")),0===t&&(t=1),n.createImageData(Math.ceil(t/4),1).data},e.isAvailable=function(){return"undefined"!=typeof CanvasPixelArray},e.prototype.getLength=function(){return this.length},e.prototype.writeUInt8=function(t,e){this.buff[t]=e},e.prototype.readUInt8=function(t){return this.buff[t]},e.prototype.copy=function(t,n){for(var r=new e(n-t),o=t;n>o;o++)r.writeUInt8(o-t,this.buff[o]);return r},e}(n.BufferCoreCommon);e.BufferCoreImageData=r}),a("core/string_util",["require","exports"],function(t,e){function n(t){switch(t=function(){switch(typeof t){case"object":return""+t;case"string":return t;default:throw new Error("Invalid encoding argument specified")}}(),t=t.toLowerCase()){case"utf8":case"utf-8":return r;case"ascii":return o;case"binary":return a;case"ucs2":case"ucs-2":case"utf16le":case"utf-16le":return u;case"hex":return f;case"base64":return s;case"binary_string":return c;case"binary_string_ie":return p;case"extended_ascii":return i;default:throw new Error("Unknown encoding: "+t)}}e.FindUtil=n;var r=function(){function t(){}return t.str2byte=function(t,e){for(var n=e.length,r=0,o=0,i=n,a=0;r<t.length&&i>o;){var s=t.charCodeAt(r++),u=t.charCodeAt(r);if(s>=55296&&56319>=s&&u>=56320&&57343>=u){if(o+3>=i)break;a++;var f=(1024|1023&s)<<10|1023&u;e.writeUInt8(240|f>>18,o++),e.writeUInt8(128|63&f>>12,o++),e.writeUInt8(128|63&f>>6,o++),e.writeUInt8(128|63&f,o++),r++}else if(128>s)e.writeUInt8(s,o++),a++;else if(2048>s){if(o+1>=i)break;a++,e.writeUInt8(192|s>>6,o++),e.writeUInt8(128|63&s,o++)}else if(65536>s){if(o+2>=i)break;a++,e.writeUInt8(224|s>>12,o++),e.writeUInt8(128|63&s>>6,o++),e.writeUInt8(128|63&s,o++)}}return o},t.byte2str=function(t){for(var e=[],n=0;n<t.length;){var r=t.readUInt8(n++);if(128>r)e.push(String.fromCharCode(r));else{if(192>r)throw new Error("Found incomplete part of character in string.");if(224>r)e.push(String.fromCharCode((31&r)<<6|63&t.readUInt8(n++)));else if(240>r)e.push(String.fromCharCode((15&r)<<12|(63&t.readUInt8(n++))<<6|63&t.readUInt8(n++)));else{if(!(248>r))throw new Error("Unable to represent UTF-8 string as UTF-16 JavaScript string.");var o=t.readUInt8(n+2);e.push(String.fromCharCode(55296|1023&((7&r)<<8|(63&t.readUInt8(n++))<<2|(63&t.readUInt8(n++))>>4))),e.push(String.fromCharCode(56320|((15&o)<<6|63&t.readUInt8(n++))))}}}return e.join("")},t.byteLength=function(t){var e=encodeURIComponent(t).match(/%[89ABab]/g);return t.length+(e?e.length:0)},t}();e.UTF8=r;var o=function(){function t(){}return t.str2byte=function(t,e){for(var n=t.length>e.length?e.length:t.length,r=0;n>r;r++)e.writeUInt8(t.charCodeAt(r)%256,r);return n},t.byte2str=function(t){for(var e=new Array(t.length),n=0;n<t.length;n++)e[n]=String.fromCharCode(127&t.readUInt8(n));return e.join("")},t.byteLength=function(t){return t.length},t}();e.ASCII=o;var i=function(){function t(){}return t.str2byte=function(e,n){for(var r=e.length>n.length?n.length:e.length,o=0;r>o;o++){var i=e.charCodeAt(o);if(i>127){var a=t.extendedChars.indexOf(e.charAt(o));a>-1&&(i=a+128)}n.writeUInt8(i,o)}return r},t.byte2str=function(e){for(var n=new Array(e.length),r=0;r<e.length;r++){var o=e.readUInt8(r);n[r]=o>127?t.extendedChars[o-128]:String.fromCharCode(o)}return n.join("")},t.byteLength=function(t){return t.length},t.extendedChars=["Ç","ü","é","â","ä","à","å","ç","ê","ë","è","ï","î","ì","Ä","Å","É","æ","Æ","ô","ö","ò","û","ù","ÿ","Ö","Ü","ø","£","Ø","×","ƒ","á","í","ó","ú","ñ","Ñ","ª","º","¿","®","¬","½","¼","¡","«","»","_","_","_","¦","¦","Á","Â","À","©","¦","¦","+","+","¢","¥","+","+","-","-","+","-","+","ã","Ã","+","+","-","-","¦","-","+","¤","ð","Ð","Ê","Ë","È","i","Í","Î","Ï","+","+","_","_","¦","Ì","_","Ó","ß","Ô","Ò","õ","Õ","µ","þ","Þ","Ú","Û","Ù","ý","Ý","¯","´","­","±","_","¾","¶","§","÷","¸","°","¨","·","¹","³","²","_"," "],t}();e.ExtendedASCII=i;var a=function(){function t(){}return t.str2byte=function(t,e){for(var n=t.length>e.length?e.length:t.length,r=0;n>r;r++)e.writeUInt8(255&t.charCodeAt(r),r);return n},t.byte2str=function(t){for(var e=new Array(t.length),n=0;n<t.length;n++)e[n]=String.fromCharCode(255&t.readUInt8(n));return e.join("")},t.byteLength=function(t){return t.length},t}();e.BINARY=a;var s=function(){function t(){}return t.byte2str=function(e){for(var n="",r=0;r<e.length;){var o=e.readUInt8(r++),i=r<e.length?e.readUInt8(r++):0/0,a=r<e.length?e.readUInt8(r++):0/0,s=o>>2,u=(3&o)<<4|i>>4,f=(15&i)<<2|a>>6,c=63&a;isNaN(i)?f=c=64:isNaN(a)&&(c=64),n=n+t.num2b64[s]+t.num2b64[u]+t.num2b64[f]+t.num2b64[c]}return n},t.str2byte=function(e,n){var r=n.length,o="",i=0;e=e.replace(/[^A-Za-z0-9\+\/\=\-\_]/g,"");for(var a=0;i<e.length;){var s=t.b642num[e.charAt(i++)],u=t.b642num[e.charAt(i++)],f=t.b642num[e.charAt(i++)],c=t.b642num[e.charAt(i++)],p=s<<2|u>>4,l=(15&u)<<4|f>>2,h=(3&f)<<6|c;if(n.writeUInt8(p,a++),a===r)break;if(64!==f&&(o+=n.writeUInt8(l,a++)),a===r)break;if(64!==c&&(o+=n.writeUInt8(h,a++)),a===r)break}return a},t.byteLength=function(t){return Math.floor(6*t.replace(/[^A-Za-z0-9\+\/\-\_]/g,"").length/8)},t.b64chars=["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","0","1","2","3","4","5","6","7","8","9","+","/","="],t.num2b64=function(){for(var e=new Array(t.b64chars.length),n=0;n<t.b64chars.length;n++){var r=t.b64chars[n];e[n]=r}return e}(),t.b642num=function(){for(var e={},n=0;n<t.b64chars.length;n++){var r=t.b64chars[n];e[r]=n}return e["-"]=62,e._=63,e}(),t}();e.BASE64=s;var u=function(){function t(){}return t.str2byte=function(t,e){var n=t.length;2*n>e.length&&(n=1===e.length%2?(e.length-1)/2:e.length/2);for(var r=0;n>r;r++)e.writeUInt16LE(t.charCodeAt(r),2*r);return 2*n},t.byte2str=function(t){if(0!==t.length%2)throw new Error("Invalid UCS2 byte array.");for(var e=new Array(t.length/2),n=0;n<t.length;n+=2)e[n/2]=String.fromCharCode(t.readUInt8(n)|t.readUInt8(n+1)<<8);return e.join("")},t.byteLength=function(t){return 2*t.length},t}();e.UCS2=u;var f=function(){function t(){}return t.str2byte=function(t,e){if(1===t.length%2)throw new Error("Invalid hex string");var n=t.length>>1;n>e.length&&(n=e.length);for(var r=0;n>r;r++){var o=this.hex2num[t.charAt(r<<1)],i=this.hex2num[t.charAt((r<<1)+1)];e.writeUInt8(o<<4|i,r)}return n},t.byte2str=function(t){for(var e=t.length,n=new Array(e<<1),r=0,o=0;e>o;o++){var i=15&t.readUInt8(o),a=t.readUInt8(o)>>4;n[r++]=this.num2hex[a],n[r++]=this.num2hex[i]}return n.join("")},t.byteLength=function(t){return t.length>>1},t.HEXCHARS="0123456789abcdef",t.num2hex=function(){for(var e=new Array(t.HEXCHARS.length),n=0;n<t.HEXCHARS.length;n++){var r=t.HEXCHARS[n];e[n]=r}return e}(),t.hex2num=function(){var e,n,r={};for(e=0;e<t.HEXCHARS.length;e++)n=t.HEXCHARS[e],r[n]=e;var o="ABCDEF";for(e=0;e<o.length;e++)n=o[e],r[n]=e+10;return r}(),t}();e.HEX=f;var c=function(){function t(){}return t.str2byte=function(e,n){if(0===e.length)return 0;var r=t.byteLength(e);r>n.length&&(r=n.length);var o=0,i=0,a=i+r,s=e.charCodeAt(o++);0!==s&&(n.writeUInt8(255&s,0),i=1);for(var u=i;a>u;u+=2){var f=e.charCodeAt(o++);1===a-u&&n.writeUInt8(f>>8,u),a-u>=2&&n.writeUInt16BE(f,u)}return r},t.byte2str=function(t){var e=t.length;if(0===e)return"";for(var n=new Array((e>>1)+1),r=0,o=0;o<n.length;o++)n[o]=0===o?1===e%2?String.fromCharCode(256|t.readUInt8(r++)):String.fromCharCode(0):String.fromCharCode(t.readUInt8(r++)<<8|t.readUInt8(r++));return n.join("")},t.byteLength=function(t){if(0===t.length)return 0;var e=t.charCodeAt(0),n=t.length-1<<1;return 0!==e&&n++,n},t}();e.BINSTR=c;var p=function(){function t(){}return t.str2byte=function(t,e){for(var n=t.length>e.length?e.length:t.length,r=0;n>r;r++)e.writeUInt8(t.charCodeAt(r)-32,r);return n},t.byte2str=function(t){for(var e=new Array(t.length),n=0;n<t.length;n++)e[n]=String.fromCharCode(t.readUInt8(n)+32);return e.join("")},t.byteLength=function(t){return t.length},t}();e.BINSTRIE=p}),a("core/buffer",["require","exports","./buffer_core","./buffer_core_array","./buffer_core_arraybuffer","./buffer_core_imagedata","./string_util"],function(t,e,n,r,o,i,a){var s=[o.BufferCoreArrayBuffer,i.BufferCoreImageData,r.BufferCoreArray],u=function(){var t,e;for(t=0;t<s.length;t++)if(e=s[t],e.isAvailable())return e;throw new Error("This browser does not support any available BufferCore implementations.")}(),f=function(){function t(e,r,i){"undefined"==typeof r&&(r="utf8"),this.offset=0;var a;if(!(this instanceof t))return new t(e,r);if(e instanceof n.BufferCoreCommon){this.data=e;var s="number"==typeof r?r:0,f="number"==typeof i?i:this.data.getLength();this.offset=s,this.length=f-s}else if("number"==typeof e){if(e!==e>>>0)throw new TypeError("Buffer size must be a uint32.");this.length=e,this.data=new u(e)}else if("undefined"!=typeof DataView&&e instanceof DataView)this.data=new o.BufferCoreArrayBuffer(e),this.length=e.byteLength;else if("undefined"!=typeof ArrayBuffer&&e instanceof ArrayBuffer)this.data=new o.BufferCoreArrayBuffer(e),this.length=e.byteLength;else if(e instanceof t){var c=e;this.data=new u(e.length),this.length=e.length,c.copy(this)}else if(Array.isArray(e)||null!=e&&"object"==typeof e&&"number"==typeof e[0]){for(this.data=new u(e.length),a=0;a<e.length;a++)this.data.writeUInt8(a,e[a]);this.length=e.length}else{if("string"!=typeof e)throw new Error("Invalid argument to Buffer constructor: "+e);this.length=t.byteLength(e,r),this.data=new u(this.length),this.write(e,0,this.length,r)}}return t.prototype.getBufferCore=function(){return this.data},t.prototype.getOffset=function(){return this.offset},t.prototype.set=function(t,e){return 0>e?this.writeInt8(e,t):this.writeUInt8(e,t)},t.prototype.get=function(t){return this.readUInt8(t)},t.prototype.write=function(e,n,r,o){if("undefined"==typeof n&&(n=0),"undefined"==typeof r&&(r=this.length),"undefined"==typeof o&&(o="utf8"),"string"==typeof n?(o=""+n,n=0,r=this.length):"string"==typeof r&&(o=""+r,r=this.length),n>=this.length)return 0;var i=a.FindUtil(o);return r=r+n>this.length?this.length-n:r,n+=this.offset,i.str2byte(e,0===n&&r===this.length?this:new t(this.data,n,r+n))},t.prototype.toString=function(e,n,r){if("undefined"==typeof e&&(e="utf8"),"undefined"==typeof n&&(n=0),"undefined"==typeof r&&(r=this.length),!(r>=n))throw new Error("Invalid start/end positions: "+n+" - "+r);if(n===r)return"";r>this.length&&(r=this.length);var o=a.FindUtil(e);return o.byte2str(0===n&&r===this.length?this:new t(this.data,n+this.offset,r+this.offset))},t.prototype.toJSON=function(){for(var t=this.length,e=new Array(t),n=0;t>n;n++)e[n]=this.readUInt8(n);return{type:"Buffer",data:e}},t.prototype.copy=function(t,e,n,r){if("undefined"==typeof e&&(e=0),"undefined"==typeof n&&(n=0),"undefined"==typeof r&&(r=this.length),e=0>e?0:e,n=0>n?0:n,n>r)throw new RangeError("sourceEnd < sourceStart");if(r===n)return 0;if(e>=t.length)throw new RangeError("targetStart out of bounds");if(n>=this.length)throw new RangeError("sourceStart out of bounds");if(r>this.length)throw new RangeError("sourceEnd out of bounds");for(var o=Math.min(r-n,t.length-e,this.length-n),i=0;o>i;i++)t.writeUInt8(this.readUInt8(n+i),e+i);return o},t.prototype.slice=function(e,n){if("undefined"==typeof e&&(e=0),"undefined"==typeof n&&(n=this.length),0>e&&(e+=this.length,0>e&&(e=0)),0>n&&(n+=this.length,0>n&&(n=0)),n>this.length&&(n=this.length),e>n&&(e=n),0>e||0>n||e>=this.length||n>this.length)throw new Error("Invalid slice indices.");return new t(this.data,e+this.offset,n+this.offset)},t.prototype.sliceCopy=function(e,n){if("undefined"==typeof e&&(e=0),"undefined"==typeof n&&(n=this.length),0>e&&(e+=this.length,0>e&&(e=0)),0>n&&(n+=this.length,0>n&&(n=0)),n>this.length&&(n=this.length),e>n&&(e=n),0>e||0>n||e>=this.length||n>this.length)throw new Error("Invalid slice indices.");return new t(this.data.copy(e+this.offset,n+this.offset))},t.prototype.fill=function(t,e,n){"undefined"==typeof e&&(e=0),"undefined"==typeof n&&(n=this.length);var r=typeof t;switch(r){case"string":t=255&t.charCodeAt(0);break;case"number":break;default:throw new Error("Invalid argument to fill.")}e+=this.offset,n+=this.offset,this.data.fill(t,e,n)},t.prototype.readUInt8=function(t,e){return"undefined"==typeof e&&(e=!1),t+=this.offset,this.data.readUInt8(t)},t.prototype.readUInt16LE=function(t,e){return"undefined"==typeof e&&(e=!1),t+=this.offset,this.data.readUInt16LE(t)},t.prototype.readUInt16BE=function(t,e){return"undefined"==typeof e&&(e=!1),t+=this.offset,this.data.readUInt16BE(t)},t.prototype.readUInt32LE=function(t,e){return"undefined"==typeof e&&(e=!1),t+=this.offset,this.data.readUInt32LE(t)},t.prototype.readUInt32BE=function(t,e){return"undefined"==typeof e&&(e=!1),t+=this.offset,this.data.readUInt32BE(t)},t.prototype.readInt8=function(t,e){return"undefined"==typeof e&&(e=!1),t+=this.offset,this.data.readInt8(t)},t.prototype.readInt16LE=function(t,e){return"undefined"==typeof e&&(e=!1),t+=this.offset,this.data.readInt16LE(t)},t.prototype.readInt16BE=function(t,e){return"undefined"==typeof e&&(e=!1),t+=this.offset,this.data.readInt16BE(t)},t.prototype.readInt32LE=function(t,e){return"undefined"==typeof e&&(e=!1),t+=this.offset,this.data.readInt32LE(t)},t.prototype.readInt32BE=function(t,e){return"undefined"==typeof e&&(e=!1),t+=this.offset,this.data.readInt32BE(t)},t.prototype.readFloatLE=function(t,e){return"undefined"==typeof e&&(e=!1),t+=this.offset,this.data.readFloatLE(t)},t.prototype.readFloatBE=function(t,e){return"undefined"==typeof e&&(e=!1),t+=this.offset,this.data.readFloatBE(t)},t.prototype.readDoubleLE=function(t,e){return"undefined"==typeof e&&(e=!1),t+=this.offset,this.data.readDoubleLE(t)},t.prototype.readDoubleBE=function(t,e){return"undefined"==typeof e&&(e=!1),t+=this.offset,this.data.readDoubleBE(t)},t.prototype.writeUInt8=function(t,e,n){"undefined"==typeof n&&(n=!1),e+=this.offset,this.data.writeUInt8(e,t)},t.prototype.writeUInt16LE=function(t,e,n){"undefined"==typeof n&&(n=!1),e+=this.offset,this.data.writeUInt16LE(e,t)},t.prototype.writeUInt16BE=function(t,e,n){"undefined"==typeof n&&(n=!1),e+=this.offset,this.data.writeUInt16BE(e,t)},t.prototype.writeUInt32LE=function(t,e,n){"undefined"==typeof n&&(n=!1),e+=this.offset,this.data.writeUInt32LE(e,t)},t.prototype.writeUInt32BE=function(t,e,n){"undefined"==typeof n&&(n=!1),e+=this.offset,this.data.writeUInt32BE(e,t)},t.prototype.writeInt8=function(t,e,n){"undefined"==typeof n&&(n=!1),e+=this.offset,this.data.writeInt8(e,t)},t.prototype.writeInt16LE=function(t,e,n){"undefined"==typeof n&&(n=!1),e+=this.offset,this.data.writeInt16LE(e,t)},t.prototype.writeInt16BE=function(t,e,n){"undefined"==typeof n&&(n=!1),e+=this.offset,this.data.writeInt16BE(e,t)},t.prototype.writeInt32LE=function(t,e,n){"undefined"==typeof n&&(n=!1),e+=this.offset,this.data.writeInt32LE(e,t)},t.prototype.writeInt32BE=function(t,e,n){"undefined"==typeof n&&(n=!1),e+=this.offset,this.data.writeInt32BE(e,t)},t.prototype.writeFloatLE=function(t,e,n){"undefined"==typeof n&&(n=!1),e+=this.offset,this.data.writeFloatLE(e,t)},t.prototype.writeFloatBE=function(t,e,n){"undefined"==typeof n&&(n=!1),e+=this.offset,this.data.writeFloatBE(e,t)},t.prototype.writeDoubleLE=function(t,e,n){"undefined"==typeof n&&(n=!1),e+=this.offset,this.data.writeDoubleLE(e,t)},t.prototype.writeDoubleBE=function(t,e,n){"undefined"==typeof n&&(n=!1),e+=this.offset,this.data.writeDoubleBE(e,t)},t.isEncoding=function(t){try{a.FindUtil(t)}catch(e){return!1}return!0},t.isBuffer=function(e){return e instanceof t},t.byteLength=function(t,e){"undefined"==typeof e&&(e="utf8");var n=a.FindUtil(e);return n.byteLength(t)},t.concat=function(e,n){var r;if(0===e.length||0===n)return new t(0);if(1===e.length)return e[0];if(null==n){n=0;for(var o=0;o<e.length;o++)r=e[o],n+=r.length}for(var i=new t(n),a=0,s=0;s<e.length;s++)r=e[s],a+=r.copy(i,a);return i},t}();e.Buffer=f}),a("core/file_flag",["require","exports","./api_error"],function(t,e,n){!function(t){t[t.NOP=0]="NOP",t[t.THROW_EXCEPTION=1]="THROW_EXCEPTION",t[t.TRUNCATE_FILE=2]="TRUNCATE_FILE",t[t.CREATE_FILE=3]="CREATE_FILE"}(e.ActionType||(e.ActionType={})),e.ActionType;var r=function(){function t(e){if(this.flagStr=e,t.validFlagStrs.indexOf(e)<0)throw new n.ApiError(9,"Invalid flag: "+e)}return t.getFileFlag=function(e){return t.flagCache.hasOwnProperty(e)?t.flagCache[e]:t.flagCache[e]=new t(e)},t.prototype.isReadable=function(){return-1!==this.flagStr.indexOf("r")||-1!==this.flagStr.indexOf("+")
-},t.prototype.isWriteable=function(){return-1!==this.flagStr.indexOf("w")||-1!==this.flagStr.indexOf("a")||-1!==this.flagStr.indexOf("+")},t.prototype.isTruncating=function(){return-1!==this.flagStr.indexOf("w")},t.prototype.isAppendable=function(){return-1!==this.flagStr.indexOf("a")},t.prototype.isSynchronous=function(){return-1!==this.flagStr.indexOf("s")},t.prototype.isExclusive=function(){return-1!==this.flagStr.indexOf("x")},t.prototype.pathExistsAction=function(){return this.isExclusive()?1:this.isTruncating()?2:0},t.prototype.pathNotExistsAction=function(){return(this.isWriteable()||this.isAppendable())&&"r+"!==this.flagStr?3:1},t.flagCache={},t.validFlagStrs=["r","r+","rs","rs+","w","wx","w+","wx+","a","ax","a+","ax+"],t}();e.FileFlag=r});var s=this.__extends||function(t,e){function n(){this.constructor=t}for(var r in e)e.hasOwnProperty(r)&&(t[r]=e[r]);n.prototype=e.prototype,t.prototype=new n};a("core/node_eventemitter",["require","exports","./buffer","./api_error"],function(t,e,n,r){var o=n.Buffer,i=r.ApiError;r.ErrorCode;var a=function(){function t(t,e,n){this.data=t,this.encoding=e,this.cb=n,this.size="string"!=typeof t?t.length:o.byteLength(t,null!=e?e:void 0),"string"!=typeof this.data&&(this.data=this.data.sliceCopy())}return t.prototype.getData=function(t){return null==t?"string"==typeof this.data?new o(this.data,null!=this.encoding?this.encoding:void 0):this.data:"string"==typeof this.data?t===this.encoding?this.data:new o(this.data,null!=this.encoding?this.encoding:void 0).toString(t):this.data.toString(t)},t}(),u=function(){function t(){this._listeners={},this.maxListeners=10}return t.prototype.addListener=function(t,e){return"undefined"==typeof this._listeners[t]&&(this._listeners[t]=[]),this._listeners[t].push(e)>this.maxListeners&&process.stdout.write("Warning: Event "+t+" has more than "+this.maxListeners+" listeners.\n"),this.emit("newListener",t,e),this},t.prototype.on=function(t,e){return this.addListener(t,e)},t.prototype.once=function(t,e){var n=!1,r=function(){this.removeListener(t,r),n||(n=!0,e.apply(this,arguments))};return this.addListener(t,r)},t.prototype._emitRemoveListener=function(t,e){var n;if(this._listeners.removeListener&&this._listeners.removeListener.length>0)for(n=0;n<e.length;n++)this.emit("removeListener",t,e[n])},t.prototype.removeListener=function(t,e){var n=this._listeners[t];if("undefined"!=typeof n){var r=n.indexOf(e);r>-1&&n.splice(r,1)}return this.emit("removeListener",t,e),this},t.prototype.removeAllListeners=function(t){var e,n,r;if("undefined"!=typeof t)e=this._listeners[t],this._listeners[t]=[],this._emitRemoveListener(t,e);else for(n=Object.keys(this._listeners),r=0;r<n.length;r++)this.removeAllListeners(n[r]);return this},t.prototype.setMaxListeners=function(t){this.maxListeners=t},t.prototype.listeners=function(t){return"undefined"==typeof this._listeners[t]&&(this._listeners[t]=[]),this._listeners[t].slice(0)},t.prototype.emit=function(t){for(var e=[],n=0;n<arguments.length-1;n++)e[n]=arguments[n+1];var r=this._listeners[t],o=!1;if("undefined"!=typeof r){var i;for(i=0;i<r.length;i++)o=!0,r[i].apply(this,e)}return o},t}();e.AbstractEventEmitter=u;var f=function(t){function e(e,n){t.call(this),this.writable=e,this.readable=n,this.encoding=null,this.flowing=!1,this.buffer=[],this.endEvent=null,this.ended=!1,this.drained=!0}return s(e,t),e.prototype.addListener=function(e,n){var r=t.prototype.addListener.call(this,e,n),o=this;return"data"!==e||this.flowing?"readable"===e&&this.buffer.length>0&&setTimeout(function(){o.emit("readable")},0):this.resume(),r},e.prototype._processArgs=function(t,e,n){return"string"==typeof e?new a(t,e,n):new a(t,null,e)},e.prototype._processEvents=function(){var t=0===this.buffer.length;this.drained!==t&&this.drained&&this.emit("readable"),this.flowing&&0!==this.buffer.length&&this.emit("data",this.read()),this.drained=0===this.buffer.length},e.prototype.emitEvent=function(t,e){this.emit(t,e.getData(this.encoding)),e.cb&&e.cb()},e.prototype.write=function(t,e,n){if(this.ended)throw new i(0,"Cannot write to an ended stream.");var r=this._processArgs(t,e,n);return this._push(r),this.flowing},e.prototype.end=function(t,e,n){if(this.ended)throw new i(0,"Stream is already closed.");var r=this._processArgs(t,e,n);this.ended=!0,this.endEvent=r,this._processEvents()},e.prototype.read=function(t){var e,n,r,i,s=[],u=[],f=0,c=0,p="number"!=typeof t;for(p&&(t=4294967295),c=0;c<this.buffer.length&&t>f;c++)n=this.buffer[c],s.push(n.getData()),n.cb&&u.push(n.cb),f+=n.size,e=n.cb;if(!p&&t>f)return null;if(this.buffer=this.buffer.slice(s.length),i=f>t?t:f,r=o.concat(s),f>t&&(e&&u.pop(),this._push(new a(r.slice(t),null,e))),u.length>0&&setTimeout(function(){var t;for(t=0;t<u.length;t++)u[t]()},0),this.ended&&0===this.buffer.length&&null!==this.endEvent){var l=this.endEvent,h=this;this.endEvent=null,setTimeout(function(){h.emitEvent("end",l)},0)}return 0===s.length?(this.emit("_read"),null):null===this.encoding?r.slice(0,i):r.toString(this.encoding,0,i)},e.prototype.setEncoding=function(t){this.encoding=t},e.prototype.pause=function(){this.flowing=!1},e.prototype.resume=function(){this.flowing=!0,this._processEvents()},e.prototype.pipe=function(){throw new i(0,"Unimplemented.")},e.prototype.unpipe=function(){},e.prototype.unshift=function(t){if(this.ended)throw new i(0,"Stream has ended.");this.buffer.unshift(new a(t,this.encoding)),this._processEvents()},e.prototype._push=function(t){this.buffer.push(t),this._processEvents()},e.prototype.wrap=function(){throw new i(0,"Unimplemented.")},e}(u);e.AbstractDuplexStream=f});var s=this.__extends||function(t,e){function n(){this.constructor=t}for(var r in e)e.hasOwnProperty(r)&&(t[r]=e[r]);n.prototype=e.prototype,t.prototype=new n};a("core/node_process",["require","exports","./node_eventemitter"],function(t,e,n){var r=null,o=function(t){function e(){t.call(this,!0,!0),this.isRaw=!1,this.columns=80,this.rows=120,this.isTTY=!0}return s(e,t),e.prototype.setReadMode=function(t){this.isRaw!==t&&(this.isRaw=t,this.emit("modeChange"))},e.prototype.changeColumns=function(t){t!==this.columns&&(this.columns=t,this.emit("resize"))},e.prototype.changeRows=function(t){t!==this.rows&&(this.rows=t,this.emit("resize"))},e.isatty=function(t){return t instanceof e},e}(n.AbstractDuplexStream);e.TTY=o;var i=function(){function e(){this.startTime=Date.now(),this._cwd="/",this.platform="browser",this.argv=[],this.stdout=new o,this.stderr=new o,this.stdin=new o}return e.prototype.chdir=function(e){null===r&&(r=t("./node_path").path),this._cwd=r.resolve(e)},e.prototype.cwd=function(){return this._cwd},e.prototype.uptime=function(){return 0|(Date.now()-this.startTime)/1e3},e}();e.Process=i,e.process=new i}),a("core/node_path",["require","exports","./node_process"],function(t,e,n){var r=n.process,o=function(){function t(){}return t.normalize=function(e){""===e&&(e=".");var n=e.charAt(0)===t.sep;e=t._removeDuplicateSeps(e);for(var r=e.split(t.sep),o=[],i=0;i<r.length;i++){var a=r[i];"."!==a&&(".."===a&&(n||!n&&o.length>0&&".."!==o[0])?o.pop():o.push(a))}if(!n&&o.length<2)switch(o.length){case 1:""===o[0]&&o.unshift(".");break;default:o.push(".")}return e=o.join(t.sep),n&&e.charAt(0)!==t.sep&&(e=t.sep+e),e},t.join=function(){for(var e=[],n=0;n<arguments.length-0;n++)e[n]=arguments[n+0];for(var r=[],o=0;o<e.length;o++){var i=e[o];if("string"!=typeof i)throw new TypeError("Invalid argument type to path.join: "+typeof i);""!==i&&r.push(i)}return t.normalize(r.join(t.sep))},t.resolve=function(){for(var e=[],n=0;n<arguments.length-0;n++)e[n]=arguments[n+0];for(var o=[],i=0;i<e.length;i++){var a=e[i];if("string"!=typeof a)throw new TypeError("Invalid argument type to path.join: "+typeof a);""!==a&&(a.charAt(0)===t.sep&&(o=[]),o.push(a))}var s=t.normalize(o.join(t.sep));if(s.length>1&&s.charAt(s.length-1)===t.sep)return s.substr(0,s.length-1);if(s.charAt(0)!==t.sep){"."!==s.charAt(0)||1!==s.length&&s.charAt(1)!==t.sep||(s=1===s.length?"":s.substr(2));var u=r.cwd();s=""!==s?this.normalize(u+("/"!==u?t.sep:"")+s):u}return s},t.relative=function(e,n){var r;e=t.resolve(e),n=t.resolve(n);var o=e.split(t.sep),i=n.split(t.sep);i.shift(),o.shift();var a=0,s=[];for(r=0;r<o.length;r++){var u=o[r];if(u!==i[r]){a=o.length-r;break}}s=i.slice(r),1===o.length&&""===o[0]&&(a=0),a>o.length&&(a=o.length);var f="";for(r=0;a>r;r++)f+="../";return f+=s.join(t.sep),f.length>1&&f.charAt(f.length-1)===t.sep&&(f=f.substr(0,f.length-1)),f},t.dirname=function(e){e=t._removeDuplicateSeps(e);var n=e.charAt(0)===t.sep,r=e.split(t.sep);return""===r.pop()&&r.length>0&&r.pop(),r.length>1?r.join(t.sep):n?t.sep:"."},t.basename=function(e,n){if("undefined"==typeof n&&(n=""),""===e)return e;e=t.normalize(e);var r=e.split(t.sep),o=r[r.length-1];if(""===o&&r.length>1)return r[r.length-2];if(n.length>0){var i=o.substr(o.length-n.length);if(i===n)return o.substr(0,o.length-n.length)}return o},t.extname=function(e){e=t.normalize(e);var n=e.split(t.sep);if(e=n.pop(),""===e&&n.length>0&&(e=n.pop()),".."===e)return"";var r=e.lastIndexOf(".");return-1===r||0===r?"":e.substr(r)},t.isAbsolute=function(e){return e.length>0&&e.charAt(0)===t.sep},t._makeLong=function(t){return t},t._removeDuplicateSeps=function(t){return t=t.replace(this._replaceRegex,this.sep)},t.sep="/",t._replaceRegex=new RegExp("//+","g"),t.delimiter=":",t}();e.path=o}),a("core/node_fs",["require","exports","./api_error","./file_flag","./buffer","./node_path"],function(t,e,n,r,o,i){function a(t,e){if("function"!=typeof t)throw new l(9,"Callback must be a function.");switch("undefined"==typeof __numWaiting&&(__numWaiting=0),__numWaiting++,e){case 1:return function(e){setImmediate(function(){return __numWaiting--,t(e)})};case 2:return function(e,n){setImmediate(function(){return __numWaiting--,t(e,n)})};case 3:return function(e,n,r){setImmediate(function(){return __numWaiting--,t(e,n,r)})};default:throw new Error("Invalid invocation of wrapCb.")}}function s(t){if("function"!=typeof t.write)throw new l(3,"Invalid file descriptor.")}function u(t,e){switch(typeof t){case"number":return t;case"string":var n=parseInt(t,8);if(0/0!==n)return n;default:return e}}function f(t){if(t.indexOf("\x00")>=0)throw new l(9,"Path must be a string without null bytes.");if(""===t)throw new l(9,"Path must not be empty.");return y.resolve(t)}function c(t,e,n,r){switch(typeof t){case"object":return{encoding:"undefined"!=typeof t.encoding?t.encoding:e,flag:"undefined"!=typeof t.flag?t.flag:n,mode:u(t.mode,r)};case"string":return{encoding:t,flag:n,mode:r};default:return{encoding:e,flag:n,mode:r}}}function p(){}var l=n.ApiError;n.ErrorCode;var h=r.FileFlag,d=o.Buffer,y=i.path,w=function(){function t(){}return t._initialize=function(e){if(!e.constructor.isAvailable())throw new l(9,"Tried to instantiate BrowserFS with an unavailable file system.");return t.root=e},t._toUnixTimestamp=function(t){if("number"==typeof t)return t;if(t instanceof Date)return t.getTime()/1e3;throw new Error("Cannot parse time: "+t)},t.getRootFS=function(){return t.root?t.root:null},t.rename=function(e,n,r){"undefined"==typeof r&&(r=p);var o=a(r,1);try{t.root.rename(f(e),f(n),o)}catch(i){o(i)}},t.renameSync=function(e,n){t.root.renameSync(f(e),f(n))},t.exists=function(e,n){"undefined"==typeof n&&(n=p);var r=a(n,1);try{return t.root.exists(f(e),r)}catch(o){return r(!1)}},t.existsSync=function(e){try{return t.root.existsSync(f(e))}catch(n){return!1}},t.stat=function(e,n){"undefined"==typeof n&&(n=p);var r=a(n,2);try{return t.root.stat(f(e),!1,r)}catch(o){return r(o,null)}},t.statSync=function(e){return t.root.statSync(f(e),!1)},t.lstat=function(e,n){"undefined"==typeof n&&(n=p);var r=a(n,2);try{return t.root.stat(f(e),!0,r)}catch(o){return r(o,null)}},t.lstatSync=function(e){return t.root.statSync(f(e),!0)},t.truncate=function(e,n,r){"undefined"==typeof n&&(n=0),"undefined"==typeof r&&(r=p);var o=0;"function"==typeof n?r=n:"number"==typeof n&&(o=n);var i=a(r,1);try{return t.root.truncate(f(e),o,i)}catch(s){return i(s)}},t.truncateSync=function(e,n){return"undefined"==typeof n&&(n=0),t.root.truncateSync(f(e),n)},t.unlink=function(e,n){"undefined"==typeof n&&(n=p);var r=a(n,1);try{return t.root.unlink(f(e),r)}catch(o){return r(o)}},t.unlinkSync=function(e){return t.root.unlinkSync(f(e))},t.open=function(e,n,r,o){"undefined"==typeof o&&(o=p);var i=u(r,420);o="function"==typeof r?r:o;var s=a(o,2);try{return t.root.open(f(e),h.getFileFlag(n),i,s)}catch(c){return s(c,null)}},t.openSync=function(e,n,r){return"undefined"==typeof r&&(r=420),t.root.openSync(f(e),h.getFileFlag(n),r)},t.readFile=function(e,n,r){"undefined"==typeof n&&(n={}),"undefined"==typeof r&&(r=p);var o=c(n,null,"r",null);r="function"==typeof n?n:r;var i=a(r,2);try{var s=h.getFileFlag(o.flag);return s.isReadable()?t.root.readFile(f(e),o.encoding,s,i):i(new l(9,"Flag passed to readFile must allow for reading."))}catch(u){return i(u,null)}},t.readFileSync=function(e,n){"undefined"==typeof n&&(n={});var r=c(n,null,"r",null),o=h.getFileFlag(r.flag);if(!o.isReadable())throw new l(9,"Flag passed to readFile must allow for reading.");return t.root.readFileSync(f(e),r.encoding,o)},t.writeFile=function(e,n,r,o){"undefined"==typeof r&&(r={}),"undefined"==typeof o&&(o=p);var i=c(r,"utf8","w",420);o="function"==typeof r?r:o;var s=a(o,1);try{var u=h.getFileFlag(i.flag);return u.isWriteable()?t.root.writeFile(f(e),n,i.encoding,u,i.mode,s):s(new l(9,"Flag passed to writeFile must allow for writing."))}catch(d){return s(d)}},t.writeFileSync=function(e,n,r){var o=c(r,"utf8","w",420),i=h.getFileFlag(o.flag);if(!i.isWriteable())throw new l(9,"Flag passed to writeFile must allow for writing.");return t.root.writeFileSync(f(e),n,o.encoding,i,o.mode)},t.appendFile=function(e,n,r,o){"undefined"==typeof o&&(o=p);var i=c(r,"utf8","a",420);o="function"==typeof r?r:o;var s=a(o,1);try{var u=h.getFileFlag(i.flag);if(!u.isAppendable())return s(new l(9,"Flag passed to appendFile must allow for appending."));t.root.appendFile(f(e),n,i.encoding,u,i.mode,s)}catch(d){s(d)}},t.appendFileSync=function(e,n,r){var o=c(r,"utf8","a",420),i=h.getFileFlag(o.flag);if(!i.isAppendable())throw new l(9,"Flag passed to appendFile must allow for appending.");return t.root.appendFileSync(f(e),n,o.encoding,i,o.mode)},t.fstat=function(t,e){"undefined"==typeof e&&(e=p);var n=a(e,2);try{s(t),t.stat(n)}catch(r){n(r)}},t.fstatSync=function(t){return s(t),t.statSync()},t.close=function(t,e){"undefined"==typeof e&&(e=p);var n=a(e,1);try{s(t),t.close(n)}catch(r){n(r)}},t.closeSync=function(t){return s(t),t.closeSync()},t.ftruncate=function(t,e,n){"undefined"==typeof n&&(n=p);var r="number"==typeof e?e:0;n="function"==typeof e?e:n;var o=a(n,1);try{s(t),t.truncate(r,o)}catch(i){o(i)}},t.ftruncateSync=function(t,e){return"undefined"==typeof e&&(e=0),s(t),t.truncateSync(e)},t.fsync=function(t,e){"undefined"==typeof e&&(e=p);var n=a(e,1);try{s(t),t.sync(n)}catch(r){n(r)}},t.fsyncSync=function(t){return s(t),t.syncSync()},t.fdatasync=function(t,e){"undefined"==typeof e&&(e=p);var n=a(e,1);try{s(t),t.datasync(n)}catch(r){n(r)}},t.fdatasyncSync=function(t){s(t),t.datasyncSync()},t.write=function(t,e,n,r,o,i){"undefined"==typeof i&&(i=p);var u,f,c,h=null;if("string"==typeof e){var y="utf8";switch(typeof n){case"function":i=n;break;case"number":h=n,y="string"==typeof r?r:"utf8",i="function"==typeof o?o:i;break;default:return i="function"==typeof r?r:"function"==typeof o?o:i,i(new l(9,"Invalid arguments."))}u=new d(e,y),f=0,c=u.length}else u=e,f=n,c=r,h="number"==typeof o?o:null,i="function"==typeof o?o:i;var w=a(i,3);try{s(t),null==h&&(h=t.getPos()),t.write(u,f,c,h,w)}catch(g){w(g)}},t.writeSync=function(t,e,n,r,o){var i,a,u,f=0;if("string"==typeof e){u="number"==typeof n?n:null;var c="string"==typeof r?r:"utf8";f=0,i=new d(e,c),a=i.length}else i=e,f=n,a=r,u="number"==typeof o?o:null;return s(t),null==u&&(u=t.getPos()),t.writeSync(i,f,a,u)},t.read=function(t,e,n,r,o,i){"undefined"==typeof i&&(i=p);var u,f,c,l,h;if("number"==typeof e){c=e,u=n;var y=r;i="function"==typeof o?o:i,f=0,l=new d(c),h=a(function(t,e,n){return t?i(t):(i(t,n.toString(y),e),void 0)},3)}else l=e,f=n,c=r,u=o,h=a(i,3);try{s(t),null==u&&(u=t.getPos()),t.read(l,f,c,u,h)}catch(w){h(w)}},t.readSync=function(t,e,n,r,o){var i,a,u,f,c=!1;if("number"==typeof e){u=e,f=n;var p=r;a=0,i=new d(u),c=!0}else i=e,a=n,u=r,f=o;s(t),null==f&&(f=t.getPos());var l=t.readSync(i,a,u,f);return c?[i.toString(p),l]:l},t.fchown=function(t,e,n,r){"undefined"==typeof r&&(r=p);var o=a(r,1);try{s(t),t.chown(e,n,o)}catch(i){o(i)}},t.fchownSync=function(t,e,n){return s(t),t.chownSync(e,n)},t.fchmod=function(t,e,n){"undefined"==typeof n&&(n=p);var r=a(n,1);try{e="string"==typeof e?parseInt(e,8):e,s(t),t.chmod(e,r)}catch(o){r(o)}},t.fchmodSync=function(t,e){return e="string"==typeof e?parseInt(e,8):e,s(t),t.chmodSync(e)},t.futimes=function(t,e,n,r){"undefined"==typeof r&&(r=p);var o=a(r,1);try{s(t),"number"==typeof e&&(e=new Date(1e3*e)),"number"==typeof n&&(n=new Date(1e3*n)),t.utimes(e,n,o)}catch(i){o(i)}},t.futimesSync=function(t,e,n){return s(t),"number"==typeof e&&(e=new Date(1e3*e)),"number"==typeof n&&(n=new Date(1e3*n)),t.utimesSync(e,n)},t.rmdir=function(e,n){"undefined"==typeof n&&(n=p);var r=a(n,1);try{e=f(e),t.root.rmdir(e,r)}catch(o){r(o)}},t.rmdirSync=function(e){return e=f(e),t.root.rmdirSync(e)},t.mkdir=function(e,n,r){"undefined"==typeof r&&(r=p),"function"==typeof n&&(r=n,n=511);var o=a(r,1);try{e=f(e),t.root.mkdir(e,n,o)}catch(i){o(i)}},t.mkdirSync=function(e,n){return"undefined"==typeof n&&(n=511),n="string"==typeof n?parseInt(n,8):n,e=f(e),t.root.mkdirSync(e,n)},t.readdir=function(e,n){"undefined"==typeof n&&(n=p);var r=a(n,2);try{e=f(e),t.root.readdir(e,r)}catch(o){r(o)}},t.readdirSync=function(e){return e=f(e),t.root.readdirSync(e)},t.link=function(e,n,r){"undefined"==typeof r&&(r=p);var o=a(r,1);try{e=f(e),n=f(n),t.root.link(e,n,o)}catch(i){o(i)}},t.linkSync=function(e,n){return e=f(e),n=f(n),t.root.linkSync(e,n)},t.symlink=function(e,n,r,o){"undefined"==typeof o&&(o=p);var i="string"==typeof r?r:"file";o="function"==typeof r?r:o;var s=a(o,1);try{if("file"!==i&&"dir"!==i)return s(new l(9,"Invalid type: "+i));e=f(e),n=f(n),t.root.symlink(e,n,i,s)}catch(u){s(u)}},t.symlinkSync=function(e,n,r){if(null==r)r="file";else if("file"!==r&&"dir"!==r)throw new l(9,"Invalid type: "+r);return e=f(e),n=f(n),t.root.symlinkSync(e,n,r)},t.readlink=function(e,n){"undefined"==typeof n&&(n=p);var r=a(n,2);try{e=f(e),t.root.readlink(e,r)}catch(o){r(o)}},t.readlinkSync=function(e){return e=f(e),t.root.readlinkSync(e)},t.chown=function(e,n,r,o){"undefined"==typeof o&&(o=p);var i=a(o,1);try{e=f(e),t.root.chown(e,!1,n,r,i)}catch(s){i(s)}},t.chownSync=function(e,n,r){e=f(e),t.root.chownSync(e,!1,n,r)},t.lchown=function(e,n,r,o){"undefined"==typeof o&&(o=p);var i=a(o,1);try{e=f(e),t.root.chown(e,!0,n,r,i)}catch(s){i(s)}},t.lchownSync=function(e,n,r){return e=f(e),t.root.chownSync(e,!0,n,r)},t.chmod=function(e,n,r){"undefined"==typeof r&&(r=p);var o=a(r,1);try{n="string"==typeof n?parseInt(n,8):n,e=f(e),t.root.chmod(e,!1,n,o)}catch(i){o(i)}},t.chmodSync=function(e,n){return n="string"==typeof n?parseInt(n,8):n,e=f(e),t.root.chmodSync(e,!1,n)},t.lchmod=function(e,n,r){"undefined"==typeof r&&(r=p);var o=a(r,1);try{n="string"==typeof n?parseInt(n,8):n,e=f(e),t.root.chmod(e,!0,n,o)}catch(i){o(i)}},t.lchmodSync=function(e,n){return e=f(e),n="string"==typeof n?parseInt(n,8):n,t.root.chmodSync(e,!0,n)},t.utimes=function(e,n,r,o){"undefined"==typeof o&&(o=p);var i=a(o,1);try{e=f(e),"number"==typeof n&&(n=new Date(1e3*n)),"number"==typeof r&&(r=new Date(1e3*r)),t.root.utimes(e,n,r,i)}catch(s){i(s)}},t.utimesSync=function(e,n,r){return e=f(e),"number"==typeof n&&(n=new Date(1e3*n)),"number"==typeof r&&(r=new Date(1e3*r)),t.root.utimesSync(e,n,r)},t.realpath=function(e,n,r){"undefined"==typeof r&&(r=p);var o="object"==typeof n?n:{};r="function"==typeof n?n:p;var i=a(r,2);try{e=f(e),t.root.realpath(e,o,i)}catch(s){i(s)}},t.realpathSync=function(e,n){return"undefined"==typeof n&&(n={}),e=f(e),t.root.realpathSync(e,n)},t.root=null,t}();e.fs=w}),a("core/browserfs",["require","exports","./buffer","./node_fs","./node_path","./node_process"],function(t,e,n,r,o,i){function a(t){t.Buffer=n.Buffer,t.process=i.process;var r=null!=t.require?t.require:null;t.require=function(t){var n=e.BFSRequire(t);return null==n?r.apply(null,Array.prototype.slice.call(arguments,0)):n}}function s(t,n){e.FileSystem[t]=n}function u(t){switch(t){case"fs":return r.fs;case"path":return o.path;case"buffer":return n;case"process":return i.process;default:return e.FileSystem[t]}}function f(t){return r.fs._initialize(t)}e.install=a,e.FileSystem={},e.registerFileSystem=s,e.BFSRequire=u,e.initialize=f}),a("core/file",["require","exports","./api_error"],function(t,e,n){var r=n.ApiError;n.ErrorCode;var o=function(){function t(){}return t.prototype.sync=function(t){t(new r(14))},t.prototype.syncSync=function(){throw new r(14)},t.prototype.datasync=function(t){this.sync(t)},t.prototype.datasyncSync=function(){return this.syncSync()},t.prototype.chown=function(t,e,n){n(new r(14))},t.prototype.chownSync=function(){throw new r(14)},t.prototype.chmod=function(t,e){e(new r(14))},t.prototype.chmodSync=function(){throw new r(14)},t.prototype.utimes=function(t,e,n){n(new r(14))},t.prototype.utimesSync=function(){throw new r(14)},t}();e.BaseFile=o});var s=this.__extends||function(t,e){function n(){this.constructor=t}for(var r in e)e.hasOwnProperty(r)&&(t[r]=e[r]);n.prototype=e.prototype,t.prototype=new n};a("generic/preload_file",["require","exports","../core/file","../core/buffer","../core/api_error","../core/node_fs"],function(t,e,n,r,o,i){var a=o.ApiError;o.ErrorCode;var u=i.fs,f=r.Buffer,c=function(t){function e(e,n,r,o,i){if(t.call(this),this._pos=0,this._fs=e,this._path=n,this._flag=r,this._stat=o,this._buffer=null!=i?i:new f(0),this._stat.size!==this._buffer.length)throw new Error("Invalid buffer: Buffer is "+this._buffer.length+" long, yet Stats object specifies that file is "+this._stat.size+" long.")}return s(e,t),e.prototype.getPath=function(){return this._path},e.prototype.getPos=function(){return this._flag.isAppendable()?this._stat.size:this._pos},e.prototype.advancePos=function(t){return this._pos+=t},e.prototype.setPos=function(t){return this._pos=t},e.prototype.sync=function(t){try{this.syncSync(),t()}catch(e){t(e)}},e.prototype.syncSync=function(){throw new a(14)},e.prototype.close=function(t){try{this.closeSync(),t()}catch(e){t(e)}},e.prototype.closeSync=function(){throw new a(14)},e.prototype.stat=function(t){try{t(null,this._stat.clone())}catch(e){t(e)}},e.prototype.statSync=function(){return this._stat.clone()},e.prototype.truncate=function(t,e){try{this.truncateSync(t),this._flag.isSynchronous()&&!u.getRootFS().supportsSynch()&&this.sync(e),e()}catch(n){return e(n)}},e.prototype.truncateSync=function(t){if(!this._flag.isWriteable())throw new a(0,"File not opened with a writeable mode.");if(this._stat.mtime=new Date,t>this._buffer.length){var e=new f(t-this._buffer.length);return e.fill(0),this.writeSync(e,0,e.length,this._buffer.length),this._flag.isSynchronous()&&u.getRootFS().supportsSynch()&&this.syncSync(),void 0}this._stat.size=t;var n=new f(t);this._buffer.copy(n,0,0,t),this._buffer=n,this._flag.isSynchronous()&&u.getRootFS().supportsSynch()&&this.syncSync()},e.prototype.write=function(t,e,n,r,o){try{o(null,this.writeSync(t,e,n,r),t)}catch(i){o(i)}},e.prototype.writeSync=function(t,e,n,r){if(null==r&&(r=this.getPos()),!this._flag.isWriteable())throw new a(0,"File not opened with a writeable mode.");var o=r+n;if(o>this._stat.size&&(this._stat.size=o,o>this._buffer.length)){var i=new f(o);this._buffer.copy(i),this._buffer=i}var s=t.copy(this._buffer,r,e,e+n);return this._stat.mtime=new Date,this._flag.isSynchronous()?(this.syncSync(),s):(this.setPos(r+s),s)},e.prototype.read=function(t,e,n,r,o){try{o(null,this.readSync(t,e,n,r),t)}catch(i){o(i)}},e.prototype.readSync=function(t,e,n,r){if(!this._flag.isReadable())throw new a(0,"File not opened with a readable mode.");null==r&&(r=this.getPos());var o=r+n;o>this._stat.size&&(n=this._stat.size-r);var i=this._buffer.copy(t,e,r,r+n);return this._stat.atime=new Date,this._pos=r+n,i},e.prototype.chmod=function(t,e){try{this.chmodSync(t),e()}catch(n){e(n)}},e.prototype.chmodSync=function(t){if(!this._fs.supportsProps())throw new a(14);this._stat.chmod(t),this.syncSync()},e}(n.BaseFile);e.PreloadFile=c;var p=function(t){function e(e,n,r,o,i){t.call(this,e,n,r,o,i)}return s(e,t),e.prototype.sync=function(t){t()},e.prototype.syncSync=function(){},e.prototype.close=function(t){t()},e.prototype.closeSync=function(){},e}(c);e.NoSyncFile=p});var s=this.__extends||function(t,e){function n(){this.constructor=t}for(var r in e)e.hasOwnProperty(r)&&(t[r]=e[r]);n.prototype=e.prototype,t.prototype=new n};a("core/file_system",["require","exports","./api_error","./file_flag","./node_path","./buffer"],function(t,e,n,r,o,i){var a=n.ApiError;n.ErrorCode;var u=o.path,f=i.Buffer,c=function(){function t(){}return t.prototype.supportsLinks=function(){return!1},t.prototype.diskSpace=function(t,e){e(0,0)},t.prototype.open=function(t,e,n,r){r(new a(14))},t.prototype.rename=function(t,e,n){n(new a(14))},t.prototype.renameSync=function(){throw new a(14)},t.prototype.stat=function(t,e,n){n(new a(14))},t.prototype.statSync=function(){throw new a(14)},t.prototype.openSync=function(){throw new a(14)},t.prototype.unlink=function(t,e){e(new a(14))},t.prototype.unlinkSync=function(){throw new a(14)},t.prototype.rmdir=function(t,e){e(new a(14))},t.prototype.rmdirSync=function(){throw new a(14)},t.prototype.mkdir=function(t,e,n){n(new a(14))},t.prototype.mkdirSync=function(){throw new a(14)},t.prototype.readdir=function(t,e){e(new a(14))},t.prototype.readdirSync=function(){throw new a(14)},t.prototype.exists=function(t,e){this.stat(t,null,function(t){e(null==t)})},t.prototype.existsSync=function(t){try{return this.statSync(t,!0),!0}catch(e){return!1}},t.prototype.realpath=function(t,e,n){if(this.supportsLinks())for(var r=t.split(u.sep),o=0;o<r.length;o++){var i=r.slice(0,o+1);r[o]=u.join.apply(null,i)}else this.exists(t,function(e){e?n(null,t):n(new a(1,"File "+t+" not found."))})},t.prototype.realpathSync=function(t){if(!this.supportsLinks()){if(this.existsSync(t))return t;throw new a(1,"File "+t+" not found.")}for(var e=t.split(u.sep),n=0;n<e.length;n++){var r=e.slice(0,n+1);e[n]=u.join.apply(null,r)}},t.prototype.truncate=function(t,e,n){this.open(t,r.FileFlag.getFileFlag("w"),420,function(t,r){return t?n(t):(r.truncate(e,function(t){r.close(function(e){n(t||e)})}),void 0)})},t.prototype.truncateSync=function(t,e){var n=this.openSync(t,r.FileFlag.getFileFlag("w"),420);try{n.truncateSync(e)}catch(o){throw o}finally{n.closeSync()}},t.prototype.readFile=function(t,e,n,r){var o=r;this.open(t,n,420,function(t,n){return t?r(t):(r=function(t,e){n.close(function(n){return null==t&&(t=n),o(t,e)})},n.stat(function(t,o){if(null!=t)return r(t);var i=new f(o.size);n.read(i,0,o.size,0,function(t){if(null!=t)return r(t);if(null===e)return r(t,i);try{r(null,i.toString(e))}catch(n){r(n)}})}),void 0)})},t.prototype.readFileSync=function(t,e,n){var r=this.openSync(t,n,420);try{var o=r.statSync(),i=new f(o.size);return r.readSync(i,0,o.size,0),r.closeSync(),null===e?i:i.toString(e)}finally{r.closeSync()}},t.prototype.writeFile=function(t,e,n,r,o,i){var a=i;this.open(t,r,420,function(t,r){if(null!=t)return i(t);i=function(t){r.close(function(e){a(null!=t?t:e)})};try{"string"==typeof e&&(e=new f(e,n))}catch(o){return i(o)}r.write(e,0,e.length,0,i)})},t.prototype.writeFileSync=function(t,e,n,r,o){var i=this.openSync(t,r,o);try{"string"==typeof e&&(e=new f(e,n)),i.writeSync(e,0,e.length,0)}finally{i.closeSync()}},t.prototype.appendFile=function(t,e,n,r,o,i){var a=i;this.open(t,r,o,function(t,r){return null!=t?i(t):(i=function(t){r.close(function(e){a(null!=t?t:e)})},"string"==typeof e&&(e=new f(e,n)),r.write(e,0,e.length,null,i),void 0)})},t.prototype.appendFileSync=function(t,e,n,r,o){var i=this.openSync(t,r,o);try{"string"==typeof e&&(e=new f(e,n)),i.writeSync(e,0,e.length,null)}finally{i.closeSync()}},t.prototype.chmod=function(t,e,n,r){r(new a(14))},t.prototype.chmodSync=function(){throw new a(14)},t.prototype.chown=function(t,e,n,r,o){o(new a(14))},t.prototype.chownSync=function(){throw new a(14)},t.prototype.utimes=function(t,e,n,r){r(new a(14))},t.prototype.utimesSync=function(){throw new a(14)},t.prototype.link=function(t,e,n){n(new a(14))},t.prototype.linkSync=function(){throw new a(14)},t.prototype.symlink=function(t,e,n,r){r(new a(14))},t.prototype.symlinkSync=function(){throw new a(14)},t.prototype.readlink=function(t,e){e(new a(14))},t.prototype.readlinkSync=function(){throw new a(14)},t}();e.BaseFileSystem=c;var p=function(t){function e(){t.apply(this,arguments)}return s(e,t),e.prototype.supportsSynch=function(){return!0},e.prototype.rename=function(t,e,n){try{this.renameSync(t,e),n()}catch(r){n(r)}},e.prototype.stat=function(t,e,n){try{n(null,this.statSync(t,e))}catch(r){n(r)}},e.prototype.open=function(t,e,n,r){try{r(null,this.openSync(t,e,n))}catch(o){r(o)}},e.prototype.unlink=function(t,e){try{this.unlinkSync(t),e()}catch(n){e(n)}},e.prototype.rmdir=function(t,e){try{this.rmdirSync(t),e()}catch(n){e(n)}},e.prototype.mkdir=function(t,e,n){try{this.mkdirSync(t,e),n()}catch(r){n(r)}},e.prototype.readdir=function(t,e){try{e(null,this.readdirSync(t))}catch(n){e(n)}},e.prototype.chmod=function(t,e,n,r){try{this.chmodSync(t,e,n),r()}catch(o){r(o)}},e.prototype.chown=function(t,e,n,r,o){try{this.chownSync(t,e,n,r),o()}catch(i){o(i)}},e.prototype.utimes=function(t,e,n,r){try{this.utimesSync(t,e,n),r()}catch(o){r(o)}},e.prototype.link=function(t,e,n){try{this.linkSync(t,e),n()}catch(r){n(r)}},e.prototype.symlink=function(t,e,n,r){try{this.symlinkSync(t,e,n),r()}catch(o){r(o)}},e.prototype.readlink=function(t,e){try{e(null,this.readlinkSync(t))}catch(n){e(n)}},e}(c);e.SynchronousFileSystem=p}),a("core/node_fs_stats",["require","exports"],function(t,e){!function(t){t[t.FILE=32768]="FILE",t[t.DIRECTORY=16384]="DIRECTORY",t[t.SYMLINK=40960]="SYMLINK"}(e.FileType||(e.FileType={})),e.FileType;var n=function(){function t(t,e,n,r,o,i){if("undefined"==typeof r&&(r=new Date),"undefined"==typeof o&&(o=new Date),"undefined"==typeof i&&(i=new Date),this.size=e,this.mode=n,this.atime=r,this.mtime=o,this.ctime=i,this.dev=0,this.ino=0,this.rdev=0,this.nlink=1,this.blksize=4096,this.uid=0,this.gid=0,null==this.mode)switch(t){case 32768:this.mode=420;break;case 16384:default:this.mode=511}this.blocks=Math.ceil(e/512),this.mode|=t}return t.prototype.clone=function(){return new t(61440&this.mode,this.size,4095&this.mode,this.atime,this.mtime,this.ctime)},t.prototype.isFile=function(){return 32768===(61440&this.mode)},t.prototype.isDirectory=function(){return 16384===(61440&this.mode)},t.prototype.isSymbolicLink=function(){return 40960===(61440&this.mode)},t.prototype.chmod=function(t){this.mode=61440&this.mode|t},t.prototype.isSocket=function(){return!1},t.prototype.isBlockDevice=function(){return!1},t.prototype.isCharacterDevice=function(){return!1},t.prototype.isFIFO=function(){return!1},t}();e.Stats=n}),function(){function t(t){var n=!1;return function(){if(n)throw new Error("Callback was already called.");n=!0,t.apply(e,arguments)}}var e,n,r={};e=this,null!=e&&(n=e.async),r.noConflict=function(){return e.async=n,r};var o=function(t,e){if(t.forEach)return t.forEach(e);for(var n=0;n<t.length;n+=1)e(t[n],n,t)},i=function(t,e){if(t.map)return t.map(e);var n=[];return o(t,function(t,r,o){n.push(e(t,r,o))}),n},s=function(t,e,n){return t.reduce?t.reduce(e,n):(o(t,function(t,r,o){n=e(n,t,r,o)}),n)},u=function(t){if(Object.keys)return Object.keys(t);var e=[];for(var n in t)t.hasOwnProperty(n)&&e.push(n);return e};r.nextTick="undefined"!=typeof process&&process.nextTick?process.nextTick:"function"==typeof setImmediate?function(t){setImmediate(t)}:function(t){setTimeout(t,0)},r.each=function(e,n,r){if(r=r||function(){},!e.length)return r();
-var i=0;o(e,function(o){n(o,t(function(t){t?(r(t),r=function(){}):(i+=1,i>=e.length&&r(null))}))})},r.forEach=r.each,r.eachSeries=function(t,e,n){if(n=n||function(){},!t.length)return n();var o=0,i=function(){var a=!0;e(t[o],function(e){e?(n(e),n=function(){}):(o+=1,o>=t.length?n(null):a?r.nextTick(i):i())}),a=!1};i()},r.forEachSeries=r.eachSeries,r.eachLimit=function(t,e,n,r){var o=f(e);o.apply(null,[t,n,r])},r.forEachLimit=r.eachLimit;var f=function(t){return function(e,n,r){if(r=r||function(){},!e.length||0>=t)return r();var o=0,i=0,a=0;!function s(){if(o>=e.length)return r();for(;t>a&&i<e.length;)i+=1,a+=1,n(e[i-1],function(t){t?(r(t),r=function(){}):(o+=1,a-=1,o>=e.length?r():s())})}()}},c=function(t){return function(){var e=Array.prototype.slice.call(arguments);return t.apply(null,[r.each].concat(e))}},p=function(t,e){return function(){var n=Array.prototype.slice.call(arguments);return e.apply(null,[f(t)].concat(n))}},l=function(t){return function(){var e=Array.prototype.slice.call(arguments);return t.apply(null,[r.eachSeries].concat(e))}},h=function(t,e,n,r){var o=[];e=i(e,function(t,e){return{index:e,value:t}}),t(e,function(t,e){n(t.value,function(n,r){o[t.index]=r,e(n)})},function(t){r(t,o)})};r.map=c(h),r.mapSeries=l(h),r.mapLimit=function(t,e,n,r){return d(e)(t,n,r)};var d=function(t){return p(t,h)};r.reduce=function(t,e,n,o){r.eachSeries(t,function(t,r){n(e,t,function(t,n){e=n,r(t)})},function(t){o(t,e)})},r.inject=r.reduce,r.foldl=r.reduce,r.reduceRight=function(t,e,n,o){var a=i(t,function(t){return t}).reverse();r.reduce(a,e,n,o)},r.foldr=r.reduceRight;var y=function(t,e,n,r){var o=[];e=i(e,function(t,e){return{index:e,value:t}}),t(e,function(t,e){n(t.value,function(n){n&&o.push(t),e()})},function(){r(i(o.sort(function(t,e){return t.index-e.index}),function(t){return t.value}))})};r.filter=c(y),r.filterSeries=l(y),r.select=r.filter,r.selectSeries=r.filterSeries;var w=function(t,e,n,r){var o=[];e=i(e,function(t,e){return{index:e,value:t}}),t(e,function(t,e){n(t.value,function(n){n||o.push(t),e()})},function(){r(i(o.sort(function(t,e){return t.index-e.index}),function(t){return t.value}))})};r.reject=c(w),r.rejectSeries=l(w);var g=function(t,e,n,r){t(e,function(t,e){n(t,function(n){n?(r(t),r=function(){}):e()})},function(){r()})};r.detect=c(g),r.detectSeries=l(g),r.some=function(t,e,n){r.each(t,function(t,r){e(t,function(t){t&&(n(!0),n=function(){}),r()})},function(){n(!1)})},r.any=r.some,r.every=function(t,e,n){r.each(t,function(t,r){e(t,function(t){t||(n(!1),n=function(){}),r()})},function(){n(!0)})},r.all=r.every,r.sortBy=function(t,e,n){r.map(t,function(t,n){e(t,function(e,r){e?n(e):n(null,{value:t,criteria:r})})},function(t,e){if(t)return n(t);var r=function(t,e){var n=t.criteria,r=e.criteria;return r>n?-1:n>r?1:0};n(null,i(e.sort(r),function(t){return t.value}))})},r.auto=function(t,e){e=e||function(){};var n=u(t);if(!n.length)return e(null);var i={},a=[],f=function(t){a.unshift(t)},c=function(t){for(var e=0;e<a.length;e+=1)if(a[e]===t)return a.splice(e,1),void 0},p=function(){o(a.slice(0),function(t){t()})};f(function(){u(i).length===n.length&&(e(null,i),e=function(){})}),o(n,function(n){var o=t[n]instanceof Function?[t[n]]:t[n],a=function(t){if(t)e(t),e=function(){};else{var o=Array.prototype.slice.call(arguments,1);o.length<=1&&(o=o[0]),i[n]=o,r.nextTick(p)}},u=o.slice(0,Math.abs(o.length-1))||[],l=function(){return s(u,function(t,e){return t&&i.hasOwnProperty(e)},!0)&&!i.hasOwnProperty(n)};if(l())o[o.length-1](a,i);else{var h=function(){l()&&(c(h),o[o.length-1](a,i))};f(h)}})},r.waterfall=function(t,e){if(e=e||function(){},!t.length)return e();var n=function(t){return function(o){if(o)e.apply(null,arguments),e=function(){};else{var i=Array.prototype.slice.call(arguments,1),a=t.next();a?i.push(n(a)):i.push(e),r.nextTick(function(){t.apply(null,i)})}}};n(r.iterator(t))()};var v=function(t,e,n){if(n=n||function(){},e.constructor===Array)t.map(e,function(t,e){t&&t(function(t){var n=Array.prototype.slice.call(arguments,1);n.length<=1&&(n=n[0]),e.call(null,t,n)})},n);else{var r={};t.each(u(e),function(t,n){e[t](function(e){var o=Array.prototype.slice.call(arguments,1);o.length<=1&&(o=o[0]),r[t]=o,n(e)})},function(t){n(t,r)})}};r.parallel=function(t,e){v({map:r.map,each:r.each},t,e)},r.parallelLimit=function(t,e,n){v({map:d(e),each:f(e)},t,n)},r.series=function(t,e){if(e=e||function(){},t.constructor===Array)r.mapSeries(t,function(t,e){t&&t(function(t){var n=Array.prototype.slice.call(arguments,1);n.length<=1&&(n=n[0]),e.call(null,t,n)})},e);else{var n={};r.eachSeries(u(t),function(e,r){t[e](function(t){var o=Array.prototype.slice.call(arguments,1);o.length<=1&&(o=o[0]),n[e]=o,r(t)})},function(t){e(t,n)})}},r.iterator=function(t){var e=function(n){var r=function(){return t.length&&t[n].apply(null,arguments),r.next()};return r.next=function(){return n<t.length-1?e(n+1):null},r};return e(0)},r.apply=function(t){var e=Array.prototype.slice.call(arguments,1);return function(){return t.apply(null,e.concat(Array.prototype.slice.call(arguments)))}};var m=function(t,e,n,r){var o=[];t(e,function(t,e){n(t,function(t,n){o=o.concat(n||[]),e(t)})},function(t){r(t,o)})};r.concat=c(m),r.concatSeries=l(m),r.whilst=function(t,e,n){if(t()){var o=!0;e(function(i){return i?n(i):(o?r.nextTick(function(){r.whilst(t,e,n)}):r.whilst(t,e,n),void 0)}),o=!1}else n()},r.doWhilst=function(t,e,n){var o=!0;t(function(i){return i?n(i):(e()?o?r.nextTick(function(){r.doWhilst(t,e,n)}):r.doWhilst(t,e,n):n(),void 0)}),o=!1},r.until=function(t,e,n){if(t())n();else{var o=!0;e(function(i){return i?n(i):(o?r.nextTick(function(){r.until(t,e,n)}):r.until(t,e,n),void 0)}),o=!1}},r.doUntil=function(t,e,n){var o=!0;t(function(i){return i?n(i):(e()?n():o?r.nextTick(function(){r.doUntil(t,e,n)}):r.doUntil(t,e,n),void 0)}),o=!1},r.queue=function(e,n){function i(t,e,i,a){e.constructor!==Array&&(e=[e]),o(e,function(e){var o={data:e,callback:"function"==typeof a?a:null};i?t.tasks.unshift(o):t.tasks.push(o),t.saturated&&t.tasks.length===n&&t.saturated(),r.nextTick(t.process)})}var a=0,s={tasks:[],concurrency:n,saturated:null,empty:null,drain:null,push:function(t,e){i(s,t,!1,e)},unshift:function(t,e){i(s,t,!0,e)},process:function(){if(a<s.concurrency&&s.tasks.length){var n=s.tasks.shift();s.empty&&0===s.tasks.length&&s.empty(),a+=1;var o=!0,i=function(){a-=1,n.callback&&n.callback.apply(n,arguments),s.drain&&0===s.tasks.length+a&&s.drain(),s.process()},u=t(function(){var t=arguments;o?r.nextTick(function(){i.apply(null,t)}):i.apply(null,arguments)});e(n.data,u),o=!1}},length:function(){return s.tasks.length},running:function(){return a}};return s},r.cargo=function(t,e){var n=!1,a=[],s={tasks:a,payload:e,saturated:null,empty:null,drain:null,push:function(t,n){t.constructor!==Array&&(t=[t]),o(t,function(t){a.push({data:t,callback:"function"==typeof n?n:null}),s.saturated&&a.length===e&&s.saturated()}),r.nextTick(s.process)},process:function u(){if(!n){if(0===a.length)return s.drain&&s.drain(),void 0;var r="number"==typeof e?a.splice(0,e):a.splice(0),f=i(r,function(t){return t.data});s.empty&&s.empty(),n=!0,t(f,function(){n=!1;var t=arguments;o(r,function(e){e.callback&&e.callback.apply(null,t)}),u()})}},length:function(){return a.length},running:function(){return n}};return s};var S=function(t){return function(e){var n=Array.prototype.slice.call(arguments,1);e.apply(null,n.concat([function(e){var n=Array.prototype.slice.call(arguments,1);"undefined"!=typeof console&&(e?console.error&&console.error(e):console[t]&&o(n,function(e){console[t](e)}))}]))}};r.log=S("log"),r.dir=S("dir"),r.memoize=function(t,e){var n={},r={};e=e||function(t){return t};var o=function(){var o=Array.prototype.slice.call(arguments),i=o.pop(),a=e.apply(null,o);a in n?i.apply(null,n[a]):a in r?r[a].push(i):(r[a]=[i],t.apply(null,o.concat([function(){n[a]=arguments;var t=r[a];delete r[a];for(var e=0,o=t.length;o>e;e++)t[e].apply(null,arguments)}])))};return o.memo=n,o.unmemoized=t,o},r.unmemoize=function(t){return function(){return(t.unmemoized||t).apply(null,arguments)}},r.times=function(t,e,n){for(var o=[],i=0;t>i;i++)o.push(i);return r.map(o,e,n)},r.timesSeries=function(t,e,n){for(var o=[],i=0;t>i;i++)o.push(i);return r.mapSeries(o,e,n)},r.compose=function(){var t=Array.prototype.reverse.call(arguments);return function(){var e=this,n=Array.prototype.slice.call(arguments),o=n.pop();r.reduce(t,n,function(t,n,r){n.apply(e,t.concat([function(){var t=arguments[0],e=Array.prototype.slice.call(arguments,1);r(t,e)}]))},function(t,n){o.apply(e,[t].concat(n))})}},"undefined"!=typeof a&&a.amd?a("backend/../../vendor/async/lib/async",[],function(){return r}):"undefined"!=typeof module&&module.exports?module.exports=r:e.async=r}();var s=this.__extends||function(t,e){function n(){this.constructor=t}for(var r in e)e.hasOwnProperty(r)&&(t[r]=e[r]);n.prototype=e.prototype,t.prototype=new n};a("backend/dropbox",["require","exports","../generic/preload_file","../core/file_system","../core/node_fs_stats","../core/buffer","../core/api_error","../core/node_path","../core/browserfs","../core/buffer_core_arraybuffer","../../vendor/async/lib/async"],function(t,e,n,r,o,i,a,u,f,c){var p=i.Buffer,l=o.Stats,h=a.ApiError;a.ErrorCode;var d=u.path;o.FileType,window.db=window.Dropbox;var y=t("../../vendor/async/lib/async"),p=i.Buffer,w=function(t){function e(e,n,r,o,i){t.call(this,e,n,r,o,i)}return s(e,t),e.prototype.sync=function(t){var e=this._buffer,n=this._buffer.getBufferCore();n instanceof c.BufferCoreArrayBuffer||(e=new p(this._buffer.length),this._buffer.copy(e),n=e.getBufferCore());var r=n.getDataView(),o=new DataView(r.buffer,r.byteOffset+e.getOffset(),e.length);this._fs._writeFileStrict(this._path,o,t)},e.prototype.close=function(t){this.sync(t)},e}(n.PreloadFile);e.DropboxFile=w;var g=function(t){function e(e){t.call(this),this.client=e}return s(e,t),e.prototype.getName=function(){return"Dropbox"},e.isAvailable=function(){return"undefined"!=typeof db},e.prototype.isReadOnly=function(){return!1},e.prototype.supportsSymlinks=function(){return!1},e.prototype.supportsProps=function(){return!1},e.prototype.supportsSynch=function(){return!1},e.prototype.empty=function(t){var e=this;e.client.readdir("/",function(n,r,o,i){if(n)t(e.convert(n));else{var a=function(t,n){e.client.remove(t.path,function(t){n(t?e.convert(t):t)})},s=function(n){n?t(e.convert(n)):t()};y.each(i,a,s)}})},e.prototype.rename=function(t,e,n){var r=this;r.client.move(t,e,function(r){if(r){var o=r.response.error.indexOf(t)>-1?t:e;n(new h(1,o+" doesn't exist"))}else n()})},e.prototype.stat=function(t,e,n){var r=this;r.client.stat(t,function(e,o){if(!(e||null!=o&&o.isRemoved)){var i=new l(r._statType(o),o.size);return n(null,i)}n(new h(1,t+" doesn't exist"))})},e.prototype.open=function(t,e,n,r){var o=this;o.client.readFile(t,{arrayBuffer:!0},function(n,i,a){if(!n){var s;s=null===i?new p(0):new p(i);var u=o._makeFile(t,e,a,s);return r(null,u)}if(e.isReadable())r(new h(1,t+" doesn't exist"));else switch(n.status){case 0:return console.error("No connection");case 404:var f=new ArrayBuffer(0);return o._writeFileStrict(t,f,function(n,i){if(n)r(n);else{var a=o._makeFile(t,e,i,new p(f));r(null,a)}});default:return console.log("Unhandled error: "+n)}})},e.prototype._writeFileStrict=function(t,e,n){var r=this,o=d.dirname(t);r.stat(o,!1,function(i){i?n(new h(1,"Can't create "+t+" because "+o+" doesn't exist")):r.client.writeFile(t,e,function(t,e){t?n(r.convert(t)):n(null,e)})})},e.prototype._statType=function(t){return t.isFile?32768:16384},e.prototype._makeFile=function(t,e,n,r){var o=this._statType(n),i=new l(o,n.size);return new w(this,t,e,i,r)},e.prototype._remove=function(t,e,n){var r=this;r.client.stat(t,function(o,i){o?e(new h(1,t+" doesn't exist")):i.isFile&&!n?e(new h(7,t+" is a file.")):!i.isFile&&n?e(new h(8,t+" is a directory.")):r.client.remove(t,function(n){n?e(new h(2,"Failed to remove "+t)):e(null)})})},e.prototype.unlink=function(t,e){this._remove(t,e,!0)},e.prototype.rmdir=function(t,e){this._remove(t,e,!1)},e.prototype.mkdir=function(t,e,n){var r=this,o=d.dirname(t);r.client.stat(o,function(e){e?n(new h(1,"Can't create "+t+" because "+o+" doesn't exist")):r.client.mkdir(t,function(e){e?n(new h(6,t+" already exists")):n(null)})})},e.prototype.readdir=function(t,e){var n=this;this.client.readdir(t,function(t,r){return t?e(n.convert(t)):e(null,r)})},e.prototype.convert=function(t,e){switch("undefined"==typeof e&&(e=""),t.status){case 400:return new h(9,e);case 401:case 403:return new h(2,e);case 404:return new h(1,e);case 405:return new h(14,e);case 0:case 304:case 406:case 409:default:return new h(2,e)}},e}(r.BaseFileSystem);e.Dropbox=g,f.registerFileSystem("Dropbox",g)});var s=this.__extends||function(t,e){function n(){this.constructor=t}for(var r in e)e.hasOwnProperty(r)&&(t[r]=e[r]);n.prototype=e.prototype,t.prototype=new n};a("backend/html5fs",["require","exports","../generic/preload_file","../core/file_system","../core/api_error","../core/file_flag","../core/node_fs_stats","../core/buffer","../core/browserfs","../core/buffer_core_arraybuffer","../../vendor/async/lib/async"],function(t,e,n,r,o,i,a,u,f,c){function p(t,e,n,r){if("undefined"!=typeof navigator.webkitPersistentStorage)switch(t){case window.PERSISTENT:navigator.webkitPersistentStorage.requestQuota(e,n,r);break;case window.TEMPORARY:navigator.webkitTemporaryStorage.requestQuota(e,n,r);break;default:r(null)}else window.webkitStorageInfo.requestQuota(t,e,n,r)}function l(t){return Array.prototype.slice.call(t||[],0)}var h=u.Buffer,d=a.Stats;a.FileType;var y=o.ApiError;o.ErrorCode,i.ActionType;var w=t("../../vendor/async/lib/async"),g=window.webkitRequestFileSystem||window.requestFileSystem||null,v=function(t){function e(e,n,r,o,i){t.call(this,e,n,r,o,i)}return s(e,t),e.prototype.sync=function(t){var e=this,n={create:!1},r=this._fs,o=function(n){n.createWriter(function(n){var o=e._buffer,i=e._buffer.getBufferCore();i instanceof c.BufferCoreArrayBuffer||(o=new h(e._buffer.length),e._buffer.copy(o),i=o.getBufferCore());var a=i.getDataView(),s=new DataView(a.buffer,a.byteOffset+o.getOffset(),o.length),u=new Blob([s]),f=u.size;n.onwriteend=function(){n.onwriteend=null,n.truncate(f),t()},n.onerror=function(e){t(r.convert(e))},n.write(u)})},i=function(e){t(r.convert(e))};r.fs.root.getFile(this._path,n,o,i)},e.prototype.close=function(t){this.sync(t)},e}(n.PreloadFile);e.HTML5FSFile=v;var m=function(t){function e(e,n){t.call(this),this.size=null!=e?e:5,this.type=null!=n?n:window.PERSISTENT;var r=1024,o=r*r;this.size*=o}return s(e,t),e.prototype.getName=function(){return"HTML5 FileSystem"},e.isAvailable=function(){return null!=g},e.prototype.isReadOnly=function(){return!1},e.prototype.supportsSymlinks=function(){return!1},e.prototype.supportsProps=function(){return!1},e.prototype.supportsSynch=function(){return!1},e.prototype.convert=function(t,e){switch("undefined"==typeof e&&(e=""),t.name){case"QuotaExceededError":return new y(11,e);case"NotFoundError":return new y(1,e);case"SecurityError":return new y(4,e);case"SyntaxError":case"TypeMismatchError":return new y(9,e);default:return console.log("Unknown Error: "+t.name),new y(9,e)}},e.prototype.convertErrorEvent=function(t,e){return"undefined"==typeof e&&(e=""),new y(1,t.message+"; "+e)},e.prototype.allocate=function(t){"undefined"==typeof t&&(t=function(){});var e=this,n=function(n){e.fs=n,t()},r=function(n){t(e.convert(n))};this.type===window.PERSISTENT?p(this.type,this.size,function(t){g(this.type,t,n,r)},r):g(this.type,this.size,n,r)},e.prototype.empty=function(t){var e=this;e._readdir("/",function(n,r){if(n)console.error("Failed to empty FS"),t(n);else{var o=function(){n?(console.error("Failed to empty FS"),t(n)):t()},i=function(t,n){var r=function(){n()},o=function(r){n(e.convert(r,t.fullPath))};t.isFile?t.remove(r,o):t.removeRecursively(r,o)};w.each(r,i,o)}})},e.prototype.rename=function(t,e,n){var r=this,o=function(r){r.moveTo(t,e),n()},i=function(o){n(r.convert(o,"Failed to rename "+t+" to "+e+"."))};this.fs.root.getFile(t,{},o,i)},e.prototype.stat=function(t,e,n){var r=this,o={create:!1},i=function(t){var e=function(t){var e=new d(32768,t.size);n(null,e)};t.file(e,s)},a=function(){var t=4096,e=new d(16384,t);n(null,e)},s=function(e){n(r.convert(e,t))},u=function(){r.fs.root.getDirectory(t,o,a,s)};this.fs.root.getFile(t,o,i,u)},e.prototype.open=function(t,e,n,r){var o=this,i={create:3===e.pathNotExistsAction(),exclusive:e.isExclusive()},a=function(e){r(o.convertErrorEvent(e,t))},s=function(e){r(o.convert(e,t))},u=function(n){var i=function(n){var i=new FileReader;i.onloadend=function(){var a=o._makeFile(t,e,n,i.result);r(null,a)},i.onerror=a,i.readAsArrayBuffer(n)};n.file(i,s)};this.fs.root.getFile(t,i,u,a)},e.prototype._statType=function(t){return t.isFile?32768:16384},e.prototype._makeFile=function(t,e,n,r){"undefined"==typeof r&&(r=new ArrayBuffer(0));var o=new d(32768,n.size),i=new h(r);return new v(this,t,e,o,i)},e.prototype._remove=function(t,e,n){var r=this,o=function(n){var o=function(){e()},i=function(n){e(r.convert(n,t))};n.remove(o,i)},i=function(n){e(r.convert(n,t))},a={create:!1};n?this.fs.root.getFile(t,a,o,i):this.fs.root.getDirectory(t,a,o,i)},e.prototype.unlink=function(t,e){this._remove(t,e,!0)},e.prototype.rmdir=function(t,e){this._remove(t,e,!1)},e.prototype.mkdir=function(t,e,n){var r=this,o={create:!0,exclusive:!0},i=function(){n()},a=function(e){n(r.convert(e,t))};this.fs.root.getDirectory(t,o,i,a)},e.prototype._readdir=function(t,e){var n=this,r=this.fs.root.createReader(),o=[],i=function(r){e(n.convert(r,t))},a=function(){r.readEntries(function(t){t.length?(o=o.concat(l(t)),a()):e(null,o)},i)};a()},e.prototype.readdir=function(t,e){this._readdir(t,function(t,n){if(null!=t)return e(t);for(var r=[],o=0;o<n.length;o++)r.push(n[o].name);e(null,r)})},e}(r.BaseFileSystem);e.HTML5FS=m,f.registerFileSystem("HTML5FS",m)}),a("generic/file_index",["require","exports","../core/node_fs_stats","../core/node_path"],function(t,e,n,r){var o=n.Stats,i=r.path,a=function(){function t(){this._index={},this.addPath("/",new u)}return t.prototype._split_path=function(t){var e=i.dirname(t),n=t.substr(e.length+("/"===e?0:1));return[e,n]},t.prototype.fileIterator=function(t){for(var e in this._index)for(var n=this._index[e],r=n.getListing(),o=0;o<r.length;o++){var i=n.getItem(r[o]);i.isFile()&&t(i.getData())}},t.prototype.addPath=function(t,e){if(null==e)throw new Error("Inode must be specified");if("/"!==t[0])throw new Error("Path must be absolute, got: "+t);if(this._index.hasOwnProperty(t))return this._index[t]===e;var n=this._split_path(t),r=n[0],o=n[1],i=this._index[r];return void 0!==i||"/"===t||(i=new u,this.addPath(r,i))?"/"===t||i.addItem(o,e)?(e.isFile()||(this._index[t]=e),!0):!1:!1},t.prototype.removePath=function(t){var e=this._split_path(t),n=e[0],r=e[1],o=this._index[n];if(void 0===o)return null;var i=o.remItem(r);if(null===i)return null;if(!i.isFile()){for(var a=i,s=a.getListing(),u=0;u<s.length;u++)this.removePath(t+"/"+s[u]);"/"!==t&&delete this._index[t]}return i},t.prototype.ls=function(t){var e=this._index[t];return void 0===e?null:e.getListing()},t.prototype.getInode=function(t){var e=this._split_path(t),n=e[0],r=e[1],o=this._index[n];return void 0===o?null:n===t?o:o.getItem(r)},t.from_listing=function(e){var n=new t,r=new u;n._index["/"]=r;for(var i=[["",e,r]];i.length>0;){var a,f=i.pop(),c=f[0],p=f[1],l=f[2];for(var h in p){var d=p[h],y=""+c+"/"+h;null!=d?(n._index[y]=a=new u,i.push([y,d,a])):a=new s(new o(32768,-1)),null!=l&&(l._ls[h]=a)}}return n},t}();e.FileIndex=a;var s=function(){function t(t){this.data=t}return t.prototype.isFile=function(){return!0},t.prototype.isDir=function(){return!1},t.prototype.getData=function(){return this.data},t.prototype.setData=function(t){this.data=t},t}();e.FileInode=s;var u=function(){function t(){this._ls={}}return t.prototype.isFile=function(){return!1},t.prototype.isDir=function(){return!0},t.prototype.getStats=function(){return new o(16384,4096)},t.prototype.getListing=function(){return Object.keys(this._ls)},t.prototype.getItem=function(t){var e;return null!=(e=this._ls[t])?e:null},t.prototype.addItem=function(t,e){return t in this._ls?!1:(this._ls[t]=e,!0)},t.prototype.remItem=function(t){var e=this._ls[t];return void 0===e?null:(delete this._ls[t],e)},t}();e.DirInode=u});var s=this.__extends||function(t,e){function n(){this.constructor=t}for(var r in e)e.hasOwnProperty(r)&&(t[r]=e[r]);n.prototype=e.prototype,t.prototype=new n};a("generic/indexed_filesystem",["require","exports","../core/file_system","./file_index","../core/file_flag","../core/node_fs_stats","../core/api_error","../core/node_path"],function(t,e,n,r,o,i,a,u){var f=a.ApiError;a.ErrorCode,o.ActionType,i.FileType;var c=i.Stats,p=o.FileFlag,l=u.path,h=r.DirInode,d=function(t){function e(e){t.call(this),this._index=e}return s(e,t),e.prototype.renameSync=function(t,e){var n=this._index.removePath(t);if(null===n)throw new f(1,""+t+" not found.");this._index.removePath(e),this._index.addPath(e,n)},e.prototype.statSync=function(t){var e=this._index.getInode(t);if(null===e)throw new f(1,""+t+" not found.");return e.isDir()?e.getStats():e.getData()},e.prototype.openSync=function(t,e,n){var o=this._index.getInode(t);if(null!==o){if(!o.isFile())throw new f(8,""+t+" is a directory.");var i=o.getData();switch(e.pathExistsAction()){case 1:throw new f(6,""+t+" already exists.");case 2:return this._truncate(t,e,i);case 0:return this._fetch(t,e,i);default:throw new f(9,"Invalid FileFlag object.")}}else switch(e.pathNotExistsAction()){case 3:var a=l.dirname(t),s=this._index.getInode(a);if(null===s||s.isFile())throw new f(1,""+a+" doesn't exist.");var u=new r.FileInode(new c(32768,0,n));return this._create(t,e,u);case 1:throw new f(1,""+t+" doesn't exist.");default:throw new f(9,"Invalid FileFlag object.")}},e.prototype.unlinkSync=function(t){var e=this._index.getInode(t);if(null===e)throw new f(1,""+t+" not found.");if(!e.isFile())throw new f(8,""+t+" is a directory, not a file.");this._index.removePath(t)},e.prototype.rmdirSync=function(t){var e=this._index.getInode(t);if(null===e)throw new f(1,""+t+" not found.");if(e.isFile())throw new f(7,""+t+" is a file, not a directory.");this._index.removePath(t),this._rmdirSync(t,e)},e.prototype.mkdirSync=function(t){var e=this._index.getInode(t);if(null!==e)throw new f(6,""+t+" already exists.");var n=l.dirname(t);if("/"!==n&&null===this._index.getInode(n))throw new f(1,"Can't create "+t+" because "+n+" doesn't exist.");var r=this._index.addPath(t,new h);if(!r)throw new f(9,"Could not add "+l+" for some reason.")},e.prototype.readdirSync=function(t){var e=this._index.getInode(t);if(null===e)throw new f(1,""+t+" not found.");if(e.isFile())throw new f(7,""+t+" is a file, not a directory.");return e.getListing()},e.prototype.chmodSync=function(t,e,n){var r=this.openSync(t,p.getFileFlag("r+"),420);r._stat.chmod(n),r.closeSync()},e.prototype.chownSync=function(t,e,n,r){var o=this.openSync(t,p.getFileFlag("r+"),420);o._stat.uid=n,o._stat.gid=r,o.closeSync()},e.prototype.utimesSync=function(t,e,n){var r=this.openSync(t,p.getFileFlag("r+"),420);r._stat.atime=e,r._stat.mtime=n,r.closeSync()},e.prototype._rmdirSync=function(){throw new f(14,"_rmdirSync is not implemented.")},e.prototype._create=function(){throw new f(14,"_create is not implemented.")},e.prototype._fetch=function(){throw new f(14,"_fetch is not implemented.")},e.prototype._truncate=function(){throw new f(14,"_truncate is not implemented.")},e}(n.SynchronousFileSystem);e.IndexedFileSystem=d}),a("core/util",["require","exports"],function(t,e){function n(t){var e,n,r,o,i,a;for(r=[],i=[t],e=0;0!==i.length;)if(a=i.pop(),"boolean"==typeof a)e+=4;else if("string"==typeof a)e+=2*a.length;else if("number"==typeof a)e+=8;else if("object"==typeof a&&r.indexOf(a)<0){r.push(a),e+=4;for(n in a)o=a[n],e+=2*n.length,i.push(o)}return e}e.roughSizeOfObject=n,e.isIE=null!=/(msie) ([\w.]+)/.exec(navigator.userAgent.toLowerCase())||-1!==navigator.userAgent.indexOf("Trident")});var s=this.__extends||function(t,e){function n(){this.constructor=t}for(var r in e)e.hasOwnProperty(r)&&(t[r]=e[r]);n.prototype=e.prototype,t.prototype=new n};a("backend/in_memory",["require","exports","../generic/indexed_filesystem","../generic/file_index","../core/buffer","../generic/preload_file","../core/util","../core/browserfs"],function(t,e,n,r,o,i,a,u){var f=o.Buffer,c=i.NoSyncFile,p=function(t){function e(){t.call(this,new r.FileIndex)}return s(e,t),e.prototype.empty=function(){this._index=new r.FileIndex},e.prototype.getName=function(){return"In-memory"},e.isAvailable=function(){return!0},e.prototype.diskSpace=function(t,e){return e(1/0,a.roughSizeOfObject(this._index))},e.prototype.isReadOnly=function(){return!1},e.prototype.supportsLinks=function(){return!1},e.prototype.supportsProps=function(){return!1},e.prototype._truncate=function(t,e,n){n.size=0,n.mtime=new Date;var r=n.file_data;return r._flag=e,r._buffer=new f(0),r},e.prototype._fetch=function(t,e,n){var r=n.file_data;return r._flag=e,r},e.prototype._create=function(t,e,n){var r=n.getData(),o=new c(this,t,e,r);return r.file_data=o,this._index.addPath(t,n),o},e.prototype._rmdirSync=function(){},e}(n.IndexedFileSystem);e.InMemory=p,u.registerFileSystem("InMemory",p)});var s=this.__extends||function(t,e){function n(){this.constructor=t}for(var r in e)e.hasOwnProperty(r)&&(t[r]=e[r]);n.prototype=e.prototype,t.prototype=new n};a("backend/localStorage",["require","exports","../generic/indexed_filesystem","../generic/preload_file","../core/node_fs_stats","../core/buffer","../generic/file_index","../core/string_util","../core/api_error","../core/node_path","../core/browserfs"],function(t,e,n,r,o,i,a,u,f,c,p){var l=i.Buffer,h=o.Stats;o.FileType;var d=f.ApiError;f.ErrorCode;var y=c.path,w=function(t){function e(){t.call(this,new a.FileIndex);for(var e=0;e<window.localStorage.length;e++){var n=window.localStorage.key(e);if("/"===n[0]){var r=window.localStorage.getItem(n);null==r&&(r="");var o=this._getFileLength(r),i=new a.FileInode(new h(32768,o));this._index.addPath(n,i)}}}return s(e,t),e.prototype._getFile=function(t,e,n){var r=window.localStorage.getItem(t);return null===r?null:this._convertFromBinaryString(t,r,e,n)},e.prototype._syncSync=function(t,e,n){var r=this._convertToBinaryString(e,n);try{window.localStorage.setItem(t,r),this._index.addPath(t,new a.FileInode(n))}catch(o){throw new d(11,"Unable to sync "+t)}},e.prototype.empty=function(){window.localStorage.clear(),this._index=new a.FileIndex},e.prototype.getName=function(){return"localStorage"},e.isAvailable=function(){return"undefined"!=typeof window&&null!==window&&"undefined"!=typeof window.localStorage},e.prototype.diskSpace=function(t,e){for(var n=5242880,r=0,o=0;o<window.localStorage.length;o++){var i=window.localStorage.key(o);r+=2*i.length;var a=window.localStorage.getItem(i);r+=2*a.length}if("undefined"!=typeof window.localStorage.remainingSpace){var s=window.localStorage.remainingSpace;n=r+s}e(n,r)},e.prototype.isReadOnly=function(){return!1},e.prototype.supportsLinks=function(){return!1},e.prototype.supportsProps=function(){return!0},e.prototype.unlinkSync=function(e){t.prototype.unlinkSync.call(this,e),window.localStorage.removeItem(e)},e.prototype._truncate=function(t,e,n){return n.size=0,new m(this,t,e,n)},e.prototype._fetch=function(t,e,n){return this._getFile(t,e,n)},e.prototype._create=function(t,e,n){return new m(this,t,e,n.getData())},e.prototype._rmdirSync=function(t,e){for(var n=e.getListing(),r=y.sep,o=0;o<n.length;o++){var i=n[o];window.localStorage.removeItem(""+t+r+i)}},e.prototype._convertToBinaryString=function(){throw new d(14,"LocalStorageAbstract is an abstract class.")},e.prototype._convertFromBinaryString=function(){throw new d(14,"LocalStorageAbstract is an abstract class.")},e.prototype._getFileLength=function(){throw new d(14,"LocalStorageAbstract is an abstract class.")},e}(n.IndexedFileSystem);e.LocalStorageAbstract=w;var g=function(t){function e(){t.call(this)}return s(e,t),e.prototype._convertToBinaryString=function(t,e){var n=t.toString("binary_string"),r=new l(18);r.writeUInt16BE(e.mode,0),r.writeDoubleBE(e.mtime.getTime(),2),r.writeDoubleBE(e.atime.getTime(),10);var o=r.toString("binary_string");return n=o+n},e.prototype._convertFromBinaryString=function(t,e,n,r){var o=new l(e.substr(0,10),"binary_string");e=e.substr(10);var i=new l(e,"binary_string"),a=new m(this,t,n,r,i);return a._stat.mode=o.readUInt16BE(0),a._stat.mtime=new Date(o.readDoubleBE(2)),a._stat.atime=new Date(o.readDoubleBE(10)),a},e.prototype._getFileLength=function(t){return t.length>10?u.FindUtil("binary_string").byteLength(t.substr(10)):0},e}(w);e.LocalStorageModern=g;var v=function(t){function e(){t.call(this)}return s(e,t),e.prototype._convertToBinaryString=function(t,e){var n=t.toString("binary_string_ie"),r=new l(18);r.writeUInt16BE(e.mode,0),r.writeDoubleBE(e.mtime.getTime(),2),r.writeDoubleBE(e.atime.getTime(),10);var o=r.toString("binary_string_ie");return n=o+n},e.prototype._convertFromBinaryString=function(t,e,n,r){var o=new l(e.substr(0,18),"binary_string_ie");e=e.substr(18);var i=new l(e,"binary_string_ie"),a=new m(this,t,n,r,i);return a._stat.mode=o.readUInt16BE(0),a._stat.mtime=new Date(o.readDoubleBE(2)),a._stat.atime=new Date(o.readDoubleBE(10)),a},e.prototype._getFileLength=function(t){return t.length>0?t.length-18:0},e}(w);e.LocalStorageOld=v;var m=function(t){function e(e,n,r,o,i){t.call(this,e,n,r,o,i)}return s(e,t),e.prototype.syncSync=function(){this._fs._syncSync(this._path,this._buffer,this._stat)},e.prototype.closeSync=function(){this.syncSync()},e}(r.PreloadFile);e.LocalStorageFile=m;var S=!1;try{window.localStorage.setItem("__test__",String.fromCharCode(55296)),S=window.localStorage.getItem("__test__")===String.fromCharCode(55296)}catch(b){S=!1}e.LocalStorage=S?g:v,p.registerFileSystem("LocalStorage",e.LocalStorage)});var s=this.__extends||function(t,e){function n(){this.constructor=t}for(var r in e)e.hasOwnProperty(r)&&(t[r]=e[r]);n.prototype=e.prototype,t.prototype=new n};a("backend/mountable_file_system",["require","exports","../core/file_system","./in_memory","../core/api_error","../core/node_fs","../core/browserfs"],function(t,e,n,r,o,i,a){function u(t,e){return e?function(){for(var e=[],n=0;n<arguments.length-0;n++)e[n]=arguments[n+0];var r=e[0],o=this._get_fs(r);e[0]=o.path;try{return o.fs[t].apply(o.fs,e)}catch(i){throw this.standardizeError(i,o.path,r),i}}:function(){for(var e=[],n=0;n<arguments.length-0;n++)e[n]=arguments[n+0];var r=e[0],i=this._get_fs(r);if(e[0]=i.path,"function"==typeof e[e.length-1]){var a=e[e.length-1],s=this;e[e.length-1]=function(){for(var t=[],e=0;e<arguments.length-0;e++)t[e]=arguments[e+0];t.length>0&&t[0]instanceof o.ApiError&&s.standardizeError(t[0],i.path,r),a.apply(null,t)}}return i.fs[t].apply(i.fs,e)}}var f=o.ApiError;o.ErrorCode;var c=i.fs,p=function(t){function e(){t.call(this),this.mntMap={},this.rootFs=new r.InMemory}return s(e,t),e.prototype.mount=function(t,e){if(this.mntMap[t])throw new f(9,"Mount point "+t+" is already taken.");this.rootFs.mkdirSync(t,511),this.mntMap[t]=e},e.prototype.umount=function(t){if(!this.mntMap[t])throw new f(9,"Mount point "+t+" is already unmounted.");delete this.mntMap[t],this.rootFs.rmdirSync(t)},e.prototype._get_fs=function(t){for(var e in this.mntMap){var n=this.mntMap[e];if(0===t.indexOf(e))return t=t.substr(e.length>1?e.length:0),""===t&&(t="/"),{fs:n,path:t}}return{fs:this.rootFs,path:t}},e.prototype.getName=function(){return"MountableFileSystem"},e.isAvailable=function(){return!0},e.prototype.diskSpace=function(t,e){e(0,0)},e.prototype.isReadOnly=function(){return!1},e.prototype.supportsLinks=function(){return!1},e.prototype.supportsProps=function(){return!1},e.prototype.supportsSynch=function(){return!0},e.prototype.standardizeError=function(t,e,n){var r;return-1!==(r=t.message.indexOf(e))&&(t.message=t.message.substr(0,r)+n+t.message.substr(r+e.length)),t},e.prototype.rename=function(t,e,n){var r=this._get_fs(t),o=this._get_fs(e);
-if(r.fs===o.fs){var i=this;return r.fs.rename(r.path,o.path,function(a){a&&i.standardizeError(i.standardizeError(a,r.path,t),o.path,e),n(a)})}return c.readFile(t,function(r,o){return r?n(r):(c.writeFile(e,o,function(e){return e?n(e):(c.unlink(t,n),void 0)}),void 0)})},e.prototype.renameSync=function(t,e){var n=this._get_fs(t),r=this._get_fs(e);if(n.fs===r.fs)try{return n.fs.renameSync(n.path,r.path)}catch(o){throw this.standardizeError(this.standardizeError(o,n.path,t),r.path,e),o}var i=c.readFileSync(t);return c.writeFileSync(e,i),c.unlinkSync(t)},e}(n.BaseFileSystem);e.MountableFileSystem=p;for(var l=[["readdir","exists","unlink","rmdir","readlink"],["stat","mkdir","realpath","truncate"],["open","readFile","chmod","utimes"],["chown"],["writeFile","appendFile"]],h=0;h<l.length;h++)for(var d=l[h],y=0;y<d.length;y++){var w=d[y];p.prototype[w]=u(w,!1,h+1),p.prototype[w+"Sync"]=u(w+"Sync",!0,h+1)}a.registerFileSystem("MountableFileSystem",p)}),a("generic/xhr",["require","exports","../core/util","../core/buffer","../core/api_error"],function(t,e,n,r,o){function i(t){for(var e=IEBinaryToArray_ByteStr(t),n=IEBinaryToArray_ByteStr_Last(t),r=e.replace(/[\s\S]/g,function(t){var e=t.charCodeAt(0);return String.fromCharCode(255&e,e>>8)})+n,o=new Array(r.length),i=0;i<r.length;i++)o[i]=r.charCodeAt(i);return o}function a(t,e,n,r){switch(n){case"buffer":case"json":break;default:return r(new y(9,"Invalid download type: "+n))}var o=new XMLHttpRequest;o.open("GET",e,t),o.setRequestHeader("Accept-Charset","x-user-defined"),o.onreadystatechange=function(){var t;if(4===o.readyState){if(200!==o.status)return r(new y(o.status,"XHR error."));switch(n){case"buffer":return t=i(o.responseBody),r(null,new w(t));case"json":return r(null,JSON.parse(o.responseText))}}},o.send()}function s(t,e,n){a(!0,t,e,n)}function u(t,e){var n;return a(!1,t,e,function(t,e){if(t)throw t;n=e}),n}function f(t,e,n){var r=new XMLHttpRequest;r.open("GET",t,!0);var o=!0;switch(e){case"buffer":r.responseType="arraybuffer";break;case"json":try{r.responseType="json",o="json"===r.responseType}catch(i){o=!1}break;default:return n(new y(9,"Invalid download type: "+e))}r.onreadystatechange=function(){if(4===r.readyState){if(200!==r.status)return n(new y(r.status,"XHR error."));switch(e){case"buffer":return n(null,new w(r.response?r.response:0));case"json":return o?n(null,r.response):n(null,JSON.parse(r.responseText))}}},r.send()}function c(t,e){var n=new XMLHttpRequest;n.open("GET",t,!1);var r=null,o=null;if(n.overrideMimeType("text/plain; charset=x-user-defined"),n.onreadystatechange=function(){if(4===n.readyState){if(200!==n.status)return o=new y(n.status,"XHR error."),void 0;switch(e){case"buffer":var t=n.responseText;r=new w(t.length);for(var i=0;i<t.length;i++)r.writeUInt8(t.charCodeAt(i),i);return;case"json":return r=JSON.parse(n.responseText),void 0}}},n.send(),o)throw o;return r}function p(t,e){var n=new XMLHttpRequest;switch(n.open("GET",t,!1),e){case"buffer":n.responseType="arraybuffer";break;case"json":break;default:throw new y(9,"Invalid download type: "+e)}var r,o;if(n.onreadystatechange=function(){if(4===n.readyState)if(200===n.status)switch(e){case"buffer":r=new w(n.response);break;case"json":r=JSON.parse(n.response)}else o=new y(n.status,"XHR error.")},n.send(),o)throw o;return r}function l(t,e,n){var r=new XMLHttpRequest;r.open("HEAD",e,t),r.onreadystatechange=function(){if(4===r.readyState){if(200!=r.status)return n(new y(r.status,"XHR HEAD error."));try{return n(null,parseInt(r.getResponseHeader("Content-Length"),10))}catch(t){return n(new y(2,"XHR HEAD error: Could not read content-length."))}}},r.send()}function h(t){var e;return l(!1,t,function(t,n){if(t)throw t;e=n}),e}function d(t,e){l(!0,t,e)}var y=o.ApiError;o.ErrorCode;var w=r.Buffer;e.asyncDownloadFile=n.isIE&&"undefined"==typeof Blob?s:f,e.syncDownloadFile=n.isIE&&"undefined"==typeof Blob?u:n.isIE&&"undefined"!=typeof Blob?p:c,e.getFileSizeSync=h,e.getFileSizeAsync=d});var s=this.__extends||function(t,e){function n(){this.constructor=t}for(var r in e)e.hasOwnProperty(r)&&(t[r]=e[r]);n.prototype=e.prototype,t.prototype=new n};a("backend/XmlHttpRequest",["require","exports","../core/file_system","../generic/file_index","../core/buffer","../core/api_error","../core/file_flag","../generic/preload_file","../core/browserfs","../generic/xhr"],function(t,e,n,r,o,i,a,u,f,c){o.Buffer;var p=i.ApiError;i.ErrorCode;var l=a.FileFlag;a.ActionType;var h=function(t){function e(e,n){t.call(this),null==e&&(e="index.json"),this.prefix_url=null!=n?n:"";var o=this._requestFileSync(e,"json");if(null==o)throw new Error("Unable to find listing at URL: "+e);this._index=r.FileIndex.from_listing(o)}return s(e,t),e.prototype.empty=function(){this._index.fileIterator(function(t){t.file_data=null})},e.prototype._requestFileSizeAsync=function(t,e){c.getFileSizeAsync(this.prefix_url+t,e)},e.prototype._requestFileSizeSync=function(t){return c.getFileSizeSync(this.prefix_url+t)},e.prototype._requestFileAsync=function(t,e,n){c.asyncDownloadFile(this.prefix_url+t,e,n)},e.prototype._requestFileSync=function(t,e){return c.syncDownloadFile(this.prefix_url+t,e)},e.prototype.getName=function(){return"XmlHttpRequest"},e.isAvailable=function(){return"undefined"!=typeof XMLHttpRequest&&null!==XMLHttpRequest},e.prototype.diskSpace=function(t,e){e(0,0)},e.prototype.isReadOnly=function(){return!0},e.prototype.supportsLinks=function(){return!1},e.prototype.supportsProps=function(){return!1},e.prototype.supportsSynch=function(){return!0},e.prototype.preloadFile=function(t,e){var n=this._index.getInode(t);if(null===n)throw new p(1,""+t+" not found.");var r=n.getData();r.size=e.length,r.file_data=new u.NoSyncFile(this,t,l.getFileFlag("r"),r,e)},e.prototype.stat=function(t,e,n){var r=this._index.getInode(t);if(null===r)return n(new p(1,""+t+" not found."));var o;r.isFile()?(o=r.getData(),o.size<0?this._requestFileSizeAsync(t,function(t,e){return t?n(t):(o.size=e,n(null,o),void 0)}):n(null,o)):(o=r.getStats(),n(null,o))},e.prototype.statSync=function(t){var e=this._index.getInode(t);if(null===e)throw new p(1,""+t+" not found.");var n;return e.isFile()?(n=e.getData(),n.size<0&&(n.size=this._requestFileSizeSync(t))):n=e.getStats(),n},e.prototype.open=function(t,e,n,r){var o=this,i=this._index.getInode(t);if(null===i)return r(new p(1,""+t+" is not in the FileIndex."));if(i.isDir())return r(new p(8,""+t+" is a directory."));var a=i.getData();switch(e.pathExistsAction()){case 1:case 2:return r(new p(6,""+t+" already exists."));case 0:if(null!=a.file_data)return r(null,a.file_data);this._requestFileAsync(t,"buffer",function(n,i){return n?r(n):(a.size=i.length,a.file_data=new u.NoSyncFile(o,t,e,a,i),r(null,a.file_data))});break;default:return r(new p(9,"Invalid FileMode object."))}},e.prototype.openSync=function(t,e){var n=this._index.getInode(t);if(null===n)throw new p(1,""+t+" is not in the FileIndex.");if(n.isDir())throw new p(8,""+t+" is a directory.");var r=n.getData();switch(e.pathExistsAction()){case 1:case 2:throw new p(6,""+t+" already exists.");case 0:if(null!=r.file_data)return r.file_data;var o=this._requestFileSync(t,"buffer");return r.size=o.length,r.file_data=new u.NoSyncFile(this,t,e,r,o),r.file_data;default:throw new p(9,"Invalid FileMode object.")}},e.prototype.readdir=function(t,e){try{e(null,this.readdirSync(t))}catch(n){e(n)}},e.prototype.readdirSync=function(t){var e=this._index.getInode(t);if(null===e)throw new p(1,""+t+" not found.");if(e.isFile())throw new p(7,""+t+" is a file, not a directory.");return e.getListing()},e.prototype.readFile=function(t,e,n,r){var i=r;this.open(t,n,420,function(t,n){if(t)return r(t);r=function(t,e){n.close(function(n){return null==t&&(t=n),i(t,e)})};var a=n,s=a._buffer;if(null===e)return s.length>0?r(t,s.sliceCopy()):r(t,new o.Buffer(0));try{r(null,s.toString(e))}catch(u){r(u)}})},e.prototype.readFileSync=function(t,e,n){var r=this.openSync(t,n,420);try{var i=r,a=i._buffer;return null===e?a.length>0?a.sliceCopy():new o.Buffer(0):a.toString(e)}finally{r.closeSync()}},e}(n.BaseFileSystem);e.XmlHttpRequest=h,f.registerFileSystem("XmlHttpRequest",h)}),function(){function t(t,e){var n=t.split("."),r=s;!(n[0]in r)&&r.execScript&&r.execScript("var "+n[0]);for(var o;n.length&&(o=n.shift());)n.length||e===a?r=r[o]?r[o]:r[o]={}:r[o]=e}function e(t){var e,n,r,o,i,a,s,f,c,p=t.length,l=0,h=Number.POSITIVE_INFINITY;for(f=0;p>f;++f)t[f]>l&&(l=t[f]),t[f]<h&&(h=t[f]);for(e=1<<l,n=new(u?Uint32Array:Array)(e),r=1,o=0,i=2;l>=r;){for(f=0;p>f;++f)if(t[f]===r){for(a=0,s=o,c=0;r>c;++c)a=a<<1|1&s,s>>=1;for(c=a;e>c;c+=i)n[c]=r<<16|f;++o}++r,o<<=1,i<<=1}return[n,l,h]}function n(t,e){switch(this.g=[],this.h=32768,this.c=this.f=this.d=this.k=0,this.input=u?new Uint8Array(t):t,this.l=!1,this.i=c,this.p=!1,(e||!(e={}))&&(e.index&&(this.d=e.index),e.bufferSize&&(this.h=e.bufferSize),e.bufferType&&(this.i=e.bufferType),e.resize&&(this.p=e.resize)),this.i){case f:this.a=32768,this.b=new(u?Uint8Array:Array)(32768+this.h+258);break;case c:this.a=0,this.b=new(u?Uint8Array:Array)(this.h),this.e=this.u,this.m=this.r,this.j=this.s;break;default:throw Error("invalid inflate mode")}}function r(t,e){for(var n,r=t.f,o=t.c,i=t.input,s=t.d;e>o;){if(n=i[s++],n===a)throw Error("input buffer is broken");r|=n<<o,o+=8}return n=r&(1<<e)-1,t.f=r>>>e,t.c=o-e,t.d=s,n}function o(t,e){for(var n,r,o,i=t.f,s=t.c,u=t.input,f=t.d,c=e[0],p=e[1];p>s&&(n=u[f++],n!==a);)i|=n<<s,s+=8;return r=c[i&(1<<p)-1],o=r>>>16,t.f=i>>o,t.c=s-o,t.d=f,65535&r}function i(t){function n(t,e,n){var i,a,s,u;for(u=0;t>u;)switch(i=o(this,e)){case 16:for(s=3+r(this,2);s--;)n[u++]=a;break;case 17:for(s=3+r(this,3);s--;)n[u++]=0;a=0;break;case 18:for(s=11+r(this,7);s--;)n[u++]=0;a=0;break;default:a=n[u++]=i}return n}var i,a,s,f,c=r(t,5)+257,p=r(t,5)+1,l=r(t,4)+4,h=new(u?Uint8Array:Array)(d.length);for(f=0;l>f;++f)h[d[f]]=r(t,3);i=e(h),a=new(u?Uint8Array:Array)(c),s=new(u?Uint8Array:Array)(p),t.j(e(n.call(t,c,i,a)),e(n.call(t,p,i,s)))}var a=void 0,s=this,u="undefined"!=typeof Uint8Array&&"undefined"!=typeof Uint16Array&&"undefined"!=typeof Uint32Array,f=0,c=1;n.prototype.t=function(){for(;!this.l;){var t=r(this,3);switch(1&t&&(this.l=!0),t>>>=1){case 0:var e=this.input,n=this.d,o=this.b,s=this.a,p=a,l=a,h=a,d=o.length,y=a;if(this.c=this.f=0,p=e[n++],p===a)throw Error("invalid uncompressed block header: LEN (first byte)");if(l=p,p=e[n++],p===a)throw Error("invalid uncompressed block header: LEN (second byte)");if(l|=p<<8,p=e[n++],p===a)throw Error("invalid uncompressed block header: NLEN (first byte)");if(h=p,p=e[n++],p===a)throw Error("invalid uncompressed block header: NLEN (second byte)");if(h|=p<<8,l===~h)throw Error("invalid uncompressed block header: length verify");if(n+l>e.length)throw Error("input buffer is broken");switch(this.i){case f:for(;s+l>o.length;){if(y=d-s,l-=y,u)o.set(e.subarray(n,n+y),s),s+=y,n+=y;else for(;y--;)o[s++]=e[n++];this.a=s,o=this.e(),s=this.a}break;case c:for(;s+l>o.length;)o=this.e({o:2});break;default:throw Error("invalid inflate mode")}if(u)o.set(e.subarray(n,n+l),s),s+=l,n+=l;else for(;l--;)o[s++]=e[n++];this.d=n,this.a=s,this.b=o;break;case 1:this.j(x,U);break;case 2:i(this);break;default:throw Error("unknown BTYPE: "+t)}}return this.m()};var p,l,h=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15],d=u?new Uint16Array(h):h,y=[3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258,258,258],w=u?new Uint16Array(y):y,g=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0,0,0],v=u?new Uint8Array(g):g,m=[1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577],S=u?new Uint16Array(m):m,b=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13],E=u?new Uint8Array(b):b,_=new(u?Uint8Array:Array)(288);for(p=0,l=_.length;l>p;++p)_[p]=143>=p?8:255>=p?9:279>=p?7:8;var I,F,x=e(_),A=new(u?Uint8Array:Array)(30);for(I=0,F=A.length;F>I;++I)A[I]=5;var U=e(A);n.prototype.j=function(t,e){var n=this.b,i=this.a;this.n=t;for(var a,s,u,f,c=n.length-258;256!==(a=o(this,t));)if(256>a)i>=c&&(this.a=i,n=this.e(),i=this.a),n[i++]=a;else for(s=a-257,f=w[s],0<v[s]&&(f+=r(this,v[s])),a=o(this,e),u=S[a],0<E[a]&&(u+=r(this,E[a])),i>=c&&(this.a=i,n=this.e(),i=this.a);f--;)n[i]=n[i++-u];for(;8<=this.c;)this.c-=8,this.d--;this.a=i},n.prototype.s=function(t,e){var n=this.b,i=this.a;this.n=t;for(var a,s,u,f,c=n.length;256!==(a=o(this,t));)if(256>a)i>=c&&(n=this.e(),c=n.length),n[i++]=a;else for(s=a-257,f=w[s],0<v[s]&&(f+=r(this,v[s])),a=o(this,e),u=S[a],0<E[a]&&(u+=r(this,E[a])),i+f>c&&(n=this.e(),c=n.length);f--;)n[i]=n[i++-u];for(;8<=this.c;)this.c-=8,this.d--;this.a=i},n.prototype.e=function(){var t,e,n=new(u?Uint8Array:Array)(this.a-32768),r=this.a-32768,o=this.b;if(u)n.set(o.subarray(32768,n.length));else for(t=0,e=n.length;e>t;++t)n[t]=o[t+32768];if(this.g.push(n),this.k+=n.length,u)o.set(o.subarray(r,r+32768));else for(t=0;32768>t;++t)o[t]=o[r+t];return this.a=32768,o},n.prototype.u=function(t){var e,n,r,o,i=0|this.input.length/this.d+1,a=this.input,s=this.b;return t&&("number"==typeof t.o&&(i=t.o),"number"==typeof t.q&&(i+=t.q)),2>i?(n=(a.length-this.d)/this.n[2],o=0|258*(n/2),r=o<s.length?s.length+o:s.length<<1):r=s.length*i,u?(e=new Uint8Array(r),e.set(s)):e=s,this.b=e},n.prototype.m=function(){var t,e,n,r,o,i=0,a=this.b,s=this.g,f=new(u?Uint8Array:Array)(this.k+(this.a-32768));if(0===s.length)return u?this.b.subarray(32768,this.a):this.b.slice(32768,this.a);for(e=0,n=s.length;n>e;++e)for(t=s[e],r=0,o=t.length;o>r;++r)f[i++]=t[r];for(e=32768,n=this.a;n>e;++e)f[i++]=a[e];return this.g=[],this.buffer=f},n.prototype.r=function(){var t,e=this.a;return u?this.p?(t=new Uint8Array(e),t.set(this.b.subarray(0,e))):t=this.b.subarray(0,e):(this.b.length>e&&(this.b.length=e),t=this.b),this.buffer=t},t("Zlib.RawInflate",n),t("Zlib.RawInflate.prototype.decompress",n.prototype.t);var L,k,B,C,D={ADAPTIVE:c,BLOCK:f};if(Object.keys)L=Object.keys(D);else for(k in L=[],B=0,D)L[B++]=k;for(B=0,C=L.length;C>B;++B)k=L[B],t("Zlib.RawInflate.BufferType."+k,D[k])}.call(this),a("backend/../../vendor/zlib.js/rawinflate.min",function(){});var s=this.__extends||function(t,e){function n(){this.constructor=t}for(var r in e)e.hasOwnProperty(r)&&(t[r]=e[r]);n.prototype=e.prototype,t.prototype=new n};a("backend/zipfs",["require","exports","../core/buffer","../core/api_error","../generic/file_index","../core/browserfs","../core/node_fs_stats","../core/file_system","../core/file_flag","../core/buffer_core_arraybuffer","../generic/preload_file","../../vendor/zlib.js/rawinflate.min"],function(t,e,n,r,o,i,a,u,f,c,p){function l(t,e){var n=31&e,r=(15&e>>5)-1,o=(e>>9)+1980,i=31&t,a=63&t>>5,s=t>>11;return new Date(o,r,n,s,a,i)}function h(t,e,n,r){return 0===r?"":t.toString(e?"utf8":"extended_ascii",n,n+r)}var d=r.ApiError;r.ErrorCode,f.ActionType;var y=Zlib.RawInflate;!function(t){t[t.MSDOS=0]="MSDOS",t[t.AMIGA=1]="AMIGA",t[t.OPENVMS=2]="OPENVMS",t[t.UNIX=3]="UNIX",t[t.VM_CMS=4]="VM_CMS",t[t.ATARI_ST=5]="ATARI_ST",t[t.OS2_HPFS=6]="OS2_HPFS",t[t.MAC=7]="MAC",t[t.Z_SYSTEM=8]="Z_SYSTEM",t[t.CP_M=9]="CP_M",t[t.NTFS=10]="NTFS",t[t.MVS=11]="MVS",t[t.VSE=12]="VSE",t[t.ACORN_RISC=13]="ACORN_RISC",t[t.VFAT=14]="VFAT",t[t.ALT_MVS=15]="ALT_MVS",t[t.BEOS=16]="BEOS",t[t.TANDEM=17]="TANDEM",t[t.OS_400=18]="OS_400",t[t.OSX=19]="OSX"}(e.ExternalFileAttributeType||(e.ExternalFileAttributeType={})),e.ExternalFileAttributeType,function(t){t[t.STORED=0]="STORED",t[t.SHRUNK=1]="SHRUNK",t[t.REDUCED_1=2]="REDUCED_1",t[t.REDUCED_2=3]="REDUCED_2",t[t.REDUCED_3=4]="REDUCED_3",t[t.REDUCED_4=5]="REDUCED_4",t[t.IMPLODE=6]="IMPLODE",t[t.DEFLATE=8]="DEFLATE",t[t.DEFLATE64=9]="DEFLATE64",t[t.TERSE_OLD=10]="TERSE_OLD",t[t.BZIP2=12]="BZIP2",t[t.LZMA=14]="LZMA",t[t.TERSE_NEW=18]="TERSE_NEW",t[t.LZ77=19]="LZ77",t[t.WAVPACK=97]="WAVPACK",t[t.PPMD=98]="PPMD"}(e.CompressionMethod||(e.CompressionMethod={}));var w=e.CompressionMethod,g=function(){function t(t){if(this.data=t,67324752!==t.readUInt32LE(0))throw new d(9,"Invalid Zip file: Local file header has invalid signature: "+this.data.readUInt32LE(0))}return t.prototype.versionNeeded=function(){return this.data.readUInt16LE(4)},t.prototype.flags=function(){return this.data.readUInt16LE(6)},t.prototype.compressionMethod=function(){return this.data.readUInt16LE(8)},t.prototype.lastModFileTime=function(){return l(this.data.readUInt16LE(10),this.data.readUInt16LE(12))},t.prototype.crc32=function(){return this.data.readUInt32LE(14)},t.prototype.fileNameLength=function(){return this.data.readUInt16LE(26)},t.prototype.extraFieldLength=function(){return this.data.readUInt16LE(28)},t.prototype.fileName=function(){return h(this.data,this.useUTF8(),30,this.fileNameLength())},t.prototype.extraField=function(){var t=30+this.fileNameLength();return this.data.slice(t,t+this.extraFieldLength())},t.prototype.totalSize=function(){return 30+this.fileNameLength()+this.extraFieldLength()},t.prototype.useUTF8=function(){return 2048===(2048&this.flags())},t}();e.FileHeader=g;var v=function(){function t(t,e,n){this.header=t,this.record=e,this.data=n}return t.prototype.decompress=function(){var t=this.data,e=this.header.compressionMethod();switch(e){case 8:if(t.getBufferCore()instanceof c.BufferCoreArrayBuffer){var r=t.getBufferCore(),o=r.getDataView(),i=o.byteOffset+t.getOffset(),a=new Uint8Array(o.buffer).subarray(i,i+this.record.compressedSize()),s=new y(a).decompress();return new n.Buffer(new c.BufferCoreArrayBuffer(s.buffer),s.byteOffset,s.byteOffset+s.length)}var u=t.slice(0,this.record.compressedSize());return new n.Buffer(new y(u.toJSON().data).decompress());case 0:return t.sliceCopy(0,this.record.uncompressedSize());default:var f=w[e];throw f=f?f:"Unknown: "+e,new d(9,"Invalid compression method on file '"+this.header.fileName()+"': "+f)}},t}();e.FileData=v;var m=function(){function t(t){this.data=t}return t.prototype.crc32=function(){return this.data.readUInt32LE(0)},t.prototype.compressedSize=function(){return this.data.readUInt32LE(4)},t.prototype.uncompressedSize=function(){return this.data.readUInt32LE(8)},t}();e.DataDescriptor=m;var S=function(){function t(t){if(this.data=t,134630224!==this.data.readUInt32LE(0))throw new d(9,"Invalid archive extra data record signature: "+this.data.readUInt32LE(0))}return t.prototype.length=function(){return this.data.readUInt32LE(4)},t.prototype.extraFieldData=function(){return this.data.slice(8,8+this.length())},t}();e.ArchiveExtraDataRecord=S;var b=function(){function t(t){if(this.data=t,84233040!==this.data.readUInt32LE(0))throw new d(9,"Invalid digital signature signature: "+this.data.readUInt32LE(0))}return t.prototype.size=function(){return this.data.readUInt16LE(4)},t.prototype.signatureData=function(){return this.data.slice(6,6+this.size())},t}();e.DigitalSignature=b;var E=function(){function t(t,e){if(this.zipData=t,this.data=e,33639248!==this.data.readUInt32LE(0))throw new d(9,"Invalid Zip file: Central directory record has invalid signature: "+this.data.readUInt32LE(0))}return t.prototype.versionMadeBy=function(){return this.data.readUInt16LE(4)},t.prototype.versionNeeded=function(){return this.data.readUInt16LE(6)},t.prototype.flag=function(){return this.data.readUInt16LE(8)},t.prototype.compressionMethod=function(){return this.data.readUInt16LE(10)},t.prototype.lastModFileTime=function(){return l(this.data.readUInt16LE(12),this.data.readUInt16LE(14))},t.prototype.crc32=function(){return this.data.readUInt32LE(16)},t.prototype.compressedSize=function(){return this.data.readUInt32LE(20)},t.prototype.uncompressedSize=function(){return this.data.readUInt32LE(24)},t.prototype.fileNameLength=function(){return this.data.readUInt16LE(28)},t.prototype.extraFieldLength=function(){return this.data.readUInt16LE(30)},t.prototype.fileCommentLength=function(){return this.data.readUInt16LE(32)},t.prototype.diskNumberStart=function(){return this.data.readUInt16LE(34)},t.prototype.internalAttributes=function(){return this.data.readUInt16LE(36)},t.prototype.externalAttributes=function(){return this.data.readUInt32LE(38)},t.prototype.headerRelativeOffset=function(){return this.data.readUInt32LE(42)},t.prototype.fileName=function(){var t=h(this.data,this.useUTF8(),46,this.fileNameLength());return t.replace(/\\/g,"/")},t.prototype.extraField=function(){var t=44+this.fileNameLength();return this.data.slice(t,t+this.extraFieldLength())},t.prototype.fileComment=function(){var t=46+this.fileNameLength()+this.extraFieldLength();return h(this.data,this.useUTF8(),t,this.fileCommentLength())},t.prototype.totalSize=function(){return 46+this.fileNameLength()+this.extraFieldLength()+this.fileCommentLength()},t.prototype.isDirectory=function(){var t=this.fileName();return(16&this.externalAttributes()?!0:!1)||"/"===t.charAt(t.length-1)},t.prototype.isFile=function(){return!this.isDirectory()},t.prototype.useUTF8=function(){return 2048===(2048&this.flag())},t.prototype.isEncrypted=function(){return 1===(1&this.flag())},t.prototype.getData=function(){var t=this.headerRelativeOffset(),e=new g(this.zipData.slice(t)),n=new v(e,this,this.zipData.slice(t+e.totalSize()));return n.decompress()},t.prototype.getStats=function(){return new a.Stats(32768,this.uncompressedSize(),420,new Date,this.lastModFileTime())},t}();e.CentralDirectory=E;var _=function(){function t(t){if(this.data=t,101010256!==this.data.readUInt32LE(0))throw new d(9,"Invalid Zip file: End of central directory record has invalid signature: "+this.data.readUInt32LE(0))}return t.prototype.diskNumber=function(){return this.data.readUInt16LE(4)},t.prototype.cdDiskNumber=function(){return this.data.readUInt16LE(6)},t.prototype.cdDiskEntryCount=function(){return this.data.readUInt16LE(8)},t.prototype.cdTotalEntryCount=function(){return this.data.readUInt16LE(10)},t.prototype.cdSize=function(){return this.data.readUInt32LE(12)},t.prototype.cdOffset=function(){return this.data.readUInt32LE(16)},t.prototype.cdZipComment=function(){return h(this.data,!0,22,this.data.readUInt16LE(20))},t}();e.EndOfCentralDirectory=_;var I=function(t){function e(e,n){"undefined"==typeof n&&(n=""),t.call(this),this.data=e,this.name=n,this._index=new o.FileIndex,this.populateIndex()}return s(e,t),e.prototype.getName=function(){return"ZipFS"+(""!==this.name?" "+this.name:"")},e.isAvailable=function(){return!0},e.prototype.diskSpace=function(t,e){e(this.data.length,0)},e.prototype.isReadOnly=function(){return!0},e.prototype.supportsLinks=function(){return!1},e.prototype.supportsProps=function(){return!1},e.prototype.supportsSynch=function(){return!0},e.prototype.statSync=function(t){var e=this._index.getInode(t);if(null===e)throw new d(1,""+t+" not found.");var n;return n=e.isFile()?e.getData().getStats():e.getStats()},e.prototype.openSync=function(t,e){var n=this._index.getInode(t);if(null===n)throw new d(1,""+t+" is not in the FileIndex.");if(n.isDir())throw new d(8,""+t+" is a directory.");var r=n.getData(),o=r.getStats();switch(e.pathExistsAction()){case 1:case 2:throw new d(6,""+t+" already exists.");case 0:return new p.NoSyncFile(this,t,e,o,r.getData());default:throw new d(9,"Invalid FileMode object.")}return null},e.prototype.readdirSync=function(t){var e=this._index.getInode(t);if(null===e)throw new d(1,""+t+" not found.");if(e.isFile())throw new d(7,""+t+" is a file, not a directory.");return e.getListing()},e.prototype.readFileSync=function(t,e,r){var o=this.openSync(t,r,420);try{var i=o,a=i._buffer;return null===e?a.length>0?a.sliceCopy():new n.Buffer(0):a.toString(e)}finally{o.closeSync()}},e.prototype.getEOCD=function(){for(var t=22,e=Math.min(t+65535,this.data.length-1),n=t;e>n;n++)if(101010256===this.data.readUInt32LE(this.data.length-n))return new _(this.data.slice(this.data.length-n));throw new d(9,"Invalid ZIP file: Could not locate End of Central Directory signature.")},e.prototype.populateIndex=function(){var t=this.getEOCD();if(t.diskNumber()!==t.cdDiskNumber())throw new d(9,"ZipFS does not support spanned zip files.");var e=t.cdOffset();if(4294967295===e)throw new d(9,"ZipFS does not support Zip64.");for(var n=e+t.cdSize();n>e;){var r=new E(this.data,this.data.slice(e));e+=r.totalSize();var i=r.fileName();if("/"===i.charAt(0))throw new Error("WHY IS THIS ABSOLUTE");"/"===i.charAt(i.length-1)&&(i=i.substr(0,i.length-1)),r.isDirectory()?this._index.addPath("/"+i,new o.DirInode):this._index.addPath("/"+i,new o.FileInode(r))}},e}(u.SynchronousFileSystem);e.ZipFS=I,i.registerFileSystem("ZipFS",I)}),a("generic/emscripten_fs",["require","exports","../core/browserfs","../core/node_fs","../core/buffer","../core/buffer_core_arraybuffer"],function(t,e,n,r,o,i){var a=o.Buffer,s=i.BufferCoreArrayBuffer,u=r.fs,f=function(){function t(t){this.fs=t}return t.prototype.open=function(t){var e=this.fs.realPath(t.node);try{FS.isFile(t.node.mode)&&(t.nfd=u.openSync(e,this.fs.flagsToPermissionString(t.flags)))}catch(n){if(!n.code)throw n;throw new FS.ErrnoError(ERRNO_CODES[n.code])}},t.prototype.close=function(t){try{FS.isFile(t.node.mode)&&t.nfd&&u.closeSync(t.nfd)}catch(e){if(!e.code)throw e;throw new FS.ErrnoError(ERRNO_CODES[e.code])}},t.prototype.read=function(t,e,n,r,o){var i,f=new s(e.buffer),c=new a(f,e.byteOffset+n,e.byteOffset+n+r);try{i=u.readSync(t.nfd,c,0,r,o)}catch(p){throw new FS.ErrnoError(ERRNO_CODES[p.code])}return i},t.prototype.write=function(t,e,n,r,o){var i,f=new s(e.buffer),c=new a(f,e.byteOffset+n,e.byteOffset+n+r);try{i=u.writeSync(t.nfd,c,0,r,o)}catch(p){throw new FS.ErrnoError(ERRNO_CODES[p.code])}return i},t.prototype.llseek=function(t,e,n){var r=e;if(1===n)r+=t.position;else if(2===n&&FS.isFile(t.node.mode))try{var o=u.fstatSync(t.nfd);r+=o.size}catch(i){throw new FS.ErrnoError(ERRNO_CODES[i.code])}if(0>r)throw new FS.ErrnoError(ERRNO_CODES.EINVAL);return t.position=r,r},t}(),c=function(){function t(t){this.fs=t}return t.prototype.getattr=function(t){var e,n=this.fs.realPath(t);try{e=u.lstatSync(n)}catch(r){if(!r.code)throw r;throw new FS.ErrnoError(ERRNO_CODES[r.code])}return{dev:e.dev,ino:e.ino,mode:e.mode,nlink:e.nlink,uid:e.uid,gid:e.gid,rdev:e.rdev,size:e.size,atime:e.atime,mtime:e.mtime,ctime:e.ctime,blksize:e.blksize,blocks:e.blocks}},t.prototype.setattr=function(t,e){var n=this.fs.realPath(t);try{if(void 0!==e.mode&&(u.chmodSync(n,e.mode),t.mode=e.mode),void 0!==e.timestamp){var r=new Date(e.timestamp);u.utimesSync(n,r,r)}void 0!==e.size&&u.truncateSync(n,e.size)}catch(o){if(!o.code)throw o;throw new FS.ErrnoError(ERRNO_CODES[o.code])}},t.prototype.lookup=function(t,e){var n=PATH.join2(this.fs.realPath(t),e),r=this.fs.getMode(n);return this.fs.createNode(t,e,r)},t.prototype.mknod=function(t,e,n,r){var o=this.fs.createNode(t,e,n,r),i=this.fs.realPath(o);try{FS.isDir(o.mode)?u.mkdirSync(i,o.mode):u.writeFileSync(i,"",{mode:o.mode})}catch(a){if(!a.code)throw a;throw new FS.ErrnoError(ERRNO_CODES[a.code])}return o},t.prototype.rename=function(t,e,n){var r=this.fs.realPath(t),o=PATH.join2(this.fs.realPath(e),n);try{u.renameSync(r,o)}catch(i){if(!i.code)throw i;throw new FS.ErrnoError(ERRNO_CODES[i.code])}},t.prototype.unlink=function(t,e){var n=PATH.join2(this.fs.realPath(t),e);try{u.unlinkSync(n)}catch(r){if(!r.code)throw r;throw new FS.ErrnoError(ERRNO_CODES[r.code])}},t.prototype.rmdir=function(t,e){var n=PATH.join2(this.fs.realPath(t),e);try{u.rmdirSync(n)}catch(r){if(!r.code)throw r;throw new FS.ErrnoError(ERRNO_CODES[r.code])}},t.prototype.readdir=function(t){var e=this.fs.realPath(t);try{return u.readdirSync(e)}catch(n){if(!n.code)throw n;throw new FS.ErrnoError(ERRNO_CODES[n.code])}},t.prototype.symlink=function(t,e,n){var r=PATH.join2(this.fs.realPath(t),e);try{u.symlinkSync(n,r)}catch(o){if(!o.code)throw o;throw new FS.ErrnoError(ERRNO_CODES[o.code])}},t.prototype.readlink=function(t){var e=this.fs.realPath(t);try{return u.readlinkSync(e)}catch(n){if(!n.code)throw n;throw new FS.ErrnoError(ERRNO_CODES[n.code])}},t}(),p=function(){function t(){if(this.flagsToPermissionStringMap={0:"r",1:"r+",2:"r+",64:"r",65:"r+",66:"r+",129:"rx+",193:"rx+",514:"w+",577:"w",578:"w+",705:"wx",706:"wx+",1024:"a",1025:"a",1026:"a+",1089:"a",1090:"a+",1153:"ax",1154:"ax+",1217:"ax",1218:"ax+",4096:"rs",4098:"rs+"},this.node_ops=new c(this),this.stream_ops=new f(this),"undefined"==typeof n)throw new Error("BrowserFS is not loaded. Please load it before this library.")}return t.prototype.mount=function(t){return this.createNode(null,"/",this.getMode(t.opts.root),0)},t.prototype.createNode=function(t,e,n){if(!FS.isDir(n)&&!FS.isFile(n)&&!FS.isLink(n))throw new FS.ErrnoError(ERRNO_CODES.EINVAL);var r=FS.createNode(t,e,n);return r.node_ops=this.node_ops,r.stream_ops=this.stream_ops,r},t.prototype.getMode=function(t){var e;try{e=u.lstatSync(t)}catch(n){if(!n.code)throw n;throw new FS.ErrnoError(ERRNO_CODES[n.code])}return e.mode},t.prototype.realPath=function(t){for(var e=[];t.parent!==t;)e.push(t.name),t=t.parent;return e.push(t.mount.opts.root),e.reverse(),PATH.join.apply(null,e)},t.prototype.flagsToPermissionString=function(t){return t in this.flagsToPermissionStringMap?this.flagsToPermissionStringMap[t]:t},t}();e.BFSEmscriptenFS=p,n.EmscriptenFS=p}),window.BrowserFS=i("./core/browserfs"),i("./backend/localStorage"),i("./backend/dropbox"),i("./backend/html5fs"),i("./backend/in_memory"),i("./backend/mountable_file_system"),i("./backend/XmlHttpRequest"),i("./backend/zipfs"),i("./generic/emscripten_fs")}();
+(function() {
+/**
+* This file installs all of the polyfills that BrowserFS requires.
+*/
+// IE < 9 does not define this function.
+if (!Date.now) {
+    Date.now = function now() {
+        return new Date().getTime();
+    };
+}
+
+// IE < 9 does not define this function.
+if (!Array.isArray) {
+    Array.isArray = function (vArg) {
+        return Object.prototype.toString.call(vArg) === "[object Array]";
+    };
+}
+
+// IE < 9 does not define this function.
+// From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
+if (!Object.keys) {
+    Object.keys = (function () {
+        
+        var hasOwnProperty = Object.prototype.hasOwnProperty, hasDontEnumBug = !({ toString: null }).propertyIsEnumerable('toString'), dontEnums = [
+            'toString',
+            'toLocaleString',
+            'valueOf',
+            'hasOwnProperty',
+            'isPrototypeOf',
+            'propertyIsEnumerable',
+            'constructor'
+        ], dontEnumsLength = dontEnums.length;
+
+        return function (obj) {
+            if (typeof obj !== 'object' && (typeof obj !== 'function' || obj === null)) {
+                throw new TypeError('Object.keys called on non-object');
+            }
+
+            var result = [], prop, i;
+
+            for (prop in obj) {
+                if (hasOwnProperty.call(obj, prop)) {
+                    result.push(prop);
+                }
+            }
+
+            if (hasDontEnumBug) {
+                for (i = 0; i < dontEnumsLength; i++) {
+                    if (hasOwnProperty.call(obj, dontEnums[i])) {
+                        result.push(dontEnums[i]);
+                    }
+                }
+            }
+            return result;
+        };
+    }());
+}
+
+// IE substr does not support negative indices
+if ('ab'.substr(-1) !== 'b') {
+    String.prototype.substr = function (substr) {
+        return function (start, length) {
+            // did we get a negative start, calculate how much it is from the
+            // beginning of the string
+            if (start < 0)
+                start = this.length + start;
+
+            // call the original function
+            return substr.call(this, start, length);
+        };
+    }(String.prototype.substr);
+}
+
+// IE < 9 does not support forEach
+if (!Array.prototype.forEach) {
+    Array.prototype.forEach = function (fn, scope) {
+        for (var i = 0; i < this.length; ++i) {
+            if (i in this) {
+                fn.call(scope, this[i], i, this);
+            }
+        }
+    };
+}
+
+// Only IE10 has setImmediate.
+// @todo: Determine viability of switching to the 'proper' polyfill for this.
+if (typeof setImmediate === 'undefined') {
+    // XXX avoid importing the global module.
+    var gScope = typeof window !== 'undefined' ? window : typeof self !== 'undefined' ? self : global;
+    var timeouts = [];
+    var messageName = "zero-timeout-message";
+    var canUsePostMessage = function () {
+        if (typeof gScope.importScripts !== 'undefined' || !gScope.postMessage) {
+            return false;
+        }
+        var postMessageIsAsync = true;
+        var oldOnMessage = gScope.onmessage;
+        gScope.onmessage = function () {
+            postMessageIsAsync = false;
+        };
+        gScope.postMessage('', '*');
+        gScope.onmessage = oldOnMessage;
+        return postMessageIsAsync;
+    };
+    if (canUsePostMessage()) {
+        gScope.setImmediate = function (fn) {
+            timeouts.push(fn);
+            gScope.postMessage(messageName, "*");
+        };
+        var handleMessage = function (event) {
+            if (event.source === self && event.data === messageName) {
+                if (event.stopPropagation) {
+                    event.stopPropagation();
+                } else {
+                    event.cancelBubble = true;
+                }
+                if (timeouts.length > 0) {
+                    var fn = timeouts.shift();
+                    return fn();
+                }
+            }
+        };
+        if (gScope.addEventListener) {
+            gScope.addEventListener('message', handleMessage, true);
+        } else {
+            gScope.attachEvent('onmessage', handleMessage);
+        }
+    } else if (gScope.MessageChannel) {
+        // WebWorker MessageChannel
+        var channel = new gScope.MessageChannel();
+        channel.port1.onmessage = function (event) {
+            if (timeouts.length > 0) {
+                return timeouts.shift()();
+            }
+        };
+        gScope.setImmediate = function (fn) {
+            timeouts.push(fn);
+            channel.port2.postMessage('');
+        };
+    } else {
+        gScope.setImmediate = function (fn) {
+            return setTimeout(fn, 0);
+            var scriptEl = window.document.createElement("script");
+            scriptEl.onreadystatechange = function () {
+                fn();
+                scriptEl.onreadystatechange = null;
+                scriptEl.parentNode.removeChild(scriptEl);
+                return scriptEl = null;
+            };
+            gScope.document.documentElement.appendChild(scriptEl);
+        };
+    }
+}
+
+// IE<9 does not define indexOf.
+// From: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/indexOf
+if (!Array.prototype.indexOf) {
+    Array.prototype.indexOf = function (searchElement, fromIndex) {
+        if (typeof fromIndex === "undefined") { fromIndex = 0; }
+        if (!this) {
+            throw new TypeError();
+        }
+
+        var length = this.length;
+        if (length === 0 || pivot >= length) {
+            return -1;
+        }
+
+        var pivot = fromIndex;
+        if (pivot < 0) {
+            pivot = length + pivot;
+        }
+
+        for (var i = pivot; i < length; i++) {
+            if (this[i] === searchElement) {
+                return i;
+            }
+        }
+        return -1;
+    };
+}
+
+// IE<9 does not support forEach
+// From: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/forEach
+if (!Array.prototype.forEach) {
+    Array.prototype.forEach = function (fn, scope) {
+        var i, len;
+        for (i = 0, len = this.length; i < len; ++i) {
+            if (i in this) {
+                fn.call(scope, this[i], i, this);
+            }
+        }
+    };
+}
+
+// IE<9 does not support map
+// From: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map
+if (!Array.prototype.map) {
+    Array.prototype.map = function (callback, thisArg) {
+        var T, A, k;
+        if (this == null) {
+            throw new TypeError(" this is null or not defined");
+        }
+
+        // 1. Let O be the result of calling ToObject passing the |this| value as the argument.
+        var O = Object(this);
+
+        // 2. Let lenValue be the result of calling the Get internal method of O with the argument "length".
+        // 3. Let len be ToUint32(lenValue).
+        var len = O.length >>> 0;
+
+        // 4. If IsCallable(callback) is false, throw a TypeError exception.
+        // See: http://es5.github.com/#x9.11
+        if (typeof callback !== "function") {
+            throw new TypeError(callback + " is not a function");
+        }
+
+        // 5. If thisArg was supplied, let T be thisArg; else let T be undefined.
+        if (thisArg) {
+            T = thisArg;
+        }
+
+        // 6. Let A be a new array created as if by the expression new Array(len) where Array is
+        // the standard built-in constructor with that name and len is the value of len.
+        A = new Array(len);
+
+        // 7. Let k be 0
+        k = 0;
+
+        while (k < len) {
+            var kValue, mappedValue;
+
+            // a. Let Pk be ToString(k).
+            //   This is implicit for LHS operands of the in operator
+            // b. Let kPresent be the result of calling the HasProperty internal method of O with argument Pk.
+            //   This step can be combined with c
+            // c. If kPresent is true, then
+            if (k in O) {
+                // i. Let kValue be the result of calling the Get internal method of O with argument Pk.
+                kValue = O[k];
+
+                // ii. Let mappedValue be the result of calling the Call internal method of callback
+                // with T as the this value and argument list containing kValue, k, and O.
+                mappedValue = callback.call(T, kValue, k, O);
+
+                // iii. Call the DefineOwnProperty internal method of A with arguments
+                // Pk, Property Descriptor {Value: mappedValue, : true, Enumerable: true, Configurable: true},
+                // and false.
+                // In browsers that support Object.defineProperty, use the following:
+                // Object.defineProperty(A, Pk, { value: mappedValue, writable: true, enumerable: true, configurable: true });
+                // For best browser support, use the following:
+                A[k] = mappedValue;
+            }
+
+            // d. Increase k by 1.
+            k++;
+        }
+
+        // 9. return A
+        return A;
+    };
+}
+
+/**
+* IE9 and below only: Injects a VBScript function that converts the
+* 'responseBody' attribute of an XMLHttpRequest into a bytestring.
+* From: http://miskun.com/javascript/internet-explorer-and-binary-files-data-access/#comment-17
+*
+* This must be performed *before* the page finishes loading, otherwise
+* document.write will refresh the page. :(
+*
+* This is harmless to inject into non-IE browsers.
+*/
+if (typeof document !== 'undefined' && window['chrome'] === undefined) {
+    document.write("<!-- IEBinaryToArray_ByteStr -->\r\n" + "<script type='text/vbscript'>\r\n" + "Function IEBinaryToArray_ByteStr(Binary)\r\n" + " IEBinaryToArray_ByteStr = CStr(Binary)\r\n" + "End Function\r\n" + "Function IEBinaryToArray_ByteStr_Last(Binary)\r\n" + " Dim lastIndex\r\n" + " lastIndex = LenB(Binary)\r\n" + " if lastIndex mod 2 Then\r\n" + " IEBinaryToArray_ByteStr_Last = Chr( AscB( MidB( Binary, lastIndex, 1 ) ) )\r\n" + " Else\r\n" + " IEBinaryToArray_ByteStr_Last = " + '""' + "\r\n" + " End If\r\n" + "End Function\r\n" + "</script>\r\n");
+}
+//# sourceMappingURL=polyfills.js.map
+
+/**
+ * @license almond 0.3.0 Copyright (c) 2011-2014, The Dojo Foundation All Rights Reserved.
+ * Available via the MIT or new BSD license.
+ * see: http://github.com/jrburke/almond for details
+ */
+//Going sloppy to avoid 'use strict' string cost, but strict practices should
+//be followed.
+/*jslint sloppy: true */
+/*global setTimeout: false */
+
+var requirejs, require, define;
+(function (undef) {
+    var main, req, makeMap, handlers,
+        defined = {},
+        waiting = {},
+        config = {},
+        defining = {},
+        hasOwn = Object.prototype.hasOwnProperty,
+        aps = [].slice,
+        jsSuffixRegExp = /\.js$/;
+
+    function hasProp(obj, prop) {
+        return hasOwn.call(obj, prop);
+    }
+
+    /**
+     * Given a relative module name, like ./something, normalize it to
+     * a real name that can be mapped to a path.
+     * @param {String} name the relative name
+     * @param {String} baseName a real name that the name arg is relative
+     * to.
+     * @returns {String} normalized name
+     */
+    function normalize(name, baseName) {
+        var nameParts, nameSegment, mapValue, foundMap, lastIndex,
+            foundI, foundStarMap, starI, i, j, part,
+            baseParts = baseName && baseName.split("/"),
+            map = config.map,
+            starMap = (map && map['*']) || {};
+
+        //Adjust any relative paths.
+        if (name && name.charAt(0) === ".") {
+            //If have a base name, try to normalize against it,
+            //otherwise, assume it is a top-level require that will
+            //be relative to baseUrl in the end.
+            if (baseName) {
+                //Convert baseName to array, and lop off the last part,
+                //so that . matches that "directory" and not name of the baseName's
+                //module. For instance, baseName of "one/two/three", maps to
+                //"one/two/three.js", but we want the directory, "one/two" for
+                //this normalization.
+                baseParts = baseParts.slice(0, baseParts.length - 1);
+                name = name.split('/');
+                lastIndex = name.length - 1;
+
+                // Node .js allowance:
+                if (config.nodeIdCompat && jsSuffixRegExp.test(name[lastIndex])) {
+                    name[lastIndex] = name[lastIndex].replace(jsSuffixRegExp, '');
+                }
+
+                name = baseParts.concat(name);
+
+                //start trimDots
+                for (i = 0; i < name.length; i += 1) {
+                    part = name[i];
+                    if (part === ".") {
+                        name.splice(i, 1);
+                        i -= 1;
+                    } else if (part === "..") {
+                        if (i === 1 && (name[2] === '..' || name[0] === '..')) {
+                            //End of the line. Keep at least one non-dot
+                            //path segment at the front so it can be mapped
+                            //correctly to disk. Otherwise, there is likely
+                            //no path mapping for a path starting with '..'.
+                            //This can still fail, but catches the most reasonable
+                            //uses of ..
+                            break;
+                        } else if (i > 0) {
+                            name.splice(i - 1, 2);
+                            i -= 2;
+                        }
+                    }
+                }
+                //end trimDots
+
+                name = name.join("/");
+            } else if (name.indexOf('./') === 0) {
+                // No baseName, so this is ID is resolved relative
+                // to baseUrl, pull off the leading dot.
+                name = name.substring(2);
+            }
+        }
+
+        //Apply map config if available.
+        if ((baseParts || starMap) && map) {
+            nameParts = name.split('/');
+
+            for (i = nameParts.length; i > 0; i -= 1) {
+                nameSegment = nameParts.slice(0, i).join("/");
+
+                if (baseParts) {
+                    //Find the longest baseName segment match in the config.
+                    //So, do joins on the biggest to smallest lengths of baseParts.
+                    for (j = baseParts.length; j > 0; j -= 1) {
+                        mapValue = map[baseParts.slice(0, j).join('/')];
+
+                        //baseName segment has  config, find if it has one for
+                        //this name.
+                        if (mapValue) {
+                            mapValue = mapValue[nameSegment];
+                            if (mapValue) {
+                                //Match, update name to the new value.
+                                foundMap = mapValue;
+                                foundI = i;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (foundMap) {
+                    break;
+                }
+
+                //Check for a star map match, but just hold on to it,
+                //if there is a shorter segment match later in a matching
+                //config, then favor over this star map.
+                if (!foundStarMap && starMap && starMap[nameSegment]) {
+                    foundStarMap = starMap[nameSegment];
+                    starI = i;
+                }
+            }
+
+            if (!foundMap && foundStarMap) {
+                foundMap = foundStarMap;
+                foundI = starI;
+            }
+
+            if (foundMap) {
+                nameParts.splice(0, foundI, foundMap);
+                name = nameParts.join('/');
+            }
+        }
+
+        return name;
+    }
+
+    function makeRequire(relName, forceSync) {
+        return function () {
+            //A version of a require function that passes a moduleName
+            //value for items that may need to
+            //look up paths relative to the moduleName
+            var args = aps.call(arguments, 0);
+
+            //If first arg is not require('string'), and there is only
+            //one arg, it is the array form without a callback. Insert
+            //a null so that the following concat is correct.
+            if (typeof args[0] !== 'string' && args.length === 1) {
+                args.push(null);
+            }
+            return req.apply(undef, args.concat([relName, forceSync]));
+        };
+    }
+
+    function makeNormalize(relName) {
+        return function (name) {
+            return normalize(name, relName);
+        };
+    }
+
+    function makeLoad(depName) {
+        return function (value) {
+            defined[depName] = value;
+        };
+    }
+
+    function callDep(name) {
+        if (hasProp(waiting, name)) {
+            var args = waiting[name];
+            delete waiting[name];
+            defining[name] = true;
+            main.apply(undef, args);
+        }
+
+        if (!hasProp(defined, name) && !hasProp(defining, name)) {
+            throw new Error('No ' + name);
+        }
+        return defined[name];
+    }
+
+    //Turns a plugin!resource to [plugin, resource]
+    //with the plugin being undefined if the name
+    //did not have a plugin prefix.
+    function splitPrefix(name) {
+        var prefix,
+            index = name ? name.indexOf('!') : -1;
+        if (index > -1) {
+            prefix = name.substring(0, index);
+            name = name.substring(index + 1, name.length);
+        }
+        return [prefix, name];
+    }
+
+    /**
+     * Makes a name map, normalizing the name, and using a plugin
+     * for normalization if necessary. Grabs a ref to plugin
+     * too, as an optimization.
+     */
+    makeMap = function (name, relName) {
+        var plugin,
+            parts = splitPrefix(name),
+            prefix = parts[0];
+
+        name = parts[1];
+
+        if (prefix) {
+            prefix = normalize(prefix, relName);
+            plugin = callDep(prefix);
+        }
+
+        //Normalize according
+        if (prefix) {
+            if (plugin && plugin.normalize) {
+                name = plugin.normalize(name, makeNormalize(relName));
+            } else {
+                name = normalize(name, relName);
+            }
+        } else {
+            name = normalize(name, relName);
+            parts = splitPrefix(name);
+            prefix = parts[0];
+            name = parts[1];
+            if (prefix) {
+                plugin = callDep(prefix);
+            }
+        }
+
+        //Using ridiculous property names for space reasons
+        return {
+            f: prefix ? prefix + '!' + name : name, //fullName
+            n: name,
+            pr: prefix,
+            p: plugin
+        };
+    };
+
+    function makeConfig(name) {
+        return function () {
+            return (config && config.config && config.config[name]) || {};
+        };
+    }
+
+    handlers = {
+        require: function (name) {
+            return makeRequire(name);
+        },
+        exports: function (name) {
+            var e = defined[name];
+            if (typeof e !== 'undefined') {
+                return e;
+            } else {
+                return (defined[name] = {});
+            }
+        },
+        module: function (name) {
+            return {
+                id: name,
+                uri: '',
+                exports: defined[name],
+                config: makeConfig(name)
+            };
+        }
+    };
+
+    main = function (name, deps, callback, relName) {
+        var cjsModule, depName, ret, map, i,
+            args = [],
+            callbackType = typeof callback,
+            usingExports;
+
+        //Use name if no relName
+        relName = relName || name;
+
+        //Call the callback to define the module, if necessary.
+        if (callbackType === 'undefined' || callbackType === 'function') {
+            //Pull out the defined dependencies and pass the ordered
+            //values to the callback.
+            //Default to [require, exports, module] if no deps
+            deps = !deps.length && callback.length ? ['require', 'exports', 'module'] : deps;
+            for (i = 0; i < deps.length; i += 1) {
+                map = makeMap(deps[i], relName);
+                depName = map.f;
+
+                //Fast path CommonJS standard dependencies.
+                if (depName === "require") {
+                    args[i] = handlers.require(name);
+                } else if (depName === "exports") {
+                    //CommonJS module spec 1.1
+                    args[i] = handlers.exports(name);
+                    usingExports = true;
+                } else if (depName === "module") {
+                    //CommonJS module spec 1.1
+                    cjsModule = args[i] = handlers.module(name);
+                } else if (hasProp(defined, depName) ||
+                           hasProp(waiting, depName) ||
+                           hasProp(defining, depName)) {
+                    args[i] = callDep(depName);
+                } else if (map.p) {
+                    map.p.load(map.n, makeRequire(relName, true), makeLoad(depName), {});
+                    args[i] = defined[depName];
+                } else {
+                    throw new Error(name + ' missing ' + depName);
+                }
+            }
+
+            ret = callback ? callback.apply(defined[name], args) : undefined;
+
+            if (name) {
+                //If setting exports via "module" is in play,
+                //favor that over return value and exports. After that,
+                //favor a non-undefined return value over exports use.
+                if (cjsModule && cjsModule.exports !== undef &&
+                        cjsModule.exports !== defined[name]) {
+                    defined[name] = cjsModule.exports;
+                } else if (ret !== undef || !usingExports) {
+                    //Use the return value from the function.
+                    defined[name] = ret;
+                }
+            }
+        } else if (name) {
+            //May just be an object definition for the module. Only
+            //worry about defining if have a module name.
+            defined[name] = callback;
+        }
+    };
+
+    requirejs = require = req = function (deps, callback, relName, forceSync, alt) {
+        if (typeof deps === "string") {
+            if (handlers[deps]) {
+                //callback in this case is really relName
+                return handlers[deps](callback);
+            }
+            //Just return the module wanted. In this scenario, the
+            //deps arg is the module name, and second arg (if passed)
+            //is just the relName.
+            //Normalize module name, if it contains . or ..
+            return callDep(makeMap(deps, callback).f);
+        } else if (!deps.splice) {
+            //deps is a config object, not an array.
+            config = deps;
+            if (config.deps) {
+                req(config.deps, config.callback);
+            }
+            if (!callback) {
+                return;
+            }
+
+            if (callback.splice) {
+                //callback is an array, which means it is a dependency list.
+                //Adjust args if there are dependencies
+                deps = callback;
+                callback = relName;
+                relName = null;
+            } else {
+                deps = undef;
+            }
+        }
+
+        //Support require(['a'])
+        callback = callback || function () {};
+
+        //If relName is a function, it is an errback handler,
+        //so remove it.
+        if (typeof relName === 'function') {
+            relName = forceSync;
+            forceSync = alt;
+        }
+
+        //Simulate async callback;
+        if (forceSync) {
+            main(undef, deps, callback, relName);
+        } else {
+            //Using a non-zero value because of concern for what old browsers
+            //do, and latest browsers "upgrade" to 4 if lower value is used:
+            //http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#dom-windowtimers-settimeout:
+            //If want a value immediately, use require('id') instead -- something
+            //that works in almond on the global level, but not guaranteed and
+            //unlikely to work in other AMD implementations.
+            setTimeout(function () {
+                main(undef, deps, callback, relName);
+            }, 4);
+        }
+
+        return req;
+    };
+
+    /**
+     * Just drops the config on the floor, but returns req in case
+     * the config return value is used.
+     */
+    req.config = function (cfg) {
+        return req(cfg);
+    };
+
+    /**
+     * Expose module registry for debugging and tooling
+     */
+    requirejs._defined = defined;
+
+    define = function (name, deps, callback) {
+
+        //This module may not have dependencies
+        if (!deps.splice) {
+            //deps is not an array, so probably means
+            //an object literal or factory function for
+            //the value. Adjust args.
+            callback = deps;
+            deps = [];
+        }
+
+        if (!hasProp(defined, name) && !hasProp(waiting, name)) {
+            waiting[name] = [name, deps, callback];
+        }
+    };
+
+    define.amd = {
+        jQuery: true
+    };
+}());
+
+define("../../vendor/almond/almond", function(){});
+
+/**
+* @module core/api_error
+*/
+define('core/api_error',["require", "exports"], function(require, exports) {
+    /**
+    * Standard libc error codes. Add more to this enum and ErrorStrings as they are
+    * needed.
+    * @url http://www.gnu.org/software/libc/manual/html_node/Error-Codes.html
+    */
+    (function (ErrorCode) {
+        ErrorCode[ErrorCode["EPERM"] = 0] = "EPERM";
+        ErrorCode[ErrorCode["ENOENT"] = 1] = "ENOENT";
+        ErrorCode[ErrorCode["EIO"] = 2] = "EIO";
+        ErrorCode[ErrorCode["EBADF"] = 3] = "EBADF";
+        ErrorCode[ErrorCode["EACCES"] = 4] = "EACCES";
+        ErrorCode[ErrorCode["EBUSY"] = 5] = "EBUSY";
+        ErrorCode[ErrorCode["EEXIST"] = 6] = "EEXIST";
+        ErrorCode[ErrorCode["ENOTDIR"] = 7] = "ENOTDIR";
+        ErrorCode[ErrorCode["EISDIR"] = 8] = "EISDIR";
+        ErrorCode[ErrorCode["EINVAL"] = 9] = "EINVAL";
+        ErrorCode[ErrorCode["EFBIG"] = 10] = "EFBIG";
+        ErrorCode[ErrorCode["ENOSPC"] = 11] = "ENOSPC";
+        ErrorCode[ErrorCode["EROFS"] = 12] = "EROFS";
+        ErrorCode[ErrorCode["ENOTEMPTY"] = 13] = "ENOTEMPTY";
+        ErrorCode[ErrorCode["ENOTSUP"] = 14] = "ENOTSUP";
+    })(exports.ErrorCode || (exports.ErrorCode = {}));
+    var ErrorCode = exports.ErrorCode;
+
+    /**
+    * Strings associated with each error code.
+    */
+    var ErrorStrings = {};
+    ErrorStrings[0 /* EPERM */] = 'Operation not permitted.';
+    ErrorStrings[1 /* ENOENT */] = 'No such file or directory.';
+    ErrorStrings[2 /* EIO */] = 'Input/output error.';
+    ErrorStrings[3 /* EBADF */] = 'Bad file descriptor.';
+    ErrorStrings[4 /* EACCES */] = 'Permission denied.';
+    ErrorStrings[5 /* EBUSY */] = 'Resource busy or locked.';
+    ErrorStrings[6 /* EEXIST */] = 'File exists.';
+    ErrorStrings[7 /* ENOTDIR */] = 'File is not a directory.';
+    ErrorStrings[8 /* EISDIR */] = 'File is a directory.';
+    ErrorStrings[9 /* EINVAL */] = 'Invalid argument.';
+    ErrorStrings[10 /* EFBIG */] = 'File is too big.';
+    ErrorStrings[11 /* ENOSPC */] = 'No space left on disk.';
+    ErrorStrings[12 /* EROFS */] = 'Cannot modify a read-only file system.';
+    ErrorStrings[13 /* ENOTEMPTY */] = 'Directory is not empty.';
+    ErrorStrings[14 /* ENOTSUP */] = 'Operation is not supported.';
+
+    /**
+    * Represents a BrowserFS error. Passed back to applications after a failed
+    * call to the BrowserFS API.
+    */
+    var ApiError = (function () {
+        /**
+        * Represents a BrowserFS error. Passed back to applications after a failed
+        * call to the BrowserFS API.
+        *
+        * Error codes mirror those returned by regular Unix file operations, which is
+        * what Node returns.
+        * @constructor ApiError
+        * @param type The type of the error.
+        * @param [message] A descriptive error message.
+        */
+        function ApiError(type, message) {
+            this.type = type;
+            this.code = ErrorCode[type];
+            if (message != null) {
+                this.message = message;
+            } else {
+                this.message = ErrorStrings[type];
+            }
+        }
+        /**
+        * @return A friendly error message.
+        */
+        ApiError.prototype.toString = function () {
+            return this.code + ": " + ErrorStrings[this.type] + " " + this.message;
+        };
+
+        ApiError.FileError = function (code, p) {
+            return new ApiError(code, p + ": " + ErrorStrings[code]);
+        };
+        ApiError.ENOENT = function (path) {
+            return this.FileError(1 /* ENOENT */, path);
+        };
+
+        ApiError.EEXIST = function (path) {
+            return this.FileError(6 /* EEXIST */, path);
+        };
+
+        ApiError.EISDIR = function (path) {
+            return this.FileError(8 /* EISDIR */, path);
+        };
+
+        ApiError.ENOTDIR = function (path) {
+            return this.FileError(7 /* ENOTDIR */, path);
+        };
+
+        ApiError.EPERM = function (path) {
+            return this.FileError(0 /* EPERM */, path);
+        };
+        return ApiError;
+    })();
+    exports.ApiError = ApiError;
+});
+//# sourceMappingURL=api_error.js.map
+;
+define('core/buffer_core',["require", "exports", './api_error'], function(require, exports, api_error) {
+    var FLOAT_POS_INFINITY = Math.pow(2, 128);
+    var FLOAT_NEG_INFINITY = -1 * FLOAT_POS_INFINITY;
+    var FLOAT_POS_INFINITY_AS_INT = 0x7F800000;
+    var FLOAT_NEG_INFINITY_AS_INT = -8388608;
+    var FLOAT_NaN_AS_INT = 0x7fc00000;
+
+    
+
+    /**
+    * Contains common definitions for most of the BufferCore classes.
+    * Subclasses only need to implement write/readUInt8 for full functionality.
+    */
+    var BufferCoreCommon = (function () {
+        function BufferCoreCommon() {
+        }
+        BufferCoreCommon.prototype.getLength = function () {
+            throw new api_error.ApiError(14 /* ENOTSUP */, 'BufferCore implementations should implement getLength.');
+        };
+        BufferCoreCommon.prototype.writeInt8 = function (i, data) {
+            // Pack the sign bit as the highest bit.
+            // Note that we keep the highest bit in the value byte as the sign bit if it
+            // exists.
+            this.writeUInt8(i, (data & 0xFF) | ((data & 0x80000000) >>> 24));
+        };
+        BufferCoreCommon.prototype.writeInt16LE = function (i, data) {
+            this.writeUInt8(i, data & 0xFF);
+
+            // Pack the sign bit as the highest bit.
+            // Note that we keep the highest bit in the value byte as the sign bit if it
+            // exists.
+            this.writeUInt8(i + 1, ((data >>> 8) & 0xFF) | ((data & 0x80000000) >>> 24));
+        };
+        BufferCoreCommon.prototype.writeInt16BE = function (i, data) {
+            this.writeUInt8(i + 1, data & 0xFF);
+
+            // Pack the sign bit as the highest bit.
+            // Note that we keep the highest bit in the value byte as the sign bit if it
+            // exists.
+            this.writeUInt8(i, ((data >>> 8) & 0xFF) | ((data & 0x80000000) >>> 24));
+        };
+        BufferCoreCommon.prototype.writeInt32LE = function (i, data) {
+            this.writeUInt8(i, data & 0xFF);
+            this.writeUInt8(i + 1, (data >>> 8) & 0xFF);
+            this.writeUInt8(i + 2, (data >>> 16) & 0xFF);
+            this.writeUInt8(i + 3, (data >>> 24) & 0xFF);
+        };
+        BufferCoreCommon.prototype.writeInt32BE = function (i, data) {
+            this.writeUInt8(i + 3, data & 0xFF);
+            this.writeUInt8(i + 2, (data >>> 8) & 0xFF);
+            this.writeUInt8(i + 1, (data >>> 16) & 0xFF);
+            this.writeUInt8(i, (data >>> 24) & 0xFF);
+        };
+        BufferCoreCommon.prototype.writeUInt8 = function (i, data) {
+            throw new api_error.ApiError(14 /* ENOTSUP */, 'BufferCore implementations should implement writeUInt8.');
+        };
+        BufferCoreCommon.prototype.writeUInt16LE = function (i, data) {
+            this.writeUInt8(i, data & 0xFF);
+            this.writeUInt8(i + 1, (data >> 8) & 0xFF);
+        };
+        BufferCoreCommon.prototype.writeUInt16BE = function (i, data) {
+            this.writeUInt8(i + 1, data & 0xFF);
+            this.writeUInt8(i, (data >> 8) & 0xFF);
+        };
+        BufferCoreCommon.prototype.writeUInt32LE = function (i, data) {
+            this.writeInt32LE(i, data | 0);
+        };
+        BufferCoreCommon.prototype.writeUInt32BE = function (i, data) {
+            this.writeInt32BE(i, data | 0);
+        };
+        BufferCoreCommon.prototype.writeFloatLE = function (i, data) {
+            this.writeInt32LE(i, this.float2intbits(data));
+        };
+        BufferCoreCommon.prototype.writeFloatBE = function (i, data) {
+            this.writeInt32BE(i, this.float2intbits(data));
+        };
+        BufferCoreCommon.prototype.writeDoubleLE = function (i, data) {
+            var doubleBits = this.double2longbits(data);
+            this.writeInt32LE(i, doubleBits[0]);
+            this.writeInt32LE(i + 4, doubleBits[1]);
+        };
+        BufferCoreCommon.prototype.writeDoubleBE = function (i, data) {
+            var doubleBits = this.double2longbits(data);
+            this.writeInt32BE(i + 4, doubleBits[0]);
+            this.writeInt32BE(i, doubleBits[1]);
+        };
+        BufferCoreCommon.prototype.readInt8 = function (i) {
+            var val = this.readUInt8(i);
+            if (val & 0x80) {
+                // Sign bit is set, so perform sign extension.
+                return val | 0xFFFFFF80;
+            } else {
+                return val;
+            }
+        };
+        BufferCoreCommon.prototype.readInt16LE = function (i) {
+            var val = this.readUInt16LE(i);
+            if (val & 0x8000) {
+                // Sign bit is set, so perform sign extension.
+                return val | 0xFFFF8000;
+            } else {
+                return val;
+            }
+        };
+        BufferCoreCommon.prototype.readInt16BE = function (i) {
+            var val = this.readUInt16BE(i);
+            if (val & 0x8000) {
+                // Sign bit is set, so perform sign extension.
+                return val | 0xFFFF8000;
+            } else {
+                return val;
+            }
+        };
+        BufferCoreCommon.prototype.readInt32LE = function (i) {
+            return this.readUInt32LE(i) | 0;
+        };
+        BufferCoreCommon.prototype.readInt32BE = function (i) {
+            return this.readUInt32BE(i) | 0;
+        };
+        BufferCoreCommon.prototype.readUInt8 = function (i) {
+            throw new api_error.ApiError(14 /* ENOTSUP */, 'BufferCore implementations should implement readUInt8.');
+        };
+        BufferCoreCommon.prototype.readUInt16LE = function (i) {
+            return (this.readUInt8(i + 1) << 8) | this.readUInt8(i);
+        };
+        BufferCoreCommon.prototype.readUInt16BE = function (i) {
+            return (this.readUInt8(i) << 8) | this.readUInt8(i + 1);
+        };
+        BufferCoreCommon.prototype.readUInt32LE = function (i) {
+            return ((this.readUInt8(i + 3) << 24) | (this.readUInt8(i + 2) << 16) | (this.readUInt8(i + 1) << 8) | this.readUInt8(i)) >>> 0;
+        };
+        BufferCoreCommon.prototype.readUInt32BE = function (i) {
+            return ((this.readUInt8(i) << 24) | (this.readUInt8(i + 1) << 16) | (this.readUInt8(i + 2) << 8) | this.readUInt8(i + 3)) >>> 0;
+        };
+        BufferCoreCommon.prototype.readFloatLE = function (i) {
+            return this.intbits2float(this.readInt32LE(i));
+        };
+        BufferCoreCommon.prototype.readFloatBE = function (i) {
+            return this.intbits2float(this.readInt32BE(i));
+        };
+        BufferCoreCommon.prototype.readDoubleLE = function (i) {
+            return this.longbits2double(this.readInt32LE(i + 4), this.readInt32LE(i));
+        };
+        BufferCoreCommon.prototype.readDoubleBE = function (i) {
+            return this.longbits2double(this.readInt32BE(i), this.readInt32BE(i + 4));
+        };
+        BufferCoreCommon.prototype.copy = function (start, end) {
+            throw new api_error.ApiError(14 /* ENOTSUP */, 'BufferCore implementations should implement copy.');
+        };
+        BufferCoreCommon.prototype.fill = function (value, start, end) {
+            for (var i = start; i < end; i++) {
+                this.writeUInt8(i, value);
+            }
+        };
+
+        BufferCoreCommon.prototype.float2intbits = function (f_val) {
+            var exp, f_view, i_view, sig, sign;
+
+            // Special cases!
+            if (f_val === 0) {
+                return 0;
+            }
+
+            // We map the infinities to JavaScript infinities. Map them back.
+            if (f_val === Number.POSITIVE_INFINITY) {
+                return FLOAT_POS_INFINITY_AS_INT;
+            }
+            if (f_val === Number.NEGATIVE_INFINITY) {
+                return FLOAT_NEG_INFINITY_AS_INT;
+            }
+
+            // Convert JavaScript NaN to Float NaN value.
+            if (isNaN(f_val)) {
+                return FLOAT_NaN_AS_INT;
+            }
+
+            // We have more bits of precision than a float, so below we round to
+            // the nearest significand. This appears to be what the x86
+            // Java does for normal floating point operations.
+            sign = f_val < 0 ? 1 : 0;
+            f_val = Math.abs(f_val);
+
+            // Subnormal zone!
+            // (−1)^signbits×2^−126×0.significandbits
+            // Largest subnormal magnitude:
+            // 0000 0000 0111 1111 1111 1111 1111 1111
+            // Smallest subnormal magnitude:
+            // 0000 0000 0000 0000 0000 0000 0000 0001
+            if (f_val <= 1.1754942106924411e-38 && f_val >= 1.4012984643248170e-45) {
+                exp = 0;
+                sig = Math.round((f_val / Math.pow(2, -126)) * Math.pow(2, 23));
+                return (sign << 31) | (exp << 23) | sig;
+            } else {
+                // Regular FP numbers
+                exp = Math.floor(Math.log(f_val) / Math.LN2);
+                sig = Math.round((f_val / Math.pow(2, exp) - 1) * Math.pow(2, 23));
+                return (sign << 31) | ((exp + 127) << 23) | sig;
+            }
+        };
+
+        BufferCoreCommon.prototype.double2longbits = function (d_val) {
+            var d_view, exp, high_bits, i_view, sig, sign;
+
+            // Special cases
+            if (d_val === 0) {
+                return [0, 0];
+            }
+            if (d_val === Number.POSITIVE_INFINITY) {
+                // High bits: 0111 1111 1111 0000 0000 0000 0000 0000
+                //  Low bits: 0000 0000 0000 0000 0000 0000 0000 0000
+                return [0, 2146435072];
+            } else if (d_val === Number.NEGATIVE_INFINITY) {
+                // High bits: 1111 1111 1111 0000 0000 0000 0000 0000
+                //  Low bits: 0000 0000 0000 0000 0000 0000 0000 0000
+                return [0, -1048576];
+            } else if (isNaN(d_val)) {
+                // High bits: 0111 1111 1111 1000 0000 0000 0000 0000
+                //  Low bits: 0000 0000 0000 0000 0000 0000 0000 0000
+                return [0, 2146959360];
+            }
+            sign = d_val < 0 ? 1 << 31 : 0;
+            d_val = Math.abs(d_val);
+
+            // Check if it is a subnormal number.
+            // (-1)s × 0.f × 2-1022
+            // Largest subnormal magnitude:
+            // 0000 0000 0000 1111 1111 1111 1111 1111
+            // 1111 1111 1111 1111 1111 1111 1111 1111
+            // Smallest subnormal magnitude:
+            // 0000 0000 0000 0000 0000 0000 0000 0000
+            // 0000 0000 0000 0000 0000 0000 0000 0001
+            if (d_val <= 2.2250738585072010e-308 && d_val >= 5.0000000000000000e-324) {
+                exp = 0;
+                sig = (d_val / Math.pow(2, -1022)) * Math.pow(2, 52);
+            } else {
+                exp = Math.floor(Math.log(d_val) / Math.LN2);
+
+                // If d_val is close to a power of two, there's a chance that exp
+                // will be 1 greater than it should due to loss of accuracy in the
+                // log result.
+                if (d_val < Math.pow(2, exp)) {
+                    exp = exp - 1;
+                }
+                sig = (d_val / Math.pow(2, exp) - 1) * Math.pow(2, 52);
+                exp = (exp + 1023) << 20;
+            }
+
+            // Simulate >> 32
+            high_bits = ((sig * Math.pow(2, -32)) | 0) | sign | exp;
+            return [sig & 0xFFFF, high_bits];
+        };
+
+        BufferCoreCommon.prototype.intbits2float = function (int32) {
+            // Map +/- infinity to JavaScript equivalents
+            if (int32 === FLOAT_POS_INFINITY_AS_INT) {
+                return Number.POSITIVE_INFINITY;
+            } else if (int32 === FLOAT_NEG_INFINITY_AS_INT) {
+                return Number.NEGATIVE_INFINITY;
+            }
+            var sign = (int32 & 0x80000000) >>> 31;
+            var exponent = (int32 & 0x7F800000) >>> 23;
+            var significand = int32 & 0x007FFFFF;
+            var value;
+            if (exponent === 0) {
+                value = Math.pow(-1, sign) * significand * Math.pow(2, -149);
+            } else {
+                value = Math.pow(-1, sign) * (1 + significand * Math.pow(2, -23)) * Math.pow(2, exponent - 127);
+            }
+
+            // NaN check
+            if (value < FLOAT_NEG_INFINITY || value > FLOAT_POS_INFINITY) {
+                value = NaN;
+            }
+            return value;
+        };
+
+        BufferCoreCommon.prototype.longbits2double = function (uint32_a, uint32_b) {
+            var sign = (uint32_a & 0x80000000) >>> 31;
+            var exponent = (uint32_a & 0x7FF00000) >>> 20;
+            var significand = ((uint32_a & 0x000FFFFF) * Math.pow(2, 32)) + uint32_b;
+
+            // Special values!
+            if (exponent === 0 && significand === 0) {
+                return 0;
+            }
+            if (exponent === 2047) {
+                if (significand === 0) {
+                    if (sign === 1) {
+                        return Number.NEGATIVE_INFINITY;
+                    }
+                    return Number.POSITIVE_INFINITY;
+                } else {
+                    return NaN;
+                }
+            }
+            if (exponent === 0)
+                return Math.pow(-1, sign) * significand * Math.pow(2, -1074);
+            return Math.pow(-1, sign) * (1 + significand * Math.pow(2, -52)) * Math.pow(2, exponent - 1023);
+        };
+        return BufferCoreCommon;
+    })();
+    exports.BufferCoreCommon = BufferCoreCommon;
+});
+//# sourceMappingURL=buffer_core.js.map
+;
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+define('core/buffer_core_array',["require", "exports", './buffer_core'], function(require, exports, buffer_core) {
+    // Used to clear segments of an array index.
+    var clearMasks = [0xFFFFFF00, 0xFFFF00FF, 0xFF00FFFF, 0x00FFFFFF];
+
+    /**
+    * Implementation of BufferCore that is backed by an array of 32-bit ints.
+    * Data is stored little endian.
+    * Example: Bytes 0 through 3 are present in the first int:
+    *  BYTE 3      BYTE 2      BYTE 1      BYTE 0
+    * 0000 0000 | 0000 0000 | 0000 0000 | 0000 0000
+    */
+    var BufferCoreArray = (function (_super) {
+        __extends(BufferCoreArray, _super);
+        function BufferCoreArray(length) {
+            _super.call(this);
+            this.length = length;
+            this.buff = new Array(Math.ceil(length / 4));
+
+            // Zero-fill the array.
+            var bufflen = this.buff.length;
+            for (var i = 0; i < bufflen; i++) {
+                this.buff[i] = 0;
+            }
+        }
+        BufferCoreArray.isAvailable = function () {
+            return true;
+        };
+
+        BufferCoreArray.prototype.getLength = function () {
+            return this.length;
+        };
+        BufferCoreArray.prototype.writeUInt8 = function (i, data) {
+            data &= 0xFF;
+
+            // Which int? (Equivalent to (i/4)|0)
+            var arrIdx = i >> 2;
+
+            // Which offset? (Equivalent to i - arrIdx*4)
+            var intIdx = i & 3;
+            this.buff[arrIdx] = this.buff[arrIdx] & clearMasks[intIdx];
+            this.buff[arrIdx] = this.buff[arrIdx] | (data << (intIdx << 3));
+        };
+        BufferCoreArray.prototype.readUInt8 = function (i) {
+            // Which int?
+            var arrIdx = i >> 2;
+
+            // Which offset?
+            var intIdx = i & 3;
+
+            // Bring the data we want into the lowest 8 bits, and truncate.
+            return (this.buff[arrIdx] >> (intIdx << 3)) & 0xFF;
+        };
+        BufferCoreArray.prototype.copy = function (start, end) {
+            // Stupid unoptimized copy. Later, we could do optimizations when aligned.
+            var newBC = new BufferCoreArray(end - start);
+            for (var i = start; i < end; i++) {
+                newBC.writeUInt8(i - start, this.readUInt8(i));
+            }
+            return newBC;
+        };
+        return BufferCoreArray;
+    })(buffer_core.BufferCoreCommon);
+    exports.BufferCoreArray = BufferCoreArray;
+
+    // Type-check the class.
+    var _ = BufferCoreArray;
+});
+//# sourceMappingURL=buffer_core_array.js.map
+;
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+define('core/buffer_core_arraybuffer',["require", "exports", './buffer_core'], function(require, exports, buffer_core) {
+    /**
+    * Represents data using an ArrayBuffer.
+    */
+    var BufferCoreArrayBuffer = (function (_super) {
+        __extends(BufferCoreArrayBuffer, _super);
+        function BufferCoreArrayBuffer(arg1) {
+            _super.call(this);
+            if (typeof arg1 === 'number') {
+                this.buff = new DataView(new ArrayBuffer(arg1));
+            } else if (arg1 instanceof DataView) {
+                this.buff = arg1;
+            } else {
+                this.buff = new DataView(arg1);
+            }
+            this.length = this.buff.byteLength;
+        }
+        BufferCoreArrayBuffer.isAvailable = function () {
+            return typeof DataView !== 'undefined';
+        };
+
+        BufferCoreArrayBuffer.prototype.getLength = function () {
+            return this.length;
+        };
+        BufferCoreArrayBuffer.prototype.writeInt8 = function (i, data) {
+            this.buff.setInt8(i, data);
+        };
+        BufferCoreArrayBuffer.prototype.writeInt16LE = function (i, data) {
+            this.buff.setInt16(i, data, true);
+        };
+        BufferCoreArrayBuffer.prototype.writeInt16BE = function (i, data) {
+            this.buff.setInt16(i, data, false);
+        };
+        BufferCoreArrayBuffer.prototype.writeInt32LE = function (i, data) {
+            this.buff.setInt32(i, data, true);
+        };
+        BufferCoreArrayBuffer.prototype.writeInt32BE = function (i, data) {
+            this.buff.setInt32(i, data, false);
+        };
+        BufferCoreArrayBuffer.prototype.writeUInt8 = function (i, data) {
+            this.buff.setUint8(i, data);
+        };
+        BufferCoreArrayBuffer.prototype.writeUInt16LE = function (i, data) {
+            this.buff.setUint16(i, data, true);
+        };
+        BufferCoreArrayBuffer.prototype.writeUInt16BE = function (i, data) {
+            this.buff.setUint16(i, data, false);
+        };
+        BufferCoreArrayBuffer.prototype.writeUInt32LE = function (i, data) {
+            this.buff.setUint32(i, data, true);
+        };
+        BufferCoreArrayBuffer.prototype.writeUInt32BE = function (i, data) {
+            this.buff.setUint32(i, data, false);
+        };
+        BufferCoreArrayBuffer.prototype.writeFloatLE = function (i, data) {
+            this.buff.setFloat32(i, data, true);
+        };
+        BufferCoreArrayBuffer.prototype.writeFloatBE = function (i, data) {
+            this.buff.setFloat32(i, data, false);
+        };
+        BufferCoreArrayBuffer.prototype.writeDoubleLE = function (i, data) {
+            this.buff.setFloat64(i, data, true);
+        };
+        BufferCoreArrayBuffer.prototype.writeDoubleBE = function (i, data) {
+            this.buff.setFloat64(i, data, false);
+        };
+        BufferCoreArrayBuffer.prototype.readInt8 = function (i) {
+            return this.buff.getInt8(i);
+        };
+        BufferCoreArrayBuffer.prototype.readInt16LE = function (i) {
+            return this.buff.getInt16(i, true);
+        };
+        BufferCoreArrayBuffer.prototype.readInt16BE = function (i) {
+            return this.buff.getInt16(i, false);
+        };
+        BufferCoreArrayBuffer.prototype.readInt32LE = function (i) {
+            return this.buff.getInt32(i, true);
+        };
+        BufferCoreArrayBuffer.prototype.readInt32BE = function (i) {
+            return this.buff.getInt32(i, false);
+        };
+        BufferCoreArrayBuffer.prototype.readUInt8 = function (i) {
+            return this.buff.getUint8(i);
+        };
+        BufferCoreArrayBuffer.prototype.readUInt16LE = function (i) {
+            return this.buff.getUint16(i, true);
+        };
+        BufferCoreArrayBuffer.prototype.readUInt16BE = function (i) {
+            return this.buff.getUint16(i, false);
+        };
+        BufferCoreArrayBuffer.prototype.readUInt32LE = function (i) {
+            return this.buff.getUint32(i, true);
+        };
+        BufferCoreArrayBuffer.prototype.readUInt32BE = function (i) {
+            return this.buff.getUint32(i, false);
+        };
+        BufferCoreArrayBuffer.prototype.readFloatLE = function (i) {
+            return this.buff.getFloat32(i, true);
+        };
+        BufferCoreArrayBuffer.prototype.readFloatBE = function (i) {
+            return this.buff.getFloat32(i, false);
+        };
+        BufferCoreArrayBuffer.prototype.readDoubleLE = function (i) {
+            return this.buff.getFloat64(i, true);
+        };
+        BufferCoreArrayBuffer.prototype.readDoubleBE = function (i) {
+            return this.buff.getFloat64(i, false);
+        };
+        BufferCoreArrayBuffer.prototype.copy = function (start, end) {
+            var aBuff = this.buff.buffer;
+            var newBuff;
+
+            // Some ArrayBuffer implementations (IE10) do not have 'slice'.
+            // XXX: Type hacks - the typings don't have slice either.
+            if (ArrayBuffer.prototype.slice) {
+                // ArrayBuffer.slice is copying; exactly what we want.
+                newBuff = aBuff.slice(start, end);
+            } else {
+                var len = end - start;
+                newBuff = new ArrayBuffer(len);
+
+                // Copy the old contents in.
+                var newUintArray = new Uint8Array(newBuff);
+                var oldUintArray = new Uint8Array(aBuff);
+                newUintArray.set(oldUintArray.subarray(start, end));
+            }
+            return new BufferCoreArrayBuffer(newBuff);
+        };
+        BufferCoreArrayBuffer.prototype.fill = function (value, start, end) {
+            // Value must be a byte wide.
+            value = value & 0xFF;
+            var i;
+            var len = end - start;
+            var intBytes = (((len) / 4) | 0) * 4;
+
+            // Optimization: Write 4 bytes at a time.
+            // TODO: Could we copy 8 bytes at a time using Float64, or could we
+            //       lose precision?
+            var intVal = (value << 24) | (value << 16) | (value << 8) | value;
+            for (i = 0; i < intBytes; i += 4) {
+                this.writeInt32LE(i + start, intVal);
+            }
+            for (i = intBytes; i < len; i++) {
+                this.writeUInt8(i + start, value);
+            }
+        };
+
+        /**
+        * Custom method for this buffer core. Get the backing object.
+        */
+        BufferCoreArrayBuffer.prototype.getDataView = function () {
+            return this.buff;
+        };
+        return BufferCoreArrayBuffer;
+    })(buffer_core.BufferCoreCommon);
+    exports.BufferCoreArrayBuffer = BufferCoreArrayBuffer;
+
+    // Type-check the class.
+    var _ = BufferCoreArrayBuffer;
+});
+//# sourceMappingURL=buffer_core_arraybuffer.js.map
+;
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+define('core/buffer_core_imagedata',["require", "exports", './buffer_core'], function(require, exports, buffer_core) {
+    
+
+    /**
+    * Implementation of BufferCore that is backed by an ImageData object.
+    * Useful in browsers with HTML5 canvas support, but no TypedArray support
+    * (IE9).
+    */
+    var BufferCoreImageData = (function (_super) {
+        __extends(BufferCoreImageData, _super);
+        function BufferCoreImageData(length) {
+            _super.call(this);
+            this.length = length;
+            this.buff = BufferCoreImageData.getCanvasPixelArray(length);
+        }
+        /**
+        * Constructs a CanvasPixelArray that represents the given amount of bytes.
+        */
+        BufferCoreImageData.getCanvasPixelArray = function (bytes) {
+            var ctx = BufferCoreImageData.imageDataFactory;
+
+            // Lazily initialize, otherwise every browser (even those that will never
+            // use this code) will create a canvas on script load.
+            if (ctx === undefined) {
+                BufferCoreImageData.imageDataFactory = ctx = document.createElement('canvas').getContext('2d');
+            }
+
+            // You cannot create image data with size 0, so up it to size 1.
+            if (bytes === 0)
+                bytes = 1;
+            return ctx.createImageData(Math.ceil(bytes / 4), 1).data;
+        };
+        BufferCoreImageData.isAvailable = function () {
+            // Modern browsers have removed this deprecated API, so it is not always around.
+            return typeof CanvasPixelArray !== 'undefined';
+        };
+
+        BufferCoreImageData.prototype.getLength = function () {
+            return this.length;
+        };
+        BufferCoreImageData.prototype.writeUInt8 = function (i, data) {
+            this.buff[i] = data;
+        };
+        BufferCoreImageData.prototype.readUInt8 = function (i) {
+            return this.buff[i];
+        };
+        BufferCoreImageData.prototype.copy = function (start, end) {
+            // AFAIK, there's no efficient way to clone ImageData.
+            var newBC = new BufferCoreImageData(end - start);
+            for (var i = start; i < end; i++) {
+                newBC.writeUInt8(i - start, this.buff[i]);
+            }
+            return newBC;
+        };
+        return BufferCoreImageData;
+    })(buffer_core.BufferCoreCommon);
+    exports.BufferCoreImageData = BufferCoreImageData;
+
+    // Type-check the class.
+    var _ = BufferCoreImageData;
+});
+//# sourceMappingURL=buffer_core_imagedata.js.map
+;
+define('core/string_util',["require", "exports"], function(require, exports) {
+    
+
+    /**
+    * Find the 'utility' object for the given string encoding. Throws an exception
+    * if the encoding is invalid.
+    * @param [String] encoding a string encoding
+    * @return [BrowserFS.StringUtil.*] The StringUtil object for the given encoding
+    */
+    function FindUtil(encoding) {
+        encoding = (function () {
+            switch (typeof encoding) {
+                case 'object':
+                    return "" + encoding;
+                case 'string':
+                    return encoding;
+                default:
+                    throw new Error('Invalid encoding argument specified');
+            }
+        })();
+        encoding = encoding.toLowerCase();
+
+        switch (encoding) {
+            case 'utf8':
+            case 'utf-8':
+                return UTF8;
+            case 'ascii':
+                return ASCII;
+            case 'binary':
+                return BINARY;
+            case 'ucs2':
+            case 'ucs-2':
+            case 'utf16le':
+            case 'utf-16le':
+                return UCS2;
+            case 'hex':
+                return HEX;
+            case 'base64':
+                return BASE64;
+
+            case 'binary_string':
+                return BINSTR;
+            case 'binary_string_ie':
+                return BINSTRIE;
+            case 'extended_ascii':
+                return ExtendedASCII;
+
+            default:
+                throw new Error("Unknown encoding: " + encoding);
+        }
+    }
+    exports.FindUtil = FindUtil;
+
+    /**
+    * String utility functions for UTF-8. Note that some UTF-8 strings *cannot* be
+    * expressed in terms of JavaScript UTF-16 strings.
+    * @see http://en.wikipedia.org/wiki/UTF-8
+    */
+    var UTF8 = (function () {
+        function UTF8() {
+        }
+        UTF8.str2byte = function (str, buf) {
+            var length = buf.length;
+            var i = 0;
+            var j = 0;
+            var maxJ = length;
+            var rv = [];
+            var numChars = 0;
+            while (i < str.length && j < maxJ) {
+                var code = str.charCodeAt(i++);
+                var next = str.charCodeAt(i);
+                if (0xD800 <= code && code <= 0xDBFF && 0xDC00 <= next && next <= 0xDFFF) {
+                    // 4 bytes: Surrogate pairs! UTF-16 fun time.
+                    if (j + 3 >= maxJ) {
+                        break;
+                    } else {
+                        numChars++;
+                    }
+
+                    // First pair: 10 bits of data, with an implicitly set 11th bit
+                    // Second pair: 10 bits of data
+                    var codePoint = (((code & 0x3FF) | 0x400) << 10) | (next & 0x3FF);
+
+                    // Highest 3 bits in first byte
+                    buf.writeUInt8((codePoint >> 18) | 0xF0, j++);
+
+                    // Rest are all 6 bits
+                    buf.writeUInt8(((codePoint >> 12) & 0x3F) | 0x80, j++);
+                    buf.writeUInt8(((codePoint >> 6) & 0x3F) | 0x80, j++);
+                    buf.writeUInt8((codePoint & 0x3F) | 0x80, j++);
+                    i++;
+                } else if (code < 0x80) {
+                    // One byte
+                    buf.writeUInt8(code, j++);
+                    numChars++;
+                } else if (code < 0x800) {
+                    // Two bytes
+                    if (j + 1 >= maxJ) {
+                        break;
+                    } else {
+                        numChars++;
+                    }
+
+                    // Highest 5 bits in first byte
+                    buf.writeUInt8((code >> 6) | 0xC0, j++);
+
+                    // Lower 6 bits in second byte
+                    buf.writeUInt8((code & 0x3F) | 0x80, j++);
+                } else if (code < 0x10000) {
+                    // Three bytes
+                    if (j + 2 >= maxJ) {
+                        break;
+                    } else {
+                        numChars++;
+                    }
+
+                    // Highest 4 bits in first byte
+                    buf.writeUInt8((code >> 12) | 0xE0, j++);
+
+                    // Middle 6 bits in second byte
+                    buf.writeUInt8(((code >> 6) & 0x3F) | 0x80, j++);
+
+                    // Lowest 6 bits in third byte
+                    buf.writeUInt8((code & 0x3F) | 0x80, j++);
+                }
+            }
+            return j;
+        };
+
+        UTF8.byte2str = function (buff) {
+            var chars = [];
+            var i = 0;
+            while (i < buff.length) {
+                var code = buff.readUInt8(i++);
+                if (code < 0x80) {
+                    chars.push(String.fromCharCode(code));
+                } else if (code < 0xC0) {
+                    throw new Error('Found incomplete part of character in string.');
+                } else if (code < 0xE0) {
+                    // 2 bytes: 5 and 6 bits
+                    chars.push(String.fromCharCode(((code & 0x1F) << 6) | (buff.readUInt8(i++) & 0x3F)));
+                } else if (code < 0xF0) {
+                    // 3 bytes: 4, 6, and 6 bits
+                    chars.push(String.fromCharCode(((code & 0xF) << 12) | ((buff.readUInt8(i++) & 0x3F) << 6) | (buff.readUInt8(i++) & 0x3F)));
+                } else if (code < 0xF8) {
+                    // 4 bytes: 3, 6, 6, 6 bits; surrogate pairs time!
+                    // First 11 bits; remove 11th bit as per UTF-16 standard
+                    var byte3 = buff.readUInt8(i + 2);
+                    chars.push(String.fromCharCode(((((code & 0x7) << 8) | ((buff.readUInt8(i++) & 0x3F) << 2) | ((buff.readUInt8(i++) & 0x3F) >> 4)) & 0x3FF) | 0xD800));
+
+                    // Final 10 bits
+                    chars.push(String.fromCharCode((((byte3 & 0xF) << 6) | (buff.readUInt8(i++) & 0x3F)) | 0xDC00));
+                } else {
+                    throw new Error('Unable to represent UTF-8 string as UTF-16 JavaScript string.');
+                }
+            }
+            return chars.join('');
+        };
+
+        UTF8.byteLength = function (str) {
+            // Matches only the 10.. bytes that are non-initial characters in a
+            // multi-byte sequence.
+            // @todo This may be slower than iterating through the string in some cases.
+            var m = encodeURIComponent(str).match(/%[89ABab]/g);
+            return str.length + (m ? m.length : 0);
+        };
+        return UTF8;
+    })();
+    exports.UTF8 = UTF8;
+
+    /**
+    * String utility functions for 8-bit ASCII. Like Node, we mask the high bits of
+    * characters in JavaScript UTF-16 strings.
+    * @see http://en.wikipedia.org/wiki/ASCII
+    */
+    var ASCII = (function () {
+        function ASCII() {
+        }
+        ASCII.str2byte = function (str, buf) {
+            var length = str.length > buf.length ? buf.length : str.length;
+            for (var i = 0; i < length; i++) {
+                buf.writeUInt8(str.charCodeAt(i) % 256, i);
+            }
+            return length;
+        };
+
+        ASCII.byte2str = function (buff) {
+            var chars = new Array(buff.length);
+            for (var i = 0; i < buff.length; i++) {
+                chars[i] = String.fromCharCode(buff.readUInt8(i) & 0x7F);
+            }
+            return chars.join('');
+        };
+
+        ASCII.byteLength = function (str) {
+            return str.length;
+        };
+        return ASCII;
+    })();
+    exports.ASCII = ASCII;
+
+    /**
+    * (Nonstandard) String utility function for 8-bit ASCII with the extended
+    * character set. Unlike the ASCII above, we do not mask the high bits.
+    * @see http://en.wikipedia.org/wiki/Extended_ASCII
+    */
+    var ExtendedASCII = (function () {
+        function ExtendedASCII() {
+        }
+        ExtendedASCII.str2byte = function (str, buf) {
+            var length = str.length > buf.length ? buf.length : str.length;
+            for (var i = 0; i < length; i++) {
+                var charCode = str.charCodeAt(i);
+                if (charCode > 0x7F) {
+                    // Check if extended ASCII.
+                    var charIdx = ExtendedASCII.extendedChars.indexOf(str.charAt(i));
+                    if (charIdx > -1) {
+                        charCode = charIdx + 0x80;
+                    }
+                    // Otherwise, keep it as-is.
+                }
+                buf.writeUInt8(charCode, i);
+            }
+            return length;
+        };
+
+        ExtendedASCII.byte2str = function (buff) {
+            var chars = new Array(buff.length);
+            for (var i = 0; i < buff.length; i++) {
+                var charCode = buff.readUInt8(i);
+                if (charCode > 0x7F) {
+                    chars[i] = ExtendedASCII.extendedChars[charCode - 128];
+                } else {
+                    chars[i] = String.fromCharCode(charCode);
+                }
+            }
+            return chars.join('');
+        };
+
+        ExtendedASCII.byteLength = function (str) {
+            return str.length;
+        };
+        ExtendedASCII.extendedChars = [
+            '\u00C7', '\u00FC', '\u00E9', '\u00E2', '\u00E4',
+            '\u00E0', '\u00E5', '\u00E7', '\u00EA', '\u00EB', '\u00E8', '\u00EF',
+            '\u00EE', '\u00EC', '\u00C4', '\u00C5', '\u00C9', '\u00E6', '\u00C6',
+            '\u00F4', '\u00F6', '\u00F2', '\u00FB', '\u00F9', '\u00FF', '\u00D6',
+            '\u00DC', '\u00F8', '\u00A3', '\u00D8', '\u00D7', '\u0192', '\u00E1',
+            '\u00ED', '\u00F3', '\u00FA', '\u00F1', '\u00D1', '\u00AA', '\u00BA',
+            '\u00BF', '\u00AE', '\u00AC', '\u00BD', '\u00BC', '\u00A1', '\u00AB',
+            '\u00BB', '_', '_', '_', '\u00A6', '\u00A6', '\u00C1', '\u00C2', '\u00C0',
+            '\u00A9', '\u00A6', '\u00A6', '+', '+', '\u00A2', '\u00A5', '+', '+', '-',
+            '-', '+', '-', '+', '\u00E3', '\u00C3', '+', '+', '-', '-', '\u00A6', '-',
+            '+', '\u00A4', '\u00F0', '\u00D0', '\u00CA', '\u00CB', '\u00C8', 'i',
+            '\u00CD', '\u00CE', '\u00CF', '+', '+', '_', '_', '\u00A6', '\u00CC', '_',
+            '\u00D3', '\u00DF', '\u00D4', '\u00D2', '\u00F5', '\u00D5', '\u00B5',
+            '\u00FE', '\u00DE', '\u00DA', '\u00DB', '\u00D9', '\u00FD', '\u00DD',
+            '\u00AF', '\u00B4', '\u00AD', '\u00B1', '_', '\u00BE', '\u00B6', '\u00A7',
+            '\u00F7', '\u00B8', '\u00B0', '\u00A8', '\u00B7', '\u00B9', '\u00B3',
+            '\u00B2', '_', ' '];
+        return ExtendedASCII;
+    })();
+    exports.ExtendedASCII = ExtendedASCII;
+
+    /**
+    * String utility functions for Node's BINARY strings, which represent a single
+    * byte per character.
+    */
+    var BINARY = (function () {
+        function BINARY() {
+        }
+        BINARY.str2byte = function (str, buf) {
+            var length = str.length > buf.length ? buf.length : str.length;
+            for (var i = 0; i < length; i++) {
+                buf.writeUInt8(str.charCodeAt(i) & 0xFF, i);
+            }
+            return length;
+        };
+
+        BINARY.byte2str = function (buff) {
+            var chars = new Array(buff.length);
+            for (var i = 0; i < buff.length; i++) {
+                chars[i] = String.fromCharCode(buff.readUInt8(i) & 0xFF);
+            }
+            return chars.join('');
+        };
+
+        BINARY.byteLength = function (str) {
+            return str.length;
+        };
+        return BINARY;
+    })();
+    exports.BINARY = BINARY;
+
+    /**
+    * Contains string utility functions for base-64 encoding.
+    *
+    * Adapted from the StackOverflow comment linked below.
+    * @see http://stackoverflow.com/questions/246801/how-can-you-encode-to-base64-using-javascript#246813
+    * @see http://en.wikipedia.org/wiki/Base64
+    * @todo Bake in support for btoa() and atob() if available.
+    */
+    var BASE64 = (function () {
+        function BASE64() {
+        }
+        BASE64.byte2str = function (buff) {
+            var output = '';
+            var i = 0;
+            while (i < buff.length) {
+                var chr1 = buff.readUInt8(i++);
+                var chr2 = i < buff.length ? buff.readUInt8(i++) : NaN;
+                var chr3 = i < buff.length ? buff.readUInt8(i++) : NaN;
+                var enc1 = chr1 >> 2;
+                var enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+                var enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+                var enc4 = chr3 & 63;
+                if (isNaN(chr2)) {
+                    enc3 = enc4 = 64;
+                } else if (isNaN(chr3)) {
+                    enc4 = 64;
+                }
+                output = output + BASE64.num2b64[enc1] + BASE64.num2b64[enc2] + BASE64.num2b64[enc3] + BASE64.num2b64[enc4];
+            }
+            return output;
+        };
+
+        BASE64.str2byte = function (str, buf) {
+            var length = buf.length;
+            var output = '';
+            var i = 0;
+            str = str.replace(/[^A-Za-z0-9\+\/\=\-\_]/g, '');
+            var j = 0;
+            while (i < str.length) {
+                var enc1 = BASE64.b642num[str.charAt(i++)];
+                var enc2 = BASE64.b642num[str.charAt(i++)];
+                var enc3 = BASE64.b642num[str.charAt(i++)];
+                var enc4 = BASE64.b642num[str.charAt(i++)];
+                var chr1 = (enc1 << 2) | (enc2 >> 4);
+                var chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+                var chr3 = ((enc3 & 3) << 6) | enc4;
+                buf.writeUInt8(chr1, j++);
+                if (j === length) {
+                    break;
+                }
+                if (enc3 !== 64) {
+                    output += buf.writeUInt8(chr2, j++);
+                }
+                if (j === length) {
+                    break;
+                }
+                if (enc4 !== 64) {
+                    output += buf.writeUInt8(chr3, j++);
+                }
+                if (j === length) {
+                    break;
+                }
+            }
+            return j;
+        };
+
+        BASE64.byteLength = function (str) {
+            return Math.floor(((str.replace(/[^A-Za-z0-9\+\/\-\_]/g, '')).length * 6) / 8);
+        };
+        BASE64.b64chars = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/', '='];
+        BASE64.num2b64 = (function () {
+            var obj = new Array(BASE64.b64chars.length);
+            for (var idx = 0; idx < BASE64.b64chars.length; idx++) {
+                var i = BASE64.b64chars[idx];
+                obj[idx] = i;
+            }
+            return obj;
+        })();
+
+        BASE64.b642num = (function () {
+            var obj = {};
+            for (var idx = 0; idx < BASE64.b64chars.length; idx++) {
+                var i = BASE64.b64chars[idx];
+                obj[i] = idx;
+            }
+            obj['-'] = 62;
+            obj['_'] = 63;
+            return obj;
+        })();
+        return BASE64;
+    })();
+    exports.BASE64 = BASE64;
+
+    /**
+    * String utility functions for the UCS-2 encoding. Note that our UCS-2 handling
+    * is identical to our UTF-16 handling.
+    *
+    * Note: UCS-2 handling is identical to UTF-16.
+    * @see http://en.wikipedia.org/wiki/UCS2
+    */
+    var UCS2 = (function () {
+        function UCS2() {
+        }
+        UCS2.str2byte = function (str, buf) {
+            var len = str.length;
+
+            // Clip length to longest string of valid characters that can fit in the
+            // byte range.
+            if (len * 2 > buf.length) {
+                len = buf.length % 2 === 1 ? (buf.length - 1) / 2 : buf.length / 2;
+            }
+            for (var i = 0; i < len; i++) {
+                buf.writeUInt16LE(str.charCodeAt(i), i * 2);
+            }
+            return len * 2;
+        };
+
+        UCS2.byte2str = function (buff) {
+            if (buff.length % 2 !== 0) {
+                throw new Error('Invalid UCS2 byte array.');
+            }
+            var chars = new Array(buff.length / 2);
+            for (var i = 0; i < buff.length; i += 2) {
+                chars[i / 2] = String.fromCharCode(buff.readUInt8(i) | (buff.readUInt8(i + 1) << 8));
+            }
+            return chars.join('');
+        };
+
+        UCS2.byteLength = function (str) {
+            return str.length * 2;
+        };
+        return UCS2;
+    })();
+    exports.UCS2 = UCS2;
+
+    /**
+    * Contains string utility functions for hex encoding.
+    * @see http://en.wikipedia.org/wiki/Hexadecimal
+    */
+    var HEX = (function () {
+        function HEX() {
+        }
+        HEX.str2byte = function (str, buf) {
+            if (str.length % 2 === 1) {
+                throw new Error('Invalid hex string');
+            }
+
+            // Each character is 1 byte encoded as two hex characters; so 1 byte becomes
+            // 2 bytes.
+            var numBytes = str.length >> 1;
+            if (numBytes > buf.length) {
+                numBytes = buf.length;
+            }
+            for (var i = 0; i < numBytes; i++) {
+                var char1 = this.hex2num[str.charAt(i << 1)];
+                var char2 = this.hex2num[str.charAt((i << 1) + 1)];
+                buf.writeUInt8((char1 << 4) | char2, i);
+            }
+            return numBytes;
+        };
+
+        HEX.byte2str = function (buff) {
+            var len = buff.length;
+            var chars = new Array(len << 1);
+            var j = 0;
+            for (var i = 0; i < len; i++) {
+                var hex2 = buff.readUInt8(i) & 0xF;
+                var hex1 = buff.readUInt8(i) >> 4;
+                chars[j++] = this.num2hex[hex1];
+                chars[j++] = this.num2hex[hex2];
+            }
+            return chars.join('');
+        };
+
+        HEX.byteLength = function (str) {
+            // Assuming a valid string.
+            return str.length >> 1;
+        };
+        HEX.HEXCHARS = '0123456789abcdef';
+
+        HEX.num2hex = (function () {
+            var obj = new Array(HEX.HEXCHARS.length);
+            for (var idx = 0; idx < HEX.HEXCHARS.length; idx++) {
+                var i = HEX.HEXCHARS[idx];
+                obj[idx] = i;
+            }
+            return obj;
+        })();
+
+        HEX.hex2num = (function () {
+            var idx, i;
+            var obj = {};
+            for (idx = 0; idx < HEX.HEXCHARS.length; idx++) {
+                i = HEX.HEXCHARS[idx];
+                obj[i] = idx;
+            }
+            var capitals = 'ABCDEF';
+            for (idx = 0; idx < capitals.length; idx++) {
+                i = capitals[idx];
+                obj[i] = idx + 10;
+            }
+            return obj;
+        })();
+        return HEX;
+    })();
+    exports.HEX = HEX;
+
+    /**
+    * Contains string utility functions for binary string encoding. This is where we
+    * pack arbitrary binary data as a UTF-16 string.
+    *
+    * Each character in the string is two bytes. The first character in the string
+    * is special: The first byte specifies if the binary data is of odd byte length.
+    * If it is, then it is a 1 and the second byte is the first byte of data; if
+    * not, it is a 0 and the second byte is 0.
+    *
+    * Everything is little endian.
+    */
+    var BINSTR = (function () {
+        function BINSTR() {
+        }
+        BINSTR.str2byte = function (str, buf) {
+            // Special case: Empty string
+            if (str.length === 0) {
+                return 0;
+            }
+            var numBytes = BINSTR.byteLength(str);
+            if (numBytes > buf.length) {
+                numBytes = buf.length;
+            }
+            var j = 0;
+            var startByte = 0;
+            var endByte = startByte + numBytes;
+
+            // Handle first character separately
+            var firstChar = str.charCodeAt(j++);
+            if (firstChar !== 0) {
+                buf.writeUInt8(firstChar & 0xFF, 0);
+                startByte = 1;
+            }
+            for (var i = startByte; i < endByte; i += 2) {
+                var chr = str.charCodeAt(j++);
+                if (endByte - i === 1) {
+                    // Write first byte of character
+                    buf.writeUInt8(chr >> 8, i);
+                }
+                if (endByte - i >= 2) {
+                    // Write both bytes in character
+                    buf.writeUInt16BE(chr, i);
+                }
+            }
+            return numBytes;
+        };
+
+        BINSTR.byte2str = function (buff) {
+            var len = buff.length;
+
+            // Special case: Empty string
+            if (len === 0) {
+                return '';
+            }
+            var chars = new Array((len >> 1) + 1);
+            var j = 0;
+            for (var i = 0; i < chars.length; i++) {
+                if (i === 0) {
+                    if (len % 2 === 1) {
+                        chars[i] = String.fromCharCode((1 << 8) | buff.readUInt8(j++));
+                    } else {
+                        chars[i] = String.fromCharCode(0);
+                    }
+                } else {
+                    chars[i] = String.fromCharCode((buff.readUInt8(j++) << 8) | buff.readUInt8(j++));
+                }
+            }
+            return chars.join('');
+        };
+
+        BINSTR.byteLength = function (str) {
+            if (str.length === 0) {
+                // Special case: Empty string.
+                return 0;
+            }
+            var firstChar = str.charCodeAt(0);
+            var bytelen = (str.length - 1) << 1;
+            if (firstChar !== 0) {
+                bytelen++;
+            }
+            return bytelen;
+        };
+        return BINSTR;
+    })();
+    exports.BINSTR = BINSTR;
+
+    /**
+    * IE/older FF version of binary string. One byte per character, offset by 0x20.
+    */
+    var BINSTRIE = (function () {
+        function BINSTRIE() {
+        }
+        BINSTRIE.str2byte = function (str, buf) {
+            var length = str.length > buf.length ? buf.length : str.length;
+            for (var i = 0; i < length; i++) {
+                buf.writeUInt8(str.charCodeAt(i) - 0x20, i);
+            }
+            return length;
+        };
+
+        BINSTRIE.byte2str = function (buff) {
+            var chars = new Array(buff.length);
+            for (var i = 0; i < buff.length; i++) {
+                chars[i] = String.fromCharCode(buff.readUInt8(i) + 0x20);
+            }
+            return chars.join('');
+        };
+
+        BINSTRIE.byteLength = function (str) {
+            return str.length;
+        };
+        return BINSTRIE;
+    })();
+    exports.BINSTRIE = BINSTRIE;
+});
+//# sourceMappingURL=string_util.js.map
+;
+define('core/buffer',["require", "exports", './buffer_core', './buffer_core_array', './buffer_core_arraybuffer', './buffer_core_imagedata', './string_util'], function(require, exports, buffer_core, buffer_core_array, buffer_core_arraybuffer, buffer_core_imagedata, string_util) {
+    // BC implementations earlier in the array are preferred.
+    var BufferCorePreferences = [
+        buffer_core_arraybuffer.BufferCoreArrayBuffer,
+        buffer_core_imagedata.BufferCoreImageData,
+        buffer_core_array.BufferCoreArray
+    ];
+
+    var PreferredBufferCore = (function () {
+        var i, bci;
+        for (i = 0; i < BufferCorePreferences.length; i++) {
+            bci = BufferCorePreferences[i];
+            if (bci.isAvailable())
+                return bci;
+        }
+
+        throw new Error("This browser does not support any available BufferCore implementations.");
+    })();
+
+    
+
+    
+
+    /**
+    * Emulates Node's Buffer API. Wraps a BufferCore object that is responsible
+    * for actually writing/reading data from some data representation in memory.
+    */
+    var Buffer = (function () {
+        function Buffer(arg1, arg2, arg3) {
+            if (typeof arg2 === "undefined") { arg2 = 'utf8'; }
+            this.offset = 0;
+            var i;
+
+            // Node apparently allows you to construct buffers w/o 'new'.
+            if (!(this instanceof Buffer)) {
+                return new Buffer(arg1, arg2);
+            }
+
+            if (arg1 instanceof buffer_core.BufferCoreCommon) {
+                // constructor (data: buffer_core.BufferCore, start?: number, end?: number)
+                this.data = arg1;
+                var start = typeof arg2 === 'number' ? arg2 : 0;
+                var end = typeof arg3 === 'number' ? arg3 : this.data.getLength();
+                this.offset = start;
+                this.length = end - start;
+            } else if (typeof arg1 === 'number') {
+                // constructor (size: number);
+                if (arg1 !== (arg1 >>> 0)) {
+                    throw new TypeError('Buffer size must be a uint32.');
+                }
+                this.length = arg1;
+                this.data = new PreferredBufferCore(arg1);
+            } else if (typeof DataView !== 'undefined' && arg1 instanceof DataView) {
+                // constructor (data: DataView);
+                this.data = new buffer_core_arraybuffer.BufferCoreArrayBuffer(arg1);
+                this.length = arg1.byteLength;
+            } else if (typeof ArrayBuffer !== 'undefined' && arg1 instanceof ArrayBuffer) {
+                // constructor (data: ArrayBuffer);
+                this.data = new buffer_core_arraybuffer.BufferCoreArrayBuffer(arg1);
+                this.length = arg1.byteLength;
+            } else if (arg1 instanceof Buffer) {
+                // constructor (data: Buffer);
+                var argBuff = arg1;
+                this.data = new PreferredBufferCore(arg1.length);
+                this.length = arg1.length;
+                argBuff.copy(this);
+            } else if (Array.isArray(arg1) || (arg1 != null && typeof arg1 === 'object' && typeof arg1[0] === 'number')) {
+                // constructor (data: number[]);
+                this.data = new PreferredBufferCore(arg1.length);
+                for (i = 0; i < arg1.length; i++) {
+                    this.data.writeUInt8(i, arg1[i]);
+                }
+                this.length = arg1.length;
+            } else if (typeof arg1 === 'string') {
+                // constructor (data: string, encoding?: string);
+                this.length = Buffer.byteLength(arg1, arg2);
+                this.data = new PreferredBufferCore(this.length);
+                this.write(arg1, 0, this.length, arg2);
+            } else {
+                throw new Error("Invalid argument to Buffer constructor: " + arg1);
+            }
+        }
+        Buffer.prototype.getBufferCore = function () {
+            return this.data;
+        };
+
+        Buffer.prototype.getOffset = function () {
+            return this.offset;
+        };
+
+        /**
+        * **NONSTANDARD**: Set the octet at index. Emulates NodeJS buffer's index
+        * operation. Octet can be signed or unsigned.
+        * @param {number} index - the index to set the value at
+        * @param {number} value - the value to set at the given index
+        */
+        Buffer.prototype.set = function (index, value) {
+            // In Node, the following happens:
+            // buffer[0] = -1;
+            // buffer[0]; // 255
+            if (value < 0) {
+                return this.writeInt8(value, index);
+            } else {
+                return this.writeUInt8(value, index);
+            }
+        };
+
+        /**
+        * **NONSTANDARD**: Get the octet at index.
+        * @param {number} index - index to fetch the value at
+        * @return {number} the value at the given index
+        */
+        Buffer.prototype.get = function (index) {
+            return this.readUInt8(index);
+        };
+
+        /**
+        * Writes string to the buffer at offset using the given encoding.
+        * If buffer did not contain enough space to fit the entire string, it will
+        * write a partial amount of the string.
+        * @param {string} str - Data to be written to buffer
+        * @param {number} [offset=0] - Offset in the buffer to write to
+        * @param {number} [length=this.length] - Number of bytes to write
+        * @param {string} [encoding=utf8] - Character encoding
+        * @return {number} Number of octets written.
+        */
+        Buffer.prototype.write = function (str, offset, length, encoding) {
+            if (typeof offset === "undefined") { offset = 0; }
+            if (typeof length === "undefined") { length = this.length; }
+            if (typeof encoding === "undefined") { encoding = 'utf8'; }
+            // I hate Node's optional arguments.
+            if (typeof offset === 'string') {
+                // 'str' and 'encoding' specified
+                encoding = "" + offset;
+                offset = 0;
+                length = this.length;
+            } else if (typeof length === 'string') {
+                // 'str', 'offset', and 'encoding' specified
+                encoding = "" + length;
+                length = this.length;
+            }
+
+            // Don't waste our time if the offset is beyond the buffer length
+            if (offset >= this.length) {
+                return 0;
+            }
+            var strUtil = string_util.FindUtil(encoding);
+
+            // Are we trying to write past the buffer?
+            length = length + offset > this.length ? this.length - offset : length;
+            offset += this.offset;
+            return strUtil.str2byte(str, offset === 0 && length === this.length ? this : new Buffer(this.data, offset, length + offset));
+        };
+
+        /**
+        * Decodes a portion of the Buffer into a String.
+        * @param {string} encoding - Character encoding to decode to
+        * @param {number} [start=0] - Start position in the buffer
+        * @param {number} [end=this.length] - Ending position in the buffer
+        * @return {string} A string from buffer data encoded with encoding, beginning
+        *   at start, and ending at end.
+        */
+        Buffer.prototype.toString = function (encoding, start, end) {
+            if (typeof encoding === "undefined") { encoding = 'utf8'; }
+            if (typeof start === "undefined") { start = 0; }
+            if (typeof end === "undefined") { end = this.length; }
+            if (!(start <= end)) {
+                throw new Error("Invalid start/end positions: " + start + " - " + end);
+            }
+            if (start === end) {
+                return '';
+            }
+            if (end > this.length) {
+                end = this.length;
+            }
+            var strUtil = string_util.FindUtil(encoding);
+
+            // Get the string representation of the given slice. Create a new buffer
+            // if need be.
+            return strUtil.byte2str(start === 0 && end === this.length ? this : new Buffer(this.data, start + this.offset, end + this.offset));
+        };
+
+        /**
+        * Returns a JSON-representation of the Buffer instance, which is identical to
+        * the output for JSON Arrays. JSON.stringify implicitly calls this function
+        * when stringifying a Buffer instance.
+        * @return {object} An object that can be used for JSON stringification.
+        */
+        Buffer.prototype.toJSON = function () {
+            // Construct a byte array for the JSON 'data'.
+            var len = this.length;
+            var byteArr = new Array(len);
+            for (var i = 0; i < len; i++) {
+                byteArr[i] = this.readUInt8(i);
+            }
+            return {
+                type: 'Buffer',
+                data: byteArr
+            };
+        };
+
+        /**
+        * Does copy between buffers. The source and target regions can be overlapped.
+        * All values passed that are undefined/NaN or are out of bounds are set equal
+        * to their respective defaults.
+        * @param {Buffer} target - Buffer to copy into
+        * @param {number} [targetStart=0] - Index to start copying to in the targetBuffer
+        * @param {number} [sourceStart=0] - Index in this buffer to start copying from
+        * @param {number} [sourceEnd=this.length] - Index in this buffer stop copying at
+        * @return {number} The number of bytes copied into the target buffer.
+        */
+        Buffer.prototype.copy = function (target, targetStart, sourceStart, sourceEnd) {
+            if (typeof targetStart === "undefined") { targetStart = 0; }
+            if (typeof sourceStart === "undefined") { sourceStart = 0; }
+            if (typeof sourceEnd === "undefined") { sourceEnd = this.length; }
+            // The Node code is weird. It sets some out-of-bounds args to their defaults
+            // and throws exceptions for others (sourceEnd).
+            targetStart = targetStart < 0 ? 0 : targetStart;
+            sourceStart = sourceStart < 0 ? 0 : sourceStart;
+
+            // Need to sanity check all of the input. Node has really odd rules regarding
+            // when to apply default arguments. I decided to copy Node's logic.
+            if (sourceEnd < sourceStart) {
+                throw new RangeError('sourceEnd < sourceStart');
+            }
+            if (sourceEnd === sourceStart) {
+                return 0;
+            }
+            if (targetStart >= target.length) {
+                throw new RangeError('targetStart out of bounds');
+            }
+            if (sourceStart >= this.length) {
+                throw new RangeError('sourceStart out of bounds');
+            }
+            if (sourceEnd > this.length) {
+                throw new RangeError('sourceEnd out of bounds');
+            }
+            var bytesCopied = Math.min(sourceEnd - sourceStart, target.length - targetStart, this.length - sourceStart);
+
+            for (var i = 0; i < bytesCopied; i++) {
+                target.writeUInt8(this.readUInt8(sourceStart + i), targetStart + i);
+            }
+            return bytesCopied;
+        };
+
+        /**
+        * Returns a slice of this buffer.
+        * @param {number} [start=0] - Index to start slicing from
+        * @param {number} [end=this.length] - Index to stop slicing at
+        * @return {Buffer} A new buffer which references the same
+        *   memory as the old, but offset and cropped by the start (defaults to 0) and
+        *   end (defaults to buffer.length) indexes. Negative indexes start from the end
+        *   of the buffer.
+        */
+        Buffer.prototype.slice = function (start, end) {
+            if (typeof start === "undefined") { start = 0; }
+            if (typeof end === "undefined") { end = this.length; }
+            // Translate negative indices to positive ones.
+            if (start < 0) {
+                start += this.length;
+                if (start < 0) {
+                    start = 0;
+                }
+            }
+            if (end < 0) {
+                end += this.length;
+                if (end < 0) {
+                    end = 0;
+                }
+            }
+            if (end > this.length) {
+                end = this.length;
+            }
+            if (start > end) {
+                start = end;
+            }
+
+            // Sanity check.
+            if (start < 0 || end < 0 || start >= this.length || end > this.length) {
+                throw new Error("Invalid slice indices.");
+            }
+
+            // Create a new buffer backed by the same BufferCore.
+            return new Buffer(this.data, start + this.offset, end + this.offset);
+        };
+
+        /**
+        * [NONSTANDARD] A copy-based version of Buffer.slice.
+        */
+        Buffer.prototype.sliceCopy = function (start, end) {
+            if (typeof start === "undefined") { start = 0; }
+            if (typeof end === "undefined") { end = this.length; }
+            // Translate negative indices to positive ones.
+            if (start < 0) {
+                start += this.length;
+                if (start < 0) {
+                    start = 0;
+                }
+            }
+            if (end < 0) {
+                end += this.length;
+                if (end < 0) {
+                    end = 0;
+                }
+            }
+            if (end > this.length) {
+                end = this.length;
+            }
+            if (start > end) {
+                start = end;
+            }
+
+            // Sanity check.
+            if (start < 0 || end < 0 || start >= this.length || end > this.length) {
+                throw new Error("Invalid slice indices.");
+            }
+
+            // Copy the BufferCore.
+            return new Buffer(this.data.copy(start + this.offset, end + this.offset));
+        };
+
+        /**
+        * Fills the buffer with the specified value. If the offset and end are not
+        * given it will fill the entire buffer.
+        * @param {(string|number)} value - The value to fill the buffer with
+        * @param {number} [offset=0]
+        * @param {number} [end=this.length]
+        */
+        Buffer.prototype.fill = function (value, offset, end) {
+            if (typeof offset === "undefined") { offset = 0; }
+            if (typeof end === "undefined") { end = this.length; }
+            var i;
+            var valType = typeof value;
+            switch (valType) {
+                case "string":
+                    // Trim to a byte.
+                    value = value.charCodeAt(0) & 0xFF;
+                    break;
+                case "number":
+                    break;
+                default:
+                    throw new Error('Invalid argument to fill.');
+            }
+            offset += this.offset;
+            end += this.offset;
+            this.data.fill(value, offset, end);
+        };
+
+        Buffer.prototype.readUInt8 = function (offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            return this.data.readUInt8(offset);
+        };
+
+        Buffer.prototype.readUInt16LE = function (offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            return this.data.readUInt16LE(offset);
+        };
+
+        Buffer.prototype.readUInt16BE = function (offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            return this.data.readUInt16BE(offset);
+        };
+
+        Buffer.prototype.readUInt32LE = function (offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            return this.data.readUInt32LE(offset);
+        };
+
+        Buffer.prototype.readUInt32BE = function (offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            return this.data.readUInt32BE(offset);
+        };
+
+        Buffer.prototype.readInt8 = function (offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            return this.data.readInt8(offset);
+        };
+
+        Buffer.prototype.readInt16LE = function (offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            return this.data.readInt16LE(offset);
+        };
+
+        Buffer.prototype.readInt16BE = function (offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            return this.data.readInt16BE(offset);
+        };
+
+        Buffer.prototype.readInt32LE = function (offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            return this.data.readInt32LE(offset);
+        };
+
+        Buffer.prototype.readInt32BE = function (offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            return this.data.readInt32BE(offset);
+        };
+
+        Buffer.prototype.readFloatLE = function (offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            return this.data.readFloatLE(offset);
+        };
+
+        Buffer.prototype.readFloatBE = function (offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            return this.data.readFloatBE(offset);
+        };
+
+        Buffer.prototype.readDoubleLE = function (offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            return this.data.readDoubleLE(offset);
+        };
+
+        Buffer.prototype.readDoubleBE = function (offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            return this.data.readDoubleBE(offset);
+        };
+
+        Buffer.prototype.writeUInt8 = function (value, offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            this.data.writeUInt8(offset, value);
+        };
+
+        Buffer.prototype.writeUInt16LE = function (value, offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            this.data.writeUInt16LE(offset, value);
+        };
+
+        Buffer.prototype.writeUInt16BE = function (value, offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            this.data.writeUInt16BE(offset, value);
+        };
+
+        Buffer.prototype.writeUInt32LE = function (value, offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            this.data.writeUInt32LE(offset, value);
+        };
+
+        Buffer.prototype.writeUInt32BE = function (value, offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            this.data.writeUInt32BE(offset, value);
+        };
+
+        Buffer.prototype.writeInt8 = function (value, offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            this.data.writeInt8(offset, value);
+        };
+
+        Buffer.prototype.writeInt16LE = function (value, offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            this.data.writeInt16LE(offset, value);
+        };
+
+        Buffer.prototype.writeInt16BE = function (value, offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            this.data.writeInt16BE(offset, value);
+        };
+
+        Buffer.prototype.writeInt32LE = function (value, offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            this.data.writeInt32LE(offset, value);
+        };
+
+        Buffer.prototype.writeInt32BE = function (value, offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            this.data.writeInt32BE(offset, value);
+        };
+
+        Buffer.prototype.writeFloatLE = function (value, offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            this.data.writeFloatLE(offset, value);
+        };
+
+        Buffer.prototype.writeFloatBE = function (value, offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            this.data.writeFloatBE(offset, value);
+        };
+
+        Buffer.prototype.writeDoubleLE = function (value, offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            this.data.writeDoubleLE(offset, value);
+        };
+
+        Buffer.prototype.writeDoubleBE = function (value, offset, noAssert) {
+            if (typeof noAssert === "undefined") { noAssert = false; }
+            offset += this.offset;
+            this.data.writeDoubleBE(offset, value);
+        };
+
+        ///**************************STATIC METHODS********************************///
+        /**
+        * Checks if enc is a valid string encoding type.
+        * @param {string} enc - Name of a string encoding type.
+        * @return {boolean} Whether or not enc is a valid encoding type.
+        */
+        Buffer.isEncoding = function (enc) {
+            try  {
+                string_util.FindUtil(enc);
+            } catch (e) {
+                return false;
+            }
+            return true;
+        };
+
+        /**
+        * Tests if obj is a Buffer.
+        * @param {object} obj - An arbitrary object
+        * @return {boolean} True if this object is a Buffer.
+        */
+        Buffer.isBuffer = function (obj) {
+            return obj instanceof Buffer;
+        };
+
+        /**
+        * Gives the actual byte length of a string. This is not the same as
+        * String.prototype.length since that returns the number of characters in a
+        * string.
+        * @param {string} str - The string to get the byte length of
+        * @param {string} [encoding=utf8] - Character encoding of the string
+        * @return {number} The number of bytes in the string
+        */
+        Buffer.byteLength = function (str, encoding) {
+            if (typeof encoding === "undefined") { encoding = 'utf8'; }
+            var strUtil = string_util.FindUtil(encoding);
+            return strUtil.byteLength(str);
+        };
+
+        /**
+        * Returns a buffer which is the result of concatenating all the buffers in the
+        * list together.
+        * If the list has no items, or if the totalLength is 0, then it returns a
+        * zero-length buffer.
+        * If the list has exactly one item, then the first item of the list is
+        * returned.
+        * If the list has more than one item, then a new Buffer is created.
+        * If totalLength is not provided, it is read from the buffers in the list.
+        * However, this adds an additional loop to the function, so it is faster to
+        * provide the length explicitly.
+        * @param {Buffer[]} list - List of Buffer objects to concat
+        * @param {number} [totalLength] - Total length of the buffers when concatenated
+        * @return {Buffer}
+        */
+        Buffer.concat = function (list, totalLength) {
+            var item;
+            if (list.length === 0 || totalLength === 0) {
+                return new Buffer(0);
+            } else if (list.length === 1) {
+                return list[0];
+            } else {
+                if (totalLength == null) {
+                    // Calculate totalLength
+                    totalLength = 0;
+                    for (var i = 0; i < list.length; i++) {
+                        item = list[i];
+                        totalLength += item.length;
+                    }
+                }
+                var buf = new Buffer(totalLength);
+                var curPos = 0;
+                for (var j = 0; j < list.length; j++) {
+                    item = list[j];
+                    curPos += item.copy(buf, curPos);
+                }
+                return buf;
+            }
+        };
+        return Buffer;
+    })();
+    exports.Buffer = Buffer;
+
+    // Type-check the class.
+    var _ = Buffer;
+});
+//# sourceMappingURL=buffer.js.map
+;
+define('core/file_flag',["require", "exports", './api_error'], function(require, exports, api_error) {
+    /**
+    * @class
+    */
+    (function (ActionType) {
+        // Indicates that the code should not do anything.
+        ActionType[ActionType["NOP"] = 0] = "NOP";
+
+        // Indicates that the code should throw an exception.
+        ActionType[ActionType["THROW_EXCEPTION"] = 1] = "THROW_EXCEPTION";
+
+        // Indicates that the code should truncate the file, but only if it is a file.
+        ActionType[ActionType["TRUNCATE_FILE"] = 2] = "TRUNCATE_FILE";
+
+        // Indicates that the code should create the file.
+        ActionType[ActionType["CREATE_FILE"] = 3] = "CREATE_FILE";
+    })(exports.ActionType || (exports.ActionType = {}));
+    var ActionType = exports.ActionType;
+
+    /**
+    * Represents one of the following file flags. A convenience object.
+    *
+    * * `'r'` - Open file for reading. An exception occurs if the file does not exist.
+    * * `'r+'` - Open file for reading and writing. An exception occurs if the file does not exist.
+    * * `'rs'` - Open file for reading in synchronous mode. Instructs the filesystem to not cache writes.
+    * * `'rs+'` - Open file for reading and writing, and opens the file in synchronous mode.
+    * * `'w'` - Open file for writing. The file is created (if it does not exist) or truncated (if it exists).
+    * * `'wx'` - Like 'w' but opens the file in exclusive mode.
+    * * `'w+'` - Open file for reading and writing. The file is created (if it does not exist) or truncated (if it exists).
+    * * `'wx+'` - Like 'w+' but opens the file in exclusive mode.
+    * * `'a'` - Open file for appending. The file is created if it does not exist.
+    * * `'ax'` - Like 'a' but opens the file in exclusive mode.
+    * * `'a+'` - Open file for reading and appending. The file is created if it does not exist.
+    * * `'ax+'` - Like 'a+' but opens the file in exclusive mode.
+    *
+    * Exclusive mode ensures that the file path is newly created.
+    * @class
+    */
+    var FileFlag = (function () {
+        /**
+        * This should never be called directly.
+        * @param [String] modeStr The string representing the mode
+        * @throw [BrowserFS.ApiError] when the mode string is invalid
+        */
+        function FileFlag(flagStr) {
+            this.flagStr = flagStr;
+            if (FileFlag.validFlagStrs.indexOf(flagStr) < 0) {
+                throw new api_error.ApiError(9 /* EINVAL */, "Invalid flag: " + flagStr);
+            }
+        }
+        /**
+        * Get an object representing the given file mode.
+        * @param [String] modeStr The string representing the mode
+        * @return [BrowserFS.FileMode] The FileMode object representing the mode
+        * @throw [BrowserFS.ApiError] when the mode string is invalid
+        */
+        FileFlag.getFileFlag = function (flagStr) {
+            // Check cache first.
+            if (FileFlag.flagCache.hasOwnProperty(flagStr)) {
+                return FileFlag.flagCache[flagStr];
+            }
+            return FileFlag.flagCache[flagStr] = new FileFlag(flagStr);
+        };
+
+        /**
+        * Returns true if the file is readable.
+        * @return [Boolean]
+        */
+        FileFlag.prototype.isReadable = function () {
+            return this.flagStr.indexOf('r') !== -1 || this.flagStr.indexOf('+') !== -1;
+        };
+
+        /**
+        * Returns true if the file is writeable.
+        * @return [Boolean]
+        */
+        FileFlag.prototype.isWriteable = function () {
+            return this.flagStr.indexOf('w') !== -1 || this.flagStr.indexOf('a') !== -1 || this.flagStr.indexOf('+') !== -1;
+        };
+
+        /**
+        * Returns true if the file mode should truncate.
+        * @return [Boolean]
+        */
+        FileFlag.prototype.isTruncating = function () {
+            return this.flagStr.indexOf('w') !== -1;
+        };
+
+        /**
+        * Returns true if the file is appendable.
+        * @return [Boolean]
+        */
+        FileFlag.prototype.isAppendable = function () {
+            return this.flagStr.indexOf('a') !== -1;
+        };
+
+        /**
+        * Returns true if the file is open in synchronous mode.
+        * @return [Boolean]
+        */
+        FileFlag.prototype.isSynchronous = function () {
+            return this.flagStr.indexOf('s') !== -1;
+        };
+
+        /**
+        * Returns true if the file is open in exclusive mode.
+        * @return [Boolean]
+        */
+        FileFlag.prototype.isExclusive = function () {
+            return this.flagStr.indexOf('x') !== -1;
+        };
+
+        /**
+        * Returns one of the static fields on this object that indicates the
+        * appropriate response to the path existing.
+        * @return [Number]
+        */
+        FileFlag.prototype.pathExistsAction = function () {
+            if (this.isExclusive()) {
+                return 1 /* THROW_EXCEPTION */;
+            } else if (this.isTruncating()) {
+                return 2 /* TRUNCATE_FILE */;
+            } else {
+                return 0 /* NOP */;
+            }
+        };
+
+        /**
+        * Returns one of the static fields on this object that indicates the
+        * appropriate response to the path not existing.
+        * @return [Number]
+        */
+        FileFlag.prototype.pathNotExistsAction = function () {
+            if ((this.isWriteable() || this.isAppendable()) && this.flagStr !== 'r+') {
+                return 3 /* CREATE_FILE */;
+            } else {
+                return 1 /* THROW_EXCEPTION */;
+            }
+        };
+        FileFlag.flagCache = {};
+
+        FileFlag.validFlagStrs = ['r', 'r+', 'rs', 'rs+', 'w', 'wx', 'w+', 'wx+', 'a', 'ax', 'a+', 'ax+'];
+        return FileFlag;
+    })();
+    exports.FileFlag = FileFlag;
+});
+//# sourceMappingURL=file_flag.js.map
+;
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+define('core/node_eventemitter',["require", "exports", './buffer', './api_error'], function(require, exports, buffer, api_error) {
+    var Buffer = buffer.Buffer;
+    var ApiError = api_error.ApiError;
+    var ErrorCode = api_error.ErrorCode;
+
+    /**
+    * Internal class. Represents a buffered event.
+    */
+    var BufferedEvent = (function () {
+        function BufferedEvent(data, encoding, cb) {
+            this.data = data;
+            this.encoding = encoding;
+            this.cb = cb;
+            this.size = typeof (data) !== 'string' ? data.length : Buffer.byteLength(data, encoding != null ? encoding : undefined);
+
+            // If data is a buffer, we need to copy it.
+            if (typeof (this.data) !== 'string') {
+                this.data = this.data.sliceCopy();
+            }
+        }
+        BufferedEvent.prototype.getData = function (encoding) {
+            if (encoding == null) {
+                if (typeof (this.data) === 'string') {
+                    return new Buffer(this.data, this.encoding != null ? this.encoding : undefined);
+                } else {
+                    return this.data;
+                }
+            } else {
+                if (typeof (this.data) === 'string') {
+                    if (encoding === this.encoding) {
+                        return this.data;
+                    } else {
+                        return (new Buffer(this.data, this.encoding != null ? this.encoding : undefined)).toString(encoding);
+                    }
+                } else {
+                    return this.data.toString(encoding);
+                }
+            }
+        };
+        return BufferedEvent;
+    })();
+
+    /**
+    * Provides an abstract implementation of the EventEmitter interface.
+    */
+    var AbstractEventEmitter = (function () {
+        function AbstractEventEmitter() {
+            this._listeners = {};
+            this.maxListeners = 10;
+        }
+        /**
+        * Adds a listener for the particular event.
+        */
+        AbstractEventEmitter.prototype.addListener = function (event, listener) {
+            if (typeof (this._listeners[event]) === 'undefined') {
+                this._listeners[event] = [];
+            }
+            if (this._listeners[event].push(listener) > this.maxListeners) {
+                process.stdout.write("Warning: Event " + event + " has more than " + this.maxListeners + " listeners.\n");
+            }
+            this.emit('newListener', event, listener);
+            return this;
+        };
+
+        /**
+        * Adds a listener for the particular event.
+        */
+        AbstractEventEmitter.prototype.on = function (event, listener) {
+            return this.addListener(event, listener);
+        };
+
+        /**
+        * Adds a listener for the particular event that fires only once.
+        */
+        AbstractEventEmitter.prototype.once = function (event, listener) {
+            // Create a new callback that will only fire once.
+            var fired = false, newListener = function () {
+                this.removeListener(event, newListener);
+
+                if (!fired) {
+                    fired = true;
+                    listener.apply(this, arguments);
+                }
+            };
+            return this.addListener(event, newListener);
+        };
+
+        /**
+        * Emits the 'removeListener' event for the specified listeners.
+        */
+        AbstractEventEmitter.prototype._emitRemoveListener = function (event, listeners) {
+            var i;
+
+            // Only emit the event if someone is listening.
+            if (this._listeners['removeListener'] && this._listeners['removeListener'].length > 0) {
+                for (i = 0; i < listeners.length; i++) {
+                    this.emit('removeListener', event, listeners[i]);
+                }
+            }
+        };
+
+        /**
+        * Removes the particular listener for the given event.
+        */
+        AbstractEventEmitter.prototype.removeListener = function (event, listener) {
+            var listeners = this._listeners[event];
+            if (typeof (listeners) !== 'undefined') {
+                // Remove listener, if present.
+                var idx = listeners.indexOf(listener);
+                if (idx > -1) {
+                    listeners.splice(idx, 1);
+                }
+            }
+            this.emit('removeListener', event, listener);
+            return this;
+        };
+
+        /**
+        * Removes all listeners, or those of the specified event.
+        */
+        AbstractEventEmitter.prototype.removeAllListeners = function (event) {
+            var removed, keys, i;
+            if (typeof (event) !== 'undefined') {
+                removed = this._listeners[event];
+
+                // Clear one event.
+                this._listeners[event] = [];
+                this._emitRemoveListener(event, removed);
+            } else {
+                // Clear all events.
+                keys = Object.keys(this._listeners);
+                for (i = 0; i < keys.length; i++) {
+                    this.removeAllListeners(keys[i]);
+                }
+            }
+            return this;
+        };
+
+        /**
+        * EventEmitters print a warning when an event has greater than this specified
+        * number of listeners.
+        */
+        AbstractEventEmitter.prototype.setMaxListeners = function (n) {
+            this.maxListeners = n;
+        };
+
+        /**
+        * Returns the listeners for the given event.
+        */
+        AbstractEventEmitter.prototype.listeners = function (event) {
+            if (typeof (this._listeners[event]) === 'undefined') {
+                this._listeners[event] = [];
+            }
+
+            // Return a *copy* of our internal structure.
+            return this._listeners[event].slice(0);
+        };
+
+        /**
+        * Emits the specified event to all listeners of the particular event.
+        */
+        AbstractEventEmitter.prototype.emit = function (event) {
+            var args = [];
+            for (var _i = 0; _i < (arguments.length - 1); _i++) {
+                args[_i] = arguments[_i + 1];
+            }
+            var listeners = this._listeners[event], rv = false;
+            if (typeof (listeners) !== 'undefined') {
+                var i;
+                for (i = 0; i < listeners.length; i++) {
+                    rv = true;
+                    listeners[i].apply(this, args);
+                }
+            }
+            return rv;
+        };
+        return AbstractEventEmitter;
+    })();
+    exports.AbstractEventEmitter = AbstractEventEmitter;
+
+    /**
+    * Provides an abstract implementation of the WritableStream and ReadableStream
+    * interfaces.
+    * @todo: Check readable/writable status.
+    */
+    var AbstractDuplexStream = (function (_super) {
+        __extends(AbstractDuplexStream, _super);
+        /**
+        * Abstract stream implementation that can be configured to be readable and/or
+        * writable.
+        */
+        function AbstractDuplexStream(writable, readable) {
+            _super.call(this);
+            this.writable = writable;
+            this.readable = readable;
+            /**
+            * How should the data output be encoded? 'null' means 'Buffer'.
+            */
+            this.encoding = null;
+            /**
+            * Is this stream currently flowing (resumed) or non-flowing (paused)?
+            */
+            this.flowing = false;
+            /**
+            * Event buffer. Simply queues up all write requests.
+            */
+            this.buffer = [];
+            /**
+            * Once set, the stream is closed. Emitted once 'buffer' is empty.
+            */
+            this.endEvent = null;
+            /**
+            * Has the stream ended?
+            */
+            this.ended = false;
+            /**
+            * The last time we checked, was the buffer empty?
+            * We emit 'readable' events when this transitions from 'true' -> 'false'.
+            */
+            this.drained = true;
+        }
+        /**
+        * Adds a listener for the particular event.
+        * Implemented here so that we can capture data EventListeners, which trigger
+        * us to 'resume'.
+        */
+        AbstractDuplexStream.prototype.addListener = function (event, listener) {
+            var rv = _super.prototype.addListener.call(this, event, listener), _this = this;
+            if (event === 'data' && !this.flowing) {
+                this.resume();
+            } else if (event === 'readable' && this.buffer.length > 0) {
+                setTimeout(function () {
+                    _this.emit('readable');
+                }, 0);
+            }
+            return rv;
+        };
+
+        /**
+        * Helper function for 'write' and 'end' functions.
+        */
+        AbstractDuplexStream.prototype._processArgs = function (data, arg2, arg3) {
+            if (typeof (arg2) === 'string') {
+                // data, encoding, cb?
+                return new BufferedEvent(data, arg2, arg3);
+            } else {
+                // data, cb?
+                return new BufferedEvent(data, null, arg2);
+            }
+        };
+
+        /**
+        * If flowing, this will process pending events.
+        */
+        AbstractDuplexStream.prototype._processEvents = function () {
+            var drained = this.buffer.length === 0;
+            if (this.drained !== drained) {
+                if (this.drained) {
+                    // Went from drained to not drained. New stuff is available.
+                    // @todo: Is this event relevant in flowing mode?
+                    this.emit('readable');
+                }
+            }
+
+            if (this.flowing && this.buffer.length !== 0) {
+                this.emit('data', this.read());
+            }
+
+            // Are we drained? Check.
+            this.drained = this.buffer.length === 0;
+        };
+
+        /**
+        * Emits the given buffered event.
+        */
+        AbstractDuplexStream.prototype.emitEvent = function (type, event) {
+            this.emit(type, event.getData(this.encoding));
+            if (event.cb) {
+                event.cb();
+            }
+        };
+
+        AbstractDuplexStream.prototype.write = function (data, arg2, arg3) {
+            if (this.ended) {
+                throw new ApiError(0 /* EPERM */, 'Cannot write to an ended stream.');
+            }
+            var event = this._processArgs(data, arg2, arg3);
+            this._push(event);
+            return this.flowing;
+        };
+
+        AbstractDuplexStream.prototype.end = function (data, arg2, arg3) {
+            if (this.ended) {
+                throw new ApiError(0 /* EPERM */, 'Stream is already closed.');
+            }
+            var event = this._processArgs(data, arg2, arg3);
+            this.ended = true;
+            this.endEvent = event;
+            this._processEvents();
+        };
+
+        /**** Readable Interface ****/
+        /**
+        * Read a given number of bytes from the buffer. Should only be called in
+        * non-flowing mode.
+        * If we do not have `size` bytes available, return null.
+        */
+        AbstractDuplexStream.prototype.read = function (size) {
+            var events = [], eventsCbs = [], lastCb, eventsSize = 0, event, buff, trueSize, i = 0, sizeUnspecified = typeof (size) !== 'number';
+
+            // I do this so I do not need to specialize the loop below.
+            if (sizeUnspecified)
+                size = 4294967295;
+
+            for (i = 0; i < this.buffer.length && eventsSize < size; i++) {
+                event = this.buffer[i];
+                events.push(event.getData());
+                if (event.cb) {
+                    eventsCbs.push(event.cb);
+                }
+                eventsSize += event.size;
+                lastCb = event.cb;
+            }
+
+            if (!sizeUnspecified && eventsSize < size) {
+                // For some reason, the Node stream API specifies that we either return
+                // 'size' bytes of data, or nothing at all.
+                return null;
+            }
+
+            // Remove all of the events we are processing from the buffer.
+            this.buffer = this.buffer.slice(events.length);
+
+            // The 'true size' of the final event we're going to send out.
+            trueSize = eventsSize > size ? size : eventsSize;
+
+            // Concat at all of the events into one buffer.
+            buff = Buffer.concat(events);
+            if (eventsSize > size) {
+                // If last event had a cb, ignore it -- we trigger it when that *entire*
+                // write finishes.
+                if (lastCb)
+                    eventsCbs.pop();
+
+                // Make a new event for the remaining data.
+                this._push(new BufferedEvent(buff.slice(size), null, lastCb));
+            }
+
+            // Schedule the relevant cbs to fire *after* we've returned these values.
+            if (eventsCbs.length > 0) {
+                setTimeout(function () {
+                    var i;
+                    for (i = 0; i < eventsCbs.length; i++) {
+                        eventsCbs[i]();
+                    }
+                }, 0);
+            }
+
+            // If we're at the end of the buffer and an endEvent is specified, schedule
+            // the event to fire.
+            if (this.ended && this.buffer.length === 0 && this.endEvent !== null) {
+                var endEvent = this.endEvent, _this = this;
+
+                // Erase it so we don't accidentally trigger it again.
+                this.endEvent = null;
+                setTimeout(function () {
+                    _this.emitEvent('end', endEvent);
+                }, 0);
+            }
+
+            // Return in correct encoding.
+            if (events.length === 0) {
+                // Buffer was empty. We're supposed to return 'null', as opposed to an
+                // empty buffer or string.
+                // [BFS] Emit a '_read' event to signal that maybe the write-end of this
+                //       should push some data into the pipe.
+                this.emit('_read');
+                return null;
+            } else if (this.encoding === null) {
+                return buff.slice(0, trueSize);
+            } else {
+                return buff.toString(this.encoding, 0, trueSize);
+            }
+        };
+
+        /**
+        * Set the encoding for the 'data' event.
+        */
+        AbstractDuplexStream.prototype.setEncoding = function (encoding) {
+            this.encoding = encoding;
+        };
+
+        /**
+        * Pause the stream.
+        */
+        AbstractDuplexStream.prototype.pause = function () {
+            this.flowing = false;
+        };
+
+        /**
+        * Resume the stream.
+        */
+        AbstractDuplexStream.prototype.resume = function () {
+            this.flowing = true;
+
+            // Process any buffered writes.
+            this._processEvents();
+        };
+
+        /**
+        * Pipe a readable stream into a writable stream. Currently unimplemented.
+        */
+        AbstractDuplexStream.prototype.pipe = function (destination, options) {
+            throw new ApiError(0 /* EPERM */, "Unimplemented.");
+        };
+        AbstractDuplexStream.prototype.unpipe = function (destination) {
+        };
+
+        AbstractDuplexStream.prototype.unshift = function (chunk) {
+            if (this.ended) {
+                throw new ApiError(0 /* EPERM */, "Stream has ended.");
+            }
+            this.buffer.unshift(new BufferedEvent(chunk, this.encoding));
+            this._processEvents();
+        };
+
+        /**
+        * 'Push' the given piece of data to the back of the buffer.
+        * Returns true if the event was sent out, false if buffered.
+        */
+        AbstractDuplexStream.prototype._push = function (event) {
+            this.buffer.push(event);
+            this._processEvents();
+        };
+
+        /**
+        * Enables backwards-compatibility with older versions of Node and their
+        * stream interface. Unimplemented.
+        */
+        AbstractDuplexStream.prototype.wrap = function (stream) {
+            throw new ApiError(0 /* EPERM */, "Unimplemented.");
+        };
+        return AbstractDuplexStream;
+    })(AbstractEventEmitter);
+    exports.AbstractDuplexStream = AbstractDuplexStream;
+});
+//# sourceMappingURL=node_eventemitter.js.map
+;
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+define('core/node_process',["require", "exports", './node_eventemitter'], function(require, exports, eventemitter) {
+    var path = null;
+
+    var TTY = (function (_super) {
+        __extends(TTY, _super);
+        function TTY() {
+            _super.call(this, true, true);
+            this.isRaw = false;
+            this.columns = 80;
+            this.rows = 120;
+            this.isTTY = true;
+        }
+        /**
+        * Set read mode to 'true' to enable raw mode.
+        */
+        TTY.prototype.setReadMode = function (mode) {
+            if (this.isRaw !== mode) {
+                this.isRaw = mode;
+
+                // [BFS] TTY implementations can use this to change their event emitting
+                //       patterns.
+                this.emit('modeChange');
+            }
+        };
+
+        /**
+        * [BFS] Update the number of columns available on the terminal.
+        */
+        TTY.prototype.changeColumns = function (columns) {
+            if (columns !== this.columns) {
+                this.columns = columns;
+
+                // Resize event.
+                this.emit('resize');
+            }
+        };
+
+        /**
+        * [BFS] Update the number of rows available on the terminal.
+        */
+        TTY.prototype.changeRows = function (rows) {
+            if (rows !== this.rows) {
+                this.rows = rows;
+
+                // Resize event.
+                this.emit('resize');
+            }
+        };
+
+        /**
+        * Returns 'true' if the given object is a TTY.
+        */
+        TTY.isatty = function (fd) {
+            return fd instanceof TTY;
+        };
+        return TTY;
+    })(eventemitter.AbstractDuplexStream);
+    exports.TTY = TTY;
+
+    /**
+    * Partial implementation of Node's `process` module.
+    * We implement the portions that are relevant for the filesystem.
+    * @see http://nodejs.org/api/process.html
+    * @class
+    */
+    var Process = (function () {
+        function Process() {
+            this.startTime = Date.now();
+            this._cwd = '/';
+            /**
+            * Returns what platform you are running on.
+            * @return [String]
+            */
+            this.platform = 'browser';
+            this.argv = [];
+            this.stdout = new TTY();
+            this.stderr = new TTY();
+            this.stdin = new TTY();
+        }
+        /**
+        * Changes the current working directory.
+        *
+        * **Note**: BrowserFS does not validate that the directory actually exists.
+        *
+        * @example Usage example
+        *   console.log('Starting directory: ' + process.cwd());
+        *   process.chdir('/tmp');
+        *   console.log('New directory: ' + process.cwd());
+        * @param [String] dir The directory to change to.
+        */
+        Process.prototype.chdir = function (dir) {
+            // XXX: Circular dependency hack.
+            if (path === null) {
+                path = require('./node_path').path;
+            }
+            this._cwd = path.resolve(dir);
+        };
+
+        /**
+        * Returns the current working directory.
+        * @example Usage example
+        *   console.log('Current directory: ' + process.cwd());
+        * @return [String] The current working directory.
+        */
+        Process.prototype.cwd = function () {
+            return this._cwd;
+        };
+
+        /**
+        * Number of seconds BrowserFS has been running.
+        * @return [Number]
+        */
+        Process.prototype.uptime = function () {
+            return ((Date.now() - this.startTime) / 1000) | 0;
+        };
+        return Process;
+    })();
+    exports.Process = Process;
+
+    // process is a singleton.
+    exports.process = new Process();
+});
+//# sourceMappingURL=node_process.js.map
+;
+define('core/node_path',["require", "exports", './node_process'], function(require, exports, node_process) {
+    var process = node_process.process;
+
+    /**
+    * Emulates Node's `path` module. This module contains utilities for handling and
+    * transforming file paths. **All** of these methods perform only string
+    * transformations. The file system is not consulted to check whether paths are
+    * valid.
+    * @see http://nodejs.org/api/path.html
+    * @class
+    */
+    var path = (function () {
+        function path() {
+        }
+        /**
+        * Normalize a string path, taking care of '..' and '.' parts.
+        *
+        * When multiple slashes are found, they're replaced by a single one; when the path contains a trailing slash, it is preserved. On Windows backslashes are used.
+        * @example Usage example
+        *   path.normalize('/foo/bar//baz/asdf/quux/..')
+        *   // returns
+        *   '/foo/bar/baz/asdf'
+        * @param [String] p The path to normalize.
+        * @return [String]
+        */
+        path.normalize = function (p) {
+            // Special case: '' -> '.'
+            if (p === '') {
+                p = '.';
+            }
+
+            // It's very important to know if the path is relative or not, since it
+            // changes how we process .. and reconstruct the split string.
+            var absolute = p.charAt(0) === path.sep;
+
+            // Remove repeated //s
+            p = path._removeDuplicateSeps(p);
+
+            // Try to remove as many '../' as possible, and remove '.' completely.
+            var components = p.split(path.sep);
+            var goodComponents = [];
+            for (var idx = 0; idx < components.length; idx++) {
+                var c = components[idx];
+                if (c === '.') {
+                    continue;
+                } else if (c === '..' && (absolute || (!absolute && goodComponents.length > 0 && goodComponents[0] !== '..'))) {
+                    // In the absolute case: Path is relative to root, so we may pop even if
+                    // goodComponents is empty (e.g. /../ => /)
+                    // In the relative case: We're getting rid of a directory that preceded
+                    // it (e.g. /foo/../bar -> /bar)
+                    goodComponents.pop();
+                } else {
+                    goodComponents.push(c);
+                }
+            }
+
+            // Add in '.' when it's a relative path with no other nonempty components.
+            // Possible results: '.' and './' (input: [''] or [])
+            // @todo Can probably simplify this logic.
+            if (!absolute && goodComponents.length < 2) {
+                switch (goodComponents.length) {
+                    case 1:
+                        if (goodComponents[0] === '') {
+                            goodComponents.unshift('.');
+                        }
+                        break;
+                    default:
+                        goodComponents.push('.');
+                }
+            }
+            p = goodComponents.join(path.sep);
+            if (absolute && p.charAt(0) !== path.sep) {
+                p = path.sep + p;
+            }
+            return p;
+        };
+
+        /**
+        * Join all arguments together and normalize the resulting path.
+        *
+        * Arguments must be strings.
+        * @example Usage
+        *   path.join('/foo', 'bar', 'baz/asdf', 'quux', '..')
+        *   // returns
+        *   '/foo/bar/baz/asdf'
+        *
+        *   path.join('foo', {}, 'bar')
+        *   // throws exception
+        *   TypeError: Arguments to path.join must be strings
+        * @param [String,...] paths Each component of the path
+        * @return [String]
+        */
+        path.join = function () {
+            var paths = [];
+            for (var _i = 0; _i < (arguments.length - 0); _i++) {
+                paths[_i] = arguments[_i + 0];
+            }
+            // Required: Prune any non-strings from the path. I also prune empty segments
+            // so we can do a simple join of the array.
+            var processed = [];
+            for (var i = 0; i < paths.length; i++) {
+                var segment = paths[i];
+                if (typeof segment !== 'string') {
+                    throw new TypeError("Invalid argument type to path.join: " + (typeof segment));
+                } else if (segment !== '') {
+                    processed.push(segment);
+                }
+            }
+            return path.normalize(processed.join(path.sep));
+        };
+
+        /**
+        * Resolves to to an absolute path.
+        *
+        * If to isn't already absolute from arguments are prepended in right to left
+        * order, until an absolute path is found. If after using all from paths still
+        * no absolute path is found, the current working directory is used as well.
+        * The resulting path is normalized, and trailing slashes are removed unless
+        * the path gets resolved to the root directory. Non-string arguments are
+        * ignored.
+        *
+        * Another way to think of it is as a sequence of cd commands in a shell.
+        *
+        *     path.resolve('foo/bar', '/tmp/file/', '..', 'a/../subfile')
+        *
+        * Is similar to:
+        *
+        *     cd foo/bar
+        *     cd /tmp/file/
+        *     cd ..
+        *     cd a/../subfile
+        *     pwd
+        *
+        * The difference is that the different paths don't need to exist and may also
+        * be files.
+        * @example Usage example
+        *   path.resolve('/foo/bar', './baz')
+        *   // returns
+        *   '/foo/bar/baz'
+        *
+        *   path.resolve('/foo/bar', '/tmp/file/')
+        *   // returns
+        *   '/tmp/file'
+        *
+        *   path.resolve('wwwroot', 'static_files/png/', '../gif/image.gif')
+        *   // if currently in /home/myself/node, it returns
+        *   '/home/myself/node/wwwroot/static_files/gif/image.gif'
+        * @param [String,...] paths
+        * @return [String]
+        */
+        path.resolve = function () {
+            var paths = [];
+            for (var _i = 0; _i < (arguments.length - 0); _i++) {
+                paths[_i] = arguments[_i + 0];
+            }
+            // Monitor for invalid paths, throw out empty paths, and look for the *last*
+            // absolute path that we see.
+            var processed = [];
+            for (var i = 0; i < paths.length; i++) {
+                var p = paths[i];
+                if (typeof p !== 'string') {
+                    throw new TypeError("Invalid argument type to path.join: " + (typeof p));
+                } else if (p !== '') {
+                    // Remove anything that has occurred before this absolute path, as it
+                    // doesn't matter.
+                    if (p.charAt(0) === path.sep) {
+                        processed = [];
+                    }
+                    processed.push(p);
+                }
+            }
+
+            // Special: Remove trailing slash unless it's the root
+            var resolved = path.normalize(processed.join(path.sep));
+            if (resolved.length > 1 && resolved.charAt(resolved.length - 1) === path.sep) {
+                return resolved.substr(0, resolved.length - 1);
+            }
+
+            // Special: If it doesn't start with '/', it's relative and we need to append
+            // the current directory.
+            if (resolved.charAt(0) !== path.sep) {
+                // Remove ./, since we're going to append the current directory.
+                if (resolved.charAt(0) === '.' && (resolved.length === 1 || resolved.charAt(1) === path.sep)) {
+                    resolved = resolved.length === 1 ? '' : resolved.substr(2);
+                }
+
+                // Append the current directory, which *must* be an absolute path.
+                var cwd = process.cwd();
+                if (resolved !== '') {
+                    // cwd will never end in a /... unless it's the root.
+                    resolved = this.normalize(cwd + (cwd !== '/' ? path.sep : '') + resolved);
+                } else {
+                    resolved = cwd;
+                }
+            }
+            return resolved;
+        };
+
+        /**
+        * Solve the relative path from from to to.
+        *
+        * At times we have two absolute paths, and we need to derive the relative path
+        * from one to the other. This is actually the reverse transform of
+        * path.resolve, which means we see that:
+        *
+        *    path.resolve(from, path.relative(from, to)) == path.resolve(to)
+        *
+        * @example Usage example
+        *   path.relative('C:\\orandea\\test\\aaa', 'C:\\orandea\\impl\\bbb')
+        *   // returns
+        *   '..\\..\\impl\\bbb'
+        *
+        *   path.relative('/data/orandea/test/aaa', '/data/orandea/impl/bbb')
+        *   // returns
+        *   '../../impl/bbb'
+        * @param [String] from
+        * @param [String] to
+        * @return [String]
+        */
+        path.relative = function (from, to) {
+            var i;
+
+            // Alright. Let's resolve these two to absolute paths and remove any
+            // weirdness.
+            from = path.resolve(from);
+            to = path.resolve(to);
+            var fromSegs = from.split(path.sep);
+            var toSegs = to.split(path.sep);
+
+            // Remove the first segment on both, as it's '' (both are absolute paths)
+            toSegs.shift();
+            fromSegs.shift();
+
+            // There are two segments to this path:
+            // * Going *up* the directory hierarchy with '..'
+            // * Going *down* the directory hierarchy with foo/baz/bat.
+            var upCount = 0;
+            var downSegs = [];
+
+            for (i = 0; i < fromSegs.length; i++) {
+                var seg = fromSegs[i];
+                if (seg === toSegs[i]) {
+                    continue;
+                }
+
+                // The rest of 'from', including the current element, indicates how many
+                // directories we need to go up.
+                upCount = fromSegs.length - i;
+                break;
+            }
+
+            // The rest of 'to' indicates where we need to change to. We place this
+            // outside of the loop, as toSegs.length may be greater than fromSegs.length.
+            downSegs = toSegs.slice(i);
+
+            // Special case: If 'from' is '/'
+            if (fromSegs.length === 1 && fromSegs[0] === '') {
+                upCount = 0;
+            }
+
+            // upCount can't be greater than the number of fromSegs
+            // (cd .. from / is still /)
+            if (upCount > fromSegs.length) {
+                upCount = fromSegs.length;
+            }
+
+            // Create the final string!
+            var rv = '';
+            for (i = 0; i < upCount; i++) {
+                rv += '../';
+            }
+            rv += downSegs.join(path.sep);
+
+            // Special case: Remove trailing '/'. Happens if it's all up and no down.
+            if (rv.length > 1 && rv.charAt(rv.length - 1) === path.sep) {
+                rv = rv.substr(0, rv.length - 1);
+            }
+            return rv;
+        };
+
+        /**
+        * Return the directory name of a path. Similar to the Unix `dirname` command.
+        *
+        * Note that BrowserFS does not validate if the path is actually a valid
+        * directory.
+        * @example Usage example
+        *   path.dirname('/foo/bar/baz/asdf/quux')
+        *   // returns
+        *   '/foo/bar/baz/asdf'
+        * @param [String] p The path to get the directory name of.
+        * @return [String]
+        */
+        path.dirname = function (p) {
+            // We get rid of //, but we don't modify anything else (e.g. any extraneous .
+            // and ../ are kept intact)
+            p = path._removeDuplicateSeps(p);
+            var absolute = p.charAt(0) === path.sep;
+            var sections = p.split(path.sep);
+
+            // Do 1 if it's /foo/bar, 2 if it's /foo/bar/
+            if (sections.pop() === '' && sections.length > 0) {
+                sections.pop();
+            }
+            if (sections.length > 1) {
+                return sections.join(path.sep);
+            } else if (absolute) {
+                return path.sep;
+            } else {
+                return '.';
+            }
+        };
+
+        /**
+        * Return the last portion of a path. Similar to the Unix basename command.
+        * @example Usage example
+        *   path.basename('/foo/bar/baz/asdf/quux.html')
+        *   // returns
+        *   'quux.html'
+        *
+        *   path.basename('/foo/bar/baz/asdf/quux.html', '.html')
+        *   // returns
+        *   'quux'
+        * @param [String] p
+        * @param [String?] ext
+        * @return [String]
+        */
+        path.basename = function (p, ext) {
+            if (typeof ext === "undefined") { ext = ""; }
+            // Special case: Normalize will modify this to '.'
+            if (p === '') {
+                return p;
+            }
+
+            // Normalize the string first to remove any weirdness.
+            p = path.normalize(p);
+
+            // Get the last part of the string.
+            var sections = p.split(path.sep);
+            var lastPart = sections[sections.length - 1];
+
+            // Special case: If it's empty, then we have a string like so: foo/
+            // Meaning, 'foo' is guaranteed to be a directory.
+            if (lastPart === '' && sections.length > 1) {
+                return sections[sections.length - 2];
+            }
+
+            // Remove the extension, if need be.
+            if (ext.length > 0) {
+                var lastPartExt = lastPart.substr(lastPart.length - ext.length);
+                if (lastPartExt === ext) {
+                    return lastPart.substr(0, lastPart.length - ext.length);
+                }
+            }
+            return lastPart;
+        };
+
+        /**
+        * Return the extension of the path, from the last '.' to end of string in the
+        * last portion of the path. If there is no '.' in the last portion of the path
+        * or the first character of it is '.', then it returns an empty string.
+        * @example Usage example
+        *   path.extname('index.html')
+        *   // returns
+        *   '.html'
+        *
+        *   path.extname('index.')
+        *   // returns
+        *   '.'
+        *
+        *   path.extname('index')
+        *   // returns
+        *   ''
+        * @param [String] p
+        * @return [String]
+        */
+        path.extname = function (p) {
+            p = path.normalize(p);
+            var sections = p.split(path.sep);
+            p = sections.pop();
+
+            // Special case: foo/file.ext/ should return '.ext'
+            if (p === '' && sections.length > 0) {
+                p = sections.pop();
+            }
+            if (p === '..') {
+                return '';
+            }
+            var i = p.lastIndexOf('.');
+            if (i === -1 || i === 0) {
+                return '';
+            }
+            return p.substr(i);
+        };
+
+        /**
+        * Checks if the given path is an absolute path.
+        *
+        * Despite not being documented, this is a tested part of Node's path API.
+        * @param [String] p
+        * @return [Boolean] True if the path appears to be an absolute path.
+        */
+        path.isAbsolute = function (p) {
+            return p.length > 0 && p.charAt(0) === path.sep;
+        };
+
+        /**
+        * Unknown. Undocumented.
+        */
+        path._makeLong = function (p) {
+            return p;
+        };
+
+        path._removeDuplicateSeps = function (p) {
+            p = p.replace(this._replaceRegex, this.sep);
+            return p;
+        };
+        path.sep = '/';
+
+        path._replaceRegex = new RegExp("//+", 'g');
+
+        path.delimiter = ':';
+        return path;
+    })();
+    exports.path = path;
+});
+//# sourceMappingURL=node_path.js.map
+;
+define('core/node_fs',["require", "exports", './api_error', './file_flag', './buffer', './node_path'], function(require, exports, api_error, file_flag, buffer, node_path) {
+    var ApiError = api_error.ApiError;
+    var ErrorCode = api_error.ErrorCode;
+    var FileFlag = file_flag.FileFlag;
+    var Buffer = buffer.Buffer;
+    var path = node_path.path;
+
+    /**
+    * Wraps a callback with a setImmediate call.
+    * @param [Function] cb The callback to wrap.
+    * @param [Number] numArgs The number of arguments that the callback takes.
+    * @return [Function] The wrapped callback.
+    */
+    function wrapCb(cb, numArgs) {
+        if (typeof cb !== 'function') {
+            throw new ApiError(9 /* EINVAL */, 'Callback must be a function.');
+        }
+
+        // @todo This is used for unit testing. Maybe we should inject this logic
+        //       dynamically rather than bundle it in 'production' code.
+        if (typeof __numWaiting === 'undefined') {
+            __numWaiting = 0;
+        }
+        __numWaiting++;
+
+        switch (numArgs) {
+            case 1:
+                return function (arg1) {
+                    setImmediate(function () {
+                        __numWaiting--;
+                        return cb(arg1);
+                    });
+                };
+            case 2:
+                return function (arg1, arg2) {
+                    setImmediate(function () {
+                        __numWaiting--;
+                        return cb(arg1, arg2);
+                    });
+                };
+            case 3:
+                return function (arg1, arg2, arg3) {
+                    setImmediate(function () {
+                        __numWaiting--;
+                        return cb(arg1, arg2, arg3);
+                    });
+                };
+            default:
+                throw new Error('Invalid invocation of wrapCb.');
+        }
+    }
+
+    /**
+    * Checks if the fd is valid.
+    * @param [BrowserFS.File] fd A file descriptor (in BrowserFS, it's a File object)
+    * @return [Boolean, BrowserFS.ApiError] Returns `true` if the FD is OK,
+    *   otherwise returns an ApiError.
+    */
+    function checkFd(fd) {
+        if (typeof fd['write'] !== 'function') {
+            throw new ApiError(3 /* EBADF */, 'Invalid file descriptor.');
+        }
+    }
+
+    function normalizeMode(mode, def) {
+        switch (typeof mode) {
+            case 'number':
+                // (path, flag, mode, cb?)
+                return mode;
+            case 'string':
+                // (path, flag, modeString, cb?)
+                var trueMode = parseInt(mode, 8);
+                if (trueMode !== NaN) {
+                    return trueMode;
+                }
+
+            default:
+                return def;
+        }
+    }
+
+    function normalizePath(p) {
+        // Node doesn't allow null characters in paths.
+        if (p.indexOf('\u0000') >= 0) {
+            throw new ApiError(9 /* EINVAL */, 'Path must be a string without null bytes.');
+        } else if (p === '') {
+            throw new ApiError(9 /* EINVAL */, 'Path must not be empty.');
+        }
+        return path.resolve(p);
+    }
+
+    function normalizeOptions(options, defEnc, defFlag, defMode) {
+        switch (typeof options) {
+            case 'object':
+                return {
+                    encoding: typeof options['encoding'] !== 'undefined' ? options['encoding'] : defEnc,
+                    flag: typeof options['flag'] !== 'undefined' ? options['flag'] : defFlag,
+                    mode: normalizeMode(options['mode'], defMode)
+                };
+            case 'string':
+                return {
+                    encoding: options,
+                    flag: defFlag,
+                    mode: defMode
+                };
+            default:
+                return {
+                    encoding: defEnc,
+                    flag: defFlag,
+                    mode: defMode
+                };
+        }
+    }
+
+    // The default callback is a NOP.
+    function nopCb() {
+    }
+    ;
+
+    /**
+    * The node frontend to all filesystems.
+    * This layer handles:
+    *
+    * * Sanity checking inputs.
+    * * Normalizing paths.
+    * * Resetting stack depth for asynchronous operations which may not go through
+    *   the browser by wrapping all input callbacks using `setImmediate`.
+    * * Performing the requested operation through the filesystem or the file
+    *   descriptor, as appropriate.
+    * * Handling optional arguments and setting default arguments.
+    * @see http://nodejs.org/api/fs.html
+    * @class
+    */
+    var fs = (function () {
+        function fs() {
+        }
+        fs._initialize = function (rootFS) {
+            if (!rootFS.constructor.isAvailable()) {
+                throw new ApiError(9 /* EINVAL */, 'Tried to instantiate BrowserFS with an unavailable file system.');
+            }
+            return fs.root = rootFS;
+        };
+
+        fs._toUnixTimestamp = function (time) {
+            if (typeof time === 'number') {
+                return time;
+            } else if (time instanceof Date) {
+                return time.getTime() / 1000;
+            }
+            throw new Error("Cannot parse time: " + time);
+        };
+
+        /**
+        * **NONSTANDARD**: Grab the FileSystem instance that backs this API.
+        * @return [BrowserFS.FileSystem | null] Returns null if the file system has
+        *   not been initialized.
+        */
+        fs.getRootFS = function () {
+            if (fs.root) {
+                return fs.root;
+            } else {
+                return null;
+            }
+        };
+
+        // FILE OR DIRECTORY METHODS
+        /**
+        * Asynchronous rename. No arguments other than a possible exception are given
+        * to the completion callback.
+        * @param [String] oldPath
+        * @param [String] newPath
+        * @param [Function(BrowserFS.ApiError)] callback
+        */
+        fs.rename = function (oldPath, newPath, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var newCb = wrapCb(cb, 1);
+            try  {
+                fs.root.rename(normalizePath(oldPath), normalizePath(newPath), newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        /**
+        * Synchronous rename.
+        * @param [String] oldPath
+        * @param [String] newPath
+        */
+        fs.renameSync = function (oldPath, newPath) {
+            fs.root.renameSync(normalizePath(oldPath), normalizePath(newPath));
+        };
+
+        /**
+        * Test whether or not the given path exists by checking with the file system.
+        * Then call the callback argument with either true or false.
+        * @example Sample invocation
+        *   fs.exists('/etc/passwd', function (exists) {
+        *     util.debug(exists ? "it's there" : "no passwd!");
+        *   });
+        * @param [String] path
+        * @param [Function(Boolean)] callback
+        */
+        fs.exists = function (path, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var newCb = wrapCb(cb, 1);
+            try  {
+                return fs.root.exists(normalizePath(path), newCb);
+            } catch (e) {
+                // Doesn't return an error. If something bad happens, we assume it just
+                // doesn't exist.
+                return newCb(false);
+            }
+        };
+
+        /**
+        * Test whether or not the given path exists by checking with the file system.
+        * @param [String] path
+        * @return [boolean]
+        */
+        fs.existsSync = function (path) {
+            try  {
+                return fs.root.existsSync(normalizePath(path));
+            } catch (e) {
+                // Doesn't return an error. If something bad happens, we assume it just
+                // doesn't exist.
+                return false;
+            }
+        };
+
+        /**
+        * Asynchronous `stat`.
+        * @param [String] path
+        * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] callback
+        */
+        fs.stat = function (path, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var newCb = wrapCb(cb, 2);
+            try  {
+                return fs.root.stat(normalizePath(path), false, newCb);
+            } catch (e) {
+                return newCb(e, null);
+            }
+        };
+
+        /**
+        * Synchronous `stat`.
+        * @param [String] path
+        * @return [BrowserFS.node.fs.Stats]
+        */
+        fs.statSync = function (path) {
+            return fs.root.statSync(normalizePath(path), false);
+        };
+
+        /**
+        * Asynchronous `lstat`.
+        * `lstat()` is identical to `stat()`, except that if path is a symbolic link,
+        * then the link itself is stat-ed, not the file that it refers to.
+        * @param [String] path
+        * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] callback
+        */
+        fs.lstat = function (path, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var newCb = wrapCb(cb, 2);
+            try  {
+                return fs.root.stat(normalizePath(path), true, newCb);
+            } catch (e) {
+                return newCb(e, null);
+            }
+        };
+
+        /**
+        * Synchronous `lstat`.
+        * `lstat()` is identical to `stat()`, except that if path is a symbolic link,
+        * then the link itself is stat-ed, not the file that it refers to.
+        * @param [String] path
+        * @return [BrowserFS.node.fs.Stats]
+        */
+        fs.lstatSync = function (path) {
+            return fs.root.statSync(normalizePath(path), true);
+        };
+
+        fs.truncate = function (path, arg2, cb) {
+            if (typeof arg2 === "undefined") { arg2 = 0; }
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var len = 0;
+            if (typeof arg2 === 'function') {
+                cb = arg2;
+            } else if (typeof arg2 === 'number') {
+                len = arg2;
+            }
+
+            var newCb = wrapCb(cb, 1);
+            try  {
+                if (len < 0) {
+                    throw new ApiError(9 /* EINVAL */);
+                }
+                return fs.root.truncate(normalizePath(path), len, newCb);
+            } catch (e) {
+                return newCb(e);
+            }
+        };
+
+        /**
+        * Synchronous `truncate`.
+        * @param [String] path
+        * @param [Number] len
+        */
+        fs.truncateSync = function (path, len) {
+            if (typeof len === "undefined") { len = 0; }
+            if (len < 0) {
+                throw new ApiError(9 /* EINVAL */);
+            }
+            return fs.root.truncateSync(normalizePath(path), len);
+        };
+
+        /**
+        * Asynchronous `unlink`.
+        * @param [String] path
+        * @param [Function(BrowserFS.ApiError)] callback
+        */
+        fs.unlink = function (path, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var newCb = wrapCb(cb, 1);
+            try  {
+                return fs.root.unlink(normalizePath(path), newCb);
+            } catch (e) {
+                return newCb(e);
+            }
+        };
+
+        /**
+        * Synchronous `unlink`.
+        * @param [String] path
+        */
+        fs.unlinkSync = function (path) {
+            return fs.root.unlinkSync(normalizePath(path));
+        };
+
+        fs.open = function (path, flag, arg2, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var mode = normalizeMode(arg2, 0x1a4);
+            cb = typeof arg2 === 'function' ? arg2 : cb;
+            var newCb = wrapCb(cb, 2);
+            try  {
+                return fs.root.open(normalizePath(path), FileFlag.getFileFlag(flag), mode, newCb);
+            } catch (e) {
+                return newCb(e, null);
+            }
+        };
+
+        fs.openSync = function (path, flag, mode) {
+            if (typeof mode === "undefined") { mode = 0x1a4; }
+            return fs.root.openSync(normalizePath(path), FileFlag.getFileFlag(flag), mode);
+        };
+
+        fs.readFile = function (filename, arg2, cb) {
+            if (typeof arg2 === "undefined") { arg2 = {}; }
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var options = normalizeOptions(arg2, null, 'r', null);
+            cb = typeof arg2 === 'function' ? arg2 : cb;
+            var newCb = wrapCb(cb, 2);
+            try  {
+                var flag = FileFlag.getFileFlag(options['flag']);
+                if (!flag.isReadable()) {
+                    return newCb(new ApiError(9 /* EINVAL */, 'Flag passed to readFile must allow for reading.'));
+                }
+                return fs.root.readFile(normalizePath(filename), options.encoding, flag, newCb);
+            } catch (e) {
+                return newCb(e, null);
+            }
+        };
+
+        fs.readFileSync = function (filename, arg2) {
+            if (typeof arg2 === "undefined") { arg2 = {}; }
+            var options = normalizeOptions(arg2, null, 'r', null);
+            var flag = FileFlag.getFileFlag(options.flag);
+            if (!flag.isReadable()) {
+                throw new ApiError(9 /* EINVAL */, 'Flag passed to readFile must allow for reading.');
+            }
+            return fs.root.readFileSync(normalizePath(filename), options.encoding, flag);
+        };
+
+        fs.writeFile = function (filename, data, arg3, cb) {
+            if (typeof arg3 === "undefined") { arg3 = {}; }
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var options = normalizeOptions(arg3, 'utf8', 'w', 0x1a4);
+            cb = typeof arg3 === 'function' ? arg3 : cb;
+            var newCb = wrapCb(cb, 1);
+            try  {
+                var flag = FileFlag.getFileFlag(options.flag);
+                if (!flag.isWriteable()) {
+                    return newCb(new ApiError(9 /* EINVAL */, 'Flag passed to writeFile must allow for writing.'));
+                }
+                return fs.root.writeFile(normalizePath(filename), data, options.encoding, flag, options.mode, newCb);
+            } catch (e) {
+                return newCb(e);
+            }
+        };
+
+        fs.writeFileSync = function (filename, data, arg3) {
+            var options = normalizeOptions(arg3, 'utf8', 'w', 0x1a4);
+            var flag = FileFlag.getFileFlag(options.flag);
+            if (!flag.isWriteable()) {
+                throw new ApiError(9 /* EINVAL */, 'Flag passed to writeFile must allow for writing.');
+            }
+            return fs.root.writeFileSync(normalizePath(filename), data, options.encoding, flag, options.mode);
+        };
+
+        fs.appendFile = function (filename, data, arg3, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var options = normalizeOptions(arg3, 'utf8', 'a', 0x1a4);
+            cb = typeof arg3 === 'function' ? arg3 : cb;
+            var newCb = wrapCb(cb, 1);
+            try  {
+                var flag = FileFlag.getFileFlag(options.flag);
+                if (!flag.isAppendable()) {
+                    return newCb(new ApiError(9 /* EINVAL */, 'Flag passed to appendFile must allow for appending.'));
+                }
+                fs.root.appendFile(normalizePath(filename), data, options.encoding, flag, options.mode, newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        fs.appendFileSync = function (filename, data, arg3) {
+            var options = normalizeOptions(arg3, 'utf8', 'a', 0x1a4);
+            var flag = FileFlag.getFileFlag(options.flag);
+            if (!flag.isAppendable()) {
+                throw new ApiError(9 /* EINVAL */, 'Flag passed to appendFile must allow for appending.');
+            }
+            return fs.root.appendFileSync(normalizePath(filename), data, options.encoding, flag, options.mode);
+        };
+
+        // FILE DESCRIPTOR METHODS
+        /**
+        * Asynchronous `fstat`.
+        * `fstat()` is identical to `stat()`, except that the file to be stat-ed is
+        * specified by the file descriptor `fd`.
+        * @param [BrowserFS.File] fd
+        * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] callback
+        */
+        fs.fstat = function (fd, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var newCb = wrapCb(cb, 2);
+            try  {
+                checkFd(fd);
+                fd.stat(newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        /**
+        * Synchronous `fstat`.
+        * `fstat()` is identical to `stat()`, except that the file to be stat-ed is
+        * specified by the file descriptor `fd`.
+        * @param [BrowserFS.File] fd
+        * @return [BrowserFS.node.fs.Stats]
+        */
+        fs.fstatSync = function (fd) {
+            checkFd(fd);
+            return fd.statSync();
+        };
+
+        /**
+        * Asynchronous close.
+        * @param [BrowserFS.File] fd
+        * @param [Function(BrowserFS.ApiError)] callback
+        */
+        fs.close = function (fd, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var newCb = wrapCb(cb, 1);
+            try  {
+                checkFd(fd);
+                fd.close(newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        /**
+        * Synchronous close.
+        * @param [BrowserFS.File] fd
+        */
+        fs.closeSync = function (fd) {
+            checkFd(fd);
+            return fd.closeSync();
+        };
+
+        fs.ftruncate = function (fd, arg2, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var length = typeof arg2 === 'number' ? arg2 : 0;
+            cb = typeof arg2 === 'function' ? arg2 : cb;
+            var newCb = wrapCb(cb, 1);
+            try  {
+                checkFd(fd);
+                if (length < 0) {
+                    throw new ApiError(9 /* EINVAL */);
+                }
+                fd.truncate(length, newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        /**
+        * Synchronous ftruncate.
+        * @param [BrowserFS.File] fd
+        * @param [Number] len
+        */
+        fs.ftruncateSync = function (fd, len) {
+            if (typeof len === "undefined") { len = 0; }
+            checkFd(fd);
+            return fd.truncateSync(len);
+        };
+
+        /**
+        * Asynchronous fsync.
+        * @param [BrowserFS.File] fd
+        * @param [Function(BrowserFS.ApiError)] callback
+        */
+        fs.fsync = function (fd, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var newCb = wrapCb(cb, 1);
+            try  {
+                checkFd(fd);
+                fd.sync(newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        /**
+        * Synchronous fsync.
+        * @param [BrowserFS.File] fd
+        */
+        fs.fsyncSync = function (fd) {
+            checkFd(fd);
+            return fd.syncSync();
+        };
+
+        /**
+        * Asynchronous fdatasync.
+        * @param [BrowserFS.File] fd
+        * @param [Function(BrowserFS.ApiError)] callback
+        */
+        fs.fdatasync = function (fd, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var newCb = wrapCb(cb, 1);
+            try  {
+                checkFd(fd);
+                fd.datasync(newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        /**
+        * Synchronous fdatasync.
+        * @param [BrowserFS.File] fd
+        */
+        fs.fdatasyncSync = function (fd) {
+            checkFd(fd);
+            fd.datasyncSync();
+        };
+
+        fs.write = function (fd, arg2, arg3, arg4, arg5, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var buffer, offset, length, position = null;
+            if (typeof arg2 === 'string') {
+                // Signature 1: (fd, string, [position?, [encoding?]], cb?)
+                var encoding = 'utf8';
+                switch (typeof arg3) {
+                    case 'function':
+                        // (fd, string, cb)
+                        cb = arg3;
+                        break;
+                    case 'number':
+                        // (fd, string, position, encoding?, cb?)
+                        position = arg3;
+                        encoding = typeof arg4 === 'string' ? arg4 : 'utf8';
+                        cb = typeof arg5 === 'function' ? arg5 : cb;
+                        break;
+                    default:
+                        // ...try to find the callback and get out of here!
+                        cb = typeof arg4 === 'function' ? arg4 : typeof arg5 === 'function' ? arg5 : cb;
+                        return cb(new ApiError(9 /* EINVAL */, 'Invalid arguments.'));
+                }
+                buffer = new Buffer(arg2, encoding);
+                offset = 0;
+                length = buffer.length;
+            } else {
+                // Signature 2: (fd, buffer, offset, length, position?, cb?)
+                buffer = arg2;
+                offset = arg3;
+                length = arg4;
+                position = typeof arg5 === 'number' ? arg5 : null;
+                cb = typeof arg5 === 'function' ? arg5 : cb;
+            }
+
+            var newCb = wrapCb(cb, 3);
+            try  {
+                checkFd(fd);
+                if (position == null) {
+                    position = fd.getPos();
+                }
+                fd.write(buffer, offset, length, position, newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        fs.writeSync = function (fd, arg2, arg3, arg4, arg5) {
+            var buffer, offset = 0, length, position;
+            if (typeof arg2 === 'string') {
+                // Signature 1: (fd, string, [position?, [encoding?]])
+                position = typeof arg3 === 'number' ? arg3 : null;
+                var encoding = typeof arg4 === 'string' ? arg4 : 'utf8';
+                offset = 0;
+                buffer = new Buffer(arg2, encoding);
+                length = buffer.length;
+            } else {
+                // Signature 2: (fd, buffer, offset, length, position?)
+                buffer = arg2;
+                offset = arg3;
+                length = arg4;
+                position = typeof arg5 === 'number' ? arg5 : null;
+            }
+
+            checkFd(fd);
+            if (position == null) {
+                position = fd.getPos();
+            }
+            return fd.writeSync(buffer, offset, length, position);
+        };
+
+        fs.read = function (fd, arg2, arg3, arg4, arg5, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var position, offset, length, buffer, newCb;
+            if (typeof arg2 === 'number') {
+                // legacy interface
+                // (fd, length, position, encoding, callback)
+                length = arg2;
+                position = arg3;
+                var encoding = arg4;
+                cb = typeof arg5 === 'function' ? arg5 : cb;
+                offset = 0;
+                buffer = new Buffer(length);
+
+                // XXX: Inefficient.
+                // Wrap the cb so we shelter upper layers of the API from these
+                // shenanigans.
+                newCb = wrapCb((function (err, bytesRead, buf) {
+                    if (err) {
+                        return cb(err);
+                    }
+                    cb(err, buf.toString(encoding), bytesRead);
+                }), 3);
+            } else {
+                buffer = arg2;
+                offset = arg3;
+                length = arg4;
+                position = arg5;
+                newCb = wrapCb(cb, 3);
+            }
+
+            try  {
+                checkFd(fd);
+                if (position == null) {
+                    position = fd.getPos();
+                }
+                fd.read(buffer, offset, length, position, newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        fs.readSync = function (fd, arg2, arg3, arg4, arg5) {
+            var shenanigans = false;
+            var buffer, offset, length, position;
+            if (typeof arg2 === 'number') {
+                length = arg2;
+                position = arg3;
+                var encoding = arg4;
+                offset = 0;
+                buffer = new Buffer(length);
+                shenanigans = true;
+            } else {
+                buffer = arg2;
+                offset = arg3;
+                length = arg4;
+                position = arg5;
+            }
+            checkFd(fd);
+            if (position == null) {
+                position = fd.getPos();
+            }
+
+            var rv = fd.readSync(buffer, offset, length, position);
+            if (!shenanigans) {
+                return rv;
+            } else {
+                return [buffer.toString(encoding), rv];
+            }
+        };
+
+        /**
+        * Asynchronous `fchown`.
+        * @param [BrowserFS.File] fd
+        * @param [Number] uid
+        * @param [Number] gid
+        * @param [Function(BrowserFS.ApiError)] callback
+        */
+        fs.fchown = function (fd, uid, gid, callback) {
+            if (typeof callback === "undefined") { callback = nopCb; }
+            var newCb = wrapCb(callback, 1);
+            try  {
+                checkFd(fd);
+                fd.chown(uid, gid, newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        /**
+        * Synchronous `fchown`.
+        * @param [BrowserFS.File] fd
+        * @param [Number] uid
+        * @param [Number] gid
+        */
+        fs.fchownSync = function (fd, uid, gid) {
+            checkFd(fd);
+            return fd.chownSync(uid, gid);
+        };
+
+        fs.fchmod = function (fd, mode, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var newCb = wrapCb(cb, 1);
+            try  {
+                mode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
+                checkFd(fd);
+                fd.chmod(mode, newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        fs.fchmodSync = function (fd, mode) {
+            mode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
+            checkFd(fd);
+            return fd.chmodSync(mode);
+        };
+
+        fs.futimes = function (fd, atime, mtime, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var newCb = wrapCb(cb, 1);
+            try  {
+                checkFd(fd);
+                if (typeof atime === 'number') {
+                    atime = new Date(atime * 1000);
+                }
+                if (typeof mtime === 'number') {
+                    mtime = new Date(mtime * 1000);
+                }
+                fd.utimes(atime, mtime, newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        fs.futimesSync = function (fd, atime, mtime) {
+            checkFd(fd);
+            if (typeof atime === 'number') {
+                atime = new Date(atime * 1000);
+            }
+            if (typeof mtime === 'number') {
+                mtime = new Date(mtime * 1000);
+            }
+            return fd.utimesSync(atime, mtime);
+        };
+
+        // DIRECTORY-ONLY METHODS
+        /**
+        * Asynchronous `rmdir`.
+        * @param [String] path
+        * @param [Function(BrowserFS.ApiError)] callback
+        */
+        fs.rmdir = function (path, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var newCb = wrapCb(cb, 1);
+            try  {
+                path = normalizePath(path);
+                fs.root.rmdir(path, newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        /**
+        * Synchronous `rmdir`.
+        * @param [String] path
+        */
+        fs.rmdirSync = function (path) {
+            path = normalizePath(path);
+            return fs.root.rmdirSync(path);
+        };
+
+        /**
+        * Asynchronous `mkdir`.
+        * @param [String] path
+        * @param [Number?] mode defaults to `0777`
+        * @param [Function(BrowserFS.ApiError)] callback
+        */
+        fs.mkdir = function (path, mode, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            if (typeof mode === 'function') {
+                cb = mode;
+                mode = 0x1ff;
+            }
+            var newCb = wrapCb(cb, 1);
+            try  {
+                path = normalizePath(path);
+                fs.root.mkdir(path, mode, newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        fs.mkdirSync = function (path, mode) {
+            if (typeof mode === "undefined") { mode = 0x1ff; }
+            mode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
+            path = normalizePath(path);
+            return fs.root.mkdirSync(path, mode);
+        };
+
+        /**
+        * Asynchronous `readdir`. Reads the contents of a directory.
+        * The callback gets two arguments `(err, files)` where `files` is an array of
+        * the names of the files in the directory excluding `'.'` and `'..'`.
+        * @param [String] path
+        * @param [Function(BrowserFS.ApiError, String[])] callback
+        */
+        fs.readdir = function (path, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var newCb = wrapCb(cb, 2);
+            try  {
+                path = normalizePath(path);
+                fs.root.readdir(path, newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        /**
+        * Synchronous `readdir`. Reads the contents of a directory.
+        * @param [String] path
+        * @return [String[]]
+        */
+        fs.readdirSync = function (path) {
+            path = normalizePath(path);
+            return fs.root.readdirSync(path);
+        };
+
+        // SYMLINK METHODS
+        /**
+        * Asynchronous `link`.
+        * @param [String] srcpath
+        * @param [String] dstpath
+        * @param [Function(BrowserFS.ApiError)] callback
+        */
+        fs.link = function (srcpath, dstpath, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var newCb = wrapCb(cb, 1);
+            try  {
+                srcpath = normalizePath(srcpath);
+                dstpath = normalizePath(dstpath);
+                fs.root.link(srcpath, dstpath, newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        /**
+        * Synchronous `link`.
+        * @param [String] srcpath
+        * @param [String] dstpath
+        */
+        fs.linkSync = function (srcpath, dstpath) {
+            srcpath = normalizePath(srcpath);
+            dstpath = normalizePath(dstpath);
+            return fs.root.linkSync(srcpath, dstpath);
+        };
+
+        fs.symlink = function (srcpath, dstpath, arg3, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var type = typeof arg3 === 'string' ? arg3 : 'file';
+            cb = typeof arg3 === 'function' ? arg3 : cb;
+            var newCb = wrapCb(cb, 1);
+            try  {
+                if (type !== 'file' && type !== 'dir') {
+                    return newCb(new ApiError(9 /* EINVAL */, "Invalid type: " + type));
+                }
+                srcpath = normalizePath(srcpath);
+                dstpath = normalizePath(dstpath);
+                fs.root.symlink(srcpath, dstpath, type, newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        /**
+        * Synchronous `symlink`.
+        * @param [String] srcpath
+        * @param [String] dstpath
+        * @param [String?] type can be either `'dir'` or `'file'` (default is `'file'`)
+        */
+        fs.symlinkSync = function (srcpath, dstpath, type) {
+            if (type == null) {
+                type = 'file';
+            } else if (type !== 'file' && type !== 'dir') {
+                throw new ApiError(9 /* EINVAL */, "Invalid type: " + type);
+            }
+            srcpath = normalizePath(srcpath);
+            dstpath = normalizePath(dstpath);
+            return fs.root.symlinkSync(srcpath, dstpath, type);
+        };
+
+        /**
+        * Asynchronous readlink.
+        * @param [String] path
+        * @param [Function(BrowserFS.ApiError, String)] callback
+        */
+        fs.readlink = function (path, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var newCb = wrapCb(cb, 2);
+            try  {
+                path = normalizePath(path);
+                fs.root.readlink(path, newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        /**
+        * Synchronous readlink.
+        * @param [String] path
+        * @return [String]
+        */
+        fs.readlinkSync = function (path) {
+            path = normalizePath(path);
+            return fs.root.readlinkSync(path);
+        };
+
+        // PROPERTY OPERATIONS
+        /**
+        * Asynchronous `chown`.
+        * @param [String] path
+        * @param [Number] uid
+        * @param [Number] gid
+        * @param [Function(BrowserFS.ApiError)] callback
+        */
+        fs.chown = function (path, uid, gid, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var newCb = wrapCb(cb, 1);
+            try  {
+                path = normalizePath(path);
+                fs.root.chown(path, false, uid, gid, newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        /**
+        * Synchronous `chown`.
+        * @param [String] path
+        * @param [Number] uid
+        * @param [Number] gid
+        */
+        fs.chownSync = function (path, uid, gid) {
+            path = normalizePath(path);
+            fs.root.chownSync(path, false, uid, gid);
+        };
+
+        /**
+        * Asynchronous `lchown`.
+        * @param [String] path
+        * @param [Number] uid
+        * @param [Number] gid
+        * @param [Function(BrowserFS.ApiError)] callback
+        */
+        fs.lchown = function (path, uid, gid, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var newCb = wrapCb(cb, 1);
+            try  {
+                path = normalizePath(path);
+                fs.root.chown(path, true, uid, gid, newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        /**
+        * Synchronous `lchown`.
+        * @param [String] path
+        * @param [Number] uid
+        * @param [Number] gid
+        */
+        fs.lchownSync = function (path, uid, gid) {
+            path = normalizePath(path);
+            return fs.root.chownSync(path, true, uid, gid);
+        };
+
+        fs.chmod = function (path, mode, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var newCb = wrapCb(cb, 1);
+            try  {
+                mode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
+                path = normalizePath(path);
+                fs.root.chmod(path, false, mode, newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        fs.chmodSync = function (path, mode) {
+            mode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
+            path = normalizePath(path);
+            return fs.root.chmodSync(path, false, mode);
+        };
+
+        fs.lchmod = function (path, mode, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var newCb = wrapCb(cb, 1);
+            try  {
+                mode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
+                path = normalizePath(path);
+                fs.root.chmod(path, true, mode, newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        fs.lchmodSync = function (path, mode) {
+            path = normalizePath(path);
+            mode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
+            return fs.root.chmodSync(path, true, mode);
+        };
+
+        fs.utimes = function (path, atime, mtime, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var newCb = wrapCb(cb, 1);
+            try  {
+                path = normalizePath(path);
+                if (typeof atime === 'number') {
+                    atime = new Date(atime * 1000);
+                }
+                if (typeof mtime === 'number') {
+                    mtime = new Date(mtime * 1000);
+                }
+                fs.root.utimes(path, atime, mtime, newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        fs.utimesSync = function (path, atime, mtime) {
+            path = normalizePath(path);
+            if (typeof atime === 'number') {
+                atime = new Date(atime * 1000);
+            }
+            if (typeof mtime === 'number') {
+                mtime = new Date(mtime * 1000);
+            }
+            return fs.root.utimesSync(path, atime, mtime);
+        };
+
+        fs.realpath = function (path, arg2, cb) {
+            if (typeof cb === "undefined") { cb = nopCb; }
+            var cache = typeof arg2 === 'object' ? arg2 : {};
+            cb = typeof arg2 === 'function' ? arg2 : nopCb;
+            var newCb = wrapCb(cb, 2);
+            try  {
+                path = normalizePath(path);
+                fs.root.realpath(path, cache, newCb);
+            } catch (e) {
+                newCb(e);
+            }
+        };
+
+        /**
+        * Synchronous `realpath`.
+        * @param [String] path
+        * @param [Object?] cache An object literal of mapped paths that can be used to
+        *   force a specific path resolution or avoid additional `fs.stat` calls for
+        *   known real paths.
+        * @return [String]
+        */
+        fs.realpathSync = function (path, cache) {
+            if (typeof cache === "undefined") { cache = {}; }
+            path = normalizePath(path);
+            return fs.root.realpathSync(path, cache);
+        };
+        fs.root = null;
+        return fs;
+    })();
+    exports.fs = fs;
+});
+//# sourceMappingURL=node_fs.js.map
+;
+define('core/browserfs',["require", "exports", './buffer', './node_fs', './node_path', './node_process'], function(require, exports, buffer, node_fs, node_path, node_process) {
+    /**
+    * Installs BrowserFS onto the given object.
+    * We recommend that you run install with the 'window' object to make things
+    * global, as in Node.
+    *
+    * Properties installed:
+    *
+    * * Buffer
+    * * process
+    * * require (we monkey-patch it)
+    *
+    * This allows you to write code as if you were running inside Node.
+    * @param {object} obj - The object to install things onto (e.g. window)
+    */
+    function install(obj) {
+        obj.Buffer = buffer.Buffer;
+        obj.process = node_process.process;
+        var oldRequire = obj.require != null ? obj.require : null;
+
+        // Monkey-patch require for Node-style code.
+        obj.require = function (arg) {
+            var rv = exports.BFSRequire(arg);
+            if (rv == null) {
+                return oldRequire.apply(null, Array.prototype.slice.call(arguments, 0));
+            } else {
+                return rv;
+            }
+        };
+    }
+    exports.install = install;
+
+    exports.FileSystem = {};
+    function registerFileSystem(name, fs) {
+        exports.FileSystem[name] = fs;
+    }
+    exports.registerFileSystem = registerFileSystem;
+
+    function BFSRequire(module) {
+        switch (module) {
+            case 'fs':
+                return node_fs.fs;
+            case 'path':
+                return node_path.path;
+            case 'buffer':
+                // The 'buffer' module has 'Buffer' as a property.
+                return buffer;
+            case 'process':
+                return node_process.process;
+            default:
+                return exports.FileSystem[module];
+        }
+    }
+    exports.BFSRequire = BFSRequire;
+
+    /**
+    * You must call this function with a properly-instantiated root file system
+    * before using any file system API method.
+    * @param {BrowserFS.FileSystem} rootFS - The root filesystem to use for the
+    *   entire BrowserFS file system.
+    */
+    function initialize(rootfs) {
+        return node_fs.fs._initialize(rootfs);
+    }
+    exports.initialize = initialize;
+});
+//# sourceMappingURL=browserfs.js.map
+;
+define('generic/emscripten_fs',["require", "exports", '../core/browserfs', '../core/node_fs', '../core/buffer', '../core/buffer_core_arraybuffer'], function(require, exports, BrowserFS, node_fs, buffer, buffer_core_arraybuffer) {
+    var Buffer = buffer.Buffer;
+    var BufferCoreArrayBuffer = buffer_core_arraybuffer.BufferCoreArrayBuffer;
+    var fs = node_fs.fs;
+
+    var BFSEmscriptenStreamOps = (function () {
+        function BFSEmscriptenStreamOps(fs) {
+            this.fs = fs;
+        }
+        BFSEmscriptenStreamOps.prototype.open = function (stream) {
+            var path = this.fs.realPath(stream.node);
+            try  {
+                if (FS.isFile(stream.node.mode)) {
+                    stream.nfd = fs.openSync(path, this.fs.flagsToPermissionString(stream.flags));
+                }
+            } catch (e) {
+                if (!e.code)
+                    throw e;
+                throw new FS.ErrnoError(ERRNO_CODES[e.code]);
+            }
+        };
+
+        BFSEmscriptenStreamOps.prototype.close = function (stream) {
+            try  {
+                if (FS.isFile(stream.node.mode) && stream.nfd) {
+                    fs.closeSync(stream.nfd);
+                }
+            } catch (e) {
+                if (!e.code)
+                    throw e;
+                throw new FS.ErrnoError(ERRNO_CODES[e.code]);
+            }
+        };
+
+        BFSEmscriptenStreamOps.prototype.read = function (stream, buffer, offset, length, position) {
+            // Avoid copying overhead by reading directly into buffer.
+            var bcore = new BufferCoreArrayBuffer(buffer.buffer);
+            var nbuffer = new Buffer(bcore, buffer.byteOffset + offset, buffer.byteOffset + offset + length);
+            var res;
+            try  {
+                res = fs.readSync(stream.nfd, nbuffer, 0, length, position);
+            } catch (e) {
+                throw new FS.ErrnoError(ERRNO_CODES[e.code]);
+            }
+
+            // No copying needed, since we wrote directly into UintArray.
+            return res;
+        };
+
+        BFSEmscriptenStreamOps.prototype.write = function (stream, buffer, offset, length, position) {
+            // Avoid copying overhead; plug the buffer directly into a BufferCore.
+            var bcore = new BufferCoreArrayBuffer(buffer.buffer);
+            var nbuffer = new Buffer(bcore, buffer.byteOffset + offset, buffer.byteOffset + offset + length);
+            var res;
+            try  {
+                res = fs.writeSync(stream.nfd, nbuffer, 0, length, position);
+            } catch (e) {
+                throw new FS.ErrnoError(ERRNO_CODES[e.code]);
+            }
+            return res;
+        };
+
+        BFSEmscriptenStreamOps.prototype.llseek = function (stream, offset, whence) {
+            var position = offset;
+            if (whence === 1) {
+                position += stream.position;
+            } else if (whence === 2) {
+                if (FS.isFile(stream.node.mode)) {
+                    try  {
+                        var stat = fs.fstatSync(stream.nfd);
+                        position += stat.size;
+                    } catch (e) {
+                        throw new FS.ErrnoError(ERRNO_CODES[e.code]);
+                    }
+                }
+            }
+
+            if (position < 0) {
+                throw new FS.ErrnoError(ERRNO_CODES.EINVAL);
+            }
+
+            stream.position = position;
+            return position;
+        };
+        return BFSEmscriptenStreamOps;
+    })();
+
+    var BFSEmscriptenNodeOps = (function () {
+        function BFSEmscriptenNodeOps(fs) {
+            this.fs = fs;
+        }
+        BFSEmscriptenNodeOps.prototype.getattr = function (node) {
+            var path = this.fs.realPath(node);
+            var stat;
+            try  {
+                stat = fs.lstatSync(path);
+            } catch (e) {
+                if (!e.code)
+                    throw e;
+                throw new FS.ErrnoError(ERRNO_CODES[e.code]);
+            }
+            return {
+                dev: stat.dev,
+                ino: stat.ino,
+                mode: stat.mode,
+                nlink: stat.nlink,
+                uid: stat.uid,
+                gid: stat.gid,
+                rdev: stat.rdev,
+                size: stat.size,
+                atime: stat.atime,
+                mtime: stat.mtime,
+                ctime: stat.ctime,
+                blksize: stat.blksize,
+                blocks: stat.blocks
+            };
+        };
+
+        BFSEmscriptenNodeOps.prototype.setattr = function (node, attr) {
+            var path = this.fs.realPath(node);
+            try  {
+                if (attr.mode !== undefined) {
+                    fs.chmodSync(path, attr.mode);
+
+                    // update the common node structure mode as well
+                    node.mode = attr.mode;
+                }
+                if (attr.timestamp !== undefined) {
+                    var date = new Date(attr.timestamp);
+                    fs.utimesSync(path, date, date);
+                }
+                if (attr.size !== undefined) {
+                    fs.truncateSync(path, attr.size);
+                }
+            } catch (e) {
+                if (!e.code)
+                    throw e;
+                throw new FS.ErrnoError(ERRNO_CODES[e.code]);
+            }
+        };
+
+        BFSEmscriptenNodeOps.prototype.lookup = function (parent, name) {
+            var path = PATH.join2(this.fs.realPath(parent), name);
+            var mode = this.fs.getMode(path);
+            return this.fs.createNode(parent, name, mode);
+        };
+
+        BFSEmscriptenNodeOps.prototype.mknod = function (parent, name, mode, dev) {
+            var node = this.fs.createNode(parent, name, mode, dev);
+
+            // create the backing node for this in the fs root as well
+            var path = this.fs.realPath(node);
+            try  {
+                if (FS.isDir(node.mode)) {
+                    fs.mkdirSync(path, node.mode);
+                } else {
+                    fs.writeFileSync(path, '', { mode: node.mode });
+                }
+            } catch (e) {
+                if (!e.code)
+                    throw e;
+                throw new FS.ErrnoError(ERRNO_CODES[e.code]);
+            }
+            return node;
+        };
+
+        BFSEmscriptenNodeOps.prototype.rename = function (oldNode, newDir, newName) {
+            var oldPath = this.fs.realPath(oldNode);
+            var newPath = PATH.join2(this.fs.realPath(newDir), newName);
+            try  {
+                fs.renameSync(oldPath, newPath);
+            } catch (e) {
+                if (!e.code)
+                    throw e;
+                throw new FS.ErrnoError(ERRNO_CODES[e.code]);
+            }
+        };
+
+        BFSEmscriptenNodeOps.prototype.unlink = function (parent, name) {
+            var path = PATH.join2(this.fs.realPath(parent), name);
+            try  {
+                fs.unlinkSync(path);
+            } catch (e) {
+                if (!e.code)
+                    throw e;
+                throw new FS.ErrnoError(ERRNO_CODES[e.code]);
+            }
+        };
+
+        BFSEmscriptenNodeOps.prototype.rmdir = function (parent, name) {
+            var path = PATH.join2(this.fs.realPath(parent), name);
+            try  {
+                fs.rmdirSync(path);
+            } catch (e) {
+                if (!e.code)
+                    throw e;
+                throw new FS.ErrnoError(ERRNO_CODES[e.code]);
+            }
+        };
+
+        BFSEmscriptenNodeOps.prototype.readdir = function (node) {
+            var path = this.fs.realPath(node);
+            try  {
+                return fs.readdirSync(path);
+            } catch (e) {
+                if (!e.code)
+                    throw e;
+                throw new FS.ErrnoError(ERRNO_CODES[e.code]);
+            }
+        };
+
+        BFSEmscriptenNodeOps.prototype.symlink = function (parent, newName, oldPath) {
+            var newPath = PATH.join2(this.fs.realPath(parent), newName);
+            try  {
+                fs.symlinkSync(oldPath, newPath);
+            } catch (e) {
+                if (!e.code)
+                    throw e;
+                throw new FS.ErrnoError(ERRNO_CODES[e.code]);
+            }
+        };
+
+        BFSEmscriptenNodeOps.prototype.readlink = function (node) {
+            var path = this.fs.realPath(node);
+            try  {
+                return fs.readlinkSync(path);
+            } catch (e) {
+                if (!e.code)
+                    throw e;
+                throw new FS.ErrnoError(ERRNO_CODES[e.code]);
+            }
+        };
+        return BFSEmscriptenNodeOps;
+    })();
+
+    var BFSEmscriptenFS = (function () {
+        function BFSEmscriptenFS() {
+            // This maps the integer permission modes from http://linux.die.net/man/3/open
+            // to node.js-specific file open permission strings at http://nodejs.org/api/fs.html#fs_fs_open_path_flags_mode_callback
+            this.flagsToPermissionStringMap = {
+                0: 'r',
+                1: 'r+',
+                2: 'r+',
+                64: 'r',
+                65: 'r+',
+                66: 'r+',
+                129: 'rx+',
+                193: 'rx+',
+                514: 'w+',
+                577: 'w',
+                578: 'w+',
+                705: 'wx',
+                706: 'wx+',
+                1024: 'a',
+                1025: 'a',
+                1026: 'a+',
+                1089: 'a',
+                1090: 'a+',
+                1153: 'ax',
+                1154: 'ax+',
+                1217: 'ax',
+                1218: 'ax+',
+                4096: 'rs',
+                4098: 'rs+'
+            };
+            this.node_ops = new BFSEmscriptenNodeOps(this);
+            this.stream_ops = new BFSEmscriptenStreamOps(this);
+            if (typeof BrowserFS === 'undefined') {
+                throw new Error("BrowserFS is not loaded. Please load it before this library.");
+            }
+        }
+        BFSEmscriptenFS.prototype.mount = function (mount) {
+            return this.createNode(null, '/', this.getMode(mount.opts.root), 0);
+        };
+
+        BFSEmscriptenFS.prototype.createNode = function (parent, name, mode, dev) {
+            if (!FS.isDir(mode) && !FS.isFile(mode) && !FS.isLink(mode)) {
+                throw new FS.ErrnoError(ERRNO_CODES.EINVAL);
+            }
+            var node = FS.createNode(parent, name, mode);
+            node.node_ops = this.node_ops;
+            node.stream_ops = this.stream_ops;
+            return node;
+        };
+
+        BFSEmscriptenFS.prototype.getMode = function (path) {
+            var stat;
+            try  {
+                stat = fs.lstatSync(path);
+            } catch (e) {
+                if (!e.code)
+                    throw e;
+                throw new FS.ErrnoError(ERRNO_CODES[e.code]);
+            }
+            return stat.mode;
+        };
+
+        BFSEmscriptenFS.prototype.realPath = function (node) {
+            var parts = [];
+            while (node.parent !== node) {
+                parts.push(node.name);
+                node = node.parent;
+            }
+            parts.push(node.mount.opts.root);
+            parts.reverse();
+            return PATH.join.apply(null, parts);
+        };
+
+        BFSEmscriptenFS.prototype.flagsToPermissionString = function (flags) {
+            if (flags in this.flagsToPermissionStringMap) {
+                return this.flagsToPermissionStringMap[flags];
+            } else {
+                return flags;
+            }
+        };
+        return BFSEmscriptenFS;
+    })();
+    exports.BFSEmscriptenFS = BFSEmscriptenFS;
+
+    // Make it available on the global BrowserFS object.
+    BrowserFS['EmscriptenFS'] = BFSEmscriptenFS;
+});
+//# sourceMappingURL=emscripten_fs.js.map
+;
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+define('core/file_system',["require", "exports", './api_error', './file_flag', './node_path', './buffer'], function(require, exports, api_error, file_flag, node_path, buffer) {
+    var ApiError = api_error.ApiError;
+    var ErrorCode = api_error.ErrorCode;
+    var path = node_path.path;
+    var Buffer = buffer.Buffer;
+    var ActionType = file_flag.ActionType;
+
+    
+
+    
+
+    /**
+    * Basic filesystem class. Most filesystems should extend this class, as it
+    * provides default implementations for a handful of methods.
+    */
+    var BaseFileSystem = (function () {
+        function BaseFileSystem() {
+        }
+        BaseFileSystem.prototype.supportsLinks = function () {
+            return false;
+        };
+        BaseFileSystem.prototype.diskSpace = function (p, cb) {
+            cb(0, 0);
+        };
+
+        /**
+        * Opens the file at path p with the given flag. The file must exist.
+        * @param p The path to open.
+        * @param flag The flag to use when opening the file.
+        */
+        BaseFileSystem.prototype.openFile = function (p, flag, cb) {
+            throw new ApiError(14 /* ENOTSUP */);
+        };
+
+        /**
+        * Create the file at path p with the given mode. Then, open it with the given
+        * flag.
+        */
+        BaseFileSystem.prototype.createFile = function (p, flag, mode, cb) {
+            throw new ApiError(14 /* ENOTSUP */);
+        };
+        BaseFileSystem.prototype.open = function (p, flag, mode, cb) {
+            var _this = this;
+            var must_be_file = function (e, stats) {
+                if (e) {
+                    switch (flag.pathNotExistsAction()) {
+                        case 3 /* CREATE_FILE */:
+                            // Ensure parent exists.
+                            return _this.stat(path.dirname(p), false, function (e, parentStats) {
+                                if (e) {
+                                    cb(e);
+                                } else if (!parentStats.isDirectory()) {
+                                    cb(new ApiError(7 /* ENOTDIR */, path.dirname(p) + " is not a directory."));
+                                } else {
+                                    _this.createFile(p, flag, mode, cb);
+                                }
+                            });
+                        case 1 /* THROW_EXCEPTION */:
+                            return cb(new ApiError(1 /* ENOENT */, "" + p + " doesn't exist."));
+                        default:
+                            return cb(new ApiError(9 /* EINVAL */, 'Invalid FileFlag object.'));
+                    }
+                } else {
+                    // File exists.
+                    if (stats.isDirectory()) {
+                        return cb(new ApiError(8 /* EISDIR */, p + " is a directory."));
+                    }
+                    switch (flag.pathExistsAction()) {
+                        case 1 /* THROW_EXCEPTION */:
+                            return cb(new ApiError(6 /* EEXIST */, p + " already exists."));
+                        case 2 /* TRUNCATE_FILE */:
+                            // NOTE: In a previous implementation, we deleted the file and
+                            // re-created it. However, this created a race condition if another
+                            // asynchronous request was trying to read the file, as the file
+                            // would not exist for a small period of time.
+                            return _this.openFile(p, flag, function (e, fd) {
+                                if (e) {
+                                    cb(e);
+                                } else {
+                                    fd.truncate(0, function () {
+                                        fd.sync(function () {
+                                            cb(null, fd);
+                                        });
+                                    });
+                                }
+                            });
+                        case 0 /* NOP */:
+                            return _this.openFile(p, flag, cb);
+                        default:
+                            return cb(new ApiError(9 /* EINVAL */, 'Invalid FileFlag object.'));
+                    }
+                }
+            };
+            this.stat(p, false, must_be_file);
+        };
+        BaseFileSystem.prototype.rename = function (oldPath, newPath, cb) {
+            cb(new ApiError(14 /* ENOTSUP */));
+        };
+        BaseFileSystem.prototype.renameSync = function (oldPath, newPath) {
+            throw new ApiError(14 /* ENOTSUP */);
+        };
+        BaseFileSystem.prototype.stat = function (p, isLstat, cb) {
+            cb(new ApiError(14 /* ENOTSUP */));
+        };
+        BaseFileSystem.prototype.statSync = function (p, isLstat) {
+            throw new ApiError(14 /* ENOTSUP */);
+        };
+
+        /**
+        * Opens the file at path p with the given flag. The file must exist.
+        * @param p The path to open.
+        * @param flag The flag to use when opening the file.
+        * @return A File object corresponding to the opened file.
+        */
+        BaseFileSystem.prototype.openFileSync = function (p, flag) {
+            throw new ApiError(14 /* ENOTSUP */);
+        };
+
+        /**
+        * Create the file at path p with the given mode. Then, open it with the given
+        * flag.
+        */
+        BaseFileSystem.prototype.createFileSync = function (p, flag, mode) {
+            throw new ApiError(14 /* ENOTSUP */);
+        };
+        BaseFileSystem.prototype.openSync = function (p, flag, mode) {
+            // Check if the path exists, and is a file.
+            var stats;
+            try  {
+                stats = this.statSync(p, false);
+            } catch (e) {
+                switch (flag.pathNotExistsAction()) {
+                    case 3 /* CREATE_FILE */:
+                        // Ensure parent exists.
+                        var parentStats = this.statSync(path.dirname(p), false);
+                        if (!parentStats.isDirectory()) {
+                            throw new ApiError(7 /* ENOTDIR */, path.dirname(p) + " is not a directory.");
+                        }
+                        return this.createFileSync(p, flag, mode);
+                    case 1 /* THROW_EXCEPTION */:
+                        throw new ApiError(1 /* ENOENT */, "" + p + " doesn't exist.");
+                    default:
+                        throw new ApiError(9 /* EINVAL */, 'Invalid FileFlag object.');
+                }
+            }
+
+            // File exists.
+            if (stats.isDirectory()) {
+                throw new ApiError(8 /* EISDIR */, p + " is a directory.");
+            }
+            switch (flag.pathExistsAction()) {
+                case 1 /* THROW_EXCEPTION */:
+                    throw new ApiError(6 /* EEXIST */, p + " already exists.");
+                case 2 /* TRUNCATE_FILE */:
+                    // Delete file.
+                    this.unlinkSync(p);
+
+                    // Create file. Use the same mode as the old file.
+                    // Node itself modifies the ctime when this occurs, so this action
+                    // will preserve that behavior if the underlying file system
+                    // supports those properties.
+                    return this.createFileSync(p, flag, stats.mode);
+                case 0 /* NOP */:
+                    return this.openFileSync(p, flag);
+                default:
+                    throw new ApiError(9 /* EINVAL */, 'Invalid FileFlag object.');
+            }
+        };
+        BaseFileSystem.prototype.unlink = function (p, cb) {
+            cb(new ApiError(14 /* ENOTSUP */));
+        };
+        BaseFileSystem.prototype.unlinkSync = function (p) {
+            throw new ApiError(14 /* ENOTSUP */);
+        };
+        BaseFileSystem.prototype.rmdir = function (p, cb) {
+            cb(new ApiError(14 /* ENOTSUP */));
+        };
+        BaseFileSystem.prototype.rmdirSync = function (p) {
+            throw new ApiError(14 /* ENOTSUP */);
+        };
+        BaseFileSystem.prototype.mkdir = function (p, mode, cb) {
+            cb(new ApiError(14 /* ENOTSUP */));
+        };
+        BaseFileSystem.prototype.mkdirSync = function (p, mode) {
+            throw new ApiError(14 /* ENOTSUP */);
+        };
+        BaseFileSystem.prototype.readdir = function (p, cb) {
+            cb(new ApiError(14 /* ENOTSUP */));
+        };
+        BaseFileSystem.prototype.readdirSync = function (p) {
+            throw new ApiError(14 /* ENOTSUP */);
+        };
+        BaseFileSystem.prototype.exists = function (p, cb) {
+            this.stat(p, null, function (err) {
+                cb(err == null);
+            });
+        };
+        BaseFileSystem.prototype.existsSync = function (p) {
+            try  {
+                this.statSync(p, true);
+                return true;
+            } catch (e) {
+                return false;
+            }
+        };
+        BaseFileSystem.prototype.realpath = function (p, cache, cb) {
+            if (this.supportsLinks()) {
+                // The path could contain symlinks. Split up the path,
+                // resolve any symlinks, return the resolved string.
+                var splitPath = p.split(path.sep);
+
+                for (var i = 0; i < splitPath.length; i++) {
+                    var addPaths = splitPath.slice(0, i + 1);
+                    splitPath[i] = path.join.apply(null, addPaths);
+                }
+            } else {
+                // No symlinks. We just need to verify that it exists.
+                this.exists(p, function (doesExist) {
+                    if (doesExist) {
+                        cb(null, p);
+                    } else {
+                        cb(new ApiError(1 /* ENOENT */, "File " + p + " not found."));
+                    }
+                });
+            }
+        };
+        BaseFileSystem.prototype.realpathSync = function (p, cache) {
+            if (this.supportsLinks()) {
+                // The path could contain symlinks. Split up the path,
+                // resolve any symlinks, return the resolved string.
+                var splitPath = p.split(path.sep);
+
+                for (var i = 0; i < splitPath.length; i++) {
+                    var addPaths = splitPath.slice(0, i + 1);
+                    splitPath[i] = path.join.apply(null, addPaths);
+                }
+            } else {
+                // No symlinks. We just need to verify that it exists.
+                if (this.existsSync(p)) {
+                    return p;
+                } else {
+                    throw new ApiError(1 /* ENOENT */, "File " + p + " not found.");
+                }
+            }
+        };
+        BaseFileSystem.prototype.truncate = function (p, len, cb) {
+            this.open(p, file_flag.FileFlag.getFileFlag('r+'), 0x1a4, (function (er, fd) {
+                if (er) {
+                    return cb(er);
+                }
+                fd.truncate(len, (function (er) {
+                    fd.close((function (er2) {
+                        cb(er || er2);
+                    }));
+                }));
+            }));
+        };
+        BaseFileSystem.prototype.truncateSync = function (p, len) {
+            var fd = this.openSync(p, file_flag.FileFlag.getFileFlag('r+'), 0x1a4);
+
+            try  {
+                fd.truncateSync(len);
+            } catch (e) {
+                throw e;
+            } finally {
+                fd.closeSync();
+            }
+        };
+        BaseFileSystem.prototype.readFile = function (fname, encoding, flag, cb) {
+            // Wrap cb in file closing code.
+            var oldCb = cb;
+
+            // Get file.
+            this.open(fname, flag, 0x1a4, function (err, fd) {
+                if (err) {
+                    return cb(err);
+                }
+                cb = function (err, arg) {
+                    fd.close(function (err2) {
+                        if (err == null) {
+                            err = err2;
+                        }
+                        return oldCb(err, arg);
+                    });
+                };
+                fd.stat(function (err, stat) {
+                    if (err != null) {
+                        return cb(err);
+                    }
+
+                    // Allocate buffer.
+                    var buf = new Buffer(stat.size);
+                    fd.read(buf, 0, stat.size, 0, function (err) {
+                        if (err != null) {
+                            return cb(err);
+                        } else if (encoding === null) {
+                            return cb(err, buf);
+                        }
+                        try  {
+                            cb(null, buf.toString(encoding));
+                        } catch (e) {
+                            cb(e);
+                        }
+                    });
+                });
+            });
+        };
+        BaseFileSystem.prototype.readFileSync = function (fname, encoding, flag) {
+            // Get file.
+            var fd = this.openSync(fname, flag, 0x1a4);
+            try  {
+                var stat = fd.statSync();
+
+                // Allocate buffer.
+                var buf = new Buffer(stat.size);
+                fd.readSync(buf, 0, stat.size, 0);
+                fd.closeSync();
+                if (encoding === null) {
+                    return buf;
+                }
+                return buf.toString(encoding);
+            } finally {
+                fd.closeSync();
+            }
+        };
+        BaseFileSystem.prototype.writeFile = function (fname, data, encoding, flag, mode, cb) {
+            // Wrap cb in file closing code.
+            var oldCb = cb;
+
+            // Get file.
+            this.open(fname, flag, 0x1a4, function (err, fd) {
+                if (err != null) {
+                    return cb(err);
+                }
+                cb = function (err) {
+                    fd.close(function (err2) {
+                        oldCb(err != null ? err : err2);
+                    });
+                };
+
+                try  {
+                    if (typeof data === 'string') {
+                        data = new Buffer(data, encoding);
+                    }
+                } catch (e) {
+                    return cb(e);
+                }
+
+                // Write into file.
+                fd.write(data, 0, data.length, 0, cb);
+            });
+        };
+        BaseFileSystem.prototype.writeFileSync = function (fname, data, encoding, flag, mode) {
+            // Get file.
+            var fd = this.openSync(fname, flag, mode);
+            try  {
+                if (typeof data === 'string') {
+                    data = new Buffer(data, encoding);
+                }
+
+                // Write into file.
+                fd.writeSync(data, 0, data.length, 0);
+            } finally {
+                fd.closeSync();
+            }
+        };
+        BaseFileSystem.prototype.appendFile = function (fname, data, encoding, flag, mode, cb) {
+            // Wrap cb in file closing code.
+            var oldCb = cb;
+            this.open(fname, flag, mode, function (err, fd) {
+                if (err != null) {
+                    return cb(err);
+                }
+                cb = function (err) {
+                    fd.close(function (err2) {
+                        oldCb(err != null ? err : err2);
+                    });
+                };
+                if (typeof data === 'string') {
+                    data = new Buffer(data, encoding);
+                }
+                fd.write(data, 0, data.length, null, cb);
+            });
+        };
+        BaseFileSystem.prototype.appendFileSync = function (fname, data, encoding, flag, mode) {
+            var fd = this.openSync(fname, flag, mode);
+            try  {
+                if (typeof data === 'string') {
+                    data = new Buffer(data, encoding);
+                }
+                fd.writeSync(data, 0, data.length, null);
+            } finally {
+                fd.closeSync();
+            }
+        };
+        BaseFileSystem.prototype.chmod = function (p, isLchmod, mode, cb) {
+            cb(new ApiError(14 /* ENOTSUP */));
+        };
+        BaseFileSystem.prototype.chmodSync = function (p, isLchmod, mode) {
+            throw new ApiError(14 /* ENOTSUP */);
+        };
+        BaseFileSystem.prototype.chown = function (p, isLchown, uid, gid, cb) {
+            cb(new ApiError(14 /* ENOTSUP */));
+        };
+        BaseFileSystem.prototype.chownSync = function (p, isLchown, uid, gid) {
+            throw new ApiError(14 /* ENOTSUP */);
+        };
+        BaseFileSystem.prototype.utimes = function (p, atime, mtime, cb) {
+            cb(new ApiError(14 /* ENOTSUP */));
+        };
+        BaseFileSystem.prototype.utimesSync = function (p, atime, mtime) {
+            throw new ApiError(14 /* ENOTSUP */);
+        };
+        BaseFileSystem.prototype.link = function (srcpath, dstpath, cb) {
+            cb(new ApiError(14 /* ENOTSUP */));
+        };
+        BaseFileSystem.prototype.linkSync = function (srcpath, dstpath) {
+            throw new ApiError(14 /* ENOTSUP */);
+        };
+        BaseFileSystem.prototype.symlink = function (srcpath, dstpath, type, cb) {
+            cb(new ApiError(14 /* ENOTSUP */));
+        };
+        BaseFileSystem.prototype.symlinkSync = function (srcpath, dstpath, type) {
+            throw new ApiError(14 /* ENOTSUP */);
+        };
+        BaseFileSystem.prototype.readlink = function (p, cb) {
+            cb(new ApiError(14 /* ENOTSUP */));
+        };
+        BaseFileSystem.prototype.readlinkSync = function (p) {
+            throw new ApiError(14 /* ENOTSUP */);
+        };
+        return BaseFileSystem;
+    })();
+    exports.BaseFileSystem = BaseFileSystem;
+
+    /**
+    * Implements the asynchronous API in terms of the synchronous API.
+    * @class SynchronousFileSystem
+    */
+    var SynchronousFileSystem = (function (_super) {
+        __extends(SynchronousFileSystem, _super);
+        function SynchronousFileSystem() {
+            _super.apply(this, arguments);
+        }
+        SynchronousFileSystem.prototype.supportsSynch = function () {
+            return true;
+        };
+
+        SynchronousFileSystem.prototype.rename = function (oldPath, newPath, cb) {
+            try  {
+                this.renameSync(oldPath, newPath);
+                cb();
+            } catch (e) {
+                cb(e);
+            }
+        };
+
+        SynchronousFileSystem.prototype.stat = function (p, isLstat, cb) {
+            try  {
+                cb(null, this.statSync(p, isLstat));
+            } catch (e) {
+                cb(e);
+            }
+        };
+
+        SynchronousFileSystem.prototype.open = function (p, flags, mode, cb) {
+            try  {
+                cb(null, this.openSync(p, flags, mode));
+            } catch (e) {
+                cb(e);
+            }
+        };
+
+        SynchronousFileSystem.prototype.unlink = function (p, cb) {
+            try  {
+                this.unlinkSync(p);
+                cb();
+            } catch (e) {
+                cb(e);
+            }
+        };
+
+        SynchronousFileSystem.prototype.rmdir = function (p, cb) {
+            try  {
+                this.rmdirSync(p);
+                cb();
+            } catch (e) {
+                cb(e);
+            }
+        };
+
+        SynchronousFileSystem.prototype.mkdir = function (p, mode, cb) {
+            try  {
+                this.mkdirSync(p, mode);
+                cb();
+            } catch (e) {
+                cb(e);
+            }
+        };
+
+        SynchronousFileSystem.prototype.readdir = function (p, cb) {
+            try  {
+                cb(null, this.readdirSync(p));
+            } catch (e) {
+                cb(e);
+            }
+        };
+
+        SynchronousFileSystem.prototype.chmod = function (p, isLchmod, mode, cb) {
+            try  {
+                this.chmodSync(p, isLchmod, mode);
+                cb();
+            } catch (e) {
+                cb(e);
+            }
+        };
+
+        SynchronousFileSystem.prototype.chown = function (p, isLchown, uid, gid, cb) {
+            try  {
+                this.chownSync(p, isLchown, uid, gid);
+                cb();
+            } catch (e) {
+                cb(e);
+            }
+        };
+
+        SynchronousFileSystem.prototype.utimes = function (p, atime, mtime, cb) {
+            try  {
+                this.utimesSync(p, atime, mtime);
+                cb();
+            } catch (e) {
+                cb(e);
+            }
+        };
+
+        SynchronousFileSystem.prototype.link = function (srcpath, dstpath, cb) {
+            try  {
+                this.linkSync(srcpath, dstpath);
+                cb();
+            } catch (e) {
+                cb(e);
+            }
+        };
+
+        SynchronousFileSystem.prototype.symlink = function (srcpath, dstpath, type, cb) {
+            try  {
+                this.symlinkSync(srcpath, dstpath, type);
+                cb();
+            } catch (e) {
+                cb(e);
+            }
+        };
+
+        SynchronousFileSystem.prototype.readlink = function (p, cb) {
+            try  {
+                cb(null, this.readlinkSync(p));
+            } catch (e) {
+                cb(e);
+            }
+        };
+        return SynchronousFileSystem;
+    })(BaseFileSystem);
+    exports.SynchronousFileSystem = SynchronousFileSystem;
+});
+//# sourceMappingURL=file_system.js.map
+;
+define('core/node_fs_stats',["require", "exports"], function(require, exports) {
+    /**
+    * Indicates the type of the given file. Applied to 'mode'.
+    */
+    (function (FileType) {
+        FileType[FileType["FILE"] = 0x8000] = "FILE";
+        FileType[FileType["DIRECTORY"] = 0x4000] = "DIRECTORY";
+        FileType[FileType["SYMLINK"] = 0xA000] = "SYMLINK";
+    })(exports.FileType || (exports.FileType = {}));
+    var FileType = exports.FileType;
+
+    /**
+    * Emulation of Node's `fs.Stats` object.
+    *
+    * Attribute descriptions are from `man 2 stat'
+    * @see http://nodejs.org/api/fs.html#fs_class_fs_stats
+    * @see http://man7.org/linux/man-pages/man2/stat.2.html
+    * @class
+    */
+    var Stats = (function () {
+        /**
+        * Provides information about a particular entry in the file system.
+        * @param [Number] item_type type of the item (FILE, DIRECTORY, SYMLINK, or SOCKET)
+        * @param [Number] size Size of the item in bytes. For directories/symlinks,
+        *   this is normally the size of the struct that represents the item.
+        * @param [Number] mode Unix-style file mode (e.g. 0o644)
+        * @param [Date?] atime time of last access
+        * @param [Date?] mtime time of last modification
+        * @param [Date?] ctime time of creation
+        */
+        function Stats(item_type, size, mode, atime, mtime, ctime) {
+            if (typeof atime === "undefined") { atime = new Date(); }
+            if (typeof mtime === "undefined") { mtime = new Date(); }
+            if (typeof ctime === "undefined") { ctime = new Date(); }
+            this.size = size;
+            this.mode = mode;
+            this.atime = atime;
+            this.mtime = mtime;
+            this.ctime = ctime;
+            /**
+            * UNSUPPORTED ATTRIBUTES
+            * I assume no one is going to need these details, although we could fake
+            * appropriate values if need be.
+            */
+            // ID of device containing file
+            this.dev = 0;
+            // inode number
+            this.ino = 0;
+            // device ID (if special file)
+            this.rdev = 0;
+            // number of hard links
+            this.nlink = 1;
+            // blocksize for file system I/O
+            this.blksize = 4096;
+            // @todo Maybe support these? atm, it's a one-user filesystem.
+            // user ID of owner
+            this.uid = 0;
+            // group ID of owner
+            this.gid = 0;
+            if (this.mode == null) {
+                switch (item_type) {
+                    case 32768 /* FILE */:
+                        this.mode = 0x1a4;
+                        break;
+                    case 16384 /* DIRECTORY */:
+                    default:
+                        this.mode = 0x1ff;
+                }
+            }
+
+            // number of 512B blocks allocated
+            this.blocks = Math.ceil(size / 512);
+
+            // Check if mode also includes top-most bits, which indicate the file's
+            // type.
+            if (this.mode < 0x1000) {
+                this.mode |= item_type;
+            }
+        }
+        /**
+        * **Nonstandard**: Clone the stats object.
+        * @return [BrowserFS.node.fs.Stats]
+        */
+        Stats.prototype.clone = function () {
+            return new Stats(this.mode & 0xF000, this.size, this.mode & 0xFFF, this.atime, this.mtime, this.ctime);
+        };
+
+        /**
+        * @return [Boolean] True if this item is a file.
+        */
+        Stats.prototype.isFile = function () {
+            return (this.mode & 0xF000) === 32768 /* FILE */;
+        };
+
+        /**
+        * @return [Boolean] True if this item is a directory.
+        */
+        Stats.prototype.isDirectory = function () {
+            return (this.mode & 0xF000) === 16384 /* DIRECTORY */;
+        };
+
+        /**
+        * @return [Boolean] True if this item is a symbolic link (only valid through lstat)
+        */
+        Stats.prototype.isSymbolicLink = function () {
+            return (this.mode & 0xF000) === 40960 /* SYMLINK */;
+        };
+
+        /**
+        * Change the mode of the file. We use this helper function to prevent messing
+        * up the type of the file, which is encoded in mode.
+        */
+        Stats.prototype.chmod = function (mode) {
+            this.mode = (this.mode & 0xF000) | mode;
+        };
+
+        // We don't support the following types of files.
+        Stats.prototype.isSocket = function () {
+            return false;
+        };
+
+        Stats.prototype.isBlockDevice = function () {
+            return false;
+        };
+
+        Stats.prototype.isCharacterDevice = function () {
+            return false;
+        };
+
+        Stats.prototype.isFIFO = function () {
+            return false;
+        };
+        return Stats;
+    })();
+    exports.Stats = Stats;
+});
+//# sourceMappingURL=node_fs_stats.js.map
+;
+define('generic/inode',["require", "exports", '../core/node_fs_stats', '../core/buffer'], function(require, exports, node_fs_stats, buffer) {
+    /**
+    * Generic inode definition that can easily be serialized.
+    */
+    var Inode = (function () {
+        function Inode(id, size, mode, atime, mtime, ctime) {
+            this.id = id;
+            this.size = size;
+            this.mode = mode;
+            this.atime = atime;
+            this.mtime = mtime;
+            this.ctime = ctime;
+        }
+        /**
+        * Handy function that converts the Inode to a Node Stats object.
+        */
+        Inode.prototype.toStats = function () {
+            return new node_fs_stats.Stats((this.mode & 0xF000) === 16384 /* DIRECTORY */ ? 16384 /* DIRECTORY */ : 32768 /* FILE */, this.size, this.mode, new Date(this.atime), new Date(this.mtime), new Date(this.ctime));
+        };
+
+        /**
+        * Get the size of this Inode, in bytes.
+        */
+        Inode.prototype.getSize = function () {
+            // ASSUMPTION: ID is ASCII (1 byte per char).
+            return 30 + this.id.length;
+        };
+
+        /**
+        * Writes the inode into the start of the buffer.
+        */
+        Inode.prototype.toBuffer = function (buff) {
+            if (typeof buff === "undefined") { buff = new buffer.Buffer(this.getSize()); }
+            buff.writeUInt32LE(this.size, 0);
+            buff.writeUInt16LE(this.mode, 4);
+            buff.writeDoubleLE(this.atime, 6);
+            buff.writeDoubleLE(this.mtime, 14);
+            buff.writeDoubleLE(this.ctime, 22);
+            buff.write(this.id, 30, this.id.length, 'ascii');
+            return buff;
+        };
+
+        /**
+        * Updates the Inode using information from the stats object. Used by file
+        * systems at sync time, e.g.:
+        * - Program opens file and gets a File object.
+        * - Program mutates file. File object is responsible for maintaining
+        *   metadata changes locally -- typically in a Stats object.
+        * - Program closes file. File object's metadata changes are synced with the
+        *   file system.
+        * @return True if any changes have occurred.
+        */
+        Inode.prototype.update = function (stats) {
+            var hasChanged = false;
+            if (this.size !== stats.size) {
+                this.size = stats.size;
+                hasChanged = true;
+            }
+
+            if (this.mode !== stats.mode) {
+                this.mode = stats.mode;
+                hasChanged = true;
+            }
+
+            var atimeMs = stats.atime.getTime();
+            if (this.atime !== atimeMs) {
+                this.atime = atimeMs;
+                hasChanged = true;
+            }
+
+            var mtimeMs = stats.mtime.getTime();
+            if (this.mtime !== mtimeMs) {
+                this.mtime = mtimeMs;
+                hasChanged = true;
+            }
+
+            var ctimeMs = stats.ctime.getTime();
+            if (this.ctime !== ctimeMs) {
+                this.ctime = ctimeMs;
+                hasChanged = true;
+            }
+
+            return hasChanged;
+        };
+
+        /**
+        * Converts the buffer into an Inode.
+        */
+        Inode.fromBuffer = function (buffer) {
+            if (buffer === undefined) {
+                throw new Error("NO");
+            }
+            return new Inode(buffer.toString('ascii', 30), buffer.readUInt32LE(0), buffer.readUInt16LE(4), buffer.readDoubleLE(6), buffer.readDoubleLE(14), buffer.readDoubleLE(22));
+        };
+
+        // XXX: Copied from Stats. Should reconcile these two into something more
+        //      compact.
+        /**
+        * @return [Boolean] True if this item is a file.
+        */
+        Inode.prototype.isFile = function () {
+            return (this.mode & 0xF000) === 32768 /* FILE */;
+        };
+
+        /**
+        * @return [Boolean] True if this item is a directory.
+        */
+        Inode.prototype.isDirectory = function () {
+            return (this.mode & 0xF000) === 16384 /* DIRECTORY */;
+        };
+        return Inode;
+    })();
+
+    
+    return Inode;
+});
+//# sourceMappingURL=inode.js.map
+;
+define('core/file',["require", "exports", './api_error'], function(require, exports, api_error) {
+    var ApiError = api_error.ApiError;
+    var ErrorCode = api_error.ErrorCode;
+
+    /**
+    * Base class that contains shared implementations of functions for the file
+    * object.
+    * @class
+    */
+    var BaseFile = (function () {
+        function BaseFile() {
+        }
+        BaseFile.prototype.sync = function (cb) {
+            cb(new ApiError(14 /* ENOTSUP */));
+        };
+        BaseFile.prototype.syncSync = function () {
+            throw new ApiError(14 /* ENOTSUP */);
+        };
+        BaseFile.prototype.datasync = function (cb) {
+            this.sync(cb);
+        };
+        BaseFile.prototype.datasyncSync = function () {
+            return this.syncSync();
+        };
+        BaseFile.prototype.chown = function (uid, gid, cb) {
+            cb(new ApiError(14 /* ENOTSUP */));
+        };
+        BaseFile.prototype.chownSync = function (uid, gid) {
+            throw new ApiError(14 /* ENOTSUP */);
+        };
+        BaseFile.prototype.chmod = function (mode, cb) {
+            cb(new ApiError(14 /* ENOTSUP */));
+        };
+        BaseFile.prototype.chmodSync = function (mode) {
+            throw new ApiError(14 /* ENOTSUP */);
+        };
+        BaseFile.prototype.utimes = function (atime, mtime, cb) {
+            cb(new ApiError(14 /* ENOTSUP */));
+        };
+        BaseFile.prototype.utimesSync = function (atime, mtime) {
+            throw new ApiError(14 /* ENOTSUP */);
+        };
+        return BaseFile;
+    })();
+    exports.BaseFile = BaseFile;
+});
+//# sourceMappingURL=file.js.map
+;
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+define('generic/preload_file',["require", "exports", '../core/file', '../core/buffer', '../core/api_error', '../core/node_fs'], function(require, exports, file, buffer, api_error, node_fs) {
+    var ApiError = api_error.ApiError;
+    var ErrorCode = api_error.ErrorCode;
+    var fs = node_fs.fs;
+    var Buffer = buffer.Buffer;
+
+    /**
+    * An implementation of the File interface that operates on a file that is
+    * completely in-memory. PreloadFiles are backed by a Buffer.
+    *
+    * This is also an abstract class, as it lacks an implementation of 'sync' and
+    * 'close'. Each filesystem that wishes to use this file representation must
+    * extend this class and implement those two methods.
+    * @todo 'close' lever that disables functionality once closed.
+    */
+    var PreloadFile = (function (_super) {
+        __extends(PreloadFile, _super);
+        /**
+        * Creates a file with the given path and, optionally, the given contents. Note
+        * that, if contents is specified, it will be mutated by the file!
+        * @param [BrowserFS.FileSystem] _fs The file system that created the file.
+        * @param [String] _path
+        * @param [BrowserFS.FileMode] _mode The mode that the file was opened using.
+        *   Dictates permissions and where the file pointer starts.
+        * @param [BrowserFS.node.fs.Stats] _stat The stats object for the given file.
+        *   PreloadFile will mutate this object. Note that this object must contain
+        *   the appropriate mode that the file was opened as.
+        * @param [BrowserFS.node.Buffer?] contents A buffer containing the entire
+        *   contents of the file. PreloadFile will mutate this buffer. If not
+        *   specified, we assume it is a new file.
+        */
+        function PreloadFile(_fs, _path, _flag, _stat, contents) {
+            _super.call(this);
+            this._pos = 0;
+            this._fs = _fs;
+            this._path = _path;
+            this._flag = _flag;
+            this._stat = _stat;
+            if (contents != null) {
+                this._buffer = contents;
+            } else {
+                // Empty buffer. It'll expand once we write stuff to it.
+                this._buffer = new Buffer(0);
+            }
+
+            // Note: This invariant is *not* maintained once the file starts getting
+            // modified.
+            if (this._stat.size !== this._buffer.length) {
+                throw new Error("Invalid buffer: Buffer is " + this._buffer.length + " long, yet Stats object specifies that file is " + this._stat.size + " long.");
+            }
+        }
+        /**
+        * Get the path to this file.
+        * @return [String] The path to the file.
+        */
+        PreloadFile.prototype.getPath = function () {
+            return this._path;
+        };
+
+        /**
+        * Get the current file position.
+        *
+        * We emulate the following bug mentioned in the Node documentation:
+        * > On Linux, positional writes don't work when the file is opened in append
+        *   mode. The kernel ignores the position argument and always appends the data
+        *   to the end of the file.
+        * @return [Number] The current file position.
+        */
+        PreloadFile.prototype.getPos = function () {
+            if (this._flag.isAppendable()) {
+                return this._stat.size;
+            }
+            return this._pos;
+        };
+
+        /**
+        * Advance the current file position by the indicated number of positions.
+        * @param [Number] delta
+        */
+        PreloadFile.prototype.advancePos = function (delta) {
+            return this._pos += delta;
+        };
+
+        /**
+        * Set the file position.
+        * @param [Number] newPos
+        */
+        PreloadFile.prototype.setPos = function (newPos) {
+            return this._pos = newPos;
+        };
+
+        /**
+        * **Core**: Asynchronous sync. Must be implemented by subclasses of this
+        * class.
+        * @param [Function(BrowserFS.ApiError)] cb
+        */
+        PreloadFile.prototype.sync = function (cb) {
+            try  {
+                this.syncSync();
+                cb();
+            } catch (e) {
+                cb(e);
+            }
+        };
+
+        /**
+        * **Core**: Synchronous sync.
+        */
+        PreloadFile.prototype.syncSync = function () {
+            throw new ApiError(14 /* ENOTSUP */);
+        };
+
+        /**
+        * **Core**: Asynchronous close. Must be implemented by subclasses of this
+        * class.
+        * @param [Function(BrowserFS.ApiError)] cb
+        */
+        PreloadFile.prototype.close = function (cb) {
+            try  {
+                this.closeSync();
+                cb();
+            } catch (e) {
+                cb(e);
+            }
+        };
+
+        /**
+        * **Core**: Synchronous close.
+        */
+        PreloadFile.prototype.closeSync = function () {
+            throw new ApiError(14 /* ENOTSUP */);
+        };
+
+        /**
+        * Asynchronous `stat`.
+        * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] cb
+        */
+        PreloadFile.prototype.stat = function (cb) {
+            try  {
+                cb(null, this._stat.clone());
+            } catch (e) {
+                cb(e);
+            }
+        };
+
+        /**
+        * Synchronous `stat`.
+        */
+        PreloadFile.prototype.statSync = function () {
+            return this._stat.clone();
+        };
+
+        /**
+        * Asynchronous truncate.
+        * @param [Number] len
+        * @param [Function(BrowserFS.ApiError)] cb
+        */
+        PreloadFile.prototype.truncate = function (len, cb) {
+            try  {
+                this.truncateSync(len);
+                if (this._flag.isSynchronous() && !fs.getRootFS().supportsSynch()) {
+                    this.sync(cb);
+                }
+                cb();
+            } catch (e) {
+                return cb(e);
+            }
+        };
+
+        /**
+        * Synchronous truncate.
+        * @param [Number] len
+        */
+        PreloadFile.prototype.truncateSync = function (len) {
+            if (!this._flag.isWriteable()) {
+                throw new ApiError(0 /* EPERM */, 'File not opened with a writeable mode.');
+            }
+            this._stat.mtime = new Date();
+            if (len > this._buffer.length) {
+                var buf = new Buffer(len - this._buffer.length);
+                buf.fill(0);
+
+                // Write will set @_stat.size for us.
+                this.writeSync(buf, 0, buf.length, this._buffer.length);
+                if (this._flag.isSynchronous() && fs.getRootFS().supportsSynch()) {
+                    this.syncSync();
+                }
+                return;
+            }
+            this._stat.size = len;
+
+            // Truncate buffer to 'len'.
+            var newBuff = new Buffer(len);
+            this._buffer.copy(newBuff, 0, 0, len);
+            this._buffer = newBuff;
+            if (this._flag.isSynchronous() && fs.getRootFS().supportsSynch()) {
+                this.syncSync();
+            }
+        };
+
+        /**
+        * Write buffer to the file.
+        * Note that it is unsafe to use fs.write multiple times on the same file
+        * without waiting for the callback.
+        * @param [BrowserFS.node.Buffer] buffer Buffer containing the data to write to
+        *  the file.
+        * @param [Number] offset Offset in the buffer to start reading data from.
+        * @param [Number] length The amount of bytes to write to the file.
+        * @param [Number] position Offset from the beginning of the file where this
+        *   data should be written. If position is null, the data will be written at
+        *   the current position.
+        * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
+        *   cb The number specifies the number of bytes written into the file.
+        */
+        PreloadFile.prototype.write = function (buffer, offset, length, position, cb) {
+            try  {
+                cb(null, this.writeSync(buffer, offset, length, position), buffer);
+            } catch (e) {
+                cb(e);
+            }
+        };
+
+        /**
+        * Write buffer to the file.
+        * Note that it is unsafe to use fs.writeSync multiple times on the same file
+        * without waiting for the callback.
+        * @param [BrowserFS.node.Buffer] buffer Buffer containing the data to write to
+        *  the file.
+        * @param [Number] offset Offset in the buffer to start reading data from.
+        * @param [Number] length The amount of bytes to write to the file.
+        * @param [Number] position Offset from the beginning of the file where this
+        *   data should be written. If position is null, the data will be written at
+        *   the current position.
+        * @return [Number]
+        */
+        PreloadFile.prototype.writeSync = function (buffer, offset, length, position) {
+            if (position == null) {
+                position = this.getPos();
+            }
+            if (!this._flag.isWriteable()) {
+                throw new ApiError(0 /* EPERM */, 'File not opened with a writeable mode.');
+            }
+            var endFp = position + length;
+            if (endFp > this._stat.size) {
+                this._stat.size = endFp;
+                if (endFp > this._buffer.length) {
+                    // Extend the buffer!
+                    var newBuff = new Buffer(endFp);
+                    this._buffer.copy(newBuff);
+                    this._buffer = newBuff;
+                }
+            }
+            var len = buffer.copy(this._buffer, position, offset, offset + length);
+            this._stat.mtime = new Date();
+            if (this._flag.isSynchronous()) {
+                this.syncSync();
+                return len;
+            }
+            this.setPos(position + len);
+            return len;
+        };
+
+        /**
+        * Read data from the file.
+        * @param [BrowserFS.node.Buffer] buffer The buffer that the data will be
+        *   written to.
+        * @param [Number] offset The offset within the buffer where writing will
+        *   start.
+        * @param [Number] length An integer specifying the number of bytes to read.
+        * @param [Number] position An integer specifying where to begin reading from
+        *   in the file. If position is null, data will be read from the current file
+        *   position.
+        * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)] cb The
+        *   number is the number of bytes read
+        */
+        PreloadFile.prototype.read = function (buffer, offset, length, position, cb) {
+            try  {
+                cb(null, this.readSync(buffer, offset, length, position), buffer);
+            } catch (e) {
+                cb(e);
+            }
+        };
+
+        /**
+        * Read data from the file.
+        * @param [BrowserFS.node.Buffer] buffer The buffer that the data will be
+        *   written to.
+        * @param [Number] offset The offset within the buffer where writing will
+        *   start.
+        * @param [Number] length An integer specifying the number of bytes to read.
+        * @param [Number] position An integer specifying where to begin reading from
+        *   in the file. If position is null, data will be read from the current file
+        *   position.
+        * @return [Number]
+        */
+        PreloadFile.prototype.readSync = function (buffer, offset, length, position) {
+            if (!this._flag.isReadable()) {
+                throw new ApiError(0 /* EPERM */, 'File not opened with a readable mode.');
+            }
+            if (position == null) {
+                position = this.getPos();
+            }
+            var endRead = position + length;
+            if (endRead > this._stat.size) {
+                length = this._stat.size - position;
+            }
+            var rv = this._buffer.copy(buffer, offset, position, position + length);
+            this._stat.atime = new Date();
+            this._pos = position + length;
+            return rv;
+        };
+
+        /**
+        * Asynchronous `fchmod`.
+        * @param [Number|String] mode
+        * @param [Function(BrowserFS.ApiError)] cb
+        */
+        PreloadFile.prototype.chmod = function (mode, cb) {
+            try  {
+                this.chmodSync(mode);
+                cb();
+            } catch (e) {
+                cb(e);
+            }
+        };
+
+        /**
+        * Asynchronous `fchmod`.
+        * @param [Number] mode
+        */
+        PreloadFile.prototype.chmodSync = function (mode) {
+            if (!this._fs.supportsProps()) {
+                throw new ApiError(14 /* ENOTSUP */);
+            }
+            this._stat.chmod(mode);
+            this.syncSync();
+        };
+        return PreloadFile;
+    })(file.BaseFile);
+    exports.PreloadFile = PreloadFile;
+
+    /**
+    * File class for the InMemory and XHR file systems.
+    * Doesn't sync to anything, so it works nicely for memory-only files.
+    */
+    var NoSyncFile = (function (_super) {
+        __extends(NoSyncFile, _super);
+        function NoSyncFile(_fs, _path, _flag, _stat, contents) {
+            _super.call(this, _fs, _path, _flag, _stat, contents);
+        }
+        /**
+        * Asynchronous sync. Doesn't do anything, simply calls the cb.
+        * @param [Function(BrowserFS.ApiError)] cb
+        */
+        NoSyncFile.prototype.sync = function (cb) {
+            cb();
+        };
+
+        /**
+        * Synchronous sync. Doesn't do anything.
+        */
+        NoSyncFile.prototype.syncSync = function () {
+        };
+
+        /**
+        * Asynchronous close. Doesn't do anything, simply calls the cb.
+        * @param [Function(BrowserFS.ApiError)] cb
+        */
+        NoSyncFile.prototype.close = function (cb) {
+            cb();
+        };
+
+        /**
+        * Synchronous close. Doesn't do anything.
+        */
+        NoSyncFile.prototype.closeSync = function () {
+        };
+        return NoSyncFile;
+    })(PreloadFile);
+    exports.NoSyncFile = NoSyncFile;
+});
+//# sourceMappingURL=preload_file.js.map
+;
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+define('generic/key_value_filesystem',["require", "exports", '../core/file_system', '../core/api_error', '../core/node_fs_stats', '../core/node_path', '../generic/inode', '../core/buffer', '../generic/preload_file'], function(require, exports, file_system, api_error, node_fs_stats, node_path, Inode, buffer, preload_file) {
+    var ROOT_NODE_ID = "/", path = node_path.path, ApiError = api_error.ApiError, Buffer = buffer.Buffer;
+
+    /**
+    * Generates a random ID.
+    */
+    function GenerateRandomID() {
+        // From http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    /**
+    * Helper function. Checks if 'e' is defined. If so, it triggers the callback
+    * with 'e' and returns false. Otherwise, returns true.
+    */
+    function noError(e, cb) {
+        if (e) {
+            cb(e);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+    * Helper function. Checks if 'e' is defined. If so, it aborts the transaction,
+    * triggers the callback with 'e', and returns false. Otherwise, returns true.
+    */
+    function noErrorTx(e, tx, cb) {
+        if (e) {
+            tx.abort(function () {
+                cb(e);
+            });
+            return false;
+        }
+        return true;
+    }
+
+    
+
+    
+
+    
+
+    
+
+    /**
+    * A simple RW transaction for simple synchronous key-value stores.
+    */
+    var SimpleSyncRWTransaction = (function () {
+        function SimpleSyncRWTransaction(store) {
+            this.store = store;
+            /**
+            * Stores data in the keys we modify prior to modifying them.
+            * Allows us to roll back commits.
+            */
+            this.originalData = {};
+            /**
+            * List of keys modified in this transaction, if any.
+            */
+            this.modifiedKeys = [];
+        }
+        /**
+        * Stashes given key value pair into `originalData` if it doesn't already
+        * exist. Allows us to stash values the program is requesting anyway to
+        * prevent needless `get` requests if the program modifies the data later
+        * on during the transaction.
+        */
+        SimpleSyncRWTransaction.prototype.stashOldValue = function (key, value) {
+            // Keep only the earliest value in the transaction.
+            if (!this.originalData.hasOwnProperty(key)) {
+                this.originalData[key] = value;
+            }
+        };
+
+        /**
+        * Marks the given key as modified, and stashes its value if it has not been
+        * stashed already.
+        */
+        SimpleSyncRWTransaction.prototype.markModified = function (key) {
+            if (this.modifiedKeys.indexOf(key) === -1) {
+                this.modifiedKeys.push(key);
+                if (!this.originalData.hasOwnProperty(key)) {
+                    this.originalData[key] = this.store.get(key);
+                }
+            }
+        };
+
+        SimpleSyncRWTransaction.prototype.get = function (key) {
+            var val = this.store.get(key);
+            this.stashOldValue(key, val);
+            return val;
+        };
+
+        SimpleSyncRWTransaction.prototype.put = function (key, data, overwrite) {
+            this.markModified(key);
+            return this.store.put(key, data, overwrite);
+        };
+
+        SimpleSyncRWTransaction.prototype.delete = function (key) {
+            this.markModified(key);
+            this.store.delete(key);
+        };
+
+        SimpleSyncRWTransaction.prototype.commit = function () {
+        };
+        SimpleSyncRWTransaction.prototype.abort = function () {
+            // Rollback old values.
+            var i, key, value;
+            for (i = 0; i < this.modifiedKeys.length; i++) {
+                key = this.modifiedKeys[i];
+                value = this.originalData[key];
+                if (value === null) {
+                    // Key didn't exist.
+                    this.store.delete(key);
+                } else {
+                    // Key existed. Store old value.
+                    this.store.put(key, value, true);
+                }
+            }
+        };
+        return SimpleSyncRWTransaction;
+    })();
+    exports.SimpleSyncRWTransaction = SimpleSyncRWTransaction;
+
+    var SyncKeyValueFile = (function (_super) {
+        __extends(SyncKeyValueFile, _super);
+        function SyncKeyValueFile(_fs, _path, _flag, _stat, contents) {
+            _super.call(this, _fs, _path, _flag, _stat, contents);
+        }
+        SyncKeyValueFile.prototype.syncSync = function () {
+            this._fs._syncSync(this._path, this._buffer, this._stat);
+        };
+
+        SyncKeyValueFile.prototype.closeSync = function () {
+            this.syncSync();
+        };
+        return SyncKeyValueFile;
+    })(preload_file.PreloadFile);
+    exports.SyncKeyValueFile = SyncKeyValueFile;
+
+    /**
+    * A "Synchronous key-value file system". Stores data to/retrieves data from an
+    * underlying key-value store.
+    *
+    * We use a unique ID for each node in the file system. The root node has a
+    * fixed ID.
+    * @todo Introduce Node ID caching.
+    * @todo Check modes.
+    */
+    var SyncKeyValueFileSystem = (function (_super) {
+        __extends(SyncKeyValueFileSystem, _super);
+        function SyncKeyValueFileSystem(options) {
+            _super.call(this);
+            this.store = options.store;
+
+            // INVARIANT: Ensure that the root exists.
+            this.makeRootDirectory();
+        }
+        SyncKeyValueFileSystem.isAvailable = function () {
+            return true;
+        };
+        SyncKeyValueFileSystem.prototype.getName = function () {
+            return this.store.name();
+        };
+        SyncKeyValueFileSystem.prototype.isReadOnly = function () {
+            return false;
+        };
+        SyncKeyValueFileSystem.prototype.supportsSymlinks = function () {
+            return false;
+        };
+        SyncKeyValueFileSystem.prototype.supportsProps = function () {
+            return false;
+        };
+        SyncKeyValueFileSystem.prototype.supportsSynch = function () {
+            return true;
+        };
+
+        /**
+        * Checks if the root directory exists. Creates it if it doesn't.
+        */
+        SyncKeyValueFileSystem.prototype.makeRootDirectory = function () {
+            var tx = this.store.beginTransaction('readwrite');
+            if (tx.get(ROOT_NODE_ID) === undefined) {
+                // Create new inode.
+                var currTime = (new Date()).getTime(), dirInode = new Inode(GenerateRandomID(), 4096, 511 | 16384 /* DIRECTORY */, currTime, currTime, currTime);
+
+                // If the root doesn't exist, the first random ID shouldn't exist,
+                // either.
+                tx.put(dirInode.id, new Buffer("{}"), false);
+                tx.put(ROOT_NODE_ID, dirInode.toBuffer(), false);
+                tx.commit();
+            }
+        };
+
+        /**
+        * Helper function for findINode.
+        * @param parent The parent directory of the file we are attempting to find.
+        * @param filename The filename of the inode we are attempting to find, minus
+        *   the parent.
+        * @return string The ID of the file's inode in the file system.
+        */
+        SyncKeyValueFileSystem.prototype._findINode = function (tx, parent, filename) {
+            var _this = this;
+            var read_directory = function (inode) {
+                // Get the root's directory listing.
+                var dirList = _this.getDirListing(tx, parent, inode);
+
+                // Get the file's ID.
+                if (dirList[filename]) {
+                    return dirList[filename];
+                } else {
+                    throw ApiError.ENOENT(path.resolve(parent, filename));
+                }
+            };
+            if (parent === '/') {
+                if (filename === '') {
+                    // BASE CASE #1: Return the root's ID.
+                    return ROOT_NODE_ID;
+                } else {
+                    // BASE CASE #2: Find the item in the root ndoe.
+                    return read_directory(this.getINode(tx, parent, ROOT_NODE_ID));
+                }
+            } else {
+                return read_directory(this.getINode(tx, parent + path.sep + filename, this._findINode(tx, path.dirname(parent), path.basename(parent))));
+            }
+        };
+
+        /**
+        * Finds the Inode of the given path.
+        * @param p The path to look up.
+        * @return The Inode of the path p.
+        * @todo memoize/cache
+        */
+        SyncKeyValueFileSystem.prototype.findINode = function (tx, p) {
+            return this.getINode(tx, p, this._findINode(tx, path.dirname(p), path.basename(p)));
+        };
+
+        /**
+        * Given the ID of a node, retrieves the corresponding Inode.
+        * @param tx The transaction to use.
+        * @param p The corresponding path to the file (used for error messages).
+        * @param id The ID to look up.
+        */
+        SyncKeyValueFileSystem.prototype.getINode = function (tx, p, id) {
+            var inode = tx.get(id);
+            if (inode === undefined) {
+                throw ApiError.ENOENT(p);
+            }
+            return Inode.fromBuffer(inode);
+        };
+
+        /**
+        * Given the Inode of a directory, retrieves the corresponding directory
+        * listing.
+        */
+        SyncKeyValueFileSystem.prototype.getDirListing = function (tx, p, inode) {
+            if (!inode.isDirectory()) {
+                throw ApiError.ENOTDIR(p);
+            }
+            var data = tx.get(inode.id);
+            if (data === undefined) {
+                throw ApiError.ENOENT(p);
+            }
+            return JSON.parse(data.toString());
+        };
+
+        /**
+        * Creates a new node under a random ID. Retries 5 times before giving up in
+        * the exceedingly unlikely chance that we try to reuse a random GUID.
+        * @return The GUID that the data was stored under.
+        */
+        SyncKeyValueFileSystem.prototype.addNewNode = function (tx, data) {
+            var retries = 0, currId;
+            while (retries < 5) {
+                try  {
+                    currId = GenerateRandomID();
+                    tx.put(currId, data, false);
+                    return currId;
+                } catch (e) {
+                    // Ignore and reroll.
+                }
+            }
+            throw new ApiError(2 /* EIO */, 'Unable to commit data to key-value store.');
+        };
+
+        /**
+        * Commits a new file (well, a FILE or a DIRECTORY) to the file system with
+        * the given mode.
+        * Note: This will commit the transaction.
+        * @param p The path to the new file.
+        * @param type The type of the new file.
+        * @param mode The mode to create the new file with.
+        * @param data The data to store at the file's data node.
+        * @return The Inode for the new file.
+        */
+        SyncKeyValueFileSystem.prototype.commitNewFile = function (tx, p, type, mode, data) {
+            var parentDir = path.dirname(p), fname = path.basename(p), parentNode = this.findINode(tx, parentDir), dirListing = this.getDirListing(tx, parentDir, parentNode), currTime = (new Date()).getTime();
+
+            // Invariant: The root always exists.
+            // If we don't check this prior to taking steps below, we will create a
+            // file with name '' in root should p == '/'.
+            if (p === '/') {
+                throw ApiError.EEXIST(p);
+            }
+
+            // Check if file already exists.
+            if (dirListing[fname]) {
+                throw ApiError.EEXIST(p);
+            }
+
+            try  {
+                // Commit data.
+                var dataId = this.addNewNode(tx, data), fileNode = new Inode(dataId, data.length, mode | type, currTime, currTime, currTime), fileNodeId = this.addNewNode(tx, fileNode.toBuffer());
+
+                // Update and commit parent directory listing.
+                dirListing[fname] = fileNodeId;
+                tx.put(parentNode.id, new Buffer(JSON.stringify(dirListing)), true);
+            } catch (e) {
+                tx.abort();
+                throw e;
+            }
+            tx.commit();
+            return fileNode;
+        };
+
+        /**
+        * Delete all contents stored in the file system.
+        */
+        SyncKeyValueFileSystem.prototype.empty = function () {
+            this.store.clear();
+
+            // INVARIANT: Root always exists.
+            this.makeRootDirectory();
+        };
+
+        SyncKeyValueFileSystem.prototype.renameSync = function (oldPath, newPath) {
+            var tx = this.store.beginTransaction('readwrite'), oldParent = path.dirname(oldPath), oldName = path.basename(oldPath), newParent = path.dirname(newPath), newName = path.basename(newPath), oldDirNode = this.findINode(tx, oldParent), oldDirList = this.getDirListing(tx, oldParent, oldDirNode);
+            if (!oldDirList[oldName]) {
+                throw ApiError.ENOENT(oldPath);
+            }
+            var nodeId = oldDirList[oldName];
+            delete oldDirList[oldName];
+
+            // Invariant: Can't move a folder inside itself.
+            // This funny little hack ensures that the check passes only if oldPath
+            // is a subpath of newParent. We append '/' to avoid matching folders that
+            // are a substring of the bottom-most folder in the path.
+            if ((newParent + '/').indexOf(oldPath + '/') === 0) {
+                throw new ApiError(5 /* EBUSY */, oldParent);
+            }
+
+            // Add newPath to parent's directory listing.
+            var newDirNode, newDirList;
+            if (newParent === oldParent) {
+                // Prevent us from re-grabbing the same directory listing, which still
+                // contains oldName.
+                newDirNode = oldDirNode;
+                newDirList = oldDirList;
+            } else {
+                newDirNode = this.findINode(tx, newParent);
+                newDirList = this.getDirListing(tx, newParent, newDirNode);
+            }
+
+            if (newDirList[newName]) {
+                // If it's a file, delete it.
+                var newNameNode = this.getINode(tx, newPath, newDirList[newName]);
+                if (newNameNode.isFile()) {
+                    try  {
+                        tx.delete(newNameNode.id);
+                        tx.delete(newDirList[newName]);
+                    } catch (e) {
+                        tx.abort();
+                        throw e;
+                    }
+                } else {
+                    throw ApiError.EPERM(newPath);
+                }
+            }
+            newDirList[newName] = nodeId;
+
+            try  {
+                tx.put(oldDirNode.id, new Buffer(JSON.stringify(oldDirList)), true);
+                tx.put(newDirNode.id, new Buffer(JSON.stringify(newDirList)), true);
+            } catch (e) {
+                tx.abort();
+                throw e;
+            }
+
+            tx.commit();
+        };
+
+        SyncKeyValueFileSystem.prototype.statSync = function (p, isLstat) {
+            // Get the inode to the item, convert it into a Stats object.
+            return this.findINode(this.store.beginTransaction('readonly'), p).toStats();
+        };
+
+        SyncKeyValueFileSystem.prototype.createFileSync = function (p, flag, mode) {
+            var tx = this.store.beginTransaction('readwrite'), data = new Buffer(0), newFile = this.commitNewFile(tx, p, 32768 /* FILE */, mode, data);
+
+            // Open the file.
+            return new SyncKeyValueFile(this, p, flag, newFile.toStats(), data);
+        };
+
+        SyncKeyValueFileSystem.prototype.openFileSync = function (p, flag) {
+            var tx = this.store.beginTransaction('readonly'), node = this.findINode(tx, p), data = tx.get(node.id);
+            if (data === undefined) {
+                throw ApiError.ENOENT(p);
+            }
+            return new SyncKeyValueFile(this, p, flag, node.toStats(), data);
+        };
+
+        /**
+        * Remove all traces of the given path from the file system.
+        * @param p The path to remove from the file system.
+        * @param isDir Does the path belong to a directory, or a file?
+        * @todo Update mtime.
+        */
+        SyncKeyValueFileSystem.prototype.removeEntry = function (p, isDir) {
+            var tx = this.store.beginTransaction('readwrite'), parent = path.dirname(p), parentNode = this.findINode(tx, parent), parentListing = this.getDirListing(tx, parent, parentNode), fileName = path.basename(p);
+
+            if (!parentListing[fileName]) {
+                throw ApiError.ENOENT(p);
+            }
+
+            // Remove from directory listing of parent.
+            var fileNodeId = parentListing[fileName];
+            delete parentListing[fileName];
+
+            // Get file inode.
+            var fileNode = this.getINode(tx, p, fileNodeId);
+            if (!isDir && fileNode.isDirectory()) {
+                throw ApiError.EISDIR(p);
+            } else if (isDir && !fileNode.isDirectory()) {
+                throw ApiError.ENOTDIR(p);
+            }
+
+            try  {
+                // Delete data.
+                tx.delete(fileNode.id);
+
+                // Delete node.
+                tx.delete(fileNodeId);
+
+                // Update directory listing.
+                tx.put(parentNode.id, new Buffer(JSON.stringify(parentListing)), true);
+            } catch (e) {
+                tx.abort();
+                throw e;
+            }
+
+            // Success.
+            tx.commit();
+        };
+
+        SyncKeyValueFileSystem.prototype.unlinkSync = function (p) {
+            this.removeEntry(p, false);
+        };
+
+        SyncKeyValueFileSystem.prototype.rmdirSync = function (p) {
+            this.removeEntry(p, true);
+        };
+
+        SyncKeyValueFileSystem.prototype.mkdirSync = function (p, mode) {
+            var tx = this.store.beginTransaction('readwrite'), data = new Buffer('{}');
+            this.commitNewFile(tx, p, 16384 /* DIRECTORY */, mode, data);
+        };
+
+        SyncKeyValueFileSystem.prototype.readdirSync = function (p) {
+            var tx = this.store.beginTransaction('readonly');
+            return Object.keys(this.getDirListing(tx, p, this.findINode(tx, p)));
+        };
+
+        SyncKeyValueFileSystem.prototype._syncSync = function (p, data, stats) {
+            // @todo Ensure mtime updates properly, and use that to determine if a data
+            //       update is required.
+            var tx = this.store.beginTransaction('readwrite'), fileInodeId = this._findINode(tx, path.dirname(p), path.basename(p)), fileInode = this.getINode(tx, p, fileInodeId), inodeChanged = fileInode.update(stats);
+
+            try  {
+                // Sync data.
+                tx.put(fileInode.id, data, true);
+
+                // Sync metadata.
+                if (inodeChanged) {
+                    tx.put(fileInodeId, fileInode.toBuffer(), true);
+                }
+            } catch (e) {
+                tx.abort();
+                throw e;
+            }
+            tx.commit();
+        };
+        return SyncKeyValueFileSystem;
+    })(file_system.SynchronousFileSystem);
+    exports.SyncKeyValueFileSystem = SyncKeyValueFileSystem;
+
+    
+
+    
+
+    
+
+    var AsyncKeyValueFile = (function (_super) {
+        __extends(AsyncKeyValueFile, _super);
+        function AsyncKeyValueFile(_fs, _path, _flag, _stat, contents) {
+            _super.call(this, _fs, _path, _flag, _stat, contents);
+        }
+        AsyncKeyValueFile.prototype.sync = function (cb) {
+            this._fs._sync(this._path, this._buffer, this._stat, cb);
+        };
+
+        AsyncKeyValueFile.prototype.close = function (cb) {
+            this.sync(cb);
+        };
+        return AsyncKeyValueFile;
+    })(preload_file.PreloadFile);
+    exports.AsyncKeyValueFile = AsyncKeyValueFile;
+
+    /**
+    * An "Asynchronous key-value file system". Stores data to/retrieves data from
+    * an underlying asynchronous key-value store.
+    */
+    var AsyncKeyValueFileSystem = (function (_super) {
+        __extends(AsyncKeyValueFileSystem, _super);
+        function AsyncKeyValueFileSystem() {
+            _super.apply(this, arguments);
+        }
+        /**
+        * Initializes the file system. Typically called by subclasses' async
+        * constructors.
+        */
+        AsyncKeyValueFileSystem.prototype.init = function (store, cb) {
+            this.store = store;
+
+            // INVARIANT: Ensure that the root exists.
+            this.makeRootDirectory(cb);
+        };
+
+        AsyncKeyValueFileSystem.isAvailable = function () {
+            return true;
+        };
+        AsyncKeyValueFileSystem.prototype.getName = function () {
+            return this.store.name();
+        };
+        AsyncKeyValueFileSystem.prototype.isReadOnly = function () {
+            return false;
+        };
+        AsyncKeyValueFileSystem.prototype.supportsSymlinks = function () {
+            return false;
+        };
+        AsyncKeyValueFileSystem.prototype.supportsProps = function () {
+            return false;
+        };
+        AsyncKeyValueFileSystem.prototype.supportsSynch = function () {
+            return false;
+        };
+
+        /**
+        * Checks if the root directory exists. Creates it if it doesn't.
+        */
+        AsyncKeyValueFileSystem.prototype.makeRootDirectory = function (cb) {
+            var tx = this.store.beginTransaction('readwrite');
+            tx.get(ROOT_NODE_ID, function (e, data) {
+                if (e || data === undefined) {
+                    // Create new inode.
+                    var currTime = (new Date()).getTime(), dirInode = new Inode(GenerateRandomID(), 4096, 511 | 16384 /* DIRECTORY */, currTime, currTime, currTime);
+
+                    // If the root doesn't exist, the first random ID shouldn't exist,
+                    // either.
+                    tx.put(dirInode.id, new Buffer("{}"), false, function (e) {
+                        if (noErrorTx(e, tx, cb)) {
+                            tx.put(ROOT_NODE_ID, dirInode.toBuffer(), false, function (e) {
+                                if (e) {
+                                    tx.abort(function () {
+                                        cb(e);
+                                    });
+                                } else {
+                                    tx.commit(cb);
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    // We're good.
+                    tx.commit(cb);
+                }
+            });
+        };
+
+        /**
+        * Helper function for findINode.
+        * @param parent The parent directory of the file we are attempting to find.
+        * @param filename The filename of the inode we are attempting to find, minus
+        *   the parent.
+        * @param cb Passed an error or the ID of the file's inode in the file system.
+        */
+        AsyncKeyValueFileSystem.prototype._findINode = function (tx, parent, filename, cb) {
+            var _this = this;
+            var handle_directory_listings = function (e, inode, dirList) {
+                if (e) {
+                    cb(e);
+                } else if (dirList[filename]) {
+                    cb(null, dirList[filename]);
+                } else {
+                    cb(ApiError.ENOENT(path.resolve(parent, filename)));
+                }
+            };
+
+            if (parent === '/') {
+                if (filename === '') {
+                    // BASE CASE #1: Return the root's ID.
+                    cb(null, ROOT_NODE_ID);
+                } else {
+                    // BASE CASE #2: Find the item in the root node.
+                    this.getINode(tx, parent, ROOT_NODE_ID, function (e, inode) {
+                        if (noError(e, cb)) {
+                            _this.getDirListing(tx, parent, inode, function (e, dirList) {
+                                // handle_directory_listings will handle e for us.
+                                handle_directory_listings(e, inode, dirList);
+                            });
+                        }
+                    });
+                }
+            } else {
+                // Get the parent directory's INode, and find the file in its directory
+                // listing.
+                this.findINodeAndDirListing(tx, parent, handle_directory_listings);
+            }
+        };
+
+        /**
+        * Finds the Inode of the given path.
+        * @param p The path to look up.
+        * @param cb Passed an error or the Inode of the path p.
+        * @todo memoize/cache
+        */
+        AsyncKeyValueFileSystem.prototype.findINode = function (tx, p, cb) {
+            var _this = this;
+            this._findINode(tx, path.dirname(p), path.basename(p), function (e, id) {
+                if (noError(e, cb)) {
+                    _this.getINode(tx, p, id, cb);
+                }
+            });
+        };
+
+        /**
+        * Given the ID of a node, retrieves the corresponding Inode.
+        * @param tx The transaction to use.
+        * @param p The corresponding path to the file (used for error messages).
+        * @param id The ID to look up.
+        * @param cb Passed an error or the inode under the given id.
+        */
+        AsyncKeyValueFileSystem.prototype.getINode = function (tx, p, id, cb) {
+            tx.get(id, function (e, data) {
+                if (noError(e, cb)) {
+                    if (data === undefined) {
+                        cb(ApiError.ENOENT(p));
+                    } else {
+                        cb(null, Inode.fromBuffer(data));
+                    }
+                }
+            });
+        };
+
+        /**
+        * Given the Inode of a directory, retrieves the corresponding directory
+        * listing.
+        */
+        AsyncKeyValueFileSystem.prototype.getDirListing = function (tx, p, inode, cb) {
+            if (!inode.isDirectory()) {
+                cb(ApiError.ENOTDIR(p));
+            } else {
+                tx.get(inode.id, function (e, data) {
+                    if (noError(e, cb)) {
+                        try  {
+                            cb(null, JSON.parse(data.toString()));
+                        } catch (e) {
+                            // Occurs when data is undefined, or corresponds to something other
+                            // than a directory listing. The latter should never occur unless
+                            // the file system is corrupted.
+                            cb(ApiError.ENOENT(p));
+                        }
+                    }
+                });
+            }
+        };
+
+        /**
+        * Given a path to a directory, retrieves the corresponding INode and
+        * directory listing.
+        */
+        AsyncKeyValueFileSystem.prototype.findINodeAndDirListing = function (tx, p, cb) {
+            var _this = this;
+            this.findINode(tx, p, function (e, inode) {
+                if (noError(e, cb)) {
+                    _this.getDirListing(tx, p, inode, function (e, listing) {
+                        if (noError(e, cb)) {
+                            cb(null, inode, listing);
+                        }
+                    });
+                }
+            });
+        };
+
+        /**
+        * Adds a new node under a random ID. Retries 5 times before giving up in
+        * the exceedingly unlikely chance that we try to reuse a random GUID.
+        * @param cb Passed an error or the GUID that the data was stored under.
+        */
+        AsyncKeyValueFileSystem.prototype.addNewNode = function (tx, data, cb) {
+            var retries = 0, currId, reroll = function () {
+                if (++retries === 5) {
+                    // Max retries hit. Return with an error.
+                    cb(new ApiError(2 /* EIO */, 'Unable to commit data to key-value store.'));
+                } else {
+                    // Try again.
+                    currId = GenerateRandomID();
+                    tx.put(currId, data, false, function (e, committed) {
+                        if (e || !committed) {
+                            reroll();
+                        } else {
+                            // Successfully stored under 'currId'.
+                            cb(null, currId);
+                        }
+                    });
+                }
+            };
+            reroll();
+        };
+
+        /**
+        * Commits a new file (well, a FILE or a DIRECTORY) to the file system with
+        * the given mode.
+        * Note: This will commit the transaction.
+        * @param p The path to the new file.
+        * @param type The type of the new file.
+        * @param mode The mode to create the new file with.
+        * @param data The data to store at the file's data node.
+        * @param cb Passed an error or the Inode for the new file.
+        */
+        AsyncKeyValueFileSystem.prototype.commitNewFile = function (tx, p, type, mode, data, cb) {
+            var _this = this;
+            var parentDir = path.dirname(p), fname = path.basename(p), currTime = (new Date()).getTime();
+
+            // Invariant: The root always exists.
+            // If we don't check this prior to taking steps below, we will create a
+            // file with name '' in root should p == '/'.
+            if (p === '/') {
+                return cb(ApiError.EEXIST(p));
+            }
+
+            // Let's build a pyramid of code!
+            // Step 1: Get the parent directory's inode and directory listing
+            this.findINodeAndDirListing(tx, parentDir, function (e, parentNode, dirListing) {
+                if (noErrorTx(e, tx, cb)) {
+                    if (dirListing[fname]) {
+                        // File already exists.
+                        tx.abort(function () {
+                            cb(ApiError.EEXIST(p));
+                        });
+                    } else {
+                        // Step 2: Commit data to store.
+                        _this.addNewNode(tx, data, function (e, dataId) {
+                            if (noErrorTx(e, tx, cb)) {
+                                // Step 3: Commit the file's inode to the store.
+                                var fileInode = new Inode(dataId, data.length, mode | type, currTime, currTime, currTime);
+                                _this.addNewNode(tx, fileInode.toBuffer(), function (e, fileInodeId) {
+                                    if (noErrorTx(e, tx, cb)) {
+                                        // Step 4: Update parent directory's listing.
+                                        dirListing[fname] = fileInodeId;
+                                        tx.put(parentNode.id, new Buffer(JSON.stringify(dirListing)), true, function (e) {
+                                            if (noErrorTx(e, tx, cb)) {
+                                                // Step 5: Commit and return the new inode.
+                                                tx.commit(function (e) {
+                                                    if (noErrorTx(e, tx, cb)) {
+                                                        cb(null, fileInode);
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }
+            });
+        };
+
+        /**
+        * Delete all contents stored in the file system.
+        */
+        AsyncKeyValueFileSystem.prototype.empty = function (cb) {
+            var _this = this;
+            this.store.clear(function (e) {
+                if (noError(e, cb)) {
+                    // INVARIANT: Root always exists.
+                    _this.makeRootDirectory(cb);
+                }
+            });
+        };
+
+        AsyncKeyValueFileSystem.prototype.rename = function (oldPath, newPath, cb) {
+            var _this = this;
+            var tx = this.store.beginTransaction('readwrite'), oldParent = path.dirname(oldPath), oldName = path.basename(oldPath), newParent = path.dirname(newPath), newName = path.basename(newPath), inodes = {}, lists = {}, errorOccurred = false;
+
+            // Invariant: Can't move a folder inside itself.
+            // This funny little hack ensures that the check passes only if oldPath
+            // is a subpath of newParent. We append '/' to avoid matching folders that
+            // are a substring of the bottom-most folder in the path.
+            if ((newParent + '/').indexOf(oldPath + '/') === 0) {
+                return cb(new ApiError(5 /* EBUSY */, oldParent));
+            }
+
+            /**
+            * Responsible for Phase 2 of the rename operation: Modifying and
+            * committing the directory listings. Called once we have successfully
+            * retrieved both the old and new parent's inodes and listings.
+            */
+            var theOleSwitcharoo = function () {
+                // Sanity check: Ensure both paths are present, and no error has occurred.
+                if (errorOccurred || !lists.hasOwnProperty(oldParent) || !lists.hasOwnProperty(newParent)) {
+                    return;
+                }
+                var oldParentList = lists[oldParent], oldParentINode = inodes[oldParent], newParentList = lists[newParent], newParentINode = inodes[newParent];
+
+                // Delete file from old parent.
+                if (!oldParentList[oldName]) {
+                    cb(ApiError.ENOENT(oldPath));
+                } else {
+                    var fileId = oldParentList[oldName];
+                    delete oldParentList[oldName];
+
+                    // Finishes off the renaming process by adding the file to the new
+                    // parent.
+                    var completeRename = function () {
+                        newParentList[newName] = fileId;
+
+                        // Commit old parent's list.
+                        tx.put(oldParentINode.id, new Buffer(JSON.stringify(oldParentList)), true, function (e) {
+                            if (noErrorTx(e, tx, cb)) {
+                                if (oldParent === newParent) {
+                                    // DONE!
+                                    tx.commit(cb);
+                                } else {
+                                    // Commit new parent's list.
+                                    tx.put(newParentINode.id, new Buffer(JSON.stringify(newParentList)), true, function (e) {
+                                        if (noErrorTx(e, tx, cb)) {
+                                            tx.commit(cb);
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                    };
+
+                    if (newParentList[newName]) {
+                        // 'newPath' already exists. Check if it's a file or a directory, and
+                        // act accordingly.
+                        _this.getINode(tx, newPath, newParentList[newName], function (e, inode) {
+                            if (noErrorTx(e, tx, cb)) {
+                                if (inode.isFile()) {
+                                    // Delete the file and continue.
+                                    tx.delete(inode.id, function (e) {
+                                        if (noErrorTx(e, tx, cb)) {
+                                            tx.delete(newParentList[newName], function (e) {
+                                                if (noErrorTx(e, tx, cb)) {
+                                                    completeRename();
+                                                }
+                                            });
+                                        }
+                                    });
+                                } else {
+                                    // Can't overwrite a directory using rename.
+                                    tx.abort(function (e) {
+                                        cb(ApiError.EPERM(newPath));
+                                    });
+                                }
+                            }
+                        });
+                    } else {
+                        completeRename();
+                    }
+                }
+            };
+
+            /**
+            * Grabs a path's inode and directory listing, and shoves it into the
+            * inodes and lists hashes.
+            */
+            var processInodeAndListings = function (p) {
+                _this.findINodeAndDirListing(tx, p, function (e, node, dirList) {
+                    if (e) {
+                        if (!errorOccurred) {
+                            errorOccurred = true;
+                            tx.abort(function () {
+                                cb(e);
+                            });
+                        }
+                        // If error has occurred already, just stop here.
+                    } else {
+                        inodes[p] = node;
+                        lists[p] = dirList;
+                        theOleSwitcharoo();
+                    }
+                });
+            };
+
+            processInodeAndListings(oldParent);
+            if (oldParent !== newParent) {
+                processInodeAndListings(newParent);
+            }
+        };
+
+        AsyncKeyValueFileSystem.prototype.stat = function (p, isLstat, cb) {
+            var tx = this.store.beginTransaction('readonly');
+            this.findINode(tx, p, function (e, inode) {
+                if (noError(e, cb)) {
+                    cb(null, inode.toStats());
+                }
+            });
+        };
+
+        AsyncKeyValueFileSystem.prototype.createFile = function (p, flag, mode, cb) {
+            var _this = this;
+            var tx = this.store.beginTransaction('readwrite'), data = new Buffer(0);
+
+            this.commitNewFile(tx, p, 32768 /* FILE */, mode, data, function (e, newFile) {
+                if (noError(e, cb)) {
+                    cb(null, new AsyncKeyValueFile(_this, p, flag, newFile.toStats(), data));
+                }
+            });
+        };
+
+        AsyncKeyValueFileSystem.prototype.openFile = function (p, flag, cb) {
+            var _this = this;
+            var tx = this.store.beginTransaction('readonly');
+
+            // Step 1: Grab the file's inode.
+            this.findINode(tx, p, function (e, inode) {
+                if (noError(e, cb)) {
+                    // Step 2: Grab the file's data.
+                    tx.get(inode.id, function (e, data) {
+                        if (noError(e, cb)) {
+                            if (data === undefined) {
+                                cb(ApiError.ENOENT(p));
+                            } else {
+                                cb(null, new AsyncKeyValueFile(_this, p, flag, inode.toStats(), data));
+                            }
+                        }
+                    });
+                }
+            });
+        };
+
+        /**
+        * Remove all traces of the given path from the file system.
+        * @param p The path to remove from the file system.
+        * @param isDir Does the path belong to a directory, or a file?
+        * @todo Update mtime.
+        */
+        AsyncKeyValueFileSystem.prototype.removeEntry = function (p, isDir, cb) {
+            var _this = this;
+            var tx = this.store.beginTransaction('readwrite'), parent = path.dirname(p), fileName = path.basename(p);
+
+            // Step 1: Get parent directory's node and directory listing.
+            this.findINodeAndDirListing(tx, parent, function (e, parentNode, parentListing) {
+                if (noErrorTx(e, tx, cb)) {
+                    if (!parentListing[fileName]) {
+                        tx.abort(function () {
+                            cb(ApiError.ENOENT(p));
+                        });
+                    } else {
+                        // Remove from directory listing of parent.
+                        var fileNodeId = parentListing[fileName];
+                        delete parentListing[fileName];
+
+                        // Step 2: Get file inode.
+                        _this.getINode(tx, p, fileNodeId, function (e, fileNode) {
+                            if (noErrorTx(e, tx, cb)) {
+                                if (!isDir && fileNode.isDirectory()) {
+                                    tx.abort(function () {
+                                        cb(ApiError.EISDIR(p));
+                                    });
+                                } else if (isDir && !fileNode.isDirectory()) {
+                                    tx.abort(function () {
+                                        cb(ApiError.ENOTDIR(p));
+                                    });
+                                } else {
+                                    // Step 3: Delete data.
+                                    tx.delete(fileNode.id, function (e) {
+                                        if (noErrorTx(e, tx, cb)) {
+                                            // Step 4: Delete node.
+                                            tx.delete(fileNodeId, function (e) {
+                                                if (noErrorTx(e, tx, cb)) {
+                                                    // Step 5: Update directory listing.
+                                                    tx.put(parentNode.id, new Buffer(JSON.stringify(parentListing)), true, function (e) {
+                                                        if (noErrorTx(e, tx, cb)) {
+                                                            tx.commit(cb);
+                                                        }
+                                                    });
+                                                }
+                                            });
+                                        }
+                                    });
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+        };
+
+        AsyncKeyValueFileSystem.prototype.unlink = function (p, cb) {
+            this.removeEntry(p, false, cb);
+        };
+
+        AsyncKeyValueFileSystem.prototype.rmdir = function (p, cb) {
+            this.removeEntry(p, true, cb);
+        };
+
+        AsyncKeyValueFileSystem.prototype.mkdir = function (p, mode, cb) {
+            var tx = this.store.beginTransaction('readwrite'), data = new Buffer('{}');
+            this.commitNewFile(tx, p, 16384 /* DIRECTORY */, mode, data, cb);
+        };
+
+        AsyncKeyValueFileSystem.prototype.readdir = function (p, cb) {
+            var _this = this;
+            var tx = this.store.beginTransaction('readonly');
+            this.findINode(tx, p, function (e, inode) {
+                if (noError(e, cb)) {
+                    _this.getDirListing(tx, p, inode, function (e, dirListing) {
+                        if (noError(e, cb)) {
+                            cb(null, Object.keys(dirListing));
+                        }
+                    });
+                }
+            });
+        };
+
+        AsyncKeyValueFileSystem.prototype._sync = function (p, data, stats, cb) {
+            var _this = this;
+            // @todo Ensure mtime updates properly, and use that to determine if a data
+            //       update is required.
+            var tx = this.store.beginTransaction('readwrite');
+
+            // Step 1: Get the file node's ID.
+            this._findINode(tx, path.dirname(p), path.basename(p), function (e, fileInodeId) {
+                if (noErrorTx(e, tx, cb)) {
+                    // Step 2: Get the file inode.
+                    _this.getINode(tx, p, fileInodeId, function (e, fileInode) {
+                        if (noErrorTx(e, tx, cb)) {
+                            var inodeChanged = fileInode.update(stats);
+
+                            // Step 3: Sync the data.
+                            tx.put(fileInode.id, data, true, function (e) {
+                                if (noErrorTx(e, tx, cb)) {
+                                    // Step 4: Sync the metadata (if it changed)!
+                                    if (inodeChanged) {
+                                        tx.put(fileInodeId, fileInode.toBuffer(), true, function (e) {
+                                            if (noErrorTx(e, tx, cb)) {
+                                                tx.commit(cb);
+                                            }
+                                        });
+                                    } else {
+                                        // No need to sync metadata; return.
+                                        tx.commit(cb);
+                                    }
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        };
+        return AsyncKeyValueFileSystem;
+    })(file_system.BaseFileSystem);
+    exports.AsyncKeyValueFileSystem = AsyncKeyValueFileSystem;
+});
+//# sourceMappingURL=key_value_filesystem.js.map
+;
+define('core/global',["require", "exports"], function(require, exports) {
+    /**
+    * Exports the global scope variable.
+    * In the main browser thread, this is "window".
+    * In a WebWorker, this is "self".
+    * In Node, this is "global".
+    */
+    var toExport;
+    if (typeof (window) !== 'undefined') {
+        toExport = window;
+    } else if (typeof (self) !== 'undefined') {
+        toExport = self;
+    } else {
+        toExport = global;
+    }
+    
+    return toExport;
+});
+//# sourceMappingURL=global.js.map
+;
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+define('backend/IndexedDB',["require", "exports", '../core/buffer', '../core/browserfs', '../generic/key_value_filesystem', '../core/api_error', '../core/buffer_core_arraybuffer', '../core/global'], function(require, exports, buffer, browserfs, kvfs, api_error, buffer_core_arraybuffer, global) {
+    var Buffer = buffer.Buffer, ApiError = api_error.ApiError, ErrorCode = api_error.ErrorCode, indexedDB = global.indexedDB || global.mozIndexedDB || global.webkitIndexedDB || global.msIndexedDB;
+
+    /**
+    * Converts a DOMException or a DOMError from an IndexedDB event into a
+    * standardized BrowserFS API error.
+    */
+    function convertError(e, message) {
+        if (typeof message === "undefined") { message = e.toString(); }
+        switch (e.name) {
+            case "NotFoundError":
+                return new ApiError(1 /* ENOENT */, message);
+            case "QuotaExceededError":
+                return new ApiError(11 /* ENOSPC */, message);
+            default:
+                // The rest do not seem to map cleanly to standard error codes.
+                return new ApiError(2 /* EIO */, message);
+        }
+    }
+
+    /**
+    * Produces a new onerror handler for IDB. Our errors are always fatal, so we
+    * handle them generically: Call the user-supplied callback with a translated
+    * version of the error, and let the error bubble up.
+    */
+    function onErrorHandler(cb, code, message) {
+        if (typeof code === "undefined") { code = 2 /* EIO */; }
+        if (typeof message === "undefined") { message = null; }
+        return function (e) {
+            // Prevent the error from canceling the transaction.
+            e.preventDefault();
+            cb(new ApiError(code, message));
+        };
+    }
+
+    /**
+    * Converts a NodeBuffer into an ArrayBuffer.
+    */
+    function buffer2arraybuffer(data) {
+        // XXX: Typing hack.
+        var backing_mem = data.getBufferCore();
+        if (!(backing_mem instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer)) {
+            // Copy into an ArrayBuffer-backed Buffer.
+            buffer = new Buffer(this._buffer.length);
+            this._buffer.copy(buffer);
+            backing_mem = buffer.getBufferCore();
+        }
+
+        // Reach into the BC, grab the DV.
+        var dv = backing_mem.getDataView();
+        return dv.buffer;
+    }
+
+    var IndexedDBROTransaction = (function () {
+        function IndexedDBROTransaction(tx, store) {
+            this.tx = tx;
+            this.store = store;
+        }
+        IndexedDBROTransaction.prototype.get = function (key, cb) {
+            try  {
+                var r = this.store.get(key);
+                r.onerror = onErrorHandler(cb);
+                r.onsuccess = function (event) {
+                    // IDB returns the value 'undefined' when you try to get keys that
+                    // don't exist. The caller expects this behavior.
+                    var result = event.target.result;
+                    if (result === undefined) {
+                        cb(null, result);
+                    } else {
+                        // IDB data is stored as an ArrayBuffer
+                        cb(null, new Buffer(result));
+                    }
+                };
+            } catch (e) {
+                cb(convertError(e));
+            }
+        };
+        return IndexedDBROTransaction;
+    })();
+    exports.IndexedDBROTransaction = IndexedDBROTransaction;
+
+    var IndexedDBRWTransaction = (function (_super) {
+        __extends(IndexedDBRWTransaction, _super);
+        function IndexedDBRWTransaction(tx, store) {
+            _super.call(this, tx, store);
+        }
+        IndexedDBRWTransaction.prototype.put = function (key, data, overwrite, cb) {
+            try  {
+                var arraybuffer = buffer2arraybuffer(data), r;
+                if (overwrite) {
+                    r = this.store.put(arraybuffer, key);
+                } else {
+                    // 'add' will never overwrite an existing key.
+                    r = this.store.add(arraybuffer, key);
+                }
+
+                // XXX: NEED TO RETURN FALSE WHEN ADD HAS A KEY CONFLICT. NO ERROR.
+                r.onerror = onErrorHandler(cb);
+                r.onsuccess = function (event) {
+                    cb(null, true);
+                };
+            } catch (e) {
+                cb(convertError(e));
+            }
+        };
+
+        IndexedDBRWTransaction.prototype.delete = function (key, cb) {
+            try  {
+                var r = this.store.delete(key);
+                r.onerror = onErrorHandler(cb);
+                r.onsuccess = function (event) {
+                    cb();
+                };
+            } catch (e) {
+                cb(convertError(e));
+            }
+        };
+
+        IndexedDBRWTransaction.prototype.commit = function (cb) {
+            // Return to the event loop to commit the transaction.
+            setTimeout(cb, 0);
+        };
+
+        IndexedDBRWTransaction.prototype.abort = function (cb) {
+            var _e;
+            try  {
+                this.tx.abort();
+            } catch (e) {
+                _e = convertError(e);
+            } finally {
+                cb(_e);
+            }
+        };
+        return IndexedDBRWTransaction;
+    })(IndexedDBROTransaction);
+    exports.IndexedDBRWTransaction = IndexedDBRWTransaction;
+
+    var IndexedDBStore = (function () {
+        /**
+        * Constructs an IndexedDB file system.
+        * @param cb Called once the database is instantiated and ready for use.
+        *   Passes an error if there was an issue instantiating the database.
+        * @param objectStoreName The name of this file system. You can have
+        *   multiple IndexedDB file systems operating at once, but each must have
+        *   a different name.
+        */
+        function IndexedDBStore(cb, storeName) {
+            if (typeof storeName === "undefined") { storeName = 'browserfs'; }
+            var _this = this;
+            this.storeName = storeName;
+            var openReq = indexedDB.open(this.storeName, 1);
+
+            openReq.onupgradeneeded = function (event) {
+                var db = event.target.result;
+
+                // Huh. This should never happen; we're at version 1. Why does another
+                // database exist?
+                if (db.objectStoreNames.contains(_this.storeName)) {
+                    db.deleteObjectStore(_this.storeName);
+                }
+                db.createObjectStore(_this.storeName);
+            };
+
+            openReq.onsuccess = function (event) {
+                _this.db = event.target.result;
+                cb(null, _this);
+            };
+
+            openReq.onerror = onErrorHandler(cb, 4 /* EACCES */);
+        }
+        IndexedDBStore.prototype.name = function () {
+            return "IndexedDB - " + this.storeName;
+        };
+
+        IndexedDBStore.prototype.clear = function (cb) {
+            try  {
+                var tx = this.db.transaction(this.storeName, 'readwrite'), objectStore = tx.objectStore(this.storeName), r = objectStore.clear();
+                r.onsuccess = function (event) {
+                    // Use setTimeout to commit transaction.
+                    setTimeout(cb, 0);
+                };
+                r.onerror = onErrorHandler(cb);
+            } catch (e) {
+                cb(convertError(e));
+            }
+        };
+
+        IndexedDBStore.prototype.beginTransaction = function (type) {
+            if (typeof type === "undefined") { type = 'readonly'; }
+            var tx = this.db.transaction(this.storeName, type), objectStore = tx.objectStore(this.storeName);
+            if (type === 'readwrite') {
+                return new IndexedDBRWTransaction(tx, objectStore);
+            } else if (type === 'readonly') {
+                return new IndexedDBROTransaction(tx, objectStore);
+            } else {
+                throw new ApiError(9 /* EINVAL */, 'Invalid transaction type.');
+            }
+        };
+        return IndexedDBStore;
+    })();
+    exports.IndexedDBStore = IndexedDBStore;
+
+    /**
+    * A file system that uses the IndexedDB key value file system.
+    */
+    var IndexedDBFileSystem = (function (_super) {
+        __extends(IndexedDBFileSystem, _super);
+        function IndexedDBFileSystem(cb, storeName) {
+            var _this = this;
+            _super.call(this);
+            new IndexedDBStore(function (e, store) {
+                if (e) {
+                    cb(e);
+                } else {
+                    _this.init(store, function (e) {
+                        cb(e, _this);
+                    });
+                }
+            }, storeName);
+        }
+        IndexedDBFileSystem.isAvailable = function () {
+            return typeof indexedDB !== 'undefined';
+        };
+        return IndexedDBFileSystem;
+    })(kvfs.AsyncKeyValueFileSystem);
+    exports.IndexedDBFileSystem = IndexedDBFileSystem;
+
+    browserfs.registerFileSystem('IndexedDB', IndexedDBFileSystem);
+});
+//# sourceMappingURL=IndexedDB.js.map
+;
+define('generic/file_index',["require", "exports", '../core/node_fs_stats', '../core/node_path'], function(require, exports, node_fs_stats, node_path) {
+    var Stats = node_fs_stats.Stats;
+    var path = node_path.path;
+
+    /**
+    * A simple class for storing a filesystem index. Assumes that all paths passed
+    * to it are *absolute* paths.
+    *
+    * Can be used as a partial or a full index, although care must be taken if used
+    * for the former purpose, especially when directories are concerned.
+    */
+    var FileIndex = (function () {
+        /**
+        * Constructs a new FileIndex.
+        */
+        function FileIndex() {
+            // _index is a single-level key,value store that maps *directory* paths to
+            // DirInodes. File information is only contained in DirInodes themselves.
+            this._index = {};
+
+            // Create the root directory.
+            this.addPath('/', new DirInode());
+        }
+        /**
+        * Split into a (directory path, item name) pair
+        */
+        FileIndex.prototype._split_path = function (p) {
+            var dirpath = path.dirname(p);
+            var itemname = p.substr(dirpath.length + (dirpath === "/" ? 0 : 1));
+            return [dirpath, itemname];
+        };
+
+        /**
+        * Runs the given function over all files in the index.
+        */
+        FileIndex.prototype.fileIterator = function (cb) {
+            for (var path in this._index) {
+                var dir = this._index[path];
+                var files = dir.getListing();
+                for (var i = 0; i < files.length; i++) {
+                    var item = dir.getItem(files[i]);
+                    if (item.isFile()) {
+                        cb(item.getData());
+                    }
+                }
+            }
+        };
+
+        /**
+        * Adds the given absolute path to the index if it is not already in the index.
+        * Creates any needed parent directories.
+        * @param [String] path The path to add to the index.
+        * @param [BrowserFS.FileInode | BrowserFS.DirInode] inode The inode for the
+        *   path to add.
+        * @return [Boolean] 'True' if it was added or already exists, 'false' if there
+        *   was an issue adding it (e.g. item in path is a file, item exists but is
+        *   different).
+        * @todo If adding fails and implicitly creates directories, we do not clean up
+        *   the new empty directories.
+        */
+        FileIndex.prototype.addPath = function (path, inode) {
+            if (inode == null) {
+                throw new Error('Inode must be specified');
+            }
+            if (path[0] !== '/') {
+                throw new Error('Path must be absolute, got: ' + path);
+            }
+
+            // Check if it already exists.
+            if (this._index.hasOwnProperty(path)) {
+                return this._index[path] === inode;
+            }
+
+            var splitPath = this._split_path(path);
+            var dirpath = splitPath[0];
+            var itemname = splitPath[1];
+
+            // Try to add to its parent directory first.
+            var parent = this._index[dirpath];
+            if (parent === undefined && path !== '/') {
+                // Create parent.
+                parent = new DirInode();
+                if (!this.addPath(dirpath, parent)) {
+                    return false;
+                }
+            }
+
+            // Add myself to my parent.
+            if (path !== '/') {
+                if (!parent.addItem(itemname, inode)) {
+                    return false;
+                }
+            }
+
+            // If I'm a directory, add myself to the index.
+            if (!inode.isFile()) {
+                this._index[path] = inode;
+            }
+            return true;
+        };
+
+        /**
+        * Removes the given path. Can be a file or a directory.
+        * @return [BrowserFS.FileInode | BrowserFS.DirInode | null] The removed item,
+        *   or null if it did not exist.
+        */
+        FileIndex.prototype.removePath = function (path) {
+            var splitPath = this._split_path(path);
+            var dirpath = splitPath[0];
+            var itemname = splitPath[1];
+
+            // Try to remove it from its parent directory first.
+            var parent = this._index[dirpath];
+            if (parent === undefined) {
+                return null;
+            }
+
+            // Remove myself from my parent.
+            var inode = parent.remItem(itemname);
+            if (inode === null) {
+                return null;
+            }
+
+            // If I'm a directory, remove myself from the index, and remove my children.
+            if (!inode.isFile()) {
+                var dirInode = inode;
+                var children = dirInode.getListing();
+                for (var i = 0; i < children.length; i++) {
+                    this.removePath(path + '/' + children[i]);
+                }
+
+                // Remove the directory from the index, unless it's the root.
+                if (path !== '/') {
+                    delete this._index[path];
+                }
+            }
+            return inode;
+        };
+
+        /**
+        * Retrieves the directory listing of the given path.
+        * @return [String[]] An array of files in the given path, or 'null' if it does
+        *   not exist.
+        */
+        FileIndex.prototype.ls = function (path) {
+            var item = this._index[path];
+            if (item === undefined) {
+                return null;
+            }
+            return item.getListing();
+        };
+
+        /**
+        * Returns the inode of the given item.
+        * @param [String] path
+        * @return [BrowserFS.FileInode | BrowserFS.DirInode | null] Returns null if
+        *   the item does not exist.
+        */
+        FileIndex.prototype.getInode = function (path) {
+            var splitPath = this._split_path(path);
+            var dirpath = splitPath[0];
+            var itemname = splitPath[1];
+
+            // Retrieve from its parent directory.
+            var parent = this._index[dirpath];
+            if (parent === undefined) {
+                return null;
+            }
+
+            // Root case
+            if (dirpath === path) {
+                return parent;
+            }
+            return parent.getItem(itemname);
+        };
+
+        /**
+        * Static method for constructing indices from a JSON listing.
+        * @param [Object] listing Directory listing generated by tools/XHRIndexer.coffee
+        * @return [BrowserFS.FileIndex] A new FileIndex object.
+        */
+        FileIndex.from_listing = function (listing) {
+            var idx = new FileIndex();
+
+            // Add a root DirNode.
+            var rootInode = new DirInode();
+            idx._index['/'] = rootInode;
+            var queue = [['', listing, rootInode]];
+            while (queue.length > 0) {
+                var inode;
+                var next = queue.pop();
+                var pwd = next[0];
+                var tree = next[1];
+                var parent = next[2];
+                for (var node in tree) {
+                    var children = tree[node];
+                    var name = "" + pwd + "/" + node;
+                    if (children != null) {
+                        idx._index[name] = inode = new DirInode();
+                        queue.push([name, children, inode]);
+                    } else {
+                        // This inode doesn't have correct size information, noted with -1.
+                        inode = new FileInode(new Stats(32768 /* FILE */, -1, 0x16D));
+                    }
+                    if (parent != null) {
+                        parent._ls[node] = inode;
+                    }
+                }
+            }
+            return idx;
+        };
+        return FileIndex;
+    })();
+    exports.FileIndex = FileIndex;
+
+    
+
+    /**
+    * Inode for a file. Stores an arbitrary (filesystem-specific) data payload.
+    */
+    var FileInode = (function () {
+        function FileInode(data) {
+            this.data = data;
+        }
+        FileInode.prototype.isFile = function () {
+            return true;
+        };
+        FileInode.prototype.isDir = function () {
+            return false;
+        };
+        FileInode.prototype.getData = function () {
+            return this.data;
+        };
+        FileInode.prototype.setData = function (data) {
+            this.data = data;
+        };
+        return FileInode;
+    })();
+    exports.FileInode = FileInode;
+
+    /**
+    * Inode for a directory. Currently only contains the directory listing.
+    */
+    var DirInode = (function () {
+        /**
+        * Constructs an inode for a directory.
+        */
+        function DirInode() {
+            this._ls = {};
+        }
+        DirInode.prototype.isFile = function () {
+            return false;
+        };
+        DirInode.prototype.isDir = function () {
+            return true;
+        };
+
+        /**
+        * Return a Stats object for this inode.
+        * @todo Should probably remove this at some point. This isn't the
+        *       responsibility of the FileIndex.
+        * @return [BrowserFS.node.fs.Stats]
+        */
+        DirInode.prototype.getStats = function () {
+            return new Stats(16384 /* DIRECTORY */, 4096, 0x16D);
+        };
+
+        /**
+        * Returns the directory listing for this directory. Paths in the directory are
+        * relative to the directory's path.
+        * @return [String[]] The directory listing for this directory.
+        */
+        DirInode.prototype.getListing = function () {
+            return Object.keys(this._ls);
+        };
+
+        /**
+        * Returns the inode for the indicated item, or null if it does not exist.
+        * @param [String] p Name of item in this directory.
+        * @return [BrowserFS.FileInode | BrowserFS.DirInode | null]
+        */
+        DirInode.prototype.getItem = function (p) {
+            var _ref;
+            return (_ref = this._ls[p]) != null ? _ref : null;
+        };
+
+        /**
+        * Add the given item to the directory listing. Note that the given inode is
+        * not copied, and will be mutated by the DirInode if it is a DirInode.
+        * @param [String] p Item name to add to the directory listing.
+        * @param [BrowserFS.FileInode | BrowserFS.DirInode] inode The inode for the
+        *   item to add to the directory inode.
+        * @return [Boolean] True if it was added, false if it already existed.
+        */
+        DirInode.prototype.addItem = function (p, inode) {
+            if (p in this._ls) {
+                return false;
+            }
+            this._ls[p] = inode;
+            return true;
+        };
+
+        /**
+        * Removes the given item from the directory listing.
+        * @param [String] p Name of item to remove from the directory listing.
+        * @return [BrowserFS.FileInode | BrowserFS.DirInode | null] Returns the item
+        *   removed, or null if the item did not exist.
+        */
+        DirInode.prototype.remItem = function (p) {
+            var item = this._ls[p];
+            if (item === undefined) {
+                return null;
+            }
+            delete this._ls[p];
+            return item;
+        };
+        return DirInode;
+    })();
+    exports.DirInode = DirInode;
+});
+//# sourceMappingURL=file_index.js.map
+;
+/**
+* Grab bag of utility functions used across the code.
+*/
+define('core/util',["require", "exports"], function(require, exports) {
+    /**
+    * Estimates the size of a JS object.
+    * @param {Object} object - the object to measure.
+    * @return {Number} estimated object size.
+    * @see http://stackoverflow.com/a/11900218/10601
+    */
+    function roughSizeOfObject(object) {
+        var bytes, key, objectList, prop, stack, value;
+        objectList = [];
+        stack = [object];
+        bytes = 0;
+        while (stack.length !== 0) {
+            value = stack.pop();
+            if (typeof value === 'boolean') {
+                bytes += 4;
+            } else if (typeof value === 'string') {
+                bytes += value.length * 2;
+            } else if (typeof value === 'number') {
+                bytes += 8;
+            } else if (typeof value === 'object' && objectList.indexOf(value) < 0) {
+                objectList.push(value);
+                bytes += 4;
+                for (key in value) {
+                    prop = value[key];
+                    bytes += key.length * 2;
+                    stack.push(prop);
+                }
+            }
+        }
+        return bytes;
+    }
+    exports.roughSizeOfObject = roughSizeOfObject;
+
+    /**
+    * Checks for any IE version, including IE11 which removed MSIE from the
+    * userAgent string.
+    */
+    exports.isIE = (/(msie) ([\w.]+)/.exec(navigator.userAgent.toLowerCase()) != null || navigator.userAgent.indexOf('Trident') !== -1);
+});
+//# sourceMappingURL=util.js.map
+;
+/**
+* Contains utility methods for performing a variety of tasks with
+* XmlHttpRequest across browsers.
+*/
+define('generic/xhr',["require", "exports", '../core/util', '../core/buffer', '../core/api_error'], function(require, exports, util, buffer, api_error) {
+    var ApiError = api_error.ApiError;
+    var ErrorCode = api_error.ErrorCode;
+    var Buffer = buffer.Buffer;
+
+    
+
+    // Converts 'responseBody' in IE into the equivalent 'responseText' that other
+    // browsers would generate.
+    function getIEByteArray(IEByteArray) {
+        var rawBytes = IEBinaryToArray_ByteStr(IEByteArray);
+        var lastChr = IEBinaryToArray_ByteStr_Last(IEByteArray);
+        var data_str = rawBytes.replace(/[\s\S]/g, function (match) {
+            var v = match.charCodeAt(0);
+            return String.fromCharCode(v & 0xff, v >> 8);
+        }) + lastChr;
+        var data_array = new Array(data_str.length);
+        for (var i = 0; i < data_str.length; i++) {
+            data_array[i] = data_str.charCodeAt(i);
+        }
+        return data_array;
+    }
+
+    function downloadFileIE(async, p, type, cb) {
+        switch (type) {
+            case 'buffer':
+
+            case 'json':
+                break;
+            default:
+                return cb(new ApiError(9 /* EINVAL */, "Invalid download type: " + type));
+        }
+
+        var req = new XMLHttpRequest();
+        req.open('GET', p, async);
+        req.setRequestHeader("Accept-Charset", "x-user-defined");
+        req.onreadystatechange = function (e) {
+            var data_array;
+            if (req.readyState === 4) {
+                if (req.status === 200) {
+                    switch (type) {
+                        case 'buffer':
+                            data_array = getIEByteArray(req.responseBody);
+                            return cb(null, new Buffer(data_array));
+                        case 'json':
+                            return cb(null, JSON.parse(req.responseText));
+                    }
+                } else {
+                    return cb(new ApiError(req.status, "XHR error."));
+                }
+            }
+        };
+        req.send();
+    }
+
+    function asyncDownloadFileIE(p, type, cb) {
+        downloadFileIE(true, p, type, cb);
+    }
+
+    function syncDownloadFileIE(p, type) {
+        var rv;
+        downloadFileIE(false, p, type, function (err, data) {
+            if (err)
+                throw err;
+            rv = data;
+        });
+        return rv;
+    }
+
+    function asyncDownloadFileModern(p, type, cb) {
+        var req = new XMLHttpRequest();
+        req.open('GET', p, true);
+        var jsonSupported = true;
+        switch (type) {
+            case 'buffer':
+                req.responseType = 'arraybuffer';
+                break;
+            case 'json':
+                try  {
+                    req.responseType = 'json';
+                    jsonSupported = req.responseType === 'json';
+                } catch (e) {
+                    jsonSupported = false;
+                }
+                break;
+            default:
+                return cb(new ApiError(9 /* EINVAL */, "Invalid download type: " + type));
+        }
+        req.onreadystatechange = function (e) {
+            if (req.readyState === 4) {
+                if (req.status === 200) {
+                    switch (type) {
+                        case 'buffer':
+                            // XXX: WebKit-based browsers return *null* when XHRing an empty file.
+                            return cb(null, new Buffer(req.response ? req.response : 0));
+                        case 'json':
+                            if (jsonSupported) {
+                                return cb(null, req.response);
+                            } else {
+                                return cb(null, JSON.parse(req.responseText));
+                            }
+                    }
+                } else {
+                    return cb(new ApiError(req.status, "XHR error."));
+                }
+            }
+        };
+        req.send();
+    }
+
+    function syncDownloadFileModern(p, type) {
+        var req = new XMLHttpRequest();
+        req.open('GET', p, false);
+
+        // On most platforms, we cannot set the responseType of synchronous downloads.
+        // @todo Test for this; IE10 allows this, as do older versions of Chrome/FF.
+        var data = null;
+        var err = null;
+
+        // Classic hack to download binary data as a string.
+        req.overrideMimeType('text/plain; charset=x-user-defined');
+        req.onreadystatechange = function (e) {
+            if (req.readyState === 4) {
+                if (req.status === 200) {
+                    switch (type) {
+                        case 'buffer':
+                            // Convert the text into a buffer.
+                            var text = req.responseText;
+                            data = new Buffer(text.length);
+
+                            for (var i = 0; i < text.length; i++) {
+                                // This will automatically throw away the upper bit of each
+                                // character for us.
+                                data.writeUInt8(text.charCodeAt(i), i);
+                            }
+                            return;
+                        case 'json':
+                            data = JSON.parse(req.responseText);
+                            return;
+                    }
+                } else {
+                    err = new ApiError(req.status, "XHR error.");
+                    return;
+                }
+            }
+        };
+        req.send();
+        if (err) {
+            throw err;
+        }
+        return data;
+    }
+
+    
+
+    function syncDownloadFileIE10(p, type) {
+        var req = new XMLHttpRequest();
+        req.open('GET', p, false);
+        switch (type) {
+            case 'buffer':
+                req.responseType = 'arraybuffer';
+                break;
+            case 'json':
+                break;
+            default:
+                throw new ApiError(9 /* EINVAL */, "Invalid download type: " + type);
+        }
+        var data;
+        var err;
+        req.onreadystatechange = function (e) {
+            if (req.readyState === 4) {
+                if (req.status === 200) {
+                    switch (type) {
+                        case 'buffer':
+                            data = new Buffer(req.response);
+                            break;
+                        case 'json':
+                            data = JSON.parse(req.response);
+                            break;
+                    }
+                } else {
+                    err = new ApiError(req.status, "XHR error.");
+                }
+            }
+        };
+        req.send();
+        if (err) {
+            throw err;
+        }
+        return data;
+    }
+
+    function getFileSize(async, p, cb) {
+        var req = new XMLHttpRequest();
+        req.open('HEAD', p, async);
+        req.onreadystatechange = function (e) {
+            if (req.readyState === 4) {
+                if (req.status == 200) {
+                    try  {
+                        return cb(null, parseInt(req.getResponseHeader('Content-Length'), 10));
+                    } catch (e) {
+                        // In the event that the header isn't present or there is an error...
+                        return cb(new ApiError(2 /* EIO */, "XHR HEAD error: Could not read content-length."));
+                    }
+                } else {
+                    return cb(new ApiError(req.status, "XHR HEAD error."));
+                }
+            }
+        };
+        req.send();
+    }
+
+    /**
+    * Asynchronously download a file as a buffer or a JSON object.
+    * Note that the third function signature with a non-specialized type is
+    * invalid, but TypeScript requires it when you specialize string arguments to
+    * constants.
+    */
+    exports.asyncDownloadFile = (util.isIE && typeof Blob === 'undefined') ? asyncDownloadFileIE : asyncDownloadFileModern;
+
+    /**
+    * Synchronously download a file as a buffer or a JSON object.
+    * Note that the third function signature with a non-specialized type is
+    * invalid, but TypeScript requires it when you specialize string arguments to
+    * constants.
+    */
+    exports.syncDownloadFile = (util.isIE && typeof Blob === 'undefined') ? syncDownloadFileIE : (util.isIE && typeof Blob !== 'undefined') ? syncDownloadFileIE10 : syncDownloadFileModern;
+
+    /**
+    * Synchronously retrieves the size of the given file in bytes.
+    */
+    function getFileSizeSync(p) {
+        var rv;
+        getFileSize(false, p, function (err, size) {
+            if (err) {
+                throw err;
+            }
+            rv = size;
+        });
+        return rv;
+    }
+    exports.getFileSizeSync = getFileSizeSync;
+
+    /**
+    * Asynchronously retrieves the size of the given file in bytes.
+    */
+    function getFileSizeAsync(p, cb) {
+        getFileSize(true, p, cb);
+    }
+    exports.getFileSizeAsync = getFileSizeAsync;
+});
+//# sourceMappingURL=xhr.js.map
+;
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+define('backend/XmlHttpRequest',["require", "exports", '../core/file_system', '../generic/file_index', '../core/buffer', '../core/api_error', '../core/file_flag', '../generic/preload_file', '../core/browserfs', '../generic/xhr'], function(require, exports, file_system, file_index, buffer, api_error, file_flag, preload_file, browserfs, xhr) {
+    var Buffer = buffer.Buffer;
+    var ApiError = api_error.ApiError;
+    var ErrorCode = api_error.ErrorCode;
+    var FileFlag = file_flag.FileFlag;
+    var ActionType = file_flag.ActionType;
+
+    /**
+    * A simple filesystem backed by XmlHttpRequests.
+    */
+    var XmlHttpRequest = (function (_super) {
+        __extends(XmlHttpRequest, _super);
+        /**
+        * Constructs the file system.
+        * @param [String] listing_url The path to the JSON file index generated by
+        *   tools/XHRIndexer.coffee. This can be relative to the current webpage URL
+        *   or absolutely specified.
+        * @param [String] prefix_url The url prefix to use for all web-server requests.
+        */
+        function XmlHttpRequest(listing_url, prefix_url) {
+            if (typeof prefix_url === "undefined") { prefix_url = ''; }
+            _super.call(this);
+            this.prefix_url = prefix_url;
+            if (listing_url == null) {
+                listing_url = 'index.json';
+            }
+
+            // prefix_url must end in a directory separator.
+            if (prefix_url.length > 0 && prefix_url.charAt(prefix_url.length - 1) !== '/') {
+                prefix_url = prefix_url + '/';
+            }
+            var listing = this._requestFileSync(listing_url, 'json');
+            if (listing == null) {
+                throw new Error("Unable to find listing at URL: " + listing_url);
+            }
+            this._index = file_index.FileIndex.from_listing(listing);
+        }
+        XmlHttpRequest.prototype.empty = function () {
+            this._index.fileIterator(function (file) {
+                file.file_data = null;
+            });
+        };
+
+        XmlHttpRequest.prototype.getXhrPath = function (filePath) {
+            if (filePath.charAt(0) === '/') {
+                filePath = filePath.slice(1);
+            }
+            return this.prefix_url + filePath;
+        };
+
+        /**
+        * Only requests the HEAD content, for the file size.
+        */
+        XmlHttpRequest.prototype._requestFileSizeAsync = function (path, cb) {
+            xhr.getFileSizeAsync(this.getXhrPath(path), cb);
+        };
+        XmlHttpRequest.prototype._requestFileSizeSync = function (path) {
+            return xhr.getFileSizeSync(this.getXhrPath(path));
+        };
+
+        XmlHttpRequest.prototype._requestFileAsync = function (p, type, cb) {
+            xhr.asyncDownloadFile(this.getXhrPath(p), type, cb);
+        };
+
+        XmlHttpRequest.prototype._requestFileSync = function (p, type) {
+            return xhr.syncDownloadFile(this.getXhrPath(p), type);
+        };
+
+        XmlHttpRequest.prototype.getName = function () {
+            return 'XmlHttpRequest';
+        };
+
+        XmlHttpRequest.isAvailable = function () {
+            // @todo Older browsers use a different name for XHR, iirc.
+            return typeof XMLHttpRequest !== "undefined" && XMLHttpRequest !== null;
+        };
+
+        XmlHttpRequest.prototype.diskSpace = function (path, cb) {
+            // Read-only file system. We could calculate the total space, but that's not
+            // important right now.
+            cb(0, 0);
+        };
+
+        XmlHttpRequest.prototype.isReadOnly = function () {
+            return true;
+        };
+
+        XmlHttpRequest.prototype.supportsLinks = function () {
+            return false;
+        };
+
+        XmlHttpRequest.prototype.supportsProps = function () {
+            return false;
+        };
+
+        XmlHttpRequest.prototype.supportsSynch = function () {
+            return true;
+        };
+
+        /**
+        * Special XHR function: Preload the given file into the index.
+        * @param [String] path
+        * @param [BrowserFS.Buffer] buffer
+        */
+        XmlHttpRequest.prototype.preloadFile = function (path, buffer) {
+            var inode = this._index.getInode(path);
+            if (inode === null) {
+                throw ApiError.ENOENT(path);
+            }
+            var stats = inode.getData();
+            stats.size = buffer.length;
+            stats.file_data = buffer;
+        };
+
+        XmlHttpRequest.prototype.stat = function (path, isLstat, cb) {
+            var inode = this._index.getInode(path);
+            if (inode === null) {
+                return cb(ApiError.ENOENT(path));
+            }
+            var stats;
+            if (inode.isFile()) {
+                stats = inode.getData();
+
+                // At this point, a non-opened file will still have default stats from the listing.
+                if (stats.size < 0) {
+                    this._requestFileSizeAsync(path, function (e, size) {
+                        if (e) {
+                            return cb(e);
+                        }
+                        stats.size = size;
+                        cb(null, stats.clone());
+                    });
+                } else {
+                    cb(null, stats.clone());
+                }
+            } else {
+                stats = inode.getStats();
+                cb(null, stats);
+            }
+        };
+
+        XmlHttpRequest.prototype.statSync = function (path, isLstat) {
+            var inode = this._index.getInode(path);
+            if (inode === null) {
+                throw ApiError.ENOENT(path);
+            }
+            var stats;
+            if (inode.isFile()) {
+                stats = inode.getData();
+
+                // At this point, a non-opened file will still have default stats from the listing.
+                if (stats.size < 0) {
+                    stats.size = this._requestFileSizeSync(path);
+                }
+            } else {
+                stats = inode.getStats();
+            }
+            return stats;
+        };
+
+        XmlHttpRequest.prototype.open = function (path, flags, mode, cb) {
+            // INVARIANT: You can't write to files on this file system.
+            if (flags.isWriteable()) {
+                return cb(new ApiError(0 /* EPERM */, path));
+            }
+            var _this = this;
+
+            // Check if the path exists, and is a file.
+            var inode = this._index.getInode(path);
+            if (inode === null) {
+                return cb(ApiError.ENOENT(path));
+            }
+            if (inode.isDir()) {
+                return cb(ApiError.EISDIR(path));
+            }
+            var stats = inode.getData();
+            switch (flags.pathExistsAction()) {
+                case 1 /* THROW_EXCEPTION */:
+                case 2 /* TRUNCATE_FILE */:
+                    return cb(ApiError.EEXIST(path));
+                case 0 /* NOP */:
+                    // Use existing file contents.
+                    // XXX: Uh, this maintains the previously-used flag.
+                    if (stats.file_data != null) {
+                        return cb(null, new preload_file.NoSyncFile(_this, path, flags, stats.clone(), stats.file_data));
+                    }
+
+                    // @todo be lazier about actually requesting the file
+                    this._requestFileAsync(path, 'buffer', function (err, buffer) {
+                        if (err) {
+                            return cb(err);
+                        }
+
+                        // we don't initially have file sizes
+                        stats.size = buffer.length;
+                        stats.file_data = buffer;
+                        return cb(null, new preload_file.NoSyncFile(_this, path, flags, stats.clone(), buffer));
+                    });
+                    break;
+                default:
+                    return cb(new ApiError(9 /* EINVAL */, 'Invalid FileMode object.'));
+            }
+        };
+
+        XmlHttpRequest.prototype.openSync = function (path, flags, mode) {
+            // INVARIANT: You can't write to files on this file system.
+            if (flags.isWriteable()) {
+                throw new ApiError(0 /* EPERM */, path);
+            }
+
+            // Check if the path exists, and is a file.
+            var inode = this._index.getInode(path);
+            if (inode === null) {
+                throw ApiError.ENOENT(path);
+            }
+            if (inode.isDir()) {
+                throw ApiError.EISDIR(path);
+            }
+            var stats = inode.getData();
+            switch (flags.pathExistsAction()) {
+                case 1 /* THROW_EXCEPTION */:
+                case 2 /* TRUNCATE_FILE */:
+                    throw ApiError.EEXIST(path);
+                case 0 /* NOP */:
+                    // Use existing file contents.
+                    // XXX: Uh, this maintains the previously-used flag.
+                    if (stats.file_data != null) {
+                        return new preload_file.NoSyncFile(this, path, flags, stats.clone(), stats.file_data);
+                    }
+
+                    // @todo be lazier about actually requesting the file
+                    var buffer = this._requestFileSync(path, 'buffer');
+
+                    // we don't initially have file sizes
+                    stats.size = buffer.length;
+                    stats.file_data = buffer;
+                    return new preload_file.NoSyncFile(this, path, flags, stats.clone(), buffer);
+                default:
+                    throw new ApiError(9 /* EINVAL */, 'Invalid FileMode object.');
+            }
+        };
+
+        XmlHttpRequest.prototype.readdir = function (path, cb) {
+            try  {
+                cb(null, this.readdirSync(path));
+            } catch (e) {
+                cb(e);
+            }
+        };
+
+        XmlHttpRequest.prototype.readdirSync = function (path) {
+            // Check if it exists.
+            var inode = this._index.getInode(path);
+            if (inode === null) {
+                throw ApiError.ENOENT(path);
+            } else if (inode.isFile()) {
+                throw ApiError.ENOTDIR(path);
+            }
+            return inode.getListing();
+        };
+
+        /**
+        * We have the entire file as a buffer; optimize readFile.
+        */
+        XmlHttpRequest.prototype.readFile = function (fname, encoding, flag, cb) {
+            // Wrap cb in file closing code.
+            var oldCb = cb;
+
+            // Get file.
+            this.open(fname, flag, 0x1a4, function (err, fd) {
+                if (err) {
+                    return cb(err);
+                }
+                cb = function (err, arg) {
+                    fd.close(function (err2) {
+                        if (err == null) {
+                            err = err2;
+                        }
+                        return oldCb(err, arg);
+                    });
+                };
+                var fdCast = fd;
+                var fdBuff = fdCast._buffer;
+                if (encoding === null) {
+                    if (fdBuff.length > 0) {
+                        return cb(err, fdBuff.sliceCopy());
+                    } else {
+                        return cb(err, new buffer.Buffer(0));
+                    }
+                }
+                try  {
+                    cb(null, fdBuff.toString(encoding));
+                } catch (e) {
+                    cb(e);
+                }
+            });
+        };
+
+        /**
+        * Specially-optimized readfile.
+        */
+        XmlHttpRequest.prototype.readFileSync = function (fname, encoding, flag) {
+            // Get file.
+            var fd = this.openSync(fname, flag, 0x1a4);
+            try  {
+                var fdCast = fd;
+                var fdBuff = fdCast._buffer;
+                if (encoding === null) {
+                    if (fdBuff.length > 0) {
+                        return fdBuff.sliceCopy();
+                    } else {
+                        return new buffer.Buffer(0);
+                    }
+                }
+                return fdBuff.toString(encoding);
+            } finally {
+                fd.closeSync();
+            }
+        };
+        return XmlHttpRequest;
+    })(file_system.BaseFileSystem);
+    exports.XmlHttpRequest = XmlHttpRequest;
+
+    browserfs.registerFileSystem('XmlHttpRequest', XmlHttpRequest);
+});
+//# sourceMappingURL=XmlHttpRequest.js.map
+;
+/*global setImmediate: false, setTimeout: false, console: false */
+(function () {
+
+    var async = {};
+
+    // global on the server, window in the browser
+    var root, previous_async;
+
+    root = this;
+    if (root != null) {
+      previous_async = root.async;
+    }
+
+    async.noConflict = function () {
+        root.async = previous_async;
+        return async;
+    };
+
+    function only_once(fn) {
+        var called = false;
+        return function() {
+            if (called) throw new Error("Callback was already called.");
+            called = true;
+            fn.apply(root, arguments);
+        }
+    }
+
+    //// cross-browser compatiblity functions ////
+
+    var _each = function (arr, iterator) {
+        if (arr.forEach) {
+            return arr.forEach(iterator);
+        }
+        for (var i = 0; i < arr.length; i += 1) {
+            iterator(arr[i], i, arr);
+        }
+    };
+
+    var _map = function (arr, iterator) {
+        if (arr.map) {
+            return arr.map(iterator);
+        }
+        var results = [];
+        _each(arr, function (x, i, a) {
+            results.push(iterator(x, i, a));
+        });
+        return results;
+    };
+
+    var _reduce = function (arr, iterator, memo) {
+        if (arr.reduce) {
+            return arr.reduce(iterator, memo);
+        }
+        _each(arr, function (x, i, a) {
+            memo = iterator(memo, x, i, a);
+        });
+        return memo;
+    };
+
+    var _keys = function (obj) {
+        if (Object.keys) {
+            return Object.keys(obj);
+        }
+        var keys = [];
+        for (var k in obj) {
+            if (obj.hasOwnProperty(k)) {
+                keys.push(k);
+            }
+        }
+        return keys;
+    };
+
+    //// exported async module functions ////
+
+    //// nextTick implementation with browser-compatible fallback ////
+    if (typeof process === 'undefined' || !(process.nextTick)) {
+        if (typeof setImmediate === 'function') {
+            async.nextTick = function (fn) {
+                // not a direct alias for IE10 compatibility
+                setImmediate(fn);
+            };
+            async.setImmediate = async.nextTick;
+        }
+        else {
+            async.nextTick = function (fn) {
+                setTimeout(fn, 0);
+            };
+            async.setImmediate = async.nextTick;
+        }
+    }
+    else {
+        async.nextTick = process.nextTick;
+        if (typeof setImmediate !== 'undefined') {
+            async.setImmediate = function (fn) {
+              // not a direct alias for IE10 compatibility
+              setImmediate(fn);
+            };
+        }
+        else {
+            async.setImmediate = async.nextTick;
+        }
+    }
+
+    async.each = function (arr, iterator, callback) {
+        callback = callback || function () {};
+        if (!arr.length) {
+            return callback();
+        }
+        var completed = 0;
+        _each(arr, function (x) {
+            iterator(x, only_once(function (err) {
+                if (err) {
+                    callback(err);
+                    callback = function () {};
+                }
+                else {
+                    completed += 1;
+                    if (completed >= arr.length) {
+                        callback(null);
+                    }
+                }
+            }));
+        });
+    };
+    async.forEach = async.each;
+
+    async.eachSeries = function (arr, iterator, callback) {
+        callback = callback || function () {};
+        if (!arr.length) {
+            return callback();
+        }
+        var completed = 0;
+        var iterate = function () {
+            iterator(arr[completed], function (err) {
+                if (err) {
+                    callback(err);
+                    callback = function () {};
+                }
+                else {
+                    completed += 1;
+                    if (completed >= arr.length) {
+                        callback(null);
+                    }
+                    else {
+                        iterate();
+                    }
+                }
+            });
+        };
+        iterate();
+    };
+    async.forEachSeries = async.eachSeries;
+
+    async.eachLimit = function (arr, limit, iterator, callback) {
+        var fn = _eachLimit(limit);
+        fn.apply(null, [arr, iterator, callback]);
+    };
+    async.forEachLimit = async.eachLimit;
+
+    var _eachLimit = function (limit) {
+
+        return function (arr, iterator, callback) {
+            callback = callback || function () {};
+            if (!arr.length || limit <= 0) {
+                return callback();
+            }
+            var completed = 0;
+            var started = 0;
+            var running = 0;
+
+            (function replenish () {
+                if (completed >= arr.length) {
+                    return callback();
+                }
+
+                while (running < limit && started < arr.length) {
+                    started += 1;
+                    running += 1;
+                    iterator(arr[started - 1], function (err) {
+                        if (err) {
+                            callback(err);
+                            callback = function () {};
+                        }
+                        else {
+                            completed += 1;
+                            running -= 1;
+                            if (completed >= arr.length) {
+                                callback();
+                            }
+                            else {
+                                replenish();
+                            }
+                        }
+                    });
+                }
+            })();
+        };
+    };
+
+
+    var doParallel = function (fn) {
+        return function () {
+            var args = Array.prototype.slice.call(arguments);
+            return fn.apply(null, [async.each].concat(args));
+        };
+    };
+    var doParallelLimit = function(limit, fn) {
+        return function () {
+            var args = Array.prototype.slice.call(arguments);
+            return fn.apply(null, [_eachLimit(limit)].concat(args));
+        };
+    };
+    var doSeries = function (fn) {
+        return function () {
+            var args = Array.prototype.slice.call(arguments);
+            return fn.apply(null, [async.eachSeries].concat(args));
+        };
+    };
+
+
+    var _asyncMap = function (eachfn, arr, iterator, callback) {
+        var results = [];
+        arr = _map(arr, function (x, i) {
+            return {index: i, value: x};
+        });
+        eachfn(arr, function (x, callback) {
+            iterator(x.value, function (err, v) {
+                results[x.index] = v;
+                callback(err);
+            });
+        }, function (err) {
+            callback(err, results);
+        });
+    };
+    async.map = doParallel(_asyncMap);
+    async.mapSeries = doSeries(_asyncMap);
+    async.mapLimit = function (arr, limit, iterator, callback) {
+        return _mapLimit(limit)(arr, iterator, callback);
+    };
+
+    var _mapLimit = function(limit) {
+        return doParallelLimit(limit, _asyncMap);
+    };
+
+    // reduce only has a series version, as doing reduce in parallel won't
+    // work in many situations.
+    async.reduce = function (arr, memo, iterator, callback) {
+        async.eachSeries(arr, function (x, callback) {
+            iterator(memo, x, function (err, v) {
+                memo = v;
+                callback(err);
+            });
+        }, function (err) {
+            callback(err, memo);
+        });
+    };
+    // inject alias
+    async.inject = async.reduce;
+    // foldl alias
+    async.foldl = async.reduce;
+
+    async.reduceRight = function (arr, memo, iterator, callback) {
+        var reversed = _map(arr, function (x) {
+            return x;
+        }).reverse();
+        async.reduce(reversed, memo, iterator, callback);
+    };
+    // foldr alias
+    async.foldr = async.reduceRight;
+
+    var _filter = function (eachfn, arr, iterator, callback) {
+        var results = [];
+        arr = _map(arr, function (x, i) {
+            return {index: i, value: x};
+        });
+        eachfn(arr, function (x, callback) {
+            iterator(x.value, function (v) {
+                if (v) {
+                    results.push(x);
+                }
+                callback();
+            });
+        }, function (err) {
+            callback(_map(results.sort(function (a, b) {
+                return a.index - b.index;
+            }), function (x) {
+                return x.value;
+            }));
+        });
+    };
+    async.filter = doParallel(_filter);
+    async.filterSeries = doSeries(_filter);
+    // select alias
+    async.select = async.filter;
+    async.selectSeries = async.filterSeries;
+
+    var _reject = function (eachfn, arr, iterator, callback) {
+        var results = [];
+        arr = _map(arr, function (x, i) {
+            return {index: i, value: x};
+        });
+        eachfn(arr, function (x, callback) {
+            iterator(x.value, function (v) {
+                if (!v) {
+                    results.push(x);
+                }
+                callback();
+            });
+        }, function (err) {
+            callback(_map(results.sort(function (a, b) {
+                return a.index - b.index;
+            }), function (x) {
+                return x.value;
+            }));
+        });
+    };
+    async.reject = doParallel(_reject);
+    async.rejectSeries = doSeries(_reject);
+
+    var _detect = function (eachfn, arr, iterator, main_callback) {
+        eachfn(arr, function (x, callback) {
+            iterator(x, function (result) {
+                if (result) {
+                    main_callback(x);
+                    main_callback = function () {};
+                }
+                else {
+                    callback();
+                }
+            });
+        }, function (err) {
+            main_callback();
+        });
+    };
+    async.detect = doParallel(_detect);
+    async.detectSeries = doSeries(_detect);
+
+    async.some = function (arr, iterator, main_callback) {
+        async.each(arr, function (x, callback) {
+            iterator(x, function (v) {
+                if (v) {
+                    main_callback(true);
+                    main_callback = function () {};
+                }
+                callback();
+            });
+        }, function (err) {
+            main_callback(false);
+        });
+    };
+    // any alias
+    async.any = async.some;
+
+    async.every = function (arr, iterator, main_callback) {
+        async.each(arr, function (x, callback) {
+            iterator(x, function (v) {
+                if (!v) {
+                    main_callback(false);
+                    main_callback = function () {};
+                }
+                callback();
+            });
+        }, function (err) {
+            main_callback(true);
+        });
+    };
+    // all alias
+    async.all = async.every;
+
+    async.sortBy = function (arr, iterator, callback) {
+        async.map(arr, function (x, callback) {
+            iterator(x, function (err, criteria) {
+                if (err) {
+                    callback(err);
+                }
+                else {
+                    callback(null, {value: x, criteria: criteria});
+                }
+            });
+        }, function (err, results) {
+            if (err) {
+                return callback(err);
+            }
+            else {
+                var fn = function (left, right) {
+                    var a = left.criteria, b = right.criteria;
+                    return a < b ? -1 : a > b ? 1 : 0;
+                };
+                callback(null, _map(results.sort(fn), function (x) {
+                    return x.value;
+                }));
+            }
+        });
+    };
+
+    async.auto = function (tasks, callback) {
+        callback = callback || function () {};
+        var keys = _keys(tasks);
+        if (!keys.length) {
+            return callback(null);
+        }
+
+        var results = {};
+
+        var listeners = [];
+        var addListener = function (fn) {
+            listeners.unshift(fn);
+        };
+        var removeListener = function (fn) {
+            for (var i = 0; i < listeners.length; i += 1) {
+                if (listeners[i] === fn) {
+                    listeners.splice(i, 1);
+                    return;
+                }
+            }
+        };
+        var taskComplete = function () {
+            _each(listeners.slice(0), function (fn) {
+                fn();
+            });
+        };
+
+        addListener(function () {
+            if (_keys(results).length === keys.length) {
+                callback(null, results);
+                callback = function () {};
+            }
+        });
+
+        _each(keys, function (k) {
+            var task = (tasks[k] instanceof Function) ? [tasks[k]]: tasks[k];
+            var taskCallback = function (err) {
+                var args = Array.prototype.slice.call(arguments, 1);
+                if (args.length <= 1) {
+                    args = args[0];
+                }
+                if (err) {
+                    var safeResults = {};
+                    _each(_keys(results), function(rkey) {
+                        safeResults[rkey] = results[rkey];
+                    });
+                    safeResults[k] = args;
+                    callback(err, safeResults);
+                    // stop subsequent errors hitting callback multiple times
+                    callback = function () {};
+                }
+                else {
+                    results[k] = args;
+                    async.setImmediate(taskComplete);
+                }
+            };
+            var requires = task.slice(0, Math.abs(task.length - 1)) || [];
+            var ready = function () {
+                return _reduce(requires, function (a, x) {
+                    return (a && results.hasOwnProperty(x));
+                }, true) && !results.hasOwnProperty(k);
+            };
+            if (ready()) {
+                task[task.length - 1](taskCallback, results);
+            }
+            else {
+                var listener = function () {
+                    if (ready()) {
+                        removeListener(listener);
+                        task[task.length - 1](taskCallback, results);
+                    }
+                };
+                addListener(listener);
+            }
+        });
+    };
+
+    async.waterfall = function (tasks, callback) {
+        callback = callback || function () {};
+        if (tasks.constructor !== Array) {
+          var err = new Error('First argument to waterfall must be an array of functions');
+          return callback(err);
+        }
+        if (!tasks.length) {
+            return callback();
+        }
+        var wrapIterator = function (iterator) {
+            return function (err) {
+                if (err) {
+                    callback.apply(null, arguments);
+                    callback = function () {};
+                }
+                else {
+                    var args = Array.prototype.slice.call(arguments, 1);
+                    var next = iterator.next();
+                    if (next) {
+                        args.push(wrapIterator(next));
+                    }
+                    else {
+                        args.push(callback);
+                    }
+                    async.setImmediate(function () {
+                        iterator.apply(null, args);
+                    });
+                }
+            };
+        };
+        wrapIterator(async.iterator(tasks))();
+    };
+
+    var _parallel = function(eachfn, tasks, callback) {
+        callback = callback || function () {};
+        if (tasks.constructor === Array) {
+            eachfn.map(tasks, function (fn, callback) {
+                if (fn) {
+                    fn(function (err) {
+                        var args = Array.prototype.slice.call(arguments, 1);
+                        if (args.length <= 1) {
+                            args = args[0];
+                        }
+                        callback.call(null, err, args);
+                    });
+                }
+            }, callback);
+        }
+        else {
+            var results = {};
+            eachfn.each(_keys(tasks), function (k, callback) {
+                tasks[k](function (err) {
+                    var args = Array.prototype.slice.call(arguments, 1);
+                    if (args.length <= 1) {
+                        args = args[0];
+                    }
+                    results[k] = args;
+                    callback(err);
+                });
+            }, function (err) {
+                callback(err, results);
+            });
+        }
+    };
+
+    async.parallel = function (tasks, callback) {
+        _parallel({ map: async.map, each: async.each }, tasks, callback);
+    };
+
+    async.parallelLimit = function(tasks, limit, callback) {
+        _parallel({ map: _mapLimit(limit), each: _eachLimit(limit) }, tasks, callback);
+    };
+
+    async.series = function (tasks, callback) {
+        callback = callback || function () {};
+        if (tasks.constructor === Array) {
+            async.mapSeries(tasks, function (fn, callback) {
+                if (fn) {
+                    fn(function (err) {
+                        var args = Array.prototype.slice.call(arguments, 1);
+                        if (args.length <= 1) {
+                            args = args[0];
+                        }
+                        callback.call(null, err, args);
+                    });
+                }
+            }, callback);
+        }
+        else {
+            var results = {};
+            async.eachSeries(_keys(tasks), function (k, callback) {
+                tasks[k](function (err) {
+                    var args = Array.prototype.slice.call(arguments, 1);
+                    if (args.length <= 1) {
+                        args = args[0];
+                    }
+                    results[k] = args;
+                    callback(err);
+                });
+            }, function (err) {
+                callback(err, results);
+            });
+        }
+    };
+
+    async.iterator = function (tasks) {
+        var makeCallback = function (index) {
+            var fn = function () {
+                if (tasks.length) {
+                    tasks[index].apply(null, arguments);
+                }
+                return fn.next();
+            };
+            fn.next = function () {
+                return (index < tasks.length - 1) ? makeCallback(index + 1): null;
+            };
+            return fn;
+        };
+        return makeCallback(0);
+    };
+
+    async.apply = function (fn) {
+        var args = Array.prototype.slice.call(arguments, 1);
+        return function () {
+            return fn.apply(
+                null, args.concat(Array.prototype.slice.call(arguments))
+            );
+        };
+    };
+
+    var _concat = function (eachfn, arr, fn, callback) {
+        var r = [];
+        eachfn(arr, function (x, cb) {
+            fn(x, function (err, y) {
+                r = r.concat(y || []);
+                cb(err);
+            });
+        }, function (err) {
+            callback(err, r);
+        });
+    };
+    async.concat = doParallel(_concat);
+    async.concatSeries = doSeries(_concat);
+
+    async.whilst = function (test, iterator, callback) {
+        if (test()) {
+            iterator(function (err) {
+                if (err) {
+                    return callback(err);
+                }
+                async.whilst(test, iterator, callback);
+            });
+        }
+        else {
+            callback();
+        }
+    };
+
+    async.doWhilst = function (iterator, test, callback) {
+        iterator(function (err) {
+            if (err) {
+                return callback(err);
+            }
+            if (test()) {
+                async.doWhilst(iterator, test, callback);
+            }
+            else {
+                callback();
+            }
+        });
+    };
+
+    async.until = function (test, iterator, callback) {
+        if (!test()) {
+            iterator(function (err) {
+                if (err) {
+                    return callback(err);
+                }
+                async.until(test, iterator, callback);
+            });
+        }
+        else {
+            callback();
+        }
+    };
+
+    async.doUntil = function (iterator, test, callback) {
+        iterator(function (err) {
+            if (err) {
+                return callback(err);
+            }
+            if (!test()) {
+                async.doUntil(iterator, test, callback);
+            }
+            else {
+                callback();
+            }
+        });
+    };
+
+    async.queue = function (worker, concurrency) {
+        if (concurrency === undefined) {
+            concurrency = 1;
+        }
+        function _insert(q, data, pos, callback) {
+          if(data.constructor !== Array) {
+              data = [data];
+          }
+          _each(data, function(task) {
+              var item = {
+                  data: task,
+                  callback: typeof callback === 'function' ? callback : null
+              };
+
+              if (pos) {
+                q.tasks.unshift(item);
+              } else {
+                q.tasks.push(item);
+              }
+
+              if (q.saturated && q.tasks.length === concurrency) {
+                  q.saturated();
+              }
+              async.setImmediate(q.process);
+          });
+        }
+
+        var workers = 0;
+        var q = {
+            tasks: [],
+            concurrency: concurrency,
+            saturated: null,
+            empty: null,
+            drain: null,
+            push: function (data, callback) {
+              _insert(q, data, false, callback);
+            },
+            unshift: function (data, callback) {
+              _insert(q, data, true, callback);
+            },
+            process: function () {
+                if (workers < q.concurrency && q.tasks.length) {
+                    var task = q.tasks.shift();
+                    if (q.empty && q.tasks.length === 0) {
+                        q.empty();
+                    }
+                    workers += 1;
+                    var next = function () {
+                        workers -= 1;
+                        if (task.callback) {
+                            task.callback.apply(task, arguments);
+                        }
+                        if (q.drain && q.tasks.length + workers === 0) {
+                            q.drain();
+                        }
+                        q.process();
+                    };
+                    var cb = only_once(next);
+                    worker(task.data, cb);
+                }
+            },
+            length: function () {
+                return q.tasks.length;
+            },
+            running: function () {
+                return workers;
+            }
+        };
+        return q;
+    };
+
+    async.cargo = function (worker, payload) {
+        var working     = false,
+            tasks       = [];
+
+        var cargo = {
+            tasks: tasks,
+            payload: payload,
+            saturated: null,
+            empty: null,
+            drain: null,
+            push: function (data, callback) {
+                if(data.constructor !== Array) {
+                    data = [data];
+                }
+                _each(data, function(task) {
+                    tasks.push({
+                        data: task,
+                        callback: typeof callback === 'function' ? callback : null
+                    });
+                    if (cargo.saturated && tasks.length === payload) {
+                        cargo.saturated();
+                    }
+                });
+                async.setImmediate(cargo.process);
+            },
+            process: function process() {
+                if (working) return;
+                if (tasks.length === 0) {
+                    if(cargo.drain) cargo.drain();
+                    return;
+                }
+
+                var ts = typeof payload === 'number'
+                            ? tasks.splice(0, payload)
+                            : tasks.splice(0);
+
+                var ds = _map(ts, function (task) {
+                    return task.data;
+                });
+
+                if(cargo.empty) cargo.empty();
+                working = true;
+                worker(ds, function () {
+                    working = false;
+
+                    var args = arguments;
+                    _each(ts, function (data) {
+                        if (data.callback) {
+                            data.callback.apply(null, args);
+                        }
+                    });
+
+                    process();
+                });
+            },
+            length: function () {
+                return tasks.length;
+            },
+            running: function () {
+                return working;
+            }
+        };
+        return cargo;
+    };
+
+    var _console_fn = function (name) {
+        return function (fn) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            fn.apply(null, args.concat([function (err) {
+                var args = Array.prototype.slice.call(arguments, 1);
+                if (typeof console !== 'undefined') {
+                    if (err) {
+                        if (console.error) {
+                            console.error(err);
+                        }
+                    }
+                    else if (console[name]) {
+                        _each(args, function (x) {
+                            console[name](x);
+                        });
+                    }
+                }
+            }]));
+        };
+    };
+    async.log = _console_fn('log');
+    async.dir = _console_fn('dir');
+    /*async.info = _console_fn('info');
+    async.warn = _console_fn('warn');
+    async.error = _console_fn('error');*/
+
+    async.memoize = function (fn, hasher) {
+        var memo = {};
+        var queues = {};
+        hasher = hasher || function (x) {
+            return x;
+        };
+        var memoized = function () {
+            var args = Array.prototype.slice.call(arguments);
+            var callback = args.pop();
+            var key = hasher.apply(null, args);
+            if (key in memo) {
+                callback.apply(null, memo[key]);
+            }
+            else if (key in queues) {
+                queues[key].push(callback);
+            }
+            else {
+                queues[key] = [callback];
+                fn.apply(null, args.concat([function () {
+                    memo[key] = arguments;
+                    var q = queues[key];
+                    delete queues[key];
+                    for (var i = 0, l = q.length; i < l; i++) {
+                      q[i].apply(null, arguments);
+                    }
+                }]));
+            }
+        };
+        memoized.memo = memo;
+        memoized.unmemoized = fn;
+        return memoized;
+    };
+
+    async.unmemoize = function (fn) {
+      return function () {
+        return (fn.unmemoized || fn).apply(null, arguments);
+      };
+    };
+
+    async.times = function (count, iterator, callback) {
+        var counter = [];
+        for (var i = 0; i < count; i++) {
+            counter.push(i);
+        }
+        return async.map(counter, iterator, callback);
+    };
+
+    async.timesSeries = function (count, iterator, callback) {
+        var counter = [];
+        for (var i = 0; i < count; i++) {
+            counter.push(i);
+        }
+        return async.mapSeries(counter, iterator, callback);
+    };
+
+    async.compose = function (/* functions... */) {
+        var fns = Array.prototype.reverse.call(arguments);
+        return function () {
+            var that = this;
+            var args = Array.prototype.slice.call(arguments);
+            var callback = args.pop();
+            async.reduce(fns, args, function (newargs, fn, cb) {
+                fn.apply(that, newargs.concat([function () {
+                    var err = arguments[0];
+                    var nextargs = Array.prototype.slice.call(arguments, 1);
+                    cb(err, nextargs);
+                }]))
+            },
+            function (err, results) {
+                callback.apply(that, [err].concat(results));
+            });
+        };
+    };
+
+    var _applyEach = function (eachfn, fns /*args...*/) {
+        var go = function () {
+            var that = this;
+            var args = Array.prototype.slice.call(arguments);
+            var callback = args.pop();
+            return eachfn(fns, function (fn, cb) {
+                fn.apply(that, args.concat([cb]));
+            },
+            callback);
+        };
+        if (arguments.length > 2) {
+            var args = Array.prototype.slice.call(arguments, 2);
+            return go.apply(this, args);
+        }
+        else {
+            return go;
+        }
+    };
+    async.applyEach = doParallel(_applyEach);
+    async.applyEachSeries = doSeries(_applyEach);
+
+    async.forever = function (fn, callback) {
+        function next(err) {
+            if (err) {
+                if (callback) {
+                    return callback(err);
+                }
+                throw err;
+            }
+            fn(next);
+        }
+        next();
+    };
+
+    // AMD / RequireJS
+    if (typeof define !== 'undefined' && define.amd) {
+        define('async',[], function () {
+            return async;
+        });
+    }
+    // Node.js
+    else if (typeof module !== 'undefined' && module.exports) {
+        module.exports = async;
+    }
+    // included directly via <script> tag
+    else {
+        root.async = async;
+    }
+
+}());
+
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+define('backend/dropbox',["require", "exports", '../generic/preload_file', '../core/file_system', '../core/node_fs_stats', '../core/buffer', '../core/api_error', '../core/node_path', '../core/browserfs', '../core/buffer_core_arraybuffer', "async"], function(require, exports, preload_file, file_system, node_fs_stats, buffer, api_error, node_path, browserfs, buffer_core_arraybuffer) {
+    var Buffer = buffer.Buffer;
+    var Stats = node_fs_stats.Stats;
+    var ApiError = api_error.ApiError;
+    var ErrorCode = api_error.ErrorCode;
+    var path = node_path.path;
+    var FileType = node_fs_stats.FileType;
+
+    // XXX: No typings available for the Dropbox client. :(
+    // XXX: The typings for async on DefinitelyTyped are out of date.
+    var async = require('async');
+    var Buffer = buffer.Buffer;
+
+    var DropboxFile = (function (_super) {
+        __extends(DropboxFile, _super);
+        function DropboxFile(_fs, _path, _flag, _stat, contents) {
+            _super.call(this, _fs, _path, _flag, _stat, contents);
+        }
+        DropboxFile.prototype.sync = function (cb) {
+            var buffer = this._buffer;
+
+            // XXX: Typing hack.
+            var backing_mem = this._buffer.getBufferCore();
+            if (!(backing_mem instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer)) {
+                // Copy into an ArrayBuffer-backed Buffer.
+                buffer = new Buffer(this._buffer.length);
+                this._buffer.copy(buffer);
+                backing_mem = buffer.getBufferCore();
+            }
+
+            // Reach into the BC, grab the DV.
+            var dv = backing_mem.getDataView();
+
+            // Create an appropriate view on the array buffer.
+            var abv = new DataView(dv.buffer, dv.byteOffset + buffer.getOffset(), buffer.length);
+            this._fs._writeFileStrict(this._path, abv, cb);
+        };
+
+        DropboxFile.prototype.close = function (cb) {
+            this.sync(cb);
+        };
+        return DropboxFile;
+    })(preload_file.PreloadFile);
+    exports.DropboxFile = DropboxFile;
+
+    var DropboxFileSystem = (function (_super) {
+        __extends(DropboxFileSystem, _super);
+        /**
+        * Arguments: an authenticated Dropbox.js client
+        */
+        function DropboxFileSystem(client) {
+            _super.call(this);
+            this.client = client;
+        }
+        DropboxFileSystem.prototype.getName = function () {
+            return 'Dropbox';
+        };
+
+        DropboxFileSystem.isAvailable = function () {
+            // Checks if the Dropbox library is loaded.
+            // @todo Check if the Dropbox library *can be used* in the current browser.
+            return typeof Dropbox !== 'undefined';
+        };
+
+        DropboxFileSystem.prototype.isReadOnly = function () {
+            return false;
+        };
+
+        // Dropbox doesn't support symlinks, properties, or synchronous calls
+        DropboxFileSystem.prototype.supportsSymlinks = function () {
+            return false;
+        };
+
+        DropboxFileSystem.prototype.supportsProps = function () {
+            return false;
+        };
+
+        DropboxFileSystem.prototype.supportsSynch = function () {
+            return false;
+        };
+
+        DropboxFileSystem.prototype.empty = function (main_cb) {
+            var _this = this;
+            this.client.readdir('/', function (error, paths, dir, files) {
+                if (error) {
+                    main_cb(_this.convert(error));
+                } else {
+                    var deleteFile = function (file, cb) {
+                        _this.client.remove(file.path, function (err, stat) {
+                            cb(err ? _this.convert(err) : err);
+                        });
+                    };
+                    var finished = function (err) {
+                        if (err) {
+                            main_cb(_this.convert(err));
+                        } else {
+                            main_cb();
+                        }
+                    };
+                    async.each(files, deleteFile, finished);
+                }
+            });
+        };
+
+        DropboxFileSystem.prototype.rename = function (oldPath, newPath, cb) {
+            this.client.move(oldPath, newPath, function (error, stat) {
+                if (error) {
+                    // XXX: Assume 404 for now.
+                    var missingPath = error.response.error.indexOf(oldPath) > -1 ? oldPath : newPath;
+                    cb(new ApiError(1 /* ENOENT */, missingPath + " doesn't exist"));
+                } else {
+                    cb();
+                }
+            });
+        };
+
+        DropboxFileSystem.prototype.stat = function (path, isLstat, cb) {
+            var _this = this;
+            // Ignore lstat case -- Dropbox doesn't support symlinks
+            // Stat the file
+            this.client.stat(path, function (error, stat) {
+                // Dropbox keeps track of deleted files, so if a file has existed in the
+                // past but doesn't any longer, you wont get an error
+                if (error || ((stat != null) && stat.isRemoved)) {
+                    cb(new ApiError(1 /* ENOENT */, path + " doesn't exist"));
+                } else {
+                    var stats = new Stats(_this._statType(stat), stat.size);
+                    return cb(null, stats);
+                }
+            });
+        };
+
+        DropboxFileSystem.prototype.open = function (path, flags, mode, cb) {
+            var _this = this;
+            // Try and get the file's contents
+            this.client.readFile(path, {
+                arrayBuffer: true
+            }, function (error, content, db_stat, range) {
+                if (error) {
+                    // If the file's being opened for reading and doesn't exist, return an
+                    // error
+                    if (flags.isReadable()) {
+                        cb(new ApiError(1 /* ENOENT */, path + " doesn't exist"));
+                    } else {
+                        switch (error.status) {
+                            case 0:
+                                return console.error('No connection');
+
+                            case 404:
+                                var ab = new ArrayBuffer(0);
+                                return _this._writeFileStrict(path, ab, function (error2, stat) {
+                                    if (error2) {
+                                        cb(error2);
+                                    } else {
+                                        var file = _this._makeFile(path, flags, stat, new Buffer(ab));
+                                        cb(null, file);
+                                    }
+                                });
+                            default:
+                                return console.log("Unhandled error: " + error);
+                        }
+                    }
+                } else {
+                    // No error
+                    var buffer;
+
+                    // Dropbox.js seems to set `content` to `null` rather than to an empty
+                    // buffer when reading an empty file. Not sure why this is.
+                    if (content === null) {
+                        buffer = new Buffer(0);
+                    } else {
+                        buffer = new Buffer(content);
+                    }
+                    var file = _this._makeFile(path, flags, db_stat, buffer);
+                    return cb(null, file);
+                }
+            });
+        };
+
+        DropboxFileSystem.prototype._writeFileStrict = function (p, data, cb) {
+            var _this = this;
+            var parent = path.dirname(p);
+            this.stat(parent, false, function (error, stat) {
+                if (error) {
+                    cb(new ApiError(1 /* ENOENT */, "Can't create " + p + " because " + parent + " doesn't exist"));
+                } else {
+                    _this.client.writeFile(p, data, function (error2, stat) {
+                        if (error2) {
+                            cb(_this.convert(error2));
+                        } else {
+                            cb(null, stat);
+                        }
+                    });
+                }
+            });
+        };
+
+        /**
+        * Private
+        * Returns a BrowserFS object representing the type of a Dropbox.js stat object
+        */
+        DropboxFileSystem.prototype._statType = function (stat) {
+            return stat.isFile ? 32768 /* FILE */ : 16384 /* DIRECTORY */;
+        };
+
+        /**
+        * Private
+        * Returns a BrowserFS object representing a File, created from the data
+        * returned by calls to the Dropbox API.
+        */
+        DropboxFileSystem.prototype._makeFile = function (path, flag, stat, buffer) {
+            var type = this._statType(stat);
+            var stats = new Stats(type, stat.size);
+            return new DropboxFile(this, path, flag, stats, buffer);
+        };
+
+        /**
+        * Private
+        * Delete a file or directory from Dropbox
+        * isFile should reflect which call was made to remove the it (`unlink` or
+        * `rmdir`). If this doesn't match what's actually at `path`, an error will be
+        * returned
+        */
+        DropboxFileSystem.prototype._remove = function (path, cb, isFile) {
+            var _this = this;
+            this.client.stat(path, function (error, stat) {
+                var message = null;
+                if (error) {
+                    cb(new ApiError(1 /* ENOENT */, path + " doesn't exist"));
+                } else {
+                    if (stat.isFile && !isFile) {
+                        cb(new ApiError(7 /* ENOTDIR */, path + " is a file."));
+                    } else if (!stat.isFile && isFile) {
+                        cb(new ApiError(8 /* EISDIR */, path + " is a directory."));
+                    } else {
+                        _this.client.remove(path, function (error, stat) {
+                            if (error) {
+                                // @todo Make this more specific.
+                                cb(new ApiError(2 /* EIO */, "Failed to remove " + path));
+                            } else {
+                                cb(null);
+                            }
+                        });
+                    }
+                }
+            });
+        };
+
+        /**
+        * Delete a file
+        */
+        DropboxFileSystem.prototype.unlink = function (path, cb) {
+            this._remove(path, cb, true);
+        };
+
+        /**
+        * Delete a directory
+        */
+        DropboxFileSystem.prototype.rmdir = function (path, cb) {
+            this._remove(path, cb, false);
+        };
+
+        /**
+        * Create a directory
+        */
+        DropboxFileSystem.prototype.mkdir = function (p, mode, cb) {
+            var _this = this;
+            // Dropbox.js' client.mkdir() behaves like `mkdir -p`, i.e. it creates a
+            // directory and all its ancestors if they don't exist.
+            // Node's fs.mkdir() behaves like `mkdir`, i.e. it throws an error if an attempt
+            // is made to create a directory without a parent.
+            // To handle this inconsistency, a check for the existence of `path`'s parent
+            // must be performed before it is created, and an error thrown if it does
+            // not exist
+            var parent = path.dirname(p);
+            this.client.stat(parent, function (error, stat) {
+                if (error) {
+                    cb(new ApiError(1 /* ENOENT */, "Can't create " + p + " because " + parent + " doesn't exist"));
+                } else {
+                    _this.client.mkdir(p, function (error, stat) {
+                        if (error) {
+                            cb(new ApiError(6 /* EEXIST */, p + " already exists"));
+                        } else {
+                            cb(null);
+                        }
+                    });
+                }
+            });
+        };
+
+        /**
+        * Get the names of the files in a directory
+        */
+        DropboxFileSystem.prototype.readdir = function (path, cb) {
+            var _this = this;
+            this.client.readdir(path, function (error, files, dir_stat, content_stats) {
+                if (error) {
+                    return cb(_this.convert(error));
+                } else {
+                    return cb(null, files);
+                }
+            });
+        };
+
+        /**
+        * Converts a Dropbox-JS error into a BFS error.
+        */
+        DropboxFileSystem.prototype.convert = function (err, message) {
+            if (typeof message === "undefined") { message = ""; }
+            switch (err.status) {
+                case 400:
+                    // INVALID_PARAM
+                    return new ApiError(9 /* EINVAL */, message);
+                case 401:
+
+                case 403:
+                    // OAUTH_ERROR
+                    return new ApiError(2 /* EIO */, message);
+                case 404:
+                    // NOT_FOUND
+                    return new ApiError(1 /* ENOENT */, message);
+                case 405:
+                    // INVALID_METHOD
+                    return new ApiError(14 /* ENOTSUP */, message);
+
+                case 0:
+
+                case 304:
+
+                case 406:
+
+                case 409:
+
+                default:
+                    return new ApiError(2 /* EIO */, message);
+            }
+        };
+        return DropboxFileSystem;
+    })(file_system.BaseFileSystem);
+    exports.DropboxFileSystem = DropboxFileSystem;
+
+    browserfs.registerFileSystem('Dropbox', DropboxFileSystem);
+});
+//# sourceMappingURL=dropbox.js.map
+;
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+define('backend/html5fs',["require", "exports", '../generic/preload_file', '../core/file_system', '../core/api_error', '../core/file_flag', '../core/node_fs_stats', '../core/buffer', '../core/browserfs', '../core/buffer_core_arraybuffer', '../core/node_path', '../core/global', "async"], function(require, exports, preload_file, file_system, api_error, file_flag, node_fs_stats, buffer, browserfs, buffer_core_arraybuffer, node_path, global) {
+    var Buffer = buffer.Buffer;
+    var Stats = node_fs_stats.Stats;
+    var FileType = node_fs_stats.FileType;
+    var ApiError = api_error.ApiError;
+    var ErrorCode = api_error.ErrorCode;
+    var ActionType = file_flag.ActionType;
+
+    // XXX: The typings for async on DefinitelyTyped are out of date.
+    var async = require('async');
+
+    var _getFS = global.webkitRequestFileSystem || global.requestFileSystem || null;
+
+    function _requestQuota(type, size, success, errorCallback) {
+        // We cast navigator and window to '<any>' because everything here is
+        // nonstandard functionality, despite the fact that Chrome has the only
+        // implementation of the HTML5FS and is likely driving the standardization
+        // process. Thus, these objects defined off of navigator and window are not
+        // present in the DefinitelyTyped TypeScript typings for FileSystem.
+        if (typeof navigator['webkitPersistentStorage'] !== 'undefined') {
+            switch (type) {
+                case global.PERSISTENT:
+                    navigator.webkitPersistentStorage.requestQuota(size, success, errorCallback);
+                    break;
+                case global.TEMPORARY:
+                    navigator.webkitTemporaryStorage.requestQuota(size, success, errorCallback);
+                    break;
+                default:
+                    // TODO: Figure out how to construct a DOMException/DOMError.
+                    errorCallback(null);
+                    break;
+            }
+        } else {
+            global.webkitStorageInfo.requestQuota(type, size, success, errorCallback);
+        }
+    }
+
+    function _toArray(list) {
+        return Array.prototype.slice.call(list || [], 0);
+    }
+
+    // A note about getFile and getDirectory options:
+    // These methods are called at numerous places in this file, and are passed
+    // some combination of these two options:
+    //   - create: If true, the entry will be created if it doesn't exist.
+    //             If false, an error will be thrown if it doesn't exist.
+    //   - exclusive: If true, only create the entry if it doesn't already exist,
+    //                and throw an error if it does.
+    var HTML5FSFile = (function (_super) {
+        __extends(HTML5FSFile, _super);
+        function HTML5FSFile(_fs, _path, _flag, _stat, contents) {
+            _super.call(this, _fs, _path, _flag, _stat, contents);
+        }
+        HTML5FSFile.prototype.sync = function (cb) {
+            var _this = this;
+            // Don't create the file (it should already have been created by `open`)
+            var opts = {
+                create: false
+            };
+            var _fs = this._fs;
+            var success = function (entry) {
+                entry.createWriter(function (writer) {
+                    // XXX: Typing hack.
+                    var buffer = _this._buffer;
+                    var backing_mem = _this._buffer.getBufferCore();
+                    if (!(backing_mem instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer)) {
+                        // Copy into an ArrayBuffer-backed Buffer.
+                        buffer = new Buffer(_this._buffer.length);
+                        _this._buffer.copy(buffer);
+                        backing_mem = buffer.getBufferCore();
+                    }
+
+                    // Reach into the BC, grab the DV.
+                    var dv = backing_mem.getDataView();
+
+                    // Create an appropriate view on the array buffer.
+                    var abv = new DataView(dv.buffer, dv.byteOffset + buffer.getOffset(), buffer.length);
+                    var blob = new Blob([abv]);
+                    var length = blob.size;
+                    writer.onwriteend = function (event) {
+                        writer.onwriteend = null;
+                        writer.truncate(length);
+                        cb();
+                    };
+                    writer.onerror = function (err) {
+                        cb(_fs.convert(err));
+                    };
+                    writer.write(blob);
+                });
+            };
+            var error = function (err) {
+                cb(_fs.convert(err));
+            };
+            _fs.fs.root.getFile(this._path, opts, success, error);
+        };
+
+        HTML5FSFile.prototype.close = function (cb) {
+            this.sync(cb);
+        };
+        return HTML5FSFile;
+    })(preload_file.PreloadFile);
+    exports.HTML5FSFile = HTML5FSFile;
+
+    var HTML5FS = (function (_super) {
+        __extends(HTML5FS, _super);
+        /**
+        * Arguments:
+        *   - type: PERSISTENT or TEMPORARY
+        *   - size: storage quota to request, in megabytes. Allocated value may be less.
+        */
+        function HTML5FS(size, type) {
+            _super.call(this);
+            this.size = size != null ? size : 5;
+            this.type = type != null ? type : global.PERSISTENT;
+            var kb = 1024;
+            var mb = kb * kb;
+            this.size *= mb;
+        }
+        HTML5FS.prototype.getName = function () {
+            return 'HTML5 FileSystem';
+        };
+
+        HTML5FS.isAvailable = function () {
+            return _getFS != null;
+        };
+
+        HTML5FS.prototype.isReadOnly = function () {
+            return false;
+        };
+
+        HTML5FS.prototype.supportsSymlinks = function () {
+            return false;
+        };
+
+        HTML5FS.prototype.supportsProps = function () {
+            return false;
+        };
+
+        HTML5FS.prototype.supportsSynch = function () {
+            return false;
+        };
+
+        /**
+        * Converts the given DOMError into an appropriate ApiError.
+        * Full list of values here:
+        * https://developer.mozilla.org/en-US/docs/Web/API/DOMError
+        * I've only implemented the most obvious ones, but more can be added to
+        * make errors more descriptive in the future.
+        */
+        HTML5FS.prototype.convert = function (err, message) {
+            if (typeof message === "undefined") { message = ""; }
+            switch (err.name) {
+                case 'QuotaExceededError':
+                    return new ApiError(11 /* ENOSPC */, message);
+                case 'NotFoundError':
+                    return new ApiError(1 /* ENOENT */, message);
+                case 'SecurityError':
+                    return new ApiError(4 /* EACCES */, message);
+                case 'InvalidModificationError':
+                    return new ApiError(0 /* EPERM */, message);
+                case 'SyntaxError':
+                case 'TypeMismatchError':
+                    return new ApiError(9 /* EINVAL */, message);
+                default:
+                    return new ApiError(9 /* EINVAL */, message);
+            }
+        };
+
+        /**
+        * Converts the given ErrorEvent (from a FileReader) into an appropriate
+        * APIError.
+        */
+        HTML5FS.prototype.convertErrorEvent = function (err, message) {
+            if (typeof message === "undefined") { message = ""; }
+            return new ApiError(1 /* ENOENT */, err.message + "; " + message);
+        };
+
+        /**
+        * Nonstandard
+        * Requests a storage quota from the browser to back this FS.
+        */
+        HTML5FS.prototype.allocate = function (cb) {
+            var _this = this;
+            if (typeof cb === "undefined") { cb = function () {
+            }; }
+            var success = function (fs) {
+                _this.fs = fs;
+                cb();
+            };
+            var error = function (err) {
+                cb(_this.convert(err));
+            };
+            if (this.type === global.PERSISTENT) {
+                _requestQuota(this.type, this.size, function (granted) {
+                    _getFS(_this.type, granted, success, error);
+                }, error);
+            } else {
+                _getFS(this.type, this.size, success, error);
+            }
+        };
+
+        /**
+        * Nonstandard
+        * Deletes everything in the FS. Used for testing.
+        * Karma clears the storage after you quit it but not between runs of the test
+        * suite, and the tests expect an empty FS every time.
+        */
+        HTML5FS.prototype.empty = function (main_cb) {
+            var _this = this;
+            // Get a list of all entries in the root directory to delete them
+            this._readdir('/', function (err, entries) {
+                if (err) {
+                    console.error('Failed to empty FS');
+                    main_cb(err);
+                } else {
+                    // Called when every entry has been operated on
+                    var finished = function (er) {
+                        if (err) {
+                            console.error("Failed to empty FS");
+                            main_cb(err);
+                        } else {
+                            main_cb();
+                        }
+                    };
+
+                    // Removes files and recursively removes directories
+                    var deleteEntry = function (entry, cb) {
+                        var succ = function () {
+                            cb();
+                        };
+                        var error = function (err) {
+                            cb(_this.convert(err, entry.fullPath));
+                        };
+                        if (entry.isFile) {
+                            entry.remove(succ, error);
+                        } else {
+                            entry.removeRecursively(succ, error);
+                        }
+                    };
+
+                    // Loop through the entries and remove them, then call the callback
+                    // when they're all finished.
+                    async.each(entries, deleteEntry, finished);
+                }
+            });
+        };
+
+        HTML5FS.prototype.rename = function (oldPath, newPath, cb) {
+            var _this = this;
+            var semaphore = 2, successCount = 0, root = this.fs.root, error = function (err) {
+                if (--semaphore === 0) {
+                    cb(_this.convert(err, "Failed to rename " + oldPath + " to " + newPath + "."));
+                }
+            }, success = function (file) {
+                if (++successCount === 2) {
+                    console.error("Something was identified as both a file and a directory. This should never happen.");
+                    return;
+                }
+
+                // SPECIAL CASE: If newPath === oldPath, and the path exists, then
+                // this operation trivially succeeds.
+                if (oldPath === newPath) {
+                    return cb();
+                }
+
+                // Get the new parent directory.
+                root.getDirectory(node_path.path.dirname(newPath), {}, function (parentDir) {
+                    file.moveTo(parentDir, node_path.path.basename(newPath), function (entry) {
+                        cb();
+                    }, function (err) {
+                        // SPECIAL CASE: If oldPath is a directory, and newPath is a
+                        // file, rename should delete the file and perform the move.
+                        if (file.isDirectory) {
+                            // Unlink only works on files. Try to delete newPath.
+                            _this.unlink(newPath, function (e) {
+                                if (e) {
+                                    // newPath is probably a directory.
+                                    error(err);
+                                } else {
+                                    // Recurse, now that newPath doesn't exist.
+                                    _this.rename(oldPath, newPath, cb);
+                                }
+                            });
+                        } else {
+                            error(err);
+                        }
+                    });
+                }, error);
+            };
+
+            // We don't know if oldPath is a *file* or a *directory*, and there's no
+            // way to stat items. So launch both requests, see which one succeeds.
+            root.getFile(oldPath, {}, success, error);
+            root.getDirectory(oldPath, {}, success, error);
+        };
+
+        HTML5FS.prototype.stat = function (path, isLstat, cb) {
+            var _this = this;
+            // Throw an error if the entry doesn't exist, because then there's nothing
+            // to stat.
+            var opts = {
+                create: false
+            };
+
+            // Called when the path has been successfully loaded as a file.
+            var loadAsFile = function (entry) {
+                var fileFromEntry = function (file) {
+                    var stat = new Stats(32768 /* FILE */, file.size);
+                    cb(null, stat);
+                };
+                entry.file(fileFromEntry, failedToLoad);
+            };
+
+            // Called when the path has been successfully loaded as a directory.
+            var loadAsDir = function (dir) {
+                // Directory entry size can't be determined from the HTML5 FS API, and is
+                // implementation-dependant anyway, so a dummy value is used.
+                var size = 4096;
+                var stat = new Stats(16384 /* DIRECTORY */, size);
+                cb(null, stat);
+            };
+
+            // Called when the path couldn't be opened as a directory or a file.
+            var failedToLoad = function (err) {
+                cb(_this.convert(err, path));
+            };
+
+            // Called when the path couldn't be opened as a file, but might still be a
+            // directory.
+            var failedToLoadAsFile = function () {
+                _this.fs.root.getDirectory(path, opts, loadAsDir, failedToLoad);
+            };
+
+            // No method currently exists to determine whether a path refers to a
+            // directory or a file, so this implementation tries both and uses the first
+            // one that succeeds.
+            this.fs.root.getFile(path, opts, loadAsFile, failedToLoadAsFile);
+        };
+
+        HTML5FS.prototype.open = function (path, flags, mode, cb) {
+            var _this = this;
+            var opts = {
+                create: flags.pathNotExistsAction() === 3 /* CREATE_FILE */,
+                exclusive: flags.isExclusive()
+            };
+            var error = function (err) {
+                cb(_this.convertErrorEvent(err, path));
+            };
+            var error2 = function (err) {
+                cb(_this.convert(err, path));
+            };
+            var success = function (entry) {
+                var success2 = function (file) {
+                    var reader = new FileReader();
+                    reader.onloadend = function (event) {
+                        var bfs_file = _this._makeFile(path, flags, file, reader.result);
+                        cb(null, bfs_file);
+                    };
+                    reader.onerror = error;
+                    reader.readAsArrayBuffer(file);
+                };
+                entry.file(success2, error2);
+            };
+            this.fs.root.getFile(path, opts, success, error);
+        };
+
+        /**
+        * Returns a BrowserFS object representing the type of a Dropbox.js stat object
+        */
+        HTML5FS.prototype._statType = function (stat) {
+            return stat.isFile ? 32768 /* FILE */ : 16384 /* DIRECTORY */;
+        };
+
+        /**
+        * Returns a BrowserFS object representing a File, created from the data
+        * returned by calls to the Dropbox API.
+        */
+        HTML5FS.prototype._makeFile = function (path, flag, stat, data) {
+            if (typeof data === "undefined") { data = new ArrayBuffer(0); }
+            var stats = new Stats(32768 /* FILE */, stat.size);
+            var buffer = new Buffer(data);
+            return new HTML5FSFile(this, path, flag, stats, buffer);
+        };
+
+        /**
+        * Delete a file or directory from the file system
+        * isFile should reflect which call was made to remove the it (`unlink` or
+        * `rmdir`). If this doesn't match what's actually at `path`, an error will be
+        * returned
+        */
+        HTML5FS.prototype._remove = function (path, cb, isFile) {
+            var _this = this;
+            var success = function (entry) {
+                var succ = function () {
+                    cb();
+                };
+                var err = function (err) {
+                    cb(_this.convert(err, path));
+                };
+                entry.remove(succ, err);
+            };
+            var error = function (err) {
+                cb(_this.convert(err, path));
+            };
+
+            // Deleting the entry, so don't create it
+            var opts = {
+                create: false
+            };
+
+            if (isFile) {
+                this.fs.root.getFile(path, opts, success, error);
+            } else {
+                this.fs.root.getDirectory(path, opts, success, error);
+            }
+        };
+
+        HTML5FS.prototype.unlink = function (path, cb) {
+            this._remove(path, cb, true);
+        };
+
+        HTML5FS.prototype.rmdir = function (path, cb) {
+            this._remove(path, cb, false);
+        };
+
+        HTML5FS.prototype.mkdir = function (path, mode, cb) {
+            var _this = this;
+            // Create the directory, but throw an error if it already exists, as per
+            // mkdir(1)
+            var opts = {
+                create: true,
+                exclusive: true
+            };
+            var success = function (dir) {
+                cb();
+            };
+            var error = function (err) {
+                cb(_this.convert(err, path));
+            };
+            this.fs.root.getDirectory(path, opts, success, error);
+        };
+
+        /**
+        * Returns an array of `FileEntry`s. Used internally by empty and readdir.
+        */
+        HTML5FS.prototype._readdir = function (path, cb) {
+            var _this = this;
+            // Grab the requested directory.
+            this.fs.root.getDirectory(path, { create: false }, function (dirEntry) {
+                var reader = dirEntry.createReader();
+                var entries = [];
+                var error = function (err) {
+                    cb(_this.convert(err, path));
+                };
+
+                // Call the reader.readEntries() until no more results are returned.
+                var readEntries = function () {
+                    reader.readEntries((function (results) {
+                        if (results.length) {
+                            entries = entries.concat(_toArray(results));
+                            readEntries();
+                        } else {
+                            cb(null, entries);
+                        }
+                    }), error);
+                };
+                readEntries();
+            });
+        };
+
+        /**
+        * Map _readdir's list of `FileEntry`s to their names and return that.
+        */
+        HTML5FS.prototype.readdir = function (path, cb) {
+            this._readdir(path, function (e, entries) {
+                if (e != null) {
+                    return cb(e);
+                }
+                var rv = [];
+                for (var i = 0; i < entries.length; i++) {
+                    rv.push(entries[i].name);
+                }
+                cb(null, rv);
+            });
+        };
+        return HTML5FS;
+    })(file_system.BaseFileSystem);
+    exports.HTML5FS = HTML5FS;
+
+    browserfs.registerFileSystem('HTML5FS', HTML5FS);
+});
+//# sourceMappingURL=html5fs.js.map
+;
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+define('backend/in_memory',["require", "exports", '../generic/key_value_filesystem', '../core/browserfs'], function(require, exports, kvfs, browserfs) {
+    /**
+    * A simple in-memory key-value store backed by a JavaScript object.
+    */
+    var InMemoryStore = (function () {
+        function InMemoryStore() {
+            this.store = {};
+        }
+        InMemoryStore.prototype.name = function () {
+            return 'In-memory';
+        };
+        InMemoryStore.prototype.clear = function () {
+            this.store = {};
+        };
+
+        InMemoryStore.prototype.beginTransaction = function (type) {
+            return new kvfs.SimpleSyncRWTransaction(this);
+        };
+
+        InMemoryStore.prototype.get = function (key) {
+            return this.store[key];
+        };
+
+        InMemoryStore.prototype.put = function (key, data, overwrite) {
+            if (!overwrite && this.store.hasOwnProperty(key)) {
+                return false;
+            }
+            this.store[key] = data;
+            return true;
+        };
+
+        InMemoryStore.prototype.delete = function (key) {
+            delete this.store[key];
+        };
+        return InMemoryStore;
+    })();
+    exports.InMemoryStore = InMemoryStore;
+
+    /**
+    * A simple in-memory file system backed by an InMemoryStore.
+    */
+    var InMemoryFileSystem = (function (_super) {
+        __extends(InMemoryFileSystem, _super);
+        function InMemoryFileSystem() {
+            _super.call(this, { store: new InMemoryStore() });
+        }
+        return InMemoryFileSystem;
+    })(kvfs.SyncKeyValueFileSystem);
+    exports.InMemoryFileSystem = InMemoryFileSystem;
+
+    browserfs.registerFileSystem('InMemory', InMemoryFileSystem);
+});
+//# sourceMappingURL=in_memory.js.map
+;
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+define('backend/localStorage',["require", "exports", '../core/buffer', '../core/browserfs', '../generic/key_value_filesystem', '../core/api_error', '../core/global'], function(require, exports, buffer, browserfs, kvfs, api_error, global) {
+    var Buffer = buffer.Buffer, ApiError = api_error.ApiError, ErrorCode = api_error.ErrorCode;
+
+    // Some versions of FF and all versions of IE do not support the full range of
+    // 16-bit numbers encoded as characters, as they enforce UTF-16 restrictions.
+    // http://stackoverflow.com/questions/11170716/are-there-any-characters-that-are-not-allowed-in-localstorage/11173673#11173673
+    var supportsBinaryString = false, binaryEncoding;
+    try  {
+        global.localStorage.setItem("__test__", String.fromCharCode(0xD800));
+        supportsBinaryString = global.localStorage.getItem("__test__") === String.fromCharCode(0xD800);
+    } catch (e) {
+        // IE throws an exception.
+        supportsBinaryString = false;
+    }
+    binaryEncoding = supportsBinaryString ? 'binary_string' : 'binary_string_ie';
+
+    /**
+    * A synchronous key-value store backed by localStorage.
+    */
+    var LocalStorageStore = (function () {
+        function LocalStorageStore() {
+        }
+        LocalStorageStore.prototype.name = function () {
+            return 'LocalStorage';
+        };
+
+        LocalStorageStore.prototype.clear = function () {
+            global.localStorage.clear();
+        };
+
+        LocalStorageStore.prototype.beginTransaction = function (type) {
+            // No need to differentiate.
+            return new kvfs.SimpleSyncRWTransaction(this);
+        };
+
+        LocalStorageStore.prototype.get = function (key) {
+            try  {
+                var data = global.localStorage.getItem(key);
+                if (data !== null) {
+                    return new Buffer(data, binaryEncoding);
+                }
+            } catch (e) {
+            }
+
+            // Key doesn't exist, or a failure occurred.
+            return undefined;
+        };
+
+        LocalStorageStore.prototype.put = function (key, data, overwrite) {
+            try  {
+                if (!overwrite && global.localStorage.getItem(key) !== null) {
+                    // Don't want to overwrite the key!
+                    return false;
+                }
+                global.localStorage.setItem(key, data.toString(binaryEncoding));
+                return true;
+            } catch (e) {
+                throw new ApiError(11 /* ENOSPC */, "LocalStorage is full.");
+            }
+        };
+
+        LocalStorageStore.prototype.delete = function (key) {
+            try  {
+                global.localStorage.removeItem(key);
+            } catch (e) {
+                throw new ApiError(2 /* EIO */, "Unable to delete key " + key + ": " + e);
+            }
+        };
+        return LocalStorageStore;
+    })();
+    exports.LocalStorageStore = LocalStorageStore;
+
+    /**
+    * A synchronous file system backed by localStorage. Connects our
+    * LocalStorageStore to our SyncKeyValueFileSystem.
+    */
+    var LocalStorageFileSystem = (function (_super) {
+        __extends(LocalStorageFileSystem, _super);
+        function LocalStorageFileSystem() {
+            _super.call(this, { store: new LocalStorageStore() });
+        }
+        LocalStorageFileSystem.isAvailable = function () {
+            return typeof global.localStorage !== 'undefined';
+        };
+        return LocalStorageFileSystem;
+    })(kvfs.SyncKeyValueFileSystem);
+    exports.LocalStorageFileSystem = LocalStorageFileSystem;
+
+    browserfs.registerFileSystem('LocalStorage', LocalStorageFileSystem);
+});
+//# sourceMappingURL=localStorage.js.map
+;
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+define('backend/mountable_file_system',["require", "exports", '../core/file_system', './in_memory', '../core/api_error', '../core/node_fs', '../core/browserfs'], function(require, exports, file_system, in_memory, api_error, node_fs, browserfs) {
+    var ApiError = api_error.ApiError;
+    var ErrorCode = api_error.ErrorCode;
+    var fs = node_fs.fs;
+
+    /**
+    * The MountableFileSystem allows you to mount multiple backend types or
+    * multiple instantiations of the same backend into a single file system tree.
+    * The file systems do not need to know about each other; all interactions are
+    * automatically facilitated through this interface.
+    *
+    * For example, if a file system is mounted at /mnt/blah, and a request came in
+    * for /mnt/blah/foo.txt, the file system would see a request for /foo.txt.
+    */
+    var MountableFileSystem = (function (_super) {
+        __extends(MountableFileSystem, _super);
+        function MountableFileSystem() {
+            _super.call(this);
+            this.mntMap = {};
+
+            // The InMemory file system serves purely to provide directory listings for
+            // mounted file systems.
+            this.rootFs = new in_memory.InMemoryFileSystem();
+        }
+        /**
+        * Mounts the file system at the given mount point.
+        */
+        MountableFileSystem.prototype.mount = function (mnt_pt, fs) {
+            if (this.mntMap[mnt_pt]) {
+                throw new ApiError(9 /* EINVAL */, "Mount point " + mnt_pt + " is already taken.");
+            }
+
+            // @todo Ensure new mount path is not subsumed by active mount paths.
+            this.rootFs.mkdirSync(mnt_pt, 0x1ff);
+            this.mntMap[mnt_pt] = fs;
+        };
+
+        MountableFileSystem.prototype.umount = function (mnt_pt) {
+            if (!this.mntMap[mnt_pt]) {
+                throw new ApiError(9 /* EINVAL */, "Mount point " + mnt_pt + " is already unmounted.");
+            }
+            delete this.mntMap[mnt_pt];
+            this.rootFs.rmdirSync(mnt_pt);
+        };
+
+        /**
+        * Returns the file system that the path points to.
+        */
+        MountableFileSystem.prototype._get_fs = function (path) {
+            for (var mnt_pt in this.mntMap) {
+                var fs = this.mntMap[mnt_pt];
+                if (path.indexOf(mnt_pt) === 0) {
+                    path = path.substr(mnt_pt.length > 1 ? mnt_pt.length : 0);
+                    if (path === '') {
+                        path = '/';
+                    }
+                    return { fs: fs, path: path };
+                }
+            }
+
+            // Query our root file system.
+            return { fs: this.rootFs, path: path };
+        };
+
+        // Global information methods
+        MountableFileSystem.prototype.getName = function () {
+            return 'MountableFileSystem';
+        };
+
+        MountableFileSystem.isAvailable = function () {
+            return true;
+        };
+
+        MountableFileSystem.prototype.diskSpace = function (path, cb) {
+            cb(0, 0);
+        };
+
+        MountableFileSystem.prototype.isReadOnly = function () {
+            return false;
+        };
+
+        MountableFileSystem.prototype.supportsLinks = function () {
+            // I'm not ready for cross-FS links yet.
+            return false;
+        };
+
+        MountableFileSystem.prototype.supportsProps = function () {
+            return false;
+        };
+
+        MountableFileSystem.prototype.supportsSynch = function () {
+            return true;
+        };
+
+        /**
+        * Fixes up error messages so they mention the mounted file location relative
+        * to the MFS root, not to the particular FS's root.
+        * Mutates the input error, and returns it.
+        */
+        MountableFileSystem.prototype.standardizeError = function (err, path, realPath) {
+            var index;
+            if (-1 !== (index = err.message.indexOf(path))) {
+                err.message = err.message.substr(0, index) + realPath + err.message.substr(index + path.length);
+            }
+            return err;
+        };
+
+        // The following methods involve multiple file systems, and thus have custom
+        // logic.
+        // Note that we go through the Node API to use its robust default argument
+        // processing.
+        MountableFileSystem.prototype.rename = function (oldPath, newPath, cb) {
+            // Scenario 1: old and new are on same FS.
+            var fs1_rv = this._get_fs(oldPath);
+            var fs2_rv = this._get_fs(newPath);
+            if (fs1_rv.fs === fs2_rv.fs) {
+                var _this = this;
+                return fs1_rv.fs.rename(fs1_rv.path, fs2_rv.path, function (e) {
+                    if (e)
+                        _this.standardizeError(_this.standardizeError(e, fs1_rv.path, oldPath), fs2_rv.path, newPath);
+                    cb(e);
+                });
+            }
+
+            // Scenario 2: Different file systems.
+            // Read old file, write new file, delete old file.
+            return fs.readFile(oldPath, function (err, data) {
+                if (err) {
+                    return cb(err);
+                }
+                fs.writeFile(newPath, data, function (err) {
+                    if (err) {
+                        return cb(err);
+                    }
+                    fs.unlink(oldPath, cb);
+                });
+            });
+        };
+
+        MountableFileSystem.prototype.renameSync = function (oldPath, newPath) {
+            // Scenario 1: old and new are on same FS.
+            var fs1_rv = this._get_fs(oldPath);
+            var fs2_rv = this._get_fs(newPath);
+            if (fs1_rv.fs === fs2_rv.fs) {
+                try  {
+                    return fs1_rv.fs.renameSync(fs1_rv.path, fs2_rv.path);
+                } catch (e) {
+                    this.standardizeError(this.standardizeError(e, fs1_rv.path, oldPath), fs2_rv.path, newPath);
+                    throw e;
+                }
+            }
+
+            // Scenario 2: Different file systems.
+            var data = fs.readFileSync(oldPath);
+            fs.writeFileSync(newPath, data);
+            return fs.unlinkSync(oldPath);
+        };
+        return MountableFileSystem;
+    })(file_system.BaseFileSystem);
+    exports.MountableFileSystem = MountableFileSystem;
+
+    /**
+    * Tricky: Define all of the functions that merely forward arguments to the
+    * relevant file system, or return/throw an error.
+    * Take advantage of the fact that the *first* argument is always the path, and
+    * the *last* is the callback function (if async).
+    */
+    function defineFcn(name, isSync, numArgs) {
+        if (isSync) {
+            return function () {
+                var args = [];
+                for (var _i = 0; _i < (arguments.length - 0); _i++) {
+                    args[_i] = arguments[_i + 0];
+                }
+                var path = args[0];
+                var rv = this._get_fs(path);
+                args[0] = rv.path;
+                try  {
+                    return rv.fs[name].apply(rv.fs, args);
+                } catch (e) {
+                    this.standardizeError(e, rv.path, path);
+                    throw e;
+                }
+            };
+        } else {
+            return function () {
+                var args = [];
+                for (var _i = 0; _i < (arguments.length - 0); _i++) {
+                    args[_i] = arguments[_i + 0];
+                }
+                var path = args[0];
+                var rv = this._get_fs(path);
+                args[0] = rv.path;
+                if (typeof args[args.length - 1] === 'function') {
+                    var cb = args[args.length - 1];
+                    var _this = this;
+                    args[args.length - 1] = function () {
+                        var args = [];
+                        for (var _i = 0; _i < (arguments.length - 0); _i++) {
+                            args[_i] = arguments[_i + 0];
+                        }
+                        if (args.length > 0 && args[0] instanceof api_error.ApiError) {
+                            _this.standardizeError(args[0], rv.path, path);
+                        }
+                        cb.apply(null, args);
+                    };
+                }
+                return rv.fs[name].apply(rv.fs, args);
+            };
+        }
+    }
+
+    var fsCmdMap = [
+        ['readdir', 'exists', 'unlink', 'rmdir', 'readlink'],
+        ['stat', 'mkdir', 'realpath', 'truncate'],
+        ['open', 'readFile', 'chmod', 'utimes'],
+        ['chown'],
+        ['writeFile', 'appendFile']];
+
+    for (var i = 0; i < fsCmdMap.length; i++) {
+        var cmds = fsCmdMap[i];
+        for (var j = 0; j < cmds.length; j++) {
+            var fnName = cmds[j];
+            MountableFileSystem.prototype[fnName] = defineFcn(fnName, false, i + 1);
+            MountableFileSystem.prototype[fnName + 'Sync'] = defineFcn(fnName + 'Sync', true, i + 1);
+        }
+    }
+
+    browserfs.registerFileSystem('MountableFileSystem', MountableFileSystem);
+});
+//# sourceMappingURL=mountable_file_system.js.map
+;
+/** @license zlib.js 2012 - imaya [ https://github.com/imaya/zlib.js ] The MIT License */(function() {var l=void 0,p=this;function q(c,d){var a=c.split("."),b=p;!(a[0]in b)&&b.execScript&&b.execScript("var "+a[0]);for(var e;a.length&&(e=a.shift());)!a.length&&d!==l?b[e]=d:b=b[e]?b[e]:b[e]={}};var r="undefined"!==typeof Uint8Array&&"undefined"!==typeof Uint16Array&&"undefined"!==typeof Uint32Array;function u(c){var d=c.length,a=0,b=Number.POSITIVE_INFINITY,e,f,g,h,k,m,s,n,t;for(n=0;n<d;++n)c[n]>a&&(a=c[n]),c[n]<b&&(b=c[n]);e=1<<a;f=new (r?Uint32Array:Array)(e);g=1;h=0;for(k=2;g<=a;){for(n=0;n<d;++n)if(c[n]===g){m=0;s=h;for(t=0;t<g;++t)m=m<<1|s&1,s>>=1;for(t=m;t<e;t+=k)f[t]=g<<16|n;++h}++g;h<<=1;k<<=1}return[f,a,b]};function v(c,d){this.g=[];this.h=32768;this.c=this.f=this.d=this.k=0;this.input=r?new Uint8Array(c):c;this.l=!1;this.i=w;this.p=!1;if(d||!(d={}))d.index&&(this.d=d.index),d.bufferSize&&(this.h=d.bufferSize),d.bufferType&&(this.i=d.bufferType),d.resize&&(this.p=d.resize);switch(this.i){case x:this.a=32768;this.b=new (r?Uint8Array:Array)(32768+this.h+258);break;case w:this.a=0;this.b=new (r?Uint8Array:Array)(this.h);this.e=this.u;this.m=this.r;this.j=this.s;break;default:throw Error("invalid inflate mode");
+}}var x=0,w=1;
+v.prototype.t=function(){for(;!this.l;){var c=y(this,3);c&1&&(this.l=!0);c>>>=1;switch(c){case 0:var d=this.input,a=this.d,b=this.b,e=this.a,f=l,g=l,h=l,k=b.length,m=l;this.c=this.f=0;f=d[a++];if(f===l)throw Error("invalid uncompressed block header: LEN (first byte)");g=f;f=d[a++];if(f===l)throw Error("invalid uncompressed block header: LEN (second byte)");g|=f<<8;f=d[a++];if(f===l)throw Error("invalid uncompressed block header: NLEN (first byte)");h=f;f=d[a++];if(f===l)throw Error("invalid uncompressed block header: NLEN (second byte)");h|=
+f<<8;if(g===~h)throw Error("invalid uncompressed block header: length verify");if(a+g>d.length)throw Error("input buffer is broken");switch(this.i){case x:for(;e+g>b.length;){m=k-e;g-=m;if(r)b.set(d.subarray(a,a+m),e),e+=m,a+=m;else for(;m--;)b[e++]=d[a++];this.a=e;b=this.e();e=this.a}break;case w:for(;e+g>b.length;)b=this.e({o:2});break;default:throw Error("invalid inflate mode");}if(r)b.set(d.subarray(a,a+g),e),e+=g,a+=g;else for(;g--;)b[e++]=d[a++];this.d=a;this.a=e;this.b=b;break;case 1:this.j(z,
+A);break;case 2:B(this);break;default:throw Error("unknown BTYPE: "+c);}}return this.m()};
+var C=[16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15],D=r?new Uint16Array(C):C,E=[3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258,258,258],F=r?new Uint16Array(E):E,G=[0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0,0,0],H=r?new Uint8Array(G):G,I=[1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577],J=r?new Uint16Array(I):I,K=[0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,
+13],L=r?new Uint8Array(K):K,M=new (r?Uint8Array:Array)(288),N,O;N=0;for(O=M.length;N<O;++N)M[N]=143>=N?8:255>=N?9:279>=N?7:8;var z=u(M),P=new (r?Uint8Array:Array)(30),Q,R;Q=0;for(R=P.length;Q<R;++Q)P[Q]=5;var A=u(P);function y(c,d){for(var a=c.f,b=c.c,e=c.input,f=c.d,g;b<d;){g=e[f++];if(g===l)throw Error("input buffer is broken");a|=g<<b;b+=8}g=a&(1<<d)-1;c.f=a>>>d;c.c=b-d;c.d=f;return g}
+function S(c,d){for(var a=c.f,b=c.c,e=c.input,f=c.d,g=d[0],h=d[1],k,m,s;b<h;){k=e[f++];if(k===l)break;a|=k<<b;b+=8}m=g[a&(1<<h)-1];s=m>>>16;c.f=a>>s;c.c=b-s;c.d=f;return m&65535}
+function B(c){function d(a,c,b){var d,f,e,g;for(g=0;g<a;)switch(d=S(this,c),d){case 16:for(e=3+y(this,2);e--;)b[g++]=f;break;case 17:for(e=3+y(this,3);e--;)b[g++]=0;f=0;break;case 18:for(e=11+y(this,7);e--;)b[g++]=0;f=0;break;default:f=b[g++]=d}return b}var a=y(c,5)+257,b=y(c,5)+1,e=y(c,4)+4,f=new (r?Uint8Array:Array)(D.length),g,h,k,m;for(m=0;m<e;++m)f[D[m]]=y(c,3);g=u(f);h=new (r?Uint8Array:Array)(a);k=new (r?Uint8Array:Array)(b);c.j(u(d.call(c,a,g,h)),u(d.call(c,b,g,k)))}
+v.prototype.j=function(c,d){var a=this.b,b=this.a;this.n=c;for(var e=a.length-258,f,g,h,k;256!==(f=S(this,c));)if(256>f)b>=e&&(this.a=b,a=this.e(),b=this.a),a[b++]=f;else{g=f-257;k=F[g];0<H[g]&&(k+=y(this,H[g]));f=S(this,d);h=J[f];0<L[f]&&(h+=y(this,L[f]));b>=e&&(this.a=b,a=this.e(),b=this.a);for(;k--;)a[b]=a[b++-h]}for(;8<=this.c;)this.c-=8,this.d--;this.a=b};
+v.prototype.s=function(c,d){var a=this.b,b=this.a;this.n=c;for(var e=a.length,f,g,h,k;256!==(f=S(this,c));)if(256>f)b>=e&&(a=this.e(),e=a.length),a[b++]=f;else{g=f-257;k=F[g];0<H[g]&&(k+=y(this,H[g]));f=S(this,d);h=J[f];0<L[f]&&(h+=y(this,L[f]));b+k>e&&(a=this.e(),e=a.length);for(;k--;)a[b]=a[b++-h]}for(;8<=this.c;)this.c-=8,this.d--;this.a=b};
+v.prototype.e=function(){var c=new (r?Uint8Array:Array)(this.a-32768),d=this.a-32768,a,b,e=this.b;if(r)c.set(e.subarray(32768,c.length));else{a=0;for(b=c.length;a<b;++a)c[a]=e[a+32768]}this.g.push(c);this.k+=c.length;if(r)e.set(e.subarray(d,d+32768));else for(a=0;32768>a;++a)e[a]=e[d+a];this.a=32768;return e};
+v.prototype.u=function(c){var d,a=this.input.length/this.d+1|0,b,e,f,g=this.input,h=this.b;c&&("number"===typeof c.o&&(a=c.o),"number"===typeof c.q&&(a+=c.q));2>a?(b=(g.length-this.d)/this.n[2],f=258*(b/2)|0,e=f<h.length?h.length+f:h.length<<1):e=h.length*a;r?(d=new Uint8Array(e),d.set(h)):d=h;return this.b=d};
+v.prototype.m=function(){var c=0,d=this.b,a=this.g,b,e=new (r?Uint8Array:Array)(this.k+(this.a-32768)),f,g,h,k;if(0===a.length)return r?this.b.subarray(32768,this.a):this.b.slice(32768,this.a);f=0;for(g=a.length;f<g;++f){b=a[f];h=0;for(k=b.length;h<k;++h)e[c++]=b[h]}f=32768;for(g=this.a;f<g;++f)e[c++]=d[f];this.g=[];return this.buffer=e};
+v.prototype.r=function(){var c,d=this.a;r?this.p?(c=new Uint8Array(d),c.set(this.b.subarray(0,d))):c=this.b.subarray(0,d):(this.b.length>d&&(this.b.length=d),c=this.b);return this.buffer=c};q("Zlib.RawInflate",v);q("Zlib.RawInflate.prototype.decompress",v.prototype.t);var T={ADAPTIVE:w,BLOCK:x},U,V,W,X;if(Object.keys)U=Object.keys(T);else for(V in U=[],W=0,T)U[W++]=V;W=0;for(X=U.length;W<X;++W)V=U[W],q("Zlib.RawInflate.BufferType."+V,T[V]);}).call(this); //@ sourceMappingURL=rawinflate.min.js.map
+;
+define("zlib", (function (global) {
+    return function () {
+        var ret, fn;
+        return ret || global.Zlib.RawInflate;
+    };
+}(this)));
+
+/// <amd-dependency path="zlib" />
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
+define('backend/zipfs',["require", "exports", '../core/buffer', '../core/api_error', '../generic/file_index', '../core/browserfs', '../core/node_fs_stats', '../core/file_system', '../core/file_flag', '../core/buffer_core_arraybuffer', '../generic/preload_file', "zlib"], function(require, exports, buffer, api_error, file_index, browserfs, node_fs_stats, file_system, file_flag, buffer_core_arraybuffer, preload_file) {
+    var ApiError = api_error.ApiError;
+    var ErrorCode = api_error.ErrorCode;
+    var ActionType = file_flag.ActionType;
+
+    
+
+    var RawInflate = Zlib.RawInflate;
+
+    /**
+    * 4.4.2.2: Indicates the compatibiltiy of a file's external attributes.
+    */
+    (function (ExternalFileAttributeType) {
+        ExternalFileAttributeType[ExternalFileAttributeType["MSDOS"] = 0] = "MSDOS";
+        ExternalFileAttributeType[ExternalFileAttributeType["AMIGA"] = 1] = "AMIGA";
+        ExternalFileAttributeType[ExternalFileAttributeType["OPENVMS"] = 2] = "OPENVMS";
+        ExternalFileAttributeType[ExternalFileAttributeType["UNIX"] = 3] = "UNIX";
+        ExternalFileAttributeType[ExternalFileAttributeType["VM_CMS"] = 4] = "VM_CMS";
+        ExternalFileAttributeType[ExternalFileAttributeType["ATARI_ST"] = 5] = "ATARI_ST";
+        ExternalFileAttributeType[ExternalFileAttributeType["OS2_HPFS"] = 6] = "OS2_HPFS";
+        ExternalFileAttributeType[ExternalFileAttributeType["MAC"] = 7] = "MAC";
+        ExternalFileAttributeType[ExternalFileAttributeType["Z_SYSTEM"] = 8] = "Z_SYSTEM";
+        ExternalFileAttributeType[ExternalFileAttributeType["CP_M"] = 9] = "CP_M";
+        ExternalFileAttributeType[ExternalFileAttributeType["NTFS"] = 10] = "NTFS";
+        ExternalFileAttributeType[ExternalFileAttributeType["MVS"] = 11] = "MVS";
+        ExternalFileAttributeType[ExternalFileAttributeType["VSE"] = 12] = "VSE";
+        ExternalFileAttributeType[ExternalFileAttributeType["ACORN_RISC"] = 13] = "ACORN_RISC";
+        ExternalFileAttributeType[ExternalFileAttributeType["VFAT"] = 14] = "VFAT";
+        ExternalFileAttributeType[ExternalFileAttributeType["ALT_MVS"] = 15] = "ALT_MVS";
+        ExternalFileAttributeType[ExternalFileAttributeType["BEOS"] = 16] = "BEOS";
+        ExternalFileAttributeType[ExternalFileAttributeType["TANDEM"] = 17] = "TANDEM";
+        ExternalFileAttributeType[ExternalFileAttributeType["OS_400"] = 18] = "OS_400";
+        ExternalFileAttributeType[ExternalFileAttributeType["OSX"] = 19] = "OSX";
+    })(exports.ExternalFileAttributeType || (exports.ExternalFileAttributeType = {}));
+    var ExternalFileAttributeType = exports.ExternalFileAttributeType;
+
+    /**
+    * 4.4.5
+    */
+    (function (CompressionMethod) {
+        CompressionMethod[CompressionMethod["STORED"] = 0] = "STORED";
+        CompressionMethod[CompressionMethod["SHRUNK"] = 1] = "SHRUNK";
+        CompressionMethod[CompressionMethod["REDUCED_1"] = 2] = "REDUCED_1";
+        CompressionMethod[CompressionMethod["REDUCED_2"] = 3] = "REDUCED_2";
+        CompressionMethod[CompressionMethod["REDUCED_3"] = 4] = "REDUCED_3";
+        CompressionMethod[CompressionMethod["REDUCED_4"] = 5] = "REDUCED_4";
+        CompressionMethod[CompressionMethod["IMPLODE"] = 6] = "IMPLODE";
+        CompressionMethod[CompressionMethod["DEFLATE"] = 8] = "DEFLATE";
+        CompressionMethod[CompressionMethod["DEFLATE64"] = 9] = "DEFLATE64";
+        CompressionMethod[CompressionMethod["TERSE_OLD"] = 10] = "TERSE_OLD";
+        CompressionMethod[CompressionMethod["BZIP2"] = 12] = "BZIP2";
+        CompressionMethod[CompressionMethod["LZMA"] = 14] = "LZMA";
+        CompressionMethod[CompressionMethod["TERSE_NEW"] = 18] = "TERSE_NEW";
+        CompressionMethod[CompressionMethod["LZ77"] = 19] = "LZ77";
+        CompressionMethod[CompressionMethod["WAVPACK"] = 97] = "WAVPACK";
+        CompressionMethod[CompressionMethod["PPMD"] = 98] = "PPMD";
+    })(exports.CompressionMethod || (exports.CompressionMethod = {}));
+    var CompressionMethod = exports.CompressionMethod;
+
+    /**
+    * Converts the input time and date in MS-DOS format into a JavaScript Date
+    * object.
+    */
+    function msdos2date(time, date) {
+        // MS-DOS Date
+        //|0 0 0 0  0|0 0 0  0|0 0 0  0 0 0 0
+        //  D (1-31)  M (1-23)  Y (from 1980)
+        var day = date & 0x1F;
+
+        // JS date is 0-indexed, DOS is 1-indexed.
+        var month = ((date >> 5) & 0xF) - 1;
+        var year = (date >> 9) + 1980;
+
+        // MS DOS Time
+        //|0 0 0 0  0|0 0 0  0 0 0|0  0 0 0 0
+        //   Second      Minute       Hour
+        var second = time & 0x1F;
+        var minute = (time >> 5) & 0x3F;
+        var hour = time >> 11;
+        return new Date(year, month, day, hour, minute, second);
+    }
+
+    /**
+    * Safely returns the string from the buffer, even if it is 0 bytes long.
+    * (Normally, calling toString() on a buffer with start === end causes an
+    * exception).
+    */
+    function safeToString(buff, useUTF8, start, length) {
+        return length === 0 ? "" : buff.toString(useUTF8 ? 'utf8' : 'extended_ascii', start, start + length);
+    }
+
+    /*
+    4.3.6 Overall .ZIP file format:
+    
+    [local file header 1]
+    [encryption header 1]
+    [file data 1]
+    [data descriptor 1]
+    .
+    .
+    .
+    [local file header n]
+    [encryption header n]
+    [file data n]
+    [data descriptor n]
+    [archive decryption header]
+    [archive extra data record]
+    [central directory header 1]
+    .
+    .
+    .
+    [central directory header n]
+    [zip64 end of central directory record]
+    [zip64 end of central directory locator]
+    [end of central directory record]
+    */
+    /*
+    4.3.7  Local file header:
+    
+    local file header signature     4 bytes  (0x04034b50)
+    version needed to extract       2 bytes
+    general purpose bit flag        2 bytes
+    compression method              2 bytes
+    last mod file time              2 bytes
+    last mod file date              2 bytes
+    crc-32                          4 bytes
+    compressed size                 4 bytes
+    uncompressed size               4 bytes
+    file name length                2 bytes
+    extra field length              2 bytes
+    
+    file name (variable size)
+    extra field (variable size)
+    */
+    var FileHeader = (function () {
+        function FileHeader(data) {
+            this.data = data;
+            if (data.readUInt32LE(0) !== 0x04034b50) {
+                throw new ApiError(9 /* EINVAL */, "Invalid Zip file: Local file header has invalid signature: " + this.data.readUInt32LE(0));
+            }
+        }
+        FileHeader.prototype.versionNeeded = function () {
+            return this.data.readUInt16LE(4);
+        };
+        FileHeader.prototype.flags = function () {
+            return this.data.readUInt16LE(6);
+        };
+        FileHeader.prototype.compressionMethod = function () {
+            return this.data.readUInt16LE(8);
+        };
+        FileHeader.prototype.lastModFileTime = function () {
+            // Time and date is in MS-DOS format.
+            return msdos2date(this.data.readUInt16LE(10), this.data.readUInt16LE(12));
+        };
+        FileHeader.prototype.crc32 = function () {
+            return this.data.readUInt32LE(14);
+        };
+
+        /**
+        * These two values are COMPLETELY USELESS.
+        *
+        * Section 4.4.9:
+        *   If bit 3 of the general purpose bit flag is set,
+        *   these fields are set to zero in the local header and the
+        *   correct values are put in the data descriptor and
+        *   in the central directory.
+        *
+        * So we'll just use the central directory's values.
+        */
+        // public compressedSize(): number { return this.data.readUInt32LE(18); }
+        // public uncompressedSize(): number { return this.data.readUInt32LE(22); }
+        FileHeader.prototype.fileNameLength = function () {
+            return this.data.readUInt16LE(26);
+        };
+        FileHeader.prototype.extraFieldLength = function () {
+            return this.data.readUInt16LE(28);
+        };
+        FileHeader.prototype.fileName = function () {
+            return safeToString(this.data, this.useUTF8(), 30, this.fileNameLength());
+        };
+        FileHeader.prototype.extraField = function () {
+            var start = 30 + this.fileNameLength();
+            return this.data.slice(start, start + this.extraFieldLength());
+        };
+        FileHeader.prototype.totalSize = function () {
+            return 30 + this.fileNameLength() + this.extraFieldLength();
+        };
+        FileHeader.prototype.useUTF8 = function () {
+            return (this.flags() & 0x800) === 0x800;
+        };
+        return FileHeader;
+    })();
+    exports.FileHeader = FileHeader;
+
+    /**
+    4.3.8  File data
+    
+    Immediately following the local header for a file
+    SHOULD be placed the compressed or stored data for the file.
+    If the file is encrypted, the encryption header for the file
+    SHOULD be placed after the local header and before the file
+    data. The series of [local file header][encryption header]
+    [file data][data descriptor] repeats for each file in the
+    .ZIP archive.
+    
+    Zero-byte files, directories, and other file types that
+    contain no content MUST not include file data.
+    */
+    var FileData = (function () {
+        function FileData(header, record, data) {
+            this.header = header;
+            this.record = record;
+            this.data = data;
+        }
+        FileData.prototype.decompress = function () {
+            var buff = this.data;
+
+            // Check the compression
+            var compressionMethod = this.header.compressionMethod();
+            switch (compressionMethod) {
+                case 8 /* DEFLATE */:
+                    // Convert to Uint8Array or an array of bytes for the library.
+                    if (buff.getBufferCore() instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer) {
+                        // Grab a slice of the zip file that contains the compressed data
+                        // (avoids copying).
+                        // XXX: Does RawInflate mutate the buffer? I hope not.
+                        var bcore = buff.getBufferCore();
+                        var dview = bcore.getDataView();
+                        var start = dview.byteOffset + buff.getOffset();
+                        var uarray = (new Uint8Array(dview.buffer)).subarray(start, start + this.record.compressedSize());
+                        var data = (new RawInflate(uarray)).decompress();
+                        return new buffer.Buffer(new buffer_core_arraybuffer.BufferCoreArrayBuffer(data.buffer), data.byteOffset, data.byteOffset + data.length);
+                    } else {
+                        // Convert to an array of bytes and decompress, then write into a new
+                        // buffer :(
+                        var newBuff = buff.slice(0, this.record.compressedSize());
+                        return new buffer.Buffer((new RawInflate(newBuff.toJSON().data)).decompress());
+                    }
+                case 0 /* STORED */:
+                    // Grab and copy.
+                    return buff.sliceCopy(0, this.record.uncompressedSize());
+                default:
+                    var name = CompressionMethod[compressionMethod];
+                    name = name ? name : "Unknown: " + compressionMethod;
+                    throw new ApiError(9 /* EINVAL */, "Invalid compression method on file '" + this.header.fileName() + "': " + name);
+            }
+        };
+        return FileData;
+    })();
+    exports.FileData = FileData;
+
+    /*
+    4.3.9  Data descriptor:
+    
+    crc-32                          4 bytes
+    compressed size                 4 bytes
+    uncompressed size               4 bytes
+    */
+    var DataDescriptor = (function () {
+        function DataDescriptor(data) {
+            this.data = data;
+        }
+        DataDescriptor.prototype.crc32 = function () {
+            return this.data.readUInt32LE(0);
+        };
+        DataDescriptor.prototype.compressedSize = function () {
+            return this.data.readUInt32LE(4);
+        };
+        DataDescriptor.prototype.uncompressedSize = function () {
+            return this.data.readUInt32LE(8);
+        };
+        return DataDescriptor;
+    })();
+    exports.DataDescriptor = DataDescriptor;
+
+    /*
+    ` 4.3.10  Archive decryption header:
+    
+    4.3.10.1 The Archive Decryption Header is introduced in version 6.2
+    of the ZIP format specification.  This record exists in support
+    of the Central Directory Encryption Feature implemented as part of
+    the Strong Encryption Specification as described in this document.
+    When the Central Directory Structure is encrypted, this decryption
+    header MUST precede the encrypted data segment.
+    */
+    /*
+    4.3.11  Archive extra data record:
+    
+    archive extra data signature    4 bytes  (0x08064b50)
+    extra field length              4 bytes
+    extra field data                (variable size)
+    
+    4.3.11.1 The Archive Extra Data Record is introduced in version 6.2
+    of the ZIP format specification.  This record MAY be used in support
+    of the Central Directory Encryption Feature implemented as part of
+    the Strong Encryption Specification as described in this document.
+    When present, this record MUST immediately precede the central
+    directory data structure.
+    */
+    var ArchiveExtraDataRecord = (function () {
+        function ArchiveExtraDataRecord(data) {
+            this.data = data;
+            if (this.data.readUInt32LE(0) !== 0x08064b50) {
+                throw new ApiError(9 /* EINVAL */, "Invalid archive extra data record signature: " + this.data.readUInt32LE(0));
+            }
+        }
+        ArchiveExtraDataRecord.prototype.length = function () {
+            return this.data.readUInt32LE(4);
+        };
+        ArchiveExtraDataRecord.prototype.extraFieldData = function () {
+            return this.data.slice(8, 8 + this.length());
+        };
+        return ArchiveExtraDataRecord;
+    })();
+    exports.ArchiveExtraDataRecord = ArchiveExtraDataRecord;
+
+    /*
+    4.3.13 Digital signature:
+    
+    header signature                4 bytes  (0x05054b50)
+    size of data                    2 bytes
+    signature data (variable size)
+    
+    With the introduction of the Central Directory Encryption
+    feature in version 6.2 of this specification, the Central
+    Directory Structure MAY be stored both compressed and encrypted.
+    Although not required, it is assumed when encrypting the
+    Central Directory Structure, that it will be compressed
+    for greater storage efficiency.  Information on the
+    Central Directory Encryption feature can be found in the section
+    describing the Strong Encryption Specification. The Digital
+    Signature record will be neither compressed nor encrypted.
+    */
+    var DigitalSignature = (function () {
+        function DigitalSignature(data) {
+            this.data = data;
+            if (this.data.readUInt32LE(0) !== 0x05054b50) {
+                throw new ApiError(9 /* EINVAL */, "Invalid digital signature signature: " + this.data.readUInt32LE(0));
+            }
+        }
+        DigitalSignature.prototype.size = function () {
+            return this.data.readUInt16LE(4);
+        };
+        DigitalSignature.prototype.signatureData = function () {
+            return this.data.slice(6, 6 + this.size());
+        };
+        return DigitalSignature;
+    })();
+    exports.DigitalSignature = DigitalSignature;
+
+    /*
+    4.3.12  Central directory structure:
+    
+    central file header signature   4 bytes  (0x02014b50)
+    version made by                 2 bytes
+    version needed to extract       2 bytes
+    general purpose bit flag        2 bytes
+    compression method              2 bytes
+    last mod file time              2 bytes
+    last mod file date              2 bytes
+    crc-32                          4 bytes
+    compressed size                 4 bytes
+    uncompressed size               4 bytes
+    file name length                2 bytes
+    extra field length              2 bytes
+    file comment length             2 bytes
+    disk number start               2 bytes
+    internal file attributes        2 bytes
+    external file attributes        4 bytes
+    relative offset of local header 4 bytes
+    
+    file name (variable size)
+    extra field (variable size)
+    file comment (variable size)
+    */
+    var CentralDirectory = (function () {
+        function CentralDirectory(zipData, data) {
+            this.zipData = zipData;
+            this.data = data;
+            // Sanity check.
+            if (this.data.readUInt32LE(0) !== 0x02014b50)
+                throw new ApiError(9 /* EINVAL */, "Invalid Zip file: Central directory record has invalid signature: " + this.data.readUInt32LE(0));
+        }
+        CentralDirectory.prototype.versionMadeBy = function () {
+            return this.data.readUInt16LE(4);
+        };
+        CentralDirectory.prototype.versionNeeded = function () {
+            return this.data.readUInt16LE(6);
+        };
+        CentralDirectory.prototype.flag = function () {
+            return this.data.readUInt16LE(8);
+        };
+        CentralDirectory.prototype.compressionMethod = function () {
+            return this.data.readUInt16LE(10);
+        };
+        CentralDirectory.prototype.lastModFileTime = function () {
+            // Time and date is in MS-DOS format.
+            return msdos2date(this.data.readUInt16LE(12), this.data.readUInt16LE(14));
+        };
+        CentralDirectory.prototype.crc32 = function () {
+            return this.data.readUInt32LE(16);
+        };
+        CentralDirectory.prototype.compressedSize = function () {
+            return this.data.readUInt32LE(20);
+        };
+        CentralDirectory.prototype.uncompressedSize = function () {
+            return this.data.readUInt32LE(24);
+        };
+        CentralDirectory.prototype.fileNameLength = function () {
+            return this.data.readUInt16LE(28);
+        };
+        CentralDirectory.prototype.extraFieldLength = function () {
+            return this.data.readUInt16LE(30);
+        };
+        CentralDirectory.prototype.fileCommentLength = function () {
+            return this.data.readUInt16LE(32);
+        };
+        CentralDirectory.prototype.diskNumberStart = function () {
+            return this.data.readUInt16LE(34);
+        };
+        CentralDirectory.prototype.internalAttributes = function () {
+            return this.data.readUInt16LE(36);
+        };
+        CentralDirectory.prototype.externalAttributes = function () {
+            return this.data.readUInt32LE(38);
+        };
+        CentralDirectory.prototype.headerRelativeOffset = function () {
+            return this.data.readUInt32LE(42);
+        };
+        CentralDirectory.prototype.fileName = function () {
+            /*
+            4.4.17.1 claims:
+            * All slashes are forward ('/') slashes.
+            * Filename doesn't begin with a slash.
+            * No drive letters or any nonsense like that.
+            * If filename is missing, the input came from standard input.
+            
+            Unfortunately, this isn't true in practice. Some Windows zip utilities use
+            a backslash here, but the correct Unix-style path in file headers.
+            
+            To avoid seeking all over the file to recover the known-good filenames
+            from file headers, we simply convert '/' to '\' here.
+            */
+            var fileName = safeToString(this.data, this.useUTF8(), 46, this.fileNameLength());
+            return fileName.replace(/\\/g, "/");
+        };
+        CentralDirectory.prototype.extraField = function () {
+            var start = 44 + this.fileNameLength();
+            return this.data.slice(start, start + this.extraFieldLength());
+        };
+        CentralDirectory.prototype.fileComment = function () {
+            var start = 46 + this.fileNameLength() + this.extraFieldLength();
+            return safeToString(this.data, this.useUTF8(), start, this.fileCommentLength());
+        };
+        CentralDirectory.prototype.totalSize = function () {
+            return 46 + this.fileNameLength() + this.extraFieldLength() + this.fileCommentLength();
+        };
+        CentralDirectory.prototype.isDirectory = function () {
+            // NOTE: This assumes that the zip file implementation uses the lower byte
+            //       of external attributes for DOS attributes for
+            //       backwards-compatibility. This is not mandated, but appears to be
+            //       commonplace.
+            //       According to the spec, the layout of external attributes is
+            //       platform-dependent.
+            //       If that fails, we also check if the name of the file ends in '/',
+            //       which is what Java's ZipFile implementation does.
+            var fileName = this.fileName();
+            return (this.externalAttributes() & 0x10 ? true : false) || (fileName.charAt(fileName.length - 1) === '/');
+        };
+        CentralDirectory.prototype.isFile = function () {
+            return !this.isDirectory();
+        };
+        CentralDirectory.prototype.useUTF8 = function () {
+            return (this.flag() & 0x800) === 0x800;
+        };
+        CentralDirectory.prototype.isEncrypted = function () {
+            return (this.flag() & 0x1) === 0x1;
+        };
+        CentralDirectory.prototype.getData = function () {
+            // Need to grab the header before we can figure out where the actual
+            // compressed data starts.
+            var start = this.headerRelativeOffset();
+            var header = new FileHeader(this.zipData.slice(start));
+            var filedata = new FileData(header, this, this.zipData.slice(start + header.totalSize()));
+            return filedata.decompress();
+        };
+        CentralDirectory.prototype.getStats = function () {
+            return new node_fs_stats.Stats(32768 /* FILE */, this.uncompressedSize(), 0x16D, new Date(), this.lastModFileTime());
+        };
+        return CentralDirectory;
+    })();
+    exports.CentralDirectory = CentralDirectory;
+
+    /*
+    4.3.16: end of central directory record
+    end of central dir signature    4 bytes  (0x06054b50)
+    number of this disk             2 bytes
+    number of the disk with the
+    start of the central directory  2 bytes
+    total number of entries in the
+    central directory on this disk  2 bytes
+    total number of entries in
+    the central directory           2 bytes
+    size of the central directory   4 bytes
+    offset of start of central
+    directory with respect to
+    the starting disk number        4 bytes
+    .ZIP file comment length        2 bytes
+    .ZIP file comment       (variable size)
+    */
+    var EndOfCentralDirectory = (function () {
+        function EndOfCentralDirectory(data) {
+            this.data = data;
+            if (this.data.readUInt32LE(0) !== 0x06054b50)
+                throw new ApiError(9 /* EINVAL */, "Invalid Zip file: End of central directory record has invalid signature: " + this.data.readUInt32LE(0));
+        }
+        EndOfCentralDirectory.prototype.diskNumber = function () {
+            return this.data.readUInt16LE(4);
+        };
+        EndOfCentralDirectory.prototype.cdDiskNumber = function () {
+            return this.data.readUInt16LE(6);
+        };
+        EndOfCentralDirectory.prototype.cdDiskEntryCount = function () {
+            return this.data.readUInt16LE(8);
+        };
+        EndOfCentralDirectory.prototype.cdTotalEntryCount = function () {
+            return this.data.readUInt16LE(10);
+        };
+        EndOfCentralDirectory.prototype.cdSize = function () {
+            return this.data.readUInt32LE(12);
+        };
+        EndOfCentralDirectory.prototype.cdOffset = function () {
+            return this.data.readUInt32LE(16);
+        };
+        EndOfCentralDirectory.prototype.cdZipComment = function () {
+            // Assuming UTF-8. The specification doesn't specify.
+            return safeToString(this.data, true, 22, this.data.readUInt16LE(20));
+        };
+        return EndOfCentralDirectory;
+    })();
+    exports.EndOfCentralDirectory = EndOfCentralDirectory;
+
+    var ZipFS = (function (_super) {
+        __extends(ZipFS, _super);
+        /**
+        * Constructs a ZipFS from the given zip file data. Name is optional, and is
+        * used primarily for our unit tests' purposes to differentiate different
+        * test zip files in test output.
+        */
+        function ZipFS(data, name) {
+            if (typeof name === "undefined") { name = ''; }
+            _super.call(this);
+            this.data = data;
+            this.name = name;
+            this._index = new file_index.FileIndex();
+            this.populateIndex();
+        }
+        ZipFS.prototype.getName = function () {
+            return 'ZipFS' + (this.name !== '' ? ' ' + this.name : '');
+        };
+
+        ZipFS.isAvailable = function () {
+            return true;
+        };
+
+        ZipFS.prototype.diskSpace = function (path, cb) {
+            // Read-only file system.
+            cb(this.data.length, 0);
+        };
+
+        ZipFS.prototype.isReadOnly = function () {
+            return true;
+        };
+
+        ZipFS.prototype.supportsLinks = function () {
+            return false;
+        };
+
+        ZipFS.prototype.supportsProps = function () {
+            return false;
+        };
+
+        ZipFS.prototype.supportsSynch = function () {
+            return true;
+        };
+
+        ZipFS.prototype.statSync = function (path, isLstat) {
+            var inode = this._index.getInode(path);
+            if (inode === null) {
+                throw new ApiError(1 /* ENOENT */, "" + path + " not found.");
+            }
+            var stats;
+            if (inode.isFile()) {
+                stats = inode.getData().getStats();
+            } else {
+                stats = inode.getStats();
+            }
+            return stats;
+        };
+
+        ZipFS.prototype.openSync = function (path, flags, mode) {
+            // INVARIANT: Cannot write to RO file systems.
+            if (flags.isWriteable()) {
+                throw new ApiError(0 /* EPERM */, path);
+            }
+
+            // Check if the path exists, and is a file.
+            var inode = this._index.getInode(path);
+            if (inode === null) {
+                throw new ApiError(1 /* ENOENT */, "" + path + " is not in the FileIndex.");
+            }
+            if (inode.isDir()) {
+                throw new ApiError(8 /* EISDIR */, "" + path + " is a directory.");
+            }
+            var cdRecord = inode.getData();
+            var stats = cdRecord.getStats();
+            switch (flags.pathExistsAction()) {
+                case 1 /* THROW_EXCEPTION */:
+                case 2 /* TRUNCATE_FILE */:
+                    throw new ApiError(6 /* EEXIST */, "" + path + " already exists.");
+                case 0 /* NOP */:
+                    return new preload_file.NoSyncFile(this, path, flags, stats, cdRecord.getData());
+                default:
+                    throw new ApiError(9 /* EINVAL */, 'Invalid FileMode object.');
+            }
+            return null;
+        };
+
+        ZipFS.prototype.readdirSync = function (path) {
+            // Check if it exists.
+            var inode = this._index.getInode(path);
+            if (inode === null) {
+                throw new ApiError(1 /* ENOENT */, "" + path + " not found.");
+            } else if (inode.isFile()) {
+                throw new ApiError(7 /* ENOTDIR */, "" + path + " is a file, not a directory.");
+            }
+            return inode.getListing();
+        };
+
+        /**
+        * Specially-optimized readfile.
+        */
+        ZipFS.prototype.readFileSync = function (fname, encoding, flag) {
+            // Get file.
+            var fd = this.openSync(fname, flag, 0x1a4);
+            try  {
+                var fdCast = fd;
+                var fdBuff = fdCast._buffer;
+                if (encoding === null) {
+                    if (fdBuff.length > 0) {
+                        return fdBuff.sliceCopy();
+                    } else {
+                        return new buffer.Buffer(0);
+                    }
+                }
+                return fdBuff.toString(encoding);
+            } finally {
+                fd.closeSync();
+            }
+        };
+
+        /**
+        * Locates the end of central directory record at the end of the file.
+        * Throws an exception if it cannot be found.
+        */
+        ZipFS.prototype.getEOCD = function () {
+            // Unfortunately, the comment is variable size and up to 64K in size.
+            // We assume that the magic signature does not appear in the comment, and
+            // in the bytes between the comment and the signature. Other ZIP
+            // implementations make this same assumption, since the alternative is to
+            // read thread every entry in the file to get to it. :(
+            // These are *negative* offsets from the end of the file.
+            var startOffset = 22;
+            var endOffset = Math.min(startOffset + 0xFFFF, this.data.length - 1);
+
+            for (var i = startOffset; i < endOffset; i++) {
+                // Magic number: EOCD Signature
+                if (this.data.readUInt32LE(this.data.length - i) === 0x06054b50) {
+                    return new EndOfCentralDirectory(this.data.slice(this.data.length - i));
+                }
+            }
+            throw new ApiError(9 /* EINVAL */, "Invalid ZIP file: Could not locate End of Central Directory signature.");
+        };
+
+        ZipFS.prototype.populateIndex = function () {
+            var eocd = this.getEOCD();
+            if (eocd.diskNumber() !== eocd.cdDiskNumber())
+                throw new ApiError(9 /* EINVAL */, "ZipFS does not support spanned zip files.");
+
+            var cdPtr = eocd.cdOffset();
+            if (cdPtr === 0xFFFFFFFF)
+                throw new ApiError(9 /* EINVAL */, "ZipFS does not support Zip64.");
+            var cdEnd = cdPtr + eocd.cdSize();
+            while (cdPtr < cdEnd) {
+                var cd = new CentralDirectory(this.data, this.data.slice(cdPtr));
+                cdPtr += cd.totalSize();
+
+                // Paths must be absolute, yet zip file paths are always relative to the
+                // zip root. So we append '/' and call it a day.
+                var filename = cd.fileName();
+                if (filename.charAt(0) === '/')
+                    throw new Error("WHY IS THIS ABSOLUTE");
+
+                // XXX: For the file index, strip the trailing '/'.
+                if (filename.charAt(filename.length - 1) === '/') {
+                    filename = filename.substr(0, filename.length - 1);
+                }
+                if (cd.isDirectory()) {
+                    this._index.addPath('/' + filename, new file_index.DirInode());
+                } else {
+                    this._index.addPath('/' + filename, new file_index.FileInode(cd));
+                }
+            }
+        };
+        return ZipFS;
+    })(file_system.SynchronousFileSystem);
+    exports.ZipFS = ZipFS;
+
+    browserfs.registerFileSystem('ZipFS', ZipFS);
+});
+//# sourceMappingURL=zipfs.js.map
+;require('core/global').BrowserFS=require('core/browserfs');require('generic/emscripten_fs');require('backend/IndexedDB');require('backend/XmlHttpRequest');require('backend/dropbox');require('backend/html5fs');require('backend/in_memory');require('backend/localStorage');require('backend/mountable_file_system');require('backend/zipfs');})();
 //# sourceMappingURL=browserfs.js.map
