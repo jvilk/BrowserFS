@@ -7,6 +7,7 @@ Provided backends:
 * `XmlHttpRequest` (downloads files on-demand from a webserver)
 * `localStorage`
 * HTML5 `FileSystem`
+* IndexedDB
 * Dropbox
 * In-memory
 * Zip file-backed FS (currently read only)
