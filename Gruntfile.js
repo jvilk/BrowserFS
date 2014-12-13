@@ -59,6 +59,15 @@ function getIntro() {
 }
 
 /**
+ * RJS doesn't insert a newline between the last startfile and the main module,
+ * leading to invalid syntax.
+ */
+function getNewline() {
+  fs.writeFileSync('build/newline.frag', "\n");
+  return 'build/newline.frag';
+}
+
+/**
  * Get the snippet of JavaScript code that should end the release version of
  * the library.
  */
@@ -171,7 +180,7 @@ module.exports = function(grunt) {
         // The main module that installs the BrowserFS global and needed polyfills.
         name: '../../vendor/almond/almond',
         wrap: {
-          startFile: [getIntro(), 'build/dev/core/polyfills.js'],
+          startFile: [getIntro(), 'build/dev/core/polyfills.js', getNewline()],
           endFile: [getOutro()]
         },
         optimize: 'none',

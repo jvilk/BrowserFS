@@ -48,9 +48,9 @@ function onErrorHandler(cb: (e: api_error.ApiError) => void,
 /**
  * Converts a NodeBuffer into an ArrayBuffer.
  */
-function buffer2arraybuffer(data: NodeBuffer): ArrayBuffer {
+function buffer2arraybuffer(buffer: NodeBuffer): ArrayBuffer {
   // XXX: Typing hack.
-  var backing_mem: buffer_core_arraybuffer.BufferCoreArrayBuffer = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>data).getBufferCore();
+  var backing_mem: buffer_core_arraybuffer.BufferCoreArrayBuffer = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>buffer).getBufferCore();
   if (!(backing_mem instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer)) {
     // Copy into an ArrayBuffer-backed Buffer.
     buffer = new Buffer(this._buffer.length);
