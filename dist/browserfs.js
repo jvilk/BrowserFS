@@ -276,6 +276,8 @@ if (typeof document !== 'undefined' && window['chrome'] === undefined) {
 }
 //# sourceMappingURL=polyfills.js.map
 
+
+
 /**
  * @license almond 0.3.0 Copyright (c) 2011-2014, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
@@ -5125,6 +5127,11 @@ define('generic/emscripten_fs',["require", "exports", '../core/browserfs', '../c
             } catch (e) {
                 if (!e.code)
                     throw e;
+                if (e.code === "ENOTSUP") {
+                    // Ignore not supported errors. Emscripten does utimesSync when it
+                    // writes files, but never really requires the value to be set.
+                    return;
+                }
                 throw new FS.ErrnoError(ERRNO_CODES[e.code]);
             }
         };
@@ -7730,9 +7737,9 @@ define('backend/IndexedDB',["require", "exports", '../core/buffer', '../core/bro
     /**
     * Converts a NodeBuffer into an ArrayBuffer.
     */
-    function buffer2arraybuffer(data) {
+    function buffer2arraybuffer(buffer) {
         // XXX: Typing hack.
-        var backing_mem = data.getBufferCore();
+        var backing_mem = buffer.getBufferCore();
         if (!(backing_mem instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer)) {
             // Copy into an ArrayBuffer-backed Buffer.
             buffer = new Buffer(this._buffer.length);

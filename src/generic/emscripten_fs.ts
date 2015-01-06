@@ -207,6 +207,11 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
       }
     } catch (e) {
       if (!e.code) throw e;
+      if (e.code === "ENOTSUP") {
+        // Ignore not supported errors. Emscripten does utimesSync when it
+        // writes files, but never really requires the value to be set.
+        return;
+      }
       throw new FS.ErrnoError(ERRNO_CODES[e.code]);
     }
   }
