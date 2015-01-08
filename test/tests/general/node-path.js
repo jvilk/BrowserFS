@@ -59,6 +59,8 @@ assert.equal(path.dirname('/a'), '/');
 assert.equal(path.dirname(''), '.');
 assert.equal(path.dirname('/'), '/');
 assert.equal(path.dirname('////'), '/');
+// https://github.com/jvilk/BrowserFS/issues/96
+assert.equal(path.dirname('a/b'), 'a');
 
 assert.equal(path.extname(''), '');
 assert.equal(path.extname('/path/to/file'), '');

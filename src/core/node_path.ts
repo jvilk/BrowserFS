@@ -275,7 +275,10 @@ export class path {
     if (sections.pop() === '' && sections.length > 0) {
       sections.pop();
     }
-    if (sections.length > 1) {
+    // # of sections needs to be > 1 if absolute, since the first section is '' for '/'.
+    // If not absolute, the first section is the first part of the path, and is OK
+    // to return.
+    if (sections.length > 1 || (sections.length === 1 && !absolute)) {
       return sections.join(path.sep);
     } else if (absolute) {
       return path.sep;
