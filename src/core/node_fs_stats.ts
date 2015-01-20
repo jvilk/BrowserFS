@@ -81,6 +81,26 @@ export class Stats implements fs.Stats {
     }
   }
 
+  public toBuffer(): Buffer {
+    var buffer = new Buffer(32);
+    buffer.writeUInt32LE(this.size, 0);
+    buffer.writeUInt32LE(this.mode, 4);
+    buffer.writeDoubleLE(this.atime.getTime(), 8);
+    buffer.writeDoubleLE(this.mtime.getTime(), 16);
+    buffer.writeDoubleLE(this.ctime.getTime(), 24);
+    return buffer;
+  }
+
+  public static fromBuffer(buffer: Buffer): Stats {
+    var size = buffer.readUInt32LE(0),
+      mode = buffer.readUInt32LE(4),
+      atime = buffer.readDoubleLE(8),
+      mtime = buffer.readDoubleLE(16),
+      ctime = buffer.readDoubleLE(24);
+    
+    return new Stats(mode & 0xF000, size, mode & 0xFFF, new Date(atime), new Date(mtime), new Date(ctime)); 
+  }
+
   /**
    * **Nonstandard**: Clone the stats object.
    * @return [BrowserFS.node.fs.Stats]

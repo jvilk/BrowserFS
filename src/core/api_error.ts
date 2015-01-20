@@ -67,6 +67,31 @@ export class ApiError {
     return this.code +  ": " + ErrorStrings[this.type] + " " + this.message;
   }
 
+  /**
+   * Writes the API error into a buffer.
+   */
+  public writeToBuffer(buffer: Buffer = new Buffer(this.bufferSize()), i: number = 0): Buffer {
+    buffer.writeUInt8(this.type, i);
+    var bytesWritten = buffer.write(this.message, i + 5);
+    buffer.writeUInt32LE(bytesWritten, i + 1);
+    return buffer;
+  }
+
+  /**
+   * Creates an ApiError object from a buffer.
+   */
+  public static fromBuffer(buffer: Buffer, i: number = 0): ApiError {
+    return new ApiError(buffer.readUInt8(i), buffer.toString("utf8", i + 5, buffer.readUInt32LE(i + 1)));
+  }
+
+  /**
+   * The size of the API error in buffer-form in bytes.
+   */
+  public bufferSize(): number {
+    // 4 bytes for string length, 1 for type.
+    return 5 + Buffer.byteLength(this.message);
+  }
+
   public static FileError(code: ErrorCode, p: string): ApiError {
     return new ApiError(code, p + ": " + ErrorStrings[code]);
   }

@@ -247,6 +247,29 @@ export class Buffer implements BFSBuffer {
   }
 
   /**
+   * Converts the buffer into an ArrayBuffer. Will attempt to use an underlying
+   * ArrayBuffer, but will need to copy the data if the underlaying object is an
+   * ArrayBufferView or not an ArrayBuffer.
+   */
+  public toArrayBuffer(): ArrayBuffer {
+    var buffCore = this.getBufferCore();
+    if (buffCore instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer) {
+      var dv = buffCore.getDataView(),
+        ab = dv.buffer;
+      if (dv.byteOffset === 0 && dv.byteLength === ab.byteLength) {
+        return ab;
+      } else {
+        return ab.slice(dv.byteOffset, dv.byteLength);
+      }
+    } else {
+      var ab = new ArrayBuffer(this.length),
+        newBuff = new Buffer(ab);
+      this.copy(newBuff, 0, 0, this.length);
+      return ab;
+    }
+  }
+
+  /**
    * Does copy between buffers. The source and target regions can be overlapped.
    * All values passed that are undefined/NaN or are out of bounds are set equal
    * to their respective defaults.

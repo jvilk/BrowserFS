@@ -67,6 +67,13 @@ export class FileFlag {
   }
 
   /**
+   * Get the underlying flag string for this flag.
+   */
+  public getFlagString(): string {
+    return this.flagStr;
+  }
+
+  /**
    * Returns true if the file is readable.
    * @return [Boolean]
    */
