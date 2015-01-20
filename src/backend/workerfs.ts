@@ -366,7 +366,7 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
   }
 
   public isReadOnly(): boolean { return this._isReadOnly; }
-  public supportsSync(): boolean { return false; }
+  public supportsSynch(): boolean { return false; }
   public supportsLinks(): boolean { return this._supportLinks; }
   public supportsProps(): boolean { return this._supportProps; }
 
@@ -441,11 +441,11 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
     this._rpc('readlink', arguments);
   }
 
-  public syncClose(method: string, fd: WorkerFile, cb: (e: api_error.ApiError) => void): void {
+  public syncClose(method: string, fd: file.File, cb: (e: api_error.ApiError) => void): void {
     this._worker.postMessage(<IAPIRequest> {
       browserfsMessage: true,
       method: method,
-      args: [fd.toRemoteArg(), this._callbackConverter.toRemoteArg(cb)]
+      args: [(<WorkerFile> fd).toRemoteArg(), this._callbackConverter.toRemoteArg(cb)]
     });
   }
 
