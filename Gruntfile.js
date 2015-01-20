@@ -105,9 +105,11 @@ var karmaFiles = [
   // Tests
   { pattern: 'test/tests/**/*.js', included: false },
   // BFS modules
-  { pattern: 'build/test/**/*.js', included: false },
+  { pattern: 'build/test/**/*.js*', included: false },
+  // SourceMap support
+  { pattern: 'src/**/*.ts*', included: false },
   { pattern: 'vendor/async/lib/async.js', included: false },
-  { pattern: 'vendor/zlib.js/*.js', included: false }
+  { pattern: 'vendor/zlib.js/*.js*', included: false }
 ];
 
 module.exports = function(grunt) {

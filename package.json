@@ -27,7 +27,7 @@
     "karma-opera-launcher": "*",
     "karma-safari-launcher": "*",
     "karma-firefox-launcher": "*",
-    "karma-jasmine": "*",
+    "karma-jasmine": "~0.1.0",
 	"karma-requirejs": "*",
     "coffee-script": ">= 1.6.2",
     "glob": ">= 3.1.21",
@@ -40,12 +40,11 @@
     "xhr2": "*",
     "open": "*",
     "dropbox": "~0.10.1",
-    "typescript": "1.4",
+    "typescript": "~1.4",
     "requirejs": "*",
     "grunt-shell": "~0.5.0",
     "bower": "*",
     "grunt-cli": "*",
-    "jasmine-tapreporter": "*",
     "archiver": "*"
   },
   "scripts": {

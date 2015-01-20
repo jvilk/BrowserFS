@@ -3,6 +3,7 @@ import BackendFactory = require('../BackendFactory');
 import file_system = require('../../../src/core/file_system');
 import inmemfs_factory = require('./inmemory_factory');
 import browserfs = require("../../../src/core/browserfs");
+import util = require("../../../src/core/util");
 
 function WorkerFSFactory(cb: (name: string, obj: file_system.FileSystem[]) => void): void {
   if (workerfs.WorkerFS.isAvailable()) {
@@ -28,7 +29,7 @@ var _: BackendFactory = WorkerFSFactory;
 export = WorkerFSFactory;
 
 // Use this script as the worker script. :)
-if (self instanceof Worker) {
+if (util.isWebWorker) {
   // Construct an in-memory file system, 
   inmemfs_factory((name, objs) => {
     browserfs.initialize(objs[0]);

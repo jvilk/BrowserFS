@@ -21,6 +21,6 @@
     "almond": "*",
     "requirejs": "*",
     "assert": "*",
-    "jasmine": "*"
+    "jasmine": "~1.3"
   }
 }

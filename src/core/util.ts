@@ -39,3 +39,8 @@ export function roughSizeOfObject(object) {
  * userAgent string.
  */
 export var isIE: boolean = (/(msie) ([\w.]+)/.exec(navigator.userAgent.toLowerCase()) != null || navigator.userAgent.indexOf('Trident') !== -1);
+
+/**
+ * Check if we're in a web worker.
+ */
+export var isWebWorker: boolean = typeof window === "undefined";

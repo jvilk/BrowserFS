@@ -89,7 +89,7 @@ class FileDescriptorArgumentConverter {
       stat: ArrayBuffer,
       argsLeft: number = 2;
     this._fileDescriptors[id] = fd;
-    
+
     // Extract needed information asynchronously.
     fd.stat((err, stats) => {
       if (err) {
@@ -243,22 +243,22 @@ class WorkerFile extends preload_file.PreloadFile {
  * WorkerFS lets you access a BrowserFS instance that is running in a different
  * JavaScript context (e.g. access BrowserFS in one of your WebWorkers, or
  * access BrowserFS running on the main page from a WebWorker).
- * 
+ *
  * For example, to have a WebWorker access files in the main browser thread,
  * do the following:
- * 
+ *
  * MAIN BROWSER THREAD:
  * ```
  *   // Listen for remote file system requests.
  *   BrowserFS.FileSystem.WorkerFS.attachRemoteListener(webWorkerObject);
  * ``
- * 
+ *
  * WEBWORKER THREAD:
  * ```
  *   // Set the remote file system as the root file system.
  *   BrowserFS.initialize(new BrowserFS.FileSystem.WorkerFS(self));
  * ```
- * 
+ *
  * Note that synchronous operations are not permitted on the WorkerFS, regardless
  * of the configuration option of the remote FS.
  */
@@ -542,7 +542,7 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
           args = request.args,
           fixedArgs = new Array<any>(args.length),
           i: number;
-        
+
         switch (request.method) {
           case 'close':
           case 'sync':
@@ -563,7 +563,7 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
           case 'probe':
             (() => {
               var rootFs = <file_system.FileSystem> fs.getRootFS(),
-                remoteCb = <ICallbackArgument> args[1],
+                remoteCb = <ICallbackArgument> args[0],
                 response: IAPIResponse = {
                   browserfsMessage: true,
                   cbId: remoteCb.id,
@@ -576,6 +576,7 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
                 };
               worker.postMessage(response);
             })();
+            break;
           default:
             // File system methods.
             for (i = 0; i < args.length; i++) {
