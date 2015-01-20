@@ -107,8 +107,7 @@ var karmaFiles = [
   // BFS modules
   { pattern: 'build/test/**/*.js', included: false },
   { pattern: 'vendor/async/lib/async.js', included: false },
-  { pattern: 'vendor/zlib.js/*.js', included: false },
-  { pattern: 'node_modules/jasmine-tapreporter/src/tapreporter.js', included: false }
+  { pattern: 'vendor/zlib.js/*.js', included: false }
 ];
 
 module.exports = function(grunt) {
