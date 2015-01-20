@@ -1,6 +1,7 @@
 /**
  * Bare-minimum worker script to bootstrap us into TypeScript goodness.
  */
+importScripts("/base/build/test/src/core/polyfills.js");
 importScripts("/vendor/requirejs/require.js");
 
 // XXX: Copying from setup.ts. :(

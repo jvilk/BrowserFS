@@ -24,7 +24,9 @@ enum SpecialArgType {
   // Stats object
   STATS,
   // Initial probe for file system information.
-  PROBE
+  PROBE,
+  // FileFlag object.
+  FILEFLAG
 }
 
 interface ISpecialArgument {
@@ -194,6 +196,21 @@ function statsRemote2Local(stats: IStatsArgument): node_fs_stats.Stats {
   return node_fs_stats.Stats.fromBuffer(new Buffer(stats.statsData));
 }
 
+interface IFileFlagArgument extends ISpecialArgument {
+  flagStr: string;
+}
+
+function fileFlagLocal2Remote(flag: file_flag.FileFlag): IFileFlagArgument {
+  return {
+    type: SpecialArgType.FILEFLAG,
+    flagStr: flag.getFlagString()
+  };
+}
+
+function fileFlagRemote2Local(remoteFlag: IFileFlagArgument): file_flag.FileFlag {
+  return file_flag.FileFlag.getFileFlag(remoteFlag.flagStr);
+}
+
 interface IAPIRequest extends IBrowserFSMessage {
   method: string;
   args: Array<number | string | ISpecialArgument>;
@@ -304,6 +321,9 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
   }
 
   private _argRemote2Local(arg: any): any {
+    if (arg == null) {
+      return arg;
+    }
     switch (typeof arg) {
       case 'object':
         if (arg['type'] != null && typeof arg['type'] === 'number') {
@@ -316,6 +336,8 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
               return new WorkerFile(this, fdArg.path, file_flag.FileFlag.getFileFlag(fdArg.flag), node_fs_stats.Stats.fromBuffer(new Buffer(fdArg.stat)), fdArg.id, new Buffer(fdArg.data));
             case SpecialArgType.STATS:
               return statsRemote2Local(<IStatsArgument> specialArg);
+            case SpecialArgType.FILEFLAG:
+              return fileFlagRemote2Local(<IFileFlagArgument> specialArg);
             default:
               return arg;
           }
@@ -328,18 +350,26 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
   }
 
   private _argLocal2Remote(arg: any): any {
-    if (typeof arg === "object") {
-      if (arg instanceof node_fs_stats.Stats) {
-        return statsLocal2Remote(arg);
-      } else if (arg instanceof api_error.ApiError) {
-        return errorLocal2Remote(arg);
-      } else if (arg instanceof WorkerFile) {
-        return (<WorkerFile> arg).toRemoteArg();
-      } else {
-        return arg;
-      }
-    } else {
+    if (arg == null) {
       return arg;
+    }
+    switch (typeof arg) {
+      case "object":
+        if (arg instanceof node_fs_stats.Stats) {
+          return statsLocal2Remote(arg);
+        } else if (arg instanceof api_error.ApiError) {
+          return errorLocal2Remote(arg);
+        } else if (arg instanceof WorkerFile) {
+          return (<WorkerFile> arg).toRemoteArg();
+        } else if (arg instanceof file_flag.FileFlag) {
+          return fileFlagLocal2Remote(arg);
+        } else {
+          return arg;
+        }
+      case "function":
+        return this._callbackConverter.toRemoteArg(arg);
+      default:
+        return arg;
     }
   }
 
@@ -464,7 +494,9 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
           } else if (arg instanceof api_error.ApiError) {
             cb(null, errorLocal2Remote(arg));
           } else if (arg instanceof file.BaseFile) {
-            fdConverter.toRemoteArg(arg, cb);
+            cb(null, fdConverter.toRemoteArg(arg, cb));
+          } else if (arg instanceof file_flag.FileFlag) {
+            cb(null, fileFlagLocal2Remote(arg));
           } else {
             cb(null, arg);
           }
@@ -476,13 +508,16 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
     }
 
     function argRemote2Local(arg: any): any {
+      if (arg == null) {
+        return arg;
+      }
       switch (typeof arg) {
         case 'object':
           if (typeof arg['type'] === 'number') {
             var specialArg = <ISpecialArgument> arg;
             switch (specialArg.type) {
               case SpecialArgType.CB:
-                var cbId = <number> arg.data;
+                var cbId = (<ICallbackArgument> arg).id;
                 return () => {
                   var i: number, fixedArgs = new Array(arguments.length),
                     message: IAPIResponse,
@@ -502,10 +537,10 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
 
 
                   for (i = 0; i < arguments.length; i++) {
-                    // Capture i.
-                    ((i: number) => {
-                      argLocal2Remote(arguments[i],(err, arg?) => {
-                        fixedArgs[i] = arg;  
+                    // Capture i and argument.
+                    ((i: number, arg: any) => {
+                      argLocal2Remote(arg, (err, fixedArg?) => {
+                        fixedArgs[i] = fixedArg;
                         if (err) {
                           abortAndSendError(err);
                         } else if (--countdown === 0) {
@@ -517,13 +552,15 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
                           worker.postMessage(message);
                         }
                       });
-                    })(i);
+                    })(i, arguments[i]);
                   }
                 };
               case SpecialArgType.ERROR:
                 return errorRemote2Local(<IErrorArgument> specialArg);
               case SpecialArgType.STATS:
                 return statsRemote2Local(<IStatsArgument> specialArg);
+              case SpecialArgType.FILEFLAG:
+                return fileFlagRemote2Local(<IFileFlagArgument> specialArg);
               default:
                 // No idea what this is.
                 return arg;
@@ -582,7 +619,8 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
             for (i = 0; i < args.length; i++) {
               fixedArgs[i] = argRemote2Local(args[i]);
             }
-            (<Function> fs[request.method]).apply(fs, fixedArgs);
+            var rootFS = fs.getRootFS();
+            (<Function> rootFS[request.method]).apply(rootFS, fixedArgs);
             break;
         }
       }

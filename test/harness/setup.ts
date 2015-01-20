@@ -47,7 +47,7 @@ declare var loadFixtures: Function;
   }
 
   // Defines and starts all of our unit tests.
-  function startTests(BrowserFS, tests: any, backendFactories: any[]) {
+  function startTests(BrowserFS, TAPReporter, tests: any, backendFactories: any[]) {
     // Install all needed test globals.
     window['BrowserFS'] = BrowserFS;
     BrowserFS.install(window);
@@ -168,6 +168,11 @@ declare var loadFixtures: Function;
       });
     }
 
+    // Add a TAP reporter so we get decent console output.
+    jasmine.getEnv().addReporter(new TAPReporter(() => {
+      console.log.apply(console, arguments);
+    }));
+
     // Begin!
     generateAllTests();
   }
@@ -175,12 +180,13 @@ declare var loadFixtures: Function;
   function bootstrap() {
     var unitTestModules: string[] = [],
       factoryModules = [],
-      essentialModules = ['src/core/browserfs'];
+      essentialModules = ['src/core/browserfs',
+        '../../node_modules/jasmine-tapreporter/src/tapreporter'];
 
     /**
      * Processes modules into groups, and passes it to the harness.
      */
-    function preStartTests(BrowserFS) {
+    function preStartTests(BrowserFS, TAPReporter) {
       // Arguments: Essential followed by factories followed by tests.
       var testFcns = Array.prototype.slice.call(arguments, essentialModules.length + factoryModules.length),
         backendFactories = Array.prototype.slice.call(arguments, essentialModules.length, essentialModules.length + factoryModules.length),
@@ -202,7 +208,7 @@ declare var loadFixtures: Function;
         testDir[path.basename(mod)] = testFcns[i];
       }
 
-      startTests(BrowserFS, tests, backendFactories);
+      startTests(BrowserFS, TAPReporter, tests, backendFactories);
     }
 
     function pathToModule(path: string): string {

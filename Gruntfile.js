@@ -5,6 +5,17 @@ if (!fs.existsSync('build')) {
   fs.mkdirSync('build');
 }
 
+// Hack: Check if git fixed one of our fixture objects to have a different
+// line ending.
+try {
+  var filePath = path.resolve("test", "fixtures", "files", "node", "x.txt");
+  if (fs.readFileSync(filePath).toString() !== "xyz\n") {
+    fs.writeFileSync(filePath, new Buffer("xyz\n"));
+  }
+} catch (e) {
+  // Ignore.
+}
+
 /**
  * Removes a directory if it exists.
  * Throws an exception if deletion fails.
@@ -109,7 +120,8 @@ var karmaFiles = [
   // SourceMap support
   { pattern: 'src/**/*.ts*', included: false },
   { pattern: 'vendor/async/lib/async.js', included: false },
-  { pattern: 'vendor/zlib.js/*.js*', included: false }
+  { pattern: 'vendor/zlib.js/*.js*', included: false },
+  { pattern: 'node_modules/jasmine-tapreporter/src/tapreporter.js', included: false }
 ];
 
 module.exports = function(grunt) {

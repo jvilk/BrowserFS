@@ -2,6 +2,9 @@
 // Import the type annotation from Node.
 import fs = require('fs');
 import file = require('./file');
+import buffer = require('./buffer');
+
+var Buffer = buffer.Buffer;
 
 /**
  * Indicates the type of the given file. Applied to 'mode'.
