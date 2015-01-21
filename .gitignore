@@ -12,3 +12,4 @@ tscommand*
 tools/*.js*
 build
 src/ignoreBaseDirFile.ts
+src/.baseDir.ts
