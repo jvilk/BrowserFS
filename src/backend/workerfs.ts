@@ -100,21 +100,35 @@ class FileDescriptorArgumentConverter {
         cb(err);
       } else {
         stat = (<buffer.Buffer> stats.toBuffer()).toArrayBuffer();
-        fd.read(new Buffer(stats.size), 0, stats.size, 0,(err, bytesRead, buff) => {
-          if (err) {
-            cb(err);
-          } else {
-            data = (<buffer.Buffer> buff).toArrayBuffer();
-            cb(null, {
-              type: SpecialArgType.FD,
-              id: id,
-              data: data,
-              stat: stat,
-              path: p,
-              flag: flag.getFlagString()
-            });
-          }
-        });
+        // If it's a readable flag, we need to grab contents.
+        if (flag.isReadable()) {
+          fd.read(new Buffer(stats.size), 0, stats.size, 0, (err, bytesRead, buff) => {
+            if (err) {
+              cb(err);
+            } else {
+              data = (<buffer.Buffer> buff).toArrayBuffer();
+              cb(null, {
+                type: SpecialArgType.FD,
+                id: id,
+                data: data,
+                stat: stat,
+                path: p,
+                flag: flag.getFlagString()
+              });
+            }
+          });
+        } else {
+          // File is not readable, which means writing to it will append or
+          // truncate/replace existing contents. Return an empty arraybuffer.
+          cb(null, {
+            type: SpecialArgType.FD,
+            id: id,
+            data: new ArrayBuffer(0),
+            stat: stat,
+            path: p,
+            flag: flag.getFlagString()
+          });
+        }
       }
     });
   }
@@ -124,27 +138,47 @@ class FileDescriptorArgumentConverter {
       data = new Buffer(remoteFd.data),
       remoteStats = node_fs_stats.Stats.fromBuffer(new Buffer(remoteFd.stat));
 
-    // Write data.
-    fd.write(data, 0, data.length, 0,(e) => {
-      if (e) {
-        cb(e);
-      } else {
-        // Check if mode changed.
-        fd.stat((e, stats?) => {
-          if (e) {
-            cb(e);
+    // Write data if the file is writable.
+    var flag = file_flag.FileFlag.getFileFlag(remoteFd.flag);
+    if (flag.isWriteable()) {
+      // Appendable: Write to end of file.
+      // Writeable: Replace entire contents of file.
+      fd.write(data, 0, data.length, flag.isAppendable() ? fd.getPos() : 0, (e) => {
+        if (e) {
+          cb(e);
+        } else {
+          // If writeable & not appendable, we need to ensure file contents are
+          // identical to those from the remote FD. Thus, we truncate to the
+          // length of the remote file.
+          if (!flag.isAppendable()) {
+            fd.truncate(data.length, () => {
+              applyStatChanges();
+            })
           } else {
-            if (stats.mode !== remoteStats.mode) {
-              fd.chmod(remoteStats.mode,(e) => {
-                cb(e, fd);
-              });
-            } else {
-              cb(e, fd);
-            }
+            applyStatChanges();
           }
-        });
-      }
-    });
+
+          function applyStatChanges() {
+            // Check if mode changed.
+            fd.stat((e, stats?) => {
+              if (e) {
+                cb(e);
+              } else {
+                if (stats.mode !== remoteStats.mode) {
+                  fd.chmod(remoteStats.mode,(e) => {
+                    cb(e, fd);
+                  });
+                } else {
+                  cb(e, fd);
+                }
+              }
+            });
+          }
+        }
+      });
+    } else {
+      cb(null, fd);
+    }
   }
 
   public applyFdAPIRequest(request: IAPIRequest, cb: (err?: api_error.ApiError) => void): void {
@@ -506,7 +540,7 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
     var fdConverter = new FileDescriptorArgumentConverter(),
       fs = browserfs.BFSRequire('fs');
 
-    function argLocal2Remote(arg: any, cb: (err: api_error.ApiError, arg?: any) => void): void {
+    function argLocal2Remote(arg: any, requestArgs: any[], cb: (err: api_error.ApiError, arg?: any) => void): void {
       switch (typeof arg) {
         case 'object':
           if (arg instanceof node_fs_stats.Stats) {
@@ -514,7 +548,8 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
           } else if (arg instanceof api_error.ApiError) {
             cb(null, errorLocal2Remote(arg));
           } else if (arg instanceof file.BaseFile) {
-            cb(null, fdConverter.toRemoteArg(arg, cb));
+            // Pass in p and flags from original request.
+            cb(null, fdConverter.toRemoteArg(arg, requestArgs[0], requestArgs[1], cb));
           } else if (arg instanceof file_flag.FileFlag) {
             cb(null, fileFlagLocal2Remote(arg));
           } else if (arg instanceof Buffer) {
@@ -529,7 +564,7 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
       }
     }
 
-    function argRemote2Local(arg: any): any {
+    function argRemote2Local(arg: any, fixedRequestArgs: any[]): any {
       if (arg == null) {
         return arg;
       }
@@ -561,7 +596,7 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
                   for (i = 0; i < arguments.length; i++) {
                     // Capture i and argument.
                     ((i: number, arg: any) => {
-                      argLocal2Remote(arg, (err, fixedArg?) => {
+                      argLocal2Remote(arg, fixedRequestArgs, (err, fixedArg?) => {
                         fixedArgs[i] = fixedArg;
                         if (err) {
                           abortAndSendError(err);
@@ -648,13 +683,10 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
               worker.postMessage(response);
             })();
             break;
-          case 'open':
-            // open(p: string, flag:file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.File) => any): void;
-            break;
           default:
             // File system methods.
             for (i = 0; i < args.length; i++) {
-              fixedArgs[i] = argRemote2Local(args[i]);
+              fixedArgs[i] = argRemote2Local(args[i], fixedArgs);
             }
             var rootFS = fs.getRootFS();
             (<Function> rootFS[request.method]).apply(rootFS, fixedArgs);
