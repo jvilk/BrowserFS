@@ -87,7 +87,7 @@ class FileDescriptorArgumentConverter {
   private _fileDescriptors: { [id: number]: file.File } = {};
   private _nextId: number = 0;
 
-  public toRemoteArg(fd: file.File, cb: (err: api_error.ApiError, arg?: IFileDescriptorArgument) => void): void {
+  public toRemoteArg(fd: file.File, p: string, flag: file_flag.FileFlag, cb: (err: api_error.ApiError, arg?: IFileDescriptorArgument) => void): void {
     var id = this._nextId++,
       data: ArrayBuffer,
       stat: ArrayBuffer,
@@ -110,9 +110,8 @@ class FileDescriptorArgumentConverter {
               id: id,
               data: data,
               stat: stat,
-              // HACK: We should fix this...
-              path: (<preload_file.NoSyncFile> fd)._path,
-              flag: (<preload_file.NoSyncFile> fd)._flag.getFlagString()
+              path: p,
+              flag: flag.getFlagString()
             });
           }
         });
@@ -648,6 +647,9 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
                 };
               worker.postMessage(response);
             })();
+            break;
+          case 'open':
+            // open(p: string, flag:file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.File) => any): void;
             break;
           default:
             // File system methods.
