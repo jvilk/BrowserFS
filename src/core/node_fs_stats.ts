@@ -1,4 +1,4 @@
-/// <reference path="../../vendor/DefinitelyTyped/node/node.d.ts" />
+/// <reference path="../../bower_components/DefinitelyTyped/node/node.d.ts" />
 // Import the type annotation from Node.
 import fs = require('fs');
 import file = require('./file');
@@ -100,8 +100,8 @@ export class Stats implements fs.Stats {
       atime = buffer.readDoubleLE(8),
       mtime = buffer.readDoubleLE(16),
       ctime = buffer.readDoubleLE(24);
-    
-    return new Stats(mode & 0xF000, size, mode & 0xFFF, new Date(atime), new Date(mtime), new Date(ctime)); 
+
+    return new Stats(mode & 0xF000, size, mode & 0xFFF, new Date(atime), new Date(mtime), new Date(ctime));
   }
 
   /**

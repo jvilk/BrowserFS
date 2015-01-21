@@ -109,7 +109,7 @@ function removeFile(file) {
 var karmaFiles = [
   // Special: 'polyfills' is not a module.
   'build/test/src/core/polyfills.js',
-  'vendor/assert/assert.js',
+  'bower_components/assert/assert.js',
   // Main module and fixtures loader
   'test/fixtures/load_fixtures.js',
   'build/test/test/harness/setup.js',
@@ -120,8 +120,8 @@ var karmaFiles = [
   { pattern: 'build/test/**/*.js*', included: false },
   // SourceMap support
   { pattern: 'src/**/*.ts*', included: false },
-  { pattern: 'vendor/async/lib/async.js', included: false },
-  { pattern: 'vendor/zlib.js/*.js*', included: false },
+  { pattern: 'bower_components/async/lib/async.js', included: false },
+  { pattern: 'node_modules/zlibjs/bin/*.js*', included: false },
   { pattern: 'node_modules/jasmine-tapreporter/src/tapreporter.js', included: false }
 ];
 
@@ -161,7 +161,7 @@ module.exports = function(grunt) {
       test: {},
       dropbox_test: {
         options: {
-          files: karmaFiles.concat('vendor/dropbox-build/dropbox.min.js')
+          files: karmaFiles.concat('bower_components/dropbox-build/dropbox.min.js')
         }
       }
     },
@@ -192,7 +192,7 @@ module.exports = function(grunt) {
         // The output of the TypeScript compiler goes into this directory.
         baseUrl: path.join('build', 'dev'),
         // The main module that installs the BrowserFS global and needed polyfills.
-        name: '../../vendor/almond/almond',
+        name: '../../bbower_components/almond/almond',
         wrap: {
           startFile: [getIntro(), 'build/dev/core/polyfills.js', getNewline()],
           endFile: [getOutro()]
@@ -203,8 +203,8 @@ module.exports = function(grunt) {
         preserveLicenseComments: false,
         include: getEssentialModules(),
         paths: {
-          'zlib': '../../vendor/zlib.js/rawinflate.min',
-          'async': '../../vendor/async/lib/async'
+          'zlib': '../../node_modules/zlibjs/bin/rawinflate.min',
+          'async': '../../bower_components/async/lib/async'
         },
         shim: {
           'zlib': {

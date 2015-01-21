@@ -1,5 +1,5 @@
-/// <reference path="../../vendor/DefinitelyTyped/node/node.d.ts" />
-/// <reference path="../../vendor/DefinitelyTyped/jasmine/jasmine.d.ts" />
+/// <reference path="../../bower_components/DefinitelyTyped/node/node.d.ts" />
+/// <reference path="../../bower_components/DefinitelyTyped/jasmine/jasmine.d.ts" />
 /**
  * Sets up the test environment, and launches everything.
  * NOTE: Do not import or export anything from this file, as that will trigger
@@ -93,7 +93,6 @@ declare var loadFixtures: Function;
     }
 
     function generateBackendTests(name: string, backend) {
-      if (name !== "WorkerFS") return;
       var testName: string;
       generateTest("Load filesystem", function () {
         __numWaiting = 0;
@@ -125,14 +124,14 @@ declare var loadFixtures: Function;
       }
 
       // generate generic non-backend specific tests
-      /**describe('General BrowserFS Tests', (): void => {
+      describe('General BrowserFS Tests', (): void => {
         var genericTests = tests.general, testName: string;
         for (testName in genericTests) {
           if (genericTests.hasOwnProperty(testName)) {
             generateTest(testName, genericTests[testName]);
           }
         }
-      });*/
+      });
 
       backendFactories.forEach((factory) => {
         factory((name: string, backends) => {
@@ -233,8 +232,8 @@ declare var loadFixtures: Function;
       // Karma serves files under /base, which is the basePath from your config file
       baseUrl: '/base/build/test',
       paths: {
-        'zlib': '../../vendor/zlib.js/rawinflate.min',
-        'async': '../../vendor/async/lib/async',
+        'zlib': '../../node_modules/zlibjs/bin/rawinflate.min',
+        'async': '../../bower_components/async/lib/async',
       },
 
       shim: {

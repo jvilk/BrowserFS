@@ -9,7 +9,7 @@ rdSync = (dpath, tree, name) ->
   files = fs.readdirSync(dpath)
   for file in files
     # ignore non-essential directories / files
-    continue if file in ['.git', 'node_modules'] or file[0] is '.'
+    continue if file in ['.git', 'node_modules', 'bower_components', 'build'] or file[0] is '.'
     fpath = dpath + '/' + file
     try
       # Avoid infinite loops.

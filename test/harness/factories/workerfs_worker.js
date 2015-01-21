@@ -2,14 +2,14 @@
  * Bare-minimum worker script to bootstrap us into TypeScript goodness.
  */
 importScripts("/base/build/test/src/core/polyfills.js");
-importScripts("/vendor/requirejs/require.js");
+importScripts("/bower_components/requirejs/require.js");
 
 // XXX: Copying from setup.ts. :(
 require.config({
   baseUrl: '/base/build/test',
   paths: {
-    'zlib': '../../vendor/zlib.js/rawinflate.min',
-    'async': '../../vendor/async/lib/async',
+    'zlib': '../../node_modules/zlibjs/bin/rawinflate.min',
+    'async': '../../bower_components/async/lib/async',
   },
 
   shim: {

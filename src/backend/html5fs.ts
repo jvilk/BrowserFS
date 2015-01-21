@@ -1,4 +1,4 @@
-/// <reference path="../../vendor/DefinitelyTyped/filesystem/filesystem.d.ts" />
+/// <reference path="../../bower_components/DefinitelyTyped/filesystem/filesystem.d.ts" />
 /// <amd-dependency path="async" />
 import preload_file = require('../generic/preload_file');
 import file_system = require('../core/file_system');
@@ -269,7 +269,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
         // this operation trivially succeeds.
         if (oldPath === newPath) {
           return cb();
-        } 
+        }
 
         // Get the new parent directory.
         root.getDirectory(node_path.path.dirname(newPath), {}, (parentDir: DirectoryEntry): void => {
