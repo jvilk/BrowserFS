@@ -26,7 +26,9 @@ enum SpecialArgType {
   // Initial probe for file system information.
   PROBE,
   // FileFlag object.
-  FILEFLAG
+  FILEFLAG,
+  // Buffer object.
+  BUFFER
 }
 
 interface ISpecialArgument {
@@ -211,6 +213,21 @@ function fileFlagRemote2Local(remoteFlag: IFileFlagArgument): file_flag.FileFlag
   return file_flag.FileFlag.getFileFlag(remoteFlag.flagStr);
 }
 
+interface IBufferArgument extends ISpecialArgument {
+  data: ArrayBuffer;
+}
+
+function bufferLocal2Remote(buff: Buffer): IBufferArgument {
+  return {
+    type: SpecialArgType.BUFFER,
+    data: (<buffer.Buffer> buff).toArrayBuffer()
+  };
+}
+
+function bufferRemote2Local(buffArg: IBufferArgument): Buffer {
+  return new Buffer(buffArg.data);
+}
+
 interface IAPIRequest extends IBrowserFSMessage {
   method: string;
   args: Array<number | string | ISpecialArgument>;
@@ -338,6 +355,8 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
               return statsRemote2Local(<IStatsArgument> specialArg);
             case SpecialArgType.FILEFLAG:
               return fileFlagRemote2Local(<IFileFlagArgument> specialArg);
+            case SpecialArgType.BUFFER:
+              return bufferRemote2Local(<IBufferArgument> specialArg);
             default:
               return arg;
           }
@@ -363,6 +382,8 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
           return (<WorkerFile> arg).toRemoteArg();
         } else if (arg instanceof file_flag.FileFlag) {
           return fileFlagLocal2Remote(arg);
+        } else if (arg instanceof Buffer) {
+          return bufferLocal2Remote(arg);
         } else {
           return arg;
         }
@@ -497,6 +518,8 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
             cb(null, fdConverter.toRemoteArg(arg, cb));
           } else if (arg instanceof file_flag.FileFlag) {
             cb(null, fileFlagLocal2Remote(arg));
+          } else if (arg instanceof Buffer) {
+            cb(null, bufferLocal2Remote(arg));
           } else {
             cb(null, arg);
           }
@@ -554,6 +577,16 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
                       });
                     })(i, arguments[i]);
                   }
+
+                  if (arguments.length === 0) {
+                    message = {
+                      browserfsMessage: true,
+                      cbId: cbId,
+                      args: fixedArgs
+                    };
+                    worker.postMessage(message);
+                  }
+
                 };
               case SpecialArgType.ERROR:
                 return errorRemote2Local(<IErrorArgument> specialArg);
@@ -561,6 +594,8 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
                 return statsRemote2Local(<IStatsArgument> specialArg);
               case SpecialArgType.FILEFLAG:
                 return fileFlagRemote2Local(<IFileFlagArgument> specialArg);
+              case SpecialArgType.BUFFER:
+                return bufferRemote2Local(<IBufferArgument> specialArg);
               default:
                 // No idea what this is.
                 return arg;
