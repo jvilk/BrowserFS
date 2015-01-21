@@ -84,7 +84,7 @@ export class ApiError {
    * Creates an ApiError object from a buffer.
    */
   public static fromBuffer(buffer: Buffer, i: number = 0): ApiError {
-    return new ApiError(buffer.readUInt8(i), buffer.toString("utf8", i + 5, buffer.readUInt32LE(i + 1)));
+    return new ApiError(buffer.readUInt8(i), buffer.toString("utf8", i + 5, i + 5 + buffer.readUInt32LE(i + 1)));
   }
 
   /**
