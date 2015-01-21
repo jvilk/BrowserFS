@@ -93,6 +93,7 @@ declare var loadFixtures: Function;
     }
 
     function generateBackendTests(name: string, backend) {
+      if (name !== "WorkerFS") return;
       var testName: string;
       generateTest("Load filesystem", function () {
         __numWaiting = 0;
@@ -124,14 +125,14 @@ declare var loadFixtures: Function;
       }
 
       // generate generic non-backend specific tests
-      describe('General BrowserFS Tests', (): void => {
+      /**describe('General BrowserFS Tests', (): void => {
         var genericTests = tests.general, testName: string;
         for (testName in genericTests) {
           if (genericTests.hasOwnProperty(testName)) {
             generateTest(testName, genericTests[testName]);
           }
         }
-      });
+      });*/
 
       backendFactories.forEach((factory) => {
         factory((name: string, backends) => {

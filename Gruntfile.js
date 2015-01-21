@@ -65,7 +65,8 @@ function getEssentialModules() {
  * of the library.
  */
 function getIntro() {
-  fs.writeFileSync('build/intro.frag', "(function() {");
+  // Rhino fix at top of file so we can grab the global scope.
+  fs.writeFileSync('build/intro.frag', "(function(global){");
   return 'build/intro.frag';
 }
 
@@ -86,11 +87,11 @@ function getOutro() {
   var modules = getEssentialModules(),
     bfsModule = modules.shift(),
     outro = [], i;
-  outro.push("\nrequire('core/global').BrowserFS=require('" + bfsModule + "');");
+  outro.push("\nglobal.BrowserFS=require('" + bfsModule + "');");
   for (i = 0; i < modules.length; i++) {
     outro.push("require('" + modules[i] + "');");
   }
-  outro.push("})();");
+  outro.push("})(this);");
   fs.writeFileSync('build/outro.frag', outro.join(""));
   return 'build/outro.frag';
 }
