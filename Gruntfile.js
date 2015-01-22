@@ -5,6 +5,17 @@ if (!fs.existsSync('build')) {
   fs.mkdirSync('build');
 }
 
+// Hack: Check if git fixed one of our fixture objects to have a different
+// line ending.
+try {
+  var filePath = path.resolve("test", "fixtures", "files", "node", "x.txt");
+  if (fs.readFileSync(filePath).toString() !== "xyz\n") {
+    fs.writeFileSync(filePath, new Buffer("xyz\n"));
+  }
+} catch (e) {
+  // Ignore.
+}
+
 /**
  * Removes a directory if it exists.
  * Throws an exception if deletion fails.
@@ -54,7 +65,8 @@ function getEssentialModules() {
  * of the library.
  */
 function getIntro() {
-  fs.writeFileSync('build/intro.frag', "(function() {");
+  // Rhino fix at top of file so we can grab the global scope.
+  fs.writeFileSync('build/intro.frag', "(function(global){");
   return 'build/intro.frag';
 }
 
@@ -75,11 +87,11 @@ function getOutro() {
   var modules = getEssentialModules(),
     bfsModule = modules.shift(),
     outro = [], i;
-  outro.push("require('core/global').BrowserFS=require('" + bfsModule + "');");
+  outro.push("\nglobal.BrowserFS=require('" + bfsModule + "');");
   for (i = 0; i < modules.length; i++) {
     outro.push("require('" + modules[i] + "');");
   }
-  outro.push("})();");
+  outro.push("})(this);");
   fs.writeFileSync('build/outro.frag', outro.join(""));
   return 'build/outro.frag';
 }
@@ -97,7 +109,7 @@ function removeFile(file) {
 var karmaFiles = [
   // Special: 'polyfills' is not a module.
   'build/test/src/core/polyfills.js',
-  'vendor/assert/assert.js',
+  'bower_components/assert/assert.js',
   // Main module and fixtures loader
   'test/fixtures/load_fixtures.js',
   'build/test/test/harness/setup.js',
@@ -105,9 +117,11 @@ var karmaFiles = [
   // Tests
   { pattern: 'test/tests/**/*.js', included: false },
   // BFS modules
-  { pattern: 'build/test/**/*.js', included: false },
-  { pattern: 'vendor/async/lib/async.js', included: false },
-  { pattern: 'vendor/zlib.js/*.js', included: false },
+  { pattern: 'build/test/**/*.js*', included: false },
+  // SourceMap support
+  { pattern: 'src/**/*.ts*', included: false },
+  { pattern: 'bower_components/async/lib/async.js', included: false },
+  { pattern: 'node_modules/zlibjs/bin/*.js*', included: false },
   { pattern: 'node_modules/jasmine-tapreporter/src/tapreporter.js', included: false }
 ];
 
@@ -135,7 +149,7 @@ module.exports = function(grunt) {
         colors: true,
         logLevel: 'INFO',
         autoWatch: true,
-        browsers: ['Chrome'],
+        browsers: ['Firefox'],
         captureTimeout: 60000,
         // Avoid hardcoding and cross-origin issues.
         proxies: {
@@ -147,7 +161,7 @@ module.exports = function(grunt) {
       test: {},
       dropbox_test: {
         options: {
-          files: karmaFiles.concat('vendor/dropbox-build/dropbox.min.js')
+          files: karmaFiles.concat('bower_components/dropbox-build/dropbox.min.js')
         }
       }
     },
@@ -178,7 +192,7 @@ module.exports = function(grunt) {
         // The output of the TypeScript compiler goes into this directory.
         baseUrl: path.join('build', 'dev'),
         // The main module that installs the BrowserFS global and needed polyfills.
-        name: '../../vendor/almond/almond',
+        name: '../../bower_components/almond/almond',
         wrap: {
           startFile: [getIntro(), 'build/dev/core/polyfills.js', getNewline()],
           endFile: [getOutro()]
@@ -189,8 +203,8 @@ module.exports = function(grunt) {
         preserveLicenseComments: false,
         include: getEssentialModules(),
         paths: {
-          'zlib': '../../vendor/zlib.js/rawinflate.min',
-          'async': '../../vendor/async/lib/async'
+          'zlib': '../../node_modules/zlibjs/bin/rawinflate.min',
+          'async': '../../bower_components/async/lib/async'
         },
         shim: {
           'zlib': {

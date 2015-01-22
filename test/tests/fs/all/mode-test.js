@@ -43,14 +43,14 @@ define([], function() { return function(){
         if (e.code === 'EPERM') {
           // Invariant 2: We can only read a file if we have read permissions on
           // the file.
-          assert(!is_readable(fileMode));
+          assert(!is_readable(fileMode), p + " is readable, yet reading it yielded a permissions error!");
           return;
         }
         throw e;
       }
       // Invariant 2: We can only read a file if we have read permissions on
       // the file.
-      assert(is_readable(fileMode));
+      assert(is_readable(fileMode)), p + " is not readable, yet we were able to read it!";
     });
     // Try opening file for appending, but append *nothing*.
     fs.open(p, 'a', function(e, fd) {
@@ -58,14 +58,14 @@ define([], function() { return function(){
         if (e.code === 'EPERM') {
           // Invariant 3: We can only write to a file if we have write
           // permissions on the file.
-          assert(!is_writable(fileMode));
+          assert(!is_writable(fileMode), p + " is writeable, yet we could not open it for appending!");
           return;
         }
         throw e;
       }
       // Invariant 3: We can only write to a file if we have write permissions
       // on the file.
-      assert(is_writable(fileMode));
+      assert(is_writable(fileMode), p + " is not writeable, yet we could open it for appending!");
       fs.close(function() {});
     });
   }
@@ -76,14 +76,14 @@ define([], function() { return function(){
         if (e.code === 'EPERM') {
           // Invariant 2: We can only readdir if we have read permissions on
           // the directory.
-          assert(!is_readable(dirMode));
+          assert(!is_readable(dirMode), p + " is a readable directory, yet we could not read its contents!");
           return;
         }
         throw e;
       }
       // Invariant 2: We can only readdir if we have read permissions on the
       // directory.
-      assert(is_readable(dirMode));
+      assert(is_readable(dirMode), p + " is not a readable directory, yet we could read its contents!");
       var i;
       for (i = 0; i < dirs.length; i++) {
         process_item(path.resolve(p, dirs[i]), dirMode);
@@ -96,14 +96,14 @@ define([], function() { return function(){
           if (e.code === 'EPERM') {
             // Invariant 3: We can only write to a new file if we have write
             // permissions in the directory.
-            assert(!is_writable(dirMode));
+            assert(!is_writable(dirMode), p + " is a writeable directory, yet we could not write a new file into it!");
             return;
           }
           throw e;
         }
         // Invariant 3: We can only write to a new file if we have write
         // permissions in the directory.
-        assert(is_writable(dirMode));
+        assert(is_writable(dirMode), p + " is not a writeable directory, yet we could write a new file into it!");
         // Clean up.
         fs.unlink(testFile, function() {});
       });
@@ -116,16 +116,16 @@ define([], function() { return function(){
         if (e.code === 'EPERM') {
           // Invariant 4: Ensure we do not have execute permissions on parent
           // directory.
-          assert(!is_executable(parentMode));
+          assert(!is_executable(parentMode), p + " is an executable directory, yet we could not stat it!");
           return;
         }
         throw e;
       }
       // Invariant 4: Ensure we have execute permissions on parent directory.
-      assert(is_executable(parentMode));
+      assert(is_executable(parentMode), p + " is not an executable directory, yet we could stat it!");
       if (isReadOnly) {
         // Invariant 1: RO FS do not support write permissions.
-        assert(is_writable(stat.mode) === false);
+        assert(!is_writable(stat.mode), p + " is writeable, yet it is in a read-only file system!");
       }
       if (stat.isDirectory()) {
         process_directory(p, stat.mode);
