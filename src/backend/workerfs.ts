@@ -147,17 +147,6 @@ class FileDescriptorArgumentConverter {
         if (e) {
           cb(e);
         } else {
-          // If writeable & not appendable, we need to ensure file contents are
-          // identical to those from the remote FD. Thus, we truncate to the
-          // length of the remote file.
-          if (!flag.isAppendable()) {
-            fd.truncate(data.length, () => {
-              applyStatChanges();
-            })
-          } else {
-            applyStatChanges();
-          }
-
           function applyStatChanges() {
             // Check if mode changed.
             fd.stat((e, stats?) => {
@@ -173,6 +162,17 @@ class FileDescriptorArgumentConverter {
                 }
               }
             });
+          }
+
+          // If writeable & not appendable, we need to ensure file contents are
+          // identical to those from the remote FD. Thus, we truncate to the
+          // length of the remote file.
+          if (!flag.isAppendable()) {
+            fd.truncate(data.length, () => {
+              applyStatChanges();
+            })
+          } else {
+            applyStatChanges();
           }
         }
       });
