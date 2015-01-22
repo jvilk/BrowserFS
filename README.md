@@ -11,6 +11,7 @@ Provided backends:
 * Dropbox
 * In-memory
 * Zip file-backed FS (currently read only)
+* WebWorker (mount the BrowserFS file system configured in the main thread in a WebWorker, or the other way around!)
 
 More backends can be defined by separate libraries, so long as they extend the `BaseFileSystem`. Multiple backends can be active at once at different locations in the directory hierarchy.
 
