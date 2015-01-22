@@ -3,6 +3,11 @@
  */
 define([], function() { return function(){
   if (!(fs.getRootFS() instanceof BrowserFS.FileSystem.LocalStorage)) return;
+  // Ignore Opera; it lets the user expand the LocalStorage quota as a syncronous
+  // blocking popup, interrupting our test.
+  if (typeof navigator !== "undefined" && navigator.userAgent.indexOf("Presto") > -1) {
+    return;
+  }
 
   // While LocalStorage is supposed to only store 5MB, our compression enables
   // us to store 10MB in some cases...

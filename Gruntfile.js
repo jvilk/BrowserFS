@@ -149,7 +149,7 @@ module.exports = function(grunt) {
         colors: true,
         logLevel: 'INFO',
         autoWatch: true,
-        browsers: ['Chrome'],
+        browsers: ['Firefox'],
         captureTimeout: 60000,
         // Avoid hardcoding and cross-origin issues.
         proxies: {
@@ -192,7 +192,7 @@ module.exports = function(grunt) {
         // The output of the TypeScript compiler goes into this directory.
         baseUrl: path.join('build', 'dev'),
         // The main module that installs the BrowserFS global and needed polyfills.
-        name: '../../bbower_components/almond/almond',
+        name: '../../bower_components/almond/almond',
         wrap: {
           startFile: [getIntro(), 'build/dev/core/polyfills.js', getNewline()],
           endFile: [getOutro()]
