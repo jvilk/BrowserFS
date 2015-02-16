@@ -327,6 +327,8 @@ export class BFSEmscriptenFS implements EmscriptenFS {
     this.FS = _FS;
     this.PATH = _PATH;
     this.ERRNO_CODES = _ERRNO_CODES;
+    this.node_ops = new BFSEmscriptenNodeOps(this);
+    this.stream_ops = new BFSEmscriptenStreamOps(this);
   }
 
   public mount(mount: {opts: {root: string}}): EmscriptenFSNode {
@@ -414,8 +416,8 @@ export class BFSEmscriptenFS implements EmscriptenFS {
     return this.ERRNO_CODES;
   }
 
-  public node_ops: EmscriptenNodeOps = new BFSEmscriptenNodeOps(this);
-  public stream_ops: EmscriptenStreamOps = new BFSEmscriptenStreamOps(this);
+  public node_ops: EmscriptenNodeOps;
+  public stream_ops: EmscriptenStreamOps;
 }
 
 // Make it available on the global BrowserFS object.
