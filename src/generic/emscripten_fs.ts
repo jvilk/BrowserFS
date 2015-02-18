@@ -217,17 +217,21 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
         var date = new Date(attr.timestamp);
         fs.utimesSync(path, date, date);
       }
-      if (attr.size !== undefined) {
-        fs.truncateSync(path, attr.size);
-      }
     } catch (e) {
       if (!e.code) throw e;
-      if (e.code === "ENOTSUP") {
-        // Ignore not supported errors. Emscripten does utimesSync when it
-        // writes files, but never really requires the value to be set.
-        return;
+      // Ignore not supported errors. Emscripten does utimesSync when it
+      // writes files, but never really requires the value to be set.
+      if (e.code !== "ENOTSUP") {
+        throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
       }
-      throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
+    }
+    if (attr.size !== undefined) {
+      try {
+        fs.truncateSync(path, attr.size);
+      } catch (e) {
+        if (!e.code) throw e;
+        throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
+      }
     }
   }
 
