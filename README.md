@@ -83,7 +83,7 @@ Include `browserfs.js` into the page, and add code similar to the following to y
 
 ```javascript
 /**
- * Mounts a localStorage-backed file system into the /home folder of Emscripten's file system.
+ * Mounts a localStorage-backed file system into the /data folder of Emscripten's file system.
  */
 function setupBFS() {
   // Constructs an instance of the LocalStorage-backed file system.
@@ -93,9 +93,9 @@ function setupBFS() {
   // Grab the BrowserFS Emscripten FS plugin.
   var BFS = new BrowserFS.EmscriptenFS();
   // Create the folder that we'll turn into a mount point.
-  FS.createFolder(FS.root, 'home', true, true);
-  // Mount BFS's root folder into the '/home' folder.
-  FS.mount(BFS, {root: '/'}, '/home');
+  FS.createFolder(FS.root, 'data', true, true);
+  // Mount BFS's root folder into the '/data' folder.
+  FS.mount(BFS, {root: '/'}, '/data');
 }
 ```
 
