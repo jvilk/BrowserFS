@@ -226,7 +226,12 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
       }
     }
     if (attr.size !== undefined) {
-      fs.truncateSync(path, attr.size);
+      try {
+        fs.truncateSync(path, attr.size);
+      } catch (e) {
+        if (!e.code) throw e;
+        throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
+      }
     }
   }
 
