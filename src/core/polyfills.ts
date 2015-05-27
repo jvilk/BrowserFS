@@ -87,7 +87,7 @@ if (!Array.prototype.forEach) {
 // @todo: Determine viability of switching to the 'proper' polyfill for this.
 if (typeof setImmediate === 'undefined') {
   // XXX avoid importing the global module.
-  var gScope = typeof window !== 'undefined' ? window : typeof self !== 'undefined' ? self : global;
+  var gScope = typeof window !== 'undefined' ? window : typeof self !== 'undefined' ? self : <any> global;
   var timeouts = [];
   var messageName = "zero-timeout-message";
   var canUsePostMessage = function() {
