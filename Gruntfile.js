@@ -224,6 +224,23 @@ module.exports = function(grunt) {
         }
       }
     },
+    umd: {
+      options: {
+        objectToExport: 'BrowserFS'
+      },
+      all: {
+        options: {
+          src: 'build/release/browserfs.js',
+          dest: 'build/release/browserfs-umd.js'
+        }
+      },
+      min: {
+        options: {
+          src: 'build/release/browserfs.min.js',
+          dest: 'build/release/browserfs-umd.min.js'
+        }
+      }
+    },
     shell: {
       gen_cert: {
         command: [
@@ -263,6 +280,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-contrib-requirejs');
+  grunt.loadNpmTasks('grunt-umd');
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-shell');
 
