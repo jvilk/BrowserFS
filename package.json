@@ -52,7 +52,8 @@
     "typescript": "~1.4",
     "xhr2": "*",
     "zlibjs": "*",
-    "grunt-umd": "~2.3.3"
+    "grunt-umd": "~2.3.3",
+    "derequire": "~2.0.0"
   },
   "scripts": {
     "//": "Testling doesn't have Bower installed globally.",

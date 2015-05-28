@@ -230,7 +230,7 @@ module.exports = function(grunt) {
       },
       all: {
         options: {
-          src: 'build/release/browserfs.js',
+          src: 'build/release/browserfs-umd.js',
           dest: 'build/release/browserfs-umd.js'
         }
       },
@@ -293,6 +293,13 @@ module.exports = function(grunt) {
     removeDir('./test/fixtures/zipfs');
   });
 
+  grunt.registerTask('derequire', 'Apply derequire to output for umd script', function() {
+    var derequire = require('derequire');
+
+    var code = derequire(fs.readFileSync('./build/release/browserfs.js'));
+    fs.writeFileSync('./build/release/browserfs-umd.js', code);
+  });
+
   // test
   grunt.registerTask('test', ['ts:test', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect', 'karma:test']);
   // testing dropbox
@@ -302,7 +309,7 @@ module.exports = function(grunt) {
   // dev build + watch for changes.
   grunt.registerTask('watch', ['ts:watch']);
   // release build (default)
-  grunt.registerTask('default', ['ts:dev', 'requirejs', 'umd']);
+  grunt.registerTask('default', ['ts:dev', 'requirejs', 'derequire', 'umd']);
   // testling
   grunt.registerTask('testling', ['default', 'shell:gen_listings', 'shell:gen_zipfs_fixtures', 'shell:load_fixtures']);
 };
