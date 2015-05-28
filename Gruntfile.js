@@ -302,7 +302,7 @@ module.exports = function(grunt) {
   // dev build + watch for changes.
   grunt.registerTask('watch', ['ts:watch']);
   // release build (default)
-  grunt.registerTask('default', ['ts:dev', 'requirejs']);
+  grunt.registerTask('default', ['ts:dev', 'requirejs', 'umd']);
   // testling
   grunt.registerTask('testling', ['default', 'shell:gen_listings', 'shell:gen_zipfs_fixtures', 'shell:load_fixtures']);
 };
