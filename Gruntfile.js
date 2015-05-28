@@ -230,14 +230,14 @@ module.exports = function(grunt) {
       },
       all: {
         options: {
-          src: 'build/release/browserfs-umd.js',
-          dest: 'build/release/browserfs-umd.js'
+          src: 'build/release/browserfs.js',
+          dest: 'build/release/browserfs.js'
         }
       },
       min: {
         options: {
           src: 'build/release/browserfs.min.js',
-          dest: 'build/release/browserfs-umd.min.js'
+          dest: 'build/release/browserfs.min.js'
         }
       }
     },
@@ -297,7 +297,7 @@ module.exports = function(grunt) {
     var derequire = require('derequire');
 
     var code = derequire(fs.readFileSync('./build/release/browserfs.js'));
-    fs.writeFileSync('./build/release/browserfs-umd.js', code);
+    fs.writeFileSync('./build/release/browserfs.js', code);
   });
 
   // test
