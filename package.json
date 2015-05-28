@@ -51,7 +51,9 @@
     "serve-static": "^1.8.1",
     "typescript": "~1.4",
     "xhr2": "*",
-    "zlibjs": "*"
+    "zlibjs": "*",
+    "grunt-umd": "~2.3.3",
+    "derequire": "~2.0.0"
   },
   "scripts": {
     "test": "grunt test"
