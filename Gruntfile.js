@@ -60,42 +60,6 @@ function getEssentialModules() {
   return ['core/browserfs', 'generic/emscripten_fs'].concat(getBackends());
 }
 
-/**
- * Get the snippet of JavaScript code that should precede the release version
- * of the library.
- */
-function getIntro() {
-  // Rhino fix at top of file so we can grab the global scope.
-  fs.writeFileSync('build/intro.frag', "(function(global){");
-  return 'build/intro.frag';
-}
-
-/**
- * RJS doesn't insert a newline between the last startfile and the main module,
- * leading to invalid syntax.
- */
-function getNewline() {
-  fs.writeFileSync('build/newline.frag', "\n");
-  return 'build/newline.frag';
-}
-
-/**
- * Get the snippet of JavaScript code that should end the release version of
- * the library.
- */
-function getOutro() {
-  var modules = getEssentialModules(),
-    bfsModule = modules.shift(),
-    outro = [], i;
-  outro.push("\nglobal.BrowserFS=require('" + bfsModule + "');");
-  for (i = 0; i < modules.length; i++) {
-    outro.push("require('" + modules[i] + "');");
-  }
-  outro.push("})(this);");
-  fs.writeFileSync('build/outro.frag', outro.join(""));
-  return 'build/outro.frag';
-}
-
 // Removes a file if it exists.
 // Throws an exception if deletion fails.
 function removeFile(file) {
@@ -140,7 +104,7 @@ module.exports = function(grunt) {
       options: {
         // base path, that will be used to resolve files and exclude
         basePath: '.',
-        frameworks: ['jasmine', 'requirejs'],
+        frameworks: ['jasmine', 'commonjs'],
         files: karmaFiles,
         exclude: [],
         reporters: ['progress'],
@@ -168,7 +132,7 @@ module.exports = function(grunt) {
     ts: {
       options: {
         sourcemap: true,
-        module: 'amd',
+        module: 'commonjs',
         comments: true,
         declaration: true
       },
@@ -187,40 +151,50 @@ module.exports = function(grunt) {
         watch: 'src'
       }
     },
-    requirejs: {
-      options: {
-        // The output of the TypeScript compiler goes into this directory.
-        baseUrl: path.join('build', 'dev'),
-        // The main module that installs the BrowserFS global and needed polyfills.
-        name: '../../bower_components/almond/almond',
-        wrap: {
-          startFile: [getIntro(), 'build/dev/core/polyfills.js', getNewline()],
-          endFile: [getOutro()]
-        },
-        optimize: 'none',
-        generateSourceMaps: true,
-        // Need to set to false for source maps to work.
-        preserveLicenseComments: false,
-        include: getEssentialModules(),
-        paths: {
-          'zlib': '../../node_modules/zlibjs/bin/rawinflate.min',
-          'async': '../../bower_components/async/lib/async'
-        },
-        shim: {
-          'zlib': {
-            exports: 'Zlib.RawInflate'
+    browserify: {
+      all: {
+        options: {
+          browserifyOptions: {
+            // The output of the TypeScript compiler goes into this directory.
+            basedir: path.join('build', 'dev'),
+            // Expose what's exported in main.js under the name BrowserFS,
+            // wrapped as an UMD module.
+            standalone: 'BrowserFS',
+            // Don't include all built-ins
+            bare: true,
+            // Generate source map.
+            debug: true,
+            // derequire the generated script so that the script won't chock if it is further processed.
+            plugin: [
+              ['browserify-derequire']
+            ]
+            // Noted that browserify-shim settings is in package.json.
           }
         },
-      },
-      optimize: {
-        options: {
-          out: 'build/release/browserfs.min.js',
-          optimize: 'uglify2'
+        files: {
+          './build/release/browserfs.js': './build/dev/main.js'
         }
-      },
-      cat: {
+      }
+    },
+    uglify: {
+      min: {
         options: {
-          out: 'build/release/browserfs.js'
+          sourceMap: true,
+          sourceMapIncludeSources: true,
+          sourceMapIn: './build/release/browserfs.js.map'
+        },
+        files: {
+          './build/release/browserfs.min.js': './build/release/browserfs.js'
+        }
+      }
+    },
+    exorcise: {
+      all: {
+        options: {
+          strict: true
+        },
+        files: {
+          './build/release/browserfs.js.map': './build/release/browserfs.js'
         }
       }
     },
@@ -262,7 +236,9 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-ts');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-connect');
-  grunt.loadNpmTasks('grunt-contrib-requirejs');
+  grunt.loadNpmTasks('grunt-browserify');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-exorcise');
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-shell');
 
@@ -275,6 +251,20 @@ module.exports = function(grunt) {
     removeDir('./test/fixtures/zipfs');
   });
 
+  grunt.registerTask('main.js', 'Construct main.js to include all backends and polyfills', function() {
+    var modules = getEssentialModules(),
+    bfsModule = modules.shift(),
+    main = [], i;
+
+    main.push(fs.readFileSync('build/dev/core/polyfills.js'));
+    main.push("module.exports=require('./" + bfsModule + "');");
+    for (i = 0; i < modules.length; i++) {
+      main.push("require('./" + modules[i] + "');");
+    }
+
+    fs.writeFileSync('build/dev/main.js', main.join('\n'));
+  });
+
   // test
   grunt.registerTask('test', ['ts:test', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect', 'karma:test']);
   // testing dropbox
@@ -284,7 +274,7 @@ module.exports = function(grunt) {
   // dev build + watch for changes.
   grunt.registerTask('watch', ['ts:watch']);
   // release build (default)
-  grunt.registerTask('default', ['ts:dev', 'requirejs']);
+  grunt.registerTask('default', ['ts:dev', 'main.js', 'browserify', 'exorcise', 'uglify']);
   // testling
   grunt.registerTask('testling', ['default', 'shell:gen_listings', 'shell:gen_zipfs_fixtures', 'shell:load_fixtures']);
 };

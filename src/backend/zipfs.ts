@@ -1,5 +1,3 @@
-/// <amd-dependency path="zlib" />
-
 /**
  * Zip file-backed filesystem
  * Implemented according to the standard:
@@ -64,7 +62,7 @@ interface RawInflate {
   new(input: Uint8Array): RawInflate;
   decompress(): Uint8Array;
 }
-declare var Zlib;
+var Zlib = require('zlib-raw-inflate');
 var RawInflate: RawInflate = Zlib.RawInflate;
 
 

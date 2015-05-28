@@ -32,7 +32,6 @@
     "grunt": "*",
     "grunt-cli": "*",
     "grunt-contrib-connect": "~0.7",
-    "grunt-contrib-requirejs": "*",
     "grunt-contrib-watch": "*",
     "grunt-karma": "latest",
     "grunt-shell": "~0.5.0",
@@ -41,8 +40,8 @@
     "karma-chrome-launcher": "*",
     "karma-firefox-launcher": "*",
     "karma-jasmine": "~0.1.0",
+    "karma-commonjs": "*",
     "karma-opera-launcher": "*",
-    "karma-requirejs": "*",
     "karma-safari-launcher": "*",
     "open": "*",
     "parseurl": "^1.3.0",
@@ -51,9 +50,20 @@
     "serve-static": "^1.8.1",
     "typescript": "~1.4",
     "xhr2": "*",
-    "zlibjs": "*"
+    "zlibjs": "*",
+    "grunt-browserify": "~3.8.0",
+    "browserify-shim": "~3.8.7",
+    "browserify-derequire": "~0.9.4",
+    "grunt-exorcise": "~1.0.1",
+    "grunt-contrib-uglify": "~0.9.1"
   },
   "scripts": {
     "test": "grunt test"
+  },
+  "browser": {
+    "zlib-raw-inflate": "./node_modules/zlibjs/bin/rawinflate.min.js"
+  },
+  "browserify-shim": {
+    "zlib-raw-inflate": "Zlib"
   }
 }
