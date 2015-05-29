@@ -290,19 +290,32 @@ class WorkerFile extends preload_file.PreloadFile {
     return {
       type: SpecialArgType.FD,
       id: this._remoteFdId,
-      data: (<buffer.Buffer> this._buffer).toArrayBuffer(),
-      stat: (<buffer.Buffer> this._stat.toBuffer()).toArrayBuffer(),
-      path: this._path,
-      flag: this._flag.getFlagString()
+      data: (<buffer.Buffer> this.getBuffer()).toArrayBuffer(),
+      stat: (<buffer.Buffer> this.getStats().toBuffer()).toArrayBuffer(),
+      path: this.getPath(),
+      flag: this.getFlag().getFlagString()
     };
+  }
+  
+  private _syncClose(type: string, cb: (e?: api_error.ApiError) => void): void {
+    if (this.isDirty()) {
+      (<WorkerFS> this._fs).syncClose(type, this, (e?: api_error.ApiError) => {
+        if (!e) {
+          this.resetDirty();
+        }
+        cb(e);
+      });
+    } else {
+      cb();
+    }
   }
 
   public sync(cb: (e?: api_error.ApiError) => void): void {
-    (<WorkerFS> this._fs).syncClose('sync', this, cb);
+    this._syncClose('sync', cb);
   }
 
   public close(cb: (e?: api_error.ApiError) => void): void {
-    (<WorkerFS> this._fs).syncClose('close', this, cb);
+    this._syncClose('close', cb);
   }
 }
 
