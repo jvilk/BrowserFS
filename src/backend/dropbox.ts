@@ -1,3 +1,4 @@
+/// <amd-dependency path="async" />
 import preload_file = require('../generic/preload_file');
 import file_system = require('../core/file_system');
 import file_flag = require('../core/file_flag');

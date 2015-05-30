@@ -104,7 +104,7 @@ module.exports = function(grunt) {
       options: {
         // base path, that will be used to resolve files and exclude
         basePath: '.',
-        frameworks: ['jasmine', 'commonjs'],
+        frameworks: ['jasmine', 'requirejs'],
         files: karmaFiles,
         exclude: [],
         reporters: ['progress'],
@@ -141,6 +141,9 @@ module.exports = function(grunt) {
         outDir: path.join('build', 'dev')
       },
       test: {
+        options: {
+          module: 'amd'
+        },
         src: ["src/**/*.ts", "test/harness/**/*.ts"],
         outDir: path.join('build', 'test')
       },

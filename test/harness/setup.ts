@@ -232,13 +232,13 @@ declare var loadFixtures: Function;
       // Karma serves files under /base, which is the basePath from your config file
       baseUrl: '/base/build/test',
       paths: {
-        'zlib': '../../node_modules/zlibjs/bin/rawinflate.min',
+        'zlib-raw-inflate': '../../node_modules/zlibjs/bin/rawinflate.min',
         'async': '../../bower_components/async/lib/async',
       },
 
       shim: {
-        'zlib': {
-          exports: 'Zlib.RawInflate'
+        'zlib-raw-inflate': {
+          exports: 'Zlib'
         }
       },
       // dynamically load all test files

@@ -18,6 +18,7 @@
     "async": "~0.2.5",
     "dropbox-build": "*",
     "DefinitelyTyped": "latest",
+    "requirejs": "*",
     "assert": "*",
     "jasmine": "~1.3"
   }

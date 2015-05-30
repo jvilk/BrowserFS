@@ -1,3 +1,4 @@
+/// <amd-dependency path="zlib-raw-inflate" />
 /**
  * Zip file-backed filesystem
  * Implemented according to the standard:
