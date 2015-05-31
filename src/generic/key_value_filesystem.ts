@@ -672,7 +672,7 @@ export class AsyncKeyValueFile extends preload_file.PreloadFile implements file.
         cb(e);
       });
     } else {
-  	  cb();      
+      cb();      
     }
   }
 

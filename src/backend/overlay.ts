@@ -114,6 +114,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
     this._deletedFiles[p] = true;
     var buff = new Buffer("d" + p);
     this._deleteLog.writeSync(buff, 0, buff.length, null);
+    this._deleteLog.syncSync();
   }
   
   private undeletePath(p: string): void {
@@ -121,6 +122,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
       this._deletedFiles[p] = false;
       var buff = new Buffer("u" + p);
       this._deleteLog.writeSync(buff, 0, buff.length, null);
+      this._deleteLog.syncSync();
     }
   }
 
@@ -153,10 +155,10 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
     if (this._writable.existsSync(p)) {
       return this._writable.openSync(p, flag, mode);
     } else if (this.existsSync(p)) {
-      // note: we do not do this._readable.existsSync since it might be deleted. 
-      // open w/ readable flag, wrap in our thing.
-      // dirty bit.
-      // TODO: open the file, but make it writable.
+      // Open in an OverlayFile so the program can write to it if desired.
+      return new OverlayFile(this, p, flag);
+    } else {
+      throw new api_error.ApiError(api_error.ErrorCode.ENOENT, `Path ${p} does not exist.`);
     }
   }
   public unlinkSync(p: string): void {
@@ -211,13 +213,54 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
     return this._writable.existsSync(p) || (this._readable.existsSync(p) && this._deletedFiles[p] !== true);
   }
   public chmodSync(p: string, isLchmod: boolean, mode: number): void {
-    //
+    this.operateOnWritable(p, () => {
+      this._writable.chmodSync(p, isLchmod, mode);
+    });
   }
   public chownSync(p: string, isLchown: boolean, uid: number, gid: number): void {
-    //
+    this.operateOnWritable(p, () => {
+      this._writable.chownSync(p, isLchown, uid, gid);
+    });
   }
   public utimesSync(p: string, atime: Date, mtime: Date): void {
-    //
+    this.operateOnWritable(p, () => {
+      this._writable.utimesSync(p, atime, mtime);
+    });
+  }
+  
+  /**
+   * Helper function:
+   * - Ensures p is on writable before proceeding. Throws an error if it doesn't exist.
+   * - Calls f to perform operation on writable.
+   */
+  private operateOnWritable(p: string, f: () => void): void {
+    if (this.existsSync(p)) {
+      if (!this._writable.existsSync(p)) {
+        // File is on readable storage. Copy to writable storage before
+        // changing its mode.
+        this.copyToWritable(p);
+      }
+      f();
+    } else {
+      throw new api_error.ApiError(api_error.ErrorCode.ENOENT, `Path ${p} does not exist.`);
+    }
+  }
+  
+  /**
+   * Copy from readable to writable storage.
+   * PRECONDITION: File does not exist on writable storage.
+   */
+  private copyToWritable(p: string): void {
+    var pStats = this.statSync(p, false);
+    if (pStats.isDirectory()) {
+      this._writable.mkdirSync(p, pStats.mode);
+    } else {  
+      // No need to query the FS's directly. Use our write/read methods. Since the file
+      // isn't on the writable storage, the read will hit the readable storage.
+      this.writeFileSync(p,
+        this.readFileSync(p, null, file_flag.FileFlag.getFileFlag('r')), null,
+        file_flag.FileFlag.getFileFlag('w'), this.statSync(p, false).mode);
+    }
   }
 }
 
