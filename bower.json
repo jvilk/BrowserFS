@@ -15,7 +15,6 @@
     "tests"
   ],
   "dependencies": {
-    "async": "~0.2.5",
     "dropbox-build": "*",
     "DefinitelyTyped": "latest",
     "requirejs": "*",

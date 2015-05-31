@@ -84,7 +84,7 @@ var karmaFiles = [
   { pattern: 'build/test/**/*.js*', included: false },
   // SourceMap support
   { pattern: 'src/**/*.ts*', included: false },
-  { pattern: 'bower_components/async/lib/async.js', included: false },
+  { pattern: 'node_modules/async/lib/async.js', included: false },
   { pattern: 'node_modules/zlibjs/bin/*.js*', included: false },
   { pattern: 'node_modules/jasmine-tapreporter/src/tapreporter.js', included: false }
 ];

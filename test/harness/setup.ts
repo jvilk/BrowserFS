@@ -233,7 +233,7 @@ declare var loadFixtures: Function;
       baseUrl: '/base/build/test',
       paths: {
         'zlib-raw-inflate': '../../node_modules/zlibjs/bin/rawinflate.min',
-        'async': '../../bower_components/async/lib/async',
+        'async': '../../node_modules/async/lib/async',
       },
 
       shim: {
