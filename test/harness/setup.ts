@@ -135,6 +135,9 @@ declare var loadFixtures: Function;
 
       backendFactories.forEach((factory) => {
         factory((name: string, backends) => {
+          if (name !== 'OverlayFS') {
+            backends = [];
+          }
           var backendSemaphore: number = backends.length;
           // XXX: 0 backend case.
           if (backendSemaphore === 0) {
