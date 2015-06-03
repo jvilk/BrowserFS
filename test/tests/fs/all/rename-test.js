@@ -177,14 +177,18 @@ define([], function() { return function(){
         if (e == null) {
           throw new Error("Failed invariant: Cannot rename a file over an existing directory.");
         } else {
-          // it's a permissions error for some reason (tested in node).
-          assert(e.code === 'EPERM');
+          // Some *native* file systems throw EISDIR, others throw EPERM.... accept both.
+          assert(e.code === 'EISDIR' || e.code === 'EPERM');
         }
-        fs.rename(dir, file, function (e) {
-          if (e) {
-            throw new Error("Failed invariant: Can rename a directory over a file.");
+        // JV: Removing test for now. I noticed that you can do that in Node v0.12 on Mac,
+        // but it might be FS independent.
+        /*fs.rename(dir, file, function (e) {
+          if (e == null) {
+            throw new Error("Failed invariant: Cannot rename a directory over a file.");
+          } else {
+            assert(e.code === 'ENOTDIR');
           }
-        });
+        });*/
       });
     });
   });

@@ -9,6 +9,8 @@ import preload_file = require('../generic/preload_file');
 import browserfs = require('../core/browserfs');
 import node_path = require('../core/node_path');
 import path = node_path.path;
+import ApiError = api_error.ApiError;
+import ErrorCode = api_error.ErrorCode;
 
 var deletionLogPath = '/.deletedFiles.log';
 
@@ -55,14 +57,13 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
   
   constructor(writable: file_system.FileSystem, readable: file_system.FileSystem) {
     super();
-    console.log("Constructor.");
     this._writable = writable;
     this._readable = readable;
     if (this._writable.isReadOnly()) {
-      throw new api_error.ApiError(api_error.ErrorCode.EINVAL, "Writable file system must be writable.");
+      throw new ApiError(ErrorCode.EINVAL, "Writable file system must be writable.");
     }    
     if (!this._writable.supportsSynch() || !this._readable.supportsSynch()) {
-      throw new api_error.ApiError(api_error.ErrorCode.EINVAL, "OverlayFS currently only operates on synchronous file systems.");
+      throw new ApiError(ErrorCode.EINVAL, "OverlayFS currently only operates on synchronous file systems.");
     }
   }
   
@@ -76,6 +77,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
       toCreate.push(parent);
       parent = path.dirname(parent);
     }
+    toCreate = toCreate.reverse();
     
     toCreate.forEach((p: string) => {
       this._writable.mkdirSync(p, this.statSync(p, false).mode);
@@ -87,7 +89,6 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
   }
   
   public _syncSync(file: preload_file.PreloadFile): void {
-    console.log("_syncSync");
     this.createParentDirectories(file.getPath());
     this._writable.writeFileSync(file.getPath(), file.getBuffer(), null, file.getFlag(), file.getStats().mode);
   }
@@ -99,15 +100,14 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
   /**
    * Called once to load up metadata stored on the writable file system. 
    */
-  public initialize(cb: (err?: api_error.ApiError) => void): void {
-    console.log("Initialize.");
+  public initialize(cb: (err?: ApiError) => void): void {
     if (!this._isInitialized) {
       // Read deletion log, process into metadata.
       this._writable.readFile(deletionLogPath, 'utf8',
-        file_flag.FileFlag.getFileFlag('r'), (err: api_error.ApiError, data?: string) => {
+        file_flag.FileFlag.getFileFlag('r'), (err: ApiError, data?: string) => {
         if (err) {
           // ENOENT === Newly-instantiated file system, and thus empty log.
-          if (err.type !== api_error.ErrorCode.ENOENT) {
+          if (err.type !== ErrorCode.ENOENT) {
             return cb(err);
           }
         } else {
@@ -120,7 +120,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
         }
         // Open up the deletion log for appending.
         this._writable.open(deletionLogPath, file_flag.FileFlag.getFileFlag('a'),
-          0x1a4, (err: api_error.ApiError, fd?: file.File) => {
+          0x1a4, (err: ApiError, fd?: file.File) => {
           if (err) {
             cb(err);
           } else {
@@ -140,7 +140,6 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
   public supportsProps(): boolean { return this._readable.supportsProps() && this._writable.supportsProps(); }
 
   private deletePath(p: string): void {
-    console.log(`deletePath ${p}`);
     this._deletedFiles[p] = true;
     var buff = new Buffer("d" + p);
     this._deleteLog.writeSync(buff, 0, buff.length, null);
@@ -148,7 +147,6 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
   }
   
   private undeletePath(p: string): void {
-    console.log(`undeletePath ${p}`);
     if (this._deletedFiles[p]) {
       this._deletedFiles[p] = false;
       var buff = new Buffer("u" + p);
@@ -158,24 +156,63 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
   }
 
   public renameSync(oldPath: string, newPath: string): void {
-    console.log(`renameSync ${oldPath} => ${newPath}`);
-    if (this.existsSync(newPath)) {
-      throw new api_error.ApiError(api_error.ErrorCode.EEXIST, `Path ${newPath} already exists.`);
-    }
     // Write newPath using oldPath's contents, delete oldPath.
-    var oldStats = this.statSync(oldPath, false);    
-    this.writeFileSync(newPath,
-      this.readFileSync(oldPath, null, file_flag.FileFlag.getFileFlag('r')), null,
-      file_flag.FileFlag.getFileFlag('w'), oldStats.mode);
-    this.unlinkSync(oldPath);
+    var oldStats = this.statSync(oldPath, false);
+    if (oldStats.isDirectory()) {
+      // Optimization: Don't bother moving if old === new.
+      if (oldPath === newPath) {
+        return;
+      }
+      
+      var mode = 0x1ff;
+      if (this.existsSync(newPath)) {
+        var stats = this.statSync(newPath, false),
+          mode = stats.mode;
+        if (stats.isDirectory()) {
+          if (this.readdirSync(newPath).length > 0) {
+            throw new ApiError(ErrorCode.ENOTEMPTY, `Path ${newPath} not empty.`);
+          }
+        } else {
+          throw new ApiError(ErrorCode.ENOTDIR, `Path ${newPath} is a file.`); 
+        }
+      }
+      
+      // Take care of writable first. Move any files there, or create an empty directory
+      // if it doesn't exist.
+      if (this._writable.existsSync(oldPath)) {
+        this._writable.renameSync(oldPath, newPath);
+      } else if (!this._writable.existsSync(newPath)) {
+        this._writable.mkdirSync(newPath, mode);
+      }
+      
+      // Need to move *every file/folder* currently stored on readable to its new location
+      // on writable.
+      if (this._readable.existsSync(oldPath)) {
+        this._readable.readdirSync(oldPath).forEach((name) => {
+          // Recursion! Should work for any nested files / folders.
+          this.renameSync(path.resolve(oldPath, name), path.resolve(newPath, name));
+        });
+      }
+    } else {
+      if (this.existsSync(newPath) && this.statSync(newPath, false).isDirectory()) {
+        throw new ApiError(ErrorCode.EISDIR, `Path ${newPath} is a directory.`);
+      }
+      
+      this.writeFileSync(newPath,
+        this.readFileSync(oldPath, null, file_flag.FileFlag.getFileFlag('r')), null,
+        file_flag.FileFlag.getFileFlag('w'), oldStats.mode);
+    }
+    
+    if (oldPath !== newPath && this.existsSync(oldPath)) {
+      this.unlinkSync(oldPath);
+    }
   }
   public statSync(p: string, isLstat: boolean): node_fs_stats.Stats {
-    console.log(`statSync ${p}`);
     try {
       return this._writable.statSync(p, isLstat);
     } catch (e) {
       if (this._deletedFiles[p]) {
-        throw new api_error.ApiError(api_error.ErrorCode.ENOENT, `Path ${p} does not exist.`);
+        throw new ApiError(ErrorCode.ENOENT, `Path ${p} does not exist.`);
       }
       var oldStat = this._readable.statSync(p, isLstat).clone();
       // Make the oldStat's mode writable. Preserve the topmost part of the
@@ -185,7 +222,6 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
     }
   }
   public openSync(p: string, flag: file_flag.FileFlag, mode: number): file.File {
-    console.log(`openSync ${p}`);
     if (this.existsSync(p)) {
       switch (flag.pathExistsAction()) {
         case file_flag.ActionType.TRUNCATE_FILE:
@@ -193,12 +229,12 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
           return this._writable.openSync(p, flag, mode);
         case file_flag.ActionType.NOP:
           // Copy from readable first.
-          if (this._readable.existsSync(p)) {
+          if (!this._writable.existsSync(p) && this._readable.existsSync(p)) {
             this.copyToWritable(p);
           }
           return this._writable.openSync(p, flag, mode);
         default:
-          throw new api_error.ApiError(api_error.ErrorCode.ENOENT, `Path ${p} does not exist.`);
+          throw new ApiError(ErrorCode.EEXIST, `Path ${p} exists.`);
       }
     } else {
       switch(flag.pathNotExistsAction()) {
@@ -206,39 +242,45 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
           this.createParentDirectories(p);
           return this._writable.openSync(p, flag, mode);
         default:
-          throw new api_error.ApiError(api_error.ErrorCode.EEXIST, `Path ${p} exists.`);
+          throw new ApiError(ErrorCode.ENOENT, `Path ${p} does not exist.`);
       }
     }
   }
   public unlinkSync(p: string): void {
-    console.log(`unlinkSync ${p}`);
-    if (this._writable.existsSync(p)) {
-      this._writable.unlinkSync(p);
-    }
-    
     if (this.existsSync(p)) {
-      // Add to delete log.
-      this.deletePath(p);
+      if (this._writable.existsSync(p)) {
+        this._writable.unlinkSync(p);
+      }
+      
+      // Does it still exist?
+      if (this.existsSync(p)) {
+        // Add to delete log.
+        this.deletePath(p);
+      }
+    } else {
+      throw new ApiError(ErrorCode.ENOENT, `Path ${p} does not exist.`);
     }
   }
   public rmdirSync(p: string): void {
-    console.log(`rmdirSync ${p}`);
-    if (this._writable.existsSync(p)) {
-      this._writable.rmdirSync(p);
-    }
     if (this.existsSync(p)) {
-      // Check if directory is empty.
-      if (this.readdirSync(p).length > 0) {
-        throw new api_error.ApiError(api_error.ErrorCode.ENOTEMPTY, `Directory ${p} is not empty.`);
-      } else {
-        this.deletePath(p);
+      if (this._writable.existsSync(p)) {
+        this._writable.rmdirSync(p);
       }
+      if (this.existsSync(p)) {
+        // Check if directory is empty.
+        if (this.readdirSync(p).length > 0) {
+          throw new ApiError(ErrorCode.ENOTEMPTY, `Directory ${p} is not empty.`);
+        } else {
+          this.deletePath(p);
+        }
+      }
+    } else {
+      throw new ApiError(ErrorCode.ENOENT, `Path ${p} does not exist.`);
     }
   }
   public mkdirSync(p: string, mode: number): void {
-    console.log(`mkdirSync ${p}`);
     if (this.existsSync(p)) {
-      throw new api_error.ApiError(api_error.ErrorCode.EEXIST, `Path ${p} already exists.`);
+      throw new ApiError(ErrorCode.EEXIST, `Path ${p} already exists.`);
     } else {
       // The below will throw should any of the parent directories fail to exist
       // on _writable.
@@ -247,10 +289,9 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
     }
   }
   public readdirSync(p: string): string[] {
-    console.log(`readdirSync ${p}`);
     var dirStats = this.statSync(p, false);
     if (!dirStats.isDirectory()) {
-      throw new api_error.ApiError(api_error.ErrorCode.ENOTDIR, `Path ${p} is not a directory.`);
+      throw new ApiError(ErrorCode.ENOTDIR, `Path ${p} is not a directory.`);
     }
     
     // Readdir in both, merge, check delete log on each file, return.
@@ -266,23 +307,19 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
     return contents.filter((fileP: string) => this._deletedFiles[p + "/" + fileP] !== true);
   }
   public existsSync(p: string): boolean {
-    console.log(`existsSync ${p}`);
     return this._writable.existsSync(p) || (this._readable.existsSync(p) && this._deletedFiles[p] !== true);
   }
   public chmodSync(p: string, isLchmod: boolean, mode: number): void {
-    console.log(`chmodSync ${p}`);
     this.operateOnWritable(p, () => {
       this._writable.chmodSync(p, isLchmod, mode);
     });
   }
   public chownSync(p: string, isLchown: boolean, uid: number, gid: number): void {
-    console.log(`chownSync ${p}`);
     this.operateOnWritable(p, () => {
       this._writable.chownSync(p, isLchown, uid, gid);
     });
   }
   public utimesSync(p: string, atime: Date, mtime: Date): void {
-    console.log(`utimesSync ${p}`);
     this.operateOnWritable(p, () => {
       this._writable.utimesSync(p, atime, mtime);
     });
@@ -302,7 +339,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
       }
       f();
     } else {
-      throw new api_error.ApiError(api_error.ErrorCode.ENOENT, `Path ${p} does not exist.`);
+      throw new ApiError(ErrorCode.ENOENT, `Path ${p} does not exist.`);
     }
   }
   
