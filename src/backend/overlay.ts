@@ -97,7 +97,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
   
   public _syncSync(file: preload_file.PreloadFile): void {
     this.createParentDirectories(file.getPath());
-    this._writable.writeFileSync(file.getPath(), file.getBuffer(), null, file.getFlag(), file.getStats().mode);
+    this._writable.writeFileSync(file.getPath(), file.getBuffer(), null, file_flag.FileFlag.getFileFlag('w'), file.getStats().mode);
   }
   
   public getName() {
