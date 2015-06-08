@@ -67,6 +67,13 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
     }
   }
   
+  public getOverlayedFileSystems(): { readable: file_system.FileSystem; writable: file_system.FileSystem; } {
+    return {
+      readable: this._readable,
+      writable: this._writable
+    };
+  }
+  
   /**
    * With the given path, create the needed parent directories on the writable storage
    * should they not exist. Use modes from the read-only storage.
@@ -141,7 +148,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
 
   private deletePath(p: string): void {
     this._deletedFiles[p] = true;
-    var buff = new Buffer("d" + p);
+    var buff = new Buffer("d" + p + "\n");
     this._deleteLog.writeSync(buff, 0, buff.length, null);
     this._deleteLog.syncSync();
   }
@@ -304,7 +311,12 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
       contents = contents.concat(this._readable.readdirSync(p));
     } catch (e) {
     }
-    return contents.filter((fileP: string) => this._deletedFiles[p + "/" + fileP] !== true);
+    var seenMap: {[name: string]: boolean} = {};
+    return contents.filter((fileP: string) => {
+      var result = seenMap[fileP] === undefined && this._deletedFiles[p + "/" + fileP] !== true;
+      seenMap[fileP] = true;
+      return result;
+    });
   }
   public existsSync(p: string): boolean {
     return this._writable.existsSync(p) || (this._readable.existsSync(p) && this._deletedFiles[p] !== true);
@@ -361,6 +373,6 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
   }
 }
 
-browserfs.registerFileSystem('IndexedDB', OverlayFS);
+browserfs.registerFileSystem('OverlayFS', OverlayFS);
 
 export = OverlayFS;
