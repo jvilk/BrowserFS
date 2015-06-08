@@ -28,14 +28,14 @@ define([], function() { return function(){
   newCombined.initialize(function() {
     assert(newCombined.existsSync('/test/fixtures/files/node') === false, 'Directory must still be deleted.');
     assert(newCombined.readdirSync('/test/fixtures/files').length === 0, "File system must still be empty.");
-  });
-  
-  var newFs = new BrowserFS.FileSystem.OverlayFS(new BrowserFS.FileSystem.InMemory(), readable);
-  newFs.initialize(function() {
-    BrowserFS.initialize(newFs);
-    assert(fs.existsSync('/test/fixtures/files/node') === true, "Directory must be back");
-    assert(fs.readdirSync('/test/fixtures/files').length > 0, "Directory must be back.");
-    // XXX: Remake the tmpdir.
-    fs.mkdirSync(common.tmpDir);
+    
+    var newFs = new BrowserFS.FileSystem.OverlayFS(new BrowserFS.FileSystem.InMemory(), readable);
+    newFs.initialize(function() {
+      BrowserFS.initialize(newFs);
+      assert(fs.existsSync('/test/fixtures/files/node') === true, "Directory must be back");
+      assert(fs.readdirSync('/test/fixtures/files').length > 0, "Directory must be back.");
+      // XXX: Remake the tmpdir.
+      fs.mkdirSync(common.tmpDir);
+    });
   });
 };});
