@@ -35,5 +35,7 @@ define([], function() { return function(){
     BrowserFS.initialize(newFs);
     assert(fs.existsSync('/test/fixtures/files/node') === true, "Directory must be back");
     assert(fs.readdirSync('/test/fixtures/files').length > 0, "Directory must be back.");
+    // XXX: Remake the tmpdir.
+    fs.mkdirSync(common.tmpDir);
   });
 };});

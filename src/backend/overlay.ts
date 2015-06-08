@@ -363,11 +363,9 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
     var pStats = this.statSync(p, false);
     if (pStats.isDirectory()) {
       this._writable.mkdirSync(p, pStats.mode);
-    } else {  
-      // No need to query the FS's directly. Use our write/read methods. Since the file
-      // isn't on the writable storage, the read will hit the readable storage.
+    } else {
       this.writeFileSync(p,
-        this.readFileSync(p, null, file_flag.FileFlag.getFileFlag('r')), null,
+        this._readable.readFileSync(p, null, file_flag.FileFlag.getFileFlag('r')), null,
         file_flag.FileFlag.getFileFlag('w'), this.statSync(p, false).mode);
     }
   }
