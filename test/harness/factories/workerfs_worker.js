@@ -8,13 +8,13 @@ importScripts("/bower_components/requirejs/require.js");
 require.config({
   baseUrl: '/base/build/test',
   paths: {
-    'zlib': '../../node_modules/zlibjs/bin/rawinflate.min',
-    'async': '../../bower_components/async/lib/async',
+    'zlib-raw-inflate': '../../node_modules/zlibjs/bin/rawinflate.min',
+    'async': '../../node_modules/async/lib/async',
   },
 
   shim: {
-    'zlib': {
-      exports: 'Zlib.RawInflate'
+    'zlib-raw-inflate': {
+      exports: 'Zlib'
     }
   },
   // dynamically load all test files
