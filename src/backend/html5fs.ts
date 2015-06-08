@@ -66,43 +66,48 @@ export class HTML5FSFile extends preload_file.PreloadFile implements file.File {
   }
 
   public sync(cb: (e?: api_error.ApiError) => void): void {
-    // Don't create the file (it should already have been created by `open`)
-    var opts = {
-      create: false
-    };
-    var _fs = <HTML5FS> this._fs;
-    var success = (entry) => {
-      entry.createWriter((writer) => {
-        // XXX: Typing hack.
-        var buffer = this._buffer;
-        var backing_mem: buffer_core_arraybuffer.BufferCoreArrayBuffer = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>this._buffer).getBufferCore();
-        if (!(backing_mem instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer)) {
-          // Copy into an ArrayBuffer-backed Buffer.
-          buffer = new Buffer(this._buffer.length);
-          this._buffer.copy(buffer);
-          backing_mem = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>buffer).getBufferCore();
-        }
-        // Reach into the BC, grab the DV.
-        var dv = backing_mem.getDataView();
-        // Create an appropriate view on the array buffer.
-        var abv = new DataView(dv.buffer, dv.byteOffset + (<buffer.BFSBuffer><any>buffer).getOffset(), buffer.length);
-        var blob = new Blob([abv]);
-        var length = blob.size;
-        writer.onwriteend = (event) => {
-          writer.onwriteend = null;
-          writer.truncate(length);
-          cb();
-        };
-        writer.onerror = (err) => {
-          cb(_fs.convert(err));
-        };
-        writer.write(blob);
-      });
-    };
-    var error = (err) => {
-      cb(_fs.convert(err));
-    };
-    _fs.fs.root.getFile(this._path, opts, success, error);
+    if (this.isDirty()) {
+      // Don't create the file (it should already have been created by `open`)
+      var opts = {
+        create: false
+      };
+      var _fs = <HTML5FS> this._fs;
+      var success = (entry) => {
+        entry.createWriter((writer) => {
+          // XXX: Typing hack.
+          var buffer = this.getBuffer();
+          var backing_mem: buffer_core_arraybuffer.BufferCoreArrayBuffer = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>buffer).getBufferCore();
+          if (!(backing_mem instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer)) {
+            // Copy into an ArrayBuffer-backed Buffer.
+            buffer = new Buffer(buffer.length);
+            this.getBuffer().copy(buffer);
+            backing_mem = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>buffer).getBufferCore();
+          }
+          // Reach into the BC, grab the DV.
+          var dv = backing_mem.getDataView();
+          // Create an appropriate view on the array buffer.
+          var abv = new DataView(dv.buffer, dv.byteOffset + (<buffer.BFSBuffer><any>buffer).getOffset(), buffer.length);
+          var blob = new Blob([abv]);
+          var length = blob.size;
+          writer.onwriteend = (event) => {
+            writer.onwriteend = null;
+            writer.truncate(length);
+            this.resetDirty();
+            cb();
+          };
+          writer.onerror = (err) => {
+            cb(_fs.convert(err));
+          };
+          writer.write(blob);
+        });
+      };
+      var error = (err) => {
+        cb(_fs.convert(err));
+      };
+      _fs.fs.root.getFile(this.getPath(), opts, success, error);
+    } else {
+      cb();
+    }
   }
 
   public close(cb: (e?: api_error.ApiError) => void): void {

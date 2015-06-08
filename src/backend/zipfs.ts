@@ -577,7 +577,7 @@ export class ZipFS extends file_system.SynchronousFileSystem implements file_sys
     var fd = this.openSync(fname, flag, 0x1a4);
     try {
       var fdCast = <preload_file.NoSyncFile> fd;
-      var fdBuff = <buffer.Buffer> fdCast._buffer;
+      var fdBuff = <buffer.Buffer> fdCast.getBuffer();
       if (encoding === null) {
         if (fdBuff.length > 0) {
           return fdBuff.sliceCopy();

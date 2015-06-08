@@ -302,9 +302,15 @@ export class Buffer implements BFSBuffer {
     if (sourceEnd > this.length) {
       throw new RangeError('sourceEnd out of bounds');
     }
-    var bytesCopied = Math.min(sourceEnd - sourceStart, target.length - targetStart, this.length - sourceStart);
-    // TODO: Optimize.
-    for (var i = 0; i < bytesCopied; i++) {
+    var bytesCopied = Math.min(sourceEnd - sourceStart, target.length - targetStart, this.length - sourceStart),
+      i: number;
+    // Copy as many 32-bit chunks as possible.
+    // TODO: Alignment.
+    for (i = 0; i < bytesCopied - 3; i += 4) {
+      target.writeInt32LE(this.readInt32LE(sourceStart + i), targetStart + i);
+    }
+    // Copy any remaining bytes, if applicable
+    for (i = bytesCopied & 0xFFFFFFFC; i < bytesCopied; i++) {
       target.writeUInt8(this.readUInt8(sourceStart + i), targetStart + i);
     }
     return bytesCopied;

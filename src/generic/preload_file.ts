@@ -21,12 +21,12 @@ var Buffer = buffer.Buffer;
  */
 export class PreloadFile extends file.BaseFile {
   private _pos: number = 0;
-  // XXX: Some backends manipulate these directly :(
-  public _path: string;
-  public _fs: file_system.FileSystem;
-  public _stat: node_fs_stats.Stats;
-  public _flag: file_flag.FileFlag;
-  public _buffer: NodeBuffer;
+  private _path: string;
+  protected _fs: file_system.FileSystem;
+  private _stat: node_fs_stats.Stats;
+  private _flag: file_flag.FileFlag;
+  private _buffer: NodeBuffer;
+  private _dirty: boolean = false;
   /**
    * Creates a file with the given path and, optionally, the given contents. Note
    * that, if contents is specified, it will be mutated by the file!
@@ -60,6 +60,35 @@ export class PreloadFile extends file.BaseFile {
     if (this._stat.size !== this._buffer.length && this._flag.isReadable()) {
       throw new Error("Invalid buffer: Buffer is " + this._buffer.length + " long, yet Stats object specifies that file is " + this._stat.size + " long.");
     }
+  }
+  
+  protected isDirty(): boolean {
+    return this._dirty;
+  }
+  
+  /**
+   * Resets the dirty bit. Should only be called after a sync has completed successfully.
+   */
+  protected resetDirty() {
+    this._dirty = false;
+  }
+
+  /**
+   * NONSTANDARD: Get the underlying buffer for this file. !!DO NOT MUTATE!! Will mess up dirty tracking.
+   */
+  public getBuffer(): Buffer {
+    return this._buffer;
+  }
+  
+  /**
+   * NONSTANDARD: Get underlying stats for this file. !!DO NOT MUTATE!!
+   */
+  public getStats(): node_fs_stats.Stats {
+    return this._stat;
+  }
+  
+  public getFlag(): file_flag.FileFlag {
+    return this._flag;
   }
 
   /**
@@ -185,6 +214,7 @@ export class PreloadFile extends file.BaseFile {
    * @param [Number] len
    */
   public truncateSync(len: number): void {
+    this._dirty = true;
     if (!this._flag.isWriteable()) {
       throw new ApiError(ErrorCode.EPERM, 'File not opened with a writeable mode.');
     }
@@ -245,6 +275,7 @@ export class PreloadFile extends file.BaseFile {
    * @return [Number]
    */
   public writeSync(buffer: NodeBuffer, offset: number, length: number, position: number): number {
+    this._dirty = true;
     if (position == null) {
       position = this.getPos();
     }
@@ -343,6 +374,7 @@ export class PreloadFile extends file.BaseFile {
     if (!this._fs.supportsProps()) {
       throw new ApiError(ErrorCode.ENOTSUP);
     }
+    this._dirty = true;
     this._stat.chmod(mode);
     this.syncSync();
   }

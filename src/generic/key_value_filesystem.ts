@@ -221,7 +221,10 @@ export class SyncKeyValueFile extends preload_file.PreloadFile implements file.F
   }
 
   public syncSync(): void {
-    (<SyncKeyValueFileSystem> this._fs)._syncSync(this._path, this._buffer, this._stat);
+    if (this.isDirty()) {
+      (<SyncKeyValueFileSystem> this._fs)._syncSync(this.getPath(), this.getBuffer(), this.getStats());
+      this.resetDirty();
+    }
   }
 
   public closeSync(): void {
@@ -661,7 +664,16 @@ export class AsyncKeyValueFile extends preload_file.PreloadFile implements file.
   }
 
   public sync(cb: (e?: api_error.ApiError) => void): void {
-    (<AsyncKeyValueFileSystem> this._fs)._sync(this._path, this._buffer, this._stat, cb);
+    if (this.isDirty()) {
+      (<AsyncKeyValueFileSystem> this._fs)._sync(this.getPath(), this.getBuffer(), this.getStats(), (e?: api_error.ApiError) => {
+        if (!e) {
+          this.resetDirty();
+        }
+        cb(e);
+      });
+    } else {
+      cb();      
+    }
   }
 
   public close(cb: (e?: api_error.ApiError) => void): void {

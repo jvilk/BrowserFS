@@ -30,20 +30,29 @@ export class DropboxFile extends preload_file.PreloadFile implements file.File {
   }
 
   public sync(cb: (e?: api_error.ApiError) => void): void {
-    var buffer = this._buffer;
-    // XXX: Typing hack.
-    var backing_mem: buffer_core_arraybuffer.BufferCoreArrayBuffer = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>this._buffer).getBufferCore();
-    if (!(backing_mem instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer)) {
-      // Copy into an ArrayBuffer-backed Buffer.
-      buffer = new Buffer(this._buffer.length);
-      this._buffer.copy(buffer);
-      backing_mem = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>buffer).getBufferCore();
+    if (this.isDirty()) {
+      var buffer = this.getBuffer();
+      // XXX: Typing hack.
+      var backing_mem: buffer_core_arraybuffer.BufferCoreArrayBuffer = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>buffer).getBufferCore();
+      if (!(backing_mem instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer)) {
+        // Copy into an ArrayBuffer-backed Buffer.
+        buffer = new Buffer(buffer.length);
+        this.getBuffer().copy(buffer);
+        backing_mem = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>buffer).getBufferCore();
+      }
+      // Reach into the BC, grab the DV.
+      var dv = backing_mem.getDataView();
+      // Create an appropriate view on the array buffer.
+      var abv = new DataView(dv.buffer, dv.byteOffset + (<buffer.BFSBuffer><any>buffer).getOffset(), buffer.length);
+      (<DropboxFileSystem> this._fs)._writeFileStrict(this.getPath(), abv, (e?: api_error.ApiError) => {
+        if (!e) {
+          this.resetDirty();
+        }
+        cb(e);
+      });
+    } else {
+      cb();
     }
-    // Reach into the BC, grab the DV.
-    var dv = backing_mem.getDataView();
-    // Create an appropriate view on the array buffer.
-    var abv = new DataView(dv.buffer, dv.byteOffset + (<buffer.BFSBuffer><any>buffer).getOffset(), buffer.length);
-    (<DropboxFileSystem> this._fs)._writeFileStrict(this._path, abv, cb);
   }
 
   public close(cb: (e?: api_error.ApiError) => void): void {

@@ -16,7 +16,7 @@ function IDBFSFactory(cb: (name: string, obj: file_system.FileSystem[]) => void)
           }
         });
       }
-    }, 'test');
+    }, 'test' + Math.random());
   } else {
     cb('IndexedDB', []);
   }
