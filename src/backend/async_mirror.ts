@@ -75,7 +75,7 @@ class AsyncMirrorFS extends file_system.SynchronousFileSystem implements file_sy
   }
   
   public _syncSync(fd: preload_file.PreloadFile) {
-    this._sync.writeFileSync(fd.getPath(), fd.getBuffer(), null, fd.getFlag(), fd.getStats().mode);
+    this._sync.writeFileSync(fd.getPath(), fd.getBuffer(), null, file_flag.FileFlag.getFileFlag('w'), fd.getStats().mode);
     this.enqueueOp({
       apiMethod: 'writeFile',
       arguments: [fd.getPath(), fd.getBuffer(), null, fd.getFlag(), fd.getStats().mode]
