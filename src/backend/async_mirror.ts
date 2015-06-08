@@ -155,6 +155,7 @@ class AsyncMirrorFS extends file_system.SynchronousFileSystem implements file_sy
   private enqueueOp(op: IAsyncOperation) {
     this._queue.push(op);
     if (!this._queueRunning) {
+      this._queueRunning = true;
       var doNextOp = (err?: ApiError) => {
         if (err) {
           console.error(`WARNING: File system has desynchronized. Received following error: ${err}\n$`);
