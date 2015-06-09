@@ -4,11 +4,10 @@ import node_fs_stats = require('../core/node_fs_stats');
 import buffer = require('../core/buffer');
 import file_flag = require('../core/file_flag');
 import api_error = require('../core/api_error');
-import node_fs = require('../core/node_fs');
+import fs = require('../core/node_fs');
 
 var ApiError = api_error.ApiError;
 var ErrorCode = api_error.ErrorCode;
-var fs = node_fs.fs;
 var Buffer = buffer.Buffer;
 /**
  * An implementation of the File interface that operates on a file that is

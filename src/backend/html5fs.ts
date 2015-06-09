@@ -9,7 +9,7 @@ import buffer = require('../core/buffer');
 import file = require('../core/file');
 import browserfs = require('../core/browserfs');
 import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
-import node_path = require('../core/node_path');
+import path = require('../core/node_path');
 import global = require('../core/global');
 
 var Buffer = buffer.Buffer;
@@ -277,8 +277,8 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
         }
 
         // Get the new parent directory.
-        root.getDirectory(node_path.path.dirname(newPath), {}, (parentDir: DirectoryEntry): void => {
-          file.moveTo(parentDir, node_path.path.basename(newPath), (entry: Entry): void => { cb(); }, (err: DOMException): void => {
+        root.getDirectory(path.dirname(newPath), {}, (parentDir: DirectoryEntry): void => {
+          file.moveTo(parentDir, path.basename(newPath), (entry: Entry): void => { cb(); }, (err: DOMException): void => {
             // SPECIAL CASE: If oldPath is a directory, and newPath is a
             // file, rename should delete the file and perform the move.
             if (file.isDirectory) {

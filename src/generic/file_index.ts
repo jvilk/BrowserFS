@@ -1,8 +1,7 @@
 import node_fs_stats = require('../core/node_fs_stats');
-import node_path = require('../core/node_path');
+import path = require('../core/node_path');
 
 var Stats = node_fs_stats.Stats;
-var path = node_path.path;
 
 /**
  * A simple class for storing a filesystem index. Assumes that all paths passed
