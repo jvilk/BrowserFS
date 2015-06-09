@@ -3,12 +3,11 @@ import api_error = require('../core/api_error');
 import node_fs_stats = require('../core/node_fs_stats');
 import file = require('../core/file');
 import file_flag = require('../core/file_flag');
-import node_path = require('../core/node_path');
+import path = require('../core/node_path');
 import Inode = require('../generic/inode');
 import buffer = require('../core/buffer');
 import preload_file = require('../generic/preload_file');
 var ROOT_NODE_ID: string = "/",
-  path = node_path.path,
   ApiError = api_error.ApiError,
   Buffer = buffer.Buffer;
 /**

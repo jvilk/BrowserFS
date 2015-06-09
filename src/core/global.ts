@@ -4,6 +4,7 @@
  * In a WebWorker, this is "self".
  * In Node, this is "global".
  */
+declare var global;
 var toExport;
 if (typeof(window) !== 'undefined') {
   toExport = window;

@@ -1,12 +1,11 @@
 import file_system = require('../core/file_system');
 import in_memory = require('./in_memory');
 import api_error = require('../core/api_error');
-import node_fs = require('../core/node_fs');
+import fs = require('../core/node_fs');
 import browserfs = require('../core/browserfs');
 
 var ApiError = api_error.ApiError;
 var ErrorCode = api_error.ErrorCode;
-var fs = node_fs.fs;
 /**
  * The MountableFileSystem allows you to mount multiple backend types or
  * multiple instantiations of the same backend into a single file system tree.

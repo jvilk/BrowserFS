@@ -9,7 +9,7 @@ var process = node_process.process;
  * @see http://nodejs.org/api/path.html
  * @class
  */
-export class path {
+class path {
   /**
    * Normalize a string path, taking care of '..' and '.' parts.
    *
@@ -394,3 +394,5 @@ export class path {
   // The platform-specific path delimiter. BrowserFS uses `:`.
   private static delimiter = ':';
 }
+
+export = path;

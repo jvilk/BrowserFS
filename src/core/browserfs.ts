@@ -1,6 +1,6 @@
 import buffer = require('./buffer');
-import node_fs = require('./node_fs');
-import node_path = require('./node_path');
+import fs = require('./node_fs');
+import path = require('./node_path');
 import node_process = require('./node_process');
 import file_system = require('./file_system');
 
@@ -41,9 +41,9 @@ export function registerFileSystem(name: string, fs: file_system.FileSystemConst
 export function BFSRequire(module: string) {
   switch(module) {
     case 'fs':
-      return node_fs.fs;
+      return fs;
     case 'path':
-      return node_path.path;
+      return path;
     case 'buffer':
       // The 'buffer' module has 'Buffer' as a property.
       return buffer;
@@ -61,5 +61,5 @@ export function BFSRequire(module: string) {
  *   entire BrowserFS file system.
  */
 export function initialize(rootfs) {
-  return node_fs.fs._initialize(rootfs);
+  return fs._initialize(rootfs);
 }

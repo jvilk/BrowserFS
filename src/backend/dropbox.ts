@@ -6,7 +6,7 @@ import node_fs_stats = require('../core/node_fs_stats');
 import buffer = require('../core/buffer');
 import api_error = require('../core/api_error');
 import file = require('../core/file');
-import node_path = require('../core/node_path');
+import path = require('../core/node_path');
 import browserfs = require('../core/browserfs');
 import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
 
@@ -15,7 +15,6 @@ var Buffer = buffer.Buffer;
 var Stats = node_fs_stats.Stats;
 var ApiError = api_error.ApiError;
 var ErrorCode = api_error.ErrorCode;
-var path = node_path.path;
 var FileType = node_fs_stats.FileType;
 
 // XXX: No typings available for the Dropbox client. :(

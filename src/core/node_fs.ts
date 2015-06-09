@@ -3,13 +3,12 @@ import api_error = require('./api_error');
 import file_system = require('./file_system');
 import file_flag = require('./file_flag');
 import buffer = require('./buffer');
-import node_path = require('./node_path');
+import path = require('./node_path');
 import node_fs_stats = require('./node_fs_stats');
 var ApiError = api_error.ApiError;
 var ErrorCode = api_error.ErrorCode;
 var FileFlag = file_flag.FileFlag;
 var Buffer = buffer.Buffer;
-var path = node_path.path;
 
 declare var __numWaiting: number;
 declare var setImmediate: (cb: Function) => void;
@@ -138,7 +137,7 @@ function nopCb() {};
  * @see http://nodejs.org/api/fs.html
  * @class
  */
-export class fs {
+class fs {
   private static root: file_system.FileSystem = null;
 
   public static _initialize(rootFS: file_system.FileSystem): file_system.FileSystem {
@@ -1416,3 +1415,5 @@ export class fs {
     return fs.root.realpathSync(path, cache);
   }
 }
+
+export = fs;
