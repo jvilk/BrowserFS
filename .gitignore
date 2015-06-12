@@ -3,6 +3,7 @@ doc
 *.DS_Store
 *.log
 *.json
+!tsconfig.json
 bower_components
 test/fixtures
 test/harness/load_fixtures.js
@@ -13,3 +14,6 @@ tools/*.js*
 build
 src/ignoreBaseDirFile.ts
 src/.baseDir.ts
+# Run.ts is auto-generated
+test/harness/run.ts
+.tscache
