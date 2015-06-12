@@ -13,6 +13,8 @@
  */
 import runTests = require('./setup');
 import BackendFactory = require('./BackendFactory');
+require('../../src/core/polyfills');
+
 // Will be replaced with arrays of hardcoded require statements for the various modules.
 var backends: BackendFactory[] = [/*FACTORIES*/],
   tests: {

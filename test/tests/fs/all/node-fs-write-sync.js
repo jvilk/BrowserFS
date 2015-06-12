@@ -21,24 +21,28 @@
 
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert');
-var rootFS = fs.getRootFS();
-if (!(rootFS.isReadOnly() || !rootFS.supportsSynch())) {
-  var fn = path.join(common.tmpDir, 'write.txt');
+    assert = require('assert'),
+    common = require('../../../harness/common');
     
-    
-  var foo = 'foo';
-  var fd = fs.openSync(fn, 'w');
-    
-  var written = fs.writeSync(fd, '');
-  assert.strictEqual(0, written);
-    
-  fs.writeSync(fd, foo);
-    
-  var bar = 'bár';
-  written = fs.writeSync(fd, new Buffer(bar), 0, Buffer.byteLength(bar));
-  assert.ok(written > 3);
-  fs.closeSync(fd);
-    
-  assert.equal(fs.readFileSync(fn), 'foobár');
-}
+module.exports = function() {
+  var rootFS = fs.getRootFS();
+  if (!(rootFS.isReadOnly() || !rootFS.supportsSynch())) {
+    var fn = path.join(common.tmpDir, 'write.txt');
+      
+      
+    var foo = 'foo';
+    var fd = fs.openSync(fn, 'w');
+      
+    var written = fs.writeSync(fd, '');
+    assert.strictEqual(0, written);
+      
+    fs.writeSync(fd, foo);
+      
+    var bar = 'bár';
+    written = fs.writeSync(fd, new Buffer(bar), 0, Buffer.byteLength(bar));
+    assert.ok(written > 3);
+    fs.closeSync(fd);
+      
+    assert.equal(fs.readFileSync(fn), 'foobár');
+  }
+};

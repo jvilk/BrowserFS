@@ -23,6 +23,7 @@ var fs = require('fs'),
     path = require('path'),
     assert = require('assert'),
     common = require('../../../harness/common');
+
 module.exports = function() {
   var got_error = false;
   var success_count = 0;

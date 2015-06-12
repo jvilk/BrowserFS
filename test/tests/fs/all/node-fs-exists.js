@@ -21,7 +21,9 @@
 
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert');
+    assert = require('assert'),
+    common = require('../../../harness/common');
+
 module.exports = function() {
   var f = path.join(common.fixturesDir, 'x.txt');
   var exists;

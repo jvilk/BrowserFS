@@ -72,7 +72,6 @@ function removeFile(file) {
 // append to it in the dropbox test case.
 var karmaFiles = [
   // Main module and fixtures loader
-  'test/fixtures/load_fixtures.js',
   'test/harness/run.ts',
   /* AMD modules */
   // Tests
@@ -109,6 +108,9 @@ module.exports = function(grunt) {
         browserify: {
           bare: true,
           debug: true,
+          transform: [
+            'aliasify'
+          ],
           plugin: [
             'tsify'
           ]
@@ -147,13 +149,6 @@ module.exports = function(grunt) {
         src: ["src/**/*.ts"],
         outDir: path.join('build', 'dev')
       },
-      test: {
-        options: {
-          module: 'amd'
-        },
-        src: ["src/**/*.ts", "test/harness/**/*.ts"],
-        outDir: path.join('build', 'test')
-      },
       watch: {
         // Performs a dev build and rebuilds when changes are made.
         src: ["src/**/*.ts"],
@@ -177,7 +172,8 @@ module.exports = function(grunt) {
             // derequire the generated script so that the script won't chock if it is further processed.
             plugin: [
               ['browserify-derequire']
-            ]
+            ],
+            transform: ['aliasify']
             // Noted that browserify-shim settings is in package.json.
           }
         },

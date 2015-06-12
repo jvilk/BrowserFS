@@ -22,6 +22,7 @@
 var fs = require('fs'),
     path = require('path'),
     assert = require('assert');
+
 module.exports = function() {
   var rootFS = fs.getRootFS(),
       isReadOnly = rootFS.isReadOnly(),

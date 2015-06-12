@@ -21,10 +21,11 @@
 
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert');
+    assert = require('assert'),
+    common = require('../../../harness/common');
+
 module.exports = function() {
   var successes = 0;
-  
   var file = path.join(common.fixturesDir, 'a.js');
   var rootFS = fs.getRootFS();
   if (!rootFS.isReadOnly()) {

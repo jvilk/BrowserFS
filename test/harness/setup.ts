@@ -3,6 +3,8 @@
 import BrowserFS = require('../../src/core/browserfs');
 import file_system = require('../../src/core/file_system');
 import BackendFactory = require('./BackendFactory');
+var loadFixtures: () => void = require('../fixtures/load_fixtures');
+
 interface ITAPReporter {
   new(print: () => void): jasmine.Reporter;
 }
@@ -14,7 +16,6 @@ var TAPReporter: ITAPReporter = require('jasmine-tapreporter');
  */
 declare var __karma__: any;
 declare var __numWaiting: number;
-declare var loadFixtures: () => void;
 
 // Test timeout duration in milliseconds. Increase if needed.
 var timeout: number = 20000;

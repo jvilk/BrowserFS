@@ -22,6 +22,7 @@
   },
   "main": "dist/browserfs.js",
   "devDependencies": {
+    "aliasify": "^1.7.2",
     "archiver": "*",
     "async": ">= 0.2.7",
     "bower": "*",
@@ -64,6 +65,12 @@
   },
   "browser": {
     "zlib-raw-inflate": "./node_modules/zlibjs/bin/rawinflate.min.js"
+  },
+  "aliasify": {
+    "aliases": {
+      "fs": "./src/core/node_fs.ts",
+      "path": "./src/core/node_path.ts"
+    }
   },
   "browserify-shim": {
     "zlib-raw-inflate": "Zlib"

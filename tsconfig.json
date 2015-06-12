@@ -5,7 +5,8 @@
         "removeComments": true,
         "preserveConstEnums": true,
         "sourceMap": true,
-        "target": "ES5"
+        "target": "ES3",
+        "declaration": true
     },
     "files": [
         "src/backend/async_mirror.ts",

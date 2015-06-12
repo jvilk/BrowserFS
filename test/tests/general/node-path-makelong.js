@@ -21,8 +21,11 @@
 
 var assert = require('assert'),
     path = require('path');
-assert.equal(path._makeLong(null), null);
-assert.equal(path._makeLong(100), 100);
-assert.equal(path._makeLong(path), path);
-assert.equal(path._makeLong(false), false);
-assert.equal(path._makeLong(true), true);
+    
+module.exports = function() {
+  assert.equal(path._makeLong(null), null);
+  assert.equal(path._makeLong(100), 100);
+  assert.equal(path._makeLong(path), path);
+  assert.equal(path._makeLong(false), false);
+  assert.equal(path._makeLong(true), true);
+};
