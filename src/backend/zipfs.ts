@@ -60,7 +60,9 @@ var ActionType = file_flag.ActionType;
 
 // Partial typings for zlib.js's inflate API.
 interface RawInflate {
-  new(input: Uint8Array): RawInflate;
+  new(input: Uint8Array, opts?: {
+    bufferSize: number
+  }): RawInflate;
   decompress(): Uint8Array;
 }
 var Zlib = require('zlib-raw-inflate');
@@ -244,13 +246,13 @@ export class FileData {
           var dview = bcore.getDataView();
           var start = dview.byteOffset + buff.getOffset();
           var uarray = (new Uint8Array(dview.buffer)).subarray(start, start + this.record.compressedSize());
-          var data: Uint8Array = (new RawInflate(uarray)).decompress();
+          var data: Uint8Array = (new RawInflate(uarray, { bufferSize: this.record.uncompressedSize() })).decompress();
           return new buffer.Buffer(new buffer_core_arraybuffer.BufferCoreArrayBuffer(data.buffer), data.byteOffset, data.byteOffset + data.length);
         } else {
           // Convert to an array of bytes and decompress, then write into a new
           // buffer :(
           var newBuff = <buffer.Buffer> buff.slice(0, this.record.compressedSize());
-          return new buffer.Buffer(<number[]><any>(new RawInflate(<any> newBuff.toJSON().data)).decompress());
+          return new buffer.Buffer(<number[]><any>(new RawInflate(<any> newBuff.toJSON().data, { bufferSize: this.record.uncompressedSize() })).decompress());
         }
       case CompressionMethod.STORED:
         // Grab and copy.
