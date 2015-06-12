@@ -33,7 +33,7 @@ class path {
     p = path._removeDuplicateSeps(p);
     // Try to remove as many '../' as possible, and remove '.' completely.
     var components = p.split(path.sep);
-    var goodComponents = [];
+    var goodComponents: string[] = [];
     for (var idx = 0; idx < components.length; idx++) {
       var c = components[idx];
       if (c === '.') {
@@ -88,7 +88,7 @@ class path {
   public static join(...paths: any[]): string {
     // Required: Prune any non-strings from the path. I also prune empty segments
     // so we can do a simple join of the array.
-    var processed = [];
+    var processed: string[] = [];
     for (var i = 0; i < paths.length; i++) {
       var segment = paths[i];
       if (typeof segment !== 'string') {
@@ -142,7 +142,7 @@ class path {
   public static resolve(...paths: string[]): string {
     // Monitor for invalid paths, throw out empty paths, and look for the *last*
     // absolute path that we see.
-    var processed = [];
+    var processed: string[] = [];
     for (var i = 0; i < paths.length; i++) {
       var p = paths[i];
       if (typeof p !== 'string') {
@@ -202,7 +202,7 @@ class path {
    * @return [String]
    */
   public static relative(from: string, to: string): string {
-    var i;
+    var i: number;
     // Alright. Let's resolve these two to absolute paths and remove any
     // weirdness.
     from = path.resolve(from);
@@ -216,7 +216,7 @@ class path {
     // * Going *up* the directory hierarchy with '..'
     // * Going *down* the directory hierarchy with foo/baz/bat.
     var upCount = 0;
-    var downSegs = [];
+    var downSegs: string[] = [];
     // Figure out how many things in 'from' are shared with 'to'.
     for (i = 0; i < fromSegs.length; i++) {
       var seg = fromSegs[i];

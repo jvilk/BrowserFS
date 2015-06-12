@@ -19,11 +19,10 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-define([], function() { return function(){
-
+var assert = require('assert'),
+    path = require('path');
 assert.equal(path._makeLong(null), null);
 assert.equal(path._makeLong(100), 100);
 assert.equal(path._makeLong(path), path);
 assert.equal(path._makeLong(false), false);
 assert.equal(path._makeLong(true), true);
-};});

@@ -34,12 +34,12 @@ if (!Object.keys) {
         ],
         dontEnumsLength = dontEnums.length;
 
-    return function (obj) {
+    return function (obj: any) {
       if (typeof obj !== 'object' && (typeof obj !== 'function' || obj === null)) {
         throw new TypeError('Object.keys called on non-object');
       }
 
-      var result = [], prop, i;
+      var result: string[] = [], prop: string, i: number;
 
       for (prop in obj) {
         if (hasOwnProperty.call(obj, prop)) {
@@ -88,7 +88,7 @@ if (!Array.prototype.forEach) {
 if (typeof setImmediate === 'undefined') {
   // XXX avoid importing the global module.
   var gScope = typeof window !== 'undefined' ? window : typeof self !== 'undefined' ? self : <any> global;
-  var timeouts = [];
+  var timeouts: (() => void)[] = [];
   var messageName = "zero-timeout-message";
   var canUsePostMessage = function() {
     if (typeof gScope.importScripts !== 'undefined' || !gScope.postMessage) {
@@ -104,11 +104,11 @@ if (typeof setImmediate === 'undefined') {
     return postMessageIsAsync;
   };
   if (canUsePostMessage()) {
-    gScope.setImmediate = function(fn) {
+    gScope.setImmediate = function(fn: () => void) {
       timeouts.push(fn);
       gScope.postMessage(messageName, "*");
     };
-    var handleMessage = function(event) {
+    var handleMessage = function(event: MessageEvent) {
       if (event.source === self && event.data === messageName) {
         if (event.stopPropagation) {
           event.stopPropagation();
@@ -129,22 +129,22 @@ if (typeof setImmediate === 'undefined') {
   } else if (gScope.MessageChannel) {
     // WebWorker MessageChannel
     var channel = new gScope.MessageChannel();
-    channel.port1.onmessage = (event) => {
+    channel.port1.onmessage = (event: any) => {
       if (timeouts.length > 0) {
         return timeouts.shift()();
       }
     };
-    gScope.setImmediate = (fn) => {
+    gScope.setImmediate = (fn: () => void) => {
       timeouts.push(fn);
       channel.port2.postMessage('');
     };
   } else {
-    gScope.setImmediate = function(fn) {
+    gScope.setImmediate = function(fn: () => void) {
       return setTimeout(fn, 0);
       var scriptEl = window.document.createElement("script");
-      scriptEl.onreadystatechange = function() {
+      (<any> scriptEl).onreadystatechange = function(): any {
         fn();
-        scriptEl.onreadystatechange = null;
+        (<any> scriptEl).onreadystatechange = null;
         scriptEl.parentNode.removeChild(scriptEl);
         return scriptEl = null;
       };
@@ -197,7 +197,7 @@ if (!Array.prototype.forEach) {
 // From: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map
 if (!Array.prototype.map) {
   Array.prototype.map = function(callback: (value: string, index: number, array: string[]) => any, thisArg?: any): any[] {
-    var T, A, k;
+    var T: any, A: any, k: any;
     if (this == null) {
       throw new TypeError(" this is null or not defined");
     }
@@ -222,7 +222,7 @@ if (!Array.prototype.map) {
     k = 0;
     // 8. Repeat, while k < len
     while(k < len) {
-      var kValue, mappedValue;
+      var kValue: any, mappedValue: any;
       // a. Let Pk be ToString(k).
       //   This is implicit for LHS operands of the in operator
       // b. Let kPresent be the result of calling the HasProperty internal method of O with argument Pk.
@@ -260,7 +260,7 @@ if (!Array.prototype.map) {
  *
  * This is harmless to inject into non-IE browsers.
  */
-if (typeof document !== 'undefined' && window['chrome'] === undefined) {
+if (typeof document !== 'undefined' && (<any> window)['chrome'] === undefined) {
   document.write("<!-- IEBinaryToArray_ByteStr -->\r\n"+
     "<script type='text/vbscript'>\r\n"+
     "Function IEBinaryToArray_ByteStr(Binary)\r\n"+

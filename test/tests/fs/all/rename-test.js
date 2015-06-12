@@ -1,16 +1,15 @@
 /**
  * Tests basic file and directory renaming in writable file systems.
  */
-define([], function() { return function(){
-  var rootFS = fs.getRootFS(),
+var fs = require('fs'),
+    path = require('path'),
+    assert = require('assert'),
+    rootFS = fs.getRootFS(),
     isReadOnly = rootFS.isReadOnly(),
     oldParentName = '/_renameTest',
     newParentName = '/_renameTest2';
 
-  if (isReadOnly) {
-    return;
-  }
-
+if (!isReadOnly) {
   /**
    * Creates the following directory structure within the given dir:
    * - _rename_me
@@ -207,4 +206,4 @@ define([], function() { return function(){
       }
     });
   });
-};});
+}

@@ -19,12 +19,12 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-define([], function() { return function(){
+var fs = require('fs'),
+    path = require('path'),
+    assert = require('assert');
 var tests_ok = 0;
 var tests_run = 0;
 var rootFS = fs.getRootFS();
-
-if (!rootFS.supportsProps()) return;
 
 function stat_resource(resource) {
   if (typeof resource == 'string') {
@@ -135,24 +135,24 @@ function runTest(atime, mtime, callback) {
   });
 }
 
-var stats = fs.statSync(filename);
-
-// BFS: Original tests used:
-//   new Date('1982-09-10T13:37:00Z'), new Date('1982-09-10T13:37:00Z')
-// These are not supported in IE < 9: http://dygraphs.com/date-formats.html
-runTest(new Date('1982/09/10 13:37:00'), new Date('1982/09/10 13:37:00'), function() {
-  runTest(new Date(), new Date(), function() {
-    runTest(123456.789, 123456.789, function() {
-      runTest(stats.mtime, stats.mtime, function() {
-        // done
+if (rootFS.supportsProps()) {
+  var stats = fs.statSync(filename);
+  
+  // BFS: Original tests used:
+  //   new Date('1982-09-10T13:37:00Z'), new Date('1982-09-10T13:37:00Z')
+  // These are not supported in IE < 9: http://dygraphs.com/date-formats.html
+  runTest(new Date('1982/09/10 13:37:00'), new Date('1982/09/10 13:37:00'), function() {
+    runTest(new Date(), new Date(), function() {
+      runTest(123456.789, 123456.789, function() {
+        runTest(stats.mtime, stats.mtime, function() {
+          // done
+        });
       });
     });
   });
-});
-
-process.on('exit', function() {
-  assert.equal(tests_ok, tests_run,
-      tests_ok + ' OK / ' + tests_run + ' total tests.');
-});
-
-};});
+  
+  process.on('exit', function() {
+    assert.equal(tests_ok, tests_run,
+        tests_ok + ' OK / ' + tests_run + ' total tests.');
+  });
+}

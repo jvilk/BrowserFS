@@ -19,8 +19,10 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-define([], function() { return function(){
-var filepath = path.join(common.fixturesDir, 'x.txt'),
+var fs = require('fs'),
+    path = require('path'),
+    assert = require('assert'),
+    filepath = path.join(common.fixturesDir, 'x.txt'),
     expected = 'xyz\n',
     bufferAsync = new Buffer(expected.length),
     bufferSync = new Buffer(expected.length),
@@ -46,5 +48,3 @@ fs.open(filepath, 'r', function(err, fd) {
 process.on('exit', function() {
   assert.equal(readCalled, 1);
 });
-
-};});

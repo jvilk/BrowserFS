@@ -304,7 +304,7 @@ export class BufferCoreCommon {
   }
 
   private float2intbits(f_val: number) : number {
-    var exp, f_view, i_view, sig, sign;
+    var exp: number, f_view: number, i_view: number, sig: number, sign: number;
 
     // Special cases!
     if (f_val === 0) {
@@ -347,7 +347,7 @@ export class BufferCoreCommon {
   }
 
   private double2longbits(d_val: number): number[] {
-    var d_view, exp, high_bits, i_view, sig, sign;
+    var d_view: number, exp: number, high_bits: number, i_view: number, sig: number, sign: number;
 
     // Special cases
     if (d_val === 0) {

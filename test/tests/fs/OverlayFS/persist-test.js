@@ -3,8 +3,10 @@
  * Side effect: Discards doubly-loaded files (files are present in ZipFS, but are
  * accidentally re-written and reloaded by test runner). This is a Good Thing.
  */
-define([], function() { return function(){
-  if (!(fs.getRootFS() instanceof BrowserFS.FileSystem.OverlayFS)) return;
+var fs = require('fs'),
+    path = require('path'),
+    assert = require('assert');
+if (fs.getRootFS() instanceof BrowserFS.FileSystem.OverlayFS) {
   var rootFS = fs.getRootFS(),
     fses = rootFS.getOverlayedFileSystems(),
     // XXX: Make these proper API calls.
@@ -38,4 +40,4 @@ define([], function() { return function(){
       fs.mkdirSync(common.tmpDir);
     });
   });
-};});
+}

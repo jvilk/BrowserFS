@@ -100,7 +100,7 @@ export class MountableFileSystem extends file_system.BaseFileSystem implements f
    * to the MFS root, not to the particular FS's root.
    * Mutates the input error, and returns it.
    */
-  private standardizeError(err: api_error.ApiError, path, realPath): api_error.ApiError {
+  private standardizeError(err: api_error.ApiError, path: string, realPath: string): api_error.ApiError {
     var index: number;
     if (-1 !== (index = err.message.indexOf(path))) {
       err.message = err.message.substr(0, index) + realPath + err.message.substr(index + path.length);
@@ -214,8 +214,8 @@ for (var i = 0; i < fsCmdMap.length; i++) {
   var cmds = fsCmdMap[i];
   for (var j = 0; j < cmds.length; j++) {
     var fnName = cmds[j];
-    MountableFileSystem.prototype[fnName] = defineFcn(fnName, false, i + 1);
-    MountableFileSystem.prototype[fnName + 'Sync'] = defineFcn(fnName + 'Sync', true, i + 1);
+    (<any> MountableFileSystem.prototype)[fnName] = defineFcn(fnName, false, i + 1);
+    (<any> MountableFileSystem.prototype)[fnName + 'Sync'] = defineFcn(fnName + 'Sync', true, i + 1);
   }
 }
 

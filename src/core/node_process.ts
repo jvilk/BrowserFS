@@ -1,5 +1,5 @@
 import eventemitter = require('./node_eventemitter');
-var path = null;
+var path: any = null;
 
 export class TTY extends eventemitter.AbstractDuplexStream {
   public isRaw: boolean = false;
@@ -77,7 +77,7 @@ export class Process {
   public chdir(dir: string): void {
     // XXX: Circular dependency hack.
     if (path === null) {
-      path = require('./node_path').path;
+      path = require('./node_path');
     }
     this._cwd = path.resolve(dir);
   }

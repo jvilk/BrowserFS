@@ -71,20 +71,17 @@ function removeFile(file) {
 // The files that karma should load up. Stashed in a variable here so we can
 // append to it in the dropbox test case.
 var karmaFiles = [
-  // Special: 'polyfills' is not a module.
-  'build/test/src/core/polyfills.js',
-  'bower_components/assert/assert.js',
   // Main module and fixtures loader
   'test/fixtures/load_fixtures.js',
-  'build/test/test/harness/setup.js',
+  'test/harness/run.ts',
   /* AMD modules */
   // Tests
   { pattern: 'test/tests/**/*.js', included: false },
   // BFS modules
-  { pattern: 'build/test/**/*.js*', included: false },
+  { pattern: 'test/**/*.ts*', included: false },
   // SourceMap support
   { pattern: 'src/**/*.ts*', included: false },
-  { pattern: 'node_modules/async/lib/async.js', included: false },
+  { pattern: 'bower_components/DefinitelyTyped/**/*.d.ts', included: false },
   { pattern: 'node_modules/zlibjs/bin/*.js*', included: false },
   { pattern: 'node_modules/jasmine-tapreporter/src/tapreporter.js', included: false }
 ];
@@ -104,8 +101,18 @@ module.exports = function(grunt) {
       options: {
         // base path, that will be used to resolve files and exclude
         basePath: '.',
-        frameworks: ['jasmine', 'requirejs'],
+        frameworks: ['jasmine', 'browserify'],
         files: karmaFiles,
+        preprocessors: {
+          'test/harness/run.ts': ['browserify']
+        },
+        browserify: {
+          bare: true,
+          debug: true,
+          plugin: [
+            'tsify'
+          ]
+        },
         exclude: [],
         reporters: ['progress'],
         port: 9876,
@@ -175,7 +182,7 @@ module.exports = function(grunt) {
           }
         },
         files: {
-          './build/release/browserfs.js': './build/dev/main.js'
+          './build/release/browserfs.js': ['./core/polyfills.js'].concat(getEssentialModules())
         }
       }
     },
@@ -256,8 +263,8 @@ module.exports = function(grunt) {
 
   grunt.registerTask('main.js', 'Construct main.js to include all backends and polyfills', function() {
     var modules = getEssentialModules(),
-    bfsModule = modules.shift(),
-    main = [], i;
+      bfsModule = modules.shift(),
+      main = [], i;
 
     main.push(fs.readFileSync('build/dev/core/polyfills.js'));
     main.push("module.exports=require('./" + bfsModule + "');");
@@ -267,9 +274,44 @@ module.exports = function(grunt) {
 
     fs.writeFileSync('build/dev/main.js', main.join('\n'));
   });
+  
+  grunt.registerTask('run.ts', 'Construct run.ts to include all tests and factories.', function() {
+    var tests = {}, testsStringified, factoryStringified;
+    function processDir(dir, dirInfo) {
+      fs.readdirSync(dir).forEach(function(file) {
+        var filePath = path.resolve(dir, file),
+          relPath = path.relative(path.resolve('test/harness'), filePath);
+        if (fs.statSync(filePath).isFile()) {
+          relPath.slice(0, relPath.length - 3);
+          dirInfo[file] = "require('" + relPath + "')";
+        } else {
+          dirInfo[file] = {};
+          processDir(filePath, dirInfo[file]);
+        }
+      });
+    }
+    processDir('test/tests', tests);
+    testsStringified = JSON.stringify(tests).replace(/:\"require\('([^)]*)'\)\"/g, ":require('$1')");
+    // Remove { }.
+    testsStringified = testsStringified.slice(1, testsStringified.length - 1);
+    factoryStringified = fs.readdirSync('test/harness/factories')
+      .filter(function(file) {
+        return file.slice(file.length-11) === "_factory.ts";  
+      })
+      .map(function(file) {
+        return "require('./factories/" + file + "')";
+      }).join(', ');
+
+    fs.writeFileSync('test/harness/run.ts', 
+      fs.readFileSync('test/harness/run_template.ts')
+        .toString()
+        .replace(/\/\*FACTORIES\*\//g, factoryStringified)
+        .replace(/\/\*TESTS\*\//g, testsStringified), 'utf8'
+    );
+  });
 
   // test
-  grunt.registerTask('test', ['ts:test', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect', 'karma:test']);
+  grunt.registerTask('test', ['run.ts', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect', 'karma:test']);
   // testing dropbox
   grunt.registerTask('dropbox_test', ['ts:test', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'shell:gen_cert', 'shell:gen_token', 'connect', 'karma:dropbox_test']);
   // dev build

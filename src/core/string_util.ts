@@ -112,7 +112,6 @@ export class UTF8 {
     var i = 0;
     var j = 0;
     var maxJ = length;
-    var rv = [];
     var numChars = 0;
     while (i < str.length && j < maxJ) {
       var code = str.charCodeAt(i++);
@@ -168,7 +167,7 @@ export class UTF8 {
   }
 
   public static byte2str(buff: NodeBuffer): string {
-    var chars = [];
+    var chars: string[] = [];
     var i = 0;
     while (i < buff.length) {
       var code = buff.readUInt8(i++);
@@ -457,7 +456,7 @@ export class HEX {
   })();
 
   private static hex2num: {[chr: string]: number} = (function(): {[chr: string]: number} {
-    var idx, i;
+    var idx: number, i: string;
     var obj: {[chr: string]: number} = {};
     for (idx = 0; idx < HEX.HEXCHARS.length; idx++) {
       i = HEX.HEXCHARS[idx];

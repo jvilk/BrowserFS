@@ -1,7 +1,7 @@
 /**
  * Bare-minimum worker script to bootstrap us into TypeScript goodness.
  */
-importScripts("/base/build/test/src/core/polyfills.js");
+/*importScripts("/base/build/test/src/core/polyfills.js");
 importScripts("/bower_components/requirejs/require.js");
 
 // XXX: Copying from setup.ts. :(
@@ -19,4 +19,4 @@ require.config({
   },
   // dynamically load all test files
   deps: ['test/harness/factories/workerfs_factory']
-});
+});*/

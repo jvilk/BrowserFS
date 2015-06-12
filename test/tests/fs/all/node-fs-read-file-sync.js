@@ -19,7 +19,9 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-define([], function() { return function(){
+var fs = require('fs'),
+    path = require('path'),
+    assert = require('assert');
 var rootFS = fs.getRootFS();
 var fn = path.join(common.fixturesDir, 'elipses.txt');
 
@@ -30,5 +32,3 @@ if (rootFS.supportsSynch()) {
   }
   assert.equal(10000, s.length);
 }
-
-};});

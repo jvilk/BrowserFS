@@ -19,7 +19,9 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-define([], function() { return function(){
+var fs = require('fs'),
+    path = require('path'),
+    assert = require('assert');
 var fn = path.join(common.fixturesDir, 'empty.txt');
 var rootFS = fs.getRootFS();
 
@@ -35,4 +37,3 @@ if (rootFS.supportsSynch()) {
   assert.ok(fs.readFileSync(fn));
   assert.strictEqual('', fs.readFileSync(fn, 'utf8'));
 }
-};});

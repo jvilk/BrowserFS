@@ -1,8 +1,7 @@
+/// <reference path="../../../bower_components/DefinitelyTyped/dropboxjs/dropboxjs.d.ts" />
 import dbfs = require('../../../src/backend/dropbox');
 import BackendFactory = require('../BackendFactory');
 import file_system = require('../../../src/core/file_system');
-
-declare var Dropbox;
 
 function DBFSFactory(cb: (name: string, obj: file_system.FileSystem[]) => void): void {
   if (dbfs.DropboxFileSystem.isAvailable()) {
@@ -11,14 +10,14 @@ function DBFSFactory(cb: (name: string, obj: file_system.FileSystem[]) => void):
       sandbox: true
     }),
     auth = () => {
-      init_client.authenticate((error, authed_client) => {
+      init_client.authenticate((error: Dropbox.AuthError | Dropbox.ApiError, authed_client: Dropbox.Client) => {
         if (error) {
           console.error('Error: could not connect to Dropbox');
           console.error(error);
           return cb('Dropbox', []);
         }
 
-        authed_client.getUserInfo((error, info) => {
+        authed_client.getAccountInfo((error, info) => {
           console.debug("Successfully connected to " + info.name + "'s Dropbox");
         });
 
@@ -30,7 +29,7 @@ function DBFSFactory(cb: (name: string, obj: file_system.FileSystem[]) => void):
     };
 
     // Authenticate with pregenerated unit testing credentials.
-    var req = new XMLHttpRequest(), data = null;
+    var req = new XMLHttpRequest();
     req.open('GET', '/test/fixtures/dropbox/token.json');
     req.onerror = (e) => { console.error(req.statusText); };
     req.onload = (e) => {

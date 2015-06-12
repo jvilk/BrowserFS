@@ -19,39 +19,39 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-define([], function() { return function(){
-if (fs.getRootFS().isReadOnly()) return;
-
-var filename = path.join(common.tmpDir, 'write.txt'),
-    expected = new Buffer('hello'),
-    openCalled = 0,
-    writeCalled = 0;
-
-
-fs.open(filename, 'w', 0644, function(err, fd) {
-  openCalled++;
-  if (err) throw err;
-
-  fs.write(fd, expected, 0, expected.length, null, function(err, written) {
-    writeCalled++;
+var fs = require('fs'),
+    path = require('path'),
+    assert = require('assert');
+if (!fs.getRootFS().isReadOnly()) {
+  var filename = path.join(common.tmpDir, 'write.txt'),
+      expected = new Buffer('hello'),
+      openCalled = 0,
+      writeCalled = 0;
+  
+  
+  fs.open(filename, 'w', 0644, function(err, fd) {
+    openCalled++;
     if (err) throw err;
-
-    assert.equal(expected.length, written);
-    fs.close(fd, function(err) {
+  
+    fs.write(fd, expected, 0, expected.length, null, function(err, written) {
+      writeCalled++;
       if (err) throw err;
-      fs.readFile(filename, 'utf8', function(err, found) {
-        assert.deepEqual(expected.toString(), found);
-        fs.unlink(filename, function(err) {
-          if (err) throw err;
+  
+      assert.equal(expected.length, written);
+      fs.close(fd, function(err) {
+        if (err) throw err;
+        fs.readFile(filename, 'utf8', function(err, found) {
+          assert.deepEqual(expected.toString(), found);
+          fs.unlink(filename, function(err) {
+            if (err) throw err;
+          });
         });
       });
     });
   });
-});
-
-process.on('exit', function() {
-  assert.equal(1, openCalled);
-  assert.equal(1, writeCalled);
-});
-
-};});
+  
+  process.on('exit', function() {
+    assert.equal(1, openCalled);
+    assert.equal(1, writeCalled);
+  });
+}

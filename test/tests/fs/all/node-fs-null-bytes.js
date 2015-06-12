@@ -19,8 +19,10 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-define([], function() { return function(){
-var rootFS = fs.getRootFS();
+var fs = require('fs'),
+    path = require('path'),
+    assert = require('assert'),
+    rootFS = fs.getRootFS();
 
 function check(async, sync) {
   var expected = /Path must be a string without null bytes./;
@@ -80,5 +82,3 @@ fs.exists('foo\u0000bar', function(exists) {
 if (rootFS.supportsSynch()) {
   assert(!fs.existsSync('foo\u0000bar'));
 }
-
-};});

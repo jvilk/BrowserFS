@@ -389,7 +389,7 @@ export interface FileSystem {
    *   bearing on result if links aren't supported.
    * @param {number} mode
    */
-  chmodSync(p: string, isLchmod: boolean, mode: number);
+  chmodSync(p: string, isLchmod: boolean, mode: number): void;
   /**
    * **Optional**: Asynchronous `chown` or `lchown`.
    * @method FileSystem#chown
@@ -728,8 +728,8 @@ export class BaseFileSystem {
       if (er) {
         return cb(er);
       }
-      fd.truncate(len, (function(er) {
-        fd.close((function(er2) {
+      fd.truncate(len, (function(er: any) {
+        fd.close((function(er2: any) {
           cb(er || er2);
         }));
       }));
@@ -755,7 +755,7 @@ export class BaseFileSystem {
         return cb(err);
       }
       cb = function(err: api_error.ApiError, arg?: file.File) {
-        fd.close(function(err2) {
+        fd.close(function(err2: any) {
           if (err == null) {
             err = err2;
           }
@@ -809,7 +809,7 @@ export class BaseFileSystem {
         return cb(err);
       }
       cb = function(err: api_error.ApiError) {
-        fd.close(function(err2) {
+        fd.close(function(err2: any) {
           oldCb(err != null ? err : err2);
         });
       };
@@ -846,7 +846,7 @@ export class BaseFileSystem {
         return cb(err);
       }
       cb = function(err: api_error.ApiError) {
-        fd.close(function(err2) {
+        fd.close(function(err2: any) {
           oldCb(err != null ? err : err2);
         });
       };

@@ -18,12 +18,12 @@ import file_system = require('./file_system');
  * This allows you to write code as if you were running inside Node.
  * @param {object} obj - The object to install things onto (e.g. window)
  */
-export function install(obj) {
+export function install(obj: any) {
   obj.Buffer = buffer.Buffer;
   obj.process = node_process.process;
   var oldRequire = obj.require != null ? obj.require : null;
   // Monkey-patch require for Node-style code.
-  obj.require = function(arg) {
+  obj.require = function(arg: string) {
     var rv = BFSRequire(arg);
     if (rv == null) {
       return oldRequire.apply(null, Array.prototype.slice.call(arguments, 0))
@@ -60,6 +60,6 @@ export function BFSRequire(module: string) {
  * @param {BrowserFS.FileSystem} rootFS - The root filesystem to use for the
  *   entire BrowserFS file system.
  */
-export function initialize(rootfs) {
+export function initialize(rootfs: file_system.FileSystem) {
   return fs._initialize(rootfs);
 }

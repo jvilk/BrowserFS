@@ -1,14 +1,13 @@
 /**
  * Extensively tests fs.truncate.
  */
-define([], function() { return function(){
-  var rootFS = fs.getRootFS(),
+var fs = require('fs'),
+    path = require('path'),
+    assert = require('assert'),
+    rootFS = fs.getRootFS(),
     isReadOnly = rootFS.isReadOnly();
 
-  if (isReadOnly) {
-    return;
-  }
-
+if (!isReadOnly) {
   var file = "/truncateFile.txt";
   fs.writeFile(file, new Buffer("123456789"), function (e) {
     assert(e == null);
@@ -44,4 +43,4 @@ define([], function() { return function(){
       });
     });
   });
-};});
+}

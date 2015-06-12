@@ -18,8 +18,9 @@
 // DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
-define([], function() { return function(){
 
+var assert = require('assert'),
+    path = require('path');
 var isWindows = process.platform === 'win32';
 
 // BFS: Make explicit for the browser.
@@ -254,4 +255,3 @@ assert.equal(path.sep, '/');
 // path.delimiter tests
 // posix
 assert.equal(path.delimiter, ':');
-};});

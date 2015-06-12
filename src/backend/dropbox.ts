@@ -1,4 +1,5 @@
-/// <amd-dependency path="async" />
+/// <reference path="../../bower_components/DefinitelyTyped/async/async.d.ts" />
+/// <reference path="../../bower_components/DefinitelyTyped/dropboxjs/dropboxjs.d.ts" />
 import preload_file = require('../generic/preload_file');
 import file_system = require('../core/file_system');
 import file_flag = require('../core/file_flag');
@@ -9,22 +10,16 @@ import file = require('../core/file');
 import path = require('../core/node_path');
 import browserfs = require('../core/browserfs');
 import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
+import async = require('async');
 
-declare var Dropbox;
-var Buffer = buffer.Buffer;
-var Stats = node_fs_stats.Stats;
-var ApiError = api_error.ApiError;
-var ErrorCode = api_error.ErrorCode;
-var FileType = node_fs_stats.FileType;
-
-// XXX: No typings available for the Dropbox client. :(
-
-// XXX: The typings for async on DefinitelyTyped are out of date.
-var async = require('async');
-var Buffer = buffer.Buffer;
+import Buffer = buffer.Buffer;
+import Stats = node_fs_stats.Stats;
+import ApiError = api_error.ApiError;
+import ErrorCode = api_error.ErrorCode;
+import FileType = node_fs_stats.FileType;
 
 export class DropboxFile extends preload_file.PreloadFile implements file.File {
-  constructor(_fs: file_system.FileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: NodeBuffer) {
+  constructor(_fs: file_system.FileSystem, _path: string, _flag: file_flag.FileFlag, _stat: Stats, contents?: NodeBuffer) {
     super(_fs, _path, _flag, _stat, contents)
   }
 
@@ -61,11 +56,11 @@ export class DropboxFile extends preload_file.PreloadFile implements file.File {
 
 export class DropboxFileSystem extends file_system.BaseFileSystem implements file_system.FileSystem {
   // The Dropbox client.
-  private client: any;
+  private client: Dropbox.Client;
   /**
    * Arguments: an authenticated Dropbox.js client
    */
-  constructor(client: any) {
+  constructor(client: Dropbox.Client) {
     super();
     this.client = client;
   }
@@ -103,12 +98,12 @@ export class DropboxFileSystem extends file_system.BaseFileSystem implements fil
       if (error) {
         main_cb(this.convert(error));
       } else {
-        var deleteFile = (file, cb) => {
+        var deleteFile = (file: Dropbox.File.Stat, cb: (err?: any) => void) => {
           this.client.remove(file.path, (err, stat) => {
             cb(err ? this.convert(err) : err);
           });
         };
-        var finished = (err) => {
+        var finished = (err: any) => {
           if (err) {
             main_cb(this.convert(err));
           } else {
@@ -124,7 +119,7 @@ export class DropboxFileSystem extends file_system.BaseFileSystem implements fil
     this.client.move(oldPath, newPath, (error, stat) => {
       if (error) {
         // XXX: Assume 404 for now.
-        var missingPath = error.response.error.indexOf(oldPath) > -1 ? oldPath : newPath;
+        var missingPath = (<any> error.response).error.indexOf(oldPath) > -1 ? oldPath : newPath;
         cb(new ApiError(ErrorCode.ENOENT, missingPath + " doesn't exist"));
       } else {
         cb();
@@ -132,7 +127,7 @@ export class DropboxFileSystem extends file_system.BaseFileSystem implements fil
     });
   }
 
-  public stat(path: string, isLstat: boolean, cb: (err: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void {
+  public stat(path: string, isLstat: boolean, cb: (err: api_error.ApiError, stat?: Stats) => void): void {
     // Ignore lstat case -- Dropbox doesn't support symlinks
     // Stat the file
     this.client.stat(path, (error, stat) => {
@@ -165,7 +160,7 @@ export class DropboxFileSystem extends file_system.BaseFileSystem implements fil
             // it can be written to
             case 404:
               var ab = new ArrayBuffer(0);
-              return this._writeFileStrict(path, ab, (error2: api_error.ApiError, stat?: node_fs_stats.Stats) => {
+              return this._writeFileStrict(path, ab, (error2: api_error.ApiError, stat?: Dropbox.File.Stat) => {
                 if (error2) {
                   cb(error2);
                 } else {
@@ -179,7 +174,7 @@ export class DropboxFileSystem extends file_system.BaseFileSystem implements fil
         }
       } else {
         // No error
-        var buffer;
+        var buffer: Buffer;
         // Dropbox.js seems to set `content` to `null` rather than to an empty
         // buffer when reading an empty file. Not sure why this is.
         if (content === null) {
@@ -193,11 +188,11 @@ export class DropboxFileSystem extends file_system.BaseFileSystem implements fil
     });
   }
 
-  public _writeFileStrict(p: string, data: ArrayBuffer, cb: (e: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void;
-  public _writeFileStrict(p: string, data: ArrayBufferView, cb: (e: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void;
-  public _writeFileStrict(p: string, data: any, cb: (e: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void {
+  public _writeFileStrict(p: string, data: ArrayBuffer, cb: (e: api_error.ApiError, stat?: Dropbox.File.Stat) => void): void;
+  public _writeFileStrict(p: string, data: ArrayBufferView, cb: (e: api_error.ApiError, stat?: Dropbox.File.Stat) => void): void;
+  public _writeFileStrict(p: string, data: any, cb: (e: api_error.ApiError, stat?: Dropbox.File.Stat) => void): void {
     var parent = path.dirname(p);
-    this.stat(parent, false, (error: api_error.ApiError, stat?: node_fs_stats.Stats): void => {
+    this.stat(parent, false, (error: api_error.ApiError, stat?: Stats): void => {
       if (error) {
         cb(new ApiError(ErrorCode.ENOENT, "Can't create " + p + " because " + parent + " doesn't exist"));
       } else {
@@ -216,7 +211,7 @@ export class DropboxFileSystem extends file_system.BaseFileSystem implements fil
    * Private
    * Returns a BrowserFS object representing the type of a Dropbox.js stat object
    */
-  public _statType(stat): node_fs_stats.FileType {
+  public _statType(stat: Dropbox.File.Stat): node_fs_stats.FileType {
     return stat.isFile ? FileType.FILE : FileType.DIRECTORY;
   }
 
@@ -225,7 +220,7 @@ export class DropboxFileSystem extends file_system.BaseFileSystem implements fil
    * Returns a BrowserFS object representing a File, created from the data
    * returned by calls to the Dropbox API.
    */
-  public _makeFile(path: string, flag: file_flag.FileFlag, stat, buffer: NodeBuffer): DropboxFile {
+  public _makeFile(path: string, flag: file_flag.FileFlag, stat: Dropbox.File.Stat, buffer: NodeBuffer): DropboxFile {
     var type = this._statType(stat);
     var stats = new Stats(type, stat.size);
     return new DropboxFile(this, path, flag, stats, buffer);
@@ -240,7 +235,6 @@ export class DropboxFileSystem extends file_system.BaseFileSystem implements fil
    */
   public _remove(path: string, cb: (e?: api_error.ApiError) => void, isFile: boolean): void {
     this.client.stat(path, (error, stat) => {
-      var message = null;
       if (error) {
         cb(new ApiError(ErrorCode.ENOENT, path + " doesn't exist"));
       } else {

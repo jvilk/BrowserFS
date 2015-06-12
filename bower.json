@@ -15,10 +15,6 @@
     "tests"
   ],
   "dependencies": {
-    "dropbox-build": "*",
-    "DefinitelyTyped": "latest",
-    "requirejs": "*",
-    "assert": "*",
-    "jasmine": "~1.3"
+    "DefinitelyTyped": "latest"
   }
 }
