@@ -234,18 +234,13 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
           this.createParentDirectories(p);
           return this._writable.openSync(p, flag, mode);
         case file_flag.ActionType.NOP:
-          if (flag.isWriteable() || flag.isAppendable()) {
-            // Copy from readable first.
-            if (!this._writable.existsSync(p) && this._readable.existsSync(p)) {
-              this.copyToWritable(p);
-            }
+          if (this._writable.existsSync(p)) {
             return this._writable.openSync(p, flag, mode);
-          } else if (this._readable.existsSync(p)) {
-            // Otherwise, the program isn't planning to modify the file,
-            // so return it from the readable storage.
-            return this._readable.openSync(p, flag, mode);
           } else {
-            return this._writable.openSync(p, flag, mode);
+            // Create an OverlayFile.
+            var stats = this._readable.statSync(p, false).clone();
+            stats.mode = mode;
+            return new OverlayFile(this, p, flag, stats, this._readable.readFileSync(p, null, file_flag.FileFlag.getFileFlag('r')));
           }
         default:
           throw new ApiError(ErrorCode.EEXIST, `Path ${p} exists.`);
