@@ -81,7 +81,7 @@ var karmaFiles = [
   // SourceMap support
   { pattern: 'src/**/*.ts*', included: false },
   { pattern: 'bower_components/DefinitelyTyped/**/*.d.ts', included: false },
-  { pattern: 'node_modules/zlibjs/bin/*.js*', included: false },
+  { pattern: 'node_modules/pako/dist/*.js*', included: false },
   { pattern: 'node_modules/jasmine-tapreporter/src/tapreporter.js', included: false }
 ];
 
@@ -106,7 +106,10 @@ module.exports = function(grunt) {
           'test/harness/run.ts': ['browserify']
         },
         browserify: {
-          bare: true,
+          // Note: Cannot use "bare" here. That's a command-line-only switch.
+          builtins: ['assert'],
+          commondir: false,
+          detectGlobals: false,
           debug: true,
           transform: [
             'aliasify'

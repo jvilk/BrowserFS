@@ -99,15 +99,15 @@ for file in files
   """
 fs.writeSync outfile, """
   };
-  global.loadFixtures = function() {
-    if (fs.getRootFS().isReadOnly()) { return; }
-    nextDir = -1;
-    // Ensure that root directory works.
-    fs.exists('/', function(doesExist) {
-      if (!doesExist) throw new Error("Invalid filesystem: Root does not exist.");
-      mcb();
-    });
-  };
+  
+  // Begin loading fixtures.
+  if (fs.getRootFS().isReadOnly()) { return; }
+  nextDir = -1;
+  // Ensure that root directory works.
+  fs.exists('/', function(doesExist) {
+    if (!doesExist) throw new Error("Invalid filesystem: Root does not exist.");
+    mcb();
+  });
 };
 """
 

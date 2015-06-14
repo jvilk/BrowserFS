@@ -172,7 +172,6 @@ module.exports = function() {
   /**
    * Testing extended ASCII support.
    */
-  var assert = require('assert');
   // Write as UTF-8, read as ASCII/Extended ASCII. Boundary condition.
   buff.write("Hello" + String.fromCharCode(0x7F) + "World");
   assert(buff.toString('ascii', 0, 11) === buff.toString('extended_ascii', 0, 11));

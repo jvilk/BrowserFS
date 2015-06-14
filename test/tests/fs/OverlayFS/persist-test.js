@@ -5,7 +5,8 @@
  */
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert');
+    assert = require('assert'),
+    common = require('../../../harness/common');
     
 module.exports = function() {
   if (fs.getRootFS() instanceof BrowserFS.FileSystem.OverlayFS) {

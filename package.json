@@ -51,20 +51,17 @@
     "karma-requirejs": "*",
     "karma-safari-launcher": "*",
     "open": "*",
+    "pako": "^0.2.7",
     "parseurl": "^1.3.0",
     "requirejs": "*",
     "send": "^0.11.1",
     "serve-static": "^1.8.1",
     "tsify": "^0.11.2",
     "typescript": "~1.4",
-    "xhr2": "*",
-    "zlibjs": "*"
+    "xhr2": "*"
   },
   "scripts": {
     "test": "grunt test"
-  },
-  "browser": {
-    "zlib-raw-inflate": "./node_modules/zlibjs/bin/rawinflate.min.js"
   },
   "aliasify": {
     "aliases": {
@@ -72,7 +69,7 @@
       "path": "./src/core/node_path.ts"
     }
   },
-  "browserify-shim": {
-    "zlib-raw-inflate": "Zlib"
+  "browser": {
+    "zlib-inflate": "./node_modules/pako/dist/pako_inflate.min.js"
   }
 }
