@@ -30,6 +30,28 @@ module.exports = function() {
   var content;
   var rootFS = fs.getRootFS();
   
+  // Removes a file if it exists.
+  function removeFile(file) {
+    try {
+      //if (isWindows)
+      //  fs.chmodSync(file, 0666);
+      fs.unlinkSync(file);
+    } catch (err) {
+      if (err && err.code !== 'ENOENT')
+        throw err;
+    }
+  }
+  
+  function openSync() {
+    openCount++;
+    return rootFS._openSync.apply(rootFS, arguments);
+  }
+  
+  function closeSync() {
+    openCount--;
+    return fs._closeSync.apply(fs, arguments);
+  }
+  
   // Only works for file systems that support synchronous ops.
   if (!(rootFS.isReadOnly() || !rootFS.supportsSynch())) {
     // Need to hijack fs.open/close to make sure that things
@@ -90,27 +112,5 @@ module.exports = function() {
     // Verify that all opened files were closed.
     // BFS: Some file systems call themselves, and not the node API directly.
     // assert.equal(0, openCount);
-    
-    // Removes a file if it exists.
-    function removeFile(file) {
-      try {
-        //if (isWindows)
-        //  fs.chmodSync(file, 0666);
-        fs.unlinkSync(file);
-      } catch (err) {
-        if (err && err.code !== 'ENOENT')
-          throw err;
-      }
-    }
-    
-    function openSync() {
-      openCount++;
-      return rootFS._openSync.apply(rootFS, arguments);
-    }
-    
-    function closeSync() {
-      openCount--;
-      return fs._closeSync.apply(fs, arguments);
-    }
   }
 };

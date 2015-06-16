@@ -107,8 +107,9 @@ export class Buffer implements BFSBuffer {
       // constructor (data: DataView);
       this.data = new buffer_core_arraybuffer.BufferCoreArrayBuffer(<DataView> arg1);
       this.length = arg1.byteLength;
-    } else if (typeof ArrayBuffer !== 'undefined' && arg1 instanceof ArrayBuffer) {
+    } else if (typeof ArrayBuffer !== 'undefined' && typeof arg1.byteLength === 'number') {
       // constructor (data: ArrayBuffer);
+      // Note: Can't do 'instanceof ArrayBuffer' in Safari in some cases. :|
       this.data = new buffer_core_arraybuffer.BufferCoreArrayBuffer(<ArrayBuffer> arg1);
       this.length = arg1.byteLength;
     } else if (arg1 instanceof Buffer) {

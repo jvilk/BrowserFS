@@ -67,21 +67,6 @@ module.exports = function() {
       fs.closeSync(fd);
     }
     
-    // async tests
-    var success = 0;
-    testTruncate(function(er) {
-      if (er) throw er;
-      success++;
-      testFtruncate(function(er) {
-        if (er) throw er;
-        success++;
-      });
-    });
-    
-    process.on('exit', function() {
-      assert.equal(success, 2, 'Exit code mismatch: ' + success + ' != 2');
-    });
-    
     function testTruncate(cb) {
       fs.writeFile(filename, data, function(er) {
         if (er) return cb(er);
@@ -147,5 +132,20 @@ module.exports = function() {
         });
       });
     }
+    
+    // async tests
+    var success = 0;
+    testTruncate(function(er) {
+      if (er) throw er;
+      success++;
+      testFtruncate(function(er) {
+        if (er) throw er;
+        success++;
+      });
+    });
+    
+    process.on('exit', function() {
+      assert.equal(success, 2, 'Exit code mismatch: ' + success + ' != 2');
+    });
   }
 };
