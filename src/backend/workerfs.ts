@@ -364,7 +364,7 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
     super();
     this._worker = worker;
     this._worker.addEventListener('message',(e: MessageEvent) => {
-      if (typeof e.data === 'object' && e.data.hasOwnProperty('browserfsMessage') && e.data['browserfsMessage']) {
+      if (e.data != null && typeof e.data === 'object' && e.data.hasOwnProperty('browserfsMessage') && e.data['browserfsMessage']) {
         var resp: IAPIResponse = e.data, i: number, args = resp.args, fixedArgs = new Array(args.length);
         // Dispatch event to correct id.
         for (i = 0; i < fixedArgs.length; i++) {
@@ -656,7 +656,7 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
     }
 
     worker.addEventListener('message',(e: MessageEvent) => {
-      if (typeof e.data === 'object' && e.data.hasOwnProperty('browserfsMessage') && e.data['browserfsMessage']) {
+      if (e.data != null && typeof e.data === 'object' && e.data.hasOwnProperty('browserfsMessage') && e.data['browserfsMessage']) {
         var request: IAPIRequest = e.data,
           args = request.args,
           fixedArgs = new Array<any>(args.length),

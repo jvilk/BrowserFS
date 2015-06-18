@@ -1,24 +1,33 @@
+/// <reference path="../../bower_components/DefinitelyTyped/async/async.d.ts" />
 /// <reference path="../../bower_components/DefinitelyTyped/node/node.d.ts" />
-/// <reference path="../../bower_components/DefinitelyTyped/jasmine/jasmine.d.ts" />
+/// <reference path="../../bower_components/DefinitelyTyped/mocha/mocha.d.ts" />
 import BrowserFS = require('../../src/core/browserfs');
 import file_system = require('../../src/core/file_system');
 import BackendFactory = require('./BackendFactory');
+import async = require('async');
 var loadFixtures: () => void = require('../fixtures/load_fixtures');
 
-interface ITAPReporter {
-  new(print: () => void): jasmine.Reporter;
-}
-var TAPReporter: ITAPReporter = require('jasmine-tapreporter');
-/**
- * Sets up the test environment, and launches everything.
- * NOTE: Do not import or export anything from this file, as that will trigger
- * TypeScript to generate an AMD module. This is meant to execute at load time.
- */
-declare var __karma__: any;
 declare var __numWaiting: number;
+declare var __karma__: any;
+// HACK: Delay test execution until backends load.
+// https://zerokspot.com/weblog/2013/07/12/delay-test-execution-in-karma/
+__karma__.loaded = function() {};
 
 // Test timeout duration in milliseconds. Increase if needed.
 var timeout: number = 20000;
+
+function waitsFor(test: () => boolean, what: string, timeout: number, done: (e?: Error) => void) {
+  var interval = setInterval(() => {
+    if (test()) {
+      clearInterval(interval);
+      done();
+    } else if (0 >= (timeout -= 10)) {
+      clearInterval(interval);
+      done(new Error(`${what}: Timed out.`));
+    }
+  }, 10);
+}
+
 
 // Defines and starts all of our unit tests.
 export = function(tests: {
@@ -27,8 +36,9 @@ export = function(tests: {
       all: {[name: string]: () => void};
     };
     general: {[name: string]: () => void};
-  },
-  backendFactories: BackendFactory[]) {
+  }, backendFactories: BackendFactory[]) {
+  var fsBackends: { name: string; backends: file_system.FileSystem[]; }[] = [];
+
   // Install BFS globals (process, etc.).
   (<any> window)['BrowserFS'] = BrowserFS;
   BrowserFS.install(window);
@@ -45,22 +55,23 @@ export = function(tests: {
 
   // Generates a Jasmine unit test from a CommonJS test.
   function generateTest(testName: string, test: () => void) {
-    it(testName, function () {
-      runs(function () {
-        // Reset the exit callback.
-        process.on('exit', function () { });
-        test();
-      });
+    it(testName, function (done: (e?: any) => void) {
+      // Reset the exit callback.
+      process.on('exit', function () { });
+      test();
       waitsFor(() => {
         return __numWaiting === 0;
-      }, "All callbacks should fire", timeout);
-      runs(function () {
-        // Run the exit callback, if any.
-        (<any>process)._exitCb();
+      }, "All callbacks should fire", timeout, (e?: Error) => {
+        if (e) {
+          done(e);
+        } else {
+          // Run the exit callback, if any.
+          (<any>process)._exitCb(); 
+          waitsFor(() => {
+            return __numWaiting === 0;
+          }, "All callbacks should fire", timeout, done);
+        }
       });
-      waitsFor(() => {
-        return __numWaiting === 0;
-      }, "All callbacks should fire", timeout);
     });
   }
 
@@ -86,65 +97,43 @@ export = function(tests: {
       }
     }
   }
-
+  
   function generateAllTests() {
-    // programmatically create a single test suite for each filesystem we wish to
-    // test
-    var factorySemaphore: number = backendFactories.length;
-    function testGeneratorFactory(name: string, backend: file_system.FileSystem) {
-      return () => { generateBackendTests(name, backend); };
-    }
-
-    // generate generic non-backend specific tests
-    describe('General BrowserFS Tests', (): void => {
-      var genericTests = tests.general, testName: string;
-      for (testName in genericTests) {
-        if (genericTests.hasOwnProperty(testName)) {
-          generateTest(testName, genericTests[testName]);
-        }
-      }
-    });
-
-    backendFactories.forEach((factory) => {
-      factory((name: string, backends: file_system.FileSystem[]) => {
-        var backendSemaphore: number = backends.length;
-        // XXX: 0 backend case.
-        if (backendSemaphore === 0) {
-          if (--factorySemaphore === 0) {
-            // LAUNCH THE TESTS!
-            if (typeof __karma__ !== 'undefined') {
-              // Normal unit testing.
-              __karma__.start();
-            } else {
-              // Testling environment.
-              jasmine.getEnv().execute();
-            }
+    describe('BrowserFS Tests', function(): void {
+      this.timeout(0);
+  
+      // generate generic non-backend specific tests
+      describe('General Tests', (): void => {
+        var genericTests = tests.general, testName: string;
+        __numWaiting = 0;
+        for (testName in genericTests) {
+          if (genericTests.hasOwnProperty(testName)) {
+            generateTest(testName, genericTests[testName]);
           }
         }
-        backends.forEach((backend) => {
-          describe(backend.getName(), testGeneratorFactory(name, backend));
-          if (--backendSemaphore === 0) {
-            if (--factorySemaphore === 0) {
-              // LAUNCH THE TESTS!
-              if (typeof __karma__ !== 'undefined') {
-                // Normal unit testing.
-                __karma__.start();
-              } else {
-                // Testling environment.
-                jasmine.getEnv().execute();
-              }
-            }
-          }
+      });
+      
+      describe('FS Tests', (): void => {
+        fsBackends.forEach((fsBackend) => {
+          fsBackend.backends.forEach((backend) => {
+            describe(`${fsBackend.name} ${backend.getName()}`, (): void => {
+              generateBackendTests(fsBackend.name, backend);
+            });
+          });
         });
       });
     });
+    
+    // Kick off the tests!
+    __karma__.start();
   }
 
-  // Add a TAP reporter so we get decent console output.
-  jasmine.getEnv().addReporter(new TAPReporter(function() {
-    console.log.apply(console, arguments);
-  }));
-
-  // Begin!
-  generateAllTests();
+  async.eachSeries(backendFactories, (factory: BackendFactory, cb: (e?: any) => void) => {
+    factory((name: string, backends: file_system.FileSystem[]) => {
+      fsBackends.push({name: name, backends: backends});
+      cb();
+    });
+  }, (e?: any) => {
+    generateAllTests();
+  });
 };

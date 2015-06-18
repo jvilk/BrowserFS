@@ -1,6 +1,8 @@
 /**
- * This file installs all of the polyfills that BrowserFS requires.
+ * This file serves as the template for BrowserFS's main entry point.
+ * It installs all of the needed polyfills, and requires() all of our backends.
  */
+import global = require('./core/global');
 
 // IE < 9 does not define this function.
 if (!Date.now) {
@@ -86,8 +88,7 @@ if (!Array.prototype.forEach) {
 // Only IE10 has setImmediate.
 // @todo: Determine viability of switching to the 'proper' polyfill for this.
 if (typeof setImmediate === 'undefined') {
-  // XXX avoid importing the global module.
-  var gScope = typeof window !== 'undefined' ? window : typeof self !== 'undefined' ? self : <any> global;
+  var gScope = global;
   var timeouts: (() => void)[] = [];
   var messageName = "zero-timeout-message";
   var canUsePostMessage = function() {

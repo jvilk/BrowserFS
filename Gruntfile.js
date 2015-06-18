@@ -1,5 +1,19 @@
 var fs = require('fs'),
-  path = require('path');
+  path = require('path'),
+  _ = require('underscore'),
+  browserifyConfig = {
+    // Note: Cannot use "bare" here. That's a command-line-only switch.
+    builtins: [],
+    commondir: false,
+    detectGlobals: false,
+    debug: true,
+    transform: [
+      'aliasify'
+    ],
+    plugin: [
+      'tsify', 'browserify-derequire'
+    ]
+  };
 
 if (!fs.existsSync('build')) {
   fs.mkdirSync('build');
@@ -81,8 +95,7 @@ var karmaFiles = [
   // SourceMap support
   { pattern: 'src/**/*.ts*', included: false },
   { pattern: 'bower_components/DefinitelyTyped/**/*.d.ts', included: false },
-  { pattern: 'node_modules/pako/dist/*.js*', included: false },
-  { pattern: 'node_modules/jasmine-tapreporter/src/tapreporter.js', included: false }
+  { pattern: 'node_modules/pako/dist/*.js*', included: false }
 ];
 
 module.exports = function(grunt) {
@@ -100,24 +113,12 @@ module.exports = function(grunt) {
       options: {
         // base path, that will be used to resolve files and exclude
         basePath: '.',
-        frameworks: ['jasmine', 'browserify'],
+        frameworks: ['mocha', 'browserify'],
         files: karmaFiles,
         preprocessors: {
           'test/harness/run.ts': ['browserify']
         },
-        browserify: {
-          // Note: Cannot use "bare" here. That's a command-line-only switch.
-          builtins: ['assert'],
-          commondir: false,
-          detectGlobals: false,
-          debug: true,
-          transform: [
-            'aliasify'
-          ],
-          plugin: [
-            'tsify'
-          ]
-        },
+        browserify: _.extend({}, browserifyConfig, { builtins: ['assert'] }),
         exclude: [],
         reporters: ['progress'],
         port: 9876,
@@ -160,28 +161,24 @@ module.exports = function(grunt) {
       }
     },
     browserify: {
-      all: {
+      workerfs_worker: {
         options: {
-          browserifyOptions: {
-            // The output of the TypeScript compiler goes into this directory.
-            basedir: path.join('build', 'dev'),
-            // Expose what's exported in main.js under the name BrowserFS,
-            // wrapped as an UMD module.
-            standalone: 'BrowserFS',
-            // Don't include all built-ins
-            bare: true,
-            // Generate source map.
-            debug: true,
-            // derequire the generated script so that the script won't chock if it is further processed.
-            plugin: [
-              ['browserify-derequire']
-            ],
-            transform: ['aliasify']
-            // Noted that browserify-shim settings is in package.json.
-          }
+          browserifyOptions: browserifyConfig
         },
         files: {
-          './build/release/browserfs.js': ['./core/polyfills.js'].concat(getEssentialModules())
+          './test/harness/factories/workerfs_worker.js': './test/harness/factories/workerfs_worker.ts'
+        }
+      },
+      browserfs: {
+        options: {
+          browserifyOptions: _.extend({}, browserifyConfig, {
+            // Expose what's exported in main.ts under the name BrowserFS,
+            // wrapped as an UMD module.
+            standalone: 'BrowserFS'
+          })
+        },
+        files: {
+          './build/release/browserfs.js': './src/main.ts'
         }
       }
     },
@@ -260,18 +257,16 @@ module.exports = function(grunt) {
     removeDir('./test/fixtures/zipfs');
   });
 
-  grunt.registerTask('main.js', 'Construct main.js to include all backends and polyfills', function() {
+  grunt.registerTask('main.ts', 'Construct main.ts to include all backends and polyfills', function() {
     var modules = getEssentialModules(),
       bfsModule = modules.shift(),
-      main = [], i;
-
-    main.push(fs.readFileSync('build/dev/core/polyfills.js'));
-    main.push("module.exports=require('./" + bfsModule + "');");
-    for (i = 0; i < modules.length; i++) {
-      main.push("require('./" + modules[i] + "');");
-    }
-
-    fs.writeFileSync('build/dev/main.js', main.join('\n'));
+      main = [];
+    main.push(fs.readFileSync('src/main.tstemplate'));
+    modules.forEach(function(mod) {
+      main.push("require('./" + mod + "');");
+    });
+    main.push("export = require('./" + bfsModule + "');");
+    fs.writeFileSync('src/main.ts', main.join('\n'));
   });
   
   grunt.registerTask('run.ts', 'Construct run.ts to include all tests and factories.', function() {
@@ -302,7 +297,7 @@ module.exports = function(grunt) {
       }).join(', ');
 
     fs.writeFileSync('test/harness/run.ts', 
-      fs.readFileSync('test/harness/run_template.ts')
+      fs.readFileSync('test/harness/run.tstemplate')
         .toString()
         .replace(/\/\*FACTORIES\*\//g, factoryStringified)
         .replace(/\/\*TESTS\*\//g, testsStringified), 'utf8'
@@ -310,7 +305,7 @@ module.exports = function(grunt) {
   });
 
   // test
-  grunt.registerTask('test', ['run.ts', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect', 'karma:test']);
+  grunt.registerTask('test', ['main.ts', 'run.ts', 'browserify:workerfs_worker', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect', 'karma:test']);
   // testing dropbox
   grunt.registerTask('dropbox_test', ['ts:test', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'shell:gen_cert', 'shell:gen_token', 'connect', 'karma:dropbox_test']);
   // dev build
@@ -318,7 +313,7 @@ module.exports = function(grunt) {
   // dev build + watch for changes.
   grunt.registerTask('watch', ['ts:watch']);
   // release build (default)
-  grunt.registerTask('default', ['ts:dev', 'main.js', 'browserify', 'exorcise', 'uglify']);
+  grunt.registerTask('default', ['main.ts', 'browserify:browserfs', 'exorcise', 'uglify']);
   // testling
   grunt.registerTask('testling', ['default', 'shell:gen_listings', 'shell:gen_zipfs_fixtures', 'shell:load_fixtures']);
 };

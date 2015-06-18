@@ -7,6 +7,7 @@ doc
 bower_components
 test/fixtures
 test/harness/load_fixtures.js
+test/harness/factories/workerfs_worker.js
 !test/fixtures/files
 !test/fixtures/README.md
 tscommand*
@@ -14,6 +15,8 @@ tools/*.js*
 build
 src/ignoreBaseDirFile.ts
 src/.baseDir.ts
-# Run.ts is auto-generated
+# run.ts is auto-generated
 test/harness/run.ts
 .tscache
+# main.ts is auto-generated
+src/main.ts
