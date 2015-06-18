@@ -142,24 +142,6 @@ module.exports = function(grunt) {
         }
       }
     },
-    ts: {
-      options: {
-        sourcemap: true,
-        module: 'commonjs',
-        comments: true,
-        declaration: true
-      },
-      dev: {
-        src: ["src/**/*.ts"],
-        outDir: path.join('build', 'dev')
-      },
-      watch: {
-        // Performs a dev build and rebuilds when changes are made.
-        src: ["src/**/*.ts"],
-        outDir: path.join('build', 'dev'),
-        watch: 'src'
-      }
-    },
     browserify: {
       workerfs_worker: {
         options: {
@@ -176,6 +158,20 @@ module.exports = function(grunt) {
             // wrapped as an UMD module.
             standalone: 'BrowserFS'
           })
+        },
+        files: {
+          './build/release/browserfs.js': './src/main.ts'
+        }
+      },
+      watch: {
+        options: {
+          browserifyOptions: _.extend({}, browserifyConfig, {
+            // Expose what's exported in main.ts under the name BrowserFS,
+            // wrapped as an UMD module.
+            standalone: 'BrowserFS'
+          }),
+          watch: true,
+          keepAlive: true
         },
         files: {
           './build/release/browserfs.js': './src/main.ts'
@@ -239,7 +235,6 @@ module.exports = function(grunt) {
     }
   });
 
-  grunt.loadNpmTasks('grunt-ts');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-connect');
   grunt.loadNpmTasks('grunt-browserify');
@@ -308,12 +303,10 @@ module.exports = function(grunt) {
   grunt.registerTask('test', ['main.ts', 'run.ts', 'browserify:workerfs_worker', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect', 'karma:test']);
   // testing dropbox
   grunt.registerTask('dropbox_test', ['ts:test', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'shell:gen_cert', 'shell:gen_token', 'connect', 'karma:dropbox_test']);
-  // dev build
-  grunt.registerTask('dev', ['ts:dev']);
   // dev build + watch for changes.
-  grunt.registerTask('watch', ['ts:watch']);
+  grunt.registerTask('watch', ['main.ts', 'browserify:watch']);
+  // dev build
+  grunt.registerTask('dev', ['main.ts', 'browserify:browserfs', 'exorcise']);
   // release build (default)
-  grunt.registerTask('default', ['main.ts', 'browserify:browserfs', 'exorcise', 'uglify']);
-  // testling
-  grunt.registerTask('testling', ['default', 'shell:gen_listings', 'shell:gen_zipfs_fixtures', 'shell:load_fixtures']);
+  grunt.registerTask('default', ['dev', 'uglify']);
 };
