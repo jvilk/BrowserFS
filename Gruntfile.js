@@ -160,7 +160,7 @@ module.exports = function(grunt) {
           })
         },
         files: {
-          './build/release/browserfs.js': './src/main.ts'
+          './build/browserfs.js': './src/main.ts'
         }
       },
       watch: {
@@ -174,7 +174,7 @@ module.exports = function(grunt) {
           keepAlive: true
         },
         files: {
-          './build/release/browserfs.js': './src/main.ts'
+          './build/browserfs.js': './src/main.ts'
         }
       }
     },
@@ -183,10 +183,10 @@ module.exports = function(grunt) {
         options: {
           sourceMap: true,
           sourceMapIncludeSources: true,
-          sourceMapIn: './build/release/browserfs.js.map'
+          sourceMapIn: './build/browserfs.js.map'
         },
         files: {
-          './build/release/browserfs.min.js': './build/release/browserfs.js'
+          './build/browserfs.min.js': './build/browserfs.js'
         }
       }
     },
@@ -196,7 +196,7 @@ module.exports = function(grunt) {
           strict: true
         },
         files: {
-          './build/release/browserfs.js.map': './build/release/browserfs.js'
+          './build/browserfs.js.map': './build/browserfs.js'
         }
       }
     },
@@ -246,8 +246,7 @@ module.exports = function(grunt) {
   grunt.registerTask('clean', 'Removes all built files.', function () {
     removeFile('./test/fixtures/load_fixtures.js');
     removeFile('./listings.json');
-    removeDir('./build/dev');
-    removeDir('./build/release');
+    removeDir('./build');
     removeDir('./test/fixtures/dropbox');
     removeDir('./test/fixtures/zipfs');
   });
