@@ -1,8 +1,8 @@
 BrowserFS
 =========
 
-[![NPM version](https://badge.fury.io/js/browserfs.svg)](http://badge.fury.io/js/BrowserFS)
-[![Bower version](https://badge.fury.io/bo/browserfs.svg)](http://badge.fury.io/bo/BrowserFS)
+[![NPM version](https://badge.fury.io/js/browserfs.svg)](http://badge.fury.io/js/browserfs)
+[![Bower version](https://badge.fury.io/bo/browserfs.svg)](http://badge.fury.io/bo/browserfs)
 [![david-dm-status-badge](https://david-dm.org/jvilk/BrowserFS.svg)](https://david-dm.org/jvilk/browserfs#info=dependencies&view=table)
 [![david-dm-status-badge](https://david-dm.org/jvilk/BrowserFS/dev-status.svg)](https://david-dm.org/jvilk/BrowserFS#info=devDependencies&view=table)
 
