@@ -1,6 +1,3 @@
-/**
- * @module core/api_error
- */
 import buffer = require("./buffer");
 import Buffer = buffer.Buffer;
 

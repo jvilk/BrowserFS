@@ -1,4 +1,5 @@
 import eventemitter = require('./node_eventemitter');
+// Path depends on process. Avoid a circular reference by dynamically including path when we need it.
 var path: any = null;
 
 export class TTY extends eventemitter.AbstractDuplexStream {
