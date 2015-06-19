@@ -1,6 +1,6 @@
 {
   "name": "browserfs",
-  "version": "0.3.7",
+  "version": "0.4.0",
   "description": "A filesystem in your browser!",
   "keywords": [
     "filesystem",
