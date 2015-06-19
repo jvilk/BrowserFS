@@ -63,6 +63,6 @@
         "test/harness/setup.ts",
         "bower_components/DefinitelyTyped/async/async.d.ts",
         "bower_components/DefinitelyTyped/node/node-0.10.d.ts",
-        "bower_components/DefinitelyTyped/mocha/mocha.d.ts"
+        "test/harness/mocha.d.ts"
     ]
 }

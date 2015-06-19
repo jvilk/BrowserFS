@@ -125,7 +125,7 @@ module.exports = function(grunt) {
         colors: true,
         logLevel: 'INFO',
         autoWatch: true,
-        browsers: ['Firefox', 'Chrome', 'Opera', 'Safari'],
+        browsers: ['Firefox'],
         captureTimeout: 60000,
         // Avoid hardcoding and cross-origin issues.
         proxies: {
