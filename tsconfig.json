@@ -9,6 +9,7 @@
         "declaration": true
     },
     "files": [
+        "src/DataView.d.ts",
         "src/main.ts",
         "src/backend/async_mirror.ts",
         "src/backend/dropbox.ts",
@@ -61,7 +62,7 @@
         "test/harness/factories/zipfs_factory.ts",
         "test/harness/setup.ts",
         "bower_components/DefinitelyTyped/async/async.d.ts",
-        "bower_components/DefinitelyTyped/node/node.d.ts",
+        "bower_components/DefinitelyTyped/node/node-0.10.d.ts",
         "bower_components/DefinitelyTyped/mocha/mocha.d.ts"
     ]
 }

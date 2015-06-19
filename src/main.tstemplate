@@ -1,4 +1,5 @@
-/// <reference path="../bower_components/DefinitelyTyped/node/node.d.ts" />
+/// <reference path="./DataView.d.ts" />
+/// <reference path="../bower_components/DefinitelyTyped/node/node-0.10.d.ts" />
 /**
  * This file serves as the template for BrowserFS's main entry point.
  * It installs all of the needed polyfills, and requires() all of our backends.

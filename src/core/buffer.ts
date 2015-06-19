@@ -1,3 +1,4 @@
+/// <reference path="../DataView.d.ts" />
 /**
  * Buffer module. Exports an appropriate version of Buffer for the current
  * platform.

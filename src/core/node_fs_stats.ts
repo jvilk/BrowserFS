@@ -1,4 +1,5 @@
-/// <reference path="../../bower_components/DefinitelyTyped/node/node.d.ts" />
+/// <reference path="../DataView.d.ts" />
+/// <reference path="../../bower_components/DefinitelyTyped/node/node-0.10.d.ts" />
 // Import the type annotation from Node.
 import fs = require('fs');
 import file = require('./file');
