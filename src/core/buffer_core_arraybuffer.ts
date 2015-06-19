@@ -132,7 +132,7 @@ export class BufferCoreArrayBuffer extends buffer_core.BufferCoreCommon implemen
   public fill(value: number, start: number, end: number): void {
     // Value must be a byte wide.
     value = value & 0xFF;
-    var i;
+    var i: number;
     var len = end - start;
     var intBytes = (((len)/4)|0)*4;
     // Optimization: Write 4 bytes at a time.

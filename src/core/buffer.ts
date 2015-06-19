@@ -1,3 +1,4 @@
+/// <reference path="../DataView.d.ts" />
 /**
  * Buffer module. Exports an appropriate version of Buffer for the current
  * platform.
@@ -83,7 +84,7 @@ export class Buffer implements BFSBuffer {
   constructor (data: string, encoding?: string);
   constructor (data: buffer_core.BufferCore, start?: number, end?: number);
   constructor (arg1: any, arg2: any = 'utf8', arg3?: number) {
-    var i;
+    var i: number;
     // Node apparently allows you to construct buffers w/o 'new'.
     if (!(this instanceof Buffer)) {
       return new Buffer(arg1, arg2);
@@ -107,8 +108,9 @@ export class Buffer implements BFSBuffer {
       // constructor (data: DataView);
       this.data = new buffer_core_arraybuffer.BufferCoreArrayBuffer(<DataView> arg1);
       this.length = arg1.byteLength;
-    } else if (typeof ArrayBuffer !== 'undefined' && arg1 instanceof ArrayBuffer) {
+    } else if (typeof ArrayBuffer !== 'undefined' && typeof arg1.byteLength === 'number') {
       // constructor (data: ArrayBuffer);
+      // Note: Can't do 'instanceof ArrayBuffer' in Safari in some cases. :|
       this.data = new buffer_core_arraybuffer.BufferCoreArrayBuffer(<ArrayBuffer> arg1);
       this.length = arg1.byteLength;
     } else if (arg1 instanceof Buffer) {
@@ -395,7 +397,7 @@ export class Buffer implements BFSBuffer {
    * @param {number} [end=this.length]
    */
   public fill(value: any, offset = 0, end = this.length): void {
-    var i;
+    var i: number;
     var valType = typeof value;
     switch (valType) {
       case "string":
@@ -606,7 +608,7 @@ export class Buffer implements BFSBuffer {
    * @return {Buffer}
    */
   public static concat(list: NodeBuffer[], totalLength?: number): NodeBuffer {
-    var item;
+    var item: NodeBuffer;
     if (list.length === 0 || totalLength === 0) {
       return new Buffer(0);
     } else if (list.length === 1) {

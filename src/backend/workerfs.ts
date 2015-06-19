@@ -154,7 +154,7 @@ class FileDescriptorArgumentConverter {
                 cb(e);
               } else {
                 if (stats.mode !== remoteStats.mode) {
-                  fd.chmod(remoteStats.mode,(e) => {
+                  fd.chmod(remoteStats.mode, (e: any) => {
                     cb(e, fd);
                   });
                 } else {
@@ -188,7 +188,7 @@ class FileDescriptorArgumentConverter {
         cb(err);
       } else {
         // Apply method on now-changed file descriptor.
-        fd[request.method]((e?: api_error.ApiError) => {
+        (<any> fd)[request.method]((e?: api_error.ApiError) => {
           if (request.method === 'close') {
             delete this._fileDescriptors[fdArg.id];
           }
@@ -364,7 +364,7 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
     super();
     this._worker = worker;
     this._worker.addEventListener('message',(e: MessageEvent) => {
-      if (typeof e.data === 'object' && e.data.hasOwnProperty('browserfsMessage') && e.data['browserfsMessage']) {
+      if (e.data != null && typeof e.data === 'object' && e.data.hasOwnProperty('browserfsMessage') && e.data['browserfsMessage']) {
         var resp: IAPIResponse = e.data, i: number, args = resp.args, fixedArgs = new Array(args.length);
         // Dispatch event to correct id.
         for (i = 0; i < fixedArgs.length; i++) {
@@ -485,7 +485,7 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
   }
   public stat(p: string, isLstat: boolean, cb: (err: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void {
     this._rpc('stat', arguments);
-  }s
+  }
   public open(p: string, flag: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.File) => any): void {
     this._rpc('open', arguments);
   }
@@ -588,7 +588,7 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
             switch (specialArg.type) {
               case SpecialArgType.CB:
                 var cbId = (<ICallbackArgument> arg).id;
-                return () => {
+                return function() {
                   var i: number, fixedArgs = new Array(arguments.length),
                     message: IAPIResponse,
                     countdown = arguments.length;
@@ -656,7 +656,7 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
     }
 
     worker.addEventListener('message',(e: MessageEvent) => {
-      if (typeof e.data === 'object' && e.data.hasOwnProperty('browserfsMessage') && e.data['browserfsMessage']) {
+      if (e.data != null && typeof e.data === 'object' && e.data.hasOwnProperty('browserfsMessage') && e.data['browserfsMessage']) {
         var request: IAPIRequest = e.data,
           args = request.args,
           fixedArgs = new Array<any>(args.length),

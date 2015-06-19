@@ -1,9 +1,5 @@
-/**
- * @module core/api_error
- */
 import buffer = require("./buffer");
-
-var Buffer = buffer.Buffer;
+import Buffer = buffer.Buffer;
 
 /**
  * Standard libc error codes. Add more to this enum and ErrorStrings as they are

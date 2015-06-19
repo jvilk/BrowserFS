@@ -19,25 +19,31 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-define([], function() { return function(){
-if (fs.getRootFS().isReadOnly()) return;
-// make a path that will be at least 260 chars long.
-var fileNameLen = Math.max(260 - common.tmpDir.length - 1, 1);
-var fileName = path.join(common.tmpDir, new Array(fileNameLen + 1).join('x'));
-var fullPath = path.resolve(fileName);
+var fs = require('fs'),
+    path = require('path'),
+    assert = require('assert'),
+    common = require('../../../harness/common');
 
-fs.writeFile(fullPath, 'ok', function(err) {
-  if (err) throw err;
-
-  fs.stat(fullPath, function(err, stats) {
-    if (err) throw err;
-    assert.equal(2, stats.size, 'stats.size: expected 2, got: ' + stats.size);
-  });
-});
-
-
-process.on('exit', function() {
-  fs.unlink(fullPath);
-  //assert.equal(2, successes);
-});
-};});
+module.exports = function() {
+  if (!fs.getRootFS().isReadOnly()) {
+    // make a path that will be at least 260 chars long.
+    var fileNameLen = Math.max(260 - common.tmpDir.length - 1, 1);
+    var fileName = path.join(common.tmpDir, new Array(fileNameLen + 1).join('x'));
+    var fullPath = path.resolve(fileName);
+    
+    fs.writeFile(fullPath, 'ok', function(err) {
+      if (err) throw err;
+    
+      fs.stat(fullPath, function(err, stats) {
+        if (err) throw err;
+        assert.equal(2, stats.size, 'stats.size: expected 2, got: ' + stats.size);
+      });
+    });
+    
+    
+    process.on('exit', function() {
+      fs.unlink(fullPath);
+      //assert.equal(2, successes);
+    });
+  }
+};

@@ -8,7 +8,7 @@ export interface CanvasPixelArray {
   [index: number]: number;
   length: number;
 }
-declare var CanvasPixelArray;
+declare var CanvasPixelArray: CanvasPixelArray;
 
 /**
  * Implementation of BufferCore that is backed by an ImageData object.
@@ -25,7 +25,7 @@ export class BufferCoreImageData extends buffer_core.BufferCoreCommon implements
     // Lazily initialize, otherwise every browser (even those that will never
     // use this code) will create a canvas on script load.
     if (ctx === undefined) {
-      BufferCoreImageData.imageDataFactory = ctx = document.createElement('canvas').getContext('2d');
+      BufferCoreImageData.imageDataFactory = ctx = <CanvasRenderingContext2D> document.createElement('canvas').getContext('2d');
     }
     // You cannot create image data with size 0, so up it to size 1.
     if (bytes === 0) bytes = 1;

@@ -169,7 +169,7 @@ export class AbstractEventEmitter implements NodeJS.EventEmitter {
     var listeners = this._listeners[event],
         rv: boolean = false;
     if (typeof(listeners) !== 'undefined') {
-      var i;
+      var i: number;
       for (i = 0; i < listeners.length; i++) {
         rv = true;
         listeners[i].apply(this, args);
@@ -370,7 +370,7 @@ export class AbstractDuplexStream extends AbstractEventEmitter implements NodeJS
     // Schedule the relevant cbs to fire *after* we've returned these values.
     if (eventsCbs.length > 0) {
       setTimeout(function() {
-        var i;
+        var i: number;
         for (i = 0; i < eventsCbs.length; i++) {
           eventsCbs[i]();
         }

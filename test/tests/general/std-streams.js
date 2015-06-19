@@ -1,4 +1,6 @@
-define([], function() { return function(){
+var assert = require('assert');
+
+module.exports = function() {
   var datStr = "hey\nhere's some data.",
       cb = function(data) {
         if (currentEncoding === null) {
@@ -11,7 +13,7 @@ define([], function() { return function(){
       currentEncoding = null,
       streams = [process.stdout, process.stderr, process.stdin],
       i;
-
+  
   for (i = 0; i < streams.length; i++) {
     streams[i].setEncoding(null);
     streams[i].on('data', cb);
@@ -22,7 +24,7 @@ define([], function() { return function(){
     // Prepare for next loop.
     streams[i].setEncoding('utf8');
   }
-
+  
   currentEncoding = 'utf8';
   for (i = 0; i < streams.length; i++) {
     // Write as string, receive as string.
@@ -32,4 +34,4 @@ define([], function() { return function(){
     // Remove all listeners.
     streams[i].removeAllListeners();
   }
-};});
+};

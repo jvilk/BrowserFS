@@ -1,4 +1,9 @@
-import api_error = require('./api_error');
+/**
+ * !!!NOTE: This file should not depend on any other file!!!
+ * 
+ * Buffers are referenced everywhere, so it can cause a circular dependency.
+ */
+
 var FLOAT_POS_INFINITY = Math.pow(2, 128);
 var FLOAT_NEG_INFINITY = -1 * FLOAT_POS_INFINITY;
 var FLOAT_POS_INFINITY_AS_INT = 0x7F800000;
@@ -166,7 +171,7 @@ export interface BufferCoreImplementation {
  */
 export class BufferCoreCommon {
   public getLength(): number {
-    throw new api_error.ApiError(api_error.ErrorCode.ENOTSUP, 'BufferCore implementations should implement getLength.');
+    throw new Error('BufferCore implementations should implement getLength.');
   }
   public writeInt8(i: number, data: number): void {
     // Pack the sign bit as the highest bit.
@@ -201,7 +206,7 @@ export class BufferCoreCommon {
     this.writeUInt8(i, (data >>> 24) & 0xFF);
   }
   public writeUInt8(i: number, data: number): void {
-    throw new api_error.ApiError(api_error.ErrorCode.ENOTSUP, 'BufferCore implementations should implement writeUInt8.');
+    throw new Error('BufferCore implementations should implement writeUInt8.');
   }
   public writeUInt16LE(i: number, data: number): void {
     this.writeUInt8(i, data & 0xFF);
@@ -267,7 +272,7 @@ export class BufferCoreCommon {
     return this.readUInt32BE(i) | 0;
   }
   public readUInt8(i: number): number {
-    throw new api_error.ApiError(api_error.ErrorCode.ENOTSUP, 'BufferCore implementations should implement readUInt8.');
+    throw new Error('BufferCore implementations should implement readUInt8.');
   }
   public readUInt16LE(i: number): number {
     return (this.readUInt8(i+1) << 8) | this.readUInt8(i);
@@ -294,7 +299,7 @@ export class BufferCoreCommon {
     return this.longbits2double(this.readInt32BE(i), this.readInt32BE(i+4));
   }
   public copy(start: number, end: number): BufferCore {
-    throw new api_error.ApiError(api_error.ErrorCode.ENOTSUP, 'BufferCore implementations should implement copy.');
+    throw new Error('BufferCore implementations should implement copy.');
   }
   public fill(value: number, start: number, end: number): void {
     // Stupid unoptimized fill: Byte-by-byte.
@@ -304,7 +309,7 @@ export class BufferCoreCommon {
   }
 
   private float2intbits(f_val: number) : number {
-    var exp, f_view, i_view, sig, sign;
+    var exp: number, f_view: number, i_view: number, sig: number, sign: number;
 
     // Special cases!
     if (f_val === 0) {
@@ -347,7 +352,7 @@ export class BufferCoreCommon {
   }
 
   private double2longbits(d_val: number): number[] {
-    var d_view, exp, high_bits, i_view, sig, sign;
+    var d_view: number, exp: number, high_bits: number, i_view: number, sig: number, sign: number;
 
     // Special cases
     if (d_val === 0) {

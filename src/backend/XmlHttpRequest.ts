@@ -286,7 +286,7 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
         return cb(err);
       }
       cb = function(err: api_error.ApiError, arg?: buffer.Buffer) {
-        fd.close(function(err2) {
+        fd.close(function(err2: any) {
           if (err == null) {
             err = err2;
           }

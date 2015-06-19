@@ -10,13 +10,13 @@
  * https://raw.github.com/kripken/emscripten/master/src/library_nodefs.js
  */
 import BrowserFS = require('../core/browserfs');
-import node_fs = require('../core/node_fs');
+import fs = require('../core/node_fs');
 import buffer = require('../core/buffer');
 import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
+import node_fs_stats = require('../core/node_fs_stats');
 
-var Buffer = buffer.Buffer;
-var BufferCoreArrayBuffer = buffer_core_arraybuffer.BufferCoreArrayBuffer;
-var fs = node_fs.fs;
+import Buffer = buffer.Buffer;
+import BufferCoreArrayBuffer = buffer_core_arraybuffer.BufferCoreArrayBuffer;
 
 export interface Stats {
   dev: number;
@@ -82,9 +82,9 @@ export interface EmscriptenFS {
 }
 
 class BFSEmscriptenStreamOps implements EmscriptenStreamOps {
-  private FS;
-  private PATH;
-  private ERRNO_CODES;
+  private FS: any;
+  private PATH: any;
+  private ERRNO_CODES: any;
 
   constructor(private fs: BFSEmscriptenFS) {
     this.FS = fs.getFS();
@@ -121,7 +121,7 @@ class BFSEmscriptenStreamOps implements EmscriptenStreamOps {
     // Avoid copying overhead by reading directly into buffer.
     var bcore = new BufferCoreArrayBuffer(buffer.buffer);
     var nbuffer = new Buffer(bcore, buffer.byteOffset + offset, buffer.byteOffset + offset + length);
-    var res;
+    var res: number;
     try {
       res = fs.readSync(stream.nfd, nbuffer, 0, length, position);
     } catch (e) {
@@ -135,7 +135,7 @@ class BFSEmscriptenStreamOps implements EmscriptenStreamOps {
     // Avoid copying overhead; plug the buffer directly into a BufferCore.
     var bcore = new BufferCoreArrayBuffer(buffer.buffer);
     var nbuffer = new Buffer(bcore, buffer.byteOffset + offset, buffer.byteOffset + offset + length);
-    var res;
+    var res: number;
     try {
       res = fs.writeSync(stream.nfd, nbuffer, 0, length, position);
     } catch (e) {
@@ -169,9 +169,9 @@ class BFSEmscriptenStreamOps implements EmscriptenStreamOps {
 }
 
 class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
-  private FS;
-  private PATH;
-  private ERRNO_CODES;
+  private FS: any;
+  private PATH: any;
+  private ERRNO_CODES: any;
 
   constructor(private fs: BFSEmscriptenFS) {
     this.FS = fs.getFS();
@@ -181,7 +181,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
 
   public getattr(node: EmscriptenFSNode): Stats {
     var path = this.fs.realPath(node);
-    var stat;
+    var stat: node_fs_stats.Stats;
     try {
       stat = fs.lstatSync(path);
     } catch (e) {
@@ -321,10 +321,10 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
 }
 
 export class BFSEmscriptenFS implements EmscriptenFS {
-  private FS;
-  private PATH;
-  private ERRNO_CODES;
-  constructor(_FS = self['FS'], _PATH = self['PATH'], _ERRNO_CODES = self['ERRNO_CODES']) {
+  private FS: any;
+  private PATH: any;
+  private ERRNO_CODES: any;
+  constructor(_FS = (<any> self)['FS'], _PATH = (<any> self)['PATH'], _ERRNO_CODES = (<any> self)['ERRNO_CODES']) {
     if (typeof BrowserFS === 'undefined') {
       throw new Error("BrowserFS is not loaded. Please load it before this library.");
     }
@@ -351,7 +351,7 @@ export class BFSEmscriptenFS implements EmscriptenFS {
   }
 
   public getMode(path: string): number {
-    var stat;
+    var stat: node_fs_stats.Stats;
     try {
       stat = fs.lstatSync(path);
     } catch (e) {
@@ -362,7 +362,7 @@ export class BFSEmscriptenFS implements EmscriptenFS {
   }
 
   public realPath(node: EmscriptenFSNode): string {
-    var parts = [];
+    var parts: string[] = [];
     while (node.parent !== node) {
       parts.push(node.name);
       node = node.parent;
@@ -402,7 +402,7 @@ export class BFSEmscriptenFS implements EmscriptenFS {
 
   public flagsToPermissionString(flags: string): string {
     if (flags in this.flagsToPermissionStringMap) {
-      return this.flagsToPermissionStringMap[flags];
+      return (<any> this.flagsToPermissionStringMap)[flags];
     } else {
       return flags;
     }
@@ -425,4 +425,4 @@ export class BFSEmscriptenFS implements EmscriptenFS {
 }
 
 // Make it available on the global BrowserFS object.
-BrowserFS['EmscriptenFS'] = BFSEmscriptenFS;
+(<any> BrowserFS)['EmscriptenFS'] = BFSEmscriptenFS;

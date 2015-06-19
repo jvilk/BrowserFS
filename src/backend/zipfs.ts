@@ -1,5 +1,3 @@
-/// <amd-dependency path="zlib" />
-
 /**
  * Zip file-backed filesystem
  * Implemented according to the standard:
@@ -55,19 +53,14 @@ import file = require('../core/file');
 import file_flag = require('../core/file_flag');
 import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
 import preload_file = require('../generic/preload_file');
+var inflateRaw: {
+  (data: Uint8Array | number[], options?: {
+    chunkSize: number;
+  }): Uint8Array | number[];
+} = require('zlib-inflate').inflateRaw;
 var ApiError = api_error.ApiError;
 var ErrorCode = api_error.ErrorCode;
 var ActionType = file_flag.ActionType;
-
-// Partial typings for zlib.js's inflate API.
-interface RawInflate {
-  new(input: Uint8Array, opts?: {
-    bufferSize: number
-  }): RawInflate;
-  decompress(): Uint8Array;
-}
-declare var Zlib;
-var RawInflate: RawInflate = Zlib.RawInflate;
 
 
 /**
@@ -247,13 +240,15 @@ export class FileData {
           var dview = bcore.getDataView();
           var start = dview.byteOffset + buff.getOffset();
           var uarray = (new Uint8Array(dview.buffer)).subarray(start, start + this.record.compressedSize());
-          var data: Uint8Array = (new RawInflate(uarray, { bufferSize: this.record.uncompressedSize() })).decompress();
+          var data: Uint8Array = <Uint8Array> inflateRaw(uarray, {
+            chunkSize: this.record.uncompressedSize()
+          });
           return new buffer.Buffer(new buffer_core_arraybuffer.BufferCoreArrayBuffer(data.buffer), data.byteOffset, data.byteOffset + data.length);
         } else {
           // Convert to an array of bytes and decompress, then write into a new
           // buffer :(
           var newBuff = <buffer.Buffer> buff.slice(0, this.record.compressedSize());
-          return new buffer.Buffer(<number[]><any>(new RawInflate(<any> newBuff.toJSON().data, { bufferSize: this.record.uncompressedSize() })).decompress());
+          return new buffer.Buffer(<number[]><any>(inflateRaw(<any> newBuff.toJSON().data, { chunkSize: this.record.uncompressedSize() })));
         }
       case CompressionMethod.STORED:
         // Grab and copy.

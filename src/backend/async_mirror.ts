@@ -164,7 +164,7 @@ class AsyncMirrorFS extends file_system.SynchronousFileSystem implements file_sy
           var op = this._queue.shift(),
             args = op.arguments;
           args.push(doNextOp);
-          (<Function> this._async[op.apiMethod]).apply(this._async, args);
+          (<Function> (<any> this._async)[op.apiMethod]).apply(this._async, args);
         } else {
           this._queueRunning = false;
         }

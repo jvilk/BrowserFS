@@ -19,32 +19,36 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-define([], function() { return function(){
-if (fs.getRootFS().isReadOnly()) return;
-
-var dirName = path.resolve(common.fixturesDir, 'test-readfile-unlink'),
-    fileName = path.resolve(dirName, 'test.bin');
-
-var buf = new Buffer(512);
-buf.fill(42);
-
-fs.mkdir(dirName, function(err) {
-  if (err) throw err;
-  fs.writeFile(fileName, buf, function(err) {
-    if (err) throw err;
-    fs.readFile(fileName, function(err, data) {
-      assert.ifError(err);
-      assert(data.length == buf.length);
-      assert.strictEqual(buf.get(0), 42);
-
-      fs.unlink(fileName, function(err) {
+var fs = require('fs'),
+    path = require('path'),
+    assert = require('assert'),
+    common = require('../../../harness/common');
+    
+module.exports = function() {
+  if (!fs.getRootFS().isReadOnly()) {
+    var dirName = path.resolve(common.fixturesDir, 'test-readfile-unlink'),
+        fileName = path.resolve(dirName, 'test.bin');
+    
+    var buf = new Buffer(512);
+    buf.fill(42);
+    
+    fs.mkdir(dirName, function(err) {
+      if (err) throw err;
+      fs.writeFile(fileName, buf, function(err) {
         if (err) throw err;
-        fs.rmdir(dirName, function(err) {
-          if (err) throw err;
+        fs.readFile(fileName, function(err, data) {
+          assert.ifError(err);
+          assert(data.length == buf.length);
+          assert.strictEqual(buf.get(0), 42);
+    
+          fs.unlink(fileName, function(err) {
+            if (err) throw err;
+            fs.rmdir(dirName, function(err) {
+              if (err) throw err;
+            });
+          });
         });
       });
     });
-  });
-});
-
-};});
+  }
+};

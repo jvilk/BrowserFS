@@ -1,5 +1,5 @@
 /// <reference path="../../bower_components/DefinitelyTyped/filesystem/filesystem.d.ts" />
-/// <amd-dependency path="async" />
+/// <reference path="../../bower_components/DefinitelyTyped/async/async.d.ts" />
 import preload_file = require('../generic/preload_file');
 import file_system = require('../core/file_system');
 import api_error = require('../core/api_error');
@@ -9,18 +9,16 @@ import buffer = require('../core/buffer');
 import file = require('../core/file');
 import browserfs = require('../core/browserfs');
 import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
-import node_path = require('../core/node_path');
+import path = require('../core/node_path');
 import global = require('../core/global');
+import async = require('async');
 
-var Buffer = buffer.Buffer;
-var Stats = node_fs_stats.Stats;
-var FileType = node_fs_stats.FileType;
-var ApiError = api_error.ApiError;
-var ErrorCode = api_error.ErrorCode;
-var ActionType = file_flag.ActionType;
-
-// XXX: The typings for async on DefinitelyTyped are out of date.
-var async = require('async');
+import Buffer = buffer.Buffer;
+import Stats = node_fs_stats.Stats;
+import FileType = node_fs_stats.FileType;
+import ApiError = api_error.ApiError;
+import ErrorCode = api_error.ErrorCode;
+import ActionType = file_flag.ActionType;
 
 var _getFS: (type:number, size:number, successCallback: FileSystemCallback, errorCallback?: ErrorCallback) => void = global.webkitRequestFileSystem || global.requestFileSystem || null;
 
@@ -30,7 +28,7 @@ function _requestQuota(type: number, size: number, success: (size: number) => vo
   // implementation of the HTML5FS and is likely driving the standardization
   // process. Thus, these objects defined off of navigator and window are not
   // present in the DefinitelyTyped TypeScript typings for FileSystem.
-  if (typeof navigator['webkitPersistentStorage'] !== 'undefined') {
+  if (typeof (<any> navigator)['webkitPersistentStorage'] !== 'undefined') {
     switch(type) {
       case global.PERSISTENT:
         (<any> navigator).webkitPersistentStorage.requestQuota(size, success, errorCallback);
@@ -72,7 +70,7 @@ export class HTML5FSFile extends preload_file.PreloadFile implements file.File {
         create: false
       };
       var _fs = <HTML5FS> this._fs;
-      var success = (entry) => {
+      var success: FileEntryCallback = (entry) => {
         entry.createWriter((writer) => {
           // XXX: Typing hack.
           var buffer = this.getBuffer();
@@ -89,19 +87,19 @@ export class HTML5FSFile extends preload_file.PreloadFile implements file.File {
           var abv = new DataView(dv.buffer, dv.byteOffset + (<buffer.BFSBuffer><any>buffer).getOffset(), buffer.length);
           var blob = new Blob([abv]);
           var length = blob.size;
-          writer.onwriteend = (event) => {
+          writer.onwriteend = () => {
             writer.onwriteend = null;
             writer.truncate(length);
             this.resetDirty();
             cb();
           };
-          writer.onerror = (err) => {
+          writer.onerror = (err: DOMError) => {
             cb(_fs.convert(err));
           };
           writer.write(blob);
         });
       };
-      var error = (err) => {
+      var error = (err: DOMError) => {
         cb(_fs.convert(err));
       };
       _fs.fs.root.getFile(this.getPath(), opts, success, error);
@@ -226,7 +224,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
         main_cb(err);
       } else {
         // Called when every entry has been operated on
-        var finished = (er: api_error.ApiError): void => {
+        var finished = (er: any): void => {
           if (err) {
             console.error("Failed to empty FS");
             main_cb(err);
@@ -235,7 +233,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
           }
         };
         // Removes files and recursively removes directories
-        var deleteEntry = (entry: Entry, cb: (e?: api_error.ApiError) => void): void => {
+        var deleteEntry = (entry: Entry, cb: (e?: any) => void): void => {
           var succ = () => {
             cb();
           };
@@ -277,8 +275,8 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
         }
 
         // Get the new parent directory.
-        root.getDirectory(node_path.path.dirname(newPath), {}, (parentDir: DirectoryEntry): void => {
-          file.moveTo(parentDir, node_path.path.basename(newPath), (entry: Entry): void => { cb(); }, (err: DOMException): void => {
+        root.getDirectory(path.dirname(newPath), {}, (parentDir: DirectoryEntry): void => {
+          file.moveTo(parentDir, path.basename(newPath), (entry: Entry): void => { cb(); }, (err: DOMException): void => {
             // SPECIAL CASE: If oldPath is a directory, and newPath is a
             // file, rename should delete the file and perform the move.
             if (file.isDirectory) {
@@ -447,7 +445,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
     // Grab the requested directory.
     this.fs.root.getDirectory(path, { create: false }, (dirEntry: DirectoryEntry) => {
       var reader = dirEntry.createReader();
-      var entries = [];
+      var entries: Entry[] = [];
       var error = (err: DOMException): void => {
         cb(this.convert(err, path));
       };

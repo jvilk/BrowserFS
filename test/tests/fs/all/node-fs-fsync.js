@@ -19,40 +19,43 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-define([], function() { return function(){
-var successes = 0;
+var fs = require('fs'),
+    path = require('path'),
+    assert = require('assert'),
+    common = require('../../../harness/common');
 
-var file = path.join(common.fixturesDir, 'a.js');
-var rootFS = fs.getRootFS();
-if (rootFS.isReadOnly()) return;
-
-fs.open(file, 'a', 0777, function(err, fd) {
-  if (err) throw err;
-
-  if (rootFS.supportsSynch()) {
-    fs.fdatasyncSync(fd);
-    successes++;
-
-    fs.fsyncSync(fd);
-    successes++;
-  }
-
-  fs.fdatasync(fd, function(err) {
-    if (err) throw err;
-    successes++;
-    fs.fsync(fd, function(err) {
+module.exports = function() {
+  var successes = 0;
+  var file = path.join(common.fixturesDir, 'a.js');
+  var rootFS = fs.getRootFS();
+  if (!rootFS.isReadOnly()) {
+    fs.open(file, 'a', 0777, function(err, fd) {
       if (err) throw err;
-      successes++;
+    
+      if (rootFS.supportsSynch()) {
+        fs.fdatasyncSync(fd);
+        successes++;
+    
+        fs.fsyncSync(fd);
+        successes++;
+      }
+    
+      fs.fdatasync(fd, function(err) {
+        if (err) throw err;
+        successes++;
+        fs.fsync(fd, function(err) {
+          if (err) throw err;
+          successes++;
+        });
+      });
     });
-  });
-});
-
-process.on('exit', function() {
-  if (rootFS.supportsSynch()) {
-    assert.equal(4, successes);
-  } else {
-    assert.equal(2, successes);
+    
+    process.on('exit', function() {
+      if (rootFS.supportsSynch()) {
+        assert.equal(4, successes);
+      } else {
+        assert.equal(2, successes);
+      }
+    });
   }
-});
-
-};});
+};

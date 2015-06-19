@@ -3,13 +3,13 @@ import api_error = require('./api_error');
 import file_system = require('./file_system');
 import file_flag = require('./file_flag');
 import buffer = require('./buffer');
-import node_path = require('./node_path');
+import path = require('./node_path');
 import node_fs_stats = require('./node_fs_stats');
-var ApiError = api_error.ApiError;
-var ErrorCode = api_error.ErrorCode;
-var FileFlag = file_flag.FileFlag;
-var Buffer = buffer.Buffer;
-var path = node_path.path;
+
+import ApiError = api_error.ApiError;
+import ErrorCode = api_error.ErrorCode;
+import FileFlag = file_flag.FileFlag;
+import Buffer = buffer.Buffer;
 
 declare var __numWaiting: number;
 declare var setImmediate: (cb: Function) => void;
@@ -34,21 +34,21 @@ function wrapCb(cb: Function, numArgs: number): Function {
   // need to handle 1-3 arguments
   switch (numArgs) {
     case 1:
-      return function(arg1) {
+      return function(arg1: any) {
         setImmediate(function() {
           __numWaiting--;
           return cb(arg1);
         });
       };
     case 2:
-      return function(arg1, arg2) {
+      return function(arg1: any, arg2: any) {
         setImmediate(function() {
           __numWaiting--;
           return cb(arg1, arg2);
         });
       };
     case 3:
-      return function(arg1, arg2, arg3) {
+      return function(arg1: any, arg2: any, arg3: any) {
         setImmediate(function() {
           __numWaiting--;
           return cb(arg1, arg2, arg3);
@@ -138,7 +138,7 @@ function nopCb() {};
  * @see http://nodejs.org/api/fs.html
  * @class
  */
-export class fs {
+class fs {
   private static root: file_system.FileSystem = null;
 
   public static _initialize(rootFS: file_system.FileSystem): file_system.FileSystem {
@@ -152,8 +152,8 @@ export class fs {
    * converts Date or number to a fractional UNIX timestamp
    * Grabbed from NodeJS sources (lib/fs.js)
    */
-  public static _toUnixTimestamp(time: Date);
-  public static _toUnixTimestamp(time: number);
+  public static _toUnixTimestamp(time: Date): number;
+  public static _toUnixTimestamp(time: number): number;
   public static _toUnixTimestamp(time: any): number {
     if (typeof time === 'number') {
       return time;
@@ -474,9 +474,9 @@ export class fs {
    * @option options [String] flag Defaults to `'w'`.
    * @param [Function(BrowserFS.ApiError)] callback
    */
-  public static writeFile(filename: string, data: any, cb?: (err?: api_error.ApiError) => void);
-  public static writeFile(filename: string, data: any, encoding?: string, cb?: (err?: api_error.ApiError) => void);
-  public static writeFile(filename: string, data: any, options?: Object, cb?: (err?: api_error.ApiError) => void);
+  public static writeFile(filename: string, data: any, cb?: (err?: api_error.ApiError) => void): void;
+  public static writeFile(filename: string, data: any, encoding?: string, cb?: (err?: api_error.ApiError) => void): void;
+  public static writeFile(filename: string, data: any, options?: Object, cb?: (err?: api_error.ApiError) => void): void;
   public static writeFile(filename: string, data: any, arg3: any = {}, cb: (err?: api_error.ApiError) => void = nopCb): void {
     var options = normalizeOptions(arg3, 'utf8', 'w', 0x1a4);
     cb = typeof arg3 === 'function' ? arg3 : cb;
@@ -638,9 +638,9 @@ export class fs {
    * @param [Number] len
    * @param [Function(BrowserFS.ApiError)] callback
    */
-  public static ftruncate(fd: file.File, cb?:Function);
-  public static ftruncate(fd: file.File, len?: number, cb?:Function);
-  public static ftruncate(fd: file.File, arg2?: any, cb:Function = nopCb) {
+  public static ftruncate(fd: file.File, cb?:Function): void;
+  public static ftruncate(fd: file.File, len?: number, cb?:Function): void;
+  public static ftruncate(fd: file.File, arg2?: any, cb:Function = nopCb): void {
     var length = typeof arg2 === 'number' ? arg2 : 0;
     cb = typeof arg2 === 'function' ? arg2 : cb;
     var newCb = wrapCb(cb, 1);
@@ -792,8 +792,8 @@ export class fs {
    *   the current position.
    * @return [Number]
    */
-  public static writeSync(fd: file.File, buffer: NodeBuffer, offset: number, length: number, position?: number): void;
-  public static writeSync(fd: file.File, data: string, position?: number, encoding?: string): void;
+  public static writeSync(fd: file.File, buffer: NodeBuffer, offset: number, length: number, position?: number): number;
+  public static writeSync(fd: file.File, data: string, position?: number, encoding?: string): number;
   public static writeSync(fd: file.File, arg2: any, arg3?: any, arg4?: any, arg5?: any): number {
     var buffer: NodeBuffer, offset: number = 0, length: number, position: number;
     if (typeof arg2 === 'string') {
@@ -848,7 +848,7 @@ export class fs {
       // XXX: Inefficient.
       // Wrap the cb so we shelter upper layers of the API from these
       // shenanigans.
-      newCb = <(err: api_error.ApiError, bytesRead?: number, buffer?: NodeBuffer) => void> wrapCb((function(err, bytesRead, buf) {
+      newCb = <(err: api_error.ApiError, bytesRead?: number, buffer?: NodeBuffer) => void> wrapCb((function(err: any, bytesRead: number, buf: Buffer) {
         if (err) {
           return cb(err);
         }
@@ -1416,3 +1416,5 @@ export class fs {
     return fs.root.realpathSync(path, cache);
   }
 }
+
+export = fs;

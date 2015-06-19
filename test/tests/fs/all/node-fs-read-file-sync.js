@@ -19,16 +19,20 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-define([], function() { return function(){
-var rootFS = fs.getRootFS();
-var fn = path.join(common.fixturesDir, 'elipses.txt');
-
-if (rootFS.supportsSynch()) {
-  var s = fs.readFileSync(fn, 'utf8');
-  for (var i = 0; i < s.length; i++) {
-    assert.equal('\u2026', s[i]);
+var fs = require('fs'),
+    path = require('path'),
+    assert = require('assert'),
+    common = require('../../../harness/common');
+    
+module.exports = function() {
+  var rootFS = fs.getRootFS();
+  var fn = path.join(common.fixturesDir, 'elipses.txt');
+  
+  if (rootFS.supportsSynch()) {
+    var s = fs.readFileSync(fn, 'utf8');
+    for (var i = 0; i < s.length; i++) {
+      assert.equal('\u2026', s[i]);
+    }
+    assert.equal(10000, s.length);
   }
-  assert.equal(10000, s.length);
-}
-
-};});
+};

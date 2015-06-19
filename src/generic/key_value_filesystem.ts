@@ -3,12 +3,11 @@ import api_error = require('../core/api_error');
 import node_fs_stats = require('../core/node_fs_stats');
 import file = require('../core/file');
 import file_flag = require('../core/file_flag');
-import node_path = require('../core/node_path');
+import path = require('../core/node_path');
 import Inode = require('../generic/inode');
 import buffer = require('../core/buffer');
 import preload_file = require('../generic/preload_file');
 var ROOT_NODE_ID: string = "/",
-  path = node_path.path,
   ApiError = api_error.ApiError,
   Buffer = buffer.Buffer;
 /**
@@ -442,7 +441,7 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
     }
 
     // Add newPath to parent's directory listing.
-    var newDirNode: Inode, newDirList;
+    var newDirNode: Inode, newDirList: typeof oldDirList;
     if (newParent === oldParent) {
       // Prevent us from re-grabbing the same directory listing, which still
       // contains oldName.
@@ -744,7 +743,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
    * @param cb Passed an error or the ID of the file's inode in the file system.
    */
   private _findINode(tx: AsyncKeyValueROTransaction, parent: string, filename: string, cb: (e: api_error.ApiError, id?: string) => void): void {
-    var handle_directory_listings = (e: api_error.ApiError, inode?: Inode, dirList?): void => {
+    var handle_directory_listings = (e: api_error.ApiError, inode?: Inode, dirList?: {[name: string]: string}): void => {
       if (e) {
         cb(e)
       } else if (dirList[filename]) {
@@ -762,7 +761,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
         // BASE CASE #2: Find the item in the root node.
         this.getINode(tx, parent, ROOT_NODE_ID, (e: api_error.ApiError, inode?: Inode): void => {
           if (noError(e, cb)) {
-            this.getDirListing(tx, parent, inode, (e: api_error.ApiError, dirList?): void => {
+            this.getDirListing(tx, parent, inode, (e: api_error.ApiError, dirList?: {[name: string]: string}): void => {
               // handle_directory_listings will handle e for us.
               handle_directory_listings(e, inode, dirList);
             });
@@ -900,7 +899,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
     // Let's build a pyramid of code!
 
     // Step 1: Get the parent directory's inode and directory listing
-    this.findINodeAndDirListing(tx, parentDir, (e: api_error.ApiError, parentNode?: Inode, dirListing?): void => {
+    this.findINodeAndDirListing(tx, parentDir, (e: api_error.ApiError, parentNode?: Inode, dirListing?: {[name: string]: string}): void => {
       if (noErrorTx(e, tx, cb)) {
         if (dirListing[fname]) {
           // File already exists.
@@ -1043,7 +1042,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
      * inodes and lists hashes.
      */
     var processInodeAndListings = (p: string): void => {
-      this.findINodeAndDirListing(tx, p, (e: api_error.ApiError, node?: Inode, dirList?): void => {
+      this.findINodeAndDirListing(tx, p, (e: api_error.ApiError, node?: Inode, dirList?: {[name: string]: string}): void => {
         if (e) {
           if (!errorOccurred) {
             errorOccurred = true;
@@ -1115,7 +1114,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
     var tx = this.store.beginTransaction('readwrite'),
       parent: string = path.dirname(p), fileName: string = path.basename(p);
     // Step 1: Get parent directory's node and directory listing.
-    this.findINodeAndDirListing(tx, parent, (e: api_error.ApiError, parentNode?: Inode, parentListing?): void => {
+    this.findINodeAndDirListing(tx, parent, (e: api_error.ApiError, parentNode?: Inode, parentListing?: {[name: string]: string}): void => {
       if (noErrorTx(e, tx, cb)) {
         if (!parentListing[fileName]) {
           tx.abort(() => {
@@ -1179,7 +1178,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
     var tx = this.store.beginTransaction('readonly');
     this.findINode(tx, p, (e: api_error.ApiError, inode?: Inode) => {
       if (noError(e, cb)) {
-        this.getDirListing(tx, p, inode, (e: api_error.ApiError, dirListing?) => {
+        this.getDirListing(tx, p, inode, (e: api_error.ApiError, dirListing?: {[name: string]: string}) => {
           if (noError(e, cb)) {
             cb(null, Object.keys(dirListing));
           }

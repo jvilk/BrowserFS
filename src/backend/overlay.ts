@@ -7,8 +7,7 @@ import file = require('../core/file');
 import node_fs_stats = require('../core/node_fs_stats');
 import preload_file = require('../generic/preload_file');
 import browserfs = require('../core/browserfs');
-import node_path = require('../core/node_path');
-import path = node_path.path;
+import path = require('../core/node_path');
 import ApiError = api_error.ApiError;
 import ErrorCode = api_error.ErrorCode;
 
