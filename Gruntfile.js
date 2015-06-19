@@ -4,7 +4,6 @@ var fs = require('fs'),
   browserifyConfig = {
     // Note: Cannot use "bare" here. That's a command-line-only switch.
     builtins: [],
-    commondir: false,
     detectGlobals: false,
     debug: true,
     transform: [
@@ -126,7 +125,7 @@ module.exports = function(grunt) {
         colors: true,
         logLevel: 'INFO',
         autoWatch: true,
-        browsers: ['Firefox'],
+        browsers: ['Firefox', 'Chrome', 'Opera', 'Safari'],
         captureTimeout: 60000,
         // Avoid hardcoding and cross-origin issues.
         proxies: {
@@ -138,7 +137,7 @@ module.exports = function(grunt) {
       test: {},
       dropbox_test: {
         options: {
-          files: karmaFiles.concat('bower_components/dropbox-build/dropbox.min.js')
+          files: karmaFiles.concat('node_modules/dropbox/lib/dropbox.js')
         }
       }
     },
@@ -301,7 +300,7 @@ module.exports = function(grunt) {
   // test
   grunt.registerTask('test', ['main.ts', 'run.ts', 'browserify:workerfs_worker', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect', 'karma:test']);
   // testing dropbox
-  grunt.registerTask('dropbox_test', ['ts:test', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'shell:gen_cert', 'shell:gen_token', 'connect', 'karma:dropbox_test']);
+  grunt.registerTask('dropbox_test', ['main.ts', 'run.ts', 'browserify:workerfs_worker', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'shell:gen_cert', 'shell:gen_token', 'connect', 'karma:dropbox_test']);
   // dev build + watch for changes.
   grunt.registerTask('watch', ['main.ts', 'browserify:watch']);
   // dev build
