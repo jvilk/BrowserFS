@@ -53,7 +53,7 @@ array of backends you wish to use. Then, perform a release build.
 ### Using
 Here's a simple example, using the LocalStorage-backed file system:
 ```html
-<script type="text/javascript" src="browserfs.js"></script>
+<script type="text/javascript" src="browserfs.min.js"></script>
 <script type="text/javascript">
   // Installs globals onto window:
   // * Buffer
@@ -83,7 +83,7 @@ fs.writeFile('/test.txt', 'Cool, I can do this in the browser!', function(err) {
 
 You can use any *synchronous* BrowserFS file systems with Emscripten! Persist particular folders in the Emscripten file system to `localStorage`, or enable Emscripten to synchronously download files from another folder as they are requested.
 
-Include `browserfs.js` into the page, and add code similar to the following to your `Module`'s `preRun` array:
+Include `browserfs.min.js` into the page, and add code similar to the following to your `Module`'s `preRun` array:
 
 ```javascript
 /**
