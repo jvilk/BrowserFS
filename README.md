@@ -35,21 +35,20 @@ Release:
 grunt
 ```
 
-The minified release build can be found in `build/release/browserfs.js`.
+The minified release build can be found in `build/browserfs.min.js`.
 
 Development:
 ```
 grunt dev
 ```
 
-The development build can be found as multiple AMD modules in `build/dev`.
+The development build can be found as `build/browserfs.js`.
 
 Custom builds:
 
 If you want to build BrowserFS with a subset of the available backends,
-remove unwanted backends listed in `Gruntfile.js` under the `include`
-property of the `compile` task, and remove the `require` statements for
-unwanted backends in `build/outro.js`. Then, perform a release build.
+change the `getBackends()` function in `Gruntfile.js` to return an
+array of backends you wish to use. Then, perform a release build.
 
 ### Using
 Here's a simple example, using the LocalStorage-backed file system:
