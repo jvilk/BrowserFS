@@ -79,6 +79,14 @@ fs.writeFile('/test.txt', 'Cool, I can do this in the browser!', function(err) {
 });
 ```
 
+### Using with Browserify
+
+As of BrowserFS 0.4.0, you can use BrowserFS with your Browserify projects! At the moment, you need to 'opt in' to the entire BrowserFS ecosystem -- e.g. you need to use BrowserFS's `path`, `process`, and `Buffer` in place of Browserify's builtins.
+
+I have written an [example project](https://github.com/jvilk/bfs-browserify-test) that illustrates how to do this.
+
+In the future, we will support mixing and matching builtin modules.
+
 ### Using with Emscripten
 
 You can use any *synchronous* BrowserFS file systems with Emscripten! Persist particular folders in the Emscripten file system to `localStorage`, or enable Emscripten to synchronously download files from another folder as they are requested.
