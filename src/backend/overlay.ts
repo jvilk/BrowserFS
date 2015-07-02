@@ -9,6 +9,7 @@ import preload_file = require('../generic/preload_file');
 import browserfs = require('../core/browserfs');
 import path = require('../core/node_path');
 import ApiError = api_error.ApiError;
+import Buffer = buffer.Buffer;
 import ErrorCode = api_error.ErrorCode;
 
 var deletionLogPath = '/.deletedFiles.log';
