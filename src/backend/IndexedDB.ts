@@ -227,7 +227,7 @@ export class IndexedDBFileSystem extends kvfs.AsyncKeyValueFileSystem {
     // In Chrome, it "just works", and clears the database when you leave the page.
     // Untested: Opera, IE.
     try {
-      return typeof indexedDB !== 'undefined' || null !== indexedDB.open("test");
+      return typeof indexedDB !== 'undefined' && null !== indexedDB.open("__browserfs_test__");
     } catch (e) {
       return false;
     }
