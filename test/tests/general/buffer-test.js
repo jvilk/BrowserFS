@@ -2,7 +2,8 @@
  * Sanity checks our buffer implementation. The Node tests assume that all
  * numerical transformations work, so they do not test these cases.
  */
-var assert = require('assert');
+var assert = require('assert'),
+  Buffer = require('buffer').Buffer;
     
 module.exports = function() {
   var i, buff = new Buffer(8);

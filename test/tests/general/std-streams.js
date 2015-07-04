@@ -1,4 +1,6 @@
-var assert = require('assert');
+var assert = require('assert'),
+  Buffer = require('buffer').Buffer,
+  process = require('process').process;
 
 module.exports = function() {
   var datStr = "hey\nhere's some data.",

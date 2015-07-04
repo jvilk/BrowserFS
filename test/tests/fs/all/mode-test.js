@@ -21,7 +21,9 @@
  */
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert');
+    assert = require('assert'),
+    Buffer = require('buffer').Buffer,
+    process = require('process').process;
 
 module.exports = function() {
   var rootFS = fs.getRootFS(),

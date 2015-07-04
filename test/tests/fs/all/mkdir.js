@@ -1,6 +1,7 @@
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert');
+    assert = require('assert'),
+    Buffer = require('buffer').Buffer;
     
 module.exports = function() {
   var rootFS = fs.getRootFS();

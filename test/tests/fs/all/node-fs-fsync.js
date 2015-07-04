@@ -22,7 +22,9 @@
 var fs = require('fs'),
     path = require('path'),
     assert = require('assert'),
-    common = require('../../../harness/common');
+    common = require('../../../harness/common'),
+    Buffer = require('buffer').Buffer,
+    process = require('process').process;
 
 module.exports = function() {
   var successes = 0;

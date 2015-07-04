@@ -39,9 +39,11 @@ export = function(tests: {
   }, backendFactories: BackendFactory[]) {
   var fsBackends: { name: string; backends: file_system.FileSystem[]; }[] = [];
 
-  // Install BFS globals (process, etc.).
+  // Install BFS as a global.
   (<any> window)['BrowserFS'] = BrowserFS;
-  BrowserFS.install(window);
+  
+  var process = BrowserFS.BFSRequire('process');
+
   // Polyfill for `process.on('exit')`.
   process.on = (trigger, cb) => {
     if (trigger == 'exit') {

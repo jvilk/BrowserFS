@@ -20,7 +20,8 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 var assert = require('assert'),
-    path = require('path');
+    path = require('path'),
+    Buffer = require('buffer').Buffer;
     
 module.exports = function() {
   assert.equal(path._makeLong(null), null);

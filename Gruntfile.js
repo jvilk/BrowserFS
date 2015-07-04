@@ -117,7 +117,11 @@ module.exports = function(grunt) {
         preprocessors: {
           'test/harness/run.ts': ['browserify']
         },
-        browserify: _.extend({}, browserifyConfig, { builtins: ['assert'] }),
+        browserify: _.extend({}, browserifyConfig, 
+          { 
+            builtins: ['assert']
+          }
+        ),
         exclude: [],
         reporters: ['progress'],
         port: 9876,

@@ -1,7 +1,8 @@
 var fs = require('fs'),
     path = require('path'),
     assert = require('assert'),
-    common = require('../../../harness/common');
+    common = require('../../../harness/common'),
+    Buffer = require('buffer').Buffer;
     
 module.exports = function() {
   // Read a file and check its binary bytes.

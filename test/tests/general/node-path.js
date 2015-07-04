@@ -20,7 +20,9 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 var assert = require('assert'),
-    path = require('path');
+    path = require('path'),
+    Buffer = require('buffer').Buffer,
+    process = require('process').process;
 
 module.exports = function() {
   var isWindows = process.platform === 'win32';

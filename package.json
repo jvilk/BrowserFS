@@ -58,7 +58,9 @@
   "aliasify": {
     "aliases": {
       "fs": "./src/core/node_fs.ts",
-      "path": "./src/core/node_path.ts"
+      "path": "./src/core/node_path.ts",
+      "buffer": "./src/core/buffer.ts",
+      "process": "./src/core/node_process.ts" 
     }
   },
   "browser": {
