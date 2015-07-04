@@ -222,7 +222,15 @@ export class IndexedDBFileSystem extends kvfs.AsyncKeyValueFileSystem {
   }
 
   public static isAvailable(): boolean {
-    return typeof indexedDB !== 'undefined';
+    // In Safari's private browsing mode, indexedDB.open returns NULL.
+    // In Firefox, it throws an exception.
+    // In Chrome, it "just works", and clears the database when you leave the page.
+    // Untested: Opera, IE.
+    try {
+      return typeof indexedDB !== 'undefined' || null !== indexedDB.open("test");
+    } catch (e) {
+      return false;
+    }
   }
 }
 
