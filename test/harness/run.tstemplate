@@ -3,7 +3,7 @@
  * 
  * Why autogenerate run.ts?
  * - Avoids hardcoding all test names. Now, adding a new test case is as simple as
- *   dropping a new file into the repositroy.
+ *   dropping a new file into the repository.
  * - Avoids hardcoding all backend factory names. (Ditto.)
  * 
  * Previously, the code used RequireJS modules to dynamically grep for and require
