@@ -401,8 +401,10 @@ export class BFSEmscriptenFS implements EmscriptenFS {
   }
 
   public flagsToPermissionString(flags: string): string {
-    if (flags in this.flagsToPermissionStringMap) {
-      return (<any> this.flagsToPermissionStringMap)[flags];
+    var parsedFlags = (typeof flags === "string") ? parseInt(flags, 10) : <number><any> flags;
+    parsedFlags &= 0x1FFF;
+    if (parsedFlags in this.flagsToPermissionStringMap) {
+      return (<any> this.flagsToPermissionStringMap)[parsedFlags];
     } else {
       return flags;
     }
