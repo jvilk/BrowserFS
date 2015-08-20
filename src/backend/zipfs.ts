@@ -22,7 +22,9 @@
  *
  * When the filesystem is instantiated, we determine the directory structure
  * of the zip file as quickly as possible. We lazily decompress and check the
- * CRC32 of files. We cache decompressed files for quick later retrieval.
+ * CRC32 of files. We do not cache decompressed files; if this is a desired
+ * feature, it is best implemented as a generic file system wrapper that can
+ * cache data from arbitrary file systems.
  *
  * For inflation, we use `pajo`'s implementation:
  * https://github.com/nodeca/pako
