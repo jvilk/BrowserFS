@@ -24,8 +24,8 @@
  * of the zip file as quickly as possible. We lazily decompress and check the
  * CRC32 of files. We cache decompressed files for quick later retrieval.
  *
- * For inflation, we use `zlib.js`'s implementation:
- * https://github.com/imaya/zlib.js
+ * For inflation, we use `pajo`'s implementation:
+ * https://github.com/nodeca/pako
  *
  * Unfortunately, their implementation falls back to an array of bytes for non-
  * TypedArray browsers, which is results in a much larger memory footprint in
