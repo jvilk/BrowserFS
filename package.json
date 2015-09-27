@@ -48,8 +48,8 @@
     "karma-safari-launcher": "*",
     "mocha": "^2.2.5",
     "pako": "^0.2.7",
-    "tsify": "^0.11.2",
-    "typescript": "~1.4",
+    "tsify": "^0.12.1",
+    "typescript": "~1.6",
     "underscore": "^1.8.3"
   },
   "scripts": {

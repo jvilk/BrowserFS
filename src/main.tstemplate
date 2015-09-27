@@ -1,4 +1,3 @@
-/// <reference path="./DataView.d.ts" />
 /// <reference path="../bower_components/DefinitelyTyped/node/node-0.10.d.ts" />
 /**
  * This file serves as the template for BrowserFS's main entry point.
@@ -15,7 +14,7 @@ if (!Date.now) {
 
 // IE < 9 does not define this function.
 if(!Array.isArray) {
-  Array.isArray = function (vArg) {
+  Array.isArray = function (vArg): vArg is any[] {
     return Object.prototype.toString.call(vArg) === "[object Array]";
   };
 }
