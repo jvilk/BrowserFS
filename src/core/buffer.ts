@@ -26,6 +26,100 @@ var PreferredBufferCore: buffer_core.BufferCoreImplementation = (function(): buf
 })();
 
 /**
+ * Checks integer writes.
+ */
+function checkInt(buffer: NodeBuffer, value: number, offset: number, ext: number, max: number, min: number) {
+  if (value > max || value < min) {
+    throw new TypeError('value is out of bounds');
+  } else if (offset + ext > buffer.length) {
+    throw new RangeError('index out of range');
+  }
+}
+
+/**
+ * Checks floating point writes.
+ */
+function checkFloat(buffer: NodeBuffer, value: number, offset: number, ext: number) {
+  if (offset + ext > buffer.length) {
+    throw new RangeError('index out of range');
+  }
+}
+
+/**
+ * Check offset into buffer.
+ */
+function checkOffset(offset: number, ext: number, length: number): void {
+  if (offset + ext > length) {
+    throw new RangeError('index out of range');
+  }
+}
+
+
+/**
+ * MAX_INT for various byte sizes.
+ */
+const enum MaxInt {
+  INT0 = 0,
+  INT8 = 0x7F,
+  INT16 = 0x7FFF,
+  INT24 = 0x7FFFFF,
+  INT32 = 0x7FFFFFFF,
+  INT40 = 0x7FFFFFFFFF,
+  INT48 = 0x7FFFFFFFFFFF
+}
+
+/**
+ * MIN_INT for various byte sizes.
+ */
+const enum MinInt {
+  INT0 = 0,
+  INT8 = -0x80,
+  INT16 = -0x8000,
+  INT24 = -0x800000,
+  INT32 = -0x80000000,
+  INT40 = -0x8000000000,
+  INT48 = -0x800000000000
+}
+
+/**
+ * MAX_UINT for various sizes.
+ */
+const enum MaxUInt {
+  INT0 = 0,
+  INT8 = 0xFF,
+  INT16 = 0xFFFF,
+  INT24 = 0xFFFFFF,
+  INT32 = 0xFFFFFFFF,
+  INT40 = 0xFFFFFFFFFF,
+  INT48 = 0xFFFFFFFFFFFF
+}
+
+var byte2maxint: {[byte: number]: number} = {};
+byte2maxint[0] = MaxInt.INT0;
+byte2maxint[1] = MaxInt.INT8;
+byte2maxint[2] = MaxInt.INT16;
+byte2maxint[3] = MaxInt.INT24;
+byte2maxint[4] = MaxInt.INT32;
+byte2maxint[5] = MaxInt.INT40;
+byte2maxint[6] = MaxInt.INT48;
+var byte2minint: {[byte: number]: number} = {};
+byte2minint[0] = MinInt.INT0;
+byte2minint[1] = MinInt.INT8;
+byte2minint[2] = MinInt.INT16;
+byte2minint[3] = MinInt.INT24;
+byte2minint[4] = MinInt.INT32;
+byte2minint[5] = MinInt.INT40;
+byte2minint[6] = MinInt.INT48;
+var byte2maxuint: {[byte: number]: number} = {};
+byte2maxuint[0] = MaxUInt.INT0;
+byte2maxuint[1] = MaxUInt.INT8;
+byte2maxuint[2] = MaxUInt.INT16;
+byte2maxuint[3] = MaxUInt.INT24;
+byte2maxuint[4] = MaxUInt.INT32;
+byte2maxuint[5] = MaxUInt.INT40;
+byte2maxuint[6] = MaxUInt.INT48;
+
+/**
  * We extend Node's buffer interface to account for differences in the browser
  * environment.
  */
@@ -99,7 +193,7 @@ export class Buffer implements BFSBuffer {
     } else if (typeof arg1 === 'number') {
       // constructor (size: number);
       if (arg1 !== (arg1 >>> 0)) {
-        throw new TypeError('Buffer size must be a uint32.');
+        throw new RangeError('Buffer size must be a uint32.');
       }
       this.length = arg1;
       this.data = new PreferredBufferCore(arg1);
@@ -131,7 +225,16 @@ export class Buffer implements BFSBuffer {
       this.data = new PreferredBufferCore(this.length);
       this.write(arg1, 0, this.length, arg2);
     } else {
-      throw new Error("Invalid argument to Buffer constructor: " + arg1);
+      // constructor (data: {type: string; data: number[]}, encoding?: string)
+      if (arg1['type'] === 'Buffer' && Array.isArray(arg1['data'])) {
+        this.data = new PreferredBufferCore(arg1.data.length);
+        for (i = 0; i < arg1.data.length; i++) {
+          this.data.writeUInt8(i, arg1.data[i]);
+        }
+        this.length = arg1.data.length;
+      } else {
+        throw new Error("Invalid argument to Buffer constructor: " + arg1);
+      }
     }
   }
 
@@ -165,7 +268,7 @@ export class Buffer implements BFSBuffer {
    * @param {number} index - the index to set the value at
    * @param {number} value - the value to set at the given index
    */
-  public set(index: number, value: number): void {
+  public set(index: number, value: number): number {
     // In Node, the following happens:
     // buffer[0] = -1;
     // buffer[0]; // 255
@@ -307,13 +410,37 @@ export class Buffer implements BFSBuffer {
     if (typeof(value) === 'string') {
       normalizedValue = new Buffer(<string> value, 'utf8');
     } else if (Buffer.isBuffer(value)) {
-      normalizedValue = <NodeBuffer> value;
+      normalizedValue = value;
+    } else if (typeof(value) === 'number') {
+      normalizedValue = new Buffer([<number> value]);
     } else {
-      normalizedValue = new Buffer(<number> value);
+      throw new TypeError(`indexOf only operates on strings, buffers, and numbers.`);
+    }
+
+    // Node's normalization code.
+    if (byteOffset > 0x7fffffff) {
+      byteOffset = 0x7fffffff;
+    } else if (byteOffset < -0x80000000) {
+      byteOffset = -0x80000000;
+    }
+    byteOffset >>= 0;
+
+    // Negative offsets are from the end of the array.
+    if (byteOffset < 0) {
+      byteOffset = this.length + byteOffset;
+      if (byteOffset < 0) {
+        // If the calculated index is less than 0, then the whole array will be searched.
+        byteOffset = 0;
+      }
     }
 
     var valOffset = 0, currentVal: number, valLen = normalizedValue.length,
       bufLen = this.length;
+    // Edge-case: Can't indexOf with zero-length data.
+    if (valLen === 0) {
+      return -1;
+    }
+
     while (valOffset < valLen && byteOffset < bufLen) {
       if (normalizedValue.readUInt8(valOffset) == this.readUInt8(byteOffset)) {
         valOffset++;
@@ -380,6 +507,8 @@ export class Buffer implements BFSBuffer {
    *   of the buffer.
    */
   public slice(start = 0, end = this.length): NodeBuffer {
+    start = start >> 0;
+    end = end >> 0;
     // Translate negative indices to positive ones.
     if (start < 0) {
       start += this.length;
@@ -401,7 +530,7 @@ export class Buffer implements BFSBuffer {
     }
 
     // Sanity check.
-    if (start < 0 || end < 0 || start >= this.length || end > this.length) {
+    if (start < 0 || end < 0 || start > this.length || end > this.length) {
       throw new Error("Invalid slice indices.");
     }
     // Create a new buffer backed by the same BufferCore.
@@ -448,15 +577,15 @@ export class Buffer implements BFSBuffer {
    * @param {number} [offset=0]
    * @param {number} [end=this.length]
    */
-  public fill(value: any, offset = 0, end = this.length): void {
+  public fill(value: any, offset = 0, end = this.length): NodeBuffer {
     var i: number;
     offset = offset >> 0;
-    end = end >>> 0;
+    end = end >> 0;
 
     if (offset < 0 || end > this.length) {
       throw new RangeError('out of range index');
     } else if (end <= offset) {
-      return;
+      return this;
     }
 
     if (typeof value !== 'string') {
@@ -484,9 +613,15 @@ export class Buffer implements BFSBuffer {
         this.write(value, offset, end - offset, 'utf8');
       }
     }
+    return this;
   }
 
   public readUIntLE(offset: number, byteLength: number, noAssert = false): number {
+    offset = offset >>> 0;
+    byteLength = byteLength >>> 0;
+    if (!noAssert) {
+      checkOffset(offset, byteLength, this.length);
+    }
     offset += this.offset;
     var value: number = 0;
     switch (byteLength) {
@@ -505,7 +640,7 @@ export class Buffer implements BFSBuffer {
         // FALL-THRU
       case 5:
         // Shift right by 32 bits.
-        value += (this.data.readUInt8(offset + 5) << 23) * 0x200;
+        value += (this.data.readUInt8(offset + 4) << 23) * 0x200;
         return value + this.data.readUInt32LE(offset);
       default:
         throw new Error(`Invalid byteLength: ${byteLength}`);
@@ -513,6 +648,11 @@ export class Buffer implements BFSBuffer {
   }
 
   public readUIntBE(offset: number, byteLength: number, noAssert = false): number {
+    offset = offset >>> 0;
+    byteLength = byteLength >>> 0;
+    if (!noAssert) {
+      checkOffset(offset, byteLength, this.length);
+    }
     offset += this.offset;
     var value: number = 0;
     switch (byteLength) {
@@ -540,6 +680,11 @@ export class Buffer implements BFSBuffer {
   }
 
   public readIntLE(offset: number, byteLength: number, noAssert = false): number {
+    offset = offset >>> 0;
+    byteLength = byteLength >>> 0;
+    if (!noAssert) {
+      checkOffset(offset, byteLength, this.length);
+    }
     offset += this.offset;
     switch (byteLength) {
       case 1:
@@ -556,13 +701,18 @@ export class Buffer implements BFSBuffer {
         return ((this.data.readInt8(offset + 5) << 23) * 0x20000) + this.readUIntLE(offset - this.offset, 5, noAssert);
       case 5:
         // Shift right by 32 bits.
-        return ((this.data.readInt8(offset + 5) << 23) * 0x200) + this.data.readUInt32LE(offset);
+        return ((this.data.readInt8(offset + 4) << 23) * 0x200) + this.data.readUInt32LE(offset);
       default:
         throw new Error(`Invalid byteLength: ${byteLength}`);
     }
   }
 
   public readIntBE(offset: number, byteLength: number, noAssert = false): number {
+    offset = offset >>> 0;
+    byteLength = byteLength >>> 0;
+    if (!noAssert) {
+      checkOffset(offset, byteLength, this.length);
+    }
     offset += this.offset;
     switch (byteLength) {
       case 1:
@@ -586,103 +736,163 @@ export class Buffer implements BFSBuffer {
   }
 
   public readUInt8(offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkOffset(offset, 1, this.length);
+    }
     offset += this.offset;
     return this.data.readUInt8(offset);
   }
 
   public readUInt16LE(offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkOffset(offset, 2, this.length);
+    }
     offset += this.offset;
     return this.data.readUInt16LE(offset);
   }
 
   public readUInt16BE(offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkOffset(offset, 2, this.length);
+    }
     offset += this.offset;
     return this.data.readUInt16BE(offset);
   }
 
   public readUInt32LE(offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkOffset(offset, 4, this.length);
+    }
     offset += this.offset;
     return this.data.readUInt32LE(offset);
   }
 
   public readUInt32BE(offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkOffset(offset, 4, this.length);
+    }
     offset += this.offset;
     return this.data.readUInt32BE(offset);
   }
 
   public readInt8(offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkOffset(offset, 1, this.length);
+    }
     offset += this.offset;
     return this.data.readInt8(offset);
   }
 
   public readInt16LE(offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkOffset(offset, 2, this.length);
+    }
     offset += this.offset;
     return this.data.readInt16LE(offset);
   }
 
   public readInt16BE(offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkOffset(offset, 2, this.length);
+    }
     offset += this.offset;
     return this.data.readInt16BE(offset);
   }
 
   public readInt32LE(offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkOffset(offset, 4, this.length);
+    }
     offset += this.offset;
     return this.data.readInt32LE(offset);
   }
 
   public readInt32BE(offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkOffset(offset, 4, this.length);
+    }
     offset += this.offset;
     return this.data.readInt32BE(offset);
   }
 
   public readFloatLE(offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkOffset(offset, 4, this.length);
+    }
     offset += this.offset;
     return this.data.readFloatLE(offset);
   }
 
   public readFloatBE(offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkOffset(offset, 4, this.length);
+    }
     offset += this.offset;
     return this.data.readFloatBE(offset);
   }
 
   public readDoubleLE(offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkOffset(offset, 8, this.length);
+    }
     offset += this.offset;
     return this.data.readDoubleLE(offset);
   }
 
   public readDoubleBE(offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkOffset(offset, 8, this.length);
+    }
     offset += this.offset;
     return this.data.readDoubleBE(offset);
   }
 
   public writeUIntLE(value: number, offset: number, byteLength: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkInt(this, value, offset, byteLength, byte2maxuint[byteLength], 0);
+    }
     var rv = offset + byteLength;
     offset += this.offset;
     switch (byteLength) {
       case 1:
-        this.data.writeUInt8(value, offset);
+        this.data.writeUInt8(offset, value);
         break;
       case 2:
-        this.data.writeUInt16LE(value, offset);
+        this.data.writeUInt16LE(offset, value);
         break;
       case 3:
-        this.data.writeUInt8(value & 0xFF, offset);
-        this.data.writeUInt16LE(value >> 8, offset + 1);
+        this.data.writeUInt8(offset, value & 0xFF);
+        this.data.writeUInt16LE(offset + 1, value >> 8);
         break;
       case 4:
-        this.data.writeUInt32LE(value, offset);
+        this.data.writeUInt32LE(offset, value);
         break;
       case 6:
-        this.data.writeUInt8(value & 0xFF, offset);
+        this.data.writeUInt8(offset, value & 0xFF);
         // "Bit shift", since we're over 32-bits.
         value = Math.floor(value / 256);
         offset++;
         // FALL-THRU
       case 5:
-        this.data.writeUInt8(value & 0xFF, offset);
+        this.data.writeUInt8(offset, value & 0xFF);
         // "Bit shift", since we're over 32-bits.
         value = Math.floor(value / 256);
-        this.data.writeUInt32LE(value, offset + 1);
+        this.data.writeUInt32LE(offset + 1, value);
         break;
       default:
         throw new Error(`Invalid byteLength: ${byteLength}`);
@@ -691,32 +901,36 @@ export class Buffer implements BFSBuffer {
   }
 
   public writeUIntBE(value: number, offset: number, byteLength: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkInt(this, value, offset, byteLength, byte2maxuint[byteLength], 0);
+    }
     var rv = offset + byteLength;
     offset += this.offset;
     switch (byteLength) {
       case 1:
-        this.data.writeUInt8(value, offset);
+        this.data.writeUInt8(offset, value);
         break;
       case 2:
-        this.data.writeUInt16BE(value, offset);
+        this.data.writeUInt16BE(offset, value);
         break;
       case 3:
-        this.data.writeUInt8(value & 0xFF, offset + 2);
-        this.data.writeUInt16BE(value >> 8, offset);
+        this.data.writeUInt8(offset + 2, value & 0xFF);
+        this.data.writeUInt16BE(offset, value >> 8);
         break;
       case 4:
-        this.data.writeUInt32BE(value, offset);
+        this.data.writeUInt32BE(offset, value);
         break;
       case 6:
-        this.data.writeUInt8(value & 0xFF, offset + 5);
+        this.data.writeUInt8(offset + 5, value & 0xFF);
         // "Bit shift", since we're over 32-bits.
         value = Math.floor(value / 256);
         // FALL-THRU
       case 5:
-        this.data.writeUInt8(value & 0xFF, offset + 4);
+        this.data.writeUInt8(offset + 4, value & 0xFF);
         // "Bit shift", since we're over 32-bits.
         value = Math.floor(value / 256);
-        this.data.writeUInt32BE(value, offset);
+        this.data.writeUInt32BE(offset, value);
         break;
       default:
         throw new Error(`Invalid byteLength: ${byteLength}`);
@@ -725,33 +939,37 @@ export class Buffer implements BFSBuffer {
   }
 
   public writeIntLE(value: number, offset: number, byteLength: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkInt(this, value, offset, byteLength, byte2maxint[byteLength], byte2minint[byteLength]);
+    }
     var rv = offset + byteLength;
     offset += this.offset;
     switch (byteLength) {
       case 1:
-        this.data.writeInt8(value, offset);
+        this.data.writeInt8(offset, value);
         break;
       case 2:
-        this.data.writeInt16LE(value, offset);
+        this.data.writeInt16LE(offset, value);
         break;
       case 3:
-        this.data.writeUInt8(value & 0xFF, offset);
-        this.data.writeInt16LE(value >> 8, offset + 1);
+        this.data.writeUInt8(offset, value & 0xFF);
+        this.data.writeInt16LE(offset + 1, value >> 8);
         break;
       case 4:
-        this.data.writeInt32LE(value, offset);
+        this.data.writeInt32LE(offset, value);
         break;
       case 6:
-        this.data.writeUInt8(value & 0xFF, offset);
+        this.data.writeUInt8(offset, value & 0xFF);
         // "Bit shift", since we're over 32-bits.
         value = Math.floor(value / 256);
         offset++;
         // FALL-THRU
       case 5:
-        this.data.writeUInt8(value & 0xFF, offset);
+        this.data.writeUInt8(offset, value & 0xFF);
         // "Bit shift", since we're over 32-bits.
         value = Math.floor(value / 256);
-        this.data.writeInt32LE(value, offset + 1);
+        this.data.writeInt32LE(offset + 1, value);
         break;
       default:
         throw new Error(`Invalid byteLength: ${byteLength}`);
@@ -760,32 +978,36 @@ export class Buffer implements BFSBuffer {
   }
 
   public writeIntBE(value: number, offset: number, byteLength: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkInt(this, value, offset, byteLength, byte2maxint[byteLength], byte2minint[byteLength]);
+    }
     var rv = offset + byteLength;
     offset += this.offset;
     switch (byteLength) {
       case 1:
-        this.data.writeInt8(value, offset);
+        this.data.writeInt8(offset, value);
         break;
       case 2:
-        this.data.writeInt16BE(value, offset);
+        this.data.writeInt16BE(offset, value);
         break;
       case 3:
-        this.data.writeUInt8(value & 0xFF, offset + 2);
-        this.data.writeInt16BE(value >> 8, offset);
+        this.data.writeUInt8(offset + 2, value & 0xFF);
+        this.data.writeInt16BE(offset, value >> 8);
         break;
       case 4:
-        this.data.writeInt32BE(value, offset);
+        this.data.writeInt32BE(offset, value);
         break;
       case 6:
-        this.data.writeUInt8(value & 0xFF, offset + 5);
+        this.data.writeUInt8(offset + 5, value & 0xFF);
         // "Bit shift", since we're over 32-bits.
         value = Math.floor(value / 256);
         // FALL-THRU
       case 5:
-        this.data.writeUInt8(value & 0xFF, offset + 4);
+        this.data.writeUInt8(offset + 4, value & 0xFF);
         // "Bit shift", since we're over 32-bits.
         value = Math.floor(value / 256);
-        this.data.writeInt32BE(value, offset);
+        this.data.writeInt32BE(offset, value);
         break;
       default:
         throw new Error(`Invalid byteLength: ${byteLength}`);
@@ -793,74 +1015,130 @@ export class Buffer implements BFSBuffer {
     return rv;
   }
 
-  public writeUInt8(value: number, offset: number, noAssert = false): void {
-    offset += this.offset;
-    this.data.writeUInt8(offset, value);
+  public writeUInt8(value: number, offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkInt(this, value, offset, 1, MaxUInt.INT8, 0);
+    }
+    this.data.writeUInt8(offset + this.offset, value);
+    return offset + 1;
   }
 
-  public writeUInt16LE(value: number, offset: number, noAssert = false): void {
-    offset += this.offset;
-    this.data.writeUInt16LE(offset, value);
+  public writeUInt16LE(value: number, offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkInt(this, value, offset, 2, MaxUInt.INT16, 0);
+    }
+    this.data.writeUInt16LE(offset + this.offset, value);
+    return offset + 2;
   }
 
-  public writeUInt16BE(value: number, offset: number, noAssert = false): void {
-    offset += this.offset;
-    this.data.writeUInt16BE(offset, value);
+  public writeUInt16BE(value: number, offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkInt(this, value, offset, 2, MaxUInt.INT16, 0);
+    }
+    this.data.writeUInt16BE(offset + this.offset, value);
+    return offset + 2;
   }
 
-  public writeUInt32LE(value: number, offset: number, noAssert = false): void {
-    offset += this.offset;
-    this.data.writeUInt32LE(offset, value);
+  public writeUInt32LE(value: number, offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkInt(this, value, offset, 4, MaxUInt.INT32, 0);
+    }
+    this.data.writeUInt32LE(offset + this.offset, value);
+    return offset + 4;
   }
 
-  public writeUInt32BE(value: number, offset: number, noAssert = false): void {
-    offset += this.offset;
-    this.data.writeUInt32BE(offset, value);
+  public writeUInt32BE(value: number, offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkInt(this, value, offset, 4, MaxUInt.INT32, 0);
+    }
+    this.data.writeUInt32BE(offset + this.offset, value);
+    return offset + 4;
   }
 
-  public writeInt8(value: number, offset: number, noAssert = false): void {
-    offset += this.offset;
-    this.data.writeInt8(offset, value);
+  public writeInt8(value: number, offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkInt(this, value, offset, 1, MaxInt.INT8, MinInt.INT8);
+    }
+    this.data.writeInt8(offset + this.offset, value);
+    return offset + 1;
   }
 
-  public writeInt16LE(value: number, offset: number, noAssert = false): void {
-    offset += this.offset;
-    this.data.writeInt16LE(offset, value);
+  public writeInt16LE(value: number, offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkInt(this, value, offset, 2, MaxInt.INT16, MinInt.INT16);
+    }
+    this.data.writeInt16LE(offset + this.offset, value);
+    return offset + 2;
   }
 
-  public writeInt16BE(value: number, offset: number, noAssert = false): void {
-    offset += this.offset;
-    this.data.writeInt16BE(offset, value);
+  public writeInt16BE(value: number, offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkInt(this, value, offset, 2, MaxInt.INT16, MinInt.INT16);
+    }
+    this.data.writeInt16BE(offset + this.offset, value);
+    return offset + 2;
   }
 
-  public writeInt32LE(value: number, offset: number, noAssert = false): void {
-    offset += this.offset;
-    this.data.writeInt32LE(offset, value);
+  public writeInt32LE(value: number, offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkInt(this, value, offset, 4, MaxInt.INT32, MinInt.INT32);
+    }
+    this.data.writeInt32LE(offset + this.offset, value);
+    return offset + 4;
   }
 
-  public writeInt32BE(value: number, offset: number, noAssert = false): void {
-    offset += this.offset;
-    this.data.writeInt32BE(offset, value);
+  public writeInt32BE(value: number, offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkInt(this, value, offset, 4, MaxInt.INT32, MinInt.INT32);
+    }
+    this.data.writeInt32BE(offset + this.offset, value);
+    return offset + 4;
   }
 
-  public writeFloatLE(value: number, offset: number, noAssert = false): void {
-    offset += this.offset;
-    this.data.writeFloatLE(offset, value);
+  public writeFloatLE(value: number, offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkFloat(this, value, offset, 4);
+    }
+    this.data.writeFloatLE(offset + this.offset, value);
+    return offset + 4;
   }
 
-  public writeFloatBE(value: number, offset: number, noAssert = false): void {
-    offset += this.offset;
-    this.data.writeFloatBE(offset, value);
+  public writeFloatBE(value: number, offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkFloat(this, value, offset, 4);
+    }
+    this.data.writeFloatBE(offset + this.offset, value);
+    return offset + 4;
   }
 
-  public writeDoubleLE(value: number, offset: number, noAssert = false): void {
-    offset += this.offset;
-    this.data.writeDoubleLE(offset, value);
+  public writeDoubleLE(value: number, offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkFloat(this, value, offset, 8);
+    }
+    this.data.writeDoubleLE(offset + this.offset, value);
+    return offset + 8;
   }
 
-  public writeDoubleBE(value: number, offset: number, noAssert = false): void {
-    offset += this.offset;
-    this.data.writeDoubleBE(offset, value);
+  public writeDoubleBE(value: number, offset: number, noAssert = false): number {
+    offset = offset >>> 0;
+    if (!noAssert) {
+      checkFloat(this, value, offset, 8);
+    }
+    this.data.writeDoubleBE(offset + this.offset, value);
+    return offset + 8;
   }
 
   ///**************************STATIC METHODS********************************///
@@ -908,7 +1186,7 @@ export class Buffer implements BFSBuffer {
    * @param {object} obj - An arbitrary object
    * @return {boolean} True if this object is a Buffer.
    */
-  public static isBuffer(obj: any): boolean {
+  public static isBuffer(obj: any): obj is NodeBuffer {
     return obj instanceof Buffer;
   }
 
@@ -921,7 +1199,13 @@ export class Buffer implements BFSBuffer {
    * @return {number} The number of bytes in the string
    */
   public static byteLength(str: string, encoding: string = 'utf8'): number {
-    var strUtil = string_util.FindUtil(encoding);
+    var strUtil: string_util.StringUtil;
+    try {
+      strUtil = string_util.FindUtil(encoding);
+    } catch (e) {
+      // Default to UTF8.
+      strUtil = string_util.FindUtil('utf8');
+    }
     if (typeof(str) !== 'string') {
       str = "" + str;
     }
@@ -948,11 +1232,14 @@ export class Buffer implements BFSBuffer {
     if (list.length === 0 || totalLength === 0) {
       return new Buffer(0);
     } else {
-      if (totalLength == null) {
+      if (totalLength === undefined) {
         // Calculate totalLength
         totalLength = 0;
         for (var i = 0; i < list.length; i++) {
           item = list[i];
+          if (!Buffer.isBuffer(item)) {
+            throw new TypeError(`Concat only operates on Buffer objects.`);
+          }
           totalLength += item.length;
         }
       }
@@ -960,6 +1247,9 @@ export class Buffer implements BFSBuffer {
       var curPos = 0;
       for (var j = 0; j < list.length; j++) {
         item = list[j];
+        if (!Buffer.isBuffer(item)) {
+          throw new TypeError(`Concat only operates on Buffer objects.`);
+        }
         curPos += item.copy(buf, curPos);
       }
       return buf;
@@ -970,16 +1260,21 @@ export class Buffer implements BFSBuffer {
    * Returns a boolean of whether this and otherBuffer have the same bytes.
    */
   public equals(buffer: NodeBuffer): boolean {
-    var i: number;
-    if (buffer.length !== this.length) {
-      return false;
-    } else {
-      // TODO: Bigger strides.
-      for (i = 0; i < this.length; i++) {
-        if (this.readUInt8(i) !== buffer.readUInt8(i)) {
-          return false;
+    if (Buffer.isBuffer(buffer)) {
+      var i: number;
+      if (buffer.length !== this.length) {
+        return false;
+      } else {
+        // TODO: Bigger strides.
+        for (i = 0; i < this.length; i++) {
+          if (this.readUInt8(i) !== buffer.readUInt8(i)) {
+            return false;
+          }
         }
+        return true;
       }
+    } else {
+      throw new TypeError(`Argument must be a buffer.`);
     }
   }
 

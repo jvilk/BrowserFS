@@ -42,4 +42,8 @@ module.exports = function() {
   assert.throws(function() {
     Buffer.concat([42]);
   }, TypeError);
+  // BFS: Adding for good measure.
+  assert.throws(function() {
+    Buffer.concat([42], 10);
+  }, TypeError);
 };

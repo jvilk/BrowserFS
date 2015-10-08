@@ -52,7 +52,7 @@ export function FindUtil(encoding: string): StringUtil {
       case 'string':
         return encoding; // No transformation needed.
       default:
-        throw new Error('Invalid encoding argument specified');
+        throw new TypeError('Invalid encoding argument specified');
     }
   })();
   encoding = encoding.toLowerCase();
@@ -82,22 +82,8 @@ export function FindUtil(encoding: string): StringUtil {
       return BINSTRIE;
     case 'extended_ascii':
       return ExtendedASCII;
-    /**
-    @todo: Support the below encodings.
-    case 'binary':
-    case 'raw':
-    case 'raws':
-      return BINARY;
-    case 'buffer':
-      return BUFFER;
     default:
-      return UTF8;
-    */
-    default:
-      // Node defaults to UTF8, but I put this here in case something
-      // significant uses an unsupported encoding; I don't want silent
-      // failures.
-      throw new Error("Unknown encoding: " + encoding);
+      throw new TypeError(`Unknown encoding: ${encoding}`);
   }
 }
 
@@ -108,41 +94,51 @@ export function FindUtil(encoding: string): StringUtil {
  */
 export class UTF8 {
   public static str2byte(str: string, buf: NodeBuffer): number {
-    var length = buf.length;
-    var i = 0;
-    var j = 0;
-    var maxJ = length;
-    var numChars = 0;
-    while (i < str.length && j < maxJ) {
+    var maxJ = buf.length,
+      i = 0,
+      j = 0,
+      strLen = str.length;
+    while (i < strLen && j < maxJ) {
       var code = str.charCodeAt(i++);
-      var next = str.charCodeAt(i);
-      if (0xD800 <= code && code <= 0xDBFF && 0xDC00 <= next && next <= 0xDFFF) {
+      if (0xD800 <= code && code <= 0xDBFF) {
         // 4 bytes: Surrogate pairs! UTF-16 fun time.
-        if (j + 3 >= maxJ) {
+        if (j + 3 >= maxJ || i >= strLen) {
           break;
-        } else {
-          numChars++;
         }
-        // First pair: 10 bits of data, with an implicitly set 11th bit
-        // Second pair: 10 bits of data
-        var codePoint = (((code & 0x3FF) | 0x400) << 10) | (next & 0x3FF);
-        // Highest 3 bits in first byte
-        buf.writeUInt8((codePoint >> 18) | 0xF0, j++);
-        // Rest are all 6 bits
-        buf.writeUInt8(((codePoint >> 12) & 0x3F) | 0x80, j++);
-        buf.writeUInt8(((codePoint >> 6) & 0x3F) | 0x80, j++);
-        buf.writeUInt8((codePoint & 0x3F) | 0x80, j++);
-        i++;
+
+        // Get the next UTF16 character.
+        var next = str.charCodeAt(i);
+        if (0xDC00 <= next && next <= 0xDFFF) {
+          // First pair: 10 bits of data, with an implicitly set 11th bit
+          // Second pair: 10 bits of data
+          var codePoint = (((code & 0x3FF) | 0x400) << 10) | (next & 0x3FF);
+          // Highest 3 bits in first byte
+          buf.writeUInt8((codePoint >> 18) | 0xF0, j++);
+          // Rest are all 6 bits
+          buf.writeUInt8(((codePoint >> 12) & 0x3F) | 0x80, j++);
+          buf.writeUInt8(((codePoint >> 6) & 0x3F) | 0x80, j++);
+          buf.writeUInt8((codePoint & 0x3F) | 0x80, j++);
+          i++;
+        } else {
+          // This surrogate pair is missing a friend!
+          // Write unicode replacement character.
+          buf.writeUInt8(0xef, j++);
+          buf.writeUInt8(0xbf, j++);
+          buf.writeUInt8(0xbd, j++);
+        }
+      } else if (0xDC00 <= code && code <= 0xDFFF) {
+        // Unmatched second surrogate!
+        // Write unicode replacement character.
+        buf.writeUInt8(0xef, j++);
+        buf.writeUInt8(0xbf, j++);
+        buf.writeUInt8(0xbd, j++);
       } else if (code < 0x80) {
         // One byte
         buf.writeUInt8(code, j++);
-        numChars++;
       } else if (code < 0x800) {
         // Two bytes
         if (j + 1 >= maxJ) {
           break;
-        } else {
-          numChars++;
         }
         // Highest 5 bits in first byte
         buf.writeUInt8((code >> 6) | 0xC0, j++);
@@ -152,8 +148,6 @@ export class UTF8 {
         // Three bytes
         if (j + 2 >= maxJ) {
           break;
-        } else {
-          numChars++;
         }
         // Highest 4 bits in first byte
         buf.writeUInt8((code >> 12) | 0xE0, j++);
@@ -197,12 +191,16 @@ export class UTF8 {
     return chars.join('');
   }
 
+  // From http://stackoverflow.com/a/23329386
   public static byteLength(str: string): number {
-    // Matches only the 10.. bytes that are non-initial characters in a
-    // multi-byte sequence.
-    // @todo This may be slower than iterating through the string in some cases.
-    var m = encodeURIComponent(str).match(/%[89ABab]/g);
-    return str.length + (m ? m.length : 0);
+    var s = str.length;
+    for (var i=str.length-1; i>=0; i--) {
+      var code = str.charCodeAt(i);
+      if (code > 0x7f && code <= 0x7ff) s++;
+      else if (code > 0x7ff && code <= 0xffff) s+=2;
+      if (code >= 0xDC00 && code <= 0xDFFF) i--; //trail surrogate
+    }
+    return s;
   }
 }
 
@@ -369,7 +367,7 @@ export class BASE64 {
     var i = 0;
     str = str.replace(/[^A-Za-z0-9\+\/\=\-\_]/g, '');
     var j = 0;
-    while (i < str.length) {
+    while (i < str.length && j < buf.length) {
       var enc1 = BASE64.b642num[str.charAt(i++)];
       var enc2 = BASE64.b642num[str.charAt(i++)];
       var enc3 = BASE64.b642num[str.charAt(i++)];
