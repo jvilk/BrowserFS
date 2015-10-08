@@ -20,7 +20,9 @@
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 var assert = require('assert'),
-  Buffer = require('buffer').Buffer;
+  buffer = require('buffer'),
+  Buffer = buffer.Buffer,
+  SlowBuffer = buffer.SlowBuffer;
 
 module.exports = function() {
   // counter to ensure unique value is always copied
@@ -330,6 +332,19 @@ module.exports = function() {
   for (var i = 0; i < 50; i++) {
     assert.equal(b[100 + i], slice[i]);
   }
+
+  // make sure only top level parent propagates from allocPool
+  // BFS: Doesn't matter.
+  /*var b = new Buffer(5);
+  var c = b.slice(0, 4);
+  var d = c.slice(0, 2);
+  assert.equal(b.parent, c.parent);
+  assert.equal(b.parent, d.parent);
+
+  // also from a non-pooled instance
+  var b = new SlowBuffer(5);
+  var c = b.slice(0, 4);
+  var d = c.slice(0, 2);*/
 
   // Bug regression test
   var testValue = '\u00F6\u65E5\u672C\u8A9E'; // ö日本語
@@ -1083,6 +1098,10 @@ module.exports = function() {
     assert.equal(buf.slice('-10', '-0'), '');
     assert.equal(buf.slice('111'), '');
     assert.equal(buf.slice('0', '-111'), '');
+
+    // try to slice a zero length Buffer
+    // see https://github.com/joyent/node/issues/5881
+    SlowBuffer(0).slice(0, 1);
   })();
 
   // Regression test for #5482: should throw but not assert in C++ land.
@@ -1111,9 +1130,9 @@ module.exports = function() {
     new Buffer((-1 >>> 0) + 1);
   }, RangeError);
 
-  /*assert.throws(function() {
+  assert.throws(function() {
     new SlowBuffer((-1 >>> 0) + 1);
-  }, RangeError);*/
+  }, RangeError);
 
   // Test Compare
   var b = new Buffer(1).fill('a');

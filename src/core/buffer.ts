@@ -146,7 +146,7 @@ export interface BFSBufferImplementation {
   new (str: string, encoding?: string): NodeBuffer;
   new (size: number): NodeBuffer;
   new (array: any[]): NodeBuffer;
-  isBuffer(obj: any): boolean;
+  isBuffer(obj: any): obj is NodeBuffer;
   byteLength(string: string, encoding?: string): number;
   concat(list: NodeBuffer[], totalLength?: number): NodeBuffer;
 }
@@ -370,11 +370,11 @@ export class Buffer implements BFSBuffer {
    * Returns a string with the first 50 hexadecimal values of the Buffer.
    */
   public inspect(): string {
-    var digits: string[] = [], i: number, len = this.length < 50 ? this.length : 50;
+    var digits: string[] = [], i: number, len = this.length < INSPECT_MAX_BYTES ? this.length : INSPECT_MAX_BYTES;
     for (i = 0; i < len; i++) {
       digits.push(this.readUInt8(i).toString(16));
     }
-    return `<Buffer ${digits.join(" ")}${this.length > 50 ? " ... " : ""}>`;
+    return `<Buffer ${digits.join(" ")}${this.length > len ? " ... " : ""}>`;
   }
 
   /**
@@ -1289,3 +1289,35 @@ export class Buffer implements BFSBuffer {
 
 // Type-check the class.
 var _: BFSBufferImplementation = Buffer;
+
+/**
+ * Emulation of Node's SlowBuffer. We don't differentiate between the two.
+ */
+export class SlowBuffer extends Buffer implements NodeBuffer {
+  constructor (arg1: any, arg2?: any, arg3?: number) {
+    // Node apparently allows you to construct buffers w/o 'new'.
+    if (!(this instanceof SlowBuffer)) {
+      return new Buffer(arg1, arg2);
+    }
+    super(arg1, arg2, arg3);
+  }
+
+  public static isBuffer(obj: any): obj is NodeBuffer {
+    return Buffer.isBuffer(obj);
+  }
+
+  public static byteLength(str: string, encoding?: string): number {
+    return Buffer.byteLength(str, encoding);
+  }
+
+  public static concat(list: NodeBuffer[], totalLength?: number): NodeBuffer {
+    return Buffer.concat(list, totalLength);
+  }
+}
+// Type-check the class.
+_ = SlowBuffer;
+
+/**
+ * Determines how many bytes to print via inspect().
+ */
+export var INSPECT_MAX_BYTES: number = 50;
