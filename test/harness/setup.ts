@@ -1,8 +1,7 @@
-/// <reference path="../../bower_components/DefinitelyTyped/async/async.d.ts" />
-/// <reference path="../../bower_components/DefinitelyTyped/node/node-0.10.d.ts" />
-/// <reference path="./mocha.d.ts" />
 import BrowserFS = require('../../src/core/browserfs');
 import file_system = require('../../src/core/file_system');
+import buffer = require('../../src/core/buffer');
+import BFSBuffer = buffer.Buffer;
 import BackendFactory = require('./BackendFactory');
 import async = require('async');
 var loadFixtures: () => void = require('../fixtures/load_fixtures');
@@ -41,7 +40,7 @@ export = function(tests: {
 
   // Install BFS as a global.
   (<any> window)['BrowserFS'] = BrowserFS;
-  
+
   var process = BrowserFS.BFSRequire('process');
 
   // Polyfill for `process.on('exit')`.
@@ -56,7 +55,7 @@ export = function(tests: {
   };
 
   // Generates a Jasmine unit test from a CommonJS test.
-  function generateTest(testName: string, test: () => void) {
+  function generateTest(testName: string, test: () => void, postCb: () => void = () => {}) {
     it(testName, function (done: (e?: any) => void) {
       // Reset the exit callback.
       process.on('exit', function () { });
@@ -65,13 +64,17 @@ export = function(tests: {
         return __numWaiting === 0;
       }, "All callbacks should fire", timeout, (e?: Error) => {
         if (e) {
+          postCb();
           done(e);
         } else {
           // Run the exit callback, if any.
-          (<any>process)._exitCb(); 
+          (<any>process)._exitCb();
           waitsFor(() => {
             return __numWaiting === 0;
-          }, "All callbacks should fire", timeout, done);
+          }, "All callbacks should fire", timeout, (e?: Error) => {
+            postCb();
+            done(e);
+          });
         }
       });
     });
@@ -99,22 +102,35 @@ export = function(tests: {
       }
     }
   }
-  
+
   function generateAllTests() {
     describe('BrowserFS Tests', function(): void {
       this.timeout(0);
-  
+
       // generate generic non-backend specific tests
       describe('General Tests', (): void => {
         var genericTests = tests.general, testName: string;
         __numWaiting = 0;
-        for (testName in genericTests) {
-          if (genericTests.hasOwnProperty(testName)) {
-            generateTest(testName, genericTests[testName]);
+        var pcb = BFSBuffer.getPreferredBufferCore();
+        // Test each available buffer core type!
+        BFSBuffer.getAvailableBufferCores().forEach((bci) => {
+          for (testName in genericTests) {
+            if (genericTests.hasOwnProperty(testName)) {
+              // Capture testName in a closure.
+              ((testName: string) => {
+                generateTest(`${testName} [${bci.name}]`, () => {
+                  BFSBuffer.setPreferredBufferCore(bci);
+                  genericTests[testName]();
+                }, () => {
+                  // Restore the previous preferred core.
+                  BFSBuffer.setPreferredBufferCore(pcb);
+                });
+              })(testName);
+            }
           }
-        }
+        });
       });
-      
+
       describe('FS Tests', (): void => {
         fsBackends.forEach((fsBackend) => {
           fsBackend.backends.forEach((backend) => {
@@ -125,7 +141,7 @@ export = function(tests: {
         });
       });
     });
-    
+
     // Kick off the tests!
     __karma__.start();
   }

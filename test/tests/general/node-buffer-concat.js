@@ -26,15 +26,18 @@ module.exports = function() {
   var one  = [ new Buffer('asdf') ];
   var _long = [];
   for (var i = 0; i < 10; i++) _long.push(new Buffer('asdf'));
-    
+
   var flatZero = Buffer.concat(zero);
   var flatOne = Buffer.concat(one);
   var flatLong = Buffer.concat(_long);
   var flatLongLen = Buffer.concat(_long, 40);
-    
+
   assert(flatZero.length === 0);
   assert(flatOne.toString() === 'asdf');
   assert(flatOne === one[0]);
   assert(flatLong.toString() === (new Array(10+1).join('asdf')));
   assert(flatLongLen.toString() === (new Array(10+1).join('asdf')));
+  assert.throws(function() {
+    Buffer.concat([42]);
+  }, TypeError);
 };

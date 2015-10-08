@@ -15,6 +15,8 @@ export class BufferCoreArray extends buffer_core.BufferCoreCommon implements buf
     return true;
   }
 
+  public static name = "Array";
+
   private buff: number[];
   private length: number;
   constructor(length: number) {

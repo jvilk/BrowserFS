@@ -8,6 +8,8 @@ export class BufferCoreArrayBuffer extends buffer_core.BufferCoreCommon implemen
     return typeof DataView !== 'undefined';
   }
 
+  public static name = "ArrayBuffer";
+
   private buff: DataView;
   private length: number;
   constructor(length: number);

@@ -135,6 +135,22 @@ export class Buffer implements BFSBuffer {
     }
   }
 
+  /* TEST METHODS BEGIN */
+
+  public static getAvailableBufferCores(): buffer_core.BufferCoreImplementation[] {
+    return BufferCorePreferences.filter((bci) => bci.isAvailable());
+  }
+
+  public static getPreferredBufferCore(): buffer_core.BufferCoreImplementation {
+    return PreferredBufferCore;
+  }
+
+  public static setPreferredBufferCore(bci: buffer_core.BufferCoreImplementation) {
+    PreferredBufferCore = bci;
+  }
+
+  /* TEST METHODS END */
+
   public getBufferCore(): buffer_core.BufferCore {
     return this.data;
   }
@@ -267,6 +283,40 @@ export class Buffer implements BFSBuffer {
         newBuff = new Buffer(ab);
       this.copy(newBuff, 0, 0, this.length);
       return ab;
+    }
+  }
+
+  /**
+   * Operates similar to Array#indexOf(). Accepts a String, Buffer or Number.
+   * Strings are interpreted as UTF8. Buffers will use the entire buffer. So in order
+   * to compare a partial Buffer use Buffer#slice(). Numbers can range from 0 to 255.
+   */
+  public indexOf(value: string | NodeBuffer | number, byteOffset: number = 0): number {
+    var normalizedValue: NodeBuffer;
+    if (typeof(value) === 'string') {
+      normalizedValue = new Buffer(<string> value, 'utf8');
+    } else if (Buffer.isBuffer(value)) {
+      normalizedValue = <NodeBuffer> value;
+    } else {
+      normalizedValue = new Buffer(<number> value);
+    }
+
+    var valOffset = 0, currentVal: number, valLen = normalizedValue.length,
+      bufLen = this.length;
+    while (valOffset < valLen && byteOffset < bufLen) {
+      if (normalizedValue.readUInt8(valOffset) == this.readUInt8(byteOffset)) {
+        valOffset++;
+      } else {
+        // Doesn't match. Restart search.
+        valOffset = 0;
+      }
+      byteOffset++;
+    }
+
+    if (valOffset == valLen) {
+      return byteOffset - valLen;
+    } else {
+      return -1;
     }
   }
 
@@ -413,6 +463,105 @@ export class Buffer implements BFSBuffer {
     this.data.fill(value, offset, end);
   }
 
+  public readUIntLE(offset: number, byteLength: number, noAssert = false): number {
+    offset += this.offset;
+    var value: number = 0;
+    switch (byteLength) {
+      case 1:
+        return this.data.readUInt8(offset);
+      case 2:
+        return this.data.readUInt16LE(offset);
+      case 3:
+        return this.data.readUInt8(offset) | (this.data.readUInt16LE(offset + 1) << 8);
+      case 4:
+        return this.data.readUInt32LE(offset);
+      case 6:
+        // Shift right by 40 bits.
+        // (Note: We shift by 23 to avoid introducing a sign bit!)
+        value += (this.data.readUInt8(offset + 5) << 23) * 0x20000;
+        // FALL-THRU
+      case 5:
+        // Shift right by 32 bits.
+        value += (this.data.readUInt8(offset + 5) << 23) * 0x200;
+        return value + this.data.readUInt32LE(offset);
+      default:
+        throw new Error(`Invalid byteLength: ${byteLength}`);
+    }
+  }
+
+  public readUIntBE(offset: number, byteLength: number, noAssert = false): number {
+    offset += this.offset;
+    var value: number = 0;
+    switch (byteLength) {
+      case 1:
+        return this.data.readUInt8(offset);
+      case 2:
+        return this.data.readUInt16BE(offset);
+      case 3:
+        return this.data.readUInt8(offset + 2) | (this.data.readUInt16BE(offset) << 8);
+      case 4:
+        return this.data.readUInt32BE(offset);
+      case 6:
+        // Shift right by 40 bits.
+        // (Note: We shift by 23 to avoid introducing a sign bit!)
+        value += (this.data.readUInt8(offset) << 23) * 0x20000;
+        offset++;
+        // FALL-THRU
+      case 5:
+        // Shift right by 32 bits.
+        value += (this.data.readUInt8(offset) << 23) * 0x200;
+        return value + this.data.readUInt32BE(offset + 1);
+      default:
+        throw new Error(`Invalid byteLength: ${byteLength}`);
+    }
+  }
+
+  public readIntLE(offset: number, byteLength: number, noAssert = false): number {
+    offset += this.offset;
+    switch (byteLength) {
+      case 1:
+        return this.data.readInt8(offset);
+      case 2:
+        return this.data.readInt16LE(offset);
+      case 3:
+        return this.data.readUInt8(offset) | (this.data.readInt16LE(offset + 1) << 8);
+      case 4:
+        return this.data.readInt32LE(offset);
+      case 6:
+        // Shift right by 40 bits.
+        // (Note: We shift by 23 to avoid introducing a sign bit!)
+        return ((this.data.readInt8(offset + 5) << 23) * 0x20000) + this.readUIntLE(offset - this.offset, 5, noAssert);
+      case 5:
+        // Shift right by 32 bits.
+        return ((this.data.readInt8(offset + 5) << 23) * 0x200) + this.data.readUInt32LE(offset);
+      default:
+        throw new Error(`Invalid byteLength: ${byteLength}`);
+    }
+  }
+
+  public readIntBE(offset: number, byteLength: number, noAssert = false): number {
+    offset += this.offset;
+    switch (byteLength) {
+      case 1:
+        return this.data.readInt8(offset);
+      case 2:
+        return this.data.readInt16BE(offset);
+      case 3:
+        return this.data.readUInt8(offset + 2) | (this.data.readInt16BE(offset) << 8);
+      case 4:
+        return this.data.readInt32BE(offset);
+      case 6:
+        // Shift right by 40 bits.
+        // (Note: We shift by 23 to avoid introducing a sign bit!)
+        return ((this.data.readInt8(offset) << 23) * 0x20000) + this.readUIntBE(offset - this.offset + 1, 5, noAssert);
+      case 5:
+        // Shift right by 32 bits.
+        return ((this.data.readInt8(offset) << 23) * 0x200) + this.data.readUInt32BE(offset + 1);
+      default:
+        throw new Error(`Invalid byteLength: ${byteLength}`);
+    }
+  }
+
   public readUInt8(offset: number, noAssert = false): number {
     offset += this.offset;
     return this.data.readUInt8(offset);
@@ -481,6 +630,144 @@ export class Buffer implements BFSBuffer {
   public readDoubleBE(offset: number, noAssert = false): number {
     offset += this.offset;
     return this.data.readDoubleBE(offset);
+  }
+
+  public writeUIntLE(value: number, offset: number, byteLength: number, noAssert = false): number {
+    var rv = offset + byteLength;
+    offset += this.offset;
+    switch (byteLength) {
+      case 1:
+        this.data.writeUInt8(value, offset);
+        break;
+      case 2:
+        this.data.writeUInt16LE(value, offset);
+        break;
+      case 3:
+        this.data.writeUInt8(value & 0xFF, offset);
+        this.data.writeUInt16LE(value >> 8, offset + 1);
+        break;
+      case 4:
+        this.data.writeUInt32LE(value, offset);
+        break;
+      case 6:
+        this.data.writeUInt8(value & 0xFF, offset);
+        // "Bit shift", since we're over 32-bits.
+        value = Math.floor(value / 256);
+        offset++;
+        // FALL-THRU
+      case 5:
+        this.data.writeUInt8(value & 0xFF, offset);
+        // "Bit shift", since we're over 32-bits.
+        value = Math.floor(value / 256);
+        this.data.writeUInt32LE(value, offset + 1);
+        break;
+      default:
+        throw new Error(`Invalid byteLength: ${byteLength}`);
+    }
+    return rv;
+  }
+
+  public writeUIntBE(value: number, offset: number, byteLength: number, noAssert = false): number {
+    var rv = offset + byteLength;
+    offset += this.offset;
+    switch (byteLength) {
+      case 1:
+        this.data.writeUInt8(value, offset);
+        break;
+      case 2:
+        this.data.writeUInt16BE(value, offset);
+        break;
+      case 3:
+        this.data.writeUInt8(value & 0xFF, offset + 2);
+        this.data.writeUInt16BE(value >> 8, offset);
+        break;
+      case 4:
+        this.data.writeUInt32BE(value, offset);
+        break;
+      case 6:
+        this.data.writeUInt8(value & 0xFF, offset + 5);
+        // "Bit shift", since we're over 32-bits.
+        value = Math.floor(value / 256);
+        // FALL-THRU
+      case 5:
+        this.data.writeUInt8(value & 0xFF, offset + 4);
+        // "Bit shift", since we're over 32-bits.
+        value = Math.floor(value / 256);
+        this.data.writeUInt32BE(value, offset);
+        break;
+      default:
+        throw new Error(`Invalid byteLength: ${byteLength}`);
+    }
+    return rv;
+  }
+
+  public writeIntLE(value: number, offset: number, byteLength: number, noAssert = false): number {
+    var rv = offset + byteLength;
+    offset += this.offset;
+    switch (byteLength) {
+      case 1:
+        this.data.writeInt8(value, offset);
+        break;
+      case 2:
+        this.data.writeInt16LE(value, offset);
+        break;
+      case 3:
+        this.data.writeUInt8(value & 0xFF, offset);
+        this.data.writeInt16LE(value >> 8, offset + 1);
+        break;
+      case 4:
+        this.data.writeInt32LE(value, offset);
+        break;
+      case 6:
+        this.data.writeUInt8(value & 0xFF, offset);
+        // "Bit shift", since we're over 32-bits.
+        value = Math.floor(value / 256);
+        offset++;
+        // FALL-THRU
+      case 5:
+        this.data.writeUInt8(value & 0xFF, offset);
+        // "Bit shift", since we're over 32-bits.
+        value = Math.floor(value / 256);
+        this.data.writeInt32LE(value, offset + 1);
+        break;
+      default:
+        throw new Error(`Invalid byteLength: ${byteLength}`);
+    }
+    return rv;
+  }
+
+  public writeIntBE(value: number, offset: number, byteLength: number, noAssert = false): number {
+    var rv = offset + byteLength;
+    offset += this.offset;
+    switch (byteLength) {
+      case 1:
+        this.data.writeInt8(value, offset);
+        break;
+      case 2:
+        this.data.writeInt16BE(value, offset);
+        break;
+      case 3:
+        this.data.writeUInt8(value & 0xFF, offset + 2);
+        this.data.writeInt16BE(value >> 8, offset);
+        break;
+      case 4:
+        this.data.writeInt32BE(value, offset);
+        break;
+      case 6:
+        this.data.writeUInt8(value & 0xFF, offset + 5);
+        // "Bit shift", since we're over 32-bits.
+        value = Math.floor(value / 256);
+        // FALL-THRU
+      case 5:
+        this.data.writeUInt8(value & 0xFF, offset + 4);
+        // "Bit shift", since we're over 32-bits.
+        value = Math.floor(value / 256);
+        this.data.writeInt32BE(value, offset);
+        break;
+      default:
+        throw new Error(`Invalid byteLength: ${byteLength}`);
+    }
+    return rv;
   }
 
   public writeUInt8(value: number, offset: number, noAssert = false): void {
@@ -569,6 +856,30 @@ export class Buffer implements BFSBuffer {
     return true;
   }
 
+  public static compare(a: NodeBuffer, b: NodeBuffer): number {
+    if (a === b) {
+      return 0;
+    } else {
+      var i: number,
+        aLen = a.length,
+        bLen = b.length,
+        cmpLength = Math.min(aLen, bLen),
+        u1: number, u2: number;
+      for (i = 0; i < cmpLength; i++) {
+        u1 = a.readUInt8(i);
+        u2 = b.readUInt8(i);
+        if (u1 !== u2) {
+          return u1 > u2 ? 1 : -1;
+        }
+      }
+      if (aLen === bLen) {
+        return 0;
+      } else {
+        return aLen > bLen ? 1 : -1;
+      }
+    }
+  }
+
   /**
    * Tests if obj is a Buffer.
    * @param {object} obj - An arbitrary object
@@ -629,6 +940,31 @@ export class Buffer implements BFSBuffer {
       }
       return buf;
     }
+  }
+
+  /**
+   * Returns a boolean of whether this and otherBuffer have the same bytes.
+   */
+  public equals(buffer: NodeBuffer): boolean {
+    var i: number;
+    if (buffer.length !== this.length) {
+      return false;
+    } else {
+      // TODO: Bigger strides.
+      for (i = 0; i < this.length; i++) {
+        if (this.readUInt8(i) !== buffer.readUInt8(i)) {
+          return false;
+        }
+      }
+    }
+  }
+
+  /**
+   * Returns a number indicating whether this comes before or after or is
+   * the same as the otherBuffer in sort order.
+   */
+  public compare(buffer: NodeBuffer): number {
+    return Buffer.compare(this, buffer);
   }
 }
 

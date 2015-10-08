@@ -1,4 +1,3 @@
-/// <reference path="../../../bower_components/DefinitelyTyped/dropboxjs/dropboxjs.d.ts" />
 import dbfs = require('../../../src/backend/dropbox');
 import BackendFactory = require('../BackendFactory');
 import file_system = require('../../../src/core/file_system');
@@ -6,8 +5,7 @@ import file_system = require('../../../src/core/file_system');
 function DBFSFactory(cb: (name: string, obj: file_system.FileSystem[]) => void): void {
   if (dbfs.DropboxFileSystem.isAvailable()) {
     var init_client = new Dropbox.Client({
-      key: 'c6oex2qavccb2l3',
-      sandbox: true
+      key: 'c6oex2qavccb2l3'
     }),
     auth = () => {
       init_client.authenticate((error: Dropbox.AuthError | Dropbox.ApiError, authed_client: Dropbox.Client) => {

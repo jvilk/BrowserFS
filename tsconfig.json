@@ -6,10 +6,11 @@
         "preserveConstEnums": true,
         "sourceMap": true,
         "target": "ES3",
-        "declaration": true
+        "declaration": true,
+        "outDir": "build/node"
     },
     "files": [
-        "src/DataView.d.ts",
+        "typings/tsd.d.ts",
         "src/main.ts",
         "src/backend/async_mirror.ts",
         "src/backend/dropbox.ts",
@@ -60,9 +61,6 @@
         "test/harness/factories/workerfs_factory.ts",
         "test/harness/factories/xhrfs_factory.ts",
         "test/harness/factories/zipfs_factory.ts",
-        "test/harness/setup.ts",
-        "bower_components/DefinitelyTyped/async/async.d.ts",
-        "bower_components/DefinitelyTyped/node/node-0.10.d.ts",
-        "test/harness/mocha.d.ts"
+        "test/harness/setup.ts"
     ]
 }

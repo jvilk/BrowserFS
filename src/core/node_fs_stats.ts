@@ -1,5 +1,3 @@
-/// <reference path="../../bower_components/DefinitelyTyped/node/node-0.10.d.ts" />
-// Import the type annotation from Node.
 import fs = require('fs');
 import file = require('./file');
 import buffer = require('./buffer');
@@ -45,8 +43,10 @@ export class Stats implements fs.Stats {
   public uid: number = 0;
   // group ID of owner
   public gid: number = 0;
+  // time file was created (currently unsupported)
+  public birthtime: Date = new Date(0);
   // XXX: Some file systems stash data on stats objects.
-  public file_data: NodeBuffer;
+  public file_data: NodeBuffer = null;
 
   /**
    * Provides information about a particular entry in the file system.

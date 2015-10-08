@@ -1,6 +1,6 @@
 {
   "name": "BrowserFS",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "main": [
     "./dist/browserfs.min.js",
     "./dist/browserfs.min.js.map"
@@ -11,8 +11,5 @@
     "bower_components",
     "test",
     "tests"
-  ],
-  "dependencies": {
-    "DefinitelyTyped": "latest"
-  }
+  ]
 }

@@ -1,6 +1,6 @@
 /**
  * !!!NOTE: This file should not depend on any other file!!!
- * 
+ *
  * Buffers are referenced everywhere, so it can cause a circular dependency.
  */
 
@@ -163,6 +163,10 @@ export interface BufferCoreImplementation {
    * Returns 'true' if the BufferCore is available in the current environment.
    */
   isAvailable(): boolean;
+  /**
+   * The name of this particular implementation. Used for unit testing purposes.
+   */
+  name: string;
 }
 
 /**

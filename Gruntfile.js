@@ -12,7 +12,16 @@ var fs = require('fs'),
     plugin: [
       'tsify', 'browserify-derequire'
     ]
-  };
+  },
+  nodeTSConfig = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'tsconfig.json')).toString());
+
+// Filter out test/ files.
+nodeTSConfig.files = nodeTSConfig.files.filter(function(file) {
+  return file.slice(0, 4) !== 'test';
+});
+
+// Ugh, need to write this to a file for grunt-ts.
+fs.writeFileSync(path.resolve(__dirname, "generated_node_tsconfig.json"), JSON.stringify(nodeTSConfig));
 
 if (!fs.existsSync('build')) {
   fs.mkdirSync('build');
@@ -93,7 +102,7 @@ var karmaFiles = [
   { pattern: 'test/**/*.ts*', included: false },
   // SourceMap support
   { pattern: 'src/**/*.ts*', included: false },
-  { pattern: 'bower_components/DefinitelyTyped/**/*.d.ts', included: false },
+  { pattern: 'typings/**/*.d.ts', included: false },
   { pattern: 'node_modules/pako/dist/*.js*', included: false }
 ];
 
@@ -108,6 +117,19 @@ module.exports = function(grunt) {
         }
       }
     },
+    ts: {
+      default: {
+        tsconfig: path.resolve(__dirname, "generated_node_tsconfig.json")
+      }
+    },
+    tsd: {
+      browserfs: {
+        options: {
+          command: "reinstall",
+          config: "tsd.json"
+        }
+      }
+    },
     karma: {
       options: {
         // base path, that will be used to resolve files and exclude
@@ -117,8 +139,8 @@ module.exports = function(grunt) {
         preprocessors: {
           'test/harness/run.ts': ['browserify']
         },
-        browserify: _.extend({}, browserifyConfig, 
-          { 
+        browserify: _.extend({}, browserifyConfig,
+          {
             builtins: ['assert']
           }
         ),
@@ -163,7 +185,7 @@ module.exports = function(grunt) {
           })
         },
         files: {
-          './build/browserfs.js': './src/main.ts'
+          './build/browserfs.js': './src/browserify_main.ts'
         }
       },
       watch: {
@@ -235,6 +257,16 @@ module.exports = function(grunt) {
       gen_zipfs_fixtures: {
         command: path.resolve('node_modules', '.bin', 'coffee') + " " + path.resolve('tools', 'ZipFixtureMaker.coffee')
       }
+    },
+    copy: {
+      dist: {
+        files: [{
+          expand: true,
+          cwd: 'build/',
+          src: ['**'],
+          dest: 'dist/'
+        }]
+      }
     }
   });
 
@@ -245,6 +277,9 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-exorcise');
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-shell');
+  grunt.loadNpmTasks('grunt-ts');
+  grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-tsd');
 
   grunt.registerTask('clean', 'Removes all built files.', function () {
     removeFile('./test/fixtures/load_fixtures.js');
@@ -262,10 +297,10 @@ module.exports = function(grunt) {
     modules.forEach(function(mod) {
       main.push("require('./" + mod + "');");
     });
-    main.push("export = require('./" + bfsModule + "');");
+    main.push("import bfs = require('./" + bfsModule + "');\nexport = bfs;");
     fs.writeFileSync('src/main.ts', main.join('\n'));
   });
-  
+
   grunt.registerTask('run.ts', 'Construct run.ts to include all tests and factories.', function() {
     var tests = {}, testsStringified, factoryStringified;
     function processDir(dir, dirInfo) {
@@ -287,13 +322,13 @@ module.exports = function(grunt) {
     testsStringified = testsStringified.slice(1, testsStringified.length - 1);
     factoryStringified = fs.readdirSync('test/harness/factories')
       .filter(function(file) {
-        return file.slice(file.length-11) === "_factory.ts";  
+        return file.slice(file.length-11) === "_factory.ts";
       })
       .map(function(file) {
         return "require('./factories/" + file + "')";
       }).join(', ');
 
-    fs.writeFileSync('test/harness/run.ts', 
+    fs.writeFileSync('test/harness/run.ts',
       fs.readFileSync('test/harness/run.tstemplate')
         .toString()
         .replace(/\/\*FACTORIES\*\//g, factoryStringified)
@@ -308,7 +343,9 @@ module.exports = function(grunt) {
   // dev build + watch for changes.
   grunt.registerTask('watch', ['main.ts', 'browserify:watch']);
   // dev build
-  grunt.registerTask('dev', ['main.ts', 'browserify:browserfs', 'exorcise']);
+  grunt.registerTask('dev', ['tsd:browserfs', 'main.ts', 'browserify:browserfs', 'exorcise', 'ts']);
   // release build (default)
   grunt.registerTask('default', ['dev', 'uglify']);
+  // dist
+  grunt.registerTask('dist', ['clean', 'dev', 'copy:dist']);
 };

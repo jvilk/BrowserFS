@@ -4,7 +4,6 @@ doc
 *.log
 *.json
 !tsconfig.json
-bower_components
 test/fixtures
 test/harness/load_fixtures.js
 test/harness/factories/workerfs_worker.js
@@ -20,3 +19,5 @@ test/harness/run.ts
 .tscache
 # main.ts is auto-generated
 src/main.ts
+typings
+generated_node_tsconfig.json

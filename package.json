@@ -1,11 +1,13 @@
 {
   "name": "browserfs",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "A filesystem in your browser!",
+  "main": "dist/browserfs.js",
+  "typings": "dist/node/main",
   "keywords": [
     "filesystem",
-    "storage",
-    "node"
+    "node",
+    "storage"
   ],
   "homepage": "https://github.com/jvilk/BrowserFS",
   "author": "John Vilk <jvilk@cs.umass.edu> (http://people.cs.umass.edu/~jvilk)",
@@ -20,35 +22,37 @@
   "engines": {
     "node": ">= 0.10"
   },
-  "main": "dist/browserfs.js",
   "devDependencies": {
     "aliasify": "^1.7.2",
+    "archiver": "^0.15.1",
     "async": ">= 0.2.7",
-    "bower": "*",
     "browserify": "^10.2.4",
     "browserify-derequire": "~0.9.4",
     "browserify-shim": "~3.8.7",
     "coffee-script": ">= 1.6.2",
     "dropbox": "^0.10.3",
-    "grunt": "*",
+    "grunt": "^0.4.5",
     "grunt-browserify": "~3.8.0",
-    "grunt-cli": "*",
+    "grunt-cli": "^0.1.13",
     "grunt-contrib-connect": "~0.7",
+    "grunt-contrib-copy": "^0.8.1",
     "grunt-contrib-uglify": "~0.9.1",
     "grunt-contrib-watch": "*",
     "grunt-exorcise": "~2.0.0",
     "grunt-karma": "~0.11.0",
     "grunt-shell": "~0.5.0",
+    "grunt-ts": "^5.0.0",
+    "grunt-tsd": "^0.1.0",
     "karma": "^0.12.36",
     "karma-browserify": "^4.2.1",
-    "karma-chrome-launcher": "*",
-    "karma-firefox-launcher": "*",
+    "karma-chrome-launcher": "^0.2.1",
+    "karma-firefox-launcher": "^0.1.6",
     "karma-mocha": "^0.1.10",
-    "karma-opera-launcher": "*",
-    "karma-safari-launcher": "*",
+    "karma-opera-launcher": "^0.3.0",
+    "karma-safari-launcher": "^0.1.1",
     "mocha": "^2.2.5",
     "pako": "^0.2.7",
-    "tsify": "^0.12.1",
+    "tsify": "^0.12.2",
     "typescript": "~1.6",
     "underscore": "^1.8.3"
   },
@@ -57,13 +61,10 @@
   },
   "aliasify": {
     "aliases": {
+      "buffer": "./src/core/buffer.ts",
       "fs": "./src/core/node_fs.ts",
       "path": "./src/core/node_path.ts",
-      "buffer": "./src/core/buffer.ts",
-      "process": "./src/core/node_process.ts" 
+      "process": "./src/core/node_process.ts"
     }
-  },
-  "browser": {
-    "zlib-inflate": "./node_modules/pako/dist/pako_inflate.min.js"
   }
 }

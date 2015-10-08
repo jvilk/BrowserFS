@@ -35,6 +35,7 @@ export class BufferCoreImageData extends buffer_core.BufferCoreCommon implements
     // Modern browsers have removed this deprecated API, so it is not always around.
     return typeof CanvasPixelArray !== 'undefined';
   }
+  public static name = "ImageData";
 
   private buff: CanvasPixelArray;
   private length: number;

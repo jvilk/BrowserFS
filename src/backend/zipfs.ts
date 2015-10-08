@@ -59,7 +59,7 @@ var inflateRaw: {
   (data: Uint8Array | number[], options?: {
     chunkSize: number;
   }): Uint8Array | number[];
-} = require('zlib-inflate').inflateRaw;
+} = require('pako/dist/pako_inflate.min').inflateRaw;
 var ApiError = api_error.ApiError;
 var ErrorCode = api_error.ErrorCode;
 var ActionType = file_flag.ActionType;
