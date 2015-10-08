@@ -41,13 +41,13 @@ Prerequisites:
 
 Release:
 
-  grunt
+    grunt
 
 The minified release build can be found in `build/browserfs.min.js`.
 
 Development:
 
-  grunt dev
+    grunt dev
 
 The development build can be found as `build/browserfs.js`.
 
