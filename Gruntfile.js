@@ -95,13 +95,13 @@ function removeFile(file) {
 var karmaFiles = [
   // Main module and fixtures loader
   'test/harness/run.ts',
-  /* AMD modules */
+  /* Modules */
   // Tests
-  { pattern: 'test/tests/**/*.js', included: false },
+  { pattern: 'test/tests/**/*.js', included: false, watched: false },
   // BFS modules
-  { pattern: 'test/**/*.ts*', included: false },
+  { pattern: 'test/**/*.ts*', included: false, watched: false },
   // SourceMap support
-  { pattern: 'src/**/*.ts*', included: false },
+  { pattern: 'src/**/*.ts*', included: false, watched: false },
   { pattern: 'typings/**/*.d.ts', included: false },
   { pattern: 'node_modules/pako/dist/*.js*', included: false }
 ];

@@ -190,8 +190,7 @@ module.exports = function() {
   // check sourceEnd resets to targetEnd if former is greater than the latter
   b.fill(++cntr);
   c.fill(++cntr);
-  // BFS: Changed 1025->1024; buff is only 1024 long
-  var copied = b.copy(c, 0, 0, 1024);
+  var copied = b.copy(c, 0, 0, 1025);
   for (var i = 0; i < c.length; i++) {
     assert.strictEqual(b.get(i), c.get(i));
   }
@@ -620,7 +619,7 @@ module.exports = function() {
     if (Array.isArray(data)) {
       var buffer = new Buffer(data.length);
       data.forEach(function(v, k) {
-        buffer[k] = v;
+        buffer.set(k, v);
       });
       return buffer;
     }

@@ -207,9 +207,9 @@ export class Buffer implements BFSBuffer {
       encoding = "" + length;
       length = this.length;
     }
-    // Don't waste our time if the offset is beyond the buffer length
-    if (offset >= this.length) {
-      return 0;
+    // Check for invalid offsets.
+    if (offset > this.length || offset < 0) {
+      throw new RangeError("Invalid offset.");
     }
     var strUtil = string_util.FindUtil(encoding);
     // Are we trying to write past the buffer?
@@ -261,6 +261,17 @@ export class Buffer implements BFSBuffer {
       type: 'Buffer',
       data: byteArr
     };
+  }
+
+  /**
+   * Returns a string with the first 50 hexadecimal values of the Buffer.
+   */
+  public inspect(): string {
+    var digits: string[] = [], i: number, len = this.length < 50 ? this.length : 50;
+    for (i = 0; i < len; i++) {
+      digits.push(this.readUInt8(i).toString(16));
+    }
+    return `<Buffer ${digits.join(" ")}${this.length > 50 ? " ... " : ""}>`;
   }
 
   /**
@@ -331,28 +342,20 @@ export class Buffer implements BFSBuffer {
    * @return {number} The number of bytes copied into the target buffer.
    */
   public copy(target: NodeBuffer, targetStart = 0, sourceStart = 0, sourceEnd = this.length): number {
-    // The Node code is weird. It sets some out-of-bounds args to their defaults
-    // and throws exceptions for others (sourceEnd).
-    targetStart = targetStart < 0 ? 0 : targetStart;
-    sourceStart = sourceStart < 0 ? 0 : sourceStart;
-
-    // Need to sanity check all of the input. Node has really odd rules regarding
-    // when to apply default arguments. I decided to copy Node's logic.
-    if (sourceEnd < sourceStart) {
-      throw new RangeError('sourceEnd < sourceStart');
-    }
-    if (sourceEnd === sourceStart) {
-      return 0;
-    }
-    if (targetStart >= target.length) {
-      throw new RangeError('targetStart out of bounds');
-    }
-    if (sourceStart >= this.length) {
+    if (sourceStart < 0) {
       throw new RangeError('sourceStart out of bounds');
     }
-    if (sourceEnd > this.length) {
+    if (sourceEnd < 0) {
       throw new RangeError('sourceEnd out of bounds');
     }
+    if (targetStart < 0) {
+      throw new RangeError("targetStart out of bounds");
+    }
+
+    if (sourceEnd <= sourceStart || sourceStart >= this.length || targetStart > target.length) {
+      return 0;
+    }
+
     var bytesCopied = Math.min(sourceEnd - sourceStart, target.length - targetStart, this.length - sourceStart),
       i: number;
     // Copy as many 32-bit chunks as possible.
@@ -447,20 +450,40 @@ export class Buffer implements BFSBuffer {
    */
   public fill(value: any, offset = 0, end = this.length): void {
     var i: number;
-    var valType = typeof value;
-    switch (valType) {
-      case "string":
-        // Trim to a byte.
-        value = value.charCodeAt(0) & 0xFF;
-        break;
-      case "number":
-        break;
-      default:
-        throw new Error('Invalid argument to fill.');
+    offset = offset >> 0;
+    end = end >>> 0;
+
+    if (offset < 0 || end > this.length) {
+      throw new RangeError('out of range index');
+    } else if (end <= offset) {
+      return;
     }
-    offset += this.offset;
-    end += this.offset;
-    this.data.fill(value, offset, end);
+
+    if (typeof value !== 'string') {
+      // Coerces various things to numbers. Node does this.
+      value = value >>> 0;
+    } else if (value.length === 1) {
+      var code = value.charCodeAt(0);
+      if (code < 256) {
+        value = code;
+      }
+    }
+
+    if (typeof value === 'number') {
+      offset += this.offset;
+      end += this.offset;
+      this.data.fill(value, offset, end);
+    } else if (value.length > 0) {
+      var byteLen = Buffer.byteLength(value, 'utf8'),
+        lastBulkWrite = end - byteLen;
+      while (offset < lastBulkWrite) {
+        this.write(value, offset, byteLen, 'utf8');
+        offset += byteLen;
+      }
+      if (offset < end) {
+        this.write(value, offset, end - offset, 'utf8');
+      }
+    }
   }
 
   public readUIntLE(offset: number, byteLength: number, noAssert = false): number {
@@ -899,6 +922,9 @@ export class Buffer implements BFSBuffer {
    */
   public static byteLength(str: string, encoding: string = 'utf8'): number {
     var strUtil = string_util.FindUtil(encoding);
+    if (typeof(str) !== 'string') {
+      str = "" + str;
+    }
     return strUtil.byteLength(str);
   }
 
@@ -921,8 +947,6 @@ export class Buffer implements BFSBuffer {
     var item: NodeBuffer;
     if (list.length === 0 || totalLength === 0) {
       return new Buffer(0);
-    } else if (list.length === 1) {
-      return list[0];
     } else {
       if (totalLength == null) {
         // Calculate totalLength

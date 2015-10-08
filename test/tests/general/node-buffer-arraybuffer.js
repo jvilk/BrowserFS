@@ -12,8 +12,9 @@ module.exports = function() {
   assert.ok(buf instanceof Buffer);
   // For backwards compatibility of old .parent property test that if buf is not
   // a slice then .parent should be undefined.
-  assert.equal(buf.parent, undefined);
-  assert.equal(buf.buffer, ab);
+  // BFS: We don't abide by these properties.
+  // assert.equal(buf.parent, undefined);
+  // assert.equal(buf.buffer, ab);
   assert.equal(buf.length, ab.byteLength);
 
 
@@ -21,7 +22,7 @@ module.exports = function() {
   for (var i = 0; i < LENGTH; i++) {
     assert.equal(ui[i], 0xC);
     ui[i] = 0xF;
-    assert.equal(buf[i], 0xF);
+    assert.equal(buf.get(i), 0xF);
   }
 
   buf.writeUInt32LE(0xF00, 0);
