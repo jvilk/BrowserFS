@@ -361,30 +361,30 @@ module.exports = function(grunt) {
 
   // Inspired by https://github.com/Malkiz/grunt-karma-sequence
   grunt.registerMultiTask('karma-sequence', 'Run Karma with multiple browsers sequentially', function(){
-		var _this = this;
+    var _this = this;
     var options = _this.options();
-		var browsers = options.browsers;
+    var browsers = options.browsers;
     var safariCleanupNeeded = false;
 
     function clone(obj) {
       return JSON.parse(JSON.stringify(obj));
     }
 
-		if (typeof browsers == 'object' && browsers.length > 0) {
-			browsers.forEach(function (browser) {
-				var clonedData = clone(_this.data);
-				clonedData.browsers = [browser];
-				clonedData.singleRun = true;
+    if (typeof browsers == 'object' && browsers.length > 0) {
+      browsers.forEach(function (browser) {
+        var clonedData = clone(_this.data);
+        clonedData.browsers = [browser];
+        clonedData.singleRun = true;
 
-				if (clonedData.junitReporter && clonedData.junitReporter.outputFile) {
-					var path = clonedData.junitReporter.outputFile;
-					var matched = path.match(/([^]*)\.([^\.]*)$/);
-					clonedData.junitReporter.outputFile = matched[1] + '.' + browser + '.' + matched[2];
-				}
+        if (clonedData.junitReporter && clonedData.junitReporter.outputFile) {
+          var path = clonedData.junitReporter.outputFile;
+          var matched = path.match(/([^]*)\.([^\.]*)$/);
+          clonedData.junitReporter.outputFile = matched[1] + '.' + browser + '.' + matched[2];
+        }
 
-				var taskName = 'karma';
-				var name = _this.target + '-sequence-' + browser;
-				grunt.config(taskName + '.' + name, clonedData);
+        var taskName = 'karma';
+        var name = _this.target + '-sequence-' + browser;
+        grunt.config(taskName + '.' + name, clonedData);
         if (browser.toLowerCase() === 'safari') {
           // Workaround for Safari opening tons of tabs:
           // https://github.com/karma-runner/karma-safari-launcher/issues/6#issuecomment-28447748
@@ -401,14 +401,14 @@ module.exports = function(grunt) {
           require('child_process').execSync('defaults write com.apple.Safari ApplePersistenceIgnoreState YES');
           safariQueued = true;
         }
-				grunt.task.run(taskName + ':' + name);
-			});
+        grunt.task.run(taskName + ':' + name);
+      });
 
       if (safariCleanupNeeded) {
         grunt.task.run('karma-cleanup-safari');
       }
-		}
-	});
+    }
+  });
 
   grunt.registerTask('karma-cleanup-safari', 'Cleans up some settings we need to set for Safari to behave with Karma.', function() {
     // Revert the setting we made.
