@@ -4,6 +4,10 @@ node_js:
 
 sudo: false
 
+env:
+  - FIREFOX_BIN=`which firefox`
+  - PHANTOMJS_BIN=`which phantomjs`
+
 cache:
   directories:
     - node_modules
@@ -16,8 +20,8 @@ before_install:
   - "npm config set spin false"
   - "phantomjs --version"
   - "firefox --version"
-  - "which phantomjs"
-  - "which firefox"
+  - "echo $FIREFOX_BIN"
+  - "echo $PHANTOMJS_BIN"
 
 install:
   - "npm install"
