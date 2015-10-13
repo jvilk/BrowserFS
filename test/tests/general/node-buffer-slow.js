@@ -42,17 +42,15 @@ module.exports = function() {
     assert.equal(e.message, 'Invalid array buffer length');
   }*/
 
-  // BFS: No!
   // should work with number-coercible values
-  //assert.strictEqual(SlowBuffer('6').length, 6);
-  //assert.strictEqual(SlowBuffer(true).length, 1);
+  assert.strictEqual(SlowBuffer('6').length, 6);
+  assert.strictEqual(SlowBuffer(true).length, 1);
 
-  // BFS: Inconsistent w/ Buffer???
   // should create zero-length buffer if parameter is not a number
-  //assert.strictEqual(SlowBuffer().length, 0);
-  //assert.strictEqual(SlowBuffer(NaN).length, 0);
-  //assert.strictEqual(SlowBuffer({}).length, 0);
-  //assert.strictEqual(SlowBuffer('string').length, 0);
+  assert.strictEqual(SlowBuffer().length, 0);
+  assert.strictEqual(SlowBuffer(NaN).length, 0);
+  assert.strictEqual(SlowBuffer({}).length, 0);
+  assert.strictEqual(SlowBuffer('string').length, 0);
 
   // should throw with invalid length
   assert.throws(function() {
@@ -61,7 +59,8 @@ module.exports = function() {
   assert.throws(function() {
     new SlowBuffer(-1);
   }, 'invalid Buffer length');
-  assert.throws(function() {
+  // BFS: No kMaxLength.
+  /*assert.throws(function() {
     new SlowBuffer(buffer.kMaxLength + 1);
-  }, 'invalid Buffer length');
+  }, 'invalid Buffer length');*/
 };

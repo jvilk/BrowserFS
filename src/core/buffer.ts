@@ -1294,12 +1294,17 @@ var _: BFSBufferImplementation = Buffer;
  * Emulation of Node's SlowBuffer. We don't differentiate between the two.
  */
 export class SlowBuffer extends Buffer implements NodeBuffer {
-  constructor (arg1: any, arg2?: any, arg3?: number) {
+  constructor (length: any, arg2?: any, arg3?: number) {
     // Node apparently allows you to construct buffers w/o 'new'.
     if (!(this instanceof SlowBuffer)) {
-      return new Buffer(arg1, arg2);
+      return new SlowBuffer(length, arg2, arg3);
     }
-    super(arg1, arg2, arg3);
+    // Logic copied from Node; its constructor is simpler.
+    if (+length != length) {
+      length = 0;
+    }
+
+    super(+length);
   }
 
   public static isBuffer(obj: any): obj is NodeBuffer {

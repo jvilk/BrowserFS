@@ -1,4 +1,6 @@
 import buffer = require("./buffer");
+import util = require("./util");
+import fromCharCodes = util.fromCharCodes;
 /**
  * Contains string utility functions, mainly for converting between JavaScript
  * strings and binary buffers of arbitrary encoding types.
@@ -161,34 +163,34 @@ export class UTF8 {
   }
 
   public static byte2str(buff: NodeBuffer): string {
-    var chars: string[] = [];
+    var chars: number[] = [];
     var i = 0;
     while (i < buff.length) {
       var code = buff.readUInt8(i++);
       if (code < 0x80) {
-        chars.push(String.fromCharCode(code));
+        chars.push(code);
       } else if (code < 0xC0) {
         // This is the second byte of a multibyte character. This shouldn't be
         // possible.
         throw new Error('Found incomplete part of character in string.');
       } else if (code < 0xE0) {
         // 2 bytes: 5 and 6 bits
-        chars.push(String.fromCharCode(((code & 0x1F) << 6) | (buff.readUInt8(i++) & 0x3F)));
+        chars.push(((code & 0x1F) << 6) | (buff.readUInt8(i++) & 0x3F));
       } else if (code < 0xF0) {
         // 3 bytes: 4, 6, and 6 bits
-        chars.push(String.fromCharCode(((code & 0xF) << 12) | ((buff.readUInt8(i++) & 0x3F) << 6) | (buff.readUInt8(i++) & 0x3F)));
+        chars.push(((code & 0xF) << 12) | ((buff.readUInt8(i++) & 0x3F) << 6) | (buff.readUInt8(i++) & 0x3F));
       } else if (code < 0xF8) {
         // 4 bytes: 3, 6, 6, 6 bits; surrogate pairs time!
         // First 11 bits; remove 11th bit as per UTF-16 standard
         var byte3 = buff.readUInt8(i + 2);
-        chars.push(String.fromCharCode(((((code & 0x7) << 8) | ((buff.readUInt8(i++) & 0x3F) << 2) | ((buff.readUInt8(i++) & 0x3F) >> 4)) & 0x3FF) | 0xD800));
+        chars.push(((((code & 0x7) << 8) | ((buff.readUInt8(i++) & 0x3F) << 2) | ((buff.readUInt8(i++) & 0x3F) >> 4)) & 0x3FF) | 0xD800);
         // Final 10 bits
-        chars.push(String.fromCharCode((((byte3 & 0xF) << 6) | (buff.readUInt8(i++) & 0x3F)) | 0xDC00));
+        chars.push((((byte3 & 0xF) << 6) | (buff.readUInt8(i++) & 0x3F)) | 0xDC00);
       } else {
         throw new Error('Unable to represent UTF-8 string as UTF-16 JavaScript string.');
       }
     }
-    return chars.join('');
+    return fromCharCodes(chars);
   }
 
   // From http://stackoverflow.com/a/23329386
@@ -219,11 +221,11 @@ export class ASCII {
   }
 
   public static byte2str(buff: NodeBuffer): string {
-    var chars = new Array(buff.length);
+    var chars = new Array<number>(buff.length);
     for (var i = 0; i < buff.length; i++) {
-      chars[i] = String.fromCharCode(buff.readUInt8(i) & 0x7F);
+      chars[i] = buff.readUInt8(i) & 0x7F;
     }
-    return chars.join('');
+    return fromCharCodes(chars);
   }
 
   public static byteLength(str: string): number { return str.length; }
@@ -300,11 +302,11 @@ export class BINARY {
   }
 
   public static byte2str(buff: NodeBuffer): string {
-    var chars = new Array(buff.length);
+    var chars = new Array<number>(buff.length);
     for (var i = 0; i < buff.length; i++) {
-      chars[i] = String.fromCharCode(buff.readUInt8(i) & 0xFF);
+      chars[i] = buff.readUInt8(i) & 0xFF;
     }
-    return chars.join('');
+    return fromCharCodes(chars);
   }
 
   public static byteLength(str: string): number { return str.length; }
@@ -555,20 +557,22 @@ export class BINSTR {
     if (len === 0) {
       return '';
     }
-    var chars = new Array((len >> 1) + 1);
-    var j = 0;
-    for (var i = 0; i < chars.length; i++) {
-      if (i === 0) {
-        if (len % 2 === 1) {
-          chars[i] = String.fromCharCode((1 << 8) | buff.readUInt8(j++));
-        } else {
-          chars[i] = String.fromCharCode(0);
-        }
-      } else {
-        chars[i] = String.fromCharCode((buff.readUInt8(j++) << 8) | buff.readUInt8(j++));
-      }
+    var charLen = (len >> 1) + 1,
+      chars = new Array<number>(charLen),
+      j = 0, i: number;
+
+    // Even or odd length?
+    if ((len & 1) === 1) {
+      chars[0] = 0x100 | buff.readUInt8(j++);
+    } else {
+      chars[0] = 0;
     }
-    return chars.join('');
+
+    for (i = 1; i < charLen; i++) {
+      chars[i] = buff.readUInt16BE(j);
+      j += 2;
+    }
+    return fromCharCodes(chars);
   }
 
   public static byteLength(str: string): number {

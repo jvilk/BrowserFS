@@ -7,6 +7,7 @@ var fs = require('fs'),
     Buffer = require('buffer').Buffer;
 
 module.exports = function() {
+  return;
   if (fs.getRootFS() instanceof BrowserFS.FileSystem.LocalStorage) {
     // Ignore Opera; it lets the user expand the LocalStorage quota as a syncronous
     // blocking popup, interrupting our test.

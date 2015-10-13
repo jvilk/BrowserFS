@@ -117,10 +117,9 @@ export class BufferCoreArrayBuffer extends buffer_core.BufferCoreCommon implemen
     var aBuff = this.buff.buffer;
     var newBuff: ArrayBuffer;
     // Some ArrayBuffer implementations (IE10) do not have 'slice'.
-    // XXX: Type hacks - the typings don't have slice either.
-    if ((<any>ArrayBuffer).prototype.slice) {
+    if (ArrayBuffer.prototype.slice) {
       // ArrayBuffer.slice is copying; exactly what we want.
-      newBuff = (<any> aBuff).slice(start, end);
+      newBuff = aBuff.slice(start, end);
     } else {
       var len = end - start;
       newBuff = new ArrayBuffer(len);

@@ -16,8 +16,11 @@ src/ignoreBaseDirFile.ts
 src/.baseDir.ts
 # run.ts is auto-generated
 test/harness/run.ts
+# as is test.js
+test/harness/test.js
 .tscache
 # main.ts is auto-generated
 src/main.ts
 typings
 generated_node_tsconfig.json
+coverage

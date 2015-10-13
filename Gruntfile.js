@@ -1,6 +1,7 @@
 var fs = require('fs'),
   path = require('path'),
   _ = require('underscore'),
+  mold = require('mold-source-map'),
   browserifyConfig = {
     // Note: Cannot use "bare" here. That's a command-line-only switch.
     builtins: [],
@@ -13,7 +14,62 @@ var fs = require('fs'),
       'tsify', 'browserify-derequire'
     ]
   },
-  nodeTSConfig = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'tsconfig.json')).toString());
+  nodeTSConfig = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'tsconfig.json')).toString()),
+  karmaFiles = [
+    // Main module and fixtures loader
+    'test/harness/test.js',
+    /* Modules */
+    // Tests
+    { pattern: 'test/tests/**/*.js', included: false, watched: false },
+    // BFS modules
+    { pattern: 'test/**/*.ts*', included: false, watched: false },
+    // SourceMap support
+    { pattern: 'src/**/*.ts*', included: false, watched: false },
+    { pattern: 'typings/**/*.d.ts', included: false },
+    { pattern: 'node_modules/pako/dist/*.js*', included: false }
+  ],
+  karmaBrowsers = require('detect-browsers').getInstalledBrowsers().map(function(item) {
+    return item.name;
+  }).filter(function(name, index, arr) {
+    // Remove duplicates, and items with a space in them.
+    return arr.indexOf(name) === index && arr.indexOf(' ') === -1;
+  });
+
+if (karmaBrowsers.indexOf('IE') !== -1) {
+  karmaBrowsers.push('IE9', 'IE8');
+}
+
+var karmaConfig = {
+    // base path, that will be used to resolve files and exclude
+    basePath: '.',
+    frameworks: ['mocha'],
+    files: karmaFiles,
+    exclude: [],
+    reporters: ['progress'],
+    port: 9876,
+    runnerPort: 9100,
+    colors: true,
+    logLevel: 'INFO',
+    autoWatch: true,
+    customLaunchers: {
+      IE9: {
+        base: 'IE',
+        'x-ua-compatible': 'IE=EmulateIE9'
+      },
+      IE8: {
+        base: 'IE',
+        'x-ua-compatible': 'IE=EmulateIE8'
+      }
+    },
+    browsers: karmaBrowsers,
+    captureTimeout: 60000,
+    // Avoid hardcoding and cross-origin issues.
+    proxies: {
+      '/': 'http://localhost:8000/'
+    },
+    singleRun: true,
+    urlRoot: '/karma/'
+  };
 
 // Filter out test/ files.
 nodeTSConfig.files = nodeTSConfig.files.filter(function(file) {
@@ -90,22 +146,6 @@ function removeFile(file) {
   }
 }
 
-// The files that karma should load up. Stashed in a variable here so we can
-// append to it in the dropbox test case.
-var karmaFiles = [
-  // Main module and fixtures loader
-  'test/harness/run.ts',
-  /* Modules */
-  // Tests
-  { pattern: 'test/tests/**/*.js', included: false, watched: false },
-  // BFS modules
-  { pattern: 'test/**/*.ts*', included: false, watched: false },
-  // SourceMap support
-  { pattern: 'src/**/*.ts*', included: false, watched: false },
-  { pattern: 'typings/**/*.d.ts', included: false },
-  { pattern: 'node_modules/pako/dist/*.js*', included: false }
-];
-
 module.exports = function(grunt) {
   grunt.initConfig({
     // Metadata.
@@ -131,38 +171,54 @@ module.exports = function(grunt) {
       }
     },
     karma: {
-      options: {
-        // base path, that will be used to resolve files and exclude
-        basePath: '.',
-        frameworks: ['mocha', 'browserify'],
-        files: karmaFiles,
-        preprocessors: {
-          'test/harness/run.ts': ['browserify']
-        },
-        browserify: _.extend({}, browserifyConfig,
-          {
-            builtins: ['assert']
-          }
-        ),
-        exclude: [],
-        reporters: ['progress'],
-        port: 9876,
-        runnerPort: 9100,
-        colors: true,
-        logLevel: 'INFO',
-        autoWatch: true,
-        browsers: ['Firefox'],
-        captureTimeout: 60000,
-        // Avoid hardcoding and cross-origin issues.
-        proxies: {
-          '/': 'http://localhost:8000/'
-        },
-        singleRun: false,
-        urlRoot: '/karma/'
-      },
+      options: karmaConfig,
+      // Useful for development.
+      continuous: {
+        options: {
+          singleRun: false,
+          // Integrate browserify into the karma config.
+          frameworks: karmaConfig.frameworks.concat('browserify'),
+          // Use a single browser, otherwise things get messy.
+          browsers: ['Chrome'],
+          // Replace test.js w/ run.ts.
+          files: ['test/harness/run.ts'].concat(karmaFiles.slice(1)),
+          preprocessors: {
+            'test/harness/run.ts': ['browserify']
+          },
+          browserify: _.extend({}, browserifyConfig,
+            {
+              builtins: ['assert']
+            }
+          )
+        }
+      }
+    },
+    // These will run browsers sequentially.
+    'karma-sequence': {
+      options: karmaConfig,
       test: {},
       dropbox_test: {
         options: {
+          files: karmaFiles.concat('node_modules/dropbox/lib/dropbox.js')
+        }
+      },
+      coverage: {
+        options: {
+          reporters: karmaConfig.reporters.concat(['coverage']),
+          preprocessors: {
+            './test/harness/**/*.js': ['coverage']
+          },
+          coverageReporter: { type: 'json', dir: 'coverage/' }
+        }
+      },
+      coverage_dropbox: {
+        options: {
+          reporters: karmaConfig.reporters.concat(['coverage']),
+          preprocessors: {
+            './test/harness/**/*.js': ['coverage']
+          },
+          coverageReporter: { type: 'json', dir: 'coverage/' },
+          // Add in dropbox.
           files: karmaFiles.concat('node_modules/dropbox/lib/dropbox.js')
         }
       }
@@ -174,6 +230,18 @@ module.exports = function(grunt) {
         },
         files: {
           './test/harness/factories/workerfs_worker.js': './test/harness/factories/workerfs_worker.ts'
+        }
+      },
+      test: {
+        options: {
+          browserifyOptions: _.extend({}, browserifyConfig,
+            {
+              builtins: ['assert']
+            }
+          )
+        },
+        files: {
+          './test/harness/test.js': './test/harness/run.ts'
         }
       },
       browserfs: {
@@ -267,6 +335,15 @@ module.exports = function(grunt) {
           dest: 'dist/'
         }]
       }
+    },
+    remapIstanbul: {
+      default: {
+        files: [ {
+          src: 'coverage/**/coverage-final.json',
+          dest: 'coverage/html-report',
+          type: 'html'
+        } ]
+      }
     }
   });
 
@@ -280,6 +357,63 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-ts');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-tsd');
+  grunt.loadNpmTasks('remap-istanbul');
+
+  // Inspired by https://github.com/Malkiz/grunt-karma-sequence
+  grunt.registerMultiTask('karma-sequence', 'Run Karma with multiple browsers sequentially', function(){
+		var _this = this;
+    var options = _this.options();
+		var browsers = options.browsers;
+    var safariCleanupNeeded = false;
+
+    function clone(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+		if (typeof browsers == 'object' && browsers.length > 0) {
+			browsers.forEach(function (browser) {
+				var clonedData = clone(_this.data);
+				clonedData.browsers = [browser];
+				clonedData.singleRun = true;
+
+				if (clonedData.junitReporter && clonedData.junitReporter.outputFile) {
+					var path = clonedData.junitReporter.outputFile;
+					var matched = path.match(/([^]*)\.([^\.]*)$/);
+					clonedData.junitReporter.outputFile = matched[1] + '.' + browser + '.' + matched[2];
+				}
+
+				var taskName = 'karma';
+				var name = _this.target + '-sequence-' + browser;
+				grunt.config(taskName + '.' + name, clonedData);
+        if (browser.toLowerCase() === 'safari') {
+          // Workaround for Safari opening tons of tabs:
+          // https://github.com/karma-runner/karma-safari-launcher/issues/6#issuecomment-28447748
+          try {
+            if (require('child_process').execSync('defaults read com.apple.Safari ApplePersistenceIgnoreState').toString().trim().toLowerCase() === 'yes') {
+              safariCleanupNeeded = false;
+            } else {
+              safariCleanupNeeded = true;
+            }
+          } catch (e) {
+            // No default set. Default is 'NO'.
+            safariCleanupNeeded = true;
+          }
+          require('child_process').execSync('defaults write com.apple.Safari ApplePersistenceIgnoreState YES');
+          safariQueued = true;
+        }
+				grunt.task.run(taskName + ':' + name);
+			});
+
+      if (safariCleanupNeeded) {
+        grunt.task.run('karma-cleanup-safari');
+      }
+		}
+	});
+
+  grunt.registerTask('karma-cleanup-safari', 'Cleans up some settings we need to set for Safari to behave with Karma.', function() {
+    // Revert the setting we made.
+    require('child_process').execSync('defaults write com.apple.Safari ApplePersistenceIgnoreState NO');
+  });
 
   grunt.registerTask('clean', 'Removes all built files.', function () {
     removeFile('./test/fixtures/load_fixtures.js');
@@ -336,10 +470,28 @@ module.exports = function(grunt) {
     );
   });
 
+  grunt.registerTask('adjust_test_bundle', 'Fixes the source map directory in the test bundle.', function() {
+    var done = this.async();
+    // Write to a temp file, then move.
+    fs.createReadStream('test/harness/test.js').pipe(mold.transformSourcesRelativeTo('test/harness')).pipe(fs.createWriteStream('test/harness/test_fixed.js')).on('close', function() {
+      grunt.file.copy('test/harness/test_fixed.js', 'test/harness/test.js');
+      grunt.file.delete('test/harness/test_fixed.js');
+      done();
+    });
+  });
+
+  var testCommon = ['main.ts', 'run.ts', 'browserify:workerfs_worker', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect'];
+
+  // test w/ rebuilds.
+  grunt.registerTask('test_continuous', testCommon.concat('karma:continuous'));
   // test
-  grunt.registerTask('test', ['main.ts', 'run.ts', 'browserify:workerfs_worker', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect', 'karma:test']);
+  grunt.registerTask('test', testCommon.concat('browserify:test', 'karma-sequence:test'));
   // testing dropbox
-  grunt.registerTask('dropbox_test', ['main.ts', 'run.ts', 'browserify:workerfs_worker', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'shell:gen_cert', 'shell:gen_token', 'connect', 'karma:dropbox_test']);
+  grunt.registerTask('dropbox_test', testCommon.concat(['shell:gen_cert', 'shell:gen_token', 'browserify:test', 'karma-sequence:dropbox_test']));
+  // coverage
+  grunt.registerTask('coverage', testCommon.concat('browserify:test', 'adjust_test_bundle', 'karma-sequence:coverage', 'remapIstanbul'));
+  // coverage w/ dropbox
+  grunt.registerTask('dropbox_coverage', testCommon.concat(['shell:gen_cert', 'shell:gen_token', 'browserify:test', 'adjust_test_bundle', 'karma-sequence:coverage_dropbox', 'remapIstanbul']));
   // dev build + watch for changes.
   grunt.registerTask('watch', ['main.ts', 'browserify:watch']);
   // dev build
