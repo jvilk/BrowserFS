@@ -480,7 +480,7 @@ module.exports = function(grunt) {
     });
   });
 
-  var testCommon = ['main.ts', 'run.ts', 'browserify:workerfs_worker', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect'];
+  var testCommon = ['tsd:browserfs', 'main.ts', 'run.ts', 'browserify:workerfs_worker', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect'];
 
   // test w/ rebuilds.
   grunt.registerTask('test_continuous', testCommon.concat('karma:continuous'));
@@ -493,7 +493,7 @@ module.exports = function(grunt) {
   // coverage w/ dropbox
   grunt.registerTask('dropbox_coverage', testCommon.concat(['shell:gen_cert', 'shell:gen_token', 'browserify:test', 'adjust_test_bundle', 'karma-sequence:coverage_dropbox', 'remapIstanbul']));
   // dev build + watch for changes.
-  grunt.registerTask('watch', ['main.ts', 'browserify:watch']);
+  grunt.registerTask('watch', ['tsd:browserfs', 'main.ts', 'browserify:watch']);
   // dev build
   grunt.registerTask('dev', ['tsd:browserfs', 'main.ts', 'browserify:browserfs', 'exorcise', 'ts']);
   // release build (default)
