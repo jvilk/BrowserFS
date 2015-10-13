@@ -62,7 +62,7 @@
     "underscore": "^1.8.3"
   },
   "scripts": {
-    "test": "grunt test"
+    "test": "./node_modules/.bin/grunt test"
   },
   "aliasify": {
     "aliases": {
