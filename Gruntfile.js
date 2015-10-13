@@ -197,6 +197,9 @@ module.exports = function(grunt) {
     'karma-sequence': {
       options: karmaConfig,
       test: {},
+      test_travis: {
+        browsers: ['PhantomJS', 'Firefox']
+      },
       dropbox_test: {
         options: {
           files: karmaFiles.concat('node_modules/dropbox/lib/dropbox.js')
@@ -486,6 +489,8 @@ module.exports = function(grunt) {
   grunt.registerTask('test_continuous', testCommon.concat('karma:continuous'));
   // test
   grunt.registerTask('test', testCommon.concat('browserify:test', 'karma-sequence:test'));
+  // travis-ci test config
+  grunt.registerTask('test_travis', testCommon.concat('browserify:test', 'karma-sequence:test_travis'));
   // testing dropbox
   grunt.registerTask('dropbox_test', testCommon.concat(['shell:gen_cert', 'shell:gen_token', 'browserify:test', 'karma-sequence:dropbox_test']));
   // coverage
