@@ -1,7 +1,30 @@
 language: node_js
-sudo: false
 node_js:
   - "0.12"
+
+sudo: false
+
+cache:
+  directories:
+    - node_modules
+    - typings
+
+before_install:
+  - "node --version"
+  - "npm --version"
+  - "nvm --version"
+  - "npm config set spin false"
+  - "phantomjs --version"
+  - "firefox --version"
+  - "which phantomjs"
+  - "which firefox"
+
+install:
+  - "npm install"
+
+script:
+  - npm test
+
 before_script:
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
