@@ -198,7 +198,9 @@ module.exports = function(grunt) {
       options: karmaConfig,
       test: {},
       test_travis: {
-        browsers: ['PhantomJS', 'Firefox']
+        options: {
+          browsers: ['PhantomJS', 'Firefox']
+        }
       },
       dropbox_test: {
         options: {
