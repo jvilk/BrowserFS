@@ -7,8 +7,7 @@ import file = require('../core/file');
 import node_fs_stats = require('../core/node_fs_stats');
 import preload_file = require('../generic/preload_file');
 import browserfs = require('../core/browserfs');
-
-var Buffer = buffer.Buffer;
+import Buffer = buffer.Buffer;
 
 interface IBrowserFSMessage {
   browserfsMessage: boolean;
@@ -99,14 +98,14 @@ class FileDescriptorArgumentConverter {
       if (err) {
         cb(err);
       } else {
-        stat = (<buffer.Buffer> stats.toBuffer()).toArrayBuffer();
+        stat = bufferToTransferrableObject(stats.toBuffer());
         // If it's a readable flag, we need to grab contents.
         if (flag.isReadable()) {
           fd.read(new Buffer(stats.size), 0, stats.size, 0, (err, bytesRead, buff) => {
             if (err) {
               cb(err);
             } else {
-              data = (<buffer.Buffer> buff).toArrayBuffer();
+              data = bufferToTransferrableObject(buff);
               cb(null, {
                 type: SpecialArgType.FD,
                 id: id,
@@ -135,8 +134,8 @@ class FileDescriptorArgumentConverter {
 
   private _applyFdChanges(remoteFd: IFileDescriptorArgument, cb: (err: api_error.ApiError, fd?: file.File) => void): void {
     var fd = this._fileDescriptors[remoteFd.id],
-      data = new Buffer(remoteFd.data),
-      remoteStats = node_fs_stats.Stats.fromBuffer(new Buffer(remoteFd.stat));
+      data = transferrableObjectToBuffer(remoteFd.data),
+      remoteStats = node_fs_stats.Stats.fromBuffer(transferrableObjectToBuffer(remoteFd.stat));
 
     // Write data if the file is writable.
     var flag = file_flag.FileFlag.getFileFlag(remoteFd.flag);
@@ -207,12 +206,12 @@ interface IErrorArgument extends ISpecialArgument {
 function errorLocal2Remote(e: api_error.ApiError): IErrorArgument {
   return {
     type: SpecialArgType.ERROR,
-    errorData: (<buffer.Buffer> e.writeToBuffer()).toArrayBuffer()
+    errorData: bufferToTransferrableObject(e.writeToBuffer())
   };
 }
 
 function errorRemote2Local(e: IErrorArgument): api_error.ApiError {
-  return api_error.ApiError.fromBuffer(new Buffer(e.errorData));
+  return api_error.ApiError.fromBuffer(transferrableObjectToBuffer(e.errorData));
 }
 
 interface IStatsArgument extends ISpecialArgument {
@@ -223,12 +222,12 @@ interface IStatsArgument extends ISpecialArgument {
 function statsLocal2Remote(stats: node_fs_stats.Stats): IStatsArgument {
   return {
     type: SpecialArgType.STATS,
-    statsData: (<buffer.Buffer> stats.toBuffer()).toArrayBuffer()
+    statsData: bufferToTransferrableObject(stats.toBuffer())
   };
 }
 
 function statsRemote2Local(stats: IStatsArgument): node_fs_stats.Stats {
-  return node_fs_stats.Stats.fromBuffer(new Buffer(stats.statsData));
+  return node_fs_stats.Stats.fromBuffer(transferrableObjectToBuffer(stats.statsData));
 }
 
 interface IFileFlagArgument extends ISpecialArgument {
@@ -250,15 +249,23 @@ interface IBufferArgument extends ISpecialArgument {
   data: ArrayBuffer;
 }
 
+function bufferToTransferrableObject(buff: NodeBuffer): ArrayBuffer {
+  return (<buffer.Buffer> buff).toArrayBuffer()
+}
+
+function transferrableObjectToBuffer(buff: ArrayBuffer): Buffer {
+  return new Buffer(<any> buff);
+}
+
 function bufferLocal2Remote(buff: Buffer): IBufferArgument {
   return {
     type: SpecialArgType.BUFFER,
-    data: (<buffer.Buffer> buff).toArrayBuffer()
+    data: bufferToTransferrableObject(buff)
   };
 }
 
 function bufferRemote2Local(buffArg: IBufferArgument): Buffer {
-  return new Buffer(buffArg.data);
+  return transferrableObjectToBuffer(buffArg.data);
 }
 
 interface IAPIRequest extends IBrowserFSMessage {
@@ -266,9 +273,17 @@ interface IAPIRequest extends IBrowserFSMessage {
   args: Array<number | string | ISpecialArgument>;
 }
 
+function isAPIRequest(data: any): data is IAPIRequest {
+  return data != null && typeof data === 'object' && data.hasOwnProperty('browserfsMessage') && data['browserfsMessage'];
+}
+
 interface IAPIResponse extends IBrowserFSMessage {
   cbId: number;
   args: Array<number | string | ISpecialArgument>;
+}
+
+function isAPIResponse(data: any): data is IAPIResponse {
+  return data != null && typeof data === 'object' && data.hasOwnProperty('browserfsMessage') && data['browserfsMessage'];
 }
 
 /**
@@ -287,16 +302,16 @@ class WorkerFile extends preload_file.PreloadFile {
   }
 
   public toRemoteArg(): IFileDescriptorArgument {
-    return {
+    return <IFileDescriptorArgument> {
       type: SpecialArgType.FD,
       id: this._remoteFdId,
-      data: (<buffer.Buffer> this.getBuffer()).toArrayBuffer(),
-      stat: (<buffer.Buffer> this.getStats().toBuffer()).toArrayBuffer(),
+      data: bufferToTransferrableObject(this.getBuffer()),
+      stat: bufferToTransferrableObject(this.getStats().toBuffer()),
       path: this.getPath(),
       flag: this.getFlag().getFlagString()
     };
   }
-  
+
   private _syncClose(type: string, cb: (e?: api_error.ApiError) => void): void {
     if (this.isDirty()) {
       (<WorkerFS> this._fs).syncClose(type, this, (e?: api_error.ApiError) => {
@@ -364,8 +379,9 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
     super();
     this._worker = worker;
     this._worker.addEventListener('message',(e: MessageEvent) => {
-      if (e.data != null && typeof e.data === 'object' && e.data.hasOwnProperty('browserfsMessage') && e.data['browserfsMessage']) {
-        var resp: IAPIResponse = e.data, i: number, args = resp.args, fixedArgs = new Array(args.length);
+      var resp: Object = e.data;
+      if (isAPIResponse(resp)) {
+        var i: number, args = resp.args, fixedArgs = new Array(args.length);
         // Dispatch event to correct id.
         for (i = 0; i < fixedArgs.length; i++) {
           fixedArgs[i] = this._argRemote2Local(args[i]);
@@ -396,7 +412,7 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
               return errorRemote2Local(<IErrorArgument> specialArg);
             case SpecialArgType.FD:
               var fdArg = <IFileDescriptorArgument> specialArg;
-              return new WorkerFile(this, fdArg.path, file_flag.FileFlag.getFileFlag(fdArg.flag), node_fs_stats.Stats.fromBuffer(new Buffer(fdArg.stat)), fdArg.id, new Buffer(fdArg.data));
+              return new WorkerFile(this, fdArg.path, file_flag.FileFlag.getFileFlag(fdArg.flag), node_fs_stats.Stats.fromBuffer(transferrableObjectToBuffer(fdArg.stat)), fdArg.id, transferrableObjectToBuffer(fdArg.data));
             case SpecialArgType.STATS:
               return statsRemote2Local(<IStatsArgument> specialArg);
             case SpecialArgType.FILEFLAG:
@@ -414,7 +430,10 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
     }
   }
 
-  private _argLocal2Remote(arg: any): any {
+  /**
+   * Converts a local argument into a remote argument. Public so WorkerFile objects can call it.
+   */
+  public _argLocal2Remote(arg: any): any {
     if (arg == null) {
       return arg;
     }
@@ -448,7 +467,7 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
       var message: IAPIRequest = {
         browserfsMessage: true,
         method: 'probe',
-        args: [this._callbackConverter.toRemoteArg((probeResponse: IProbeResponse) => {
+        args: [this._argLocal2Remote(new Buffer(0)), this._callbackConverter.toRemoteArg((probeResponse: IProbeResponse) => {
           this._isInitialized = true;
           this._isReadOnly = probeResponse.isReadOnly;
           this._supportLinks = probeResponse.supportsLinks;
@@ -656,9 +675,9 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
     }
 
     worker.addEventListener('message',(e: MessageEvent) => {
-      if (e.data != null && typeof e.data === 'object' && e.data.hasOwnProperty('browserfsMessage') && e.data['browserfsMessage']) {
-        var request: IAPIRequest = e.data,
-          args = request.args,
+      var request: Object = e.data;
+      if (isAPIRequest(request)) {
+        var args = request.args,
           fixedArgs = new Array<any>(args.length),
           i: number;
 
@@ -682,17 +701,19 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
           case 'probe':
             (() => {
               var rootFs = <file_system.FileSystem> fs.getRootFS(),
-                remoteCb = <ICallbackArgument> args[0],
+                remoteCb = <ICallbackArgument> args[1],
+                probeResponse: IProbeResponse = {
+                  type: SpecialArgType.PROBE,
+                  isReadOnly: rootFs.isReadOnly(),
+                  supportsLinks: rootFs.supportsLinks(),
+                  supportsProps: rootFs.supportsProps()
+                },
                 response: IAPIResponse = {
                   browserfsMessage: true,
                   cbId: remoteCb.id,
-                  args: [<IProbeResponse> {
-                    type: SpecialArgType.PROBE,
-                    isReadOnly: rootFs.isReadOnly(),
-                    supportsLinks: rootFs.supportsLinks(),
-                    supportsProps: rootFs.supportsProps()
-                  }]
+                  args: [probeResponse]
                 };
+
               worker.postMessage(response);
             })();
             break;

@@ -199,7 +199,7 @@ module.exports = function(grunt) {
       test: {},
       test_travis: {
         options: {
-          browsers: ['PhantomJS', 'Firefox']
+          browsers: ['Firefox']
         }
       },
       dropbox_test: {

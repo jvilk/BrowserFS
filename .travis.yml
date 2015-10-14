@@ -14,7 +14,6 @@ before_install:
   - "npm --version"
   - "nvm --version"
   - "npm config set spin false"
-  - "phantomjs --version"
   - "firefox --version"
 
 install:

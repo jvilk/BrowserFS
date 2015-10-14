@@ -152,6 +152,14 @@ export interface BFSBufferImplementation {
 }
 
 /**
+ * A JSONified Buffer object.
+ */
+export interface JSONBufferObject {
+  type: string;
+  data: number[];
+}
+
+/**
  * Emulates Node's Buffer API. Wraps a BufferCore object that is responsible
  * for actually writing/reading data from some data representation in memory.
  */
@@ -174,6 +182,7 @@ export class Buffer implements BFSBuffer {
   constructor (data: DataView);
   constructor (data: ArrayBuffer);
   constructor (data: NodeBuffer);
+  constructor (data: JSONBufferObject);
   constructor (data: string, encoding?: string);
   constructor (data: buffer_core.BufferCore, start?: number, end?: number);
   constructor (arg1: any, arg2: any = 'utf8', arg3?: number) {
@@ -353,7 +362,7 @@ export class Buffer implements BFSBuffer {
    * when stringifying a Buffer instance.
    * @return {object} An object that can be used for JSON stringification.
    */
-  public toJSON(): {type: string; data: number[]} {
+  public toJSON(): JSONBufferObject {
     // Construct a byte array for the JSON 'data'.
     var len = this.length;
     var byteArr = new Array(len);
