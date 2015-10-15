@@ -12,7 +12,11 @@ let deletionLogPath = '/.deletedFiles.log';
  * Given a read-only mode, makes it writable.
  */
 function makeModeWritable(mode: number): number {
-  return 0x92 | mode;
+  return 0o222 | mode;
+}
+
+function getFlag(f: string): FileFlag {
+  return FileFlag.getFileFlag(f);
 }
 
 /**
@@ -23,11 +27,27 @@ class OverlayFile extends preload_file.PreloadFile<OverlayFS> implements file.Fi
     super(fs, path, flag, stats, data);
   }
 
+  public sync(cb: (e?: ApiError) => void): void {
+    if (!this.isDirty()) {
+      cb(null);
+      return;
+    }
+
+    this._fs._syncAsync(this, (err: ApiError) => {
+      this.resetDirty();
+      cb(err);
+    });
+  }
+
   public syncSync(): void {
     if (this.isDirty()) {
       this._fs._syncSync(this);
       this.resetDirty();
     }
+  }
+
+  public close(cb: (e?: ApiError) => void): void {
+    this.sync(cb);
   }
 
   public closeSync(): void {
@@ -39,8 +59,6 @@ class OverlayFile extends preload_file.PreloadFile<OverlayFS> implements file.Fi
  * OverlayFS makes a read-only filesystem writable by storing writes on a second,
  * writable file system. Deletes are persisted via metadata stored on the writable
  * file system.
- *
- * Currently only works for two synchronous file systems.
  */
 export default class OverlayFS extends file_system.SynchronousFileSystem implements file_system.FileSystem {
   private _writable: file_system.FileSystem;
@@ -49,6 +67,7 @@ export default class OverlayFS extends file_system.SynchronousFileSystem impleme
   private _initializeCallbacks: ((e?: ApiError) => void)[] = [];
   private _deletedFiles: {[path: string]: boolean} = {};
   private _deleteLog: file.File = null;
+  private _isAsync: boolean;
 
   constructor(writable: file_system.FileSystem, readable: file_system.FileSystem) {
     super();
@@ -57,9 +76,7 @@ export default class OverlayFS extends file_system.SynchronousFileSystem impleme
     if (this._writable.isReadOnly()) {
       throw new ApiError(ErrorCode.EINVAL, "Writable file system must be writable.");
     }
-    if (!this._writable.supportsSynch() || !this._readable.supportsSynch()) {
-      throw new ApiError(ErrorCode.EINVAL, "OverlayFS currently only operates on synchronous file systems.");
-    }
+    this._isAsync = !this._writable.supportsSynch() || !this._readable.supportsSynch();
   }
 
   private checkInitialized(): void {
@@ -73,6 +90,38 @@ export default class OverlayFS extends file_system.SynchronousFileSystem impleme
       readable: this._readable,
       writable: this._writable
     };
+  }
+
+  private createParentDirectoriesAsync(p: string, cb: ()=>void): void {
+    let parent = path.dirname(p)
+    let toCreate: string[] = [];
+    let _this = this;
+
+    this._writable.stat(parent, false, statDone);
+    function statDone(err: ApiError, stat?: Stats): void {
+      if (err) {
+        toCreate.push(parent);
+        parent = path.dirname(parent);
+        _this._writable.stat(parent, false, statDone);
+      } else {
+        createParents();
+      }
+    }
+
+    function createParents(): void {
+      if (!toCreate.length) {
+        cb();
+        return;
+      }
+      let dir = toCreate.pop();
+      // FIXME: get correct permissions
+      _this._writable.mkdir(dir, 0o777, (err?: ApiError) => {
+        // FIXME: better error handling
+        if (err)
+          throw err;
+        createParents();
+      });
+    }
   }
 
   /**
@@ -96,9 +145,15 @@ export default class OverlayFS extends file_system.SynchronousFileSystem impleme
     return true;
   }
 
-  public _syncSync(file: preload_file.PreloadFile<any>): void {
+  public _syncAsync(file: preload_file.PreloadFile<OverlayFS>, cb: (err: ApiError)=>void): void {
+    this.createParentDirectoriesAsync(file.getPath(), () => {
+      this._writable.writeFile(file.getPath(), file.getBuffer(), null, getFlag('w'), file.getStats().mode, cb);
+    });
+  }
+
+  public _syncSync(file: preload_file.PreloadFile<OverlayFS>): void {
     this.createParentDirectories(file.getPath());
-    this._writable.writeFileSync(file.getPath(), file.getBuffer(), null, FileFlag.getFileFlag('w'), file.getStats().mode);
+    this._writable.writeFileSync(file.getPath(), file.getBuffer(), null, getFlag('w'), file.getStats().mode);
   }
 
   public getName() {
@@ -117,40 +172,37 @@ export default class OverlayFS extends file_system.SynchronousFileSystem impleme
       callbackArray.forEach(((cb) => cb(e)));
     };
 
-    if (!this._isInitialized) {
-      // The first call to initialize initializes, the rest wait for it to complete.
-      if (callbackArray.push(cb) === 1) {
-        // Read deletion log, process into metadata.
-        this._writable.readFile(deletionLogPath, 'utf8',
-          FileFlag.getFileFlag('r'), (err: ApiError, data?: string) => {
-          if (err) {
-            // ENOENT === Newly-instantiated file system, and thus empty log.
-            if (err.errno !== ErrorCode.ENOENT) {
-              return end(err);
-            }
-          } else {
-            data.split('\n').forEach((path: string) => {
-              // If the log entry begins w/ 'd', it's a deletion. Otherwise, it's
-              // an undeletion.
-              // TODO: Clean up log during initialization phase.
-              this._deletedFiles[path.slice(1)] = path.slice(0, 1) === 'd';
-            });
-          }
-          // Open up the deletion log for appending.
-          this._writable.open(deletionLogPath, FileFlag.getFileFlag('a'),
-            0x1a4, (err: ApiError, fd?: file.File) => {
-            if (err) {
-              end(err);
-            } else {
-              this._deleteLog = fd;
-              end();
-            }
-          });
+    // if we're already initialized, immediately invoke the callback
+    if (this._isInitialized)
+        return cb();
+
+    callbackArray.push(cb);
+    // The first call to initialize initializes, the rest wait for it to complete.
+    if (callbackArray.length !== 1)
+      return;
+
+    // Read deletion log, process into metadata.
+    this._writable.readFile(deletionLogPath, 'utf8', getFlag('r'), (err: ApiError, data?: string) => {
+      if (err) {
+        // ENOENT === Newly-instantiated file system, and thus empty log.
+        if (err.errno !== ErrorCode.ENOENT) {
+          return end(err);
+        }
+      } else {
+        data.split('\n').forEach((path: string) => {
+          // If the log entry begins w/ 'd', it's a deletion. Otherwise, it's
+          // an undeletion.
+          // TODO: Clean up log during initialization phase.
+          this._deletedFiles[path.slice(1)] = path.slice(0, 1) === 'd';
         });
       }
-    } else {
-      cb();
-    }
+      // Open up the deletion log for appending.
+      this._writable.open(deletionLogPath, getFlag('a'), 0o644, (err: ApiError, fd?: file.File) => {
+        if (!err)
+          this._deleteLog = fd;
+        end(err);
+      });
+    });
   }
 
   public isReadOnly(): boolean { return false; }
@@ -184,7 +236,7 @@ export default class OverlayFS extends file_system.SynchronousFileSystem impleme
         return;
       }
 
-      var mode = 0x1ff;
+      var mode = 0o777;
       if (this.existsSync(newPath)) {
         var stats = this.statSync(newPath, false),
           mode = stats.mode;
@@ -219,8 +271,7 @@ export default class OverlayFS extends file_system.SynchronousFileSystem impleme
       }
 
       this.writeFileSync(newPath,
-        this.readFileSync(oldPath, null, FileFlag.getFileFlag('r')), null,
-        FileFlag.getFileFlag('w'), oldStats.mode);
+        this.readFileSync(oldPath, null, getFlag('r')), null, getFlag('w'), oldStats.mode);
     }
 
     if (oldPath !== newPath && this.existsSync(oldPath)) {
@@ -256,7 +307,7 @@ export default class OverlayFS extends file_system.SynchronousFileSystem impleme
             // Create an OverlayFile.
             var stats = this._readable.statSync(p, false).clone();
             stats.mode = mode;
-            return new OverlayFile(this, p, flag, stats, this._readable.readFileSync(p, null, FileFlag.getFileFlag('r')));
+            return new OverlayFile(this, p, flag, stats, this._readable.readFileSync(p, null, getFlag('r')));
           }
         default:
           throw ApiError.EEXIST(p);
@@ -391,8 +442,8 @@ export default class OverlayFS extends file_system.SynchronousFileSystem impleme
       this._writable.mkdirSync(p, pStats.mode);
     } else {
       this.writeFileSync(p,
-        this._readable.readFileSync(p, null, FileFlag.getFileFlag('r')), null,
-        FileFlag.getFileFlag('w'), this.statSync(p, false).mode);
+        this._readable.readFileSync(p, null, getFlag('r')), null,
+        getFlag('w'), this.statSync(p, false).mode);
     }
   }
 }
