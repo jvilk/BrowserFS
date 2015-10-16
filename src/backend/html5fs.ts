@@ -66,23 +66,11 @@ export class HTML5FSFile extends preload_file.PreloadFile<HTML5FS> implements fi
       var opts = {
         create: false
       };
-      var _fs = <HTML5FS> this._fs;
+      var _fs = this._fs;
       var success: FileEntryCallback = (entry) => {
         entry.createWriter((writer) => {
-          // XXX: Typing hack.
-          var buffer = this.getBuffer();
-          var backing_mem: buffer_core_arraybuffer.BufferCoreArrayBuffer = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>buffer).getBufferCore();
-          if (!(backing_mem instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer)) {
-            // Copy into an ArrayBuffer-backed Buffer.
-            buffer = new Buffer(buffer.length);
-            this.getBuffer().copy(buffer);
-            backing_mem = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>buffer).getBufferCore();
-          }
-          // Reach into the BC, grab the DV.
-          var dv = backing_mem.getDataView();
-          // Create an appropriate view on the array buffer.
-          var abv = new DataView(dv.buffer, dv.byteOffset + (<buffer.BFSBuffer><any>buffer).getOffset(), buffer.length);
-          var blob = new Blob([abv]);
+          var buffer = <buffer.Buffer> this.getBuffer();
+          var blob = new Blob([buffer.toArrayBuffer()]);
           var length = blob.size;
           writer.onwriteend = () => {
             writer.onwriteend = null;
