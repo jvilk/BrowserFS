@@ -70,6 +70,11 @@ function isDirInfo(cache: ICachedPathInfo): cache is ICachedDirInfo {
   return cache && cache.stat.isFolder;
 }
 
+function isArrayBuffer(ab: any): ab is ArrayBuffer {
+  // Accept null / undefined, too.
+  return ab === null || ab === undefined || (typeof(ab) === 'object' && typeof(ab['byteLength']) === 'number');
+}
+
 /**
  * Wraps a Dropbox client and caches operations.
  */
@@ -111,13 +116,36 @@ class CachedDropboxClient {
     }
   }
 
-  private updateCachedInfo(p: string, stat: Dropbox.File.Stat, contents: ArrayBuffer | string[] = null): void {
+  private updateCachedDirInfo(p: string, stat: Dropbox.File.Stat, contents: string[] = null): void {
     var cachedInfo = this.getCachedInfo(p);
-    if (cachedInfo === undefined || cachedInfo.stat.contentHash !== stat.contentHash) {
-      this.putCachedInfo(p, <ICachedDirInfo | ICachedFileInfo> {
+    // Dropbox uses the *contentHash* property for directories.
+    // Ignore stat objects w/o a contentHash defined; those actually exist!!!
+    // (Example: readdir returns an array of stat objs; stat objs for dirs in that context have no contentHash)
+    if (stat.contentHash !== null && (cachedInfo === undefined || cachedInfo.stat.contentHash !== stat.contentHash)) {
+      this.putCachedInfo(p, <ICachedDirInfo> {
         stat: stat,
         contents: contents
       });
+    }
+  }
+
+  private updateCachedFileInfo(p: string, stat: Dropbox.File.Stat, contents: ArrayBuffer = null): void {
+    var cachedInfo = this.getCachedInfo(p);
+    // Dropbox uses the *versionTag* property for files.
+    // Ignore stat objects w/o a versionTag defined.
+    if (stat.versionTag !== null && (cachedInfo === undefined || cachedInfo.stat.versionTag !== stat.versionTag)) {
+      this.putCachedInfo(p, <ICachedFileInfo> {
+        stat: stat,
+        contents: contents
+      });
+    }
+  }
+
+  private updateCachedInfo(p: string, stat: Dropbox.File.Stat, contents: ArrayBuffer | string[] = null): void {
+    if (stat.isFile && isArrayBuffer(contents)) {
+      this.updateCachedFileInfo(p, stat, contents);
+    } else if (stat.isFolder && Array.isArray(contents)) {
+      this.updateCachedDirInfo(p, stat, contents);
     }
   }
 
@@ -140,7 +168,7 @@ class CachedDropboxClient {
           cb(err);
         }
       } else {
-        this.updateCachedInfo(p, stat, filenames.slice(0));
+        this.updateCachedDirInfo(p, stat, filenames.slice(0));
         folderEntries.forEach((entry) => {
           this.updateCachedInfo(path.join(p, entry.name), entry);
         });
@@ -153,7 +181,9 @@ class CachedDropboxClient {
     this._wrap((interceptCb) => {
       this._client.remove(p, interceptCb);
     }, (err: Dropbox.ApiError, stat?: Dropbox.File.Stat) => {
-      this.updateCachedInfo(p, stat);
+      if (!err) {
+        this.updateCachedInfo(p, stat);
+      }
       cb(err);
     });
   }
@@ -186,7 +216,9 @@ class CachedDropboxClient {
     if (cacheInfo !== null && cacheInfo.contents !== null) {
       // Try to use cached info; issue a stat to see if contents are up-to-date.
       this.stat(p, (error, stat?) => {
-        if (stat === cacheInfo.stat) {
+        if (error) {
+          cb(error);
+        } else if (stat.contentHash === cacheInfo.stat.contentHash) {
           // No file changes.
           cb(error, cacheInfo.contents.slice(0), cacheInfo.stat);
         } else {
@@ -239,24 +271,12 @@ class CachedDropboxClient {
     var numRun = 0,
       interceptCb = function (error: Dropbox.ApiError): void {
         // Timeout duration, in seconds.
-        var timeoutDuration: number = 1;
+        var timeoutDuration: number = 2;
         if (error && 3 > (++numRun)) {
           switch(error.status) {
             case Dropbox.ApiError.SERVER_ERROR:
             case Dropbox.ApiError.NETWORK_ERROR:
             case Dropbox.ApiError.RATE_LIMITED:
-              // Retry operation after a duration.
-              if (error.response.hasOwnProperty('Retry-After')) {
-                try {
-                  if (typeof(error.response['Retry-After']) === 'string') {
-                    timeoutDuration = parseInt(error.response['Retry-After'], 10);
-                  } else {
-                    timeoutDuration = error.response['Retry-After'];
-                  }
-                } catch (e) {
-                  // Failed to parse.
-                }
-              }
               setTimeout(() => {
                 performOp(interceptCb);
               }, timeoutDuration * 1000);

@@ -15,7 +15,7 @@ module.exports = function() {
     });
 
     // Same test, but for files.
-    var file = path.join('/', data[0]);
+    var file = '/test/fixtures/files/node/a.js';
     fs.readFile(file, function(err, data) {
       assert(!err, "Failed to read " + file);
       fs.readFile(file, function(err, data2) {

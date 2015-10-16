@@ -15,7 +15,7 @@ declare var __karma__: any;
 __karma__.loaded = function() {};
 
 // Test timeout duration in milliseconds. Increase if needed.
-var timeout: number = 20000;
+var timeout: number = 60000;
 
 function waitsFor(test: () => boolean, what: string, timeout: number, done: (e?: Error) => void) {
   var interval = setInterval(() => {

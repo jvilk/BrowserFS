@@ -24,7 +24,7 @@ function wrapperFcn(funcInfo: wrapperInterfaces.IFunctionInfo, args: IArguments,
   } catch (e) {
     if (isAssertionError(e)) {
       // XXX: Re-create the object to fix the stack trace.
-      (<any> mocha).throwError(new assert.AssertionError({
+      mocha.throwError(new assert.AssertionError({
         message: e.message,
         actual: e.actual,
         expected: e.expected,
@@ -32,7 +32,7 @@ function wrapperFcn(funcInfo: wrapperInterfaces.IFunctionInfo, args: IArguments,
         stackStartFunction: caller
       }));
     } else {
-      (<any> mocha).throwError(e);
+      mocha.throwError(e);
     }
   }
 }
