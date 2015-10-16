@@ -1,5 +1,5 @@
 'use strict';
-var assert = require('assert'),
+var assert = require('wrapped-assert'),
   buffer = require('buffer'),
   Buffer = buffer.Buffer;
 

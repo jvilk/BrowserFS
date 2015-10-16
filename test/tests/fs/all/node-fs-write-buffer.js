@@ -21,27 +21,27 @@
 
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert'),
+    assert = require('wrapped-assert'),
     common = require('../../../harness/common'),
     Buffer = require('buffer').Buffer,
     process = require('process').process;
-    
+
 module.exports = function() {
   if (!fs.getRootFS().isReadOnly()) {
     var filename = path.join(common.tmpDir, 'write.txt'),
         expected = new Buffer('hello'),
         openCalled = 0,
         writeCalled = 0;
-    
-    
+
+
     fs.open(filename, 'w', 0644, function(err, fd) {
       openCalled++;
       if (err) throw err;
-    
+
       fs.write(fd, expected, 0, expected.length, null, function(err, written) {
         writeCalled++;
         if (err) throw err;
-    
+
         assert.equal(expected.length, written);
         fs.close(fd, function(err) {
           if (err) throw err;
@@ -54,7 +54,7 @@ module.exports = function() {
         });
       });
     });
-    
+
     process.on('exit', function() {
       assert.equal(1, openCalled);
       assert.equal(1, writeCalled);

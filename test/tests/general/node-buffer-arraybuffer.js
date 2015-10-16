@@ -1,4 +1,4 @@
-var assert = require('assert'),
+var assert = require('wrapped-assert'),
   Buffer = require('buffer').Buffer;
 
 module.exports = function() {

@@ -21,13 +21,13 @@
 
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert'),
+    assert = require('wrapped-assert'),
     common = require('../../../harness/common'),
     Buffer = require('buffer').Buffer;
-    
+
 module.exports = function() {
   var filename = path.join(common.fixturesDir, 'a.js');
-  
+
   var caughtException = false;
   // Only run if the FS supports sync ops.
   var rootFS = fs.getRootFS();
@@ -43,19 +43,19 @@ module.exports = function() {
     }
     assert.ok(caughtException);
   }
-  
+
   fs.open('/path/to/file/that/does/not/exist', 'r', function(e) {
     assert(e != null);
     assert.equal(e.code, 'ENOENT');
   });
-  
+
   fs.open(filename, 'r', function(err, fd) {
     if (err) {
       throw err;
     }
     assert.ok(fd, 'failed to open with mode `r`: ' + filename);
   });
-  
+
   fs.open(filename, 'rs', function(err, fd) {
     if (err) {
       throw err;

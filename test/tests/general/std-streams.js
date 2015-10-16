@@ -1,4 +1,4 @@
-var assert = require('assert'),
+var assert = require('wrapped-assert'),
   Buffer = require('buffer').Buffer,
   process = require('process').process;
 
@@ -15,7 +15,7 @@ module.exports = function() {
       currentEncoding = null,
       streams = [process.stdout, process.stderr, process.stdin],
       i;
-  
+
   for (i = 0; i < streams.length; i++) {
     streams[i].setEncoding(null);
     streams[i].on('data', cb);
@@ -26,7 +26,7 @@ module.exports = function() {
     // Prepare for next loop.
     streams[i].setEncoding('utf8');
   }
-  
+
   currentEncoding = 'utf8';
   for (i = 0; i < streams.length; i++) {
     // Write as string, receive as string.

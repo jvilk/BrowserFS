@@ -4,6 +4,8 @@ import buffer = require('../../src/core/buffer');
 import BFSBuffer = buffer.Buffer;
 import BackendFactory = require('./BackendFactory');
 import async = require('async');
+import assert = require('./wrapped-assert');
+
 var loadFixtures: () => void = require('../fixtures/load_fixtures');
 
 declare var __numWaiting: number;

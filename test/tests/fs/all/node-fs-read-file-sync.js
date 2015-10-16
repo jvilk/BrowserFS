@@ -21,14 +21,14 @@
 
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert'),
+    assert = require('wrapped-assert'),
     common = require('../../../harness/common'),
     Buffer = require('buffer').Buffer;
-    
+
 module.exports = function() {
   var rootFS = fs.getRootFS();
   var fn = path.join(common.fixturesDir, 'elipses.txt');
-  
+
   if (rootFS.supportsSynch()) {
     var s = fs.readFileSync(fn, 'utf8');
     for (var i = 0; i < s.length; i++) {

@@ -396,10 +396,11 @@ export class Buffer implements BFSBuffer {
     if (buffCore instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer) {
       var dv = buffCore.getDataView(),
         ab = dv.buffer;
-      if (dv.byteOffset === 0 && dv.byteLength === ab.byteLength) {
+      // Ensure 1-1 mapping from AB to Buffer.
+      if (this.offset === 0 && dv.byteOffset === 0 && dv.byteLength === ab.byteLength && this.length === dv.byteLength) {
         return ab;
       } else {
-        return ab.slice(dv.byteOffset, dv.byteLength);
+        return ab.slice(this.offset + dv.byteOffset, this.length);
       }
     } else {
       var ab = new ArrayBuffer(this.length),

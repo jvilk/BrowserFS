@@ -21,15 +21,15 @@
 
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert'),
+    assert = require('wrapped-assert'),
     common = require('../../../harness/common'),
     Buffer = require('buffer').Buffer,
     process = require('process').process;
-    
+
 module.exports = function() {
   if (!fs.getRootFS().isReadOnly()) {
     var join = path.join;
-    
+
     var data = [
       '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcH',
       'Bw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/',
@@ -48,11 +48,11 @@ module.exports = function() {
       'OmPqKJJZw3aiZFBw4z93jnkkc9u9dj8XLfSI/EBt7DTo7ea2Ox5YXVo5FC7g',
       'Tjq24nJPXNVtO0KATRvNHCIg3zoWJWQHqp+o4pun+EtJ0zxBq8mnLJa2d1L5',
       '0NvnKRjJBUE5PAx3NYxxUY0pRtvYHSc5Ka2X9d7H/9k='];
-    
+
     // BFS: Original test joined on \n for some reason, but that ruined my extra
     // 'readFile' test.
     data = data.join('');
-    
+
     var buf = new Buffer(data, 'base64');
     fs.writeFile(join(common.tmpDir, 'test.jpg'), buf, function(err) {
       if (err) throw err;

@@ -21,7 +21,7 @@
 
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert'),
+    assert = require('wrapped-assert'),
     common = require('../../../harness/common'),
     Buffer = require('buffer').Buffer,
     process = require('process').process;
@@ -30,20 +30,20 @@ module.exports = function() {
   var f = path.join(common.fixturesDir, 'x.txt');
   var exists;
   var doesNotExist;
-  
+
   fs.exists(f, function(y) {
     exists = y;
   });
-  
+
   fs.exists(f + '-NO', function(y) {
     doesNotExist = y;
   });
-  
+
   if (fs.getRootFS().supportsSynch()) {
     assert(fs.existsSync(f));
     assert(!fs.existsSync(f + '-NO'));
   }
-  
+
   process.on('exit', function() {
     assert.strictEqual(exists, true);
     assert.strictEqual(doesNotExist, false);

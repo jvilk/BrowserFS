@@ -3,14 +3,14 @@
  */
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert'),
+    assert = require('wrapped-assert'),
     common = require('../../../harness/common'),
     Buffer = require('buffer').Buffer;
-    
+
 module.exports = function() {
   var rootFS = fs.getRootFS(),
       isReadOnly = rootFS.isReadOnly();
-  
+
   if (!isReadOnly) {
     var file = "/truncateFile.txt";
     fs.writeFile(file, new Buffer("123456789"), function (e) {

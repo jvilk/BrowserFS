@@ -21,7 +21,7 @@
 
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert'),
+    assert = require('wrapped-assert'),
     common = require('../../../harness/common'),
     Buffer = require('buffer').Buffer;
 
@@ -30,7 +30,7 @@ module.exports = function() {
     var fn = path.join(common.tmpDir, 'write.txt');
     var fn2 = path.join(common.tmpDir, 'write2.txt');
     var expected = 'ümlaut.';
-    
+
     fs.open(fn, 'w', 0644, function(err, fd) {
       if (err) throw err;
       fs.write(fd, '', 0, 'utf8', function(err, written) {
@@ -50,7 +50,7 @@ module.exports = function() {
         });
       });
     });
-    
+
     fs.open(fn2, 'w', 0644,
         function(err, fd) {
           if (err) throw err;

@@ -68,7 +68,11 @@ var karmaConfig = {
       '/': 'http://localhost:8000/'
     },
     singleRun: true,
-    urlRoot: '/karma/'
+    urlRoot: '/karma/',
+    // Dropbox tests are slow.
+    browserNoActivityTimeout: 30000,
+    browserDisconnectTimeout: 10000,
+    browserDisconnectTolerance: 3
   };
 
 // Filter out test/ files.
@@ -147,6 +151,10 @@ function removeFile(file) {
 }
 
 module.exports = function(grunt) {
+  var dropboxEnabled = grunt.option('dropbox');
+  if (dropboxEnabled) {
+    karmaFiles = karmaFiles.concat('node_modules/dropbox/lib/dropbox.js');
+  }
   grunt.initConfig({
     // Metadata.
     pkg: grunt.file.readJSON('package.json'),
@@ -202,11 +210,6 @@ module.exports = function(grunt) {
           browsers: ['Firefox']
         }
       },
-      dropbox_test: {
-        options: {
-          files: karmaFiles.concat('node_modules/dropbox/lib/dropbox.js')
-        }
-      },
       coverage: {
         options: {
           reporters: karmaConfig.reporters.concat(['coverage']),
@@ -214,17 +217,6 @@ module.exports = function(grunt) {
             './test/harness/**/*.js': ['coverage']
           },
           coverageReporter: { type: 'json', dir: 'coverage/' }
-        }
-      },
-      coverage_dropbox: {
-        options: {
-          reporters: karmaConfig.reporters.concat(['coverage']),
-          preprocessors: {
-            './test/harness/**/*.js': ['coverage']
-          },
-          coverageReporter: { type: 'json', dir: 'coverage/' },
-          // Add in dropbox.
-          files: karmaFiles.concat('node_modules/dropbox/lib/dropbox.js')
         }
       }
     },
@@ -345,9 +337,16 @@ module.exports = function(grunt) {
       default: {
         files: [ {
           src: 'coverage/**/coverage-final.json',
-          dest: 'coverage/html-report',
-          type: 'html'
+          dest: 'coverage/coverage-combined.json',
+          type: 'json'
         } ]
+      }
+    },
+    makeReport: {
+      src: 'coverage/coverage-combined.json',
+      options: {
+        type: 'html',
+        dir: 'coverage/html'
       }
     }
   });
@@ -363,6 +362,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-tsd');
   grunt.loadNpmTasks('remap-istanbul');
+  grunt.loadNpmTasks('grunt-istanbul');
 
   // Inspired by https://github.com/Malkiz/grunt-karma-sequence
   grunt.registerMultiTask('karma-sequence', 'Run Karma with multiple browsers sequentially', function(){
@@ -485,6 +485,17 @@ module.exports = function(grunt) {
     });
   });
 
+  grunt.registerTask('adjust_coverage_json', 'Removes dependency/test coverage information from the remapped Istanbul output.', function() {
+    // Remove anything that isn't in the src/ dir.
+    var coverageInfo = grunt.file.readJSON('coverage/coverage-combined.json'), newCoverageInfo = {};
+    Object.keys(coverageInfo).filter(function (filepath) {
+      return path.relative('.', filepath).slice(0, 3) === 'src';
+    }).forEach(function(filePath) {
+      newCoverageInfo[filePath] = coverageInfo[filePath];
+    });
+    grunt.file.write('coverage/coverage-combined.json', JSON.stringify(newCoverageInfo));
+  });
+
   var testCommon = ['tsd:browserfs', 'main.ts', 'run.ts', 'browserify:workerfs_worker', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect'];
 
   // test w/ rebuilds.
@@ -493,12 +504,8 @@ module.exports = function(grunt) {
   grunt.registerTask('test', testCommon.concat('browserify:test', 'karma-sequence:test'));
   // travis-ci test config
   grunt.registerTask('test_travis', testCommon.concat('browserify:test', 'karma-sequence:test_travis'));
-  // testing dropbox
-  grunt.registerTask('dropbox_test', testCommon.concat(['shell:gen_cert', 'shell:gen_token', 'browserify:test', 'karma-sequence:dropbox_test']));
   // coverage
-  grunt.registerTask('coverage', testCommon.concat('browserify:test', 'adjust_test_bundle', 'karma-sequence:coverage', 'remapIstanbul'));
-  // coverage w/ dropbox
-  grunt.registerTask('dropbox_coverage', testCommon.concat(['shell:gen_cert', 'shell:gen_token', 'browserify:test', 'adjust_test_bundle', 'karma-sequence:coverage_dropbox', 'remapIstanbul']));
+  grunt.registerTask('coverage', testCommon.concat('browserify:test', 'adjust_test_bundle', 'karma-sequence:coverage', 'remapIstanbul', 'adjust_coverage_json', 'makeReport'));
   // dev build + watch for changes.
   grunt.registerTask('watch', ['tsd:browserfs', 'main.ts', 'browserify:watch']);
   // dev build

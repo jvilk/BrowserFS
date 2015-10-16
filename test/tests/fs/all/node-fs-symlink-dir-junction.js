@@ -21,19 +21,19 @@
 
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert'),
+    assert = require('wrapped-assert'),
     common = require('../../../harness/common'),
     Buffer = require('buffer').Buffer,
     process = require('process').process;
-    
+
 module.exports = function() {
   var completed = 0;
   var expected_tests = 4;
-  
+
   // test creating and reading symbolic link
   var linkData = path.join(common.fixturesDir, 'cycles/');
   var linkPath = path.join(common.tmpDir, 'cycles_link');
-  
+
   var rootFS = fs.getRootFS();
   if (!(rootFS.isReadOnly() || !rootFS.supportsLinks())) {
     // Delete previously created link
@@ -41,21 +41,21 @@ module.exports = function() {
       if (err) throw err;
       console.log('linkData: ' + linkData);
       console.log('linkPath: ' + linkPath);
-    
+
       fs.symlink(linkData, linkPath, 'junction', function(err) {
         if (err) throw err;
         completed++;
-    
+
         fs.lstat(linkPath, function(err, stats) {
           if (err) throw err;
           assert.ok(stats.isSymbolicLink());
           completed++;
-    
+
           fs.readlink(linkPath, function(err, destination) {
             if (err) throw err;
             assert.equal(destination, linkData);
             completed++;
-    
+
             fs.unlink(linkPath, function(err) {
               if (err) throw err;
               assert(!fs.existsSync(linkPath));
@@ -66,7 +66,7 @@ module.exports = function() {
         });
       });
     });
-    
+
     process.on('exit', function() {
       assert.equal(completed, expected_tests);
     });

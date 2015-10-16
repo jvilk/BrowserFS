@@ -19,10 +19,10 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var assert = require('assert'),
+var assert = require('wrapped-assert'),
     path = require('path'),
     Buffer = require('buffer').Buffer;
-    
+
 module.exports = function() {
   assert.equal(path._makeLong(null), null);
   assert.equal(path._makeLong(100), 100);

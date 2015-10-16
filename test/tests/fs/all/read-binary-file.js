@@ -1,9 +1,9 @@
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert'),
+    assert = require('wrapped-assert'),
     common = require('../../../harness/common'),
     Buffer = require('buffer').Buffer;
-    
+
 module.exports = function() {
   // Read a file and check its binary bytes.
   fs.readFile(path.join(common.fixturesDir, 'elipses.txt'), function(err, buff) {

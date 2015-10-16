@@ -21,18 +21,18 @@
 
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert'),
+    assert = require('wrapped-assert'),
     common = require('../../../harness/common'),
     Buffer = require('buffer').Buffer;
-    
+
 module.exports = function() {
   if (!fs.getRootFS().isReadOnly()) {
     var dirName = path.resolve(common.fixturesDir, 'test-readfile-unlink'),
         fileName = path.resolve(dirName, 'test.bin');
-    
+
     var buf = new Buffer(512);
     buf.fill(42);
-    
+
     fs.mkdir(dirName, function(err) {
       if (err) throw err;
       fs.writeFile(fileName, buf, function(err) {
@@ -41,7 +41,7 @@ module.exports = function() {
           assert.ifError(err);
           assert(data.length == buf.length);
           assert.strictEqual(buf.get(0), 42);
-    
+
           fs.unlink(fileName, function(err) {
             if (err) throw err;
             fs.rmdir(dirName, function(err) {

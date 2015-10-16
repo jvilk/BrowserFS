@@ -61,7 +61,7 @@ export class HTML5FSFile extends preload_file.PreloadFile implements file.File {
     super(_fs, _path, _flag, _stat, contents);
   }
 
-  public sync(cb: (e?: api_error.ApiError) => void): void {
+  public sync(cb: (e?: ApiError) => void): void {
     if (this.isDirty()) {
       // Don't create the file (it should already have been created by `open`)
       var opts = {
@@ -106,7 +106,7 @@ export class HTML5FSFile extends preload_file.PreloadFile implements file.File {
     }
   }
 
-  public close(cb: (e?: api_error.ApiError) => void): void {
+  public close(cb: (e?: ApiError) => void): void {
     this.sync(cb);
   }
 }
@@ -161,7 +161,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
    * I've only implemented the most obvious ones, but more can be added to
    * make errors more descriptive in the future.
    */
-  public convert(err: DOMError, message: string = ""): api_error.ApiError {
+  public convert(err: DOMError, message: string = ""): ApiError {
     switch (err.name) {
       case 'QuotaExceededError':
         return new ApiError(ErrorCode.ENOSPC, message);
@@ -183,7 +183,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
    * Converts the given ErrorEvent (from a FileReader) into an appropriate
    * APIError.
    */
-  public convertErrorEvent(err: ErrorEvent, message: string = ""): api_error.ApiError {
+  public convertErrorEvent(err: ErrorEvent, message: string = ""): ApiError {
     return new ApiError(ErrorCode.ENOENT, err.message + "; " + message);
   }
 
@@ -191,7 +191,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
    * Nonstandard
    * Requests a storage quota from the browser to back this FS.
    */
-  public allocate(cb: (e?: api_error.ApiError) => void = function(){}): void {
+  public allocate(cb: (e?: ApiError) => void = function(){}): void {
     var success = (fs: FileSystem): void => {
       this.fs = fs;
       cb()
@@ -214,20 +214,20 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
    * Karma clears the storage after you quit it but not between runs of the test
    * suite, and the tests expect an empty FS every time.
    */
-  public empty(main_cb: (e?: api_error.ApiError) => void): void {
+  public empty(mainCb: (e?: ApiError) => void): void {
     // Get a list of all entries in the root directory to delete them
-    this._readdir('/', (err: api_error.ApiError, entries?: Entry[]): void => {
+    this._readdir('/', (err: ApiError, entries?: Entry[]): void => {
       if (err) {
         console.error('Failed to empty FS');
-        main_cb(err);
+        mainCb(err);
       } else {
         // Called when every entry has been operated on
         var finished = (er: any): void => {
           if (err) {
             console.error("Failed to empty FS");
-            main_cb(err);
+            mainCb(err);
           } else {
-            main_cb();
+            mainCb();
           }
         };
         // Removes files and recursively removes directories
@@ -251,7 +251,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
     });
   }
 
-  public rename(oldPath: string, newPath: string, cb: (e?: api_error.ApiError) => void): void {
+  public rename(oldPath: string, newPath: string, cb: (e?: ApiError) => void): void {
     var semaphore: number = 2,
       successCount: number = 0,
       root: DirectoryEntry = this.fs.root,
@@ -301,7 +301,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
     root.getDirectory(oldPath, {}, success, error);
   }
 
-  public stat(path: string, isLstat: boolean, cb: (err: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void {
+  public stat(path: string, isLstat: boolean, cb: (err: ApiError, stat?: node_fs_stats.Stats) => void): void {
     // Throw an error if the entry doesn't exist, because then there's nothing
     // to stat.
     var opts = {
@@ -338,7 +338,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
     this.fs.root.getFile(path, opts, loadAsFile, failedToLoadAsFile);
   }
 
-  public open(path: string, flags: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.File) => any): void {
+  public open(path: string, flags: file_flag.FileFlag, mode: number, cb: (err: ApiError, fd?: file.File) => any): void {
     var opts = {
       create: flags.pathNotExistsAction() === ActionType.CREATE_FILE,
       exclusive: flags.isExclusive()
@@ -387,7 +387,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
    * `rmdir`). If this doesn't match what's actually at `path`, an error will be
    * returned
    */
-  private _remove(path: string, cb: (e?: api_error.ApiError) => void, isFile: boolean): void {
+  private _remove(path: string, cb: (e?: ApiError) => void, isFile: boolean): void {
     var success = (entry: Entry): void => {
       var succ = () => {
         cb();
@@ -412,15 +412,15 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
     }
   }
 
-  public unlink(path: string, cb: (e?: api_error.ApiError) => void): void {
+  public unlink(path: string, cb: (e?: ApiError) => void): void {
     this._remove(path, cb, true);
   }
 
-  public rmdir(path: string, cb: (e?: api_error.ApiError) => void): void {
+  public rmdir(path: string, cb: (e?: ApiError) => void): void {
     this._remove(path, cb, false);
   }
 
-  public mkdir(path: string, mode: number, cb: (e?: api_error.ApiError) => void): void {
+  public mkdir(path: string, mode: number, cb: (e?: ApiError) => void): void {
     // Create the directory, but throw an error if it already exists, as per
     // mkdir(1)
     var opts = {
@@ -439,7 +439,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
   /**
    * Returns an array of `FileEntry`s. Used internally by empty and readdir.
    */
-  private _readdir(path: string, cb: (e: api_error.ApiError, entries?: Entry[]) => void): void {
+  private _readdir(path: string, cb: (e: ApiError, entries?: Entry[]) => void): void {
     // Grab the requested directory.
     this.fs.root.getDirectory(path, { create: false }, (dirEntry: DirectoryEntry) => {
       var reader = dirEntry.createReader();
@@ -465,8 +465,8 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
   /**
    * Map _readdir's list of `FileEntry`s to their names and return that.
    */
-  public readdir(path: string, cb: (err: api_error.ApiError, files?: string[]) => void): void {
-    this._readdir(path, (e: api_error.ApiError, entries?: Entry[]): void => {
+  public readdir(path: string, cb: (err: ApiError, files?: string[]) => void): void {
+    this._readdir(path, (e: ApiError, entries?: Entry[]): void => {
       if (e != null) {
         return cb(e);
       }

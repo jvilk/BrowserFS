@@ -21,7 +21,7 @@
 
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert'),
+    assert = require('wrapped-assert'),
     common = require('../../../harness/common'),
     Buffer = require('buffer').Buffer,
     process = require('process').process;
@@ -33,15 +33,15 @@ module.exports = function() {
   if (!rootFS.isReadOnly()) {
     fs.open(file, 'a', 0777, function(err, fd) {
       if (err) throw err;
-    
+
       if (rootFS.supportsSynch()) {
         fs.fdatasyncSync(fd);
         successes++;
-    
+
         fs.fsyncSync(fd);
         successes++;
       }
-    
+
       fs.fdatasync(fd, function(err) {
         if (err) throw err;
         successes++;
@@ -51,7 +51,7 @@ module.exports = function() {
         });
       });
     });
-    
+
     process.on('exit', function() {
       if (rootFS.supportsSynch()) {
         assert.equal(4, successes);

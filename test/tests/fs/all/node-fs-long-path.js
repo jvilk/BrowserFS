@@ -21,7 +21,7 @@
 
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert'),
+    assert = require('wrapped-assert'),
     common = require('../../../harness/common'),
     Buffer = require('buffer').Buffer,
     process = require('process').process;
@@ -32,17 +32,17 @@ module.exports = function() {
     var fileNameLen = Math.max(260 - common.tmpDir.length - 1, 1);
     var fileName = path.join(common.tmpDir, new Array(fileNameLen + 1).join('x'));
     var fullPath = path.resolve(fileName);
-    
+
     fs.writeFile(fullPath, 'ok', function(err) {
       if (err) throw err;
-    
+
       fs.stat(fullPath, function(err, stats) {
         if (err) throw err;
         assert.equal(2, stats.size, 'stats.size: expected 2, got: ' + stats.size);
       });
     });
-    
-    
+
+
     process.on('exit', function() {
       fs.unlink(fullPath);
       //assert.equal(2, successes);

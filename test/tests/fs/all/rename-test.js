@@ -3,16 +3,16 @@
  */
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert'),
+    assert = require('wrapped-assert'),
     common = require('../../../harness/common'),
     Buffer = require('buffer').Buffer;
-    
+
 module.exports = function() {
   var rootFS = fs.getRootFS(),
       isReadOnly = rootFS.isReadOnly(),
       oldParentName = '/_renameTest',
       newParentName = '/_renameTest2';
-  
+
   if (!isReadOnly) {
     /**
      * Creates the following directory structure within the given dir:
@@ -41,7 +41,7 @@ module.exports = function() {
         });
       });
     }
-  
+
     /**
      * Check that the directory structure created in populate_directory remains.
      */
@@ -69,10 +69,10 @@ module.exports = function() {
         });
       });
     }
-  
+
     var oldDir = '/rename_test',
       newDir = '/rename_test2';
-  
+
     // Directory rename.
     fs.mkdir(oldDir, function (e) {
       if (e) {
@@ -123,7 +123,7 @@ module.exports = function() {
         });
       });
     });
-  
+
     // File rename.
     var fileDir = '/rename_file_test',
       file1 = path.resolve(fileDir, 'fun.js'),
@@ -164,7 +164,7 @@ module.exports = function() {
         });
       });
     });
-  
+
     // file-2-dir and dir-2-file rename
     var dir = '/rename_filedir_test',
       file = '/rename_filedir_test.txt';
@@ -181,7 +181,7 @@ module.exports = function() {
             throw new Error("Failed invariant: Cannot rename a file over an existing directory.");
           } else {
             // Some *native* file systems throw EISDIR, others throw EPERM.... accept both.
-            assert(e.code === 'EISDIR' || e.code === 'EPERM');
+            assert(e.code === 'EISDIR' || e.code === 'EPERM', "Expected EISDIR or EPERM, received " + e.code);
           }
           // JV: Removing test for now. I noticed that you can do that in Node v0.12 on Mac,
           // but it might be FS independent.
@@ -195,7 +195,7 @@ module.exports = function() {
         });
       });
     });
-  
+
     // cannot rename a directory inside itself
     var renDir1 = '/renamedir_1', renDir2 = '/renamedir_1/lol';
     fs.mkdir(renDir1, function (e) {

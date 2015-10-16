@@ -21,7 +21,7 @@
  */
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert'),
+    assert = require('wrapped-assert'),
     Buffer = require('buffer').Buffer,
     process = require('process').process;
 
@@ -29,20 +29,20 @@ module.exports = function() {
   var rootFS = fs.getRootFS(),
       isReadOnly = rootFS.isReadOnly(),
       testFileContents = new Buffer('this is a test file, plz ignore.');
-  
+
   // @todo Introduce helpers for this.
   function is_writable(mode) {
     return (mode & 146) > 0;
   }
-  
+
   function is_readable(mode) {
     return (mode & 0x124) > 0;
   }
-  
+
   function is_executable(mode) {
     return (mode & 0x49) > 0;
   }
-  
+
   function process_file(p, fileMode) {
     fs.readFile(p, function(e, data) {
       if (e) {
@@ -75,7 +75,7 @@ module.exports = function() {
       fs.close(function() {});
     });
   }
-  
+
   function process_directory(p, dirMode) {
     fs.readdir(p, function (e, dirs) {
       if (e) {
@@ -94,7 +94,7 @@ module.exports = function() {
       for (i = 0; i < dirs.length; i++) {
         process_item(path.resolve(p, dirs[i]), dirMode);
       }
-  
+
       // Try to write a file into the directory.
       var testFile = path.resolve(p, '__test_file_plz_ignore.txt');
       fs.writeFile(testFile, testFileContents, function(e) {
@@ -115,7 +115,7 @@ module.exports = function() {
       });
     });
   }
-  
+
   function process_item(p, parentMode) {
     fs.stat(p, function (e, stat) {
       if (e) {
@@ -140,7 +140,7 @@ module.exports = function() {
       }
     });
   }
-  
+
   // Should always be able to stat the root.
   process_item('/', 0x1FF);
 };

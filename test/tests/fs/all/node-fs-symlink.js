@@ -21,16 +21,16 @@
 
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert'),
+    assert = require('wrapped-assert'),
     common = require('../../../harness/common'),
     Buffer = require('buffer').Buffer,
     process = require('process').process;
-    
+
 module.exports = function() {
   var completed = 0;
   var expected_tests = 2;
   var rootFS = fs.getRootFS();
-  
+
   // BFS: Link/symlink support is required for this test.
   if (rootFS.supportsLinks()) {
     var runtest = function(skip_symlinks) {
@@ -38,12 +38,12 @@ module.exports = function() {
         // test creating and reading symbolic link
         var linkData = path.join(common.fixturesDir, '/cycles/root.js');
         var linkPath = path.join(common.tmpDir, 'symlink1.js');
-    
+
         // Delete previously created link
         try {
           fs.unlinkSync(linkPath);
         } catch (e) {}
-    
+
         fs.symlink(linkData, linkPath, function(err) {
           if (err) throw err;
           console.log('symlink done');
@@ -55,16 +55,16 @@ module.exports = function() {
           });
         });
       }
-    
+
       // test creating and reading hard link
       var srcPath = path.join(common.fixturesDir, 'cycles', 'root.js');
       var dstPath = path.join(common.tmpDir, 'link1.js');
-    
+
       // Delete previously created link
       try {
         fs.unlinkSync(dstPath);
       } catch (e) {}
-    
+
       fs.link(srcPath, dstPath, function(err) {
         if (err) throw err;
         console.log('hard link done');
@@ -74,7 +74,7 @@ module.exports = function() {
         completed++;
       });
     };
-    
+
     if (is_windows) {
       // On Windows, creating symlinks requires admin privileges.
       // We'll only try to run symlink test if we have enough privileges.
@@ -89,7 +89,7 @@ module.exports = function() {
     } else {
       runtest(false);
     }
-    
+
     process.on('exit', function() {
       assert.equal(completed, expected_tests);
     });

@@ -21,17 +21,17 @@
 
 var fs = require('fs'),
     path = require('path'),
-    assert = require('assert'),
+    assert = require('wrapped-assert'),
     common = require('../../../harness/common'),
     Buffer = require('buffer').Buffer,
     process = require('process').process;
-    
+
 module.exports = function() {
   var got_error = false;
   var success_count = 0;
   var existing_dir = common.fixturesDir;
   var existing_file = path.join(common.fixturesDir, 'x.txt');
-  
+
   // Empty string is not a valid file path.
   fs.stat('', function(err, stats) {
     if (err) {
@@ -40,7 +40,7 @@ module.exports = function() {
       got_error = true;
     }
   });
-  
+
   fs.stat(existing_dir, function(err, stats) {
     if (err) {
       got_error = true;
@@ -49,7 +49,7 @@ module.exports = function() {
       success_count++;
     }
   });
-  
+
   fs.lstat(existing_dir, function(err, stats) {
     if (err) {
       got_error = true;
@@ -58,12 +58,12 @@ module.exports = function() {
       success_count++;
     }
   });
-  
+
   // fstat
   fs.open(existing_file, 'r', undefined, function(err, fd) {
     assert.ok(!err);
     assert.ok(fd);
-  
+
     fs.fstat(fd, function(err, stats) {
       if (err) {
         got_error = true;
@@ -74,7 +74,7 @@ module.exports = function() {
       }
     });
   });
-  
+
   if (fs.getRootFS().supportsSynch()) {
     // fstatSync
     fs.open(existing_file, 'r', undefined, function(err, fd) {
@@ -91,7 +91,7 @@ module.exports = function() {
       fs.close(fd);
     });
   }
-  
+
   fs.stat(existing_file, function(err, s) {
     if (err) {
       got_error = true;
@@ -104,11 +104,11 @@ module.exports = function() {
       assert.equal(false, s.isCharacterDevice());
       assert.equal(false, s.isFIFO());
       assert.equal(false, s.isSymbolicLink());
-  
+
       assert.ok(s.mtime instanceof Date);
     }
   });
-  
+
   process.on('exit', function() {
     var expected_success = 5;
     if (fs.getRootFS().supportsSynch()) expected_success++;

@@ -19,17 +19,17 @@
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-var assert = require('assert'),
+var assert = require('wrapped-assert'),
     path = require('path'),
     Buffer = require('buffer').Buffer,
     process = require('process').process;
 
 module.exports = function() {
   var isWindows = process.platform === 'win32';
-  
+
   // BFS: Make explicit for the browser.
   var f = '/Users/jvilk/Code/BrowserFS/test/node/test-path.js';
-  
+
   assert.equal(path.basename(f), 'test-path.js');
   assert.equal(path.basename(f, '.js'), 'test-path');
   assert.equal(path.basename(''), '');
@@ -38,14 +38,14 @@ module.exports = function() {
   assert.equal(path.basename('basename.ext'), 'basename.ext');
   assert.equal(path.basename('basename.ext/'), 'basename.ext');
   assert.equal(path.basename('basename.ext//'), 'basename.ext');
-  
+
   // On unix a backslash is just treated as any other character.
   assert.equal(path.basename('\\dir\\basename.ext'), '\\dir\\basename.ext');
   assert.equal(path.basename('\\basename.ext'), '\\basename.ext');
   assert.equal(path.basename('basename.ext'), 'basename.ext');
   assert.equal(path.basename('basename.ext\\'), 'basename.ext\\');
   assert.equal(path.basename('basename.ext\\\\'), 'basename.ext\\\\');
-  
+
   // POSIX filenames may include control characters
   // c.f. http://www.dwheeler.com/essays/fixing-unix-linux-filenames.html
   if (!isWindows) {
@@ -53,9 +53,9 @@ module.exports = function() {
     assert.equal(path.basename('/a/b/' + controlCharFilename),
                  controlCharFilename);
   }
-  
+
   assert.equal(path.extname(f), '.js');
-  
+
   // BFS: Our path is different from node's.
   assert.equal(path.dirname(f).substr(-9), 'test/node');
   assert.equal(path.dirname('/a/b/'), '/a');
@@ -66,7 +66,7 @@ module.exports = function() {
   assert.equal(path.dirname('////'), '/');
   // https://github.com/jvilk/BrowserFS/issues/96
   assert.equal(path.dirname('a/b'), 'a');
-  
+
   assert.equal(path.extname(''), '');
   assert.equal(path.extname('/path/to/file'), '');
   assert.equal(path.extname('/path/to/file.ext'), '.ext');
@@ -108,7 +108,7 @@ module.exports = function() {
   assert.equal(path.extname('file//'), '');
   assert.equal(path.extname('file./'), '.');
   assert.equal(path.extname('file.//'), '.');
-  
+
   // On unix, backspace is a valid name component like any other character.
   assert.equal(path.extname('.\\'), '');
   assert.equal(path.extname('..\\'), '.\\');
@@ -118,7 +118,7 @@ module.exports = function() {
   assert.equal(path.extname('file\\\\'), '');
   assert.equal(path.extname('file.\\'), '.\\');
   assert.equal(path.extname('file.\\\\'), '.\\\\');
-  
+
   // path.join tests
   var failures = [];
   var joinTests =
@@ -170,7 +170,7 @@ module.exports = function() {
        [['', '/', 'foo'], '/foo'],
        [['', '/', '/foo'], '/foo']
       ];
-  
+
   // Run the join tests.
   joinTests.forEach(function(test) {
     var actual = path.join.apply(path, test[0]);
@@ -191,8 +191,8 @@ module.exports = function() {
       path.resolve(test);
     }, TypeError);
   });
-  
-  
+
+
   // path normalize tests
   assert.equal(path.normalize('./fixtures///b/../b/c.js'),
                'fixtures/b/c.js');
@@ -200,7 +200,7 @@ module.exports = function() {
   assert.equal(path.normalize('a//b//../b'), 'a/b');
   assert.equal(path.normalize('a//b//./c'), 'a/b/c');
   assert.equal(path.normalize('a//b//.'), 'a/b');
-  
+
   // path.resolve tests
   // Posix
   var resolveTests =
@@ -210,7 +210,7 @@ module.exports = function() {
        [['a/b/c/', '../../..'], process.cwd()],
        [['.'], process.cwd()],
        [['/some/dir', '.', '/absolute/'], '/absolute']];
-  
+
   var failures = [];
   resolveTests.forEach(function(test) {
     var actual = path.resolve.apply(path, test[0]);
@@ -222,13 +222,13 @@ module.exports = function() {
     // assert.equal(actual, expected, message);
   });
   assert.equal(failures.length, 0, failures.join(''));
-  
+
   // path.isAbsolute tests
   assert.equal(path.isAbsolute('/home/foo'), true);
   assert.equal(path.isAbsolute('/home/foo/..'), true);
   assert.equal(path.isAbsolute('bar/'), false);
   assert.equal(path.isAbsolute('./baz'), false);
-  
+
   // path.relative tests
   // posix
   var relativeTests =
@@ -251,11 +251,11 @@ module.exports = function() {
     if (actual !== expected) failures.push('\n' + message);
   });
   assert.equal(failures.length, 0, failures.join(''));
-  
+
   // path.sep tests
   // posix
   assert.equal(path.sep, '/');
-  
+
   // path.delimiter tests
   // posix
   assert.equal(path.delimiter, ':');

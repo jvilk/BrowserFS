@@ -16,27 +16,274 @@ import ApiError = api_error.ApiError;
 import ErrorCode = api_error.ErrorCode;
 import FileType = node_fs_stats.FileType;
 
+var errorCodeLookup: {[dropboxErrorCode: number]: ErrorCode} = null;
+// Lazily construct error code lookup, since DropboxJS might be loaded *after* BrowserFS (or not at all!)
+function constructErrorCodeLookup() {
+  if (errorCodeLookup !== null) {
+    return;
+  }
+  errorCodeLookup = {};
+  // This indicates a network transmission error on modern browsers. Internet Explorer might cause this code to be reported on some API server errors.
+  errorCodeLookup[Dropbox.ApiError.NETWORK_ERROR] = ErrorCode.EIO;
+  // This happens when the contentHash parameter passed to a Dropbox.Client#readdir or Dropbox.Client#stat matches the most recent content, so the API call response is omitted, to save bandwidth.
+  // errorCodeLookup[Dropbox.ApiError.NO_CONTENT];
+  // The error property on {Dropbox.ApiError#response} should indicate which input parameter is invalid and why.
+  errorCodeLookup[Dropbox.ApiError.INVALID_PARAM] = ErrorCode.EINVAL;
+  // The OAuth token used for the request will never become valid again, so the user should be re-authenticated.
+  errorCodeLookup[Dropbox.ApiError.INVALID_TOKEN] = ErrorCode.EPERM;
+  // This indicates a bug in dropbox.js and should never occur under normal circumstances.
+  // ^ Actually, that's false. This occurs when you try to move folders to themselves, or move a file over another file.
+  errorCodeLookup[Dropbox.ApiError.OAUTH_ERROR] = ErrorCode.EPERM;
+  // This happens when trying to read from a non-existing file, readdir a non-existing directory, write a file into a non-existing directory, etc.
+  errorCodeLookup[Dropbox.ApiError.NOT_FOUND] = ErrorCode.ENOENT;
+  // This indicates a bug in dropbox.js and should never occur under normal circumstances.
+  errorCodeLookup[Dropbox.ApiError.INVALID_METHOD] = ErrorCode.EINVAL;
+  // This happens when a Dropbox.Client#readdir or Dropbox.Client#stat call would return more than a maximum amount of directory entries.
+  errorCodeLookup[Dropbox.ApiError.NOT_ACCEPTABLE] = ErrorCode.EINVAL;
+  // This is used by some backend methods to indicate that the client needs to download server-side changes and perform conflict resolution. Under normal usage, errors with this code should never surface to the code using dropbox.js.
+  errorCodeLookup[Dropbox.ApiError.CONFLICT] = ErrorCode.EINVAL;
+  // Status value indicating that the application is making too many requests.
+  errorCodeLookup[Dropbox.ApiError.RATE_LIMITED] = ErrorCode.EBUSY;
+  // The request should be retried after some time.
+  errorCodeLookup[Dropbox.ApiError.SERVER_ERROR] = ErrorCode.EBUSY;
+  // Status value indicating that the user's Dropbox is over its storage quota.
+  errorCodeLookup[Dropbox.ApiError.OVER_QUOTA] = ErrorCode.ENOSPC;
+}
+
+interface ICachedPathInfo {
+  stat: Dropbox.File.Stat;
+}
+
+interface ICachedFileInfo extends ICachedPathInfo {
+  contents: ArrayBuffer;
+}
+
+function isFileInfo(cache: ICachedPathInfo): cache is ICachedFileInfo {
+  return cache && cache.stat.isFile;
+}
+
+interface ICachedDirInfo extends ICachedPathInfo {
+  contents: string[];
+}
+
+function isDirInfo(cache: ICachedPathInfo): cache is ICachedDirInfo {
+  return cache && cache.stat.isFolder;
+}
+
+/**
+ * Wraps a Dropbox client and caches operations.
+ */
+class CachedDropboxClient {
+  private _cache: {[path: string]: ICachedPathInfo} = {};
+  private _client: Dropbox.Client;
+
+  constructor(client: Dropbox.Client) {
+    this._client = client;
+  }
+
+  private getCachedInfo(p: string): ICachedPathInfo {
+    return this._cache[p.toLowerCase()];
+  }
+
+  private putCachedInfo(p: string, cache: ICachedPathInfo): void {
+    this._cache[p.toLowerCase()] = cache;
+  }
+
+  private deleteCachedInfo(p: string): void {
+    delete this._cache[p.toLowerCase()];
+  }
+
+  private getCachedDirInfo(p: string): ICachedDirInfo {
+    var info = this.getCachedInfo(p);
+    if (isDirInfo(info)) {
+      return info;
+    } else {
+      return null;
+    }
+  }
+
+  private getCachedFileInfo(p: string): ICachedFileInfo {
+    var info = this.getCachedInfo(p);
+    if (isFileInfo(info)) {
+      return info;
+    } else {
+      return null;
+    }
+  }
+
+  private updateCachedInfo(p: string, stat: Dropbox.File.Stat, contents: ArrayBuffer | string[] = null): void {
+    var cachedInfo = this.getCachedInfo(p);
+    if (cachedInfo === undefined || cachedInfo.stat.contentHash !== stat.contentHash) {
+      this.putCachedInfo(p, <ICachedDirInfo | ICachedFileInfo> {
+        stat: stat,
+        contents: contents
+      });
+    }
+  }
+
+  public readdir(p: string, cb: (error: Dropbox.ApiError, contents?: string[]) => void): void {
+    var cacheInfo = this.getCachedDirInfo(p);
+
+    this._wrap((interceptCb) => {
+      if (cacheInfo !== null && cacheInfo.contents) {
+        this._client.readdir(p, {
+          contentHash: cacheInfo.stat.contentHash
+        }, interceptCb);
+      } else {
+        this._client.readdir(p, interceptCb);
+      }
+    }, (err: Dropbox.ApiError, filenames: string[], stat: Dropbox.File.Stat, folderEntries: Dropbox.File.Stat[]) => {
+      if (err) {
+        if (err.status === Dropbox.ApiError.NO_CONTENT && cacheInfo !== null) {
+          cb(null, cacheInfo.contents.slice(0));
+        } else {
+          cb(err);
+        }
+      } else {
+        this.updateCachedInfo(p, stat, filenames.slice(0));
+        folderEntries.forEach((entry) => {
+          this.updateCachedInfo(path.join(p, entry.name), entry);
+        });
+        cb(null, filenames);
+      }
+    });
+  }
+
+  public remove(p: string, cb: (error?: Dropbox.ApiError) => void): void {
+    this._wrap((interceptCb) => {
+      this._client.remove(p, interceptCb);
+    }, (err: Dropbox.ApiError, stat?: Dropbox.File.Stat) => {
+      this.updateCachedInfo(p, stat);
+      cb(err);
+    });
+  }
+
+  public move(src: string, dest: string, cb: (error?: Dropbox.ApiError) => void): void {
+    this._wrap((interceptCb) => {
+      this._client.move(src, dest, interceptCb);
+    }, (err: Dropbox.ApiError, stat: Dropbox.File.Stat) => {
+      if (!err) {
+        this.deleteCachedInfo(src);
+        this.updateCachedInfo(dest, stat);
+      }
+      cb(err);
+    });
+  }
+
+  public stat(p: string, cb: (error: Dropbox.ApiError, stat?: Dropbox.File.Stat) => void): void {
+    this._wrap((interceptCb) => {
+      this._client.stat(p, interceptCb);
+    }, (err: Dropbox.ApiError, stat: Dropbox.File.Stat) => {
+      if (!err) {
+        this.updateCachedInfo(p, stat);
+      }
+      cb(err, stat);
+    });
+  }
+
+  public readFile(p: string, cb: (error: Dropbox.ApiError, file?: ArrayBuffer, stat?: Dropbox.File.Stat) => void): void {
+    var cacheInfo = this.getCachedFileInfo(p);
+    if (cacheInfo !== null && cacheInfo.contents !== null) {
+      // Try to use cached info; issue a stat to see if contents are up-to-date.
+      this.stat(p, (error, stat?) => {
+        if (stat === cacheInfo.stat) {
+          // No file changes.
+          cb(error, cacheInfo.contents.slice(0), cacheInfo.stat);
+        } else {
+          // File changes; rerun to trigger actual readFile.
+          this.readFile(p, cb);
+        }
+      });
+    } else {
+      this._wrap((interceptCb) => {
+        this._client.readFile(p, { arrayBuffer: true }, interceptCb);
+      }, (err: Dropbox.ApiError, contents: any, stat: Dropbox.File.Stat) => {
+        if (!err) {
+          this.updateCachedInfo(p, stat, contents.slice(0));
+        }
+        cb(err, contents, stat);
+      });
+    }
+  }
+
+  public writeFile(p: string, contents: ArrayBuffer, cb: (error: Dropbox.ApiError, stat?: Dropbox.File.Stat) => void): void {
+    this._wrap((interceptCb) => {
+      this._client.writeFile(p, contents, interceptCb);
+    },(err: Dropbox.ApiError, stat: Dropbox.File.Stat) => {
+      if (!err) {
+        this.updateCachedInfo(p, stat, contents.slice(0));
+      }
+      cb(err, stat);
+    });
+  }
+
+  public mkdir(p: string, cb: (error?: Dropbox.ApiError) => void): void {
+    this._wrap((interceptCb) => {
+      this._client.mkdir(p, interceptCb);
+    }, (err: Dropbox.ApiError, stat: Dropbox.File.Stat) => {
+      if (!err) {
+        this.updateCachedInfo(p, stat, []);
+      }
+      cb(err);
+    });
+  }
+
+  /**
+   * Wraps an operation such that we retry a failed operation 3 times.
+   * Necessary to deal with Dropbox rate limiting.
+   *
+   * @param performOp Function that performs the operation. Will be called up to three times.
+   * @param cb Called when the operation succeeds, fails in a non-temporary manner, or fails three times.
+   */
+  private _wrap(performOp: (interceptCb: (error: Dropbox.ApiError) => void) => void, cb: Function): void {
+    var numRun = 0,
+      interceptCb = function (error: Dropbox.ApiError): void {
+        // Timeout duration, in seconds.
+        var timeoutDuration: number = 1;
+        if (error && 3 > (++numRun)) {
+          switch(error.status) {
+            case Dropbox.ApiError.SERVER_ERROR:
+            case Dropbox.ApiError.NETWORK_ERROR:
+            case Dropbox.ApiError.RATE_LIMITED:
+              // Retry operation after a duration.
+              if (error.response.hasOwnProperty('Retry-After')) {
+                try {
+                  if (typeof(error.response['Retry-After']) === 'string') {
+                    timeoutDuration = parseInt(error.response['Retry-After'], 10);
+                  } else {
+                    timeoutDuration = error.response['Retry-After'];
+                  }
+                } catch (e) {
+                  // Failed to parse.
+                }
+              }
+              setTimeout(() => {
+                performOp(interceptCb);
+              }, timeoutDuration * 1000);
+              break;
+            default:
+              cb.apply(null, arguments);
+              break;
+          }
+        } else {
+          cb.apply(null, arguments);
+        }
+      };
+
+    performOp(interceptCb);
+  }
+}
+
 export class DropboxFile extends preload_file.PreloadFile implements file.File {
   constructor(_fs: file_system.FileSystem, _path: string, _flag: file_flag.FileFlag, _stat: Stats, contents?: NodeBuffer) {
     super(_fs, _path, _flag, _stat, contents)
   }
 
-  public sync(cb: (e?: api_error.ApiError) => void): void {
+  public sync(cb: (e?: ApiError) => void): void {
     if (this.isDirty()) {
-      var buffer = this.getBuffer();
-      // XXX: Typing hack.
-      var backing_mem: buffer_core_arraybuffer.BufferCoreArrayBuffer = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>buffer).getBufferCore();
-      if (!(backing_mem instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer)) {
-        // Copy into an ArrayBuffer-backed Buffer.
-        buffer = new Buffer(buffer.length);
-        this.getBuffer().copy(buffer);
-        backing_mem = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>buffer).getBufferCore();
-      }
-      // Reach into the BC, grab the DV.
-      var dv = backing_mem.getDataView();
-      // Create an appropriate view on the array buffer.
-      var abv = new DataView(dv.buffer, dv.byteOffset + (<buffer.BFSBuffer><any>buffer).getOffset(), buffer.length);
-      (<DropboxFileSystem> this._fs)._writeFileStrict(this.getPath(), abv, (e?: api_error.ApiError) => {
+      var buffer = <buffer.Buffer> this.getBuffer(),
+        arrayBuffer = buffer.toArrayBuffer();
+      (<DropboxFileSystem> this._fs)._writeFileStrict(this.getPath(), arrayBuffer, (e?: ApiError) => {
         if (!e) {
           this.resetDirty();
         }
@@ -47,20 +294,22 @@ export class DropboxFile extends preload_file.PreloadFile implements file.File {
     }
   }
 
-  public close(cb: (e?: api_error.ApiError) => void): void {
+  public close(cb: (e?: ApiError) => void): void {
     this.sync(cb);
   }
 }
 
 export class DropboxFileSystem extends file_system.BaseFileSystem implements file_system.FileSystem {
   // The Dropbox client.
-  private client: Dropbox.Client;
+  private _client: CachedDropboxClient;
+
   /**
    * Arguments: an authenticated Dropbox.js client
    */
   constructor(client: Dropbox.Client) {
     super();
-    this.client = client;
+    this._client = new CachedDropboxClient(client);
+    constructErrorCodeLookup();
   }
 
   public getName(): string {
@@ -69,7 +318,6 @@ export class DropboxFileSystem extends file_system.BaseFileSystem implements fil
 
   public static isAvailable(): boolean {
     // Checks if the Dropbox library is loaded.
-    // @todo Check if the Dropbox library *can be used* in the current browser.
     return typeof Dropbox !== 'undefined';
   }
 
@@ -91,48 +339,66 @@ export class DropboxFileSystem extends file_system.BaseFileSystem implements fil
     return false;
   }
 
-  public empty(main_cb: (e?: api_error.ApiError) => void): void {
-    this.client.readdir('/', (error, paths, dir, files) => {
+  public empty(mainCb: (e?: ApiError) => void): void {
+    this._client.readdir('/', (error, files) => {
       if (error) {
-        main_cb(this.convert(error));
+        mainCb(this.convert(error, '/'));
       } else {
-        var deleteFile = (file: Dropbox.File.Stat, cb: (err?: any) => void) => {
-          this.client.remove(file.path, (err, stat) => {
-            cb(err ? this.convert(err) : err);
+        var deleteFile = (file: string, cb: (err?: ApiError) => void) => {
+          var p = path.join('/', file);
+          this._client.remove(p, (err) => {
+            cb(err ? this.convert(err, p) : null);
           });
         };
-        var finished = (err: any) => {
+        var finished = (err?: ApiError) => {
           if (err) {
-            main_cb(this.convert(err));
+            mainCb(err);
           } else {
-            main_cb();
+            mainCb();
           }
         };
-        async.each(files, deleteFile, finished);
+        // XXX: <any> typing is to get around overly-restrictive ErrorCallback typing.
+        async.each(files, <any> deleteFile, <any> finished);
       }
     });
   }
 
- public rename(oldPath: string, newPath: string, cb: (e?: api_error.ApiError) => void): void {
-    this.client.move(oldPath, newPath, (error, stat) => {
+ public rename(oldPath: string, newPath: string, cb: (e?: ApiError) => void): void {
+    this._client.move(oldPath, newPath, (error) => {
       if (error) {
-        // XXX: Assume 404 for now.
-        var missingPath = (<any> error.response).error.indexOf(oldPath) > -1 ? oldPath : newPath;
-        cb(new ApiError(ErrorCode.ENOENT, missingPath + " doesn't exist"));
+        // the move is permitted if newPath is a file.
+        // Check if this is the case, and remove if so.
+        this._client.stat(newPath, (error2, stat) => {
+          if (error2 || stat.isFolder) {
+            var missingPath = (<any> error.response).error.indexOf(oldPath) > -1 ? oldPath : newPath;
+            cb(this.convert(error, missingPath));
+          } else {
+            // Delete file, repeat rename.
+            this._client.remove(newPath, (error2) => {
+              if (error2) {
+                cb(this.convert(error2, newPath));
+              } else {
+                this.rename(oldPath, newPath, cb);
+              }
+            });
+          }
+        });
       } else {
         cb();
       }
     });
   }
 
-  public stat(path: string, isLstat: boolean, cb: (err: api_error.ApiError, stat?: Stats) => void): void {
+  public stat(path: string, isLstat: boolean, cb: (err: ApiError, stat?: Stats) => void): void {
     // Ignore lstat case -- Dropbox doesn't support symlinks
     // Stat the file
-    this.client.stat(path, (error, stat) => {
-      // Dropbox keeps track of deleted files, so if a file has existed in the
-      // past but doesn't any longer, you wont get an error
-      if (error || ((stat != null) && stat.isRemoved)) {
-        cb(new ApiError(ErrorCode.ENOENT, path + " doesn't exist"));
+    this._client.stat(path, (error, stat) => {
+      if (error) {
+        cb(this.convert(error, path));
+      } else if ((stat != null) && stat.isRemoved) {
+        // Dropbox keeps track of deleted files, so if a file has existed in the
+        // past but doesn't any longer, you wont get an error
+        cb(ApiError.FileError(ErrorCode.ENOENT, path));
       } else {
         var stats = new Stats(this._statType(stat), stat.size);
         return cb(null, stats);
@@ -140,25 +406,21 @@ export class DropboxFileSystem extends file_system.BaseFileSystem implements fil
     });
   }
 
-  public open(path: string, flags: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.File) => any): void {
+  public open(path: string, flags: file_flag.FileFlag, mode: number, cb: (err: ApiError, fd?: file.File) => any): void {
     // Try and get the file's contents
-    this.client.readFile(path, {
-      arrayBuffer: true
-    }, (error, content, db_stat, range) => {
+    this._client.readFile(path, (error, content, dbStat) => {
       if (error) {
         // If the file's being opened for reading and doesn't exist, return an
         // error
         if (flags.isReadable()) {
-          cb(new ApiError(ErrorCode.ENOENT, path + " doesn't exist"));
+          cb(this.convert(error, path));
         } else {
           switch (error.status) {
-            case 0:
-              return console.error('No connection');
             // If it's being opened for writing or appending, create it so that
             // it can be written to
-            case 404:
+            case Dropbox.ApiError.NOT_FOUND:
               var ab = new ArrayBuffer(0);
-              return this._writeFileStrict(path, ab, (error2: api_error.ApiError, stat?: Dropbox.File.Stat) => {
+              return this._writeFileStrict(path, ab, (error2: ApiError, stat?: Dropbox.File.Stat) => {
                 if (error2) {
                   cb(error2);
                 } else {
@@ -167,7 +429,7 @@ export class DropboxFileSystem extends file_system.BaseFileSystem implements fil
                 }
               });
             default:
-              return console.log("Unhandled error: " + error);
+              return cb(this.convert(error, path));
           }
         }
       } else {
@@ -180,23 +442,21 @@ export class DropboxFileSystem extends file_system.BaseFileSystem implements fil
         } else {
           buffer = new Buffer(content);
         }
-        var file = this._makeFile(path, flags, db_stat, buffer);
+        var file = this._makeFile(path, flags, dbStat, buffer);
         return cb(null, file);
       }
     });
   }
 
-  public _writeFileStrict(p: string, data: ArrayBuffer, cb: (e: api_error.ApiError, stat?: Dropbox.File.Stat) => void): void;
-  public _writeFileStrict(p: string, data: ArrayBufferView, cb: (e: api_error.ApiError, stat?: Dropbox.File.Stat) => void): void;
-  public _writeFileStrict(p: string, data: any, cb: (e: api_error.ApiError, stat?: Dropbox.File.Stat) => void): void {
+  public _writeFileStrict(p: string, data: ArrayBuffer, cb: (e: ApiError, stat?: Dropbox.File.Stat) => void): void {
     var parent = path.dirname(p);
-    this.stat(parent, false, (error: api_error.ApiError, stat?: Stats): void => {
+    this.stat(parent, false, (error: ApiError, stat?: Stats): void => {
       if (error) {
-        cb(new ApiError(ErrorCode.ENOENT, "Can't create " + p + " because " + parent + " doesn't exist"));
+        cb(ApiError.FileError(ErrorCode.ENOENT, parent));
       } else {
-        this.client.writeFile(p, data, (error2, stat) => {
+        this._client.writeFile(p, data, (error2, stat) => {
           if (error2) {
-            cb(this.convert(error2));
+            cb(this.convert(error2, p));
           } else {
             cb(null, stat);
           }
@@ -231,20 +491,19 @@ export class DropboxFileSystem extends file_system.BaseFileSystem implements fil
    * `rmdir`). If this doesn't match what's actually at `path`, an error will be
    * returned
    */
-  public _remove(path: string, cb: (e?: api_error.ApiError) => void, isFile: boolean): void {
-    this.client.stat(path, (error, stat) => {
+  public _remove(path: string, cb: (e?: ApiError) => void, isFile: boolean): void {
+    this._client.stat(path, (error, stat) => {
       if (error) {
-        cb(new ApiError(ErrorCode.ENOENT, path + " doesn't exist"));
+        cb(this.convert(error, path));
       } else {
         if (stat.isFile && !isFile) {
-          cb(new ApiError(ErrorCode.ENOTDIR, path + " is a file."));
+          cb(ApiError.FileError(ErrorCode.ENOTDIR, path));
         } else if (!stat.isFile && isFile) {
-          cb(new ApiError(ErrorCode.EISDIR, path + " is a directory."));
+          cb(ApiError.FileError(ErrorCode.EISDIR, path));
         } else {
-          this.client.remove(path, (error, stat) => {
+          this._client.remove(path, (error) => {
             if (error) {
-              // @todo Make this more specific.
-              cb(new ApiError(ErrorCode.EIO, "Failed to remove " + path));
+              cb(this.convert(error, path));
             } else {
               cb(null);
             }
@@ -257,21 +516,21 @@ export class DropboxFileSystem extends file_system.BaseFileSystem implements fil
   /**
    * Delete a file
    */
-  public unlink(path: string, cb: (e?: api_error.ApiError) => void): void {
+  public unlink(path: string, cb: (e?: ApiError) => void): void {
     this._remove(path, cb, true);
   }
 
   /**
    * Delete a directory
    */
-  public rmdir(path: string, cb: (e?: api_error.ApiError) => void): void {
+  public rmdir(path: string, cb: (e?: ApiError) => void): void {
     this._remove(path, cb, false);
   }
 
   /**
    * Create a directory
    */
-  public mkdir(p: string, mode: number, cb: (e?: api_error.ApiError) => void): void {
+  public mkdir(p: string, mode: number, cb: (e?: ApiError) => void): void {
     // Dropbox.js' client.mkdir() behaves like `mkdir -p`, i.e. it creates a
     // directory and all its ancestors if they don't exist.
     // Node's fs.mkdir() behaves like `mkdir`, i.e. it throws an error if an attempt
@@ -280,13 +539,13 @@ export class DropboxFileSystem extends file_system.BaseFileSystem implements fil
     // must be performed before it is created, and an error thrown if it does
     // not exist
     var parent = path.dirname(p);
-    this.client.stat(parent, (error, stat) => {
+    this._client.stat(parent, (error, stat) => {
       if (error) {
-        cb(new ApiError(ErrorCode.ENOENT, "Can't create " + p + " because " + parent + " doesn't exist"));
+        cb(this.convert(error, parent));
       } else {
-        this.client.mkdir(p, (error, stat) => {
+        this._client.mkdir(p, (error) => {
           if (error) {
-            cb(new ApiError(ErrorCode.EEXIST, p + " already exists"));
+            cb(ApiError.FileError(ErrorCode.EEXIST, p));
           } else {
             cb(null);
           }
@@ -298,8 +557,8 @@ export class DropboxFileSystem extends file_system.BaseFileSystem implements fil
   /**
    * Get the names of the files in a directory
    */
-  public readdir(path: string, cb: (err: api_error.ApiError, files?: string[]) => void): void {
-    this.client.readdir(path, (error, files, dir_stat, content_stats) => {
+  public readdir(path: string, cb: (err: ApiError, files?: string[]) => void): void {
+    this._client.readdir(path, (error, files) => {
       if (error) {
         return cb(this.convert(error));
       } else {
@@ -311,33 +570,16 @@ export class DropboxFileSystem extends file_system.BaseFileSystem implements fil
   /**
    * Converts a Dropbox-JS error into a BFS error.
    */
-  public convert(err: any, message: string = ""): api_error.ApiError {
-    switch(err.status) {
-      case 400:
-        // INVALID_PARAM
-        return new ApiError(ErrorCode.EINVAL, message);
-      case 401:
-        // INVALID_TOKEN (OAuth)
-      case 403:
-        // OAUTH_ERROR
-        return new ApiError(ErrorCode.EIO, message);
-      case 404:
-        // NOT_FOUND
-        return new ApiError(ErrorCode.ENOENT, message);
-      case 405:
-        // INVALID_METHOD
-        return new ApiError(ErrorCode.ENOTSUP, message);
-      // Non-specific errors
-      case 0:
-        // NETWORK_ERROR
-      case 304:
-        // NO_CONTENT
-      case 406:
-        // NOT_ACCEPTABLE (too much content in result)
-      case 409:
-        // CONFLICT (should never happen).
-      default:
-        return new ApiError(ErrorCode.EIO, message);
+  public convert(err: Dropbox.ApiError, path: string = null): ApiError {
+    var errorCode = errorCodeLookup[err.status];
+    if (errorCode === undefined) {
+      errorCode = ErrorCode.EIO;
+    }
+
+    if (path == null) {
+      return new ApiError(errorCode);
+    } else {
+      return ApiError.FileError(errorCode, path);
     }
   }
 }
