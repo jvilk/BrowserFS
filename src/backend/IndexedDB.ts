@@ -111,9 +111,12 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements kv
     }
   }
 
-  public delete(key: string, cb: (e?: api_error.ApiError) => void): void {
+  public del(key: string, cb: (e?: api_error.ApiError) => void): void {
     try {
-      var r: IDBRequest = this.store.delete(key);
+      // NOTE: IE8 has a bug with identifiers named 'delete' unless used as a string
+      // like this.
+      // http://stackoverflow.com/a/26479152
+      var r: IDBRequest = this.store['delete'](key);
       r.onerror = onErrorHandler(cb);
       r.onsuccess = (event) => {
         cb();

@@ -33,7 +33,9 @@ export class BufferCoreImageData extends buffer_core.BufferCoreCommon implements
   }
   public static isAvailable(): boolean {
     // Modern browsers have removed this deprecated API, so it is not always around.
-    return typeof CanvasPixelArray !== 'undefined';
+    // NOTE: IE11 in IE8 compat. mode has CanvasPixelArray defined, but you can't
+    // use it! Hence the check for getContext.
+    return typeof(CanvasPixelArray) !== 'undefined' && document.createElement('canvas')['getContext'] !== undefined;
   }
   public static name = "ImageData";
 

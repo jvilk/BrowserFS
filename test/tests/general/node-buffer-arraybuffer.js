@@ -2,6 +2,11 @@ var assert = require('wrapped-assert'),
   Buffer = require('buffer').Buffer;
 
 module.exports = function() {
+  if (typeof(ArrayBuffer) === 'undefined') {
+    // This browser doesn't support ArrayBuffers.
+    return;
+  }
+  
   var LENGTH = 16,
     ab = new ArrayBuffer(LENGTH),
     dv = new DataView(ab),

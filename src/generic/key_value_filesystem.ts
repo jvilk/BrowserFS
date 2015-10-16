@@ -100,7 +100,7 @@ export interface SyncKeyValueRWTransaction extends SyncKeyValueROTransaction {
    * Deletes the data at the given key.
    * @param key The key to delete from the store.
    */
-  delete(key: string): void;
+  del(key: string): void;
   /**
    * Commits the transaction.
    */
@@ -118,7 +118,7 @@ export interface SyncKeyValueRWTransaction extends SyncKeyValueROTransaction {
 export interface SimpleSyncStore {
   get(key: string): NodeBuffer;
   put(key: string, data: NodeBuffer, overwrite: boolean): boolean;
-  delete(key: string): void;
+  del(key: string): void;
 }
 
 /**
@@ -171,9 +171,9 @@ export class SimpleSyncRWTransaction implements SyncKeyValueRWTransaction {
     return this.store.put(key, data, overwrite);
   }
 
-  public delete(key: string): void {
+  public del(key: string): void {
     this.markModified(key);
-    this.store.delete(key);
+    this.store.del(key);
   }
 
   public commit(): void {/* NOP */}
@@ -185,7 +185,7 @@ export class SimpleSyncRWTransaction implements SyncKeyValueRWTransaction {
       value = this.originalData[key];
       if (value === null) {
         // Key didn't exist.
-        this.store.delete(key);
+        this.store.del(key);
       } else {
         // Key existed. Store old value.
         this.store.put(key, value, true);
@@ -457,8 +457,8 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
       var newNameNode = this.getINode(tx, newPath, newDirList[newName]);
       if (newNameNode.isFile()) {
         try {
-          tx.delete(newNameNode.id);
-          tx.delete(newDirList[newName]);
+          tx.del(newNameNode.id);
+          tx.del(newDirList[newName]);
         } catch (e) {
           tx.abort();
           throw e;
@@ -536,9 +536,9 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
 
     try {
       // Delete data.
-      tx.delete(fileNode.id);
+      tx.del(fileNode.id);
       // Delete node.
-      tx.delete(fileNodeId);
+      tx.del(fileNodeId);
       // Update directory listing.
       tx.put(parentNode.id, new Buffer(JSON.stringify(parentListing)), true);
     } catch (e) {
@@ -646,7 +646,7 @@ export interface AsyncKeyValueRWTransaction extends AsyncKeyValueROTransaction {
    * Deletes the data at the given key.
    * @param key The key to delete from the store.
    */
-  delete(key: string, cb: (e?: api_error.ApiError) => void): void;
+  del(key: string, cb: (e?: api_error.ApiError) => void): void;
   /**
    * Commits the transaction.
    */
@@ -1014,9 +1014,9 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
             if (noErrorTx(e, tx, cb)) {
               if (inode.isFile()) {
                 // Delete the file and continue.
-                tx.delete(inode.id, (e?: api_error.ApiError) => {
+                tx.del(inode.id, (e?: api_error.ApiError) => {
                   if (noErrorTx(e, tx, cb)) {
-                    tx.delete(newParentList[newName], (e?: api_error.ApiError) => {
+                    tx.del(newParentList[newName], (e?: api_error.ApiError) => {
                       if (noErrorTx(e, tx, cb)) {
                         completeRename();
                       }
@@ -1137,10 +1137,10 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
                 });
               } else {
                 // Step 3: Delete data.
-                tx.delete(fileNode.id, (e?: api_error.ApiError): void => {
+                tx.del(fileNode.id, (e?: api_error.ApiError): void => {
                   if (noErrorTx(e, tx, cb)) {
                     // Step 4: Delete node.
-                    tx.delete(fileNodeId, (e?: api_error.ApiError): void => {
+                    tx.del(fileNodeId, (e?: api_error.ApiError): void => {
                       if (noErrorTx(e, tx, cb)) {
                         // Step 5: Update directory listing.
                         tx.put(parentNode.id, new Buffer(JSON.stringify(parentListing)), true, (e: api_error.ApiError): void => {

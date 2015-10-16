@@ -26,7 +26,7 @@ export class InMemoryStore implements kvfs.SyncKeyValueStore, kvfs.SimpleSyncSto
     return true;
   }
 
-  public delete(key: string): void {
+  public del(key: string): void {
     delete this.store[key];
   }
 }

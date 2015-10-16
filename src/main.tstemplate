@@ -85,6 +85,43 @@ if (!Array.prototype.forEach) {
   };
 }
 
+// IE < 9 does not support filter
+// From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/filter
+if (!Array.prototype.filter) {
+  Array.prototype.filter = function(fun/*, thisArg*/) {
+    'use strict';
+
+    if (this === void 0 || this === null) {
+      throw new TypeError();
+    }
+
+    var t = Object(this);
+    var len = t.length >>> 0;
+    if (typeof fun !== 'function') {
+      throw new TypeError();
+    }
+
+    var res = [];
+    var thisArg = arguments.length >= 2 ? arguments[1] : void 0;
+    for (var i = 0; i < len; i++) {
+      if (i in t) {
+        var val = t[i];
+
+        // NOTE: Technically this should Object.defineProperty at
+        //       the next index, as push can be affected by
+        //       properties on Object.prototype and Array.prototype.
+        //       But that method's new, and collisions should be
+        //       rare, so use the more-compatible alternative.
+        if (fun.call(thisArg, val, i, t)) {
+          res.push(val);
+        }
+      }
+    }
+
+    return res;
+  };
+}
+
 // Only IE10 has setImmediate.
 // @todo: Determine viability of switching to the 'proper' polyfill for this.
 if (typeof setImmediate === 'undefined') {
@@ -142,14 +179,6 @@ if (typeof setImmediate === 'undefined') {
   } else {
     gScope.setImmediate = function(fn: () => void) {
       return setTimeout(fn, 0);
-      var scriptEl = window.document.createElement("script");
-      (<any> scriptEl).onreadystatechange = function(): any {
-        fn();
-        (<any> scriptEl).onreadystatechange = null;
-        scriptEl.parentNode.removeChild(scriptEl);
-        return scriptEl = null;
-      };
-      gScope.document.documentElement.appendChild(scriptEl);
     };
   }
 }

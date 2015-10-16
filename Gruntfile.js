@@ -151,7 +151,8 @@ function removeFile(file) {
 }
 
 module.exports = function(grunt) {
-  var dropboxEnabled = grunt.option('dropbox');
+  var dropboxEnabled = grunt.option('dropbox'),
+    browser = grunt.option('browser') || "Chrome";
   if (dropboxEnabled) {
     karmaFiles = karmaFiles.concat('node_modules/dropbox/lib/dropbox.js');
   }
@@ -187,7 +188,7 @@ module.exports = function(grunt) {
           // Integrate browserify into the karma config.
           frameworks: karmaConfig.frameworks.concat('browserify'),
           // Use a single browser, otherwise things get messy.
-          browsers: ['Chrome'],
+          browsers: [browser],
           // Replace test.js w/ run.ts.
           files: ['test/harness/run.ts'].concat(karmaFiles.slice(1)),
           preprocessors: {
@@ -497,6 +498,9 @@ module.exports = function(grunt) {
   });
 
   var testCommon = ['tsd:browserfs', 'main.ts', 'run.ts', 'browserify:workerfs_worker', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect'];
+  if (dropboxEnabled) {
+    testCommon.push('shell:gen_cert', 'shell:gen_token');
+  }
 
   // test w/ rebuilds.
   grunt.registerTask('test_continuous', testCommon.concat('karma:continuous'));

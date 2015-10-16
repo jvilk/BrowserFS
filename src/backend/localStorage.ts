@@ -68,7 +68,7 @@ export class LocalStorageStore implements kvfs.SyncKeyValueStore, kvfs.SimpleSyn
     }
   }
 
-  public delete(key: string): void {
+  public del(key: string): void {
     try {
       global.localStorage.removeItem(key);
     } catch (e) {
