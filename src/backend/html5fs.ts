@@ -35,8 +35,7 @@ function _requestQuota(type: number, size: number, success: (size: number) => vo
         (<any> navigator).webkitTemporaryStorage.requestQuota(size, success, errorCallback);
         break
       default:
-        // TODO: Figure out how to construct a DOMException/DOMError.
-        errorCallback(null);
+        errorCallback(new TypeError(`Invalid storage type: ${type}`));
         break;
     }
   } else {
@@ -56,7 +55,7 @@ function _toArray(list?: any[]): any[] {
 //   - exclusive: If true, only create the entry if it doesn't already exist,
 //                and throw an error if it does.
 
-export class HTML5FSFile extends preload_file.PreloadFile implements file.File {
+export class HTML5FSFile extends preload_file.PreloadFile<HTML5FS> implements file.File {
   constructor(_fs: HTML5FS, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: NodeBuffer) {
     super(_fs, _path, _flag, _stat, contents);
   }

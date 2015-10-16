@@ -204,24 +204,24 @@ export interface SyncKeyValueFileSystemOptions {
    * Enabling this slightly increases the storage space per file, and adds
    * atime updates every time a file is accessed, mtime updates every time
    * a file is modified, and permission checks on every operation.
-   * 
+   *
    * Defaults to *false*.
    */
   //supportProps?: boolean;
   /**
-   * Should the file system support links? 
+   * Should the file system support links?
    */
   //supportLinks?: boolean;
 }
 
-export class SyncKeyValueFile extends preload_file.PreloadFile implements file.File {
+export class SyncKeyValueFile extends preload_file.PreloadFile<SyncKeyValueFileSystem> implements file.File {
   constructor(_fs: SyncKeyValueFileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: NodeBuffer) {
     super(_fs, _path, _flag, _stat, contents);
   }
 
   public syncSync(): void {
     if (this.isDirty()) {
-      (<SyncKeyValueFileSystem> this._fs)._syncSync(this.getPath(), this.getBuffer(), this.getStats());
+      this._fs._syncSync(this.getPath(), this.getBuffer(), this.getStats());
       this.resetDirty();
     }
   }
@@ -234,7 +234,7 @@ export class SyncKeyValueFile extends preload_file.PreloadFile implements file.F
 /**
  * A "Synchronous key-value file system". Stores data to/retrieves data from an
  * underlying key-value store.
- * 
+ *
  * We use a unique ID for each node in the file system. The root node has a
  * fixed ID.
  * @todo Introduce Node ID caching.
@@ -301,7 +301,7 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
         return read_directory(this.getINode(tx, parent, ROOT_NODE_ID));
       }
     } else {
-      return read_directory(this.getINode(tx, parent + path.sep + filename, 
+      return read_directory(this.getINode(tx, parent + path.sep + filename,
         this._findINode(tx, path.dirname(parent), path.basename(parent))));
     }
   }
@@ -657,21 +657,21 @@ export interface AsyncKeyValueRWTransaction extends AsyncKeyValueROTransaction {
   abort(cb: (e?: api_error.ApiError) => void): void;
 }
 
-export class AsyncKeyValueFile extends preload_file.PreloadFile implements file.File {
+export class AsyncKeyValueFile extends preload_file.PreloadFile<AsyncKeyValueFileSystem> implements file.File {
   constructor(_fs: AsyncKeyValueFileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: NodeBuffer) {
     super(_fs, _path, _flag, _stat, contents);
   }
 
   public sync(cb: (e?: api_error.ApiError) => void): void {
     if (this.isDirty()) {
-      (<AsyncKeyValueFileSystem> this._fs)._sync(this.getPath(), this.getBuffer(), this.getStats(), (e?: api_error.ApiError) => {
+      this._fs._sync(this.getPath(), this.getBuffer(), this.getStats(), (e?: api_error.ApiError) => {
         if (!e) {
           this.resetDirty();
         }
         cb(e);
       });
     } else {
-      cb();      
+      cb();
     }
   }
 

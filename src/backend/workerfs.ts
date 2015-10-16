@@ -289,7 +289,7 @@ function isAPIResponse(data: any): data is IAPIResponse {
 /**
  * Represents a remote file in a different worker/thread.
  */
-class WorkerFile extends preload_file.PreloadFile {
+class WorkerFile extends preload_file.PreloadFile<WorkerFS> {
   private _remoteFdId: number;
 
   constructor(_fs: WorkerFS, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, remoteFdId: number, contents?: NodeBuffer) {

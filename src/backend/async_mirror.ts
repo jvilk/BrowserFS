@@ -18,18 +18,18 @@ interface IAsyncOperation {
 /**
  * We define our own file to interpose on syncSync() for mirroring purposes.
  */
-class MirrorFile extends preload_file.PreloadFile implements file.File {
+class MirrorFile extends preload_file.PreloadFile<AsyncMirrorFS> implements file.File {
   constructor(fs: AsyncMirrorFS, path: string, flag: file_flag.FileFlag, stat: node_fs_stats.Stats, data: Buffer) {
     super(fs, path, flag, stat, data);
   }
 
   public syncSync(): void {
     if (this.isDirty()) {
-      (<AsyncMirrorFS> this._fs)._syncSync(this);
+      this._fs._syncSync(this);
       this.resetDirty();
     }
   }
-  
+
   public closeSync(): void {
     this.syncSync();
   }
@@ -69,19 +69,19 @@ class AsyncMirrorFS extends file_system.SynchronousFileSystem implements file_sy
   public getName(): string {
 	 	return "AsyncMirror";
   }
-  
+
   public static isAvailable(): boolean {
     return true;
   }
-  
-  public _syncSync(fd: preload_file.PreloadFile) {
+
+  public _syncSync(fd: preload_file.PreloadFile<any>) {
     this._sync.writeFileSync(fd.getPath(), fd.getBuffer(), null, file_flag.FileFlag.getFileFlag('w'), fd.getStats().mode);
     this.enqueueOp({
       apiMethod: 'writeFile',
       arguments: [fd.getPath(), fd.getBuffer(), null, fd.getFlag(), fd.getStats().mode]
     });
   }
-  
+
   /**
    * Called once to load up files from async storage into sync storage.
    */
@@ -151,7 +151,7 @@ class AsyncMirrorFS extends file_system.SynchronousFileSystem implements file_sy
   public supportsSynch(): boolean { return true; }
   public supportsLinks(): boolean { return false; }
   public supportsProps(): boolean { return this._sync.supportsProps() && this._async.supportsProps(); }
-  
+
   private enqueueOp(op: IAsyncOperation) {
     this._queue.push(op);
     if (!this._queueRunning) {

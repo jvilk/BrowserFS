@@ -274,8 +274,8 @@ class CachedDropboxClient {
   }
 }
 
-export class DropboxFile extends preload_file.PreloadFile implements file.File {
-  constructor(_fs: file_system.FileSystem, _path: string, _flag: file_flag.FileFlag, _stat: Stats, contents?: NodeBuffer) {
+export class DropboxFile extends preload_file.PreloadFile<DropboxFileSystem> implements file.File {
+  constructor(_fs: DropboxFileSystem, _path: string, _flag: file_flag.FileFlag, _stat: Stats, contents?: NodeBuffer) {
     super(_fs, _path, _flag, _stat, contents)
   }
 
@@ -283,7 +283,7 @@ export class DropboxFile extends preload_file.PreloadFile implements file.File {
     if (this.isDirty()) {
       var buffer = <buffer.Buffer> this.getBuffer(),
         arrayBuffer = buffer.toArrayBuffer();
-      (<DropboxFileSystem> this._fs)._writeFileStrict(this.getPath(), arrayBuffer, (e?: ApiError) => {
+      this._fs._writeFileStrict(this.getPath(), arrayBuffer, (e?: ApiError) => {
         if (!e) {
           this.resetDirty();
         }

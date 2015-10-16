@@ -5,10 +5,11 @@ import buffer = require('../core/buffer');
 import file_flag = require('../core/file_flag');
 import api_error = require('../core/api_error');
 import fs = require('../core/node_fs');
+import ApiError = api_error.ApiError;
+import ErrorCode = api_error.ErrorCode;
+import Buffer = buffer.Buffer;
+import Stats = node_fs_stats.Stats;
 
-var ApiError = api_error.ApiError;
-var ErrorCode = api_error.ErrorCode;
-var Buffer = buffer.Buffer;
 /**
  * An implementation of the File interface that operates on a file that is
  * completely in-memory. PreloadFiles are backed by a Buffer.
@@ -18,11 +19,11 @@ var Buffer = buffer.Buffer;
  * extend this class and implement those two methods.
  * @todo 'close' lever that disables functionality once closed.
  */
-export class PreloadFile extends file.BaseFile {
+export class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile {
   private _pos: number = 0;
   private _path: string;
-  protected _fs: file_system.FileSystem;
-  private _stat: node_fs_stats.Stats;
+  protected _fs: T;
+  private _stat: Stats;
   private _flag: file_flag.FileFlag;
   private _buffer: NodeBuffer;
   private _dirty: boolean = false;
@@ -40,7 +41,7 @@ export class PreloadFile extends file.BaseFile {
    *   contents of the file. PreloadFile will mutate this buffer. If not
    *   specified, we assume it is a new file.
    */
-  constructor(_fs: file_system.FileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: NodeBuffer) {
+  constructor(_fs: T, _path: string, _flag: file_flag.FileFlag, _stat: Stats, contents?: NodeBuffer) {
     super();
     this._fs = _fs;
     this._path = _path;
@@ -60,11 +61,11 @@ export class PreloadFile extends file.BaseFile {
       throw new Error("Invalid buffer: Buffer is " + this._buffer.length + " long, yet Stats object specifies that file is " + this._stat.size + " long.");
     }
   }
-  
+
   protected isDirty(): boolean {
     return this._dirty;
   }
-  
+
   /**
    * Resets the dirty bit. Should only be called after a sync has completed successfully.
    */
@@ -75,17 +76,17 @@ export class PreloadFile extends file.BaseFile {
   /**
    * NONSTANDARD: Get the underlying buffer for this file. !!DO NOT MUTATE!! Will mess up dirty tracking.
    */
-  public getBuffer(): Buffer {
+  public getBuffer(): NodeBuffer {
     return this._buffer;
   }
-  
+
   /**
    * NONSTANDARD: Get underlying stats for this file. !!DO NOT MUTATE!!
    */
-  public getStats(): node_fs_stats.Stats {
+  public getStats(): Stats {
     return this._stat;
   }
-  
+
   public getFlag(): file_flag.FileFlag {
     return this._flag;
   }
@@ -135,7 +136,7 @@ export class PreloadFile extends file.BaseFile {
    * class.
    * @param [Function(BrowserFS.ApiError)] cb
    */
-  public sync(cb: (e?: api_error.ApiError) => void): void {
+  public sync(cb: (e?: ApiError) => void): void {
     try {
       this.syncSync();
       cb();
@@ -156,7 +157,7 @@ export class PreloadFile extends file.BaseFile {
    * class.
    * @param [Function(BrowserFS.ApiError)] cb
    */
-  public close(cb: (e?: api_error.ApiError) => void): void {
+  public close(cb: (e?: ApiError) => void): void {
     try {
       this.closeSync();
       cb();
@@ -176,7 +177,7 @@ export class PreloadFile extends file.BaseFile {
    * Asynchronous `stat`.
    * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] cb
    */
-  public stat(cb: (e: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void {
+  public stat(cb: (e: ApiError, stat?: Stats) => void): void {
     try {
       cb(null, this._stat.clone());
     } catch (e) {
@@ -187,7 +188,7 @@ export class PreloadFile extends file.BaseFile {
   /**
    * Synchronous `stat`.
    */
-  public statSync(): node_fs_stats.Stats {
+  public statSync(): Stats {
     return this._stat.clone();
   }
 
@@ -196,7 +197,7 @@ export class PreloadFile extends file.BaseFile {
    * @param [Number] len
    * @param [Function(BrowserFS.ApiError)] cb
    */
-  public truncate(len: number, cb: (e?: api_error.ApiError) => void): void {
+  public truncate(len: number, cb: (e?: ApiError) => void): void {
     try {
       this.truncateSync(len);
       if (this._flag.isSynchronous() && !fs.getRootFS().supportsSynch()) {
@@ -252,7 +253,7 @@ export class PreloadFile extends file.BaseFile {
    * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
    *   cb The number specifies the number of bytes written into the file.
    */
-  public write(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (e: api_error.ApiError, len?: number, buff?: NodeBuffer) => void): void {
+  public write(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (e: ApiError, len?: number, buff?: NodeBuffer) => void): void {
     try {
       cb(null, this.writeSync(buffer, offset, length, position), buffer);
     } catch (e) {
@@ -314,7 +315,7 @@ export class PreloadFile extends file.BaseFile {
    * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)] cb The
    *   number is the number of bytes read
    */
-  public read(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (e: api_error.ApiError, len?: number, buff?: NodeBuffer) => void): void {
+  public read(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (e: ApiError, len?: number, buff?: NodeBuffer) => void): void {
     try {
       cb(null, this.readSync(buffer, offset, length, position), buffer);
     } catch (e) {
@@ -356,7 +357,7 @@ export class PreloadFile extends file.BaseFile {
    * @param [Number|String] mode
    * @param [Function(BrowserFS.ApiError)] cb
    */
-  public chmod(mode: number, cb: (e?: api_error.ApiError) => void): void {
+  public chmod(mode: number, cb: (e?: ApiError) => void): void {
     try {
       this.chmodSync(mode);
       cb();
@@ -383,15 +384,15 @@ export class PreloadFile extends file.BaseFile {
  * File class for the InMemory and XHR file systems.
  * Doesn't sync to anything, so it works nicely for memory-only files.
  */
-export class NoSyncFile extends PreloadFile implements file.File {
-  constructor(_fs: file_system.FileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: NodeBuffer) {
+export class NoSyncFile<T extends file_system.FileSystem> extends PreloadFile<T> implements file.File {
+  constructor(_fs: T, _path: string, _flag: file_flag.FileFlag, _stat: Stats, contents?: NodeBuffer) {
     super(_fs, _path, _flag, _stat, contents);
   }
   /**
    * Asynchronous sync. Doesn't do anything, simply calls the cb.
    * @param [Function(BrowserFS.ApiError)] cb
    */
-  public sync(cb: (e?: api_error.ApiError) => void): void {
+  public sync(cb: (e?: ApiError) => void): void {
     cb();
   }
   /**
@@ -402,7 +403,7 @@ export class NoSyncFile extends PreloadFile implements file.File {
    * Asynchronous close. Doesn't do anything, simply calls the cb.
    * @param [Function(BrowserFS.ApiError)] cb
    */
-  public close(cb: (e?: api_error.ApiError) => void): void {
+  public close(cb: (e?: ApiError) => void): void {
     cb();
   }
   /**

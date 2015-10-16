@@ -24,18 +24,18 @@ function makeModeWritable(mode: number): number {
 /**
  * Overlays a RO file to make it writable.
  */
-class OverlayFile extends preload_file.PreloadFile implements file.File {
+class OverlayFile extends preload_file.PreloadFile<OverlayFS> implements file.File {
   constructor(fs: OverlayFS, path: string, flag: file_flag.FileFlag, stats: node_fs_stats.Stats, data: Buffer) {
     super(fs, path, flag, stats, data);
   }
 
   public syncSync(): void {
     if (this.isDirty()) {
-      (<OverlayFS> this._fs)._syncSync(this);
+      this._fs._syncSync(this);
       this.resetDirty();
     }
   }
-  
+
   public closeSync(): void {
     this.syncSync();
   }
@@ -45,7 +45,7 @@ class OverlayFile extends preload_file.PreloadFile implements file.File {
  * OverlayFS makes a read-only filesystem writable by storing writes on a second,
  * writable file system. Deletes are persisted via metadata stored on the writable
  * file system.
- * 
+ *
  * Currently only works for two synchronous file systems.
  */
 class OverlayFS extends file_system.SynchronousFileSystem implements file_system.FileSystem {
@@ -54,26 +54,26 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
   private _isInitialized: boolean = false;
   private _deletedFiles: {[path: string]: boolean} = {};
   private _deleteLog: file.File = null;
-  
+
   constructor(writable: file_system.FileSystem, readable: file_system.FileSystem) {
     super();
     this._writable = writable;
     this._readable = readable;
     if (this._writable.isReadOnly()) {
       throw new ApiError(ErrorCode.EINVAL, "Writable file system must be writable.");
-    }    
+    }
     if (!this._writable.supportsSynch() || !this._readable.supportsSynch()) {
       throw new ApiError(ErrorCode.EINVAL, "OverlayFS currently only operates on synchronous file systems.");
     }
   }
-  
+
   public getOverlayedFileSystems(): { readable: file_system.FileSystem; writable: file_system.FileSystem; } {
     return {
       readable: this._readable,
       writable: this._writable
     };
   }
-  
+
   /**
    * With the given path, create the needed parent directories on the writable storage
    * should they not exist. Use modes from the read-only storage.
@@ -85,27 +85,27 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
       parent = path.dirname(parent);
     }
     toCreate = toCreate.reverse();
-    
+
     toCreate.forEach((p: string) => {
       this._writable.mkdirSync(p, this.statSync(p, false).mode);
     });
   }
-  
+
   public static isAvailable(): boolean {
     return true;
   }
-  
-  public _syncSync(file: preload_file.PreloadFile): void {
+
+  public _syncSync(file: preload_file.PreloadFile<any>): void {
     this.createParentDirectories(file.getPath());
     this._writable.writeFileSync(file.getPath(), file.getBuffer(), null, file_flag.FileFlag.getFileFlag('w'), file.getStats().mode);
   }
-  
+
   public getName() {
     return "OverlayFS";
   }
-  
+
   /**
-   * Called once to load up metadata stored on the writable file system. 
+   * Called once to load up metadata stored on the writable file system.
    */
   public initialize(cb: (err?: ApiError) => void): void {
     if (!this._isInitialized) {
@@ -152,7 +152,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
     this._deleteLog.writeSync(buff, 0, buff.length, null);
     this._deleteLog.syncSync();
   }
-  
+
   private undeletePath(p: string): void {
     if (this._deletedFiles[p]) {
       this._deletedFiles[p] = false;
@@ -170,7 +170,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
       if (oldPath === newPath) {
         return;
       }
-      
+
       var mode = 0x1ff;
       if (this.existsSync(newPath)) {
         var stats = this.statSync(newPath, false),
@@ -180,10 +180,10 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
             throw new ApiError(ErrorCode.ENOTEMPTY, `Path ${newPath} not empty.`);
           }
         } else {
-          throw new ApiError(ErrorCode.ENOTDIR, `Path ${newPath} is a file.`); 
+          throw new ApiError(ErrorCode.ENOTDIR, `Path ${newPath} is a file.`);
         }
       }
-      
+
       // Take care of writable first. Move any files there, or create an empty directory
       // if it doesn't exist.
       if (this._writable.existsSync(oldPath)) {
@@ -191,7 +191,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
       } else if (!this._writable.existsSync(newPath)) {
         this._writable.mkdirSync(newPath, mode);
       }
-      
+
       // Need to move *every file/folder* currently stored on readable to its new location
       // on writable.
       if (this._readable.existsSync(oldPath)) {
@@ -204,12 +204,12 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
       if (this.existsSync(newPath) && this.statSync(newPath, false).isDirectory()) {
         throw new ApiError(ErrorCode.EISDIR, `Path ${newPath} is a directory.`);
       }
-      
+
       this.writeFileSync(newPath,
         this.readFileSync(oldPath, null, file_flag.FileFlag.getFileFlag('r')), null,
         file_flag.FileFlag.getFileFlag('w'), oldStats.mode);
     }
-    
+
     if (oldPath !== newPath && this.existsSync(oldPath)) {
       this.unlinkSync(oldPath);
     }
@@ -261,7 +261,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
       if (this._writable.existsSync(p)) {
         this._writable.unlinkSync(p);
       }
-      
+
       // Does it still exist?
       if (this.existsSync(p)) {
         // Add to delete log.
@@ -303,7 +303,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
     if (!dirStats.isDirectory()) {
       throw new ApiError(ErrorCode.ENOTDIR, `Path ${p} is not a directory.`);
     }
-    
+
     // Readdir in both, merge, check delete log on each file, return.
     var contents: string[] = [];
     try {
@@ -339,7 +339,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
       this._writable.utimesSync(p, atime, mtime);
     });
   }
-  
+
   /**
    * Helper function:
    * - Ensures p is on writable before proceeding. Throws an error if it doesn't exist.
@@ -357,7 +357,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
       throw new ApiError(ErrorCode.ENOENT, `Path ${p} does not exist.`);
     }
   }
-  
+
   /**
    * Copy from readable to writable storage.
    * PRECONDITION: File does not exist on writable storage.

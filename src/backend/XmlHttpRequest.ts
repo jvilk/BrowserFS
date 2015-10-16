@@ -293,7 +293,7 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
           return oldCb(err, arg);
         });
       };
-      var fdCast = <preload_file.NoSyncFile> fd;
+      var fdCast = <preload_file.NoSyncFile<XmlHttpRequest>> fd;
       var fdBuff = <buffer.Buffer> fdCast.getBuffer();
       if (encoding === null) {
         if (fdBuff.length > 0) {
@@ -317,7 +317,7 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
     // Get file.
     var fd = this.openSync(fname, flag, 0x1a4);
     try {
-      var fdCast = <preload_file.NoSyncFile> fd;
+      var fdCast = <preload_file.NoSyncFile<XmlHttpRequest>> fd;
       var fdBuff = <buffer.Buffer> fdCast.getBuffer();
       if (encoding === null) {
         if (fdBuff.length > 0) {
