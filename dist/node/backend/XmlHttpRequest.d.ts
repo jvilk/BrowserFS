@@ -1,0 +1,36 @@
+import file_system = require('../core/file_system');
+import api_error = require('../core/api_error');
+import file_flag = require('../core/file_flag');
+import file = require('../core/file');
+import node_fs_stats = require('../core/node_fs_stats');
+export declare class XmlHttpRequest extends file_system.BaseFileSystem implements file_system.FileSystem {
+    private _index;
+    prefix_url: string;
+    constructor(listing_url: string, prefix_url?: string);
+    empty(): void;
+    private getXhrPath(filePath);
+    _requestFileSizeAsync(path: string, cb: (err: api_error.ApiError, size?: number) => void): void;
+    _requestFileSizeSync(path: string): number;
+    private _requestFileAsync(p, type, cb);
+    private _requestFileAsync(p, type, cb);
+    private _requestFileAsync(p, type, cb);
+    private _requestFileSync(p, type);
+    private _requestFileSync(p, type);
+    private _requestFileSync(p, type);
+    getName(): string;
+    static isAvailable(): boolean;
+    diskSpace(path: string, cb: (total: number, free: number) => void): void;
+    isReadOnly(): boolean;
+    supportsLinks(): boolean;
+    supportsProps(): boolean;
+    supportsSynch(): boolean;
+    preloadFile(path: string, buffer: NodeBuffer): void;
+    stat(path: string, isLstat: boolean, cb: (e: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void;
+    statSync(path: string, isLstat: boolean): node_fs_stats.Stats;
+    open(path: string, flags: file_flag.FileFlag, mode: number, cb: (e: api_error.ApiError, file?: file.File) => void): void;
+    openSync(path: string, flags: file_flag.FileFlag, mode: number): file.File;
+    readdir(path: string, cb: (e: api_error.ApiError, listing?: string[]) => void): void;
+    readdirSync(path: string): string[];
+    readFile(fname: string, encoding: string, flag: file_flag.FileFlag, cb: (err: api_error.ApiError, data?: any) => void): void;
+    readFileSync(fname: string, encoding: string, flag: file_flag.FileFlag): any;
+}
