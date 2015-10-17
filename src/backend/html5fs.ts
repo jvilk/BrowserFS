@@ -79,13 +79,13 @@ export class HTML5FSFile extends preload_file.PreloadFile<HTML5FS> implements fi
             cb();
           };
           writer.onerror = (err: DOMError) => {
-            cb(_fs.convert(err));
+            cb(_fs.convert(err, this.getPath(), false));
           };
           writer.write(blob);
         });
       };
       var error = (err: DOMError) => {
-        cb(_fs.convert(err));
+        cb(_fs.convert(err, this.getPath(), false));
       };
       _fs.fs.root.getFile(this.getPath(), opts, success, error);
     } else {
@@ -108,13 +108,11 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
    *   - type: PERSISTENT or TEMPORARY
    *   - size: storage quota to request, in megabytes. Allocated value may be less.
    */
-  constructor(size: number, type?: number) {
+  constructor(size: number = 5, type: number = global.PERSISTENT) {
     super();
-    this.size = size != null ? size : 5;
-    this.type = type != null ? type : global.PERSISTENT;
-    var kb = 1024;
-    var mb = kb * kb;
-    this.size *= mb;
+    // Convert MB to bytes.
+    this.size = 1024 * 1024 * size;
+    this.type = type;
   }
 
   public getName(): string {
@@ -145,33 +143,44 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
    * Converts the given DOMError into an appropriate ApiError.
    * Full list of values here:
    * https://developer.mozilla.org/en-US/docs/Web/API/DOMError
-   * I've only implemented the most obvious ones, but more can be added to
-   * make errors more descriptive in the future.
    */
-  public convert(err: DOMError, message: string = ""): ApiError {
+  public convert(err: DOMError, p: string, expectedDir: boolean): ApiError {
     switch (err.name) {
+      /* The user agent failed to create a file or directory due to the existence of a file or
+         directory with the same path.  */
+      case "PathExistsError":
+        return ApiError.EEXIST(p);
+      /* The operation failed because it would cause the application to exceed its storage quota.  */
       case 'QuotaExceededError':
-        return new ApiError(ErrorCode.ENOSPC, message);
+        return ApiError.FileError(ErrorCode.ENOSPC, p);
+      /*  A required file or directory could not be found at the time an operation was processed.   */
       case 'NotFoundError':
-        return new ApiError(ErrorCode.ENOENT, message);
+        return ApiError.ENOENT(p);
+      /* This is a security error code to be used in situations not covered by any other error codes.
+         - A required file was unsafe for access within a Web application
+         - Too many calls are being made on filesystem resources */
       case 'SecurityError':
-        return new ApiError(ErrorCode.EACCES, message);
+        return ApiError.FileError(ErrorCode.EACCES, p);
+      /* The modification requested was illegal. Examples of invalid modifications include moving a
+         directory into its own child, moving a file into its parent directory without changing its name,
+         or copying a directory to a path occupied by a file.  */
       case 'InvalidModificationError':
-        return new ApiError(ErrorCode.EPERM, message);
-      case 'SyntaxError':
+        return ApiError.FileError(ErrorCode.EPERM, p);
+      /* The user has attempted to look up a file or directory, but the Entry found is of the wrong type
+         [e.g. is a DirectoryEntry when the user requested a FileEntry].  */
       case 'TypeMismatchError':
-        return new ApiError(ErrorCode.EINVAL, message);
+        return ApiError.FileError(expectedDir ? ErrorCode.ENOTDIR : ErrorCode.EISDIR, p);
+      /* A path or URL supplied to the API was malformed.  */
+      case "EncodingError":
+      /* An operation depended on state cached in an interface object, but that state that has changed
+         since it was read from disk.  */
+      case "InvalidStateError":
+      /* The user attempted to write to a file or directory which could not be modified due to the state
+         of the underlying filesystem.  */
+      case "NoModificationAllowedError":
       default:
-        return new ApiError(ErrorCode.EINVAL, message);
+        return ApiError.FileError(ErrorCode.EINVAL, p);
     }
-  }
-
-  /**
-   * Converts the given ErrorEvent (from a FileReader) into an appropriate
-   * APIError.
-   */
-  public convertErrorEvent(err: ErrorEvent, message: string = ""): ApiError {
-    return new ApiError(ErrorCode.ENOENT, err.message + "; " + message);
   }
 
   /**
@@ -184,7 +193,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
       cb()
     };
     var error = (err: DOMException): void => {
-      cb(this.convert(err));
+      cb(this.convert(err, "/", true));
     };
     if (this.type === global.PERSISTENT) {
       _requestQuota(this.type, this.size, (granted: number) => {
@@ -223,7 +232,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
             cb();
           };
           var error = (err: DOMException) => {
-            cb(this.convert(err, entry.fullPath));
+            cb(this.convert(err, entry.fullPath, !entry.isDirectory));
           };
           if (entry.isFile) {
             entry.remove(succ, error);
@@ -242,15 +251,15 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
     var semaphore: number = 2,
       successCount: number = 0,
       root: DirectoryEntry = this.fs.root,
+      currentPath: string = oldPath,
       error = (err: DOMException): void => {
-        if (--semaphore === 0) {
-          cb(this.convert(err, "Failed to rename " + oldPath + " to " + newPath + "."));
+        if (--semaphore <= 0) {
+            cb(this.convert(err, currentPath, false));
         }
       },
       success = (file: Entry): void => {
         if (++successCount === 2) {
-          console.error("Something was identified as both a file and a directory. This should never happen.");
-          return;
+          return cb(new ApiError(ErrorCode.EINVAL, "Something was identified as both a file and a directory. This should never happen."));
         }
 
         // SPECIAL CASE: If newPath === oldPath, and the path exists, then
@@ -260,18 +269,21 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
         }
 
         // Get the new parent directory.
-        root.getDirectory(path.dirname(newPath), {}, (parentDir: DirectoryEntry): void => {
-          file.moveTo(parentDir, path.basename(newPath), (entry: Entry): void => { cb(); }, (err: DOMException): void => {
+        currentPath = path.dirname(newPath);
+        root.getDirectory(currentPath, {}, (parentDir: DirectoryEntry): void => {
+          currentPath = path.basename(newPath);
+          file.moveTo(parentDir, currentPath, (entry: Entry): void => { cb(); }, (err: DOMException): void => {
             // SPECIAL CASE: If oldPath is a directory, and newPath is a
             // file, rename should delete the file and perform the move.
             if (file.isDirectory) {
+              currentPath = newPath;
               // Unlink only works on files. Try to delete newPath.
               this.unlink(newPath, (e?): void => {
                 if (e) {
                   // newPath is probably a directory.
                   error(err);
                 } else {
-                  // Recurse, now that newPath doesn't exist.
+                  // Recur, now that newPath doesn't exist.
                   this.rename(oldPath, newPath, cb);
                 }
               });
@@ -312,7 +324,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
     };
     // Called when the path couldn't be opened as a directory or a file.
     var failedToLoad = (err: DOMException): void => {
-      cb(this.convert(err, path));
+      cb(this.convert(err, path, false /* Unknown / irrelevant */));
     };
     // Called when the path couldn't be opened as a file, but might still be a
     // directory.
@@ -325,30 +337,28 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
     this.fs.root.getFile(path, opts, loadAsFile, failedToLoadAsFile);
   }
 
-  public open(path: string, flags: file_flag.FileFlag, mode: number, cb: (err: ApiError, fd?: file.File) => any): void {
-    var opts = {
+  public open(p: string, flags: file_flag.FileFlag, mode: number, cb: (err: ApiError, fd?: file.File) => any): void {
+    var error = (err: DOMError): void => {
+      cb(this.convert(err, p, false));
+    };
+    
+    this.fs.root.getFile(p, {
       create: flags.pathNotExistsAction() === ActionType.CREATE_FILE,
       exclusive: flags.isExclusive()
-    };
-    var error = (err: any): void => {
-      cb(this.convertErrorEvent(err, path));
-    };
-    var error2 = (err: DOMError): void => {
-      cb(this.convert(err, path));
-    };
-    var success = (entry: FileEntry): void => {
-      var success2 = (file: File): void => {
+    }, (entry: FileEntry): void => {
+      // Try to fetch corresponding file. 
+      entry.file((file: File): void => {
         var reader = new FileReader();
         reader.onloadend = (event: Event): void => {
-          var bfs_file = this._makeFile(path, flags, file, <ArrayBuffer> reader.result);
+          var bfs_file = this._makeFile(p, flags, file, <ArrayBuffer> reader.result);
           cb(null, bfs_file);
         };
-        reader.onerror = error;
+        reader.onerror = (ev: Event) => {
+          error(reader.error);
+        };
         reader.readAsArrayBuffer(file);
-      };
-      entry.file(success2, error2);
-    };
-    this.fs.root.getFile(path, opts, success, error);
+      }, error);
+    }, error);
   }
 
   /**
@@ -380,12 +390,12 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
         cb();
       };
       var err = (err: DOMException) => {
-        cb(this.convert(err, path));
+        cb(this.convert(err, path, !isFile));
       };
       entry.remove(succ, err);
     };
     var error = (err: DOMException): void => {
-      cb(this.convert(err, path));
+      cb(this.convert(err, path, !isFile));
     };
     // Deleting the entry, so don't create it
     var opts = {
@@ -418,7 +428,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
       cb();
     };
     var error = (err: DOMException): void => {
-      cb(this.convert(err, path));
+      cb(this.convert(err, path, true));
     };
     this.fs.root.getDirectory(path, opts, success, error);
   }
@@ -427,13 +437,14 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
    * Returns an array of `FileEntry`s. Used internally by empty and readdir.
    */
   private _readdir(path: string, cb: (e: ApiError, entries?: Entry[]) => void): void {
+    var error = (err: DOMException): void => {
+      cb(this.convert(err, path, true));
+    };
     // Grab the requested directory.
     this.fs.root.getDirectory(path, { create: false }, (dirEntry: DirectoryEntry) => {
       var reader = dirEntry.createReader();
       var entries: Entry[] = [];
-      var error = (err: DOMException): void => {
-        cb(this.convert(err, path));
-      };
+      
       // Call the reader.readEntries() until no more results are returned.
       var readEntries = () => {
         reader.readEntries(((results) => {
@@ -446,7 +457,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
         }), error);
       };
       readEntries();
-    });
+    }, error);
   }
 
   /**
@@ -454,7 +465,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
    */
   public readdir(path: string, cb: (err: ApiError, files?: string[]) => void): void {
     this._readdir(path, (e: ApiError, entries?: Entry[]): void => {
-      if (e != null) {
+      if (e) {
         return cb(e);
       }
       var rv: string[] = [];

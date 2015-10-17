@@ -72,7 +72,15 @@ var karmaConfig = {
     // Dropbox tests are slow.
     browserNoActivityTimeout: 30000,
     browserDisconnectTimeout: 10000,
-    browserDisconnectTolerance: 3
+    browserDisconnectTolerance: 3,
+    client: {
+      mocha: {
+        // Stop tests after first failure.
+        // Our tests have some global state (e.g. # of pending callbacks). Once those get messed up by a failing test,
+        // subsequent tests are likely to fail.
+        bail: true
+      } 
+    }
   };
 
 // Filter out test/ files.
