@@ -4,9 +4,9 @@ import kvfs = require('../generic/key_value_filesystem');
 import api_error = require('../core/api_error');
 import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
 import global = require('../core/global');
-var Buffer = buffer.Buffer,
-  ApiError = api_error.ApiError,
-  ErrorCode = api_error.ErrorCode,
+import Buffer = buffer.Buffer;
+import ApiError = api_error.ApiError;
+import ErrorCode = api_error.ErrorCode;
   /**
    * Get the indexedDB constructor for the current browser.
    */
@@ -19,7 +19,7 @@ var Buffer = buffer.Buffer,
  * Converts a DOMException or a DOMError from an IndexedDB event into a
  * standardized BrowserFS API error.
  */
-function convertError(e: {name: string}, message: string = e.toString()): api_error.ApiError {
+function convertError(e: {name: string}, message: string = e.toString()): ApiError {
   switch(e.name) {
     case "NotFoundError":
       return new ApiError(ErrorCode.ENOENT, message);
@@ -36,7 +36,7 @@ function convertError(e: {name: string}, message: string = e.toString()): api_er
  * handle them generically: Call the user-supplied callback with a translated
  * version of the error, and let the error bubble up.
  */
-function onErrorHandler(cb: (e: api_error.ApiError) => void,
+function onErrorHandler(cb: (e: ApiError) => void,
   code: api_error.ErrorCode = ErrorCode.EIO, message: string = null): (e?: any) => void {
   return function (e?: any): void {
     // Prevent the error from canceling the transaction.
@@ -65,7 +65,7 @@ function buffer2arraybuffer(buffer: NodeBuffer): ArrayBuffer {
 export class IndexedDBROTransaction implements kvfs.AsyncKeyValueROTransaction {
   constructor(public tx: IDBTransaction, public store: IDBObjectStore) { }
 
-  get(key: string, cb: (e: api_error.ApiError, data?: NodeBuffer) => void): void {
+  get(key: string, cb: (e: ApiError, data?: NodeBuffer) => void): void {
     try {
       var r: IDBRequest = this.store.get(key);
       r.onerror = onErrorHandler(cb);
@@ -91,7 +91,7 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements kv
     super(tx, store);
   }
 
-  public put(key: string, data: NodeBuffer, overwrite: boolean, cb: (e: api_error.ApiError, committed?: boolean) => void): void {
+  public put(key: string, data: NodeBuffer, overwrite: boolean, cb: (e: ApiError, committed?: boolean) => void): void {
     try {
       var arraybuffer = buffer2arraybuffer(data),
         r: IDBRequest;
@@ -111,7 +111,7 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements kv
     }
   }
 
-  public del(key: string, cb: (e?: api_error.ApiError) => void): void {
+  public del(key: string, cb: (e?: ApiError) => void): void {
     try {
       // NOTE: IE8 has a bug with identifiers named 'delete' unless used as a string
       // like this.
@@ -126,13 +126,13 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements kv
     }
   }
 
-  public commit(cb: (e?: api_error.ApiError) => void): void {
+  public commit(cb: (e?: ApiError) => void): void {
     // Return to the event loop to commit the transaction.
     setTimeout(cb, 0);
   }
 
-  public abort(cb: (e?: api_error.ApiError) => void): void {
-    var _e: api_error.ApiError;
+  public abort(cb: (e?: ApiError) => void): void {
+    var _e: ApiError;
     try {
       this.tx.abort();
     } catch (e) {
@@ -154,7 +154,7 @@ export class IndexedDBStore implements kvfs.AsyncKeyValueStore {
    *   multiple IndexedDB file systems operating at once, but each must have
    *   a different name.
    */
-  constructor(cb: (e: api_error.ApiError, store?: IndexedDBStore) => void, private storeName: string = 'browserfs') {
+  constructor(cb: (e: ApiError, store?: IndexedDBStore) => void, private storeName: string = 'browserfs') {
     var openReq: IDBOpenDBRequest = indexedDB.open(this.storeName, 1);
 
     openReq.onupgradeneeded = (event) => {
@@ -179,7 +179,7 @@ export class IndexedDBStore implements kvfs.AsyncKeyValueStore {
     return "IndexedDB - " + this.storeName;
   }
 
-  public clear(cb: (e?: api_error.ApiError) => void): void {
+  public clear(cb: (e?: ApiError) => void): void {
     try {
       var tx = this.db.transaction(this.storeName, 'readwrite'),
         objectStore = tx.objectStore(this.storeName),
@@ -211,7 +211,7 @@ export class IndexedDBStore implements kvfs.AsyncKeyValueStore {
  * A file system that uses the IndexedDB key value file system.
  */
 export class IndexedDBFileSystem extends kvfs.AsyncKeyValueFileSystem {
-  constructor(cb: (e: api_error.ApiError, fs?: IndexedDBFileSystem) => void, storeName?: string) {
+  constructor(cb: (e: ApiError, fs?: IndexedDBFileSystem) => void, storeName?: string) {
     super();
     new IndexedDBStore((e, store?): void => {
       if (e) {
