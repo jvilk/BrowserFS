@@ -1,0 +1,44 @@
+import file_system = require('../core/file_system');
+import api_error = require('../core/api_error');
+import file_flag = require('../core/file_flag');
+import file = require('../core/file');
+import node_fs_stats = require('../core/node_fs_stats');
+import preload_file = require('../generic/preload_file');
+import ApiError = api_error.ApiError;
+declare class OverlayFS extends file_system.SynchronousFileSystem implements file_system.FileSystem {
+    private _writable;
+    private _readable;
+    private _isInitialized;
+    private _deletedFiles;
+    private _deleteLog;
+    constructor(writable: file_system.FileSystem, readable: file_system.FileSystem);
+    getOverlayedFileSystems(): {
+        readable: file_system.FileSystem;
+        writable: file_system.FileSystem;
+    };
+    private createParentDirectories(p);
+    static isAvailable(): boolean;
+    _syncSync(file: preload_file.PreloadFile<any>): void;
+    getName(): string;
+    initialize(cb: (err?: ApiError) => void): void;
+    isReadOnly(): boolean;
+    supportsSynch(): boolean;
+    supportsLinks(): boolean;
+    supportsProps(): boolean;
+    private deletePath(p);
+    private undeletePath(p);
+    renameSync(oldPath: string, newPath: string): void;
+    statSync(p: string, isLstat: boolean): node_fs_stats.Stats;
+    openSync(p: string, flag: file_flag.FileFlag, mode: number): file.File;
+    unlinkSync(p: string): void;
+    rmdirSync(p: string): void;
+    mkdirSync(p: string, mode: number): void;
+    readdirSync(p: string): string[];
+    existsSync(p: string): boolean;
+    chmodSync(p: string, isLchmod: boolean, mode: number): void;
+    chownSync(p: string, isLchown: boolean, uid: number, gid: number): void;
+    utimesSync(p: string, atime: Date, mtime: Date): void;
+    private operateOnWritable(p, f);
+    private copyToWritable(p);
+}
+export = OverlayFS;

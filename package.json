@@ -1,6 +1,6 @@
 {
   "name": "browserfs",
-  "version": "0.4.2",
+  "version": "0.4.4",
   "description": "A filesystem in your browser!",
   "main": "dist/browserfs.js",
   "typings": "dist/node/main",
@@ -64,7 +64,8 @@
     "underscore": "^1.8.3"
   },
   "scripts": {
-    "test": "./node_modules/.bin/grunt test"
+    "test": "./node_modules/.bin/grunt test",
+    "prepublish": "./node_modules/.bin/grunt dist"
   },
   "aliasify": {
     "aliases": {

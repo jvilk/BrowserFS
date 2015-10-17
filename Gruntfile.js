@@ -437,6 +437,10 @@ module.exports = function(grunt) {
     removeDir('./test/fixtures/zipfs');
   });
 
+  grunt.registerTask('clean_dist', 'Cleans old distributables.', function() {
+    removeDir('./dist');
+  });
+
   grunt.registerTask('main.ts', 'Construct main.ts to include all backends and polyfills', function() {
     var modules = getEssentialModules(),
       bfsModule = modules.shift(),
@@ -525,5 +529,5 @@ module.exports = function(grunt) {
   // release build (default)
   grunt.registerTask('default', ['dev', 'uglify']);
   // dist
-  grunt.registerTask('dist', ['clean', 'dev', 'copy:dist']);
+  grunt.registerTask('dist', ['clean', 'clean_dist', 'default', 'copy:dist']);
 };
