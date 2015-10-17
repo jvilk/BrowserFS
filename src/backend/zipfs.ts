@@ -233,7 +233,7 @@ export class FileData {
     switch (compressionMethod) {
       case CompressionMethod.DEFLATE:
         // Convert to Uint8Array or an array of bytes for the library.
-        if (typeof(ArrayBuffer) !== undefined) {
+        if (typeof(ArrayBuffer) !== 'undefined') {
           // No copying! :D
           var data = inflateRaw(
             (<Buffer> this.data.slice(0, this.record.compressedSize())).toUint8Array(),
