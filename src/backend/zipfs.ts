@@ -513,7 +513,7 @@ export class ZipFS extends file_system.SynchronousFileSystem implements file_sys
   public statSync(path: string, isLstat: boolean): node_fs_stats.Stats {
     var inode = this._index.getInode(path);
     if (inode === null) {
-      throw new ApiError(ErrorCode.ENOENT, "" + path + " not found.");
+      throw ApiError.ENOENT(path);
     }
     var stats: node_fs_stats.Stats;
     if (isFileInode<CentralDirectory>(inode)) {

@@ -7,7 +7,6 @@ import {ApiError, ErrorCode} from '../core/api_error';
 import file = require('../core/file');
 import path = require('../core/node_path');
 import browserfs = require('../core/browserfs');
-import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
 import async = require('async');
 
 

@@ -174,10 +174,10 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
           mode = stats.mode;
         if (stats.isDirectory()) {
           if (this.readdirSync(newPath).length > 0) {
-            throw new ApiError(ErrorCode.ENOTEMPTY, `Path ${newPath} not empty.`);
+            throw ApiError.ENOTEMPTY(newPath);
           }
         } else {
-          throw new ApiError(ErrorCode.ENOTDIR, `Path ${newPath} is a file.`);
+          throw ApiError.ENOTDIR(newPath);
         }
       }
 
@@ -199,7 +199,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
       }
     } else {
       if (this.existsSync(newPath) && this.statSync(newPath, false).isDirectory()) {
-        throw new ApiError(ErrorCode.EISDIR, `Path ${newPath} is a directory.`);
+        throw ApiError.EISDIR(newPath);
       }
 
       this.writeFileSync(newPath,
@@ -216,7 +216,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
       return this._writable.statSync(p, isLstat);
     } catch (e) {
       if (this._deletedFiles[p]) {
-        throw new ApiError(ErrorCode.ENOENT, `Path ${p} does not exist.`);
+        throw ApiError.ENOENT(p);
       }
       var oldStat = this._readable.statSync(p, isLstat).clone();
       // Make the oldStat's mode writable. Preserve the topmost part of the
@@ -241,7 +241,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
             return new OverlayFile(this, p, flag, stats, this._readable.readFileSync(p, null, FileFlag.getFileFlag('r')));
           }
         default:
-          throw new ApiError(ErrorCode.EEXIST, `Path ${p} exists.`);
+          throw ApiError.EEXIST(p);
       }
     } else {
       switch(flag.pathNotExistsAction()) {
@@ -249,7 +249,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
           this.createParentDirectories(p);
           return this._writable.openSync(p, flag, mode);
         default:
-          throw new ApiError(ErrorCode.ENOENT, `Path ${p} does not exist.`);
+          throw ApiError.ENOENT(p);
       }
     }
   }
@@ -265,7 +265,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
         this.deletePath(p);
       }
     } else {
-      throw new ApiError(ErrorCode.ENOENT, `Path ${p} does not exist.`);
+      throw ApiError.ENOENT(p);
     }
   }
   public rmdirSync(p: string): void {
@@ -276,18 +276,18 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
       if (this.existsSync(p)) {
         // Check if directory is empty.
         if (this.readdirSync(p).length > 0) {
-          throw new ApiError(ErrorCode.ENOTEMPTY, `Directory ${p} is not empty.`);
+          throw ApiError.ENOTEMPTY(p);
         } else {
           this.deletePath(p);
         }
       }
     } else {
-      throw new ApiError(ErrorCode.ENOENT, `Path ${p} does not exist.`);
+      throw ApiError.ENOENT(p);
     }
   }
   public mkdirSync(p: string, mode: number): void {
     if (this.existsSync(p)) {
-      throw new ApiError(ErrorCode.EEXIST, `Path ${p} already exists.`);
+      throw ApiError.EEXIST(p);
     } else {
       // The below will throw should any of the parent directories fail to exist
       // on _writable.
@@ -298,7 +298,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
   public readdirSync(p: string): string[] {
     var dirStats = this.statSync(p, false);
     if (!dirStats.isDirectory()) {
-      throw new ApiError(ErrorCode.ENOTDIR, `Path ${p} is not a directory.`);
+      throw ApiError.ENOTDIR(p);
     }
 
     // Readdir in both, merge, check delete log on each file, return.
@@ -351,7 +351,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
       }
       f();
     } else {
-      throw new ApiError(ErrorCode.ENOENT, `Path ${p} does not exist.`);
+      throw ApiError.ENOENT(p);
     }
   }
 

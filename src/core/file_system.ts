@@ -521,24 +521,24 @@ export class BaseFileSystem {
               if (e) {
                 cb(e);
               } else if (!parentStats.isDirectory()) {
-                cb(new ApiError(ErrorCode.ENOTDIR, path.dirname(p) + " is not a directory."));
+                cb(ApiError.ENOTDIR(path.dirname(p)));
               } else {
                 this.createFile(p, flag, mode, cb);
               }
             });
           case ActionType.THROW_EXCEPTION:
-            return cb(new ApiError(ErrorCode.ENOENT, "" + p + " doesn't exist."));
+            return cb(ApiError.ENOENT(p));
           default:
             return cb(new ApiError(ErrorCode.EINVAL, 'Invalid FileFlag object.'));
         }
       } else {
         // File exists.
         if (stats.isDirectory()) {
-          return cb(new ApiError(ErrorCode.EISDIR, p + " is a directory."));
+          return cb(ApiError.EISDIR(p));
         }
         switch (flag.pathExistsAction()) {
           case ActionType.THROW_EXCEPTION:
-            return cb(new ApiError(ErrorCode.EEXIST, p + " already exists."));
+            return cb(ApiError.EEXIST(p));
           case ActionType.TRUNCATE_FILE:
             // NOTE: In a previous implementation, we deleted the file and
             // re-created it. However, this created a race condition if another
@@ -604,11 +604,11 @@ export class BaseFileSystem {
           // Ensure parent exists.
           var parentStats = this.statSync(path.dirname(p), false);
           if (!parentStats.isDirectory()) {
-            throw new ApiError(ErrorCode.ENOTDIR, path.dirname(p) + " is not a directory.");
+            throw ApiError.ENOTDIR(path.dirname(p));
           }
           return this.createFileSync(p, flag, mode);
         case ActionType.THROW_EXCEPTION:
-          throw new ApiError(ErrorCode.ENOENT, "" + p + " doesn't exist.");
+          throw ApiError.ENOENT(p);
         default:
           throw new ApiError(ErrorCode.EINVAL, 'Invalid FileFlag object.');
       }
@@ -616,11 +616,11 @@ export class BaseFileSystem {
 
     // File exists.
     if (stats.isDirectory()) {
-      throw new ApiError(ErrorCode.EISDIR, p + " is a directory.");
+      throw ApiError.EISDIR(p);
     }
     switch (flag.pathExistsAction()) {
       case ActionType.THROW_EXCEPTION:
-        throw new ApiError(ErrorCode.EEXIST, p + " already exists.");
+        throw ApiError.EEXIST(p);
       case ActionType.TRUNCATE_FILE:
         // Delete file.
         this.unlinkSync(p);
@@ -688,7 +688,7 @@ export class BaseFileSystem {
         if (doesExist) {
           cb(null, p);
         } else {
-          cb(new ApiError(ErrorCode.ENOENT, "File " + p + " not found."));
+          cb(ApiError.ENOENT(p));
         }
       });
     }
@@ -708,7 +708,7 @@ export class BaseFileSystem {
       if (this.existsSync(p)) {
         return p;
       } else {
-        throw new ApiError(ErrorCode.ENOENT, "File " + p + " not found.");
+        throw ApiError.ENOENT(p);
       }
     }
   }

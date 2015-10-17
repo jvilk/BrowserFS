@@ -2,7 +2,6 @@ import buffer = require('../core/buffer');
 import browserfs = require('../core/browserfs');
 import kvfs = require('../generic/key_value_filesystem');
 import {ApiError, ErrorCode} from '../core/api_error';
-import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
 import global = require('../core/global');
 import Buffer = buffer.Buffer;
   /**

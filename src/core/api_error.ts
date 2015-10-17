@@ -112,4 +112,8 @@ export class ApiError {
   public static EPERM(path: string): ApiError {
     return this.FileError(ErrorCode.EPERM, path);
   }
+
+  public static ENOTEMPTY(path: string): ApiError {
+    return this.FileError(ErrorCode.ENOTEMPTY, path);
+  }
 }
