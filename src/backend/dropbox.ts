@@ -1,20 +1,15 @@
 import preload_file = require('../generic/preload_file');
 import file_system = require('../core/file_system');
 import file_flag = require('../core/file_flag');
-import node_fs_stats = require('../core/node_fs_stats');
-import buffer = require('../core/buffer');
-import api_error = require('../core/api_error');
+import {Stats, FileType} from '../core/node_fs_stats';
+import {Buffer} from '../core/buffer';
+import {ApiError, ErrorCode} from '../core/api_error';
 import file = require('../core/file');
 import path = require('../core/node_path');
 import browserfs = require('../core/browserfs');
 import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
 import async = require('async');
 
-import Buffer = buffer.Buffer;
-import Stats = node_fs_stats.Stats;
-import ApiError = api_error.ApiError;
-import ErrorCode = api_error.ErrorCode;
-import FileType = node_fs_stats.FileType;
 
 var errorCodeLookup: {[dropboxErrorCode: number]: ErrorCode} = null;
 // Lazily construct error code lookup, since DropboxJS might be loaded *after* BrowserFS (or not at all!)
@@ -301,7 +296,7 @@ export class DropboxFile extends preload_file.PreloadFile<DropboxFileSystem> imp
 
   public sync(cb: (e?: ApiError) => void): void {
     if (this.isDirty()) {
-      var buffer = <buffer.Buffer> this.getBuffer(),
+      var buffer = <Buffer> this.getBuffer(),
         arrayBuffer = buffer.toArrayBuffer();
       this._fs._writeFileStrict(this.getPath(), arrayBuffer, (e?: ApiError) => {
         if (!e) {
@@ -489,7 +484,7 @@ export class DropboxFileSystem extends file_system.BaseFileSystem implements fil
    * Private
    * Returns a BrowserFS object representing the type of a Dropbox.js stat object
    */
-  public _statType(stat: Dropbox.File.Stat): node_fs_stats.FileType {
+  public _statType(stat: Dropbox.File.Stat): FileType {
     return stat.isFile ? FileType.FILE : FileType.DIRECTORY;
   }
 

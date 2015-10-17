@@ -1,8 +1,6 @@
-import api_error = require('./api_error');
+import {ApiError, ErrorCode} from './api_error';
 import stats = require('./node_fs_stats');
 import buffer = require('./buffer');
-var ApiError = api_error.ApiError;
-var ErrorCode = api_error.ErrorCode;
 
 export interface File {
   /**
@@ -14,7 +12,7 @@ export interface File {
    * **Core**: Asynchronous `stat`.
    * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] cb
    */
-  stat(cb: (err: api_error.ApiError, stats?: stats.Stats) => any): void;
+  stat(cb: (err: ApiError, stats?: stats.Stats) => any): void;
   /**
    * **Core**: Synchronous `stat`.
    * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] cb
@@ -63,7 +61,7 @@ export interface File {
    * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
    *   cb The number specifies the number of bytes written into the file.
    */
-  write(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
+  write(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (err: ApiError, written?: number, buffer?: NodeBuffer) => any): void;
   /**
    * **Core**: Write buffer to the file.
    * Note that it is unsafe to use fs.writeSync multiple times on the same file
@@ -91,7 +89,7 @@ export interface File {
    * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)] cb The
    *   number is the number of bytes read
    */
-  read(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (err: api_error.ApiError, bytesRead?: number, buffer?: NodeBuffer) => void): void;
+  read(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (err: ApiError, bytesRead?: number, buffer?: NodeBuffer) => void): void;
   /**
    * **Core**: Read data from the file.
    * @param [BrowserFS.node.Buffer] buffer The buffer that the data will be

@@ -1,6 +1,6 @@
 import file_system = require('../core/file_system');
-import buffer = require('../core/buffer');
-import api_error = require('../core/api_error');
+import {Buffer} from '../core/buffer';
+import {ApiError} from '../core/api_error';
 import file_flag = require('../core/file_flag');
 import util = require('../core/util');
 import file = require('../core/file');
@@ -8,8 +8,6 @@ import node_fs_stats = require('../core/node_fs_stats');
 import preload_file = require('../generic/preload_file');
 import browserfs = require('../core/browserfs');
 import global = require('../core/global');
-import Buffer = buffer.Buffer;
-import ApiError = api_error.ApiError;
 
 interface IBrowserFSMessage {
   browserfsMessage: boolean;
@@ -284,7 +282,7 @@ interface IBufferArgument extends ISpecialArgument {
 }
 
 function bufferToTransferrableObject(buff: NodeBuffer): ArrayBuffer {
-  return (<buffer.Buffer> buff).toArrayBuffer()
+  return (<Buffer> buff).toArrayBuffer()
 }
 
 function transferrableObjectToBuffer(buff: ArrayBuffer): Buffer {

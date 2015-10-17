@@ -10,7 +10,7 @@ var clearMasks: number[] = [0xFFFFFF00, 0xFFFF00FF, 0xFF00FFFF, 0x00FFFFFF];
  *  BYTE 3      BYTE 2      BYTE 1      BYTE 0
  * 0000 0000 | 0000 0000 | 0000 0000 | 0000 0000
  */
-export class BufferCoreArray extends buffer_core.BufferCoreCommon implements buffer_core.BufferCore {
+class BufferCoreArray extends buffer_core.BufferCoreCommon implements buffer_core.BufferCore {
   public static isAvailable(): boolean {
     return true;
   }
@@ -61,3 +61,5 @@ export class BufferCoreArray extends buffer_core.BufferCoreCommon implements buf
 
 // Type-check the class.
 var _: buffer_core.BufferCoreImplementation = BufferCoreArray;
+
+export = BufferCoreArray;

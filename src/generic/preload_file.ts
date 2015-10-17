@@ -1,14 +1,10 @@
 import file = require('../core/file');
 import file_system = require('../core/file_system');
-import node_fs_stats = require('../core/node_fs_stats');
-import buffer = require('../core/buffer');
-import file_flag = require('../core/file_flag');
-import api_error = require('../core/api_error');
+import {Stats} from '../core/node_fs_stats';
+import {Buffer} from '../core/buffer';
+import {FileFlag} from '../core/file_flag';
+import {ApiError, ErrorCode} from '../core/api_error';
 import fs = require('../core/node_fs');
-import ApiError = api_error.ApiError;
-import ErrorCode = api_error.ErrorCode;
-import Buffer = buffer.Buffer;
-import Stats = node_fs_stats.Stats;
 
 /**
  * An implementation of the File interface that operates on a file that is
@@ -24,7 +20,7 @@ export class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile
   private _path: string;
   protected _fs: T;
   private _stat: Stats;
-  private _flag: file_flag.FileFlag;
+  private _flag: FileFlag;
   private _buffer: NodeBuffer;
   private _dirty: boolean = false;
   /**
@@ -41,7 +37,7 @@ export class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile
    *   contents of the file. PreloadFile will mutate this buffer. If not
    *   specified, we assume it is a new file.
    */
-  constructor(_fs: T, _path: string, _flag: file_flag.FileFlag, _stat: Stats, contents?: NodeBuffer) {
+  constructor(_fs: T, _path: string, _flag: FileFlag, _stat: Stats, contents?: NodeBuffer) {
     super();
     this._fs = _fs;
     this._path = _path;
@@ -87,7 +83,7 @@ export class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile
     return this._stat;
   }
 
-  public getFlag(): file_flag.FileFlag {
+  public getFlag(): FileFlag {
     return this._flag;
   }
 
@@ -385,7 +381,7 @@ export class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile
  * Doesn't sync to anything, so it works nicely for memory-only files.
  */
 export class NoSyncFile<T extends file_system.FileSystem> extends PreloadFile<T> implements file.File {
-  constructor(_fs: T, _path: string, _flag: file_flag.FileFlag, _stat: Stats, contents?: NodeBuffer) {
+  constructor(_fs: T, _path: string, _flag: FileFlag, _stat: Stats, contents?: NodeBuffer) {
     super(_fs, _path, _flag, _stat, contents);
   }
   /**

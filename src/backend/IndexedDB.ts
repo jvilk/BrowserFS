@@ -1,12 +1,10 @@
 import buffer = require('../core/buffer');
 import browserfs = require('../core/browserfs');
 import kvfs = require('../generic/key_value_filesystem');
-import api_error = require('../core/api_error');
+import {ApiError, ErrorCode} from '../core/api_error';
 import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
 import global = require('../core/global');
 import Buffer = buffer.Buffer;
-import ApiError = api_error.ApiError;
-import ErrorCode = api_error.ErrorCode;
   /**
    * Get the indexedDB constructor for the current browser.
    */
@@ -37,29 +35,12 @@ function convertError(e: {name: string}, message: string = e.toString()): ApiErr
  * version of the error, and let the error bubble up.
  */
 function onErrorHandler(cb: (e: ApiError) => void,
-  code: api_error.ErrorCode = ErrorCode.EIO, message: string = null): (e?: any) => void {
+  code: ErrorCode = ErrorCode.EIO, message: string = null): (e?: any) => void {
   return function (e?: any): void {
     // Prevent the error from canceling the transaction.
     e.preventDefault();
     cb(new ApiError(code, message));
   };
-}
-
-/**
- * Converts a NodeBuffer into an ArrayBuffer.
- */
-function buffer2arraybuffer(buffer: NodeBuffer): ArrayBuffer {
-  // XXX: Typing hack.
-  var backing_mem: buffer_core_arraybuffer.BufferCoreArrayBuffer = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>buffer).getBufferCore();
-  if (!(backing_mem instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer)) {
-    // Copy into an ArrayBuffer-backed Buffer.
-    buffer = new Buffer(this._buffer.length);
-    this._buffer.copy(buffer);
-    backing_mem = <buffer_core_arraybuffer.BufferCoreArrayBuffer><any> (<buffer.BFSBuffer><any>buffer).getBufferCore();
-  }
-  // Reach into the BC, grab the DV.
-  var dv = backing_mem.getDataView();
-  return dv.buffer;
 }
 
 export class IndexedDBROTransaction implements kvfs.AsyncKeyValueROTransaction {
@@ -93,7 +74,7 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements kv
 
   public put(key: string, data: NodeBuffer, overwrite: boolean, cb: (e: ApiError, committed?: boolean) => void): void {
     try {
-      var arraybuffer = buffer2arraybuffer(data),
+      var arraybuffer = (<buffer.Buffer> data).toArrayBuffer(),
         r: IDBRequest;
       if (overwrite) {
         r = this.store.put(arraybuffer, key);

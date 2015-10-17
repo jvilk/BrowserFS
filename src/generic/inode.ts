@@ -1,4 +1,4 @@
-import node_fs_stats = require('../core/node_fs_stats');
+import {Stats, FileType} from '../core/node_fs_stats';
 import buffer = require('../core/buffer');
 /**
  * Generic inode definition that can easily be serialized.
@@ -14,9 +14,9 @@ class Inode {
   /**
    * Handy function that converts the Inode to a Node Stats object.
    */
-  public toStats(): node_fs_stats.Stats {
-    return new node_fs_stats.Stats(
-      (this.mode & 0xF000) === node_fs_stats.FileType.DIRECTORY ? node_fs_stats.FileType.DIRECTORY : node_fs_stats.FileType.FILE,
+  public toStats(): Stats {
+    return new Stats(
+      (this.mode & 0xF000) === FileType.DIRECTORY ? FileType.DIRECTORY : FileType.FILE,
       this.size, this.mode, new Date(this.atime), new Date(this.mtime), new Date(this.ctime));
   }
 
@@ -51,7 +51,7 @@ class Inode {
    *   file system.
    * @return True if any changes have occurred.
    */
-  public update(stats: node_fs_stats.Stats): boolean {
+  public update(stats: Stats): boolean {
     var hasChanged = false;
     if (this.size !== stats.size) {
       this.size = stats.size;
@@ -107,14 +107,14 @@ class Inode {
    * @return [Boolean] True if this item is a file.
    */
   public isFile(): boolean {
-    return (this.mode & 0xF000) === node_fs_stats.FileType.FILE;
+    return (this.mode & 0xF000) === FileType.FILE;
   }
 
   /**
    * @return [Boolean] True if this item is a directory.
    */
   public isDirectory(): boolean {
-    return (this.mode & 0xF000) === node_fs_stats.FileType.DIRECTORY;
+    return (this.mode & 0xF000) === FileType.DIRECTORY;
   }
 }
 

@@ -1,14 +1,12 @@
 import file_system = require('../core/file_system');
 import buffer = require('../core/buffer');
-import api_error = require('../core/api_error');
+import {ApiError, ErrorCode} from '../core/api_error';
 import file_flag = require('../core/file_flag');
 import util = require('../core/util');
 import file = require('../core/file');
 import node_fs_stats = require('../core/node_fs_stats');
 import preload_file = require('../generic/preload_file');
 import browserfs = require('../core/browserfs');
-import ApiError = api_error.ApiError;
-import ErrorCode = api_error.ErrorCode;
 
 interface IAsyncOperation {
 	apiMethod: string;

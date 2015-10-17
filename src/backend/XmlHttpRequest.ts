@@ -1,28 +1,14 @@
 import file_system = require('../core/file_system');
-import buffer = require('../core/buffer');
-import api_error = require('../core/api_error');
-import file_flag = require('../core/file_flag');
+import {Buffer} from '../core/buffer';
+import {ApiError, ErrorCode} from '../core/api_error';
+import {FileFlag, ActionType} from '../core/file_flag';
 import util = require('../core/util');
 import file = require('../core/file');
-import node_fs_stats = require('../core/node_fs_stats');
+import {Stats} from '../core/node_fs_stats';
 import preload_file = require('../generic/preload_file');
 import browserfs = require('../core/browserfs');
 import xhr = require('../generic/xhr');
-import Buffer = buffer.Buffer;
-import ApiError = api_error.ApiError;
-import ErrorCode = api_error.ErrorCode;
-import FileFlag = file_flag.FileFlag;
-import ActionType = file_flag.ActionType;
-import Stats = node_fs_stats.Stats;
-import {FileIndex, DirInode, FileInode, Inode} from '../generic/file_index';
-
-function isFileInode(inode: Inode): inode is FileInode<Stats> {
-  return inode && inode.isFile();
-}
-
-function isDirInode(inode: Inode): inode is DirInode {
-  return inode && inode.isDir();
-}
+import {FileIndex, DirInode, FileInode, Inode, isFileInode, isDirInode} from '../generic/file_index';
 
 /**
  * A simple filesystem backed by XmlHttpRequests.
@@ -135,7 +121,7 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
    */
   public preloadFile(path: string, buffer: NodeBuffer): void {
     var inode = this._index.getInode(path);
-    if (isFileInode(inode)) {
+    if (isFileInode<Stats>(inode)) {
       if (inode === null) {
         throw ApiError.ENOENT(path);
       }
@@ -153,7 +139,7 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
       return cb(ApiError.ENOENT(path));
     }
     var stats: Stats;
-    if (isFileInode(inode)) {
+    if (isFileInode<Stats>(inode)) {
       stats = inode.getData();
       // At this point, a non-opened file will still have default stats from the listing.
       if (stats.size < 0) {
@@ -181,21 +167,21 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
       throw ApiError.ENOENT(path);
     }
     var stats: Stats;
-    if (isFileInode(inode)) {
+    if (isFileInode<Stats>(inode)) {
       stats = inode.getData();
       // At this point, a non-opened file will still have default stats from the listing.
       if (stats.size < 0) {
         stats.size = this._requestFileSizeSync(path);
       }
     } else if (isDirInode(inode)) {
-      stats = (<DirInode> inode).getStats();
+      stats = inode.getStats();
     } else {
       throw ApiError.FileError(ErrorCode.EINVAL, path);
     }
     return stats;
   }
 
-  public open(path: string, flags: file_flag.FileFlag, mode: number, cb: (e: ApiError, file?: file.File) => void): void {
+  public open(path: string, flags: FileFlag, mode: number, cb: (e: ApiError, file?: file.File) => void): void {
     // INVARIANT: You can't write to files on this file system.
     if (flags.isWriteable()) {
       return cb(new ApiError(ErrorCode.EPERM, path));
@@ -206,7 +192,7 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
     if (inode === null) {
       return cb(ApiError.ENOENT(path));
     }
-    if (isFileInode(inode)) {
+    if (isFileInode<Stats>(inode)) {
       var stats = inode.getData();
       switch (flags.pathExistsAction()) {
         case ActionType.THROW_EXCEPTION:
@@ -237,7 +223,7 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
     }
   }
 
-  public openSync(path: string, flags: file_flag.FileFlag, mode: number): file.File {
+  public openSync(path: string, flags: FileFlag, mode: number): file.File {
     // INVARIANT: You can't write to files on this file system.
     if (flags.isWriteable()) {
       throw new ApiError(ErrorCode.EPERM, path);
@@ -247,7 +233,7 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
     if (inode === null) {
       throw ApiError.ENOENT(path);
     }
-    if (isFileInode(inode)) {
+    if (isFileInode<Stats>(inode)) {
       var stats = inode.getData();
       switch (flags.pathExistsAction()) {
         case ActionType.THROW_EXCEPTION:
@@ -296,7 +282,7 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
   /**
    * We have the entire file as a buffer; optimize readFile.
    */
-  public readFile(fname: string, encoding: string, flag: file_flag.FileFlag, cb: (err: ApiError, data?: any) => void): void {
+  public readFile(fname: string, encoding: string, flag: FileFlag, cb: (err: ApiError, data?: any) => void): void {
     // Wrap cb in file closing code.
     var oldCb = cb;
     // Get file.
@@ -304,7 +290,7 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
       if (err) {
         return cb(err);
       }
-      cb = function(err: ApiError, arg?: buffer.Buffer) {
+      cb = function(err: ApiError, arg?: Buffer) {
         fd.close(function(err2: any) {
           if (err == null) {
             err = err2;
@@ -313,12 +299,12 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
         });
       };
       var fdCast = <preload_file.NoSyncFile<XmlHttpRequest>> fd;
-      var fdBuff = <buffer.Buffer> fdCast.getBuffer();
+      var fdBuff = <Buffer> fdCast.getBuffer();
       if (encoding === null) {
         if (fdBuff.length > 0) {
           return cb(err, fdBuff.sliceCopy());
         } else {
-          return cb(err, new buffer.Buffer(0));
+          return cb(err, new Buffer(0));
         }
       }
       try {
@@ -332,17 +318,17 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
   /**
    * Specially-optimized readfile.
    */
-  public readFileSync(fname: string, encoding: string, flag: file_flag.FileFlag): any {
+  public readFileSync(fname: string, encoding: string, flag: FileFlag): any {
     // Get file.
     var fd = this.openSync(fname, flag, 0x1a4);
     try {
       var fdCast = <preload_file.NoSyncFile<XmlHttpRequest>> fd;
-      var fdBuff = <buffer.Buffer> fdCast.getBuffer();
+      var fdBuff = <Buffer> fdCast.getBuffer();
       if (encoding === null) {
         if (fdBuff.length > 0) {
           return fdBuff.sliceCopy();
         } else {
-          return new buffer.Buffer(0);
+          return new Buffer(0);
         }
       }
       return fdBuff.toString(encoding);

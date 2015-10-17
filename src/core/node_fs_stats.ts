@@ -1,7 +1,6 @@
 import fs = require('fs');
 import file = require('./file');
-import buffer = require('./buffer');
-import Buffer = buffer.Buffer;
+import {Buffer} from './buffer';
 
 /**
  * Indicates the type of the given file. Applied to 'mode'.

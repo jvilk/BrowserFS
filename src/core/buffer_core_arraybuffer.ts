@@ -3,7 +3,7 @@ import buffer_core = require('./buffer_core');
 /**
  * Represents data using an ArrayBuffer.
  */
-export class BufferCoreArrayBuffer extends buffer_core.BufferCoreCommon implements buffer_core.BufferCore {
+class BufferCoreArrayBuffer extends buffer_core.BufferCoreCommon implements buffer_core.BufferCore {
   public static isAvailable(): boolean {
     return typeof DataView !== 'undefined';
   }
@@ -15,12 +15,12 @@ export class BufferCoreArrayBuffer extends buffer_core.BufferCoreCommon implemen
   constructor(length: number);
   constructor(buff: DataView);
   constructor(buff: ArrayBuffer);
-  constructor(arg1: any) {
+  constructor(arg1: number | DataView | ArrayBuffer) {
     super();
     if (typeof arg1 === 'number') {
       this.buff = new DataView(new ArrayBuffer(arg1));
     } else if (arg1 instanceof DataView) {
-      this.buff = <DataView> arg1;
+      this.buff = arg1;
     } else {
       this.buff = new DataView(<ArrayBuffer> arg1);
     }
@@ -158,3 +158,5 @@ export class BufferCoreArrayBuffer extends buffer_core.BufferCoreCommon implemen
 
 // Type-check the class.
 var _: buffer_core.BufferCoreImplementation = BufferCoreArrayBuffer;
+
+export = BufferCoreArrayBuffer;

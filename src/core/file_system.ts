@@ -1,20 +1,9 @@
-/**
- * @module core/file_system
- */
-import api_error = require('./api_error');
-import stat = require('./node_fs_stats');
-
+import {ApiError, ErrorCode} from './api_error';
+import {Stats} from './node_fs_stats';
 import file = require('./file');
-import file_flag = require('./file_flag');
-
+import {FileFlag, ActionType} from './file_flag';
 import path = require('./node_path');
-
-import buffer = require('./buffer');
-
-var ApiError = api_error.ApiError;
-var ErrorCode = api_error.ErrorCode;
-var Buffer = buffer.Buffer;
-var ActionType = file_flag.ActionType;
+import {Buffer} from './buffer';
 
 /**
  * Interface for a filesystem. **All** BrowserFS FileSystems should implement
@@ -123,7 +112,7 @@ export interface FileSystem {
    * @param {string} newPath
    * @param {FileSystem~nodeCallback} cb
    */
-  rename(oldPath: string, newPath: string, cb: (err?: api_error.ApiError) => void): void;
+  rename(oldPath: string, newPath: string, cb: (err?: ApiError) => void): void;
   /**
    * **Core**: Synchronous rename.
    * @method FileSystem#renameSync
@@ -139,7 +128,7 @@ export interface FileSystem {
    *   `stat`.
    * @param {FileSystem~nodeStatsCallback} cb
    */
-  stat(p: string, isLstat: boolean, cb: (err: api_error.ApiError, stat?: stat.Stats) => void): void;
+  stat(p: string, isLstat: boolean, cb: (err: ApiError, stat?: Stats) => void): void;
   /**
    * **Core**: Synchronous `stat` or `lstat`.
    * @method FileSystem#statSync
@@ -148,7 +137,7 @@ export interface FileSystem {
    *   `stat`.
    * @return {BrowserFS.node.fs.Stats}
    */
-  statSync(p: string, isLstat: boolean): stat.Stats;
+  statSync(p: string, isLstat: boolean): Stats;
   // File operations
   /**
    * **Core**: Asynchronous file open.
@@ -161,7 +150,7 @@ export interface FileSystem {
    *   filesystem doesn't support permissions.
    * @param {FileSystem~fileCallback} cb
    */
-  open(p: string, flag:file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.File) => any): void;
+  open(p: string, flag:FileFlag, mode: number, cb: (err: ApiError, fd?: file.File) => any): void;
   /**
    * **Core**: Synchronous file open.
    * @see http://www.manpagez.com/man/2/open/
@@ -173,7 +162,7 @@ export interface FileSystem {
    *   filesystem doesn't support permissions.
    * @return {BrowserFS.File}
    */
-  openSync(p: string, flag: file_flag.FileFlag, mode: number): file.File;
+  openSync(p: string, flag: FileFlag, mode: number): file.File;
   /**
    * **Core**: Asynchronous `unlink`.
    * @method FileSystem#unlink
@@ -227,7 +216,7 @@ export interface FileSystem {
    * @param {string} path
    * @param {FileSystem~readdirCallback} cb
    */
-  readdir(p: string, cb: (err: api_error.ApiError, files?: string[]) => void): void;
+  readdir(p: string, cb: (err: ApiError, files?: string[]) => void): void;
   /**
    * **Core**: Synchronous `readdir`. Reads the contents of a directory.
    * @method FileSystem#readdirSync
@@ -265,7 +254,7 @@ export interface FileSystem {
    *   known real paths. If not supplied by the user, it'll be an empty object.
    * @param {FileSystem~pathCallback} cb
    */
-  realpath(p: string, cache: {[path: string]: string}, cb: (err: api_error.ApiError, resolvedPath?: string) => any): void;
+  realpath(p: string, cache: {[path: string]: string}, cb: (err: ApiError, resolvedPath?: string) => any): void;
   /**
    * **Supplemental**: Synchronous `realpath`.
    *
@@ -306,7 +295,7 @@ export interface FileSystem {
    * @param {FileSystem~readCallback} cb If no encoding is specified, then the
    *   raw buffer is returned.
    */
-  readFile(fname: string, encoding: string, flag: file_flag.FileFlag, cb: (err: api_error.ApiError, data?: any) => void): void;
+  readFile(fname: string, encoding: string, flag: FileFlag, cb: (err: ApiError, data?: any) => void): void;
   /**
    * **Supplemental**: Synchronously reads the entire contents of a file.
    * @method FileSystem#readFileSync
@@ -317,7 +306,7 @@ export interface FileSystem {
    * @param {BrowserFS.FileMode} flag
    * @return {(string|BrowserFS.Buffer)}
    */
-  readFileSync(fname: string, encoding: string, flag: file_flag.FileFlag): any;
+  readFileSync(fname: string, encoding: string, flag: FileFlag): any;
   /**
    * **Supplemental**: Asynchronously writes data to a file, replacing the file
    * if it already exists.
@@ -331,7 +320,7 @@ export interface FileSystem {
    * @param {number} mode
    * @param {FileSystem~nodeCallback} cb
    */
-  writeFile(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError) => void): void;
+  writeFile(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cb: (err: ApiError) => void): void;
   /**
    * **Supplemental**: Synchronously writes data to a file, replacing the file
    * if it already exists.
@@ -344,7 +333,7 @@ export interface FileSystem {
    * @param {BrowserFS.FileMode} flag
    * @param {number} mode
    */
-  writeFileSync(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number): void;
+  writeFileSync(fname: string, data: any, encoding: string, flag: FileFlag, mode: number): void;
   /**
    * **Supplemental**: Asynchronously append data to a file, creating the file if
    * it not yet exists.
@@ -356,7 +345,7 @@ export interface FileSystem {
    * @param {number} mode
    * @param {FileSystem~nodeCallback} cb
    */
-  appendFile(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError) => void): void;
+  appendFile(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cb: (err: ApiError) => void): void;
   /**
    * **Supplemental**: Synchronously append data to a file, creating the file if
    * it not yet exists.
@@ -367,7 +356,7 @@ export interface FileSystem {
    * @param {BrowserFS.FileMode} flag
    * @param {number} mode
    */
-  appendFileSync(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number): void;
+  appendFileSync(fname: string, data: any, encoding: string, flag: FileFlag, mode: number): void;
   // **OPTIONAL INTERFACE METHODS**
   // Property operations
   // This isn't always possible on some filesystem types (e.g. Dropbox).
@@ -511,24 +500,24 @@ export class BaseFileSystem {
    * @param p The path to open.
    * @param flag The flag to use when opening the file.
    */
-  public openFile(p: string, flag: file_flag.FileFlag, cb: (e: api_error.ApiError, file?: file.File) => void): void {
+  public openFile(p: string, flag: FileFlag, cb: (e: ApiError, file?: file.File) => void): void {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
   /**
    * Create the file at path p with the given mode. Then, open it with the given
    * flag.
    */
-  public createFile(p: string, flag: file_flag.FileFlag, mode: number, cb: (e: api_error.ApiError, file?: file.File) => void): void {
+  public createFile(p: string, flag: FileFlag, mode: number, cb: (e: ApiError, file?: file.File) => void): void {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
-  public open(p: string, flag:file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.BaseFile) => any): void {
-    var must_be_file = (e: api_error.ApiError, stats?: stat.Stats): void => {
+  public open(p: string, flag:FileFlag, mode: number, cb: (err: ApiError, fd?: file.BaseFile) => any): void {
+    var must_be_file = (e: ApiError, stats?: Stats): void => {
       if (e) {
         // File does not exist.
         switch (flag.pathNotExistsAction()) {
           case ActionType.CREATE_FILE:
             // Ensure parent exists.
-            return this.stat(path.dirname(p), false, (e: api_error.ApiError, parentStats?: stat.Stats) => {
+            return this.stat(path.dirname(p), false, (e: ApiError, parentStats?: Stats) => {
               if (e) {
                 cb(e);
               } else if (!parentStats.isDirectory()) {
@@ -555,7 +544,7 @@ export class BaseFileSystem {
             // re-created it. However, this created a race condition if another
             // asynchronous request was trying to read the file, as the file
             // would not exist for a small period of time.
-            return this.openFile(p, flag, (e: api_error.ApiError, fd?: file.File): void => {
+            return this.openFile(p, flag, (e: ApiError, fd?: file.File): void => {
               if (e) {
                 cb(e);
               } else {
@@ -575,16 +564,16 @@ export class BaseFileSystem {
     };
     this.stat(p, false, must_be_file);
   }
-  public rename(oldPath: string, newPath: string, cb: (err?: api_error.ApiError) => void): void {
+  public rename(oldPath: string, newPath: string, cb: (err?: ApiError) => void): void {
     cb(new ApiError(ErrorCode.ENOTSUP));
   }
   public renameSync(oldPath: string, newPath: string): void {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
-  public stat(p: string, isLstat: boolean, cb: (err: api_error.ApiError, stat?: stat.Stats) => void): void {
+  public stat(p: string, isLstat: boolean, cb: (err: ApiError, stat?: Stats) => void): void {
     cb(new ApiError(ErrorCode.ENOTSUP));
   }
-  public statSync(p: string, isLstat: boolean): stat.Stats {
+  public statSync(p: string, isLstat: boolean): Stats {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
   /**
@@ -593,19 +582,19 @@ export class BaseFileSystem {
    * @param flag The flag to use when opening the file.
    * @return A File object corresponding to the opened file.
    */
-  public openFileSync(p: string, flag: file_flag.FileFlag): file.File {
+  public openFileSync(p: string, flag: FileFlag): file.File {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
   /**
    * Create the file at path p with the given mode. Then, open it with the given
    * flag.
    */
-  public createFileSync(p: string, flag: file_flag.FileFlag, mode: number): file.File {
+  public createFileSync(p: string, flag: FileFlag, mode: number): file.File {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
-  public openSync(p: string, flag: file_flag.FileFlag, mode: number): file.File {
+  public openSync(p: string, flag: FileFlag, mode: number): file.File {
     // Check if the path exists, and is a file.
-    var stats: stat.Stats;
+    var stats: Stats;
     try {
       stats = this.statSync(p, false);
     } catch (e) {
@@ -664,7 +653,7 @@ export class BaseFileSystem {
   public mkdirSync(p: string, mode: number): void {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
-  public readdir(p: string, cb: (err: api_error.ApiError, files?: string[]) => void): void {
+  public readdir(p: string, cb: (err: ApiError, files?: string[]) => void): void {
     cb(new ApiError(ErrorCode.ENOTSUP));
   }
   public readdirSync(p: string): string[] {
@@ -683,7 +672,7 @@ export class BaseFileSystem {
       return false;
     }
   }
-  public realpath(p: string, cache: {[path: string]: string}, cb: (err: api_error.ApiError, resolvedPath?: string) => any): void {
+  public realpath(p: string, cache: {[path: string]: string}, cb: (err: ApiError, resolvedPath?: string) => any): void {
     if (this.supportsLinks()) {
       // The path could contain symlinks. Split up the path,
       // resolve any symlinks, return the resolved string.
@@ -724,7 +713,7 @@ export class BaseFileSystem {
     }
   }
   public truncate(p: string, len: number, cb: Function): void {
-    this.open(p, file_flag.FileFlag.getFileFlag('r+'), 0x1a4, (function(er: api_error.ApiError, fd?: file.File) {
+    this.open(p, FileFlag.getFileFlag('r+'), 0x1a4, (function(er: ApiError, fd?: file.File) {
       if (er) {
         return cb(er);
       }
@@ -736,7 +725,7 @@ export class BaseFileSystem {
     }));
   }
   public truncateSync(p: string, len: number): void {
-    var fd = this.openSync(p, file_flag.FileFlag.getFileFlag('r+'), 0x1a4);
+    var fd = this.openSync(p, FileFlag.getFileFlag('r+'), 0x1a4);
     // Need to safely close FD, regardless of whether or not truncate succeeds.
     try {
       fd.truncateSync(len);
@@ -746,15 +735,15 @@ export class BaseFileSystem {
       fd.closeSync();
     }
   }
-  public readFile(fname: string, encoding: string, flag: file_flag.FileFlag, cb: (err: api_error.ApiError, data?: any) => void): void {
+  public readFile(fname: string, encoding: string, flag: FileFlag, cb: (err: ApiError, data?: any) => void): void {
     // Wrap cb in file closing code.
     var oldCb = cb;
     // Get file.
-    this.open(fname, flag, 0x1a4, function(err: api_error.ApiError, fd?: file.File) {
+    this.open(fname, flag, 0x1a4, function(err: ApiError, fd?: file.File) {
       if (err) {
         return cb(err);
       }
-      cb = function(err: api_error.ApiError, arg?: file.File) {
+      cb = function(err: ApiError, arg?: file.File) {
         fd.close(function(err2: any) {
           if (err == null) {
             err = err2;
@@ -762,7 +751,7 @@ export class BaseFileSystem {
           return oldCb(err, arg);
         });
       };
-      fd.stat(function(err: api_error.ApiError, stat?: stat.Stats) {
+      fd.stat(function(err: ApiError, stat?: Stats) {
         if (err != null) {
           return cb(err);
         }
@@ -783,7 +772,7 @@ export class BaseFileSystem {
       });
     });
   }
-  public readFileSync(fname: string, encoding: string, flag: file_flag.FileFlag): any {
+  public readFileSync(fname: string, encoding: string, flag: FileFlag): any {
     // Get file.
     var fd = this.openSync(fname, flag, 0x1a4);
     try {
@@ -800,15 +789,15 @@ export class BaseFileSystem {
       fd.closeSync();
     }
   }
-  public writeFile(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError) => void): void {
+  public writeFile(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cb: (err: ApiError) => void): void {
     // Wrap cb in file closing code.
     var oldCb = cb;
     // Get file.
-    this.open(fname, flag, 0x1a4, function(err: api_error.ApiError, fd?:file.File) {
+    this.open(fname, flag, 0x1a4, function(err: ApiError, fd?:file.File) {
       if (err != null) {
         return cb(err);
       }
-      cb = function(err: api_error.ApiError) {
+      cb = function(err: ApiError) {
         fd.close(function(err2: any) {
           oldCb(err != null ? err : err2);
         });
@@ -825,7 +814,7 @@ export class BaseFileSystem {
       fd.write(data, 0, data.length, 0, cb);
     });
   }
-  public writeFileSync(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number): void {
+  public writeFileSync(fname: string, data: any, encoding: string, flag: FileFlag, mode: number): void {
     // Get file.
     var fd = this.openSync(fname, flag, mode);
     try {
@@ -838,14 +827,14 @@ export class BaseFileSystem {
       fd.closeSync();
     }
   }
-  public appendFile(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError) => void): void {
+  public appendFile(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cb: (err: ApiError) => void): void {
     // Wrap cb in file closing code.
     var oldCb = cb;
-    this.open(fname, flag, mode, function(err: api_error.ApiError, fd?: file.File) {
+    this.open(fname, flag, mode, function(err: ApiError, fd?: file.File) {
       if (err != null) {
         return cb(err);
       }
-      cb = function(err: api_error.ApiError) {
+      cb = function(err: ApiError) {
         fd.close(function(err2: any) {
           oldCb(err != null ? err : err2);
         });
@@ -856,7 +845,7 @@ export class BaseFileSystem {
       fd.write(data, 0, data.length, null, cb);
     });
   }
-  public appendFileSync(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number): void {
+  public appendFileSync(fname: string, data: any, encoding: string, flag: FileFlag, mode: number): void {
     var fd = this.openSync(fname, flag, mode);
     try {
       if (typeof data === 'string') {
@@ -931,7 +920,7 @@ export class SynchronousFileSystem extends BaseFileSystem {
     }
   }
 
-  public open(p: string, flags: file_flag.FileFlag, mode: number, cb: Function): void {
+  public open(p: string, flags: FileFlag, mode: number, cb: Function): void {
     try {
       cb(null, this.openSync(p, flags, mode));
     } catch (e) {

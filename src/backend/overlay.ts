@@ -1,16 +1,13 @@
 import file_system = require('../core/file_system');
-import buffer = require('../core/buffer');
-import api_error = require('../core/api_error');
-import file_flag = require('../core/file_flag');
+import {Buffer} from '../core/buffer';
+import {ApiError, ErrorCode} from '../core/api_error';
+import {FileFlag, ActionType} from '../core/file_flag';
 import util = require('../core/util');
 import file = require('../core/file');
-import node_fs_stats = require('../core/node_fs_stats');
+import {Stats} from '../core/node_fs_stats';
 import preload_file = require('../generic/preload_file');
 import browserfs = require('../core/browserfs');
 import path = require('../core/node_path');
-import ApiError = api_error.ApiError;
-import Buffer = buffer.Buffer;
-import ErrorCode = api_error.ErrorCode;
 
 var deletionLogPath = '/.deletedFiles.log';
 
@@ -25,7 +22,7 @@ function makeModeWritable(mode: number): number {
  * Overlays a RO file to make it writable.
  */
 class OverlayFile extends preload_file.PreloadFile<OverlayFS> implements file.File {
-  constructor(fs: OverlayFS, path: string, flag: file_flag.FileFlag, stats: node_fs_stats.Stats, data: Buffer) {
+  constructor(fs: OverlayFS, path: string, flag: FileFlag, stats: Stats, data: Buffer) {
     super(fs, path, flag, stats, data);
   }
 
@@ -97,7 +94,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
 
   public _syncSync(file: preload_file.PreloadFile<any>): void {
     this.createParentDirectories(file.getPath());
-    this._writable.writeFileSync(file.getPath(), file.getBuffer(), null, file_flag.FileFlag.getFileFlag('w'), file.getStats().mode);
+    this._writable.writeFileSync(file.getPath(), file.getBuffer(), null, FileFlag.getFileFlag('w'), file.getStats().mode);
   }
 
   public getName() {
@@ -111,7 +108,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
     if (!this._isInitialized) {
       // Read deletion log, process into metadata.
       this._writable.readFile(deletionLogPath, 'utf8',
-        file_flag.FileFlag.getFileFlag('r'), (err: ApiError, data?: string) => {
+        FileFlag.getFileFlag('r'), (err: ApiError, data?: string) => {
         if (err) {
           // ENOENT === Newly-instantiated file system, and thus empty log.
           if (err.type !== ErrorCode.ENOENT) {
@@ -126,7 +123,7 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
           });
         }
         // Open up the deletion log for appending.
-        this._writable.open(deletionLogPath, file_flag.FileFlag.getFileFlag('a'),
+        this._writable.open(deletionLogPath, FileFlag.getFileFlag('a'),
           0x1a4, (err: ApiError, fd?: file.File) => {
           if (err) {
             cb(err);
@@ -206,15 +203,15 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
       }
 
       this.writeFileSync(newPath,
-        this.readFileSync(oldPath, null, file_flag.FileFlag.getFileFlag('r')), null,
-        file_flag.FileFlag.getFileFlag('w'), oldStats.mode);
+        this.readFileSync(oldPath, null, FileFlag.getFileFlag('r')), null,
+        FileFlag.getFileFlag('w'), oldStats.mode);
     }
 
     if (oldPath !== newPath && this.existsSync(oldPath)) {
       this.unlinkSync(oldPath);
     }
   }
-  public statSync(p: string, isLstat: boolean): node_fs_stats.Stats {
+  public statSync(p: string, isLstat: boolean): Stats {
     try {
       return this._writable.statSync(p, isLstat);
     } catch (e) {
@@ -228,27 +225,27 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
       return oldStat;
     }
   }
-  public openSync(p: string, flag: file_flag.FileFlag, mode: number): file.File {
+  public openSync(p: string, flag: FileFlag, mode: number): file.File {
     if (this.existsSync(p)) {
       switch (flag.pathExistsAction()) {
-        case file_flag.ActionType.TRUNCATE_FILE:
+        case ActionType.TRUNCATE_FILE:
           this.createParentDirectories(p);
           return this._writable.openSync(p, flag, mode);
-        case file_flag.ActionType.NOP:
+        case ActionType.NOP:
           if (this._writable.existsSync(p)) {
             return this._writable.openSync(p, flag, mode);
           } else {
             // Create an OverlayFile.
             var stats = this._readable.statSync(p, false).clone();
             stats.mode = mode;
-            return new OverlayFile(this, p, flag, stats, this._readable.readFileSync(p, null, file_flag.FileFlag.getFileFlag('r')));
+            return new OverlayFile(this, p, flag, stats, this._readable.readFileSync(p, null, FileFlag.getFileFlag('r')));
           }
         default:
           throw new ApiError(ErrorCode.EEXIST, `Path ${p} exists.`);
       }
     } else {
       switch(flag.pathNotExistsAction()) {
-        case file_flag.ActionType.CREATE_FILE:
+        case ActionType.CREATE_FILE:
           this.createParentDirectories(p);
           return this._writable.openSync(p, flag, mode);
         default:
@@ -368,8 +365,8 @@ class OverlayFS extends file_system.SynchronousFileSystem implements file_system
       this._writable.mkdirSync(p, pStats.mode);
     } else {
       this.writeFileSync(p,
-        this._readable.readFileSync(p, null, file_flag.FileFlag.getFileFlag('r')), null,
-        file_flag.FileFlag.getFileFlag('w'), this.statSync(p, false).mode);
+        this._readable.readFileSync(p, null, FileFlag.getFileFlag('r')), null,
+        FileFlag.getFileFlag('w'), this.statSync(p, false).mode);
     }
   }
 }

@@ -12,11 +12,10 @@
 import BrowserFS = require('../core/browserfs');
 import fs = require('../core/node_fs');
 import buffer = require('../core/buffer');
-import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
+import BufferCoreArrayBuffer = require('../core/buffer_core_arraybuffer');
 import node_fs_stats = require('../core/node_fs_stats');
 
 import Buffer = buffer.Buffer;
-import BufferCoreArrayBuffer = buffer_core_arraybuffer.BufferCoreArrayBuffer;
 
 export interface Stats {
   dev: number;

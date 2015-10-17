@@ -1,5 +1,4 @@
-import node_process = require('./node_process');
-var process = node_process.process;
+import {process} from './node_process';
 
 /**
  * Emulates Node's `path` module. This module contains utilities for handling and

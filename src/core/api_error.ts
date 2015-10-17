@@ -1,5 +1,4 @@
-import buffer = require("./buffer");
-import Buffer = buffer.Buffer;
+import {Buffer} from "./buffer";
 
 /**
  * Standard libc error codes. Add more to this enum and ErrorStrings as they are

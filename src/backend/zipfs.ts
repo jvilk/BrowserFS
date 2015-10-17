@@ -45,24 +45,24 @@
  *   - Stream it out to a location.
  *   This isn't that bad, so we might do this at a later date.
  */
-import buffer = require('../core/buffer');
-import api_error = require('../core/api_error');
-import file_index = require('../generic/file_index');
+import {Buffer} from '../core/buffer';
+import {ApiError, ErrorCode} from '../core/api_error';
 import browserfs = require('../core/browserfs');
 import node_fs_stats = require('../core/node_fs_stats');
 import file_system = require('../core/file_system');
 import file = require('../core/file');
-import file_flag = require('../core/file_flag');
-import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
+import {FileFlag, ActionType} from '../core/file_flag';
 import preload_file = require('../generic/preload_file');
+import BufferCoreArrayBuffer = require('../core/buffer_core_arraybuffer');
 var inflateRaw: {
-  (data: Uint8Array | number[], options?: {
+  (data: Uint8Array, options?: {
     chunkSize: number;
-  }): Uint8Array | number[];
+  }): Uint8Array;
+  (data: number[], options?: {
+    chunkSize: number;
+  }): number[];
 } = require('pako/dist/pako_inflate.min').inflateRaw;
-var ApiError = api_error.ApiError;
-var ErrorCode = api_error.ErrorCode;
-var ActionType = file_flag.ActionType;
+import {FileIndex, DirInode, FileInode, isDirInode, isFileInode} from '../generic/file_index';
 
 
 /**
@@ -228,33 +228,27 @@ export class FileHeader {
 export class FileData {
   constructor(private header: FileHeader, private record: CentralDirectory, private data: NodeBuffer) {}
   public decompress(): NodeBuffer {
-    var buff = <buffer.Buffer> this.data;
     // Check the compression
     var compressionMethod: CompressionMethod = this.header.compressionMethod();
     switch (compressionMethod) {
       case CompressionMethod.DEFLATE:
         // Convert to Uint8Array or an array of bytes for the library.
-        if (buff.getBufferCore() instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer) {
-          // Grab a slice of the zip file that contains the compressed data
-          // (avoids copying).
-          // XXX: Does RawInflate mutate the buffer? I hope not.
-          var bcore = <buffer_core_arraybuffer.BufferCoreArrayBuffer> buff.getBufferCore();
-          var dview = bcore.getDataView();
-          var start = dview.byteOffset + buff.getOffset();
-          var uarray = (new Uint8Array(dview.buffer)).subarray(start, start + this.record.compressedSize());
-          var data: Uint8Array = <Uint8Array> inflateRaw(uarray, {
-            chunkSize: this.record.uncompressedSize()
-          });
-          return new buffer.Buffer(new buffer_core_arraybuffer.BufferCoreArrayBuffer(data.buffer), data.byteOffset, data.byteOffset + data.length);
+        if (typeof(ArrayBuffer) !== undefined) {
+          // No copying! :D
+          var data = inflateRaw(
+            (<Buffer> this.data.slice(0, this.record.compressedSize())).toUint8Array(),
+            { chunkSize: this.record.uncompressedSize() });
+          return new Buffer(
+            new BufferCoreArrayBuffer(data.buffer), data.byteOffset, data.byteOffset + data.length);
         } else {
           // Convert to an array of bytes and decompress, then write into a new
           // buffer :(
-          var newBuff = <buffer.Buffer> buff.slice(0, this.record.compressedSize());
-          return new buffer.Buffer(<number[]><any>(inflateRaw(<any> newBuff.toJSON().data, { chunkSize: this.record.uncompressedSize() })));
+          var newBuff = this.data.slice(0, this.record.compressedSize());
+          return new Buffer(inflateRaw(newBuff.toJSON().data, { chunkSize: this.record.uncompressedSize() }));
         }
       case CompressionMethod.STORED:
         // Grab and copy.
-        return buff.sliceCopy(0, this.record.uncompressedSize());
+        return (<Buffer> this.data).sliceCopy(0, this.record.uncompressedSize());
       default:
         var name: string = CompressionMethod[compressionMethod];
         name = name ? name : "Unknown: " + compressionMethod;
@@ -478,7 +472,7 @@ export class EndOfCentralDirectory {
 }
 
 export class ZipFS extends file_system.SynchronousFileSystem implements file_system.FileSystem {
-  private _index: file_index.FileIndex = new file_index.FileIndex();
+  private _index: FileIndex = new FileIndex();
   /**
    * Constructs a ZipFS from the given zip file data. Name is optional, and is
    * used primarily for our unit tests' purposes to differentiate different
@@ -522,66 +516,69 @@ export class ZipFS extends file_system.SynchronousFileSystem implements file_sys
       throw new ApiError(ErrorCode.ENOENT, "" + path + " not found.");
     }
     var stats: node_fs_stats.Stats;
-    if (inode.isFile()) {
-      stats = (<file_index.FileInode<CentralDirectory>> inode).getData().getStats();
+    if (isFileInode<CentralDirectory>(inode)) {
+      stats = inode.getData().getStats();
+    } else if (isDirInode(inode)) {
+      stats = inode.getStats();
     } else {
-      stats = (<file_index.DirInode> inode).getStats();
+      throw new ApiError(ErrorCode.EINVAL, "Invalid inode.");
     }
     return stats;
   }
 
-  public openSync(path: string, flags: file_flag.FileFlag, mode: number): file.File {
+  public openSync(path: string, flags: FileFlag, mode: number): file.File {
     // INVARIANT: Cannot write to RO file systems.
     if (flags.isWriteable()) {
       throw new ApiError(ErrorCode.EPERM, path);
     }
     // Check if the path exists, and is a file.
-    var inode = <file_index.FileInode<CentralDirectory>> this._index.getInode(path);
-    if (inode === null) {
-      throw new ApiError(ErrorCode.ENOENT, "" + path + " is not in the FileIndex.");
+    var inode = this._index.getInode(path);
+    if (!inode) {
+      throw ApiError.ENOENT(path);
+    } else if (isFileInode<CentralDirectory>(inode)) {
+      var cdRecord = inode.getData();
+      var stats = cdRecord.getStats();
+      switch (flags.pathExistsAction()) {
+        case ActionType.THROW_EXCEPTION:
+        case ActionType.TRUNCATE_FILE:
+          throw ApiError.EEXIST(path);
+        case ActionType.NOP:
+          return new preload_file.NoSyncFile(this, path, flags, stats, cdRecord.getData());
+        default:
+          throw new ApiError(ErrorCode.EINVAL, 'Invalid FileMode object.');
+      }
+      return null;
+    } else {
+      throw ApiError.EISDIR(path);
     }
-    if (inode.isDir()) {
-      throw new ApiError(ErrorCode.EISDIR, "" + path + " is a directory.");
-    }
-    var cdRecord = inode.getData();
-    var stats = cdRecord.getStats();
-    switch (flags.pathExistsAction()) {
-      case ActionType.THROW_EXCEPTION:
-      case ActionType.TRUNCATE_FILE:
-        throw new ApiError(ErrorCode.EEXIST, "" + path + " already exists.");
-      case ActionType.NOP:
-        return new preload_file.NoSyncFile(this, path, flags, stats, cdRecord.getData());
-      default:
-        throw new ApiError(ErrorCode.EINVAL, 'Invalid FileMode object.');
-    }
-    return null;
   }
 
   public readdirSync(path: string): string[] {
     // Check if it exists.
     var inode = this._index.getInode(path);
-    if (inode === null) {
-      throw new ApiError(ErrorCode.ENOENT, "" + path + " not found.");
-    } else if (inode.isFile()) {
-      throw new ApiError(ErrorCode.ENOTDIR, "" + path + " is a file, not a directory.");
+    if (!inode) {
+      throw ApiError.ENOENT(path);
+    } else if (isDirInode(inode)) {
+      return inode.getListing();
+    } else {
+      throw ApiError.ENOTDIR(path);
     }
-    return (<file_index.DirInode> inode).getListing();
   }
 
   /**
    * Specially-optimized readfile.
    */
-  public readFileSync(fname: string, encoding: string, flag: file_flag.FileFlag): any {
+  public readFileSync(fname: string, encoding: string, flag: FileFlag): any {
     // Get file.
     var fd = this.openSync(fname, flag, 0x1a4);
     try {
       var fdCast = <preload_file.NoSyncFile<ZipFS>> fd;
-      var fdBuff = <buffer.Buffer> fdCast.getBuffer();
+      var fdBuff = <Buffer> fdCast.getBuffer();
       if (encoding === null) {
         if (fdBuff.length > 0) {
           return fdBuff.sliceCopy();
         } else {
-          return new buffer.Buffer(0);
+          return new Buffer(0);
         }
       }
       return fdBuff.toString(encoding);
@@ -635,9 +632,9 @@ export class ZipFS extends file_system.SynchronousFileSystem implements file_sys
         filename = filename.substr(0, filename.length-1);
       }
       if (cd.isDirectory()) {
-        this._index.addPath('/' + filename, new file_index.DirInode());
+        this._index.addPath('/' + filename, new DirInode());
       } else {
-        this._index.addPath('/' + filename, new file_index.FileInode<CentralDirectory>(cd));
+        this._index.addPath('/' + filename, new FileInode<CentralDirectory>(cd));
       }
     }
   }

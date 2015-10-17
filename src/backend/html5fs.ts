@@ -1,9 +1,9 @@
 import preload_file = require('../generic/preload_file');
 import file_system = require('../core/file_system');
-import api_error = require('../core/api_error');
-import file_flag = require('../core/file_flag');
-import node_fs_stats = require('../core/node_fs_stats');
-import buffer = require('../core/buffer');
+import {ApiError, ErrorCode} from '../core/api_error';
+import {FileFlag, ActionType} from '../core/file_flag';
+import {Stats, FileType} from '../core/node_fs_stats';
+import {Buffer} from '../core/buffer';
 import file = require('../core/file');
 import browserfs = require('../core/browserfs');
 import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
@@ -11,12 +11,9 @@ import path = require('../core/node_path');
 import global = require('../core/global');
 import async = require('async');
 
-import Buffer = buffer.Buffer;
-import Stats = node_fs_stats.Stats;
-import FileType = node_fs_stats.FileType;
-import ApiError = api_error.ApiError;
-import ErrorCode = api_error.ErrorCode;
-import ActionType = file_flag.ActionType;
+function isDirectoryEntry(entry: Entry): entry is DirectoryEntry {
+  return entry.isDirectory;
+}
 
 var _getFS: (type:number, size:number, successCallback: FileSystemCallback, errorCallback?: ErrorCallback) => void = global.webkitRequestFileSystem || global.requestFileSystem || null;
 
@@ -56,7 +53,7 @@ function _toArray(list?: any[]): any[] {
 //                and throw an error if it does.
 
 export class HTML5FSFile extends preload_file.PreloadFile<HTML5FS> implements file.File {
-  constructor(_fs: HTML5FS, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: NodeBuffer) {
+  constructor(_fs: HTML5FS, _path: string, _flag: FileFlag, _stat: Stats, contents?: NodeBuffer) {
     super(_fs, _path, _flag, _stat, contents);
   }
 
@@ -69,7 +66,7 @@ export class HTML5FSFile extends preload_file.PreloadFile<HTML5FS> implements fi
       var _fs = this._fs;
       var success: FileEntryCallback = (entry) => {
         entry.createWriter((writer) => {
-          var buffer = <buffer.Buffer> this.getBuffer();
+          var buffer = <Buffer> this.getBuffer();
           var blob = new Blob([buffer.toArrayBuffer()]);
           var length = blob.size;
           writer.onwriteend = () => {
@@ -234,10 +231,10 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
           var error = (err: DOMException) => {
             cb(this.convert(err, entry.fullPath, !entry.isDirectory));
           };
-          if (entry.isFile) {
-            entry.remove(succ, error);
+          if (isDirectoryEntry(entry)) {
+            entry.removeRecursively(succ, error);
           } else {
-            (<DirectoryEntry> entry).removeRecursively(succ, error);
+            entry.remove(succ, error);
           }
         };
         // Loop through the entries and remove them, then call the callback
@@ -300,7 +297,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
     root.getDirectory(oldPath, {}, success, error);
   }
 
-  public stat(path: string, isLstat: boolean, cb: (err: ApiError, stat?: node_fs_stats.Stats) => void): void {
+  public stat(path: string, isLstat: boolean, cb: (err: ApiError, stat?: Stats) => void): void {
     // Throw an error if the entry doesn't exist, because then there's nothing
     // to stat.
     var opts = {
@@ -337,7 +334,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
     this.fs.root.getFile(path, opts, loadAsFile, failedToLoadAsFile);
   }
 
-  public open(p: string, flags: file_flag.FileFlag, mode: number, cb: (err: ApiError, fd?: file.File) => any): void {
+  public open(p: string, flags: FileFlag, mode: number, cb: (err: ApiError, fd?: file.File) => any): void {
     var error = (err: DOMError): void => {
       if (err.name === 'InvalidModificationError' && flags.isExclusive()) {
         cb(ApiError.EEXIST(p));
@@ -368,7 +365,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
   /**
    * Returns a BrowserFS object representing the type of a Dropbox.js stat object
    */
-  private _statType(stat: Entry): node_fs_stats.FileType {
+  private _statType(stat: Entry): FileType {
     return stat.isFile ? FileType.FILE : FileType.DIRECTORY;
   }
 
@@ -376,7 +373,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
    * Returns a BrowserFS object representing a File, created from the data
    * returned by calls to the Dropbox API.
    */
-  private _makeFile(path: string, flag: file_flag.FileFlag, stat: File, data: ArrayBuffer = new ArrayBuffer(0)): HTML5FSFile {
+  private _makeFile(path: string, flag: FileFlag, stat: File, data: ArrayBuffer = new ArrayBuffer(0)): HTML5FSFile {
     var stats = new Stats(FileType.FILE, stat.size);
     var buffer = new Buffer(data);
     return new HTML5FSFile(this, path, flag, stats, buffer);

@@ -1,11 +1,9 @@
 import file_system = require('../core/file_system');
 import in_memory = require('./in_memory');
-import api_error = require('../core/api_error');
+import {ApiError, ErrorCode} from '../core/api_error';
 import fs = require('../core/node_fs');
 import browserfs = require('../core/browserfs');
 
-var ApiError = api_error.ApiError;
-var ErrorCode = api_error.ErrorCode;
 /**
  * The MountableFileSystem allows you to mount multiple backend types or
  * multiple instantiations of the same backend into a single file system tree.
@@ -100,7 +98,7 @@ export class MountableFileSystem extends file_system.BaseFileSystem implements f
    * to the MFS root, not to the particular FS's root.
    * Mutates the input error, and returns it.
    */
-  private standardizeError(err: api_error.ApiError, path: string, realPath: string): api_error.ApiError {
+  private standardizeError(err: ApiError, path: string, realPath: string): ApiError {
     var index: number;
     if (-1 !== (index = err.message.indexOf(path))) {
       err.message = err.message.substr(0, index) + realPath + err.message.substr(index + path.length);
@@ -113,13 +111,13 @@ export class MountableFileSystem extends file_system.BaseFileSystem implements f
   // Note that we go through the Node API to use its robust default argument
   // processing.
 
-  public rename(oldPath: string, newPath: string, cb: (e?: api_error.ApiError) => void): void {
+  public rename(oldPath: string, newPath: string, cb: (e?: ApiError) => void): void {
     // Scenario 1: old and new are on same FS.
     var fs1_rv = this._get_fs(oldPath);
     var fs2_rv = this._get_fs(newPath);
     if (fs1_rv.fs === fs2_rv.fs) {
       var _this = this;
-      return fs1_rv.fs.rename(fs1_rv.path, fs2_rv.path, function(e?: api_error.ApiError) {
+      return fs1_rv.fs.rename(fs1_rv.path, fs2_rv.path, function(e?: ApiError) {
         if (e) _this.standardizeError(_this.standardizeError(e, fs1_rv.path, oldPath), fs2_rv.path, newPath);
         cb(e);
       });
@@ -127,7 +125,7 @@ export class MountableFileSystem extends file_system.BaseFileSystem implements f
 
     // Scenario 2: Different file systems.
     // Read old file, write new file, delete old file.
-    return fs.readFile(oldPath, function(err: api_error.ApiError, data?: any) {
+    return fs.readFile(oldPath, function(err: ApiError, data?: any) {
       if (err) {
         return cb(err);
       }
@@ -187,7 +185,7 @@ function defineFcn(name: string, isSync: boolean, numArgs: number): (...args: an
         var cb = args[args.length - 1];
         var _this = this;
         args[args.length - 1] = function(...args: any[]) {
-          if (args.length > 0 && args[0] instanceof api_error.ApiError) {
+          if (args.length > 0 && args[0] instanceof ApiError) {
             _this.standardizeError(args[0], rv.path, path);
           }
           cb.apply(null, args);

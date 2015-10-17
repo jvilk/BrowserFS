@@ -3,16 +3,16 @@
  * platform.
  */
 import buffer_core = require('./buffer_core');
-import buffer_core_array = require('./buffer_core_array');
-import buffer_core_arraybuffer = require('./buffer_core_arraybuffer');
-import buffer_core_imagedata = require('./buffer_core_imagedata');
-import string_util = require('./string_util');
+import BufferCoreArray = require('./buffer_core_array');
+import BufferCoreArrayBuffer = require('./buffer_core_arraybuffer');
+import BufferCoreImageData = require('./buffer_core_imagedata');
+import {StringUtil, FindUtil} from './string_util';
 
 // BC implementations earlier in the array are preferred.
 var BufferCorePreferences: buffer_core.BufferCoreImplementation[] = [
-  buffer_core_arraybuffer.BufferCoreArrayBuffer,
-  buffer_core_imagedata.BufferCoreImageData,
-  buffer_core_array.BufferCoreArray
+  BufferCoreArrayBuffer,
+  BufferCoreImageData,
+  BufferCoreArray
 ];
 
 var PreferredBufferCore: buffer_core.BufferCoreImplementation = (function(): buffer_core.BufferCoreImplementation {
@@ -208,12 +208,12 @@ export class Buffer implements BFSBuffer {
       this.data = new PreferredBufferCore(arg1);
     } else if (typeof DataView !== 'undefined' && arg1 instanceof DataView) {
       // constructor (data: DataView);
-      this.data = new buffer_core_arraybuffer.BufferCoreArrayBuffer(<DataView> arg1);
+      this.data = new BufferCoreArrayBuffer(<DataView> arg1);
       this.length = arg1.byteLength;
     } else if (typeof ArrayBuffer !== 'undefined' && typeof arg1.byteLength === 'number') {
       // constructor (data: ArrayBuffer);
       // Note: Can't do 'instanceof ArrayBuffer' in Safari in some cases. :|
-      this.data = new buffer_core_arraybuffer.BufferCoreArrayBuffer(<ArrayBuffer> arg1);
+      this.data = new BufferCoreArrayBuffer(<ArrayBuffer> arg1);
       this.length = arg1.byteLength;
     } else if (arg1 instanceof Buffer) {
       // constructor (data: Buffer);
@@ -323,7 +323,7 @@ export class Buffer implements BFSBuffer {
     if (offset > this.length || offset < 0) {
       throw new RangeError("Invalid offset.");
     }
-    var strUtil = string_util.FindUtil(encoding);
+    var strUtil = FindUtil(encoding);
     // Are we trying to write past the buffer?
     length = length + offset > this.length ? this.length - offset : length;
     offset += this.offset;
@@ -350,7 +350,7 @@ export class Buffer implements BFSBuffer {
     if (end > this.length) {
       end = this.length;
     }
-    var strUtil = string_util.FindUtil(encoding);
+    var strUtil = FindUtil(encoding);
     // Get the string representation of the given slice. Create a new buffer
     // if need be.
     return strUtil.byte2str(start === 0 && end === this.length ? this : new Buffer(this.data, start + this.offset, end + this.offset));
@@ -393,7 +393,7 @@ export class Buffer implements BFSBuffer {
    */
   public toArrayBuffer(): ArrayBuffer {
     var buffCore = this.getBufferCore();
-    if (buffCore instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer) {
+    if (buffCore instanceof BufferCoreArrayBuffer) {
       var dv = buffCore.getDataView(),
         ab = dv.buffer;
       // Ensure 1-1 mapping from AB to Buffer.
@@ -407,6 +407,28 @@ export class Buffer implements BFSBuffer {
         newBuff = new Buffer(ab);
       this.copy(newBuff, 0, 0, this.length);
       return ab;
+    }
+  }
+  
+  /**
+   * Converts the buffer into a Uint8Array. Will attempt to use an underlying
+   * ArrayBuffer, but will need to copy the data if the Buffer is not backed
+   * by an ArrayBuffer.
+   */
+  public toUint8Array(): Uint8Array {
+    var buffCore = this.getBufferCore();
+    if (buffCore instanceof BufferCoreArrayBuffer) {
+      var dv = buffCore.getDataView(),
+        ab = dv.buffer,
+        offset = this.offset + dv.byteOffset,
+        length = this.length;
+      
+      return new Uint8Array(ab).subarray(offset, offset + length);
+    } else {
+      var ab = new ArrayBuffer(this.length),
+        newBuff = new Buffer(ab);
+      this.copy(newBuff, 0, 0, this.length);
+      return new Uint8Array(ab);
     }
   }
 
@@ -1160,7 +1182,7 @@ export class Buffer implements BFSBuffer {
    */
   public static isEncoding(enc: string): boolean {
     try {
-      string_util.FindUtil(enc);
+      FindUtil(enc);
     } catch (e) {
       return false;
     }
@@ -1209,12 +1231,12 @@ export class Buffer implements BFSBuffer {
    * @return {number} The number of bytes in the string
    */
   public static byteLength(str: string, encoding: string = 'utf8'): number {
-    var strUtil: string_util.StringUtil;
+    var strUtil: StringUtil;
     try {
-      strUtil = string_util.FindUtil(encoding);
+      strUtil = FindUtil(encoding);
     } catch (e) {
       // Default to UTF8.
-      strUtil = string_util.FindUtil('utf8');
+      strUtil = FindUtil('utf8');
     }
     if (typeof(str) !== 'string') {
       str = "" + str;

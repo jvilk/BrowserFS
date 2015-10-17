@@ -1,15 +1,11 @@
 import file = require('./file');
-import api_error = require('./api_error');
+import {ApiError, ErrorCode} from './api_error';
 import file_system = require('./file_system');
-import file_flag = require('./file_flag');
-import buffer = require('./buffer');
+import {FileFlag} from './file_flag';
+import {Buffer} from './buffer';
 import path = require('./node_path');
-import node_fs_stats = require('./node_fs_stats');
+import {Stats} from './node_fs_stats';
 
-import ApiError = api_error.ApiError;
-import ErrorCode = api_error.ErrorCode;
-import FileFlag = file_flag.FileFlag;
-import Buffer = buffer.Buffer;
 
 declare var __numWaiting: number;
 declare var setImmediate: (cb: Function) => void;
@@ -185,8 +181,8 @@ class fs {
    * @param [String] newPath
    * @param [Function(BrowserFS.ApiError)] callback
    */
-  public static rename(oldPath: string, newPath: string, cb: (err?: api_error.ApiError) => void = nopCb): void {
-    var newCb = <(err?: api_error.ApiError) => void> wrapCb(cb, 1);
+  public static rename(oldPath: string, newPath: string, cb: (err?: ApiError) => void = nopCb): void {
+    var newCb = <(err?: ApiError) => void> wrapCb(cb, 1);
     try {
       fs.root.rename(normalizePath(oldPath), normalizePath(newPath), newCb);
     } catch (e) {
@@ -244,8 +240,8 @@ class fs {
    * @param [String] path
    * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] callback
    */
-  public static stat(path: string, cb: (err: api_error.ApiError, stats?: node_fs_stats.Stats) => any = nopCb): void {
-    var newCb = <(err: api_error.ApiError, stats?: node_fs_stats.Stats) => any> wrapCb(cb, 2);
+  public static stat(path: string, cb: (err: ApiError, stats?: Stats) => any = nopCb): void {
+    var newCb = <(err: ApiError, stats?: Stats) => any> wrapCb(cb, 2);
     try {
       return fs.root.stat(normalizePath(path), false, newCb);
     } catch (e) {
@@ -258,7 +254,7 @@ class fs {
    * @param [String] path
    * @return [BrowserFS.node.fs.Stats]
    */
-  public static statSync(path: string): node_fs_stats.Stats {
+  public static statSync(path: string): Stats {
     return fs.root.statSync(normalizePath(path), false);
   }
 
@@ -269,8 +265,8 @@ class fs {
    * @param [String] path
    * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] callback
    */
-  public static lstat(path: string, cb: (err: api_error.ApiError, stats?: node_fs_stats.Stats) => any = nopCb): void {
-    var newCb = <(err: api_error.ApiError, stats?: node_fs_stats.Stats) => any> wrapCb(cb, 2);
+  public static lstat(path: string, cb: (err: ApiError, stats?: Stats) => any = nopCb): void {
+    var newCb = <(err: ApiError, stats?: Stats) => any> wrapCb(cb, 2);
     try {
       return fs.root.stat(normalizePath(path), true, newCb);
     } catch (e) {
@@ -285,7 +281,7 @@ class fs {
    * @param [String] path
    * @return [BrowserFS.node.fs.Stats]
    */
-  public static lstatSync(path: string): node_fs_stats.Stats {
+  public static lstatSync(path: string): Stats {
     return fs.root.statSync(normalizePath(path), true);
   }
 
@@ -377,13 +373,13 @@ class fs {
    * @param [Number?] mode defaults to `0644`
    * @param [Function(BrowserFS.ApiError, BrowserFS.File)] callback
    */
-  public static open(path: string, flag: string, cb?: (err: api_error.ApiError, fd?: file.File) => any): void;
-  public static open(path: string, flag: string, mode: string, cb?: (err: api_error.ApiError, fd?: file.File) => any): void;
-  public static open(path: string, flag: string, mode: number, cb?: (err: api_error.ApiError, fd?: file.File) => any): void;
-  public static open(path: string, flag: string, arg2?: any, cb: (err: api_error.ApiError, fd?: file.File) => any = nopCb): void {
+  public static open(path: string, flag: string, cb?: (err: ApiError, fd?: file.File) => any): void;
+  public static open(path: string, flag: string, mode: string, cb?: (err: ApiError, fd?: file.File) => any): void;
+  public static open(path: string, flag: string, mode: number, cb?: (err: ApiError, fd?: file.File) => any): void;
+  public static open(path: string, flag: string, arg2?: any, cb: (err: ApiError, fd?: file.File) => any = nopCb): void {
     var mode = normalizeMode(arg2, 0x1a4);
     cb = typeof arg2 === 'function' ? arg2 : cb;
-    var newCb = <(err: api_error.ApiError, fd?: file.File) => any> wrapCb(cb, 2);
+    var newCb = <(err: ApiError, fd?: file.File) => any> wrapCb(cb, 2);
     try {
       return fs.root.open(normalizePath(path), FileFlag.getFileFlag(flag), mode, newCb);
     } catch (e) {
@@ -418,13 +414,13 @@ class fs {
    * @option options [String] flag Defaults to `'r'`.
    * @param [Function(BrowserFS.ApiError, String | BrowserFS.node.Buffer)] callback If no encoding is specified, then the raw buffer is returned.
    */
-  public static readFile(filename: string, cb?: (err: api_error.ApiError, data?: any) => void ): void;
-  public static readFile(filename: string, options: {[opt: string]: any}, cb?: (err: api_error.ApiError, data?: any) => void ): void;
-  public static readFile(filename: string, encoding: string, cb?: (err: api_error.ApiError, data?: any) => void ): void;
-  public static readFile(filename: string, arg2: any = {}, cb: (err: api_error.ApiError, data?: any) => void = nopCb ) {
+  public static readFile(filename: string, cb?: (err: ApiError, data?: any) => void ): void;
+  public static readFile(filename: string, options: {[opt: string]: any}, cb?: (err: ApiError, data?: any) => void ): void;
+  public static readFile(filename: string, encoding: string, cb?: (err: ApiError, data?: any) => void ): void;
+  public static readFile(filename: string, arg2: any = {}, cb: (err: ApiError, data?: any) => void = nopCb ) {
     var options = normalizeOptions(arg2, null, 'r', null);
     cb = typeof arg2 === 'function' ? arg2 : cb;
-    var newCb = <(err: api_error.ApiError, data?: any) => void> wrapCb(cb, 2);
+    var newCb = <(err: ApiError, data?: any) => void> wrapCb(cb, 2);
     try {
       var flag = FileFlag.getFileFlag(options['flag']);
       if (!flag.isReadable()) {
@@ -474,13 +470,13 @@ class fs {
    * @option options [String] flag Defaults to `'w'`.
    * @param [Function(BrowserFS.ApiError)] callback
    */
-  public static writeFile(filename: string, data: any, cb?: (err?: api_error.ApiError) => void): void;
-  public static writeFile(filename: string, data: any, encoding?: string, cb?: (err?: api_error.ApiError) => void): void;
-  public static writeFile(filename: string, data: any, options?: Object, cb?: (err?: api_error.ApiError) => void): void;
-  public static writeFile(filename: string, data: any, arg3: any = {}, cb: (err?: api_error.ApiError) => void = nopCb): void {
+  public static writeFile(filename: string, data: any, cb?: (err?: ApiError) => void): void;
+  public static writeFile(filename: string, data: any, encoding?: string, cb?: (err?: ApiError) => void): void;
+  public static writeFile(filename: string, data: any, options?: Object, cb?: (err?: ApiError) => void): void;
+  public static writeFile(filename: string, data: any, arg3: any = {}, cb: (err?: ApiError) => void = nopCb): void {
     var options = normalizeOptions(arg3, 'utf8', 'w', 0x1a4);
     cb = typeof arg3 === 'function' ? arg3 : cb;
-    var newCb = <(err?: api_error.ApiError) => void> wrapCb(cb, 1);
+    var newCb = <(err?: ApiError) => void> wrapCb(cb, 1);
     try {
       var flag = FileFlag.getFileFlag(options.flag);
       if (!flag.isWriteable()) {
@@ -532,13 +528,13 @@ class fs {
    * @option options [String] flag Defaults to `'a'`.
    * @param [Function(BrowserFS.ApiError)] callback
    */
-  public static appendFile(filename: string, data: any, cb?: (err: api_error.ApiError) => void): void;
-  public static appendFile(filename: string, data: any, options?: Object, cb?: (err: api_error.ApiError) => void): void;
-  public static appendFile(filename: string, data: any, encoding?: string, cb?: (err: api_error.ApiError) => void): void;
-  public static appendFile(filename: string, data: any, arg3?: any, cb: (err: api_error.ApiError) => void = nopCb): void {
+  public static appendFile(filename: string, data: any, cb?: (err: ApiError) => void): void;
+  public static appendFile(filename: string, data: any, options?: Object, cb?: (err: ApiError) => void): void;
+  public static appendFile(filename: string, data: any, encoding?: string, cb?: (err: ApiError) => void): void;
+  public static appendFile(filename: string, data: any, arg3?: any, cb: (err: ApiError) => void = nopCb): void {
     var options = normalizeOptions(arg3, 'utf8', 'a', 0x1a4);
     cb = typeof arg3 === 'function' ? arg3 : cb;
-    var newCb = <(err: api_error.ApiError) => void> wrapCb(cb, 1);
+    var newCb = <(err: ApiError) => void> wrapCb(cb, 1);
     try {
       var flag = FileFlag.getFileFlag(options.flag);
       if (!flag.isAppendable()) {
@@ -586,8 +582,8 @@ class fs {
    * @param [BrowserFS.File] fd
    * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] callback
    */
-  public static fstat(fd: file.File, cb: (err: api_error.ApiError, stats?: node_fs_stats.Stats) => any = nopCb): void {
-    var newCb = <(err: api_error.ApiError, stats?: node_fs_stats.Stats) => any> wrapCb(cb, 2);
+  public static fstat(fd: file.File, cb: (err: ApiError, stats?: Stats) => any = nopCb): void {
+    var newCb = <(err: ApiError, stats?: Stats) => any> wrapCb(cb, 2);
     try {
       checkFd(fd);
       fd.stat(newCb);
@@ -603,7 +599,7 @@ class fs {
    * @param [BrowserFS.File] fd
    * @return [BrowserFS.node.fs.Stats]
    */
-  public static fstatSync(fd: file.File): node_fs_stats.Stats {
+  public static fstatSync(fd: file.File): Stats {
     checkFd(fd);
     return fd.statSync();
   }
@@ -728,12 +724,12 @@ class fs {
    * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
    *   callback The number specifies the number of bytes written into the file.
    */
-  public static write(fd: file.File, buffer: NodeBuffer, offset: number, length: number, cb?: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
-  public static write(fd: file.File, buffer: NodeBuffer, offset: number, length: number, position?: number, cb?: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
-  public static write(fd: file.File, data: string, cb?: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
-  public static write(fd: file.File, data: string, position: number, cb?: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
-  public static write(fd: file.File, data: string, position: number, encoding: string, cb?: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any): void;
-  public static write(fd: file.File, arg2: any, arg3?: any, arg4?: any, arg5?: any, cb: (err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any = nopCb): void {
+  public static write(fd: file.File, buffer: NodeBuffer, offset: number, length: number, cb?: (err: ApiError, written?: number, buffer?: NodeBuffer) => any): void;
+  public static write(fd: file.File, buffer: NodeBuffer, offset: number, length: number, position?: number, cb?: (err: ApiError, written?: number, buffer?: NodeBuffer) => any): void;
+  public static write(fd: file.File, data: string, cb?: (err: ApiError, written?: number, buffer?: NodeBuffer) => any): void;
+  public static write(fd: file.File, data: string, position: number, cb?: (err: ApiError, written?: number, buffer?: NodeBuffer) => any): void;
+  public static write(fd: file.File, data: string, position: number, encoding: string, cb?: (err: ApiError, written?: number, buffer?: NodeBuffer) => any): void;
+  public static write(fd: file.File, arg2: any, arg3?: any, arg4?: any, arg5?: any, cb: (err: ApiError, written?: number, buffer?: NodeBuffer) => any = nopCb): void {
     var buffer: NodeBuffer, offset: number, length: number, position: number = null;
     if (typeof arg2 === 'string') {
       // Signature 1: (fd, string, [position?, [encoding?]], cb?)
@@ -766,7 +762,7 @@ class fs {
       cb = typeof arg5 === 'function' ? arg5 : cb;
     }
 
-    var newCb = <(err: api_error.ApiError, written?: number, buffer?: NodeBuffer) => any> wrapCb(cb, 3);
+    var newCb = <(err: ApiError, written?: number, buffer?: NodeBuffer) => any> wrapCb(cb, 3);
     try {
       checkFd(fd);
       if (position == null) {
@@ -832,10 +828,10 @@ class fs {
    * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
    *   callback The number is the number of bytes read
    */
-  public static read(fd: file.File, length: number, position: number, encoding: string, cb?: (err: api_error.ApiError, data?: string, bytesRead?: number) => void): void;
-  public static read(fd: file.File, buffer: NodeBuffer, offset: number, length: number, position: number, cb?: (err: api_error.ApiError, bytesRead?: number, buffer?: NodeBuffer) => void): void;
-  public static read(fd: file.File, arg2: any, arg3: any, arg4: any, arg5?: any, cb: (err: api_error.ApiError, arg2?: any, arg3?: any) => void = nopCb): void {
-    var position: number, offset: number, length: number, buffer: NodeBuffer, newCb: (err: api_error.ApiError, bytesRead?: number, buffer?: NodeBuffer) => void;
+  public static read(fd: file.File, length: number, position: number, encoding: string, cb?: (err: ApiError, data?: string, bytesRead?: number) => void): void;
+  public static read(fd: file.File, buffer: NodeBuffer, offset: number, length: number, position: number, cb?: (err: ApiError, bytesRead?: number, buffer?: NodeBuffer) => void): void;
+  public static read(fd: file.File, arg2: any, arg3: any, arg4: any, arg5?: any, cb: (err: ApiError, arg2?: any, arg3?: any) => void = nopCb): void {
+    var position: number, offset: number, length: number, buffer: NodeBuffer, newCb: (err: ApiError, bytesRead?: number, buffer?: NodeBuffer) => void;
     if (typeof arg2 === 'number') {
       // legacy interface
       // (fd, length, position, encoding, callback)
@@ -848,7 +844,7 @@ class fs {
       // XXX: Inefficient.
       // Wrap the cb so we shelter upper layers of the API from these
       // shenanigans.
-      newCb = <(err: api_error.ApiError, bytesRead?: number, buffer?: NodeBuffer) => void> wrapCb((function(err: any, bytesRead: number, buf: Buffer) {
+      newCb = <(err: ApiError, bytesRead?: number, buffer?: NodeBuffer) => void> wrapCb((function(err: any, bytesRead: number, buf: Buffer) {
         if (err) {
           return cb(err);
         }
@@ -859,7 +855,7 @@ class fs {
       offset = arg3;
       length = arg4;
       position = arg5;
-      newCb = <(err: api_error.ApiError, bytesRead?: number, buffer?: NodeBuffer) => void> wrapCb(cb, 3);
+      newCb = <(err: ApiError, bytesRead?: number, buffer?: NodeBuffer) => void> wrapCb(cb, 3);
     }
 
     try {
@@ -1089,8 +1085,8 @@ class fs {
    * @param [String] path
    * @param [Function(BrowserFS.ApiError, String[])] callback
    */
-  public static readdir(path: string, cb: (err: api_error.ApiError, files?: string[]) => void = nopCb): void {
-    var newCb = <(err: api_error.ApiError, files?: string[]) => void> wrapCb(cb, 2);
+  public static readdir(path: string, cb: (err: ApiError, files?: string[]) => void = nopCb): void {
+    var newCb = <(err: ApiError, files?: string[]) => void> wrapCb(cb, 2);
     try {
       path = normalizePath(path);
       fs.root.readdir(path, newCb);
@@ -1186,7 +1182,7 @@ class fs {
    * @param [String] path
    * @param [Function(BrowserFS.ApiError, String)] callback
    */
-  public static readlink(path: string, cb: (err: api_error.ApiError, linkString: string) => any = nopCb): void {
+  public static readlink(path: string, cb: (err: ApiError, linkString: string) => any = nopCb): void {
     var newCb = wrapCb(cb, 2);
     try {
       path = normalizePath(path);
@@ -1389,12 +1385,12 @@ class fs {
    *   known real paths.
    * @param [Function(BrowserFS.ApiError, String)] callback
    */
-  public static realpath(path: string, cb?: (err: api_error.ApiError, resolvedPath?: string) =>any): void;
-  public static realpath(path: string, cache: {[path: string]: string}, cb: (err: api_error.ApiError, resolvedPath?: string) =>any): void;
-  public static realpath(path: string, arg2?: any, cb: (err: api_error.ApiError, resolvedPath?: string) =>any = nopCb): void {
+  public static realpath(path: string, cb?: (err: ApiError, resolvedPath?: string) =>any): void;
+  public static realpath(path: string, cache: {[path: string]: string}, cb: (err: ApiError, resolvedPath?: string) =>any): void;
+  public static realpath(path: string, arg2?: any, cb: (err: ApiError, resolvedPath?: string) =>any = nopCb): void {
     var cache = typeof arg2 === 'object' ? arg2 : {};
     cb = typeof arg2 === 'function' ? arg2 : nopCb;
-    var newCb = <(err: api_error.ApiError, resolvedPath?: string) =>any> wrapCb(cb, 2);
+    var newCb = <(err: ApiError, resolvedPath?: string) =>any> wrapCb(cb, 2);
     try {
       path = normalizePath(path);
       fs.root.realpath(path, cache, newCb);

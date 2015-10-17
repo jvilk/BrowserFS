@@ -1,7 +1,5 @@
-import node_fs_stats = require('../core/node_fs_stats');
+import {Stats, FileType} from '../core/node_fs_stats';
 import path = require('../core/node_path');
-
-var Stats = node_fs_stats.Stats;
 
 /**
  * A simple class for storing a filesystem index. Assumes that all paths passed
@@ -37,14 +35,14 @@ export class FileIndex {
   /**
    * Runs the given function over all files in the index.
    */
-  public fileIterator(cb: (file: node_fs_stats.Stats) => void): void {
+  public fileIterator<T>(cb: (file: T) => void): void {
     for (var path in this._index) {
       var dir = this._index[path];
       var files = dir.getListing();
       for (var i = 0; i < files.length; i++) {
         var item = dir.getItem(files[i]);
-        if (item.isFile()) {
-          cb((<FileInode<node_fs_stats.Stats>> item).getData());
+        if (isFileInode<T>(item)) {
+          cb(item.getData());
         }
       }
     }
@@ -94,8 +92,8 @@ export class FileIndex {
       }
     }
     // If I'm a directory, add myself to the index.
-    if (!inode.isFile()) {
-      this._index[path] = <DirInode> inode;
+    if (isDirInode(inode)) {
+      this._index[path] = inode;
     }
     return true;
   }
@@ -121,9 +119,8 @@ export class FileIndex {
       return null;
     }
     // If I'm a directory, remove myself from the index, and remove my children.
-    if (!inode.isFile()) {
-      var dirInode = <DirInode> inode;
-      var children = dirInode.getListing();
+    if (isDirInode(inode)) {
+      var children = inode.getListing();
       for (var i = 0; i < children.length; i++) {
         this.removePath(path + '/' + children[i]);
       }
@@ -196,7 +193,7 @@ export class FileIndex {
           queue.push([name, children, inode]);
         } else {
           // This inode doesn't have correct size information, noted with -1.
-          inode = new FileInode<node_fs_stats.Stats>(new Stats(node_fs_stats.FileType.FILE, -1, 0x16D));
+          inode = new FileInode<Stats>(new Stats(FileType.FILE, -1, 0x16D));
         }
         if (parent != null) {
           parent._ls[node] = inode;
@@ -251,8 +248,8 @@ export class DirInode implements Inode {
    *       responsibility of the FileIndex.
    * @return [BrowserFS.node.fs.Stats]
    */
-  public getStats(): node_fs_stats.Stats {
-    return new Stats(node_fs_stats.FileType.DIRECTORY, 4096, 0x16D);
+  public getStats(): Stats {
+    return new Stats(FileType.DIRECTORY, 4096, 0x16D);
   }
   /**
    * Returns the directory listing for this directory. Paths in the directory are
@@ -300,4 +297,12 @@ export class DirInode implements Inode {
     delete this._ls[p];
     return item;
   }
+}
+
+export function isFileInode<T>(inode: Inode): inode is FileInode<T> {
+  return inode && inode.isFile();
+}
+
+export function isDirInode(inode: Inode): inode is DirInode {
+  return inode && inode.isDir();
 }

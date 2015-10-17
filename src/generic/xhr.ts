@@ -4,12 +4,8 @@
  */
 
 import util = require('../core/util');
-import buffer = require('../core/buffer');
-import api_error = require('../core/api_error');
-
-var ApiError = api_error.ApiError;
-var ErrorCode = api_error.ErrorCode;
-var Buffer = buffer.Buffer;
+import {Buffer} from '../core/buffer';
+import {ApiError, ErrorCode} from '../core/api_error';
 
 // See core/polyfills for the VBScript definition of these functions.
 declare var IEBinaryToArray_ByteStr: (vbarr: any) => string;
@@ -30,7 +26,7 @@ function getIEByteArray(IEByteArray: any): number[] {
   return data_array;
 }
 
-function downloadFileIE(async: boolean, p: string, type: string, cb: (err: api_error.ApiError, data?: any) => void): void {
+function downloadFileIE(async: boolean, p: string, type: string, cb: (err: ApiError, data?: any) => void): void {
   switch(type) {
     case 'buffer':
       // Fallthrough
@@ -62,10 +58,10 @@ function downloadFileIE(async: boolean, p: string, type: string, cb: (err: api_e
   req.send();
 }
 
-function asyncDownloadFileIE(p: string, type: 'buffer', cb: (err: api_error.ApiError, data?: NodeBuffer) => void): void;
-function asyncDownloadFileIE(p: string, type: 'json', cb: (err: api_error.ApiError, data?: any) => void): void;
-function asyncDownloadFileIE(p: string, type: string, cb: (err: api_error.ApiError, data?: any) => void): void;
-function asyncDownloadFileIE(p: string, type: string, cb: (err: api_error.ApiError, data?: any) => void): void {
+function asyncDownloadFileIE(p: string, type: 'buffer', cb: (err: ApiError, data?: NodeBuffer) => void): void;
+function asyncDownloadFileIE(p: string, type: 'json', cb: (err: ApiError, data?: any) => void): void;
+function asyncDownloadFileIE(p: string, type: string, cb: (err: ApiError, data?: any) => void): void;
+function asyncDownloadFileIE(p: string, type: string, cb: (err: ApiError, data?: any) => void): void {
   downloadFileIE(true, p, type, cb);
 }
 
@@ -74,17 +70,17 @@ function syncDownloadFileIE(p: string, type: 'json'): any;
 function syncDownloadFileIE(p: string, type: string): any;
 function syncDownloadFileIE(p: string, type: string): any {
   var rv;
-  downloadFileIE(false, p, type, function(err: api_error.ApiError, data?: any) {
+  downloadFileIE(false, p, type, function(err: ApiError, data?: any) {
     if (err) throw err;
     rv = data;
   });
   return rv;
 }
 
-function asyncDownloadFileModern(p: string, type: 'buffer', cb: (err: api_error.ApiError, data?: NodeBuffer) => void): void;
-function asyncDownloadFileModern(p: string, type: 'json', cb: (err: api_error.ApiError, data?: any) => void): void;
-function asyncDownloadFileModern(p: string, type: string, cb: (err: api_error.ApiError, data?: any) => void): void;
-function asyncDownloadFileModern(p: string, type: string, cb: (err: api_error.ApiError, data?: any) => void): void {
+function asyncDownloadFileModern(p: string, type: 'buffer', cb: (err: ApiError, data?: NodeBuffer) => void): void;
+function asyncDownloadFileModern(p: string, type: 'json', cb: (err: ApiError, data?: any) => void): void;
+function asyncDownloadFileModern(p: string, type: string, cb: (err: ApiError, data?: any) => void): void;
+function asyncDownloadFileModern(p: string, type: string, cb: (err: ApiError, data?: any) => void): void {
   var req = new XMLHttpRequest();
   req.open('GET', p, true);
   var jsonSupported = true;
@@ -218,7 +214,7 @@ function syncDownloadFileIE10(p: string, type: string): any {
   return data;
 }
 
-function getFileSize(async: boolean, p: string, cb: (err: api_error.ApiError, size?: number) => void): void {
+function getFileSize(async: boolean, p: string, cb: (err: ApiError, size?: number) => void): void {
   var req = new XMLHttpRequest();
   req.open('HEAD', p, async);
   req.onreadystatechange = function(e) {
@@ -245,9 +241,9 @@ function getFileSize(async: boolean, p: string, cb: (err: api_error.ApiError, si
  * constants.
  */
 export var asyncDownloadFile: {
-  (p: string, type: 'buffer', cb: (err: api_error.ApiError, data?: NodeBuffer) => void): void;
-  (p: string, type: 'json', cb: (err: api_error.ApiError, data?: any) => void): void;
-  (p: string, type: string, cb: (err: api_error.ApiError, data?: any) => void): void;
+  (p: string, type: 'buffer', cb: (err: ApiError, data?: NodeBuffer) => void): void;
+  (p: string, type: 'json', cb: (err: ApiError, data?: any) => void): void;
+  (p: string, type: string, cb: (err: ApiError, data?: any) => void): void;
 } = (util.isIE && typeof Blob === 'undefined') ? asyncDownloadFileIE : asyncDownloadFileModern;
 
 /**
@@ -267,7 +263,7 @@ export var syncDownloadFile: {
  */
 export function getFileSizeSync(p: string): number {
   var rv: number;
-  getFileSize(false, p, function(err: api_error.ApiError, size?: number) {
+  getFileSize(false, p, function(err: ApiError, size?: number) {
     if (err) {
       throw err;
     }
@@ -279,6 +275,6 @@ export function getFileSizeSync(p: string): number {
 /**
  * Asynchronously retrieves the size of the given file in bytes.
  */
-export function getFileSizeAsync(p: string, cb: (err: api_error.ApiError, size?: number) => void): void {
+export function getFileSizeAsync(p: string, cb: (err: ApiError, size?: number) => void): void {
   getFileSize(true, p, cb);
 }
