@@ -339,7 +339,11 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
 
   public open(p: string, flags: file_flag.FileFlag, mode: number, cb: (err: ApiError, fd?: file.File) => any): void {
     var error = (err: DOMError): void => {
-      cb(this.convert(err, p, false));
+      if (err.name === 'InvalidModificationError' && flags.isExclusive()) {
+        cb(ApiError.EEXIST(p));
+      } else {
+        cb(this.convert(err, p, false));
+      }
     };
     
     this.fs.root.getFile(p, {
