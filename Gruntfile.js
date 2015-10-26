@@ -79,7 +79,7 @@ var karmaConfig = {
         // Our tests have some global state (e.g. # of pending callbacks). Once those get messed up by a failing test,
         // subsequent tests are likely to fail.
         bail: true
-      } 
+      }
     }
   };
 
@@ -134,20 +134,11 @@ function getBackends() {
   var rv = [];
   fs.readdirSync('src/backend').forEach(function (backend) {
     if (backend.slice(-3) === '.ts') {
-      // Don't use path.join; R.JS uses Unix slashes.
       // Trim the .ts extension.
-      rv.push('backend/' + backend.slice(0, -3));
+      rv.push(backend.slice(0, -3));
     }
   });
   return rv;
-}
-
-/**
- * Returns an array of essential modules that need to be loaded when BFS
- * loads.
- */
-function getEssentialModules() {
-  return ['core/browserfs', 'generic/emscripten_fs'].concat(getBackends());
 }
 
 // Removes a file if it exists.
@@ -441,16 +432,14 @@ module.exports = function(grunt) {
     removeDir('./dist');
   });
 
-  grunt.registerTask('main.ts', 'Construct main.ts to include all backends and polyfills', function() {
-    var modules = getEssentialModules(),
-      bfsModule = modules.shift(),
+  grunt.registerTask('backends.ts', 'Construct backends.ts to include all backends', function() {
+    var backends = getBackends(),
       main = [];
-    main.push(fs.readFileSync('src/main.tstemplate'));
-    modules.forEach(function(mod) {
-      main.push("require('./" + mod + "');");
+    backends.forEach(function(backendName) {
+      main.push("import " + backendName + " from '../backend/" + backendName + "';");
     });
-    main.push("import bfs = require('./" + bfsModule + "');\nexport = bfs;");
-    fs.writeFileSync('src/main.ts', main.join('\n'));
+    main.push("export {" + backends.join(", ") + "};\n");
+    fs.writeFileSync('src/core/backends.ts', main.join('\n'));
   });
 
   grunt.registerTask('run.ts', 'Construct run.ts to include all tests and factories.', function() {
@@ -509,7 +498,7 @@ module.exports = function(grunt) {
     grunt.file.write('coverage/coverage-combined.json', JSON.stringify(newCoverageInfo));
   });
 
-  var testCommon = ['tsd:browserfs', 'main.ts', 'run.ts', 'browserify:workerfs_worker', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect'];
+  var testCommon = ['tsd:browserfs', 'backends.ts', 'run.ts', 'browserify:workerfs_worker', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect'];
   if (dropboxEnabled) {
     testCommon.push('shell:gen_cert', 'shell:gen_token');
   }
@@ -523,9 +512,9 @@ module.exports = function(grunt) {
   // coverage
   grunt.registerTask('coverage', testCommon.concat('browserify:test', 'adjust_test_bundle', 'karma-sequence:coverage', 'remapIstanbul', 'adjust_coverage_json', 'makeReport'));
   // dev build + watch for changes.
-  grunt.registerTask('watch', ['tsd:browserfs', 'main.ts', 'browserify:watch']);
+  grunt.registerTask('watch', ['tsd:browserfs', 'backends.ts', 'browserify:watch']);
   // dev build
-  grunt.registerTask('dev', ['tsd:browserfs', 'main.ts', 'browserify:browserfs', 'exorcise', 'ts']);
+  grunt.registerTask('dev', ['tsd:browserfs', 'backends.ts', 'browserify:browserfs', 'exorcise', 'ts']);
   // release build (default)
   grunt.registerTask('default', ['dev', 'uglify']);
   // dist

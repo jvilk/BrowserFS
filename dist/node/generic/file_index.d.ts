@@ -1,14 +1,14 @@
-import node_fs_stats = require('../core/node_fs_stats');
+import { Stats } from '../core/node_fs_stats';
 export declare class FileIndex {
     private _index;
     constructor();
     private _split_path(p);
-    fileIterator(cb: (file: node_fs_stats.Stats) => void): void;
+    fileIterator<T>(cb: (file: T) => void): void;
     addPath(path: string, inode: Inode): boolean;
     removePath(path: string): Inode;
     ls(path: string): string[];
     getInode(path: string): Inode;
-    static from_listing(listing: any): FileIndex;
+    static fromListing(listing: any): FileIndex;
 }
 export interface Inode {
     isFile(): boolean;
@@ -27,9 +27,11 @@ export declare class DirInode implements Inode {
     constructor();
     isFile(): boolean;
     isDir(): boolean;
-    getStats(): node_fs_stats.Stats;
+    getStats(): Stats;
     getListing(): string[];
     getItem(p: string): Inode;
     addItem(p: string, inode: Inode): boolean;
     remItem(p: string): Inode;
 }
+export declare function isFileInode<T>(inode: Inode): inode is FileInode<T>;
+export declare function isDirInode(inode: Inode): inode is DirInode;

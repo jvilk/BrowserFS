@@ -1,5 +1,4 @@
-var buffer = require('./buffer');
-var Buffer = buffer.Buffer;
+var buffer_1 = require('./buffer');
 (function (FileType) {
     FileType[FileType["FILE"] = 32768] = "FILE";
     FileType[FileType["DIRECTORY"] = 16384] = "DIRECTORY";
@@ -41,7 +40,7 @@ var Stats = (function () {
         }
     }
     Stats.prototype.toBuffer = function () {
-        var buffer = new Buffer(32);
+        var buffer = new buffer_1.Buffer(32);
         buffer.writeUInt32LE(this.size, 0);
         buffer.writeUInt32LE(this.mode, 4);
         buffer.writeDoubleLE(this.atime.getTime(), 8);

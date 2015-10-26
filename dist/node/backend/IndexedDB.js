@@ -4,12 +4,11 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 var buffer = require('../core/buffer');
-var browserfs = require('../core/browserfs');
 var kvfs = require('../generic/key_value_filesystem');
-var api_error = require('../core/api_error');
-var buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
+var api_error_1 = require('../core/api_error');
 var global = require('../core/global');
-var Buffer = buffer.Buffer, ApiError = api_error.ApiError, ErrorCode = api_error.ErrorCode, indexedDB = global.indexedDB ||
+var Buffer = buffer.Buffer;
+indexedDB: IDBFactory = global.indexedDB ||
     global.mozIndexedDB ||
     global.webkitIndexedDB ||
     global.msIndexedDB;
@@ -17,30 +16,20 @@ function convertError(e, message) {
     if (message === void 0) { message = e.toString(); }
     switch (e.name) {
         case "NotFoundError":
-            return new ApiError(ErrorCode.ENOENT, message);
+            return new api_error_1.ApiError(api_error_1.ErrorCode.ENOENT, message);
         case "QuotaExceededError":
-            return new ApiError(ErrorCode.ENOSPC, message);
+            return new api_error_1.ApiError(api_error_1.ErrorCode.ENOSPC, message);
         default:
-            return new ApiError(ErrorCode.EIO, message);
+            return new api_error_1.ApiError(api_error_1.ErrorCode.EIO, message);
     }
 }
 function onErrorHandler(cb, code, message) {
-    if (code === void 0) { code = ErrorCode.EIO; }
+    if (code === void 0) { code = api_error_1.ErrorCode.EIO; }
     if (message === void 0) { message = null; }
     return function (e) {
         e.preventDefault();
-        cb(new ApiError(code, message));
+        cb(new api_error_1.ApiError(code, message));
     };
-}
-function buffer2arraybuffer(buffer) {
-    var backing_mem = buffer.getBufferCore();
-    if (!(backing_mem instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer)) {
-        buffer = new Buffer(this._buffer.length);
-        this._buffer.copy(buffer);
-        backing_mem = buffer.getBufferCore();
-    }
-    var dv = backing_mem.getDataView();
-    return dv.buffer;
 }
 var IndexedDBROTransaction = (function () {
     function IndexedDBROTransaction(tx, store) {
@@ -75,7 +64,7 @@ var IndexedDBRWTransaction = (function (_super) {
     }
     IndexedDBRWTransaction.prototype.put = function (key, data, overwrite, cb) {
         try {
-            var arraybuffer = buffer2arraybuffer(data), r;
+            var arraybuffer = data.toArrayBuffer(), r;
             if (overwrite) {
                 r = this.store.put(arraybuffer, key);
             }
@@ -138,7 +127,7 @@ var IndexedDBStore = (function () {
             _this.db = event.target.result;
             cb(null, _this);
         };
-        openReq.onerror = onErrorHandler(cb, ErrorCode.EACCES);
+        openReq.onerror = onErrorHandler(cb, api_error_1.ErrorCode.EACCES);
     }
     IndexedDBStore.prototype.name = function () {
         return "IndexedDB - " + this.storeName;
@@ -165,7 +154,7 @@ var IndexedDBStore = (function () {
             return new IndexedDBROTransaction(tx, objectStore);
         }
         else {
-            throw new ApiError(ErrorCode.EINVAL, 'Invalid transaction type.');
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, 'Invalid transaction type.');
         }
     };
     return IndexedDBStore;
@@ -197,6 +186,6 @@ var IndexedDBFileSystem = (function (_super) {
     };
     return IndexedDBFileSystem;
 })(kvfs.AsyncKeyValueFileSystem);
-exports.IndexedDBFileSystem = IndexedDBFileSystem;
-browserfs.registerFileSystem('IndexedDB', IndexedDBFileSystem);
+exports.__esModule = true;
+exports["default"] = IndexedDBFileSystem;
 //# sourceMappingURL=IndexedDB.js.map

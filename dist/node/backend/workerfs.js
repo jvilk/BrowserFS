@@ -4,23 +4,24 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 var file_system = require('../core/file_system');
-var buffer = require('../core/buffer');
-var api_error = require('../core/api_error');
+var buffer_1 = require('../core/buffer');
+var api_error_1 = require('../core/api_error');
 var file_flag = require('../core/file_flag');
 var file = require('../core/file');
 var node_fs_stats = require('../core/node_fs_stats');
 var preload_file = require('../generic/preload_file');
-var browserfs = require('../core/browserfs');
-var Buffer = buffer.Buffer;
+var global = require('../core/global');
+var fs = require('../core/node_fs');
 var SpecialArgType;
 (function (SpecialArgType) {
     SpecialArgType[SpecialArgType["CB"] = 0] = "CB";
     SpecialArgType[SpecialArgType["FD"] = 1] = "FD";
-    SpecialArgType[SpecialArgType["ERROR"] = 2] = "ERROR";
+    SpecialArgType[SpecialArgType["API_ERROR"] = 2] = "API_ERROR";
     SpecialArgType[SpecialArgType["STATS"] = 3] = "STATS";
     SpecialArgType[SpecialArgType["PROBE"] = 4] = "PROBE";
     SpecialArgType[SpecialArgType["FILEFLAG"] = 5] = "FILEFLAG";
     SpecialArgType[SpecialArgType["BUFFER"] = 6] = "BUFFER";
+    SpecialArgType[SpecialArgType["ERROR"] = 7] = "ERROR";
 })(SpecialArgType || (SpecialArgType = {}));
 var CallbackArgumentConverter = (function () {
     function CallbackArgumentConverter() {
@@ -57,7 +58,7 @@ var FileDescriptorArgumentConverter = (function () {
             else {
                 stat = bufferToTransferrableObject(stats.toBuffer());
                 if (flag.isReadable()) {
-                    fd.read(new Buffer(stats.size), 0, stats.size, 0, function (err, bytesRead, buff) {
+                    fd.read(new buffer_1.Buffer(stats.size), 0, stats.size, 0, function (err, bytesRead, buff) {
                         if (err) {
                             cb(err);
                         }
@@ -147,14 +148,31 @@ var FileDescriptorArgumentConverter = (function () {
     };
     return FileDescriptorArgumentConverter;
 })();
-function errorLocal2Remote(e) {
+function apiErrorLocal2Remote(e) {
     return {
-        type: SpecialArgType.ERROR,
+        type: SpecialArgType.API_ERROR,
         errorData: bufferToTransferrableObject(e.writeToBuffer())
     };
 }
+function apiErrorRemote2Local(e) {
+    return api_error_1.ApiError.fromBuffer(transferrableObjectToBuffer(e.errorData));
+}
+function errorLocal2Remote(e) {
+    return {
+        type: SpecialArgType.ERROR,
+        name: e.name,
+        message: e.message,
+        stack: e.stack
+    };
+}
 function errorRemote2Local(e) {
-    return api_error.ApiError.fromBuffer(transferrableObjectToBuffer(e.errorData));
+    var cnstr = global[e.name];
+    if (typeof (cnstr) !== 'function') {
+        cnstr = Error;
+    }
+    var err = new cnstr(e.message);
+    err.stack = e.stack;
+    return err;
 }
 function statsLocal2Remote(stats) {
     return {
@@ -178,7 +196,7 @@ function bufferToTransferrableObject(buff) {
     return buff.toArrayBuffer();
 }
 function transferrableObjectToBuffer(buff) {
-    return new Buffer(buff);
+    return new buffer_1.Buffer(buff);
 }
 function bufferLocal2Remote(buff) {
     return {
@@ -274,8 +292,8 @@ var WorkerFS = (function (_super) {
                 if (arg['type'] != null && typeof arg['type'] === 'number') {
                     var specialArg = arg;
                     switch (specialArg.type) {
-                        case SpecialArgType.ERROR:
-                            return errorRemote2Local(specialArg);
+                        case SpecialArgType.API_ERROR:
+                            return apiErrorRemote2Local(specialArg);
                         case SpecialArgType.FD:
                             var fdArg = specialArg;
                             return new WorkerFile(this, fdArg.path, file_flag.FileFlag.getFileFlag(fdArg.flag), node_fs_stats.Stats.fromBuffer(transferrableObjectToBuffer(fdArg.stat)), fdArg.id, transferrableObjectToBuffer(fdArg.data));
@@ -285,6 +303,8 @@ var WorkerFS = (function (_super) {
                             return fileFlagRemote2Local(specialArg);
                         case SpecialArgType.BUFFER:
                             return bufferRemote2Local(specialArg);
+                        case SpecialArgType.ERROR:
+                            return errorRemote2Local(specialArg);
                         default:
                             return arg;
                     }
@@ -305,8 +325,8 @@ var WorkerFS = (function (_super) {
                 if (arg instanceof node_fs_stats.Stats) {
                     return statsLocal2Remote(arg);
                 }
-                else if (arg instanceof api_error.ApiError) {
-                    return errorLocal2Remote(arg);
+                else if (arg instanceof api_error_1.ApiError) {
+                    return apiErrorLocal2Remote(arg);
                 }
                 else if (arg instanceof WorkerFile) {
                     return arg.toRemoteArg();
@@ -314,11 +334,14 @@ var WorkerFS = (function (_super) {
                 else if (arg instanceof file_flag.FileFlag) {
                     return fileFlagLocal2Remote(arg);
                 }
-                else if (arg instanceof Buffer) {
+                else if (arg instanceof buffer_1.Buffer) {
                     return bufferLocal2Remote(arg);
                 }
+                else if (arg instanceof Error) {
+                    return errorLocal2Remote(arg);
+                }
                 else {
-                    return arg;
+                    return "Unknown argument";
                 }
             case "function":
                 return this._callbackConverter.toRemoteArg(arg);
@@ -332,7 +355,7 @@ var WorkerFS = (function (_super) {
             var message = {
                 browserfsMessage: true,
                 method: 'probe',
-                args: [this._argLocal2Remote(new Buffer(0)), this._callbackConverter.toRemoteArg(function (probeResponse) {
+                args: [this._argLocal2Remote(new buffer_1.Buffer(0)), this._callbackConverter.toRemoteArg(function (probeResponse) {
                         _this._isInitialized = true;
                         _this._isReadOnly = probeResponse.isReadOnly;
                         _this._supportLinks = probeResponse.supportsLinks;
@@ -427,15 +450,15 @@ var WorkerFS = (function (_super) {
         });
     };
     WorkerFS.attachRemoteListener = function (worker) {
-        var fdConverter = new FileDescriptorArgumentConverter(), fs = browserfs.BFSRequire('fs');
+        var fdConverter = new FileDescriptorArgumentConverter();
         function argLocal2Remote(arg, requestArgs, cb) {
             switch (typeof arg) {
                 case 'object':
                     if (arg instanceof node_fs_stats.Stats) {
                         cb(null, statsLocal2Remote(arg));
                     }
-                    else if (arg instanceof api_error.ApiError) {
-                        cb(null, errorLocal2Remote(arg));
+                    else if (arg instanceof api_error_1.ApiError) {
+                        cb(null, apiErrorLocal2Remote(arg));
                     }
                     else if (arg instanceof file.BaseFile) {
                         cb(null, fdConverter.toRemoteArg(arg, requestArgs[0], requestArgs[1], cb));
@@ -443,8 +466,11 @@ var WorkerFS = (function (_super) {
                     else if (arg instanceof file_flag.FileFlag) {
                         cb(null, fileFlagLocal2Remote(arg));
                     }
-                    else if (arg instanceof Buffer) {
+                    else if (arg instanceof buffer_1.Buffer) {
                         cb(null, bufferLocal2Remote(arg));
+                    }
+                    else if (arg instanceof Error) {
+                        cb(null, errorLocal2Remote(arg));
                     }
                     else {
                         cb(null, arg);
@@ -474,7 +500,7 @@ var WorkerFS = (function (_super) {
                                             message = {
                                                 browserfsMessage: true,
                                                 cbId: cbId,
-                                                args: [errorLocal2Remote(err)]
+                                                args: [apiErrorLocal2Remote(err)]
                                             };
                                             worker.postMessage(message);
                                         }
@@ -506,14 +532,16 @@ var WorkerFS = (function (_super) {
                                         worker.postMessage(message);
                                     }
                                 };
-                            case SpecialArgType.ERROR:
-                                return errorRemote2Local(specialArg);
+                            case SpecialArgType.API_ERROR:
+                                return apiErrorRemote2Local(specialArg);
                             case SpecialArgType.STATS:
                                 return statsRemote2Local(specialArg);
                             case SpecialArgType.FILEFLAG:
                                 return fileFlagRemote2Local(specialArg);
                             case SpecialArgType.BUFFER:
                                 return bufferRemote2Local(specialArg);
+                            case SpecialArgType.ERROR:
+                                return errorRemote2Local(specialArg);
                             default:
                                 return arg;
                         }
@@ -538,7 +566,7 @@ var WorkerFS = (function (_super) {
                                 var response = {
                                     browserfsMessage: true,
                                     cbId: remoteCb.id,
-                                    args: err ? [errorLocal2Remote(err)] : []
+                                    args: err ? [apiErrorLocal2Remote(err)] : []
                                 };
                                 worker.postMessage(response);
                             });
@@ -572,6 +600,6 @@ var WorkerFS = (function (_super) {
     };
     return WorkerFS;
 })(file_system.BaseFileSystem);
-exports.WorkerFS = WorkerFS;
-browserfs.registerFileSystem('WorkerFS', WorkerFS);
-//# sourceMappingURL=workerfs.js.map
+exports.__esModule = true;
+exports["default"] = WorkerFS;
+//# sourceMappingURL=WorkerFS.js.map

@@ -1,5 +1,4 @@
 import buffer = require('../core/buffer');
-import browserfs = require('../core/browserfs');
 import kvfs = require('../generic/key_value_filesystem');
 import {ApiError, ErrorCode} from '../core/api_error';
 import global = require('../core/global');
@@ -190,7 +189,7 @@ export class IndexedDBStore implements kvfs.AsyncKeyValueStore {
 /**
  * A file system that uses the IndexedDB key value file system.
  */
-export class IndexedDBFileSystem extends kvfs.AsyncKeyValueFileSystem {
+export default class IndexedDBFileSystem extends kvfs.AsyncKeyValueFileSystem {
   constructor(cb: (e: ApiError, fs?: IndexedDBFileSystem) => void, storeName?: string) {
     super();
     new IndexedDBStore((e, store?): void => {
@@ -216,5 +215,3 @@ export class IndexedDBFileSystem extends kvfs.AsyncKeyValueFileSystem {
     }
   }
 }
-
-browserfs.registerFileSystem('IndexedDB', IndexedDBFileSystem);

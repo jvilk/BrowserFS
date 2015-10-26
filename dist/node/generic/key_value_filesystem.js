@@ -4,13 +4,13 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 var file_system = require('../core/file_system');
-var api_error = require('../core/api_error');
+var api_error_1 = require('../core/api_error');
 var node_fs_stats = require('../core/node_fs_stats');
 var path = require('../core/node_path');
 var Inode = require('../generic/inode');
-var buffer = require('../core/buffer');
+var buffer_1 = require('../core/buffer');
 var preload_file = require('../generic/preload_file');
-var ROOT_NODE_ID = "/", ApiError = api_error.ApiError, Buffer = buffer.Buffer;
+var ROOT_NODE_ID = "/";
 function GenerateRandomID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
         var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
@@ -116,7 +116,7 @@ var SyncKeyValueFileSystem = (function (_super) {
         var tx = this.store.beginTransaction('readwrite');
         if (tx.get(ROOT_NODE_ID) === undefined) {
             var currTime = (new Date()).getTime(), dirInode = new Inode(GenerateRandomID(), 4096, 511 | node_fs_stats.FileType.DIRECTORY, currTime, currTime, currTime);
-            tx.put(dirInode.id, new Buffer("{}"), false);
+            tx.put(dirInode.id, new buffer_1.Buffer("{}"), false);
             tx.put(ROOT_NODE_ID, dirInode.toBuffer(), false);
             tx.commit();
         }
@@ -129,7 +129,7 @@ var SyncKeyValueFileSystem = (function (_super) {
                 return dirList[filename];
             }
             else {
-                throw ApiError.ENOENT(path.resolve(parent, filename));
+                throw api_error_1.ApiError.ENOENT(path.resolve(parent, filename));
             }
         };
         if (parent === '/') {
@@ -150,17 +150,17 @@ var SyncKeyValueFileSystem = (function (_super) {
     SyncKeyValueFileSystem.prototype.getINode = function (tx, p, id) {
         var inode = tx.get(id);
         if (inode === undefined) {
-            throw ApiError.ENOENT(p);
+            throw api_error_1.ApiError.ENOENT(p);
         }
         return Inode.fromBuffer(inode);
     };
     SyncKeyValueFileSystem.prototype.getDirListing = function (tx, p, inode) {
         if (!inode.isDirectory()) {
-            throw ApiError.ENOTDIR(p);
+            throw api_error_1.ApiError.ENOTDIR(p);
         }
         var data = tx.get(inode.id);
         if (data === undefined) {
-            throw ApiError.ENOENT(p);
+            throw api_error_1.ApiError.ENOENT(p);
         }
         return JSON.parse(data.toString());
     };
@@ -175,20 +175,20 @@ var SyncKeyValueFileSystem = (function (_super) {
             catch (e) {
             }
         }
-        throw new ApiError(api_error.ErrorCode.EIO, 'Unable to commit data to key-value store.');
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.EIO, 'Unable to commit data to key-value store.');
     };
     SyncKeyValueFileSystem.prototype.commitNewFile = function (tx, p, type, mode, data) {
         var parentDir = path.dirname(p), fname = path.basename(p), parentNode = this.findINode(tx, parentDir), dirListing = this.getDirListing(tx, parentDir, parentNode), currTime = (new Date()).getTime();
         if (p === '/') {
-            throw ApiError.EEXIST(p);
+            throw api_error_1.ApiError.EEXIST(p);
         }
         if (dirListing[fname]) {
-            throw ApiError.EEXIST(p);
+            throw api_error_1.ApiError.EEXIST(p);
         }
         try {
             var dataId = this.addNewNode(tx, data), fileNode = new Inode(dataId, data.length, mode | type, currTime, currTime, currTime), fileNodeId = this.addNewNode(tx, fileNode.toBuffer());
             dirListing[fname] = fileNodeId;
-            tx.put(parentNode.id, new Buffer(JSON.stringify(dirListing)), true);
+            tx.put(parentNode.id, new buffer_1.Buffer(JSON.stringify(dirListing)), true);
         }
         catch (e) {
             tx.abort();
@@ -204,12 +204,12 @@ var SyncKeyValueFileSystem = (function (_super) {
     SyncKeyValueFileSystem.prototype.renameSync = function (oldPath, newPath) {
         var tx = this.store.beginTransaction('readwrite'), oldParent = path.dirname(oldPath), oldName = path.basename(oldPath), newParent = path.dirname(newPath), newName = path.basename(newPath), oldDirNode = this.findINode(tx, oldParent), oldDirList = this.getDirListing(tx, oldParent, oldDirNode);
         if (!oldDirList[oldName]) {
-            throw ApiError.ENOENT(oldPath);
+            throw api_error_1.ApiError.ENOENT(oldPath);
         }
         var nodeId = oldDirList[oldName];
         delete oldDirList[oldName];
         if ((newParent + '/').indexOf(oldPath + '/') === 0) {
-            throw new ApiError(api_error.ErrorCode.EBUSY, oldParent);
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EBUSY, oldParent);
         }
         var newDirNode, newDirList;
         if (newParent === oldParent) {
@@ -233,13 +233,13 @@ var SyncKeyValueFileSystem = (function (_super) {
                 }
             }
             else {
-                throw ApiError.EPERM(newPath);
+                throw api_error_1.ApiError.EPERM(newPath);
             }
         }
         newDirList[newName] = nodeId;
         try {
-            tx.put(oldDirNode.id, new Buffer(JSON.stringify(oldDirList)), true);
-            tx.put(newDirNode.id, new Buffer(JSON.stringify(newDirList)), true);
+            tx.put(oldDirNode.id, new buffer_1.Buffer(JSON.stringify(oldDirList)), true);
+            tx.put(newDirNode.id, new buffer_1.Buffer(JSON.stringify(newDirList)), true);
         }
         catch (e) {
             tx.abort();
@@ -251,34 +251,34 @@ var SyncKeyValueFileSystem = (function (_super) {
         return this.findINode(this.store.beginTransaction('readonly'), p).toStats();
     };
     SyncKeyValueFileSystem.prototype.createFileSync = function (p, flag, mode) {
-        var tx = this.store.beginTransaction('readwrite'), data = new Buffer(0), newFile = this.commitNewFile(tx, p, node_fs_stats.FileType.FILE, mode, data);
+        var tx = this.store.beginTransaction('readwrite'), data = new buffer_1.Buffer(0), newFile = this.commitNewFile(tx, p, node_fs_stats.FileType.FILE, mode, data);
         return new SyncKeyValueFile(this, p, flag, newFile.toStats(), data);
     };
     SyncKeyValueFileSystem.prototype.openFileSync = function (p, flag) {
         var tx = this.store.beginTransaction('readonly'), node = this.findINode(tx, p), data = tx.get(node.id);
         if (data === undefined) {
-            throw ApiError.ENOENT(p);
+            throw api_error_1.ApiError.ENOENT(p);
         }
         return new SyncKeyValueFile(this, p, flag, node.toStats(), data);
     };
     SyncKeyValueFileSystem.prototype.removeEntry = function (p, isDir) {
         var tx = this.store.beginTransaction('readwrite'), parent = path.dirname(p), parentNode = this.findINode(tx, parent), parentListing = this.getDirListing(tx, parent, parentNode), fileName = path.basename(p);
         if (!parentListing[fileName]) {
-            throw ApiError.ENOENT(p);
+            throw api_error_1.ApiError.ENOENT(p);
         }
         var fileNodeId = parentListing[fileName];
         delete parentListing[fileName];
         var fileNode = this.getINode(tx, p, fileNodeId);
         if (!isDir && fileNode.isDirectory()) {
-            throw ApiError.EISDIR(p);
+            throw api_error_1.ApiError.EISDIR(p);
         }
         else if (isDir && !fileNode.isDirectory()) {
-            throw ApiError.ENOTDIR(p);
+            throw api_error_1.ApiError.ENOTDIR(p);
         }
         try {
             tx.del(fileNode.id);
             tx.del(fileNodeId);
-            tx.put(parentNode.id, new Buffer(JSON.stringify(parentListing)), true);
+            tx.put(parentNode.id, new buffer_1.Buffer(JSON.stringify(parentListing)), true);
         }
         catch (e) {
             tx.abort();
@@ -293,7 +293,7 @@ var SyncKeyValueFileSystem = (function (_super) {
         this.removeEntry(p, true);
     };
     SyncKeyValueFileSystem.prototype.mkdirSync = function (p, mode) {
-        var tx = this.store.beginTransaction('readwrite'), data = new Buffer('{}');
+        var tx = this.store.beginTransaction('readwrite'), data = new buffer_1.Buffer('{}');
         this.commitNewFile(tx, p, node_fs_stats.FileType.DIRECTORY, mode, data);
     };
     SyncKeyValueFileSystem.prototype.readdirSync = function (p) {
@@ -362,7 +362,7 @@ var AsyncKeyValueFileSystem = (function (_super) {
         tx.get(ROOT_NODE_ID, function (e, data) {
             if (e || data === undefined) {
                 var currTime = (new Date()).getTime(), dirInode = new Inode(GenerateRandomID(), 4096, 511 | node_fs_stats.FileType.DIRECTORY, currTime, currTime, currTime);
-                tx.put(dirInode.id, new Buffer("{}"), false, function (e) {
+                tx.put(dirInode.id, new buffer_1.Buffer("{}"), false, function (e) {
                     if (noErrorTx(e, tx, cb)) {
                         tx.put(ROOT_NODE_ID, dirInode.toBuffer(), false, function (e) {
                             if (e) {
@@ -390,7 +390,7 @@ var AsyncKeyValueFileSystem = (function (_super) {
                 cb(null, dirList[filename]);
             }
             else {
-                cb(ApiError.ENOENT(path.resolve(parent, filename)));
+                cb(api_error_1.ApiError.ENOENT(path.resolve(parent, filename)));
             }
         };
         if (parent === '/') {
@@ -423,7 +423,7 @@ var AsyncKeyValueFileSystem = (function (_super) {
         tx.get(id, function (e, data) {
             if (noError(e, cb)) {
                 if (data === undefined) {
-                    cb(ApiError.ENOENT(p));
+                    cb(api_error_1.ApiError.ENOENT(p));
                 }
                 else {
                     cb(null, Inode.fromBuffer(data));
@@ -433,7 +433,7 @@ var AsyncKeyValueFileSystem = (function (_super) {
     };
     AsyncKeyValueFileSystem.prototype.getDirListing = function (tx, p, inode, cb) {
         if (!inode.isDirectory()) {
-            cb(ApiError.ENOTDIR(p));
+            cb(api_error_1.ApiError.ENOTDIR(p));
         }
         else {
             tx.get(inode.id, function (e, data) {
@@ -442,7 +442,7 @@ var AsyncKeyValueFileSystem = (function (_super) {
                         cb(null, JSON.parse(data.toString()));
                     }
                     catch (e) {
-                        cb(ApiError.ENOENT(p));
+                        cb(api_error_1.ApiError.ENOENT(p));
                     }
                 }
             });
@@ -463,7 +463,7 @@ var AsyncKeyValueFileSystem = (function (_super) {
     AsyncKeyValueFileSystem.prototype.addNewNode = function (tx, data, cb) {
         var retries = 0, currId, reroll = function () {
             if (++retries === 5) {
-                cb(new ApiError(api_error.ErrorCode.EIO, 'Unable to commit data to key-value store.'));
+                cb(new api_error_1.ApiError(api_error_1.ErrorCode.EIO, 'Unable to commit data to key-value store.'));
             }
             else {
                 currId = GenerateRandomID();
@@ -483,13 +483,13 @@ var AsyncKeyValueFileSystem = (function (_super) {
         var _this = this;
         var parentDir = path.dirname(p), fname = path.basename(p), currTime = (new Date()).getTime();
         if (p === '/') {
-            return cb(ApiError.EEXIST(p));
+            return cb(api_error_1.ApiError.EEXIST(p));
         }
         this.findINodeAndDirListing(tx, parentDir, function (e, parentNode, dirListing) {
             if (noErrorTx(e, tx, cb)) {
                 if (dirListing[fname]) {
                     tx.abort(function () {
-                        cb(ApiError.EEXIST(p));
+                        cb(api_error_1.ApiError.EEXIST(p));
                     });
                 }
                 else {
@@ -499,7 +499,7 @@ var AsyncKeyValueFileSystem = (function (_super) {
                             _this.addNewNode(tx, fileInode.toBuffer(), function (e, fileInodeId) {
                                 if (noErrorTx(e, tx, cb)) {
                                     dirListing[fname] = fileInodeId;
-                                    tx.put(parentNode.id, new Buffer(JSON.stringify(dirListing)), true, function (e) {
+                                    tx.put(parentNode.id, new buffer_1.Buffer(JSON.stringify(dirListing)), true, function (e) {
                                         if (noErrorTx(e, tx, cb)) {
                                             tx.commit(function (e) {
                                                 if (noErrorTx(e, tx, cb)) {
@@ -528,7 +528,7 @@ var AsyncKeyValueFileSystem = (function (_super) {
         var _this = this;
         var tx = this.store.beginTransaction('readwrite'), oldParent = path.dirname(oldPath), oldName = path.basename(oldPath), newParent = path.dirname(newPath), newName = path.basename(newPath), inodes = {}, lists = {}, errorOccurred = false;
         if ((newParent + '/').indexOf(oldPath + '/') === 0) {
-            return cb(new ApiError(api_error.ErrorCode.EBUSY, oldParent));
+            return cb(new api_error_1.ApiError(api_error_1.ErrorCode.EBUSY, oldParent));
         }
         var theOleSwitcharoo = function () {
             if (errorOccurred || !lists.hasOwnProperty(oldParent) || !lists.hasOwnProperty(newParent)) {
@@ -536,20 +536,20 @@ var AsyncKeyValueFileSystem = (function (_super) {
             }
             var oldParentList = lists[oldParent], oldParentINode = inodes[oldParent], newParentList = lists[newParent], newParentINode = inodes[newParent];
             if (!oldParentList[oldName]) {
-                cb(ApiError.ENOENT(oldPath));
+                cb(api_error_1.ApiError.ENOENT(oldPath));
             }
             else {
                 var fileId = oldParentList[oldName];
                 delete oldParentList[oldName];
                 var completeRename = function () {
                     newParentList[newName] = fileId;
-                    tx.put(oldParentINode.id, new Buffer(JSON.stringify(oldParentList)), true, function (e) {
+                    tx.put(oldParentINode.id, new buffer_1.Buffer(JSON.stringify(oldParentList)), true, function (e) {
                         if (noErrorTx(e, tx, cb)) {
                             if (oldParent === newParent) {
                                 tx.commit(cb);
                             }
                             else {
-                                tx.put(newParentINode.id, new Buffer(JSON.stringify(newParentList)), true, function (e) {
+                                tx.put(newParentINode.id, new buffer_1.Buffer(JSON.stringify(newParentList)), true, function (e) {
                                     if (noErrorTx(e, tx, cb)) {
                                         tx.commit(cb);
                                     }
@@ -574,7 +574,7 @@ var AsyncKeyValueFileSystem = (function (_super) {
                             }
                             else {
                                 tx.abort(function (e) {
-                                    cb(ApiError.EPERM(newPath));
+                                    cb(api_error_1.ApiError.EPERM(newPath));
                                 });
                             }
                         }
@@ -617,7 +617,7 @@ var AsyncKeyValueFileSystem = (function (_super) {
     };
     AsyncKeyValueFileSystem.prototype.createFile = function (p, flag, mode, cb) {
         var _this = this;
-        var tx = this.store.beginTransaction('readwrite'), data = new Buffer(0);
+        var tx = this.store.beginTransaction('readwrite'), data = new buffer_1.Buffer(0);
         this.commitNewFile(tx, p, node_fs_stats.FileType.FILE, mode, data, function (e, newFile) {
             if (noError(e, cb)) {
                 cb(null, new AsyncKeyValueFile(_this, p, flag, newFile.toStats(), data));
@@ -632,7 +632,7 @@ var AsyncKeyValueFileSystem = (function (_super) {
                 tx.get(inode.id, function (e, data) {
                     if (noError(e, cb)) {
                         if (data === undefined) {
-                            cb(ApiError.ENOENT(p));
+                            cb(api_error_1.ApiError.ENOENT(p));
                         }
                         else {
                             cb(null, new AsyncKeyValueFile(_this, p, flag, inode.toStats(), data));
@@ -649,7 +649,7 @@ var AsyncKeyValueFileSystem = (function (_super) {
             if (noErrorTx(e, tx, cb)) {
                 if (!parentListing[fileName]) {
                     tx.abort(function () {
-                        cb(ApiError.ENOENT(p));
+                        cb(api_error_1.ApiError.ENOENT(p));
                     });
                 }
                 else {
@@ -659,12 +659,12 @@ var AsyncKeyValueFileSystem = (function (_super) {
                         if (noErrorTx(e, tx, cb)) {
                             if (!isDir && fileNode.isDirectory()) {
                                 tx.abort(function () {
-                                    cb(ApiError.EISDIR(p));
+                                    cb(api_error_1.ApiError.EISDIR(p));
                                 });
                             }
                             else if (isDir && !fileNode.isDirectory()) {
                                 tx.abort(function () {
-                                    cb(ApiError.ENOTDIR(p));
+                                    cb(api_error_1.ApiError.ENOTDIR(p));
                                 });
                             }
                             else {
@@ -672,7 +672,7 @@ var AsyncKeyValueFileSystem = (function (_super) {
                                     if (noErrorTx(e, tx, cb)) {
                                         tx.del(fileNodeId, function (e) {
                                             if (noErrorTx(e, tx, cb)) {
-                                                tx.put(parentNode.id, new Buffer(JSON.stringify(parentListing)), true, function (e) {
+                                                tx.put(parentNode.id, new buffer_1.Buffer(JSON.stringify(parentListing)), true, function (e) {
                                                     if (noErrorTx(e, tx, cb)) {
                                                         tx.commit(cb);
                                                     }
@@ -695,7 +695,7 @@ var AsyncKeyValueFileSystem = (function (_super) {
         this.removeEntry(p, true, cb);
     };
     AsyncKeyValueFileSystem.prototype.mkdir = function (p, mode, cb) {
-        var tx = this.store.beginTransaction('readwrite'), data = new Buffer('{}');
+        var tx = this.store.beginTransaction('readwrite'), data = new buffer_1.Buffer('{}');
         this.commitNewFile(tx, p, node_fs_stats.FileType.DIRECTORY, mode, data, cb);
     };
     AsyncKeyValueFileSystem.prototype.readdir = function (p, cb) {

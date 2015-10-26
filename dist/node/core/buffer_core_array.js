@@ -44,6 +44,6 @@ var BufferCoreArray = (function (_super) {
     BufferCoreArray.name = "Array";
     return BufferCoreArray;
 })(buffer_core.BufferCoreCommon);
-exports.BufferCoreArray = BufferCoreArray;
 var _ = BufferCoreArray;
+module.exports = BufferCoreArray;
 //# sourceMappingURL=buffer_core_array.js.map

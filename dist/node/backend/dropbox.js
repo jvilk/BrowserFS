@@ -5,34 +5,28 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 var preload_file = require('../generic/preload_file');
 var file_system = require('../core/file_system');
-var node_fs_stats = require('../core/node_fs_stats');
-var buffer = require('../core/buffer');
-var api_error = require('../core/api_error');
+var node_fs_stats_1 = require('../core/node_fs_stats');
+var buffer_1 = require('../core/buffer');
+var api_error_1 = require('../core/api_error');
 var path = require('../core/node_path');
-var browserfs = require('../core/browserfs');
 var async = require('async');
-var Buffer = buffer.Buffer;
-var Stats = node_fs_stats.Stats;
-var ApiError = api_error.ApiError;
-var ErrorCode = api_error.ErrorCode;
-var FileType = node_fs_stats.FileType;
 var errorCodeLookup = null;
 function constructErrorCodeLookup() {
     if (errorCodeLookup !== null) {
         return;
     }
     errorCodeLookup = {};
-    errorCodeLookup[Dropbox.ApiError.NETWORK_ERROR] = ErrorCode.EIO;
-    errorCodeLookup[Dropbox.ApiError.INVALID_PARAM] = ErrorCode.EINVAL;
-    errorCodeLookup[Dropbox.ApiError.INVALID_TOKEN] = ErrorCode.EPERM;
-    errorCodeLookup[Dropbox.ApiError.OAUTH_ERROR] = ErrorCode.EPERM;
-    errorCodeLookup[Dropbox.ApiError.NOT_FOUND] = ErrorCode.ENOENT;
-    errorCodeLookup[Dropbox.ApiError.INVALID_METHOD] = ErrorCode.EINVAL;
-    errorCodeLookup[Dropbox.ApiError.NOT_ACCEPTABLE] = ErrorCode.EINVAL;
-    errorCodeLookup[Dropbox.ApiError.CONFLICT] = ErrorCode.EINVAL;
-    errorCodeLookup[Dropbox.ApiError.RATE_LIMITED] = ErrorCode.EBUSY;
-    errorCodeLookup[Dropbox.ApiError.SERVER_ERROR] = ErrorCode.EBUSY;
-    errorCodeLookup[Dropbox.ApiError.OVER_QUOTA] = ErrorCode.ENOSPC;
+    errorCodeLookup[Dropbox.ApiError.NETWORK_ERROR] = api_error_1.ErrorCode.EIO;
+    errorCodeLookup[Dropbox.ApiError.INVALID_PARAM] = api_error_1.ErrorCode.EINVAL;
+    errorCodeLookup[Dropbox.ApiError.INVALID_TOKEN] = api_error_1.ErrorCode.EPERM;
+    errorCodeLookup[Dropbox.ApiError.OAUTH_ERROR] = api_error_1.ErrorCode.EPERM;
+    errorCodeLookup[Dropbox.ApiError.NOT_FOUND] = api_error_1.ErrorCode.ENOENT;
+    errorCodeLookup[Dropbox.ApiError.INVALID_METHOD] = api_error_1.ErrorCode.EINVAL;
+    errorCodeLookup[Dropbox.ApiError.NOT_ACCEPTABLE] = api_error_1.ErrorCode.EINVAL;
+    errorCodeLookup[Dropbox.ApiError.CONFLICT] = api_error_1.ErrorCode.EINVAL;
+    errorCodeLookup[Dropbox.ApiError.RATE_LIMITED] = api_error_1.ErrorCode.EBUSY;
+    errorCodeLookup[Dropbox.ApiError.SERVER_ERROR] = api_error_1.ErrorCode.EBUSY;
+    errorCodeLookup[Dropbox.ApiError.OVER_QUOTA] = api_error_1.ErrorCode.ENOSPC;
 }
 function isFileInfo(cache) {
     return cache && cache.stat.isFile;
@@ -351,10 +345,10 @@ var DropboxFileSystem = (function (_super) {
                 cb(_this.convert(error, path));
             }
             else if ((stat != null) && stat.isRemoved) {
-                cb(ApiError.FileError(ErrorCode.ENOENT, path));
+                cb(api_error_1.ApiError.FileError(api_error_1.ErrorCode.ENOENT, path));
             }
             else {
-                var stats = new Stats(_this._statType(stat), stat.size);
+                var stats = new node_fs_stats_1.Stats(_this._statType(stat), stat.size);
                 return cb(null, stats);
             }
         });
@@ -375,7 +369,7 @@ var DropboxFileSystem = (function (_super) {
                                     cb(error2);
                                 }
                                 else {
-                                    var file = _this._makeFile(path, flags, stat, new Buffer(ab));
+                                    var file = _this._makeFile(path, flags, stat, new buffer_1.Buffer(ab));
                                     cb(null, file);
                                 }
                             });
@@ -387,10 +381,10 @@ var DropboxFileSystem = (function (_super) {
             else {
                 var buffer;
                 if (content === null) {
-                    buffer = new Buffer(0);
+                    buffer = new buffer_1.Buffer(0);
                 }
                 else {
-                    buffer = new Buffer(content);
+                    buffer = new buffer_1.Buffer(content);
                 }
                 var file = _this._makeFile(path, flags, dbStat, buffer);
                 return cb(null, file);
@@ -402,7 +396,7 @@ var DropboxFileSystem = (function (_super) {
         var parent = path.dirname(p);
         this.stat(parent, false, function (error, stat) {
             if (error) {
-                cb(ApiError.FileError(ErrorCode.ENOENT, parent));
+                cb(api_error_1.ApiError.FileError(api_error_1.ErrorCode.ENOENT, parent));
             }
             else {
                 _this._client.writeFile(p, data, function (error2, stat) {
@@ -417,11 +411,11 @@ var DropboxFileSystem = (function (_super) {
         });
     };
     DropboxFileSystem.prototype._statType = function (stat) {
-        return stat.isFile ? FileType.FILE : FileType.DIRECTORY;
+        return stat.isFile ? node_fs_stats_1.FileType.FILE : node_fs_stats_1.FileType.DIRECTORY;
     };
     DropboxFileSystem.prototype._makeFile = function (path, flag, stat, buffer) {
         var type = this._statType(stat);
-        var stats = new Stats(type, stat.size);
+        var stats = new node_fs_stats_1.Stats(type, stat.size);
         return new DropboxFile(this, path, flag, stats, buffer);
     };
     DropboxFileSystem.prototype._remove = function (path, cb, isFile) {
@@ -432,10 +426,10 @@ var DropboxFileSystem = (function (_super) {
             }
             else {
                 if (stat.isFile && !isFile) {
-                    cb(ApiError.FileError(ErrorCode.ENOTDIR, path));
+                    cb(api_error_1.ApiError.FileError(api_error_1.ErrorCode.ENOTDIR, path));
                 }
                 else if (!stat.isFile && isFile) {
-                    cb(ApiError.FileError(ErrorCode.EISDIR, path));
+                    cb(api_error_1.ApiError.FileError(api_error_1.ErrorCode.EISDIR, path));
                 }
                 else {
                     _this._client.remove(path, function (error) {
@@ -466,7 +460,7 @@ var DropboxFileSystem = (function (_super) {
             else {
                 _this._client.mkdir(p, function (error) {
                     if (error) {
-                        cb(ApiError.FileError(ErrorCode.EEXIST, p));
+                        cb(api_error_1.ApiError.FileError(api_error_1.ErrorCode.EEXIST, p));
                     }
                     else {
                         cb(null);
@@ -490,17 +484,17 @@ var DropboxFileSystem = (function (_super) {
         if (path === void 0) { path = null; }
         var errorCode = errorCodeLookup[err.status];
         if (errorCode === undefined) {
-            errorCode = ErrorCode.EIO;
+            errorCode = api_error_1.ErrorCode.EIO;
         }
         if (path == null) {
-            return new ApiError(errorCode);
+            return new api_error_1.ApiError(errorCode);
         }
         else {
-            return ApiError.FileError(errorCode, path);
+            return api_error_1.ApiError.FileError(errorCode, path);
         }
     };
     return DropboxFileSystem;
 })(file_system.BaseFileSystem);
-exports.DropboxFileSystem = DropboxFileSystem;
-browserfs.registerFileSystem('Dropbox', DropboxFileSystem);
-//# sourceMappingURL=dropbox.js.map
+exports.__esModule = true;
+exports["default"] = DropboxFileSystem;
+//# sourceMappingURL=Dropbox.js.map

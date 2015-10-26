@@ -42,6 +42,6 @@ var BufferCoreImageData = (function (_super) {
     BufferCoreImageData.name = "ImageData";
     return BufferCoreImageData;
 })(buffer_core.BufferCoreCommon);
-exports.BufferCoreImageData = BufferCoreImageData;
 var _ = BufferCoreImageData;
+module.exports = BufferCoreImageData;
 //# sourceMappingURL=buffer_core_imagedata.js.map

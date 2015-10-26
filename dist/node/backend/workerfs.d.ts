@@ -1,9 +1,9 @@
 import file_system = require('../core/file_system');
-import api_error = require('../core/api_error');
+import { ApiError } from '../core/api_error';
 import file_flag = require('../core/file_flag');
 import file = require('../core/file');
 import node_fs_stats = require('../core/node_fs_stats');
-export declare class WorkerFS extends file_system.BaseFileSystem implements file_system.FileSystem {
+export default class WorkerFS extends file_system.BaseFileSystem implements file_system.FileSystem {
     private _worker;
     private _callbackConverter;
     private _isInitialized;
@@ -22,27 +22,27 @@ export declare class WorkerFS extends file_system.BaseFileSystem implements file
     supportsLinks(): boolean;
     supportsProps(): boolean;
     private _rpc(methodName, args);
-    rename(oldPath: string, newPath: string, cb: (err?: api_error.ApiError) => void): void;
-    stat(p: string, isLstat: boolean, cb: (err: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void;
-    open(p: string, flag: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError, fd?: file.File) => any): void;
+    rename(oldPath: string, newPath: string, cb: (err?: ApiError) => void): void;
+    stat(p: string, isLstat: boolean, cb: (err: ApiError, stat?: node_fs_stats.Stats) => void): void;
+    open(p: string, flag: file_flag.FileFlag, mode: number, cb: (err: ApiError, fd?: file.File) => any): void;
     unlink(p: string, cb: Function): void;
     rmdir(p: string, cb: Function): void;
     mkdir(p: string, mode: number, cb: Function): void;
-    readdir(p: string, cb: (err: api_error.ApiError, files?: string[]) => void): void;
+    readdir(p: string, cb: (err: ApiError, files?: string[]) => void): void;
     exists(p: string, cb: (exists: boolean) => void): void;
     realpath(p: string, cache: {
         [path: string]: string;
-    }, cb: (err: api_error.ApiError, resolvedPath?: string) => any): void;
+    }, cb: (err: ApiError, resolvedPath?: string) => any): void;
     truncate(p: string, len: number, cb: Function): void;
-    readFile(fname: string, encoding: string, flag: file_flag.FileFlag, cb: (err: api_error.ApiError, data?: any) => void): void;
-    writeFile(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError) => void): void;
-    appendFile(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number, cb: (err: api_error.ApiError) => void): void;
+    readFile(fname: string, encoding: string, flag: file_flag.FileFlag, cb: (err: ApiError, data?: any) => void): void;
+    writeFile(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number, cb: (err: ApiError) => void): void;
+    appendFile(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number, cb: (err: ApiError) => void): void;
     chmod(p: string, isLchmod: boolean, mode: number, cb: Function): void;
     chown(p: string, isLchown: boolean, uid: number, gid: number, cb: Function): void;
     utimes(p: string, atime: Date, mtime: Date, cb: Function): void;
     link(srcpath: string, dstpath: string, cb: Function): void;
     symlink(srcpath: string, dstpath: string, type: string, cb: Function): void;
     readlink(p: string, cb: Function): void;
-    syncClose(method: string, fd: file.File, cb: (e: api_error.ApiError) => void): void;
+    syncClose(method: string, fd: file.File, cb: (e: ApiError) => void): void;
     static attachRemoteListener(worker: Worker): void;
 }

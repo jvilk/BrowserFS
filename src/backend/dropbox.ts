@@ -6,7 +6,6 @@ import {Buffer} from '../core/buffer';
 import {ApiError, ErrorCode} from '../core/api_error';
 import file = require('../core/file');
 import path = require('../core/node_path');
-import browserfs = require('../core/browserfs');
 import async = require('async');
 
 
@@ -313,7 +312,7 @@ export class DropboxFile extends preload_file.PreloadFile<DropboxFileSystem> imp
   }
 }
 
-export class DropboxFileSystem extends file_system.BaseFileSystem implements file_system.FileSystem {
+export default class DropboxFileSystem extends file_system.BaseFileSystem implements file_system.FileSystem {
   // The Dropbox client.
   private _client: CachedDropboxClient;
 
@@ -597,5 +596,3 @@ export class DropboxFileSystem extends file_system.BaseFileSystem implements fil
     }
   }
 }
-
-browserfs.registerFileSystem('Dropbox', DropboxFileSystem);

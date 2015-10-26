@@ -6,8 +6,8 @@ import util = require('../core/util');
 import file = require('../core/file');
 import node_fs_stats = require('../core/node_fs_stats');
 import preload_file = require('../generic/preload_file');
-import browserfs = require('../core/browserfs');
 import global = require('../core/global');
+import fs = require('../core/node_fs');
 
 interface IBrowserFSMessage {
   browserfsMessage: boolean;
@@ -389,7 +389,7 @@ class WorkerFile extends preload_file.PreloadFile<WorkerFS> {
  * Note that synchronous operations are not permitted on the WorkerFS, regardless
  * of the configuration option of the remote FS.
  */
-export class WorkerFS extends file_system.BaseFileSystem implements file_system.FileSystem {
+export default class WorkerFS extends file_system.BaseFileSystem implements file_system.FileSystem {
   private _worker: Worker;
   private _callbackConverter = new CallbackArgumentConverter();
 
@@ -605,8 +605,7 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
    * Attaches a listener to the remote worker for file system requests.
    */
   public static attachRemoteListener(worker: Worker) {
-    var fdConverter = new FileDescriptorArgumentConverter(),
-      fs = browserfs.BFSRequire('fs');
+    var fdConverter = new FileDescriptorArgumentConverter();
 
     function argLocal2Remote(arg: any, requestArgs: any[], cb: (err: ApiError, arg?: any) => void): void {
       switch (typeof arg) {
@@ -770,5 +769,3 @@ export class WorkerFS extends file_system.BaseFileSystem implements file_system.
     });
   }
 }
-
-browserfs.registerFileSystem('WorkerFS', WorkerFS);

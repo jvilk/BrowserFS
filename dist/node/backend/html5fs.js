@@ -5,20 +5,16 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 var preload_file = require('../generic/preload_file');
 var file_system = require('../core/file_system');
-var api_error = require('../core/api_error');
-var file_flag = require('../core/file_flag');
-var node_fs_stats = require('../core/node_fs_stats');
-var buffer = require('../core/buffer');
-var browserfs = require('../core/browserfs');
+var api_error_1 = require('../core/api_error');
+var file_flag_1 = require('../core/file_flag');
+var node_fs_stats_1 = require('../core/node_fs_stats');
+var buffer_1 = require('../core/buffer');
 var path = require('../core/node_path');
 var global = require('../core/global');
 var async = require('async');
-var Buffer = buffer.Buffer;
-var Stats = node_fs_stats.Stats;
-var FileType = node_fs_stats.FileType;
-var ApiError = api_error.ApiError;
-var ErrorCode = api_error.ErrorCode;
-var ActionType = file_flag.ActionType;
+function isDirectoryEntry(entry) {
+    return entry.isDirectory;
+}
 var _getFS = global.webkitRequestFileSystem || global.requestFileSystem || null;
 function _requestQuota(type, size, success, errorCallback) {
     if (typeof navigator['webkitPersistentStorage'] !== 'undefined') {
@@ -65,13 +61,13 @@ var HTML5FSFile = (function (_super) {
                         cb();
                     };
                     writer.onerror = function (err) {
-                        cb(_fs.convert(err));
+                        cb(_fs.convert(err, _this.getPath(), false));
                     };
                     writer.write(blob);
                 });
             };
             var error = function (err) {
-                cb(_fs.convert(err));
+                cb(_fs.convert(err, _this.getPath(), false));
             };
             _fs.fs.root.getFile(this.getPath(), opts, success, error);
         }
@@ -88,12 +84,11 @@ exports.HTML5FSFile = HTML5FSFile;
 var HTML5FS = (function (_super) {
     __extends(HTML5FS, _super);
     function HTML5FS(size, type) {
+        if (size === void 0) { size = 5; }
+        if (type === void 0) { type = global.PERSISTENT; }
         _super.call(this);
-        this.size = size != null ? size : 5;
-        this.type = type != null ? type : global.PERSISTENT;
-        var kb = 1024;
-        var mb = kb * kb;
-        this.size *= mb;
+        this.size = 1024 * 1024 * size;
+        this.type = type;
     }
     HTML5FS.prototype.getName = function () {
         return 'HTML5 FileSystem';
@@ -113,27 +108,26 @@ var HTML5FS = (function (_super) {
     HTML5FS.prototype.supportsSynch = function () {
         return false;
     };
-    HTML5FS.prototype.convert = function (err, message) {
-        if (message === void 0) { message = ""; }
+    HTML5FS.prototype.convert = function (err, p, expectedDir) {
         switch (err.name) {
+            case "PathExistsError":
+                return api_error_1.ApiError.EEXIST(p);
             case 'QuotaExceededError':
-                return new ApiError(ErrorCode.ENOSPC, message);
+                return api_error_1.ApiError.FileError(api_error_1.ErrorCode.ENOSPC, p);
             case 'NotFoundError':
-                return new ApiError(ErrorCode.ENOENT, message);
+                return api_error_1.ApiError.ENOENT(p);
             case 'SecurityError':
-                return new ApiError(ErrorCode.EACCES, message);
+                return api_error_1.ApiError.FileError(api_error_1.ErrorCode.EACCES, p);
             case 'InvalidModificationError':
-                return new ApiError(ErrorCode.EPERM, message);
-            case 'SyntaxError':
+                return api_error_1.ApiError.FileError(api_error_1.ErrorCode.EPERM, p);
             case 'TypeMismatchError':
-                return new ApiError(ErrorCode.EINVAL, message);
+                return api_error_1.ApiError.FileError(expectedDir ? api_error_1.ErrorCode.ENOTDIR : api_error_1.ErrorCode.EISDIR, p);
+            case "EncodingError":
+            case "InvalidStateError":
+            case "NoModificationAllowedError":
             default:
-                return new ApiError(ErrorCode.EINVAL, message);
+                return api_error_1.ApiError.FileError(api_error_1.ErrorCode.EINVAL, p);
         }
-    };
-    HTML5FS.prototype.convertErrorEvent = function (err, message) {
-        if (message === void 0) { message = ""; }
-        return new ApiError(ErrorCode.ENOENT, err.message + "; " + message);
     };
     HTML5FS.prototype.allocate = function (cb) {
         var _this = this;
@@ -143,7 +137,7 @@ var HTML5FS = (function (_super) {
             cb();
         };
         var error = function (err) {
-            cb(_this.convert(err));
+            cb(_this.convert(err, "/", true));
         };
         if (this.type === global.PERSISTENT) {
             _requestQuota(this.type, this.size, function (granted) {
@@ -176,13 +170,13 @@ var HTML5FS = (function (_super) {
                         cb();
                     };
                     var error = function (err) {
-                        cb(_this.convert(err, entry.fullPath));
+                        cb(_this.convert(err, entry.fullPath, !entry.isDirectory));
                     };
-                    if (entry.isFile) {
-                        entry.remove(succ, error);
+                    if (isDirectoryEntry(entry)) {
+                        entry.removeRecursively(succ, error);
                     }
                     else {
-                        entry.removeRecursively(succ, error);
+                        entry.remove(succ, error);
                     }
                 };
                 async.each(entries, deleteEntry, finished);
@@ -191,21 +185,23 @@ var HTML5FS = (function (_super) {
     };
     HTML5FS.prototype.rename = function (oldPath, newPath, cb) {
         var _this = this;
-        var semaphore = 2, successCount = 0, root = this.fs.root, error = function (err) {
-            if (--semaphore === 0) {
-                cb(_this.convert(err, "Failed to rename " + oldPath + " to " + newPath + "."));
+        var semaphore = 2, successCount = 0, root = this.fs.root, currentPath = oldPath, error = function (err) {
+            if (--semaphore <= 0) {
+                cb(_this.convert(err, currentPath, false));
             }
         }, success = function (file) {
             if (++successCount === 2) {
-                console.error("Something was identified as both a file and a directory. This should never happen.");
-                return;
+                return cb(new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Something was identified as both a file and a directory. This should never happen."));
             }
             if (oldPath === newPath) {
                 return cb();
             }
-            root.getDirectory(path.dirname(newPath), {}, function (parentDir) {
-                file.moveTo(parentDir, path.basename(newPath), function (entry) { cb(); }, function (err) {
+            currentPath = path.dirname(newPath);
+            root.getDirectory(currentPath, {}, function (parentDir) {
+                currentPath = path.basename(newPath);
+                file.moveTo(parentDir, currentPath, function (entry) { cb(); }, function (err) {
                     if (file.isDirectory) {
+                        currentPath = newPath;
                         _this.unlink(newPath, function (e) {
                             if (e) {
                                 error(err);
@@ -231,57 +227,58 @@ var HTML5FS = (function (_super) {
         };
         var loadAsFile = function (entry) {
             var fileFromEntry = function (file) {
-                var stat = new Stats(FileType.FILE, file.size);
+                var stat = new node_fs_stats_1.Stats(node_fs_stats_1.FileType.FILE, file.size);
                 cb(null, stat);
             };
             entry.file(fileFromEntry, failedToLoad);
         };
         var loadAsDir = function (dir) {
             var size = 4096;
-            var stat = new Stats(FileType.DIRECTORY, size);
+            var stat = new node_fs_stats_1.Stats(node_fs_stats_1.FileType.DIRECTORY, size);
             cb(null, stat);
         };
         var failedToLoad = function (err) {
-            cb(_this.convert(err, path));
+            cb(_this.convert(err, path, false));
         };
         var failedToLoadAsFile = function () {
             _this.fs.root.getDirectory(path, opts, loadAsDir, failedToLoad);
         };
         this.fs.root.getFile(path, opts, loadAsFile, failedToLoadAsFile);
     };
-    HTML5FS.prototype.open = function (path, flags, mode, cb) {
+    HTML5FS.prototype.open = function (p, flags, mode, cb) {
         var _this = this;
-        var opts = {
-            create: flags.pathNotExistsAction() === ActionType.CREATE_FILE,
-            exclusive: flags.isExclusive()
-        };
         var error = function (err) {
-            cb(_this.convertErrorEvent(err, path));
+            if (err.name === 'InvalidModificationError' && flags.isExclusive()) {
+                cb(api_error_1.ApiError.EEXIST(p));
+            }
+            else {
+                cb(_this.convert(err, p, false));
+            }
         };
-        var error2 = function (err) {
-            cb(_this.convert(err, path));
-        };
-        var success = function (entry) {
-            var success2 = function (file) {
+        this.fs.root.getFile(p, {
+            create: flags.pathNotExistsAction() === file_flag_1.ActionType.CREATE_FILE,
+            exclusive: flags.isExclusive()
+        }, function (entry) {
+            entry.file(function (file) {
                 var reader = new FileReader();
                 reader.onloadend = function (event) {
-                    var bfs_file = _this._makeFile(path, flags, file, reader.result);
+                    var bfs_file = _this._makeFile(p, flags, file, reader.result);
                     cb(null, bfs_file);
                 };
-                reader.onerror = error;
+                reader.onerror = function (ev) {
+                    error(reader.error);
+                };
                 reader.readAsArrayBuffer(file);
-            };
-            entry.file(success2, error2);
-        };
-        this.fs.root.getFile(path, opts, success, error);
+            }, error);
+        }, error);
     };
     HTML5FS.prototype._statType = function (stat) {
-        return stat.isFile ? FileType.FILE : FileType.DIRECTORY;
+        return stat.isFile ? node_fs_stats_1.FileType.FILE : node_fs_stats_1.FileType.DIRECTORY;
     };
     HTML5FS.prototype._makeFile = function (path, flag, stat, data) {
         if (data === void 0) { data = new ArrayBuffer(0); }
-        var stats = new Stats(FileType.FILE, stat.size);
-        var buffer = new Buffer(data);
+        var stats = new node_fs_stats_1.Stats(node_fs_stats_1.FileType.FILE, stat.size);
+        var buffer = new buffer_1.Buffer(data);
         return new HTML5FSFile(this, path, flag, stats, buffer);
     };
     HTML5FS.prototype._remove = function (path, cb, isFile) {
@@ -291,12 +288,12 @@ var HTML5FS = (function (_super) {
                 cb();
             };
             var err = function (err) {
-                cb(_this.convert(err, path));
+                cb(_this.convert(err, path, !isFile));
             };
             entry.remove(succ, err);
         };
         var error = function (err) {
-            cb(_this.convert(err, path));
+            cb(_this.convert(err, path, !isFile));
         };
         var opts = {
             create: false
@@ -324,18 +321,18 @@ var HTML5FS = (function (_super) {
             cb();
         };
         var error = function (err) {
-            cb(_this.convert(err, path));
+            cb(_this.convert(err, path, true));
         };
         this.fs.root.getDirectory(path, opts, success, error);
     };
     HTML5FS.prototype._readdir = function (path, cb) {
         var _this = this;
+        var error = function (err) {
+            cb(_this.convert(err, path, true));
+        };
         this.fs.root.getDirectory(path, { create: false }, function (dirEntry) {
             var reader = dirEntry.createReader();
             var entries = [];
-            var error = function (err) {
-                cb(_this.convert(err, path));
-            };
             var readEntries = function () {
                 reader.readEntries((function (results) {
                     if (results.length) {
@@ -348,11 +345,11 @@ var HTML5FS = (function (_super) {
                 }), error);
             };
             readEntries();
-        });
+        }, error);
     };
     HTML5FS.prototype.readdir = function (path, cb) {
         this._readdir(path, function (e, entries) {
-            if (e != null) {
+            if (e) {
                 return cb(e);
             }
             var rv = [];
@@ -364,6 +361,6 @@ var HTML5FS = (function (_super) {
     };
     return HTML5FS;
 })(file_system.BaseFileSystem);
-exports.HTML5FS = HTML5FS;
-browserfs.registerFileSystem('HTML5FS', HTML5FS);
-//# sourceMappingURL=html5fs.js.map
+exports.__esModule = true;
+exports["default"] = HTML5FS;
+//# sourceMappingURL=HTML5FS.js.map

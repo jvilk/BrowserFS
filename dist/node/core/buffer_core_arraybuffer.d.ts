@@ -1,5 +1,5 @@
 import buffer_core = require('./buffer_core');
-export declare class BufferCoreArrayBuffer extends buffer_core.BufferCoreCommon implements buffer_core.BufferCore {
+declare class BufferCoreArrayBuffer extends buffer_core.BufferCoreCommon implements buffer_core.BufferCore {
     static isAvailable(): boolean;
     static name: string;
     private buff;
@@ -40,3 +40,4 @@ export declare class BufferCoreArrayBuffer extends buffer_core.BufferCoreCommon 
     fill(value: number, start: number, end: number): void;
     getDataView(): DataView;
 }
+export = BufferCoreArrayBuffer;

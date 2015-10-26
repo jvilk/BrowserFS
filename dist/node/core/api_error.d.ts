@@ -1,5 +1,4 @@
-import buffer = require("./buffer");
-import Buffer = buffer.Buffer;
+import { Buffer } from "./buffer";
 export declare enum ErrorCode {
     EPERM = 0,
     ENOENT = 1,
@@ -32,4 +31,5 @@ export declare class ApiError {
     static EISDIR(path: string): ApiError;
     static ENOTDIR(path: string): ApiError;
     static EPERM(path: string): ApiError;
+    static ENOTEMPTY(path: string): ApiError;
 }

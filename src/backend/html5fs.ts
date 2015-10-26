@@ -5,7 +5,6 @@ import {FileFlag, ActionType} from '../core/file_flag';
 import {Stats, FileType} from '../core/node_fs_stats';
 import {Buffer} from '../core/buffer';
 import file = require('../core/file');
-import browserfs = require('../core/browserfs');
 import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
 import path = require('../core/node_path');
 import global = require('../core/global');
@@ -95,7 +94,7 @@ export class HTML5FSFile extends preload_file.PreloadFile<HTML5FS> implements fi
   }
 }
 
-export class HTML5FS extends file_system.BaseFileSystem implements file_system.FileSystem {
+export default class HTML5FS extends file_system.BaseFileSystem implements file_system.FileSystem {
   private size: number;
   private type: number;
   // HTML5File reaches into HTML5FS. :/
@@ -342,12 +341,12 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
         cb(this.convert(err, p, false));
       }
     };
-    
+
     this.fs.root.getFile(p, {
       create: flags.pathNotExistsAction() === ActionType.CREATE_FILE,
       exclusive: flags.isExclusive()
     }, (entry: FileEntry): void => {
-      // Try to fetch corresponding file. 
+      // Try to fetch corresponding file.
       entry.file((file: File): void => {
         var reader = new FileReader();
         reader.onloadend = (event: Event): void => {
@@ -445,7 +444,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
     this.fs.root.getDirectory(path, { create: false }, (dirEntry: DirectoryEntry) => {
       var reader = dirEntry.createReader();
       var entries: Entry[] = [];
-      
+
       // Call the reader.readEntries() until no more results are returned.
       var readEntries = () => {
         reader.readEntries(((results) => {
@@ -477,5 +476,3 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
     });
   }
 }
-
-browserfs.registerFileSystem('HTML5FS', HTML5FS);

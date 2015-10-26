@@ -47,7 +47,6 @@
  */
 import {Buffer} from '../core/buffer';
 import {ApiError, ErrorCode} from '../core/api_error';
-import browserfs = require('../core/browserfs');
 import node_fs_stats = require('../core/node_fs_stats');
 import file_system = require('../core/file_system');
 import file = require('../core/file');
@@ -471,7 +470,7 @@ export class EndOfCentralDirectory {
   }
 }
 
-export class ZipFS extends file_system.SynchronousFileSystem implements file_system.FileSystem {
+export default class ZipFS extends file_system.SynchronousFileSystem implements file_system.FileSystem {
   private _index: FileIndex = new FileIndex();
   /**
    * Constructs a ZipFS from the given zip file data. Name is optional, and is
@@ -639,5 +638,3 @@ export class ZipFS extends file_system.SynchronousFileSystem implements file_sys
     }
   }
 }
-
-browserfs.registerFileSystem('ZipFS', ZipFS);

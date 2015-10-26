@@ -1,7 +1,7 @@
 import node_fs_stats = require('../core/node_fs_stats');
 import file_system = require('../core/file_system');
 import file = require('../core/file');
-import file_flag = require('../core/file_flag');
+import { FileFlag } from '../core/file_flag';
 export declare enum ExternalFileAttributeType {
     MSDOS = 0,
     AMIGA = 1,
@@ -124,7 +124,7 @@ export declare class EndOfCentralDirectory {
     cdOffset(): number;
     cdZipComment(): string;
 }
-export declare class ZipFS extends file_system.SynchronousFileSystem implements file_system.FileSystem {
+export default class ZipFS extends file_system.SynchronousFileSystem implements file_system.FileSystem {
     private data;
     private name;
     private _index;
@@ -137,9 +137,9 @@ export declare class ZipFS extends file_system.SynchronousFileSystem implements 
     supportsProps(): boolean;
     supportsSynch(): boolean;
     statSync(path: string, isLstat: boolean): node_fs_stats.Stats;
-    openSync(path: string, flags: file_flag.FileFlag, mode: number): file.File;
+    openSync(path: string, flags: FileFlag, mode: number): file.File;
     readdirSync(path: string): string[];
-    readFileSync(fname: string, encoding: string, flag: file_flag.FileFlag): any;
+    readFileSync(fname: string, encoding: string, flag: FileFlag): any;
     private getEOCD();
     private populateIndex();
 }

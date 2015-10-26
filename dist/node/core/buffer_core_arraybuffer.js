@@ -143,6 +143,6 @@ var BufferCoreArrayBuffer = (function (_super) {
     BufferCoreArrayBuffer.name = "ArrayBuffer";
     return BufferCoreArrayBuffer;
 })(buffer_core.BufferCoreCommon);
-exports.BufferCoreArrayBuffer = BufferCoreArrayBuffer;
 var _ = BufferCoreArrayBuffer;
+module.exports = BufferCoreArrayBuffer;
 //# sourceMappingURL=buffer_core_arraybuffer.js.map

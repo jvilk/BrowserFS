@@ -1,4 +1,4 @@
-BrowserFS v0.4.4
+BrowserFS v0.4.5
 ================
 
 [![NPM version](https://badge.fury.io/js/browserfs.svg)](http://badge.fury.io/js/browserfs)

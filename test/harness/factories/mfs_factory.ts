@@ -1,13 +1,13 @@
-import mfs = require('../../../src/backend/mountable_file_system');
+import MountableFileSystem from '../../../src/backend/MountableFileSystem';
 import BackendFactory = require('../BackendFactory');
 import file_system = require('../../../src/core/file_system');
-import in_memory = require('../../../src/backend/in_memory');
+import InMemoryFileSystem from '../../../src/backend/InMemory';
 
 function MFSFactory(cb: (name: string, objs: file_system.FileSystem[]) => void) {
-  if (mfs.MountableFileSystem.isAvailable()) {
+  if (MountableFileSystem.isAvailable()) {
     // Add mountable filesystem
-    var im2 = new in_memory.InMemoryFileSystem(), im3 = new in_memory.InMemoryFileSystem(),
-      mfsObj = new mfs.MountableFileSystem();
+    var im2 = new InMemoryFileSystem(), im3 = new InMemoryFileSystem(),
+      mfsObj = new MountableFileSystem();
     mfsObj.mount('/test', im2);
     mfsObj.mount('/tmp', im3);
     cb('MountableFileSystem', [mfsObj]);

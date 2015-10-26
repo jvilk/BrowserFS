@@ -44,6 +44,7 @@ export declare class Buffer implements BFSBuffer {
     toJSON(): JSONBufferObject;
     inspect(): string;
     toArrayBuffer(): ArrayBuffer;
+    toUint8Array(): Uint8Array;
     indexOf(value: string | NodeBuffer | number, byteOffset?: number): number;
     copy(target: NodeBuffer, targetStart?: number, sourceStart?: number, sourceEnd?: number): number;
     slice(start?: number, end?: number): NodeBuffer;

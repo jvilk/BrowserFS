@@ -1,10 +1,10 @@
-import idbfs = require('../../../src/backend/IndexedDB');
+import IndexedDBFileSystem from '../../../src/backend/IndexedDB';
 import BackendFactory = require('../BackendFactory');
 import file_system = require('../../../src/core/file_system');
 
 function IDBFSFactory(cb: (name: string, obj: file_system.FileSystem[]) => void): void {
-  if (idbfs.IndexedDBFileSystem.isAvailable()) {
-    new idbfs.IndexedDBFileSystem((e, idbfs?) => {
+  if (IndexedDBFileSystem.isAvailable()) {
+    new IndexedDBFileSystem((e, idbfs?) => {
       if (e) {
         throw e;
       } else {

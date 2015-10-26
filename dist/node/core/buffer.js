@@ -4,14 +4,14 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 var buffer_core = require('./buffer_core');
-var buffer_core_array = require('./buffer_core_array');
-var buffer_core_arraybuffer = require('./buffer_core_arraybuffer');
-var buffer_core_imagedata = require('./buffer_core_imagedata');
-var string_util = require('./string_util');
+var BufferCoreArray = require('./buffer_core_array');
+var BufferCoreArrayBuffer = require('./buffer_core_arraybuffer');
+var BufferCoreImageData = require('./buffer_core_imagedata');
+var string_util_1 = require('./string_util');
 var BufferCorePreferences = [
-    buffer_core_arraybuffer.BufferCoreArrayBuffer,
-    buffer_core_imagedata.BufferCoreImageData,
-    buffer_core_array.BufferCoreArray
+    BufferCoreArrayBuffer,
+    BufferCoreImageData,
+    BufferCoreArray
 ];
 var PreferredBufferCore = (function () {
     var i, bci;
@@ -117,11 +117,11 @@ var Buffer = (function () {
             this.data = new PreferredBufferCore(arg1);
         }
         else if (typeof DataView !== 'undefined' && arg1 instanceof DataView) {
-            this.data = new buffer_core_arraybuffer.BufferCoreArrayBuffer(arg1);
+            this.data = new BufferCoreArrayBuffer(arg1);
             this.length = arg1.byteLength;
         }
         else if (typeof ArrayBuffer !== 'undefined' && typeof arg1.byteLength === 'number') {
-            this.data = new buffer_core_arraybuffer.BufferCoreArrayBuffer(arg1);
+            this.data = new BufferCoreArrayBuffer(arg1);
             this.length = arg1.byteLength;
         }
         else if (arg1 instanceof Buffer) {
@@ -197,7 +197,7 @@ var Buffer = (function () {
         if (offset > this.length || offset < 0) {
             throw new RangeError("Invalid offset.");
         }
-        var strUtil = string_util.FindUtil(encoding);
+        var strUtil = string_util_1.FindUtil(encoding);
         length = length + offset > this.length ? this.length - offset : length;
         offset += this.offset;
         return strUtil.str2byte(str, offset === 0 && length === this.length ? this : new Buffer(this.data, offset, length + offset));
@@ -215,7 +215,7 @@ var Buffer = (function () {
         if (end > this.length) {
             end = this.length;
         }
-        var strUtil = string_util.FindUtil(encoding);
+        var strUtil = string_util_1.FindUtil(encoding);
         return strUtil.byte2str(start === 0 && end === this.length ? this : new Buffer(this.data, start + this.offset, end + this.offset));
     };
     Buffer.prototype.toJSON = function () {
@@ -238,7 +238,7 @@ var Buffer = (function () {
     };
     Buffer.prototype.toArrayBuffer = function () {
         var buffCore = this.getBufferCore();
-        if (buffCore instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer) {
+        if (buffCore instanceof BufferCoreArrayBuffer) {
             var dv = buffCore.getDataView(), ab = dv.buffer;
             if (this.offset === 0 && dv.byteOffset === 0 && dv.byteLength === ab.byteLength && this.length === dv.byteLength) {
                 return ab;
@@ -251,6 +251,18 @@ var Buffer = (function () {
             var ab = new ArrayBuffer(this.length), newBuff = new Buffer(ab);
             this.copy(newBuff, 0, 0, this.length);
             return ab;
+        }
+    };
+    Buffer.prototype.toUint8Array = function () {
+        var buffCore = this.getBufferCore();
+        if (buffCore instanceof BufferCoreArrayBuffer) {
+            var dv = buffCore.getDataView(), ab = dv.buffer, offset = this.offset + dv.byteOffset, length = this.length;
+            return new Uint8Array(ab).subarray(offset, offset + length);
+        }
+        else {
+            var ab = new ArrayBuffer(this.length), newBuff = new Buffer(ab);
+            this.copy(newBuff, 0, 0, this.length);
+            return new Uint8Array(ab);
         }
     };
     Buffer.prototype.indexOf = function (value, byteOffset) {
@@ -919,7 +931,7 @@ var Buffer = (function () {
     };
     Buffer.isEncoding = function (enc) {
         try {
-            string_util.FindUtil(enc);
+            string_util_1.FindUtil(enc);
         }
         catch (e) {
             return false;
@@ -954,10 +966,10 @@ var Buffer = (function () {
         if (encoding === void 0) { encoding = 'utf8'; }
         var strUtil;
         try {
-            strUtil = string_util.FindUtil(encoding);
+            strUtil = string_util_1.FindUtil(encoding);
         }
         catch (e) {
-            strUtil = string_util.FindUtil('utf8');
+            strUtil = string_util_1.FindUtil('utf8');
         }
         if (typeof (str) !== 'string') {
             str = "" + str;

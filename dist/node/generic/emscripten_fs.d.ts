@@ -63,7 +63,7 @@ export interface EmscriptenFS {
     node_ops: EmscriptenNodeOps;
     stream_ops: EmscriptenStreamOps;
 }
-export declare class BFSEmscriptenFS implements EmscriptenFS {
+export default class BFSEmscriptenFS implements EmscriptenFS {
     private FS;
     private PATH;
     private ERRNO_CODES;

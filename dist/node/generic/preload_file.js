@@ -4,12 +4,9 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 var file = require('../core/file');
-var buffer = require('../core/buffer');
-var api_error = require('../core/api_error');
+var buffer_1 = require('../core/buffer');
+var api_error_1 = require('../core/api_error');
 var fs = require('../core/node_fs');
-var ApiError = api_error.ApiError;
-var ErrorCode = api_error.ErrorCode;
-var Buffer = buffer.Buffer;
 var PreloadFile = (function (_super) {
     __extends(PreloadFile, _super);
     function PreloadFile(_fs, _path, _flag, _stat, contents) {
@@ -24,7 +21,7 @@ var PreloadFile = (function (_super) {
             this._buffer = contents;
         }
         else {
-            this._buffer = new Buffer(0);
+            this._buffer = new buffer_1.Buffer(0);
         }
         if (this._stat.size !== this._buffer.length && this._flag.isReadable()) {
             throw new Error("Invalid buffer: Buffer is " + this._buffer.length + " long, yet Stats object specifies that file is " + this._stat.size + " long.");
@@ -70,7 +67,7 @@ var PreloadFile = (function (_super) {
         }
     };
     PreloadFile.prototype.syncSync = function () {
-        throw new ApiError(ErrorCode.ENOTSUP);
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP);
     };
     PreloadFile.prototype.close = function (cb) {
         try {
@@ -82,7 +79,7 @@ var PreloadFile = (function (_super) {
         }
     };
     PreloadFile.prototype.closeSync = function () {
-        throw new ApiError(ErrorCode.ENOTSUP);
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP);
     };
     PreloadFile.prototype.stat = function (cb) {
         try {
@@ -110,11 +107,11 @@ var PreloadFile = (function (_super) {
     PreloadFile.prototype.truncateSync = function (len) {
         this._dirty = true;
         if (!this._flag.isWriteable()) {
-            throw new ApiError(ErrorCode.EPERM, 'File not opened with a writeable mode.');
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EPERM, 'File not opened with a writeable mode.');
         }
         this._stat.mtime = new Date();
         if (len > this._buffer.length) {
-            var buf = new Buffer(len - this._buffer.length);
+            var buf = new buffer_1.Buffer(len - this._buffer.length);
             buf.fill(0);
             this.writeSync(buf, 0, buf.length, this._buffer.length);
             if (this._flag.isSynchronous() && fs.getRootFS().supportsSynch()) {
@@ -123,7 +120,7 @@ var PreloadFile = (function (_super) {
             return;
         }
         this._stat.size = len;
-        var newBuff = new Buffer(len);
+        var newBuff = new buffer_1.Buffer(len);
         this._buffer.copy(newBuff, 0, 0, len);
         this._buffer = newBuff;
         if (this._flag.isSynchronous() && fs.getRootFS().supportsSynch()) {
@@ -144,13 +141,13 @@ var PreloadFile = (function (_super) {
             position = this.getPos();
         }
         if (!this._flag.isWriteable()) {
-            throw new ApiError(ErrorCode.EPERM, 'File not opened with a writeable mode.');
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EPERM, 'File not opened with a writeable mode.');
         }
         var endFp = position + length;
         if (endFp > this._stat.size) {
             this._stat.size = endFp;
             if (endFp > this._buffer.length) {
-                var newBuff = new Buffer(endFp);
+                var newBuff = new buffer_1.Buffer(endFp);
                 this._buffer.copy(newBuff);
                 this._buffer = newBuff;
             }
@@ -174,7 +171,7 @@ var PreloadFile = (function (_super) {
     };
     PreloadFile.prototype.readSync = function (buffer, offset, length, position) {
         if (!this._flag.isReadable()) {
-            throw new ApiError(ErrorCode.EPERM, 'File not opened with a readable mode.');
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EPERM, 'File not opened with a readable mode.');
         }
         if (position == null) {
             position = this.getPos();
@@ -199,7 +196,7 @@ var PreloadFile = (function (_super) {
     };
     PreloadFile.prototype.chmodSync = function (mode) {
         if (!this._fs.supportsProps()) {
-            throw new ApiError(ErrorCode.ENOTSUP);
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP);
         }
         this._dirty = true;
         this._stat.chmod(mode);

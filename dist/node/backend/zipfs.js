@@ -3,19 +3,15 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var buffer = require('../core/buffer');
-var api_error = require('../core/api_error');
-var file_index = require('../generic/file_index');
-var browserfs = require('../core/browserfs');
+var buffer_1 = require('../core/buffer');
+var api_error_1 = require('../core/api_error');
 var node_fs_stats = require('../core/node_fs_stats');
 var file_system = require('../core/file_system');
-var file_flag = require('../core/file_flag');
-var buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
+var file_flag_1 = require('../core/file_flag');
 var preload_file = require('../generic/preload_file');
+var BufferCoreArrayBuffer = require('../core/buffer_core_arraybuffer');
 var inflateRaw = require('pako/dist/pako_inflate.min').inflateRaw;
-var ApiError = api_error.ApiError;
-var ErrorCode = api_error.ErrorCode;
-var ActionType = file_flag.ActionType;
+var file_index_1 = require('../generic/file_index');
 (function (ExternalFileAttributeType) {
     ExternalFileAttributeType[ExternalFileAttributeType["MSDOS"] = 0] = "MSDOS";
     ExternalFileAttributeType[ExternalFileAttributeType["AMIGA"] = 1] = "AMIGA";
@@ -74,7 +70,7 @@ var FileHeader = (function () {
     function FileHeader(data) {
         this.data = data;
         if (data.readUInt32LE(0) !== 0x04034b50) {
-            throw new ApiError(ErrorCode.EINVAL, "Invalid Zip file: Local file header has invalid signature: " + this.data.readUInt32LE(0));
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Invalid Zip file: Local file header has invalid signature: " + this.data.readUInt32LE(0));
         }
     }
     FileHeader.prototype.versionNeeded = function () { return this.data.readUInt16LE(4); };
@@ -105,30 +101,23 @@ var FileData = (function () {
         this.data = data;
     }
     FileData.prototype.decompress = function () {
-        var buff = this.data;
         var compressionMethod = this.header.compressionMethod();
         switch (compressionMethod) {
             case CompressionMethod.DEFLATE:
-                if (buff.getBufferCore() instanceof buffer_core_arraybuffer.BufferCoreArrayBuffer) {
-                    var bcore = buff.getBufferCore();
-                    var dview = bcore.getDataView();
-                    var start = dview.byteOffset + buff.getOffset();
-                    var uarray = (new Uint8Array(dview.buffer)).subarray(start, start + this.record.compressedSize());
-                    var data = inflateRaw(uarray, {
-                        chunkSize: this.record.uncompressedSize()
-                    });
-                    return new buffer.Buffer(new buffer_core_arraybuffer.BufferCoreArrayBuffer(data.buffer), data.byteOffset, data.byteOffset + data.length);
+                if (typeof (ArrayBuffer) !== 'undefined') {
+                    var data = inflateRaw(this.data.slice(0, this.record.compressedSize()).toUint8Array(), { chunkSize: this.record.uncompressedSize() });
+                    return new buffer_1.Buffer(new BufferCoreArrayBuffer(data.buffer), data.byteOffset, data.byteOffset + data.length);
                 }
                 else {
-                    var newBuff = buff.slice(0, this.record.compressedSize());
-                    return new buffer.Buffer((inflateRaw(newBuff.toJSON().data, { chunkSize: this.record.uncompressedSize() })));
+                    var newBuff = this.data.slice(0, this.record.compressedSize());
+                    return new buffer_1.Buffer(inflateRaw(newBuff.toJSON().data, { chunkSize: this.record.uncompressedSize() }));
                 }
             case CompressionMethod.STORED:
-                return buff.sliceCopy(0, this.record.uncompressedSize());
+                return this.data.sliceCopy(0, this.record.uncompressedSize());
             default:
                 var name = CompressionMethod[compressionMethod];
                 name = name ? name : "Unknown: " + compressionMethod;
-                throw new ApiError(ErrorCode.EINVAL, "Invalid compression method on file '" + this.header.fileName() + "': " + name);
+                throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Invalid compression method on file '" + this.header.fileName() + "': " + name);
         }
     };
     return FileData;
@@ -148,7 +137,7 @@ var ArchiveExtraDataRecord = (function () {
     function ArchiveExtraDataRecord(data) {
         this.data = data;
         if (this.data.readUInt32LE(0) !== 0x08064b50) {
-            throw new ApiError(ErrorCode.EINVAL, "Invalid archive extra data record signature: " + this.data.readUInt32LE(0));
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Invalid archive extra data record signature: " + this.data.readUInt32LE(0));
         }
     }
     ArchiveExtraDataRecord.prototype.length = function () { return this.data.readUInt32LE(4); };
@@ -160,7 +149,7 @@ var DigitalSignature = (function () {
     function DigitalSignature(data) {
         this.data = data;
         if (this.data.readUInt32LE(0) !== 0x05054b50) {
-            throw new ApiError(ErrorCode.EINVAL, "Invalid digital signature signature: " + this.data.readUInt32LE(0));
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Invalid digital signature signature: " + this.data.readUInt32LE(0));
         }
     }
     DigitalSignature.prototype.size = function () { return this.data.readUInt16LE(4); };
@@ -173,7 +162,7 @@ var CentralDirectory = (function () {
         this.zipData = zipData;
         this.data = data;
         if (this.data.readUInt32LE(0) !== 0x02014b50)
-            throw new ApiError(ErrorCode.EINVAL, "Invalid Zip file: Central directory record has invalid signature: " + this.data.readUInt32LE(0));
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Invalid Zip file: Central directory record has invalid signature: " + this.data.readUInt32LE(0));
     }
     CentralDirectory.prototype.versionMadeBy = function () { return this.data.readUInt16LE(4); };
     CentralDirectory.prototype.versionNeeded = function () { return this.data.readUInt16LE(6); };
@@ -230,7 +219,7 @@ var EndOfCentralDirectory = (function () {
     function EndOfCentralDirectory(data) {
         this.data = data;
         if (this.data.readUInt32LE(0) !== 0x06054b50)
-            throw new ApiError(ErrorCode.EINVAL, "Invalid Zip file: End of central directory record has invalid signature: " + this.data.readUInt32LE(0));
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Invalid Zip file: End of central directory record has invalid signature: " + this.data.readUInt32LE(0));
     }
     EndOfCentralDirectory.prototype.diskNumber = function () { return this.data.readUInt16LE(4); };
     EndOfCentralDirectory.prototype.cdDiskNumber = function () { return this.data.readUInt16LE(6); };
@@ -251,7 +240,7 @@ var ZipFS = (function (_super) {
         _super.call(this);
         this.data = data;
         this.name = name;
-        this._index = new file_index.FileIndex();
+        this._index = new file_index_1.FileIndex();
         this.populateIndex();
     }
     ZipFS.prototype.getName = function () {
@@ -276,50 +265,57 @@ var ZipFS = (function (_super) {
     ZipFS.prototype.statSync = function (path, isLstat) {
         var inode = this._index.getInode(path);
         if (inode === null) {
-            throw new ApiError(ErrorCode.ENOENT, "" + path + " not found.");
+            throw api_error_1.ApiError.ENOENT(path);
         }
         var stats;
-        if (inode.isFile()) {
+        if (file_index_1.isFileInode(inode)) {
             stats = inode.getData().getStats();
         }
-        else {
+        else if (file_index_1.isDirInode(inode)) {
             stats = inode.getStats();
+        }
+        else {
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Invalid inode.");
         }
         return stats;
     };
     ZipFS.prototype.openSync = function (path, flags, mode) {
         if (flags.isWriteable()) {
-            throw new ApiError(ErrorCode.EPERM, path);
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EPERM, path);
         }
         var inode = this._index.getInode(path);
-        if (inode === null) {
-            throw new ApiError(ErrorCode.ENOENT, "" + path + " is not in the FileIndex.");
+        if (!inode) {
+            throw api_error_1.ApiError.ENOENT(path);
         }
-        if (inode.isDir()) {
-            throw new ApiError(ErrorCode.EISDIR, "" + path + " is a directory.");
+        else if (file_index_1.isFileInode(inode)) {
+            var cdRecord = inode.getData();
+            var stats = cdRecord.getStats();
+            switch (flags.pathExistsAction()) {
+                case file_flag_1.ActionType.THROW_EXCEPTION:
+                case file_flag_1.ActionType.TRUNCATE_FILE:
+                    throw api_error_1.ApiError.EEXIST(path);
+                case file_flag_1.ActionType.NOP:
+                    return new preload_file.NoSyncFile(this, path, flags, stats, cdRecord.getData());
+                default:
+                    throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, 'Invalid FileMode object.');
+            }
+            return null;
         }
-        var cdRecord = inode.getData();
-        var stats = cdRecord.getStats();
-        switch (flags.pathExistsAction()) {
-            case ActionType.THROW_EXCEPTION:
-            case ActionType.TRUNCATE_FILE:
-                throw new ApiError(ErrorCode.EEXIST, "" + path + " already exists.");
-            case ActionType.NOP:
-                return new preload_file.NoSyncFile(this, path, flags, stats, cdRecord.getData());
-            default:
-                throw new ApiError(ErrorCode.EINVAL, 'Invalid FileMode object.');
+        else {
+            throw api_error_1.ApiError.EISDIR(path);
         }
-        return null;
     };
     ZipFS.prototype.readdirSync = function (path) {
         var inode = this._index.getInode(path);
-        if (inode === null) {
-            throw new ApiError(ErrorCode.ENOENT, "" + path + " not found.");
+        if (!inode) {
+            throw api_error_1.ApiError.ENOENT(path);
         }
-        else if (inode.isFile()) {
-            throw new ApiError(ErrorCode.ENOTDIR, "" + path + " is a file, not a directory.");
+        else if (file_index_1.isDirInode(inode)) {
+            return inode.getListing();
         }
-        return inode.getListing();
+        else {
+            throw api_error_1.ApiError.ENOTDIR(path);
+        }
     };
     ZipFS.prototype.readFileSync = function (fname, encoding, flag) {
         var fd = this.openSync(fname, flag, 0x1a4);
@@ -331,7 +327,7 @@ var ZipFS = (function (_super) {
                     return fdBuff.sliceCopy();
                 }
                 else {
-                    return new buffer.Buffer(0);
+                    return new buffer_1.Buffer(0);
                 }
             }
             return fdBuff.toString(encoding);
@@ -348,15 +344,15 @@ var ZipFS = (function (_super) {
                 return new EndOfCentralDirectory(this.data.slice(this.data.length - i));
             }
         }
-        throw new ApiError(ErrorCode.EINVAL, "Invalid ZIP file: Could not locate End of Central Directory signature.");
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Invalid ZIP file: Could not locate End of Central Directory signature.");
     };
     ZipFS.prototype.populateIndex = function () {
         var eocd = this.getEOCD();
         if (eocd.diskNumber() !== eocd.cdDiskNumber())
-            throw new ApiError(ErrorCode.EINVAL, "ZipFS does not support spanned zip files.");
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "ZipFS does not support spanned zip files.");
         var cdPtr = eocd.cdOffset();
         if (cdPtr === 0xFFFFFFFF)
-            throw new ApiError(ErrorCode.EINVAL, "ZipFS does not support Zip64.");
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "ZipFS does not support Zip64.");
         var cdEnd = cdPtr + eocd.cdSize();
         while (cdPtr < cdEnd) {
             var cd = new CentralDirectory(this.data, this.data.slice(cdPtr));
@@ -368,15 +364,15 @@ var ZipFS = (function (_super) {
                 filename = filename.substr(0, filename.length - 1);
             }
             if (cd.isDirectory()) {
-                this._index.addPath('/' + filename, new file_index.DirInode());
+                this._index.addPath('/' + filename, new file_index_1.DirInode());
             }
             else {
-                this._index.addPath('/' + filename, new file_index.FileInode(cd));
+                this._index.addPath('/' + filename, new file_index_1.FileInode(cd));
             }
         }
     };
     return ZipFS;
 })(file_system.SynchronousFileSystem);
-exports.ZipFS = ZipFS;
-browserfs.registerFileSystem('ZipFS', ZipFS);
-//# sourceMappingURL=zipfs.js.map
+exports.__esModule = true;
+exports["default"] = ZipFS;
+//# sourceMappingURL=ZipFS.js.map

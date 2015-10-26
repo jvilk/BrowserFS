@@ -1,6 +1,6 @@
 /**
- * This file serves as the template for BrowserFS's main entry point.
- * It installs all of the needed polyfills, and requires() all of our backends.
+ * BrowserFS's main entry point.
+ * It installs all of the needed polyfills, and requires() the main module.
  */
 import global = require('./core/global');
 
@@ -307,3 +307,6 @@ if (typeof(document) !== 'undefined' && typeof(window) !== 'undefined' && (<any>
     "End Function\r\n"+
     "</script>\r\n");
 }
+
+import bfs = require('./core/browserfs');
+export = bfs;

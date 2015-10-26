@@ -1,5 +1,4 @@
 import {Buffer} from '../core/buffer';
-import browserfs = require('../core/browserfs');
 import kvfs = require('../generic/key_value_filesystem');
 import {ApiError, ErrorCode} from '../core/api_error';
 import global = require('../core/global');
@@ -47,7 +46,7 @@ export class LocalStorageStore implements kvfs.SyncKeyValueStore, kvfs.SimpleSyn
     } catch (e) {
 
     }
-    // Key doesn't exist, or a failure occurred. 
+    // Key doesn't exist, or a failure occurred.
     return undefined;
   }
 
@@ -77,11 +76,9 @@ export class LocalStorageStore implements kvfs.SyncKeyValueStore, kvfs.SimpleSyn
  * A synchronous file system backed by localStorage. Connects our
  * LocalStorageStore to our SyncKeyValueFileSystem.
  */
-export class LocalStorageFileSystem extends kvfs.SyncKeyValueFileSystem {
+export default class LocalStorageFileSystem extends kvfs.SyncKeyValueFileSystem {
   constructor() { super({ store: new LocalStorageStore() }); }
   public static isAvailable(): boolean {
     return typeof global.localStorage !== 'undefined';
   }
 }
-
-browserfs.registerFileSystem('LocalStorage', LocalStorageFileSystem);

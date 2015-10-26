@@ -1,14 +1,10 @@
-var api_error = require('./api_error');
-var file_flag = require('./file_flag');
-var buffer = require('./buffer');
+var api_error_1 = require('./api_error');
+var file_flag_1 = require('./file_flag');
+var buffer_1 = require('./buffer');
 var path = require('./node_path');
-var ApiError = api_error.ApiError;
-var ErrorCode = api_error.ErrorCode;
-var FileFlag = file_flag.FileFlag;
-var Buffer = buffer.Buffer;
 function wrapCb(cb, numArgs) {
     if (typeof cb !== 'function') {
-        throw new ApiError(ErrorCode.EINVAL, 'Callback must be a function.');
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, 'Callback must be a function.');
     }
     if (typeof __numWaiting === 'undefined') {
         __numWaiting = 0;
@@ -42,7 +38,7 @@ function wrapCb(cb, numArgs) {
 }
 function checkFd(fd) {
     if (typeof fd['write'] !== 'function') {
-        throw new ApiError(ErrorCode.EBADF, 'Invalid file descriptor.');
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.EBADF, 'Invalid file descriptor.');
     }
 }
 function normalizeMode(mode, def) {
@@ -60,10 +56,10 @@ function normalizeMode(mode, def) {
 }
 function normalizePath(p) {
     if (p.indexOf('\u0000') >= 0) {
-        throw new ApiError(ErrorCode.EINVAL, 'Path must be a string without null bytes.');
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, 'Path must be a string without null bytes.');
     }
     else if (p === '') {
-        throw new ApiError(ErrorCode.EINVAL, 'Path must not be empty.');
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, 'Path must not be empty.');
     }
     return path.resolve(p);
 }
@@ -96,7 +92,7 @@ var fs = (function () {
     }
     fs._initialize = function (rootFS) {
         if (!rootFS.constructor.isAvailable()) {
-            throw new ApiError(ErrorCode.EINVAL, 'Tried to instantiate BrowserFS with an unavailable file system.');
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, 'Tried to instantiate BrowserFS with an unavailable file system.');
         }
         return fs.root = rootFS;
     };
@@ -187,7 +183,7 @@ var fs = (function () {
         var newCb = wrapCb(cb, 1);
         try {
             if (len < 0) {
-                throw new ApiError(ErrorCode.EINVAL);
+                throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL);
             }
             return fs.root.truncate(normalizePath(path), len, newCb);
         }
@@ -198,7 +194,7 @@ var fs = (function () {
     fs.truncateSync = function (path, len) {
         if (len === void 0) { len = 0; }
         if (len < 0) {
-            throw new ApiError(ErrorCode.EINVAL);
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL);
         }
         return fs.root.truncateSync(normalizePath(path), len);
     };
@@ -221,7 +217,7 @@ var fs = (function () {
         cb = typeof arg2 === 'function' ? arg2 : cb;
         var newCb = wrapCb(cb, 2);
         try {
-            return fs.root.open(normalizePath(path), FileFlag.getFileFlag(flag), mode, newCb);
+            return fs.root.open(normalizePath(path), file_flag_1.FileFlag.getFileFlag(flag), mode, newCb);
         }
         catch (e) {
             return newCb(e, null);
@@ -229,7 +225,7 @@ var fs = (function () {
     };
     fs.openSync = function (path, flag, mode) {
         if (mode === void 0) { mode = 0x1a4; }
-        return fs.root.openSync(normalizePath(path), FileFlag.getFileFlag(flag), mode);
+        return fs.root.openSync(normalizePath(path), file_flag_1.FileFlag.getFileFlag(flag), mode);
     };
     fs.readFile = function (filename, arg2, cb) {
         if (arg2 === void 0) { arg2 = {}; }
@@ -238,9 +234,9 @@ var fs = (function () {
         cb = typeof arg2 === 'function' ? arg2 : cb;
         var newCb = wrapCb(cb, 2);
         try {
-            var flag = FileFlag.getFileFlag(options['flag']);
+            var flag = file_flag_1.FileFlag.getFileFlag(options['flag']);
             if (!flag.isReadable()) {
-                return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to readFile must allow for reading.'));
+                return newCb(new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, 'Flag passed to readFile must allow for reading.'));
             }
             return fs.root.readFile(normalizePath(filename), options.encoding, flag, newCb);
         }
@@ -251,9 +247,9 @@ var fs = (function () {
     fs.readFileSync = function (filename, arg2) {
         if (arg2 === void 0) { arg2 = {}; }
         var options = normalizeOptions(arg2, null, 'r', null);
-        var flag = FileFlag.getFileFlag(options.flag);
+        var flag = file_flag_1.FileFlag.getFileFlag(options.flag);
         if (!flag.isReadable()) {
-            throw new ApiError(ErrorCode.EINVAL, 'Flag passed to readFile must allow for reading.');
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, 'Flag passed to readFile must allow for reading.');
         }
         return fs.root.readFileSync(normalizePath(filename), options.encoding, flag);
     };
@@ -264,9 +260,9 @@ var fs = (function () {
         cb = typeof arg3 === 'function' ? arg3 : cb;
         var newCb = wrapCb(cb, 1);
         try {
-            var flag = FileFlag.getFileFlag(options.flag);
+            var flag = file_flag_1.FileFlag.getFileFlag(options.flag);
             if (!flag.isWriteable()) {
-                return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to writeFile must allow for writing.'));
+                return newCb(new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, 'Flag passed to writeFile must allow for writing.'));
             }
             return fs.root.writeFile(normalizePath(filename), data, options.encoding, flag, options.mode, newCb);
         }
@@ -276,9 +272,9 @@ var fs = (function () {
     };
     fs.writeFileSync = function (filename, data, arg3) {
         var options = normalizeOptions(arg3, 'utf8', 'w', 0x1a4);
-        var flag = FileFlag.getFileFlag(options.flag);
+        var flag = file_flag_1.FileFlag.getFileFlag(options.flag);
         if (!flag.isWriteable()) {
-            throw new ApiError(ErrorCode.EINVAL, 'Flag passed to writeFile must allow for writing.');
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, 'Flag passed to writeFile must allow for writing.');
         }
         return fs.root.writeFileSync(normalizePath(filename), data, options.encoding, flag, options.mode);
     };
@@ -288,9 +284,9 @@ var fs = (function () {
         cb = typeof arg3 === 'function' ? arg3 : cb;
         var newCb = wrapCb(cb, 1);
         try {
-            var flag = FileFlag.getFileFlag(options.flag);
+            var flag = file_flag_1.FileFlag.getFileFlag(options.flag);
             if (!flag.isAppendable()) {
-                return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to appendFile must allow for appending.'));
+                return newCb(new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, 'Flag passed to appendFile must allow for appending.'));
             }
             fs.root.appendFile(normalizePath(filename), data, options.encoding, flag, options.mode, newCb);
         }
@@ -300,9 +296,9 @@ var fs = (function () {
     };
     fs.appendFileSync = function (filename, data, arg3) {
         var options = normalizeOptions(arg3, 'utf8', 'a', 0x1a4);
-        var flag = FileFlag.getFileFlag(options.flag);
+        var flag = file_flag_1.FileFlag.getFileFlag(options.flag);
         if (!flag.isAppendable()) {
-            throw new ApiError(ErrorCode.EINVAL, 'Flag passed to appendFile must allow for appending.');
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, 'Flag passed to appendFile must allow for appending.');
         }
         return fs.root.appendFileSync(normalizePath(filename), data, options.encoding, flag, options.mode);
     };
@@ -344,7 +340,7 @@ var fs = (function () {
         try {
             checkFd(fd);
             if (length < 0) {
-                throw new ApiError(ErrorCode.EINVAL);
+                throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL);
             }
             fd.truncate(length, newCb);
         }
@@ -403,9 +399,9 @@ var fs = (function () {
                     break;
                 default:
                     cb = typeof arg4 === 'function' ? arg4 : typeof arg5 === 'function' ? arg5 : cb;
-                    return cb(new ApiError(ErrorCode.EINVAL, 'Invalid arguments.'));
+                    return cb(new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, 'Invalid arguments.'));
             }
-            buffer = new Buffer(arg2, encoding);
+            buffer = new buffer_1.Buffer(arg2, encoding);
             offset = 0;
             length = buffer.length;
         }
@@ -434,7 +430,7 @@ var fs = (function () {
             position = typeof arg3 === 'number' ? arg3 : null;
             var encoding = typeof arg4 === 'string' ? arg4 : 'utf8';
             offset = 0;
-            buffer = new Buffer(arg2, encoding);
+            buffer = new buffer_1.Buffer(arg2, encoding);
             length = buffer.length;
         }
         else {
@@ -458,7 +454,7 @@ var fs = (function () {
             var encoding = arg4;
             cb = typeof arg5 === 'function' ? arg5 : cb;
             offset = 0;
-            buffer = new Buffer(length);
+            buffer = new buffer_1.Buffer(length);
             newCb = wrapCb((function (err, bytesRead, buf) {
                 if (err) {
                     return cb(err);
@@ -492,7 +488,7 @@ var fs = (function () {
             position = arg3;
             var encoding = arg4;
             offset = 0;
-            buffer = new Buffer(length);
+            buffer = new buffer_1.Buffer(length);
             shenanigans = true;
         }
         else {
@@ -647,7 +643,7 @@ var fs = (function () {
         var newCb = wrapCb(cb, 1);
         try {
             if (type !== 'file' && type !== 'dir') {
-                return newCb(new ApiError(ErrorCode.EINVAL, "Invalid type: " + type));
+                return newCb(new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Invalid type: " + type));
             }
             srcpath = normalizePath(srcpath);
             dstpath = normalizePath(dstpath);
@@ -662,7 +658,7 @@ var fs = (function () {
             type = 'file';
         }
         else if (type !== 'file' && type !== 'dir') {
-            throw new ApiError(ErrorCode.EINVAL, "Invalid type: " + type);
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Invalid type: " + type);
         }
         srcpath = normalizePath(srcpath);
         dstpath = normalizePath(dstpath);

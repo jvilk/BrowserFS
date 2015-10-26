@@ -1,10 +1,8 @@
 import file = require('../core/file');
 import file_system = require('../core/file_system');
-import node_fs_stats = require('../core/node_fs_stats');
-import file_flag = require('../core/file_flag');
-import api_error = require('../core/api_error');
-import ApiError = api_error.ApiError;
-import Stats = node_fs_stats.Stats;
+import { Stats } from '../core/node_fs_stats';
+import { FileFlag } from '../core/file_flag';
+import { ApiError } from '../core/api_error';
 export declare class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile {
     private _pos;
     private _path;
@@ -13,12 +11,12 @@ export declare class PreloadFile<T extends file_system.FileSystem> extends file.
     private _flag;
     private _buffer;
     private _dirty;
-    constructor(_fs: T, _path: string, _flag: file_flag.FileFlag, _stat: Stats, contents?: NodeBuffer);
+    constructor(_fs: T, _path: string, _flag: FileFlag, _stat: Stats, contents?: NodeBuffer);
     protected isDirty(): boolean;
     protected resetDirty(): void;
     getBuffer(): NodeBuffer;
     getStats(): Stats;
-    getFlag(): file_flag.FileFlag;
+    getFlag(): FileFlag;
     getPath(): string;
     getPos(): number;
     advancePos(delta: number): number;
@@ -39,7 +37,7 @@ export declare class PreloadFile<T extends file_system.FileSystem> extends file.
     chmodSync(mode: number): void;
 }
 export declare class NoSyncFile<T extends file_system.FileSystem> extends PreloadFile<T> implements file.File {
-    constructor(_fs: T, _path: string, _flag: file_flag.FileFlag, _stat: Stats, contents?: NodeBuffer);
+    constructor(_fs: T, _path: string, _flag: FileFlag, _stat: Stats, contents?: NodeBuffer);
     sync(cb: (e?: ApiError) => void): void;
     syncSync(): void;
     close(cb: (e?: ApiError) => void): void;

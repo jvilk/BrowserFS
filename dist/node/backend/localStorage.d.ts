@@ -8,7 +8,7 @@ export declare class LocalStorageStore implements kvfs.SyncKeyValueStore, kvfs.S
     put(key: string, data: NodeBuffer, overwrite: boolean): boolean;
     del(key: string): void;
 }
-export declare class LocalStorageFileSystem extends kvfs.SyncKeyValueFileSystem {
+export default class LocalStorageFileSystem extends kvfs.SyncKeyValueFileSystem {
     constructor();
     static isAvailable(): boolean;
 }

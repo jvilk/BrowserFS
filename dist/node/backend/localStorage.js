@@ -3,12 +3,10 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var buffer = require('../core/buffer');
-var browserfs = require('../core/browserfs');
+var buffer_1 = require('../core/buffer');
 var kvfs = require('../generic/key_value_filesystem');
-var api_error = require('../core/api_error');
+var api_error_1 = require('../core/api_error');
 var global = require('../core/global');
-var Buffer = buffer.Buffer, ApiError = api_error.ApiError, ErrorCode = api_error.ErrorCode;
 var supportsBinaryString = false, binaryEncoding;
 try {
     global.localStorage.setItem("__test__", String.fromCharCode(0xD800));
@@ -34,7 +32,7 @@ var LocalStorageStore = (function () {
         try {
             var data = global.localStorage.getItem(key);
             if (data !== null) {
-                return new Buffer(data, binaryEncoding);
+                return new buffer_1.Buffer(data, binaryEncoding);
             }
         }
         catch (e) {
@@ -50,7 +48,7 @@ var LocalStorageStore = (function () {
             return true;
         }
         catch (e) {
-            throw new ApiError(ErrorCode.ENOSPC, "LocalStorage is full.");
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.ENOSPC, "LocalStorage is full.");
         }
     };
     LocalStorageStore.prototype.del = function (key) {
@@ -58,7 +56,7 @@ var LocalStorageStore = (function () {
             global.localStorage.removeItem(key);
         }
         catch (e) {
-            throw new ApiError(ErrorCode.EIO, "Unable to delete key " + key + ": " + e);
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EIO, "Unable to delete key " + key + ": " + e);
         }
     };
     return LocalStorageStore;
@@ -74,6 +72,6 @@ var LocalStorageFileSystem = (function (_super) {
     };
     return LocalStorageFileSystem;
 })(kvfs.SyncKeyValueFileSystem);
-exports.LocalStorageFileSystem = LocalStorageFileSystem;
-browserfs.registerFileSystem('LocalStorage', LocalStorageFileSystem);
-//# sourceMappingURL=localStorage.js.map
+exports.__esModule = true;
+exports["default"] = LocalStorageFileSystem;
+//# sourceMappingURL=LocalStorage.js.map

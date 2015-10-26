@@ -1,7 +1,14 @@
+/**
+ * BrowserFS's main module. This is exposed in the browser via the BrowserFS global.
+ */
 var buffer = require('./buffer');
 var fs = require('./node_fs');
 var path = require('./node_path');
 var node_process = require('./node_process');
+var emscripten_fs_1 = require('../generic/emscripten_fs');
+exports.EmscriptenFS = emscripten_fs_1["default"];
+var FileSystem = require('./backends');
+exports.FileSystem = FileSystem;
 function install(obj) {
     obj.Buffer = buffer.Buffer;
     obj.process = node_process.process;
@@ -17,9 +24,8 @@ function install(obj) {
     };
 }
 exports.install = install;
-exports.FileSystem = {};
 function registerFileSystem(name, fs) {
-    exports.FileSystem[name] = fs;
+    FileSystem[name] = fs;
 }
 exports.registerFileSystem = registerFileSystem;
 function BFSRequire(module) {
@@ -33,7 +39,7 @@ function BFSRequire(module) {
         case 'process':
             return node_process.process;
         default:
-            return exports.FileSystem[module];
+            return FileSystem[module];
     }
 }
 exports.BFSRequire = BFSRequire;

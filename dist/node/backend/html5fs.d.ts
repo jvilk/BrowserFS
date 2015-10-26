@@ -1,33 +1,31 @@
 import preload_file = require('../generic/preload_file');
 import file_system = require('../core/file_system');
-import api_error = require('../core/api_error');
-import file_flag = require('../core/file_flag');
-import node_fs_stats = require('../core/node_fs_stats');
+import { ApiError } from '../core/api_error';
+import { FileFlag } from '../core/file_flag';
+import { Stats } from '../core/node_fs_stats';
 import file = require('../core/file');
-import ApiError = api_error.ApiError;
 export declare class HTML5FSFile extends preload_file.PreloadFile<HTML5FS> implements file.File {
-    constructor(_fs: HTML5FS, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: NodeBuffer);
+    constructor(_fs: HTML5FS, _path: string, _flag: FileFlag, _stat: Stats, contents?: NodeBuffer);
     sync(cb: (e?: ApiError) => void): void;
     close(cb: (e?: ApiError) => void): void;
 }
-export declare class HTML5FS extends file_system.BaseFileSystem implements file_system.FileSystem {
+export default class HTML5FS extends file_system.BaseFileSystem implements file_system.FileSystem {
     private size;
     private type;
     fs: FileSystem;
-    constructor(size: number, type?: number);
+    constructor(size?: number, type?: number);
     getName(): string;
     static isAvailable(): boolean;
     isReadOnly(): boolean;
     supportsSymlinks(): boolean;
     supportsProps(): boolean;
     supportsSynch(): boolean;
-    convert(err: DOMError, message?: string): ApiError;
-    convertErrorEvent(err: ErrorEvent, message?: string): ApiError;
+    convert(err: DOMError, p: string, expectedDir: boolean): ApiError;
     allocate(cb?: (e?: ApiError) => void): void;
     empty(mainCb: (e?: ApiError) => void): void;
     rename(oldPath: string, newPath: string, cb: (e?: ApiError) => void): void;
-    stat(path: string, isLstat: boolean, cb: (err: ApiError, stat?: node_fs_stats.Stats) => void): void;
-    open(path: string, flags: file_flag.FileFlag, mode: number, cb: (err: ApiError, fd?: file.File) => any): void;
+    stat(path: string, isLstat: boolean, cb: (err: ApiError, stat?: Stats) => void): void;
+    open(p: string, flags: FileFlag, mode: number, cb: (err: ApiError, fd?: file.File) => any): void;
     private _statType(stat);
     private _makeFile(path, flag, stat, data?);
     private _remove(path, cb, isFile);

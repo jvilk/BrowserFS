@@ -1,6 +1,5 @@
 import fs = require('fs');
-import buffer = require('./buffer');
-import Buffer = buffer.Buffer;
+import { Buffer } from './buffer';
 export declare enum FileType {
     FILE = 32768,
     DIRECTORY = 16384,

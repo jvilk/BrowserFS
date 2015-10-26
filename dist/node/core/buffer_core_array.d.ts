@@ -1,5 +1,5 @@
 import buffer_core = require('./buffer_core');
-export declare class BufferCoreArray extends buffer_core.BufferCoreCommon implements buffer_core.BufferCore {
+declare class BufferCoreArray extends buffer_core.BufferCoreCommon implements buffer_core.BufferCore {
     static isAvailable(): boolean;
     static name: string;
     private buff;
@@ -10,3 +10,4 @@ export declare class BufferCoreArray extends buffer_core.BufferCoreCommon implem
     readUInt8(i: number): number;
     copy(start: number, end: number): buffer_core.BufferCore;
 }
+export = BufferCoreArray;
