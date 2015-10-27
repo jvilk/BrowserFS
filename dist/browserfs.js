@@ -5883,6 +5883,9 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 var buffer_core = _dereq_('./buffer_core');
+function isArrayBufferView(ab) {
+    return ArrayBuffer.isView(ab);
+}
 var BufferCoreArrayBuffer = (function (_super) {
     __extends(BufferCoreArrayBuffer, _super);
     function BufferCoreArrayBuffer(arg1) {
@@ -5892,6 +5895,9 @@ var BufferCoreArrayBuffer = (function (_super) {
         }
         else if (arg1 instanceof DataView) {
             this.buff = arg1;
+        }
+        else if (isArrayBufferView(arg1)) {
+            this.buff = new DataView(arg1.buffer, arg1.byteOffset, arg1.byteLength);
         }
         else {
             this.buff = new DataView(arg1);
