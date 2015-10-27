@@ -1,5 +1,9 @@
 import buffer_core = require('./buffer_core');
 
+function isArrayBufferView(ab: any): ab is ArrayBufferView {
+  return ArrayBuffer.isView(ab);
+}
+
 /**
  * Represents data using an ArrayBuffer.
  */
@@ -21,6 +25,8 @@ class BufferCoreArrayBuffer extends buffer_core.BufferCoreCommon implements buff
       this.buff = new DataView(new ArrayBuffer(arg1));
     } else if (arg1 instanceof DataView) {
       this.buff = arg1;
+    } else if (isArrayBufferView(arg1)) {
+      this.buff = new DataView(arg1.buffer, arg1.byteOffset, arg1.byteLength);
     } else {
       this.buff = new DataView(<ArrayBuffer> arg1);
     }
