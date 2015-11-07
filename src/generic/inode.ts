@@ -1,5 +1,5 @@
 import {Stats, FileType} from '../core/node_fs_stats';
-import buffer = require('../core/buffer');
+
 /**
  * Generic inode definition that can easily be serialized.
  */
@@ -31,7 +31,7 @@ class Inode {
   /**
    * Writes the inode into the start of the buffer.
    */
-  public toBuffer(buff: NodeBuffer = new buffer.Buffer(this.getSize())): NodeBuffer {
+  public toBuffer(buff: NodeBuffer = new Buffer(this.getSize())): NodeBuffer {
     buff.writeUInt32LE(this.size, 0);
     buff.writeUInt16LE(this.mode, 4);
     buff.writeDoubleLE(this.atime, 6);

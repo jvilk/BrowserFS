@@ -1,4 +1,3 @@
-import {Buffer} from '../core/buffer';
 import kvfs = require('../generic/key_value_filesystem');
 import {ApiError, ErrorCode} from '../core/api_error';
 import global = require('../core/global');

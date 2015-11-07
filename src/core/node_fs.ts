@@ -2,8 +2,7 @@ import file = require('./file');
 import {ApiError, ErrorCode} from './api_error';
 import file_system = require('./file_system');
 import {FileFlag} from './file_flag';
-import {Buffer} from './buffer';
-import path = require('./node_path');
+import path = require('path');
 import {Stats} from './node_fs_stats';
 
 

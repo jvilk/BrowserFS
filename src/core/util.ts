@@ -13,19 +13,152 @@ export var isIE: boolean = typeof navigator !== "undefined" && (/(msie) ([\w.]+)
  */
 export var isWebWorker: boolean = typeof window === "undefined";
 
-var fromCharCode = String.fromCharCode;
+export interface Arrayish<T> {
+  [idx: number]: T;
+  length: number;
+}
 
 /**
- * Efficiently converts an array of character codes into a JS string.
- * Avoids an issue with String.fromCharCode when the number of arguments is too large.
+ * Converts a buffer into an array buffer. Attempts to do so in a
+ * zero-copy manner, e.g. the array references the same memory.
  */
-export function fromCharCodes(charCodes: number[]): string {
-  // 8K blocks.
-  var numChars = charCodes.length,
-    numChunks = ((numChars - 1) >> 13) + 1,
-    chunks: string[] = new Array<string>(numChunks), i: number;
-  for (i = 0; i < numChunks; i++) {
-    chunks[i] = fromCharCode.apply(String, charCodes.slice(i * 0x2000, (i + 1) * 0x2000));
+export function buffer2ArrayBuffer(buff: Buffer): ArrayBuffer {
+  var u8 = buffer2Uint8array(buff),
+    u8offset = u8.byteOffset,
+    u8Len = u8.byteLength;
+  if (u8offset === 0 && u8Len === u8.buffer.byteLength) {
+    return u8.buffer;
+  } else {
+    return u8.buffer.slice(u8offset, u8offset + u8Len)
   }
-  return chunks.join("");
+}
+
+/**
+ * Converts a buffer into a Uint8Array. Attempts to do so in a
+ * zero-copy manner, e.g. the array references the same memory.
+ */
+export function buffer2Uint8array(buff: Buffer): Uint8Array {
+  if (buff['toUint8Array']) {
+    return (<any> buff).toUint8Array();
+  } else if (buff instanceof Uint8Array) {
+    // Node v4.0 buffers *are* Uint8Arrays.
+    return <any> buff;
+  } else {
+    // Uint8Arrays can be constructed from arrayish numbers.
+    // At this point, we assume this isn't a BFS array.
+    return new Uint8Array(buff);
+  }
+}
+
+/**
+ * Converts the given buffer into a Uint8 arrayish form. Attempts
+ * to be zero-copy.
+ *
+ * Required for BrowserFS buffers, which do not support indexing.
+ */
+export function buffer2Arrayish(buff: Buffer): Arrayish<number> {
+  if (buff.length === 0 || typeof(buff[0]) === 'number') {
+    return buff;
+  } else if (typeof(ArrayBuffer) !== 'undefined') {
+    return buffer2Uint8array(buff);
+  } else {
+    return buff.toJSON().data;
+  }
+}
+
+/**
+ * Converts the given arrayish object into a Buffer. Attempts to
+ * be zero-copy.
+ */
+export function arrayish2Buffer(arr: Arrayish<number>): Buffer {
+  if (arr instanceof Uint8Array) {
+    return uint8Array2Buffer(arr);
+  } else if (arr instanceof Buffer) {
+    return arr;
+  } else {
+    return new Buffer(<number[]> arr);
+  }
+}
+
+/**
+ * Converts the given Uint8Array into a Buffer. Attempts to be zero-copy.
+ */
+export function uint8Array2Buffer(u8: Uint8Array): Buffer {
+  if (u8.byteOffset === 0 && u8.byteLength === u8.buffer.byteLength) {
+    return arrayBuffer2Buffer(u8);
+  } else {
+    return new Buffer(u8);
+  }
+}
+
+/**
+ * Converts the given array buffer into a Buffer. Attempts to be
+ * zero-copy.
+ */
+export function arrayBuffer2Buffer(ab: ArrayBuffer): Buffer {
+  try {
+    // Works in BFS and Node v4.2.
+    return new Buffer(<any> ab);
+  } catch (e) {
+    // I believe this copies, but there's no avoiding it in Node < v0.12
+    return new Buffer(new Uint8Array(ab));
+  }
+}
+
+// Polyfill for Uint8Array.prototype.slice.
+// Safari and some other browsers do not define it.
+if (typeof(ArrayBuffer) !== 'undefined' && typeof(Uint8Array) !== 'undefined') {
+  if (!Uint8Array.prototype['slice']) {
+    Uint8Array.prototype.slice = function(start: number = 0, end: number = this.length): Uint8Array {
+      let self: Uint8Array = this;
+      if (start < 0) {
+        start = this.length + start;
+        if (start < 0) {
+          start = 0;
+        }
+      }
+      if (end < 0) {
+        end = this.length + end;
+        if (end < 0) {
+          end = 0;
+        }
+      }
+      if (end < start) {
+        end = start;
+      }
+      return new Uint8Array(self.buffer, self.byteOffset + start, end - start);
+    };
+  }
+}
+
+/**
+ * Copies a slice of the given buffer
+ */
+export function copyingSlice(buff: Buffer, start: number = 0, end = buff.length): Buffer {
+  if (start < 0 || end < 0 || end > buff.length || start > end) {
+    throw new TypeError(`Invalid slice bounds on buffer of length ${buff.length}: [${start}, ${end}]`);
+  }
+  if (buff.length === 0) {
+    // Avoid s0 corner case in ArrayBuffer case.
+    return new Buffer(0);
+  } else if (typeof(ArrayBuffer) !== 'undefined') {
+    var u8 = buffer2Uint8array(buff),
+      s0 = buff.readUInt8(0),
+      newS0 = (s0 + 1) % 0xFF;
+
+    buff.writeUInt8(newS0, 0);
+    if (u8[0] === newS0) {
+      // Same memory. Revert & copy.
+      u8[0] = s0;
+      return uint8Array2Buffer(u8.slice(start, end));
+    } else {
+      // Revert.
+      buff.writeUInt8(s0, 0);
+      return uint8Array2Buffer(u8.subarray(start, end));
+    }
+  } else {
+    var buffSlice = new Buffer(end - start);
+    buff.copy(buffSlice, 0, start, end);
+    return buffSlice;
+  }
 }

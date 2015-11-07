@@ -23,8 +23,7 @@ var fs = require('fs'),
     path = require('path'),
     assert = require('wrapped-assert'),
     common = require('../../../harness/common'),
-    Buffer = require('buffer').Buffer,
-    process = require('process').process;
+    Buffer = require('buffer').Buffer;
 
 module.exports = function() {
   var successes = 0;

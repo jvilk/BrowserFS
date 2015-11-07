@@ -3,12 +3,11 @@ import file_system = require('../core/file_system');
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
 import {Stats, FileType} from '../core/node_fs_stats';
-import {Buffer} from '../core/buffer';
 import file = require('../core/file');
-import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
-import path = require('../core/node_path');
+import path = require('path');
 import global = require('../core/global');
 import async = require('async');
+import {buffer2ArrayBuffer, arrayBuffer2Buffer} from '../core/util';
 
 function isDirectoryEntry(entry: Entry): entry is DirectoryEntry {
   return entry.isDirectory;
@@ -65,8 +64,8 @@ export class HTML5FSFile extends preload_file.PreloadFile<HTML5FS> implements fi
       var _fs = this._fs;
       var success: FileEntryCallback = (entry) => {
         entry.createWriter((writer) => {
-          var buffer = <Buffer> this.getBuffer();
-          var blob = new Blob([buffer.toArrayBuffer()]);
+          var buffer = this.getBuffer();
+          var blob = new Blob([buffer2ArrayBuffer(buffer)]);
           var length = blob.size;
           writer.onwriteend = () => {
             writer.onwriteend = null;
@@ -374,7 +373,7 @@ export default class HTML5FS extends file_system.BaseFileSystem implements file_
    */
   private _makeFile(path: string, flag: FileFlag, stat: File, data: ArrayBuffer = new ArrayBuffer(0)): HTML5FSFile {
     var stats = new Stats(FileType.FILE, stat.size);
-    var buffer = new Buffer(data);
+    var buffer = arrayBuffer2Buffer(data);
     return new HTML5FSFile(this, path, flag, stats, buffer);
   }
 

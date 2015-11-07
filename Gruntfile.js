@@ -4,8 +4,15 @@ var fs = require('fs'),
   mold = require('mold-source-map'),
   browserifyConfig = {
     // Note: Cannot use "bare" here. That's a command-line-only switch.
-    builtins: [],
-    detectGlobals: false,
+    builtins: _.extend({}, require('browserify/lib/builtins'), {
+        "buffer": require.resolve('bfs-buffer'),
+        "path": require.resolve("bfs-path")
+    }),
+    insertGlobalVars: {
+        "Buffer": function() { return "require('bfs-buffer').Buffer" },
+        "process": function () { return "require('bfs-process')" }
+    },
+    detectGlobals: true,
     debug: true,
     transform: [
       'aliasify'
@@ -193,11 +200,7 @@ module.exports = function(grunt) {
           preprocessors: {
             'test/harness/run.ts': ['browserify']
           },
-          browserify: _.extend({}, browserifyConfig,
-            {
-              builtins: ['assert']
-            }
-          )
+          browserify: browserifyConfig
         }
       }
     },
@@ -231,11 +234,7 @@ module.exports = function(grunt) {
       },
       test: {
         options: {
-          browserifyOptions: _.extend({}, browserifyConfig,
-            {
-              builtins: ['assert']
-            }
-          )
+          browserifyOptions: browserifyConfig
         },
         files: {
           './test/harness/test.js': './test/harness/run.ts'
@@ -491,9 +490,15 @@ module.exports = function(grunt) {
     // Remove anything that isn't in the src/ dir.
     var coverageInfo = grunt.file.readJSON('coverage/coverage-combined.json'), newCoverageInfo = {};
     Object.keys(coverageInfo).filter(function (filepath) {
-      return path.relative('.', filepath).slice(0, 3) === 'src';
+      return path.relative('.', filepath).slice(0, 3) === 'src' || path.relative(".", filepath).slice(0, 17) === "node_modules/bfs-";
     }).forEach(function(filePath) {
-      newCoverageInfo[filePath] = coverageInfo[filePath];
+      var newPath = filePath;
+      // Weird issue caused by relative source map URLs.
+      if (filePath.indexOf('node_modules') !== filePath.lastIndexOf('node_modules')) {
+        newPath = path.resolve(filePath.slice(filePath.lastIndexOf('node_modules')));
+      }
+      newCoverageInfo[newPath] = coverageInfo[filePath];
+      newCoverageInfo[newPath]['path'] = newPath;
     });
     grunt.file.write('coverage/coverage-combined.json', JSON.stringify(newCoverageInfo));
   });

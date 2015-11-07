@@ -26,6 +26,9 @@
     "aliasify": "^1.7.2",
     "archiver": "^0.15.1",
     "async": ">= 0.2.7",
+    "bfs-buffer": "^0.1.1",
+    "bfs-path": "^0.1.1",
+    "bfs-process": "^0.1.1",
     "browserify": "^10.2.6",
     "browserify-derequire": "~0.9.4",
     "browserify-shim": "~3.8.7",
@@ -69,10 +72,7 @@
   },
   "aliasify": {
     "aliases": {
-      "buffer": "./src/core/buffer.ts",
       "fs": "./src/core/node_fs.ts",
-      "path": "./src/core/node_path.ts",
-      "process": "./src/core/node_process.ts",
       "wrapped-assert": "./test/harness/wrapped-assert.ts"
     }
   }

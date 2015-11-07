@@ -1,8 +1,7 @@
 import file_system = require('../core/file_system');
-import {Buffer} from '../core/buffer';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
-import util = require('../core/util');
+import {copyingSlice} from '../core/util';
 import file = require('../core/file');
 import {Stats} from '../core/node_fs_stats';
 import preload_file = require('../generic/preload_file');
@@ -300,11 +299,7 @@ export default class XmlHttpRequest extends file_system.BaseFileSystem implement
       var fdCast = <preload_file.NoSyncFile<XmlHttpRequest>> fd;
       var fdBuff = <Buffer> fdCast.getBuffer();
       if (encoding === null) {
-        if (fdBuff.length > 0) {
-          return cb(err, fdBuff.sliceCopy());
-        } else {
-          return cb(err, new Buffer(0));
-        }
+        return cb(err, copyingSlice(fdBuff));
       }
       try {
         cb(null, fdBuff.toString(encoding));
@@ -324,11 +319,7 @@ export default class XmlHttpRequest extends file_system.BaseFileSystem implement
       var fdCast = <preload_file.NoSyncFile<XmlHttpRequest>> fd;
       var fdBuff = <Buffer> fdCast.getBuffer();
       if (encoding === null) {
-        if (fdBuff.length > 0) {
-          return fdBuff.sliceCopy();
-        } else {
-          return new Buffer(0);
-        }
+        return copyingSlice(fdBuff);
       }
       return fdBuff.toString(encoding);
     } finally {

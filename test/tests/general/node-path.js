@@ -21,8 +21,7 @@
 
 var assert = require('wrapped-assert'),
     path = require('path'),
-    Buffer = require('buffer').Buffer,
-    process = require('process').process;
+    Buffer = require('buffer').Buffer;
 
 module.exports = function() {
   var isWindows = process.platform === 'win32';

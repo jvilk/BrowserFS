@@ -1,8 +1,7 @@
 import file_system = require('../core/file_system');
-import {Buffer} from '../core/buffer';
 import {ApiError} from '../core/api_error';
 import file_flag = require('../core/file_flag');
-import util = require('../core/util');
+import {buffer2ArrayBuffer, arrayBuffer2Buffer} from '../core/util';
 import file = require('../core/file');
 import node_fs_stats = require('../core/node_fs_stats');
 import preload_file = require('../generic/preload_file');
@@ -282,11 +281,11 @@ interface IBufferArgument extends ISpecialArgument {
 }
 
 function bufferToTransferrableObject(buff: NodeBuffer): ArrayBuffer {
-  return (<Buffer> buff).toArrayBuffer()
+  return buffer2ArrayBuffer(buff);
 }
 
 function transferrableObjectToBuffer(buff: ArrayBuffer): Buffer {
-  return new Buffer(<any> buff);
+  return arrayBuffer2Buffer(buff);
 }
 
 function bufferLocal2Remote(buff: Buffer): IBufferArgument {

@@ -2,12 +2,11 @@ import preload_file = require('../generic/preload_file');
 import file_system = require('../core/file_system');
 import file_flag = require('../core/file_flag');
 import {Stats, FileType} from '../core/node_fs_stats';
-import {Buffer} from '../core/buffer';
 import {ApiError, ErrorCode} from '../core/api_error';
 import file = require('../core/file');
-import path = require('../core/node_path');
 import async = require('async');
-
+import path = require('path');
+import {arrayBuffer2Buffer, buffer2ArrayBuffer} from '../core/util';
 
 var errorCodeLookup: {[dropboxErrorCode: number]: ErrorCode} = null;
 // Lazily construct error code lookup, since DropboxJS might be loaded *after* BrowserFS (or not at all!)
@@ -294,8 +293,8 @@ export class DropboxFile extends preload_file.PreloadFile<DropboxFileSystem> imp
 
   public sync(cb: (e?: ApiError) => void): void {
     if (this.isDirty()) {
-      var buffer = <Buffer> this.getBuffer(),
-        arrayBuffer = buffer.toArrayBuffer();
+      var buffer = this.getBuffer(),
+        arrayBuffer = buffer2ArrayBuffer(buffer);
       this._fs._writeFileStrict(this.getPath(), arrayBuffer, (e?: ApiError) => {
         if (!e) {
           this.resetDirty();
@@ -437,7 +436,7 @@ export default class DropboxFileSystem extends file_system.BaseFileSystem implem
                 if (error2) {
                   cb(error2);
                 } else {
-                  var file = this._makeFile(path, flags, stat, new Buffer(ab));
+                  var file = this._makeFile(path, flags, stat, arrayBuffer2Buffer(ab));
                   cb(null, file);
                 }
               });
@@ -453,7 +452,7 @@ export default class DropboxFileSystem extends file_system.BaseFileSystem implem
         if (content === null) {
           buffer = new Buffer(0);
         } else {
-          buffer = new Buffer(content);
+          buffer = arrayBuffer2Buffer(content);
         }
         var file = this._makeFile(path, flags, dbStat, buffer);
         return cb(null, file);
