@@ -89,7 +89,7 @@ fs.writeFile('/test.txt', 'Cool, I can do this in the browser!', function(err) {
 ### Using with Browserify
 
 You can use BrowserFS with your Browserify projects. Simply depend on `browserfs/dist/node/core/node_fs.js` as the provider
-of `fs`, and pull in `browserfs/dist/node/core/browserfs.js` as the provider of the `BrowserFS` variable, through which you
+of `fs`, and pull in `browserfs/dist/node/main.js` as the provider of the `BrowserFS` variable, through which you
 can construct and initialize the file system.
 
 Do not depend on both `node_fs.js` and the `browserfs` module, as it will pull in the node modules from `dist/node`,
@@ -106,7 +106,7 @@ You can use BrowserFS with Node. Simply add `browserfs` as an NPM dependency, an
 The object returned from this action is the same `BrowserFS` global described above.
 
 If you need BrowserFS to return Node Buffer objects (instead of objects that implement the same interface),
-simply `require('browserfs/dist/node/core/browserfs')` instead.
+simply `require('browserfs/dist/node/main')` instead.
 
 ### Using with Emscripten
 
