@@ -5,14 +5,13 @@ import {copyingSlice} from '../core/util';
 import file = require('../core/file');
 import {Stats} from '../core/node_fs_stats';
 import preload_file = require('../generic/preload_file');
-import browserfs = require('../core/browserfs');
 import xhr = require('../generic/xhr');
 import {FileIndex, DirInode, FileInode, Inode, isFileInode, isDirInode} from '../generic/file_index';
 
 /**
  * A simple filesystem backed by XmlHttpRequests.
  */
-export class XmlHttpRequest extends file_system.BaseFileSystem implements file_system.FileSystem {
+export default class XmlHttpRequest extends file_system.BaseFileSystem implements file_system.FileSystem {
   private _index: FileIndex;
   public prefixUrl: string;
   /**
@@ -328,5 +327,3 @@ export class XmlHttpRequest extends file_system.BaseFileSystem implements file_s
     }
   }
 }
-
-browserfs.registerFileSystem('XmlHttpRequest', XmlHttpRequest);

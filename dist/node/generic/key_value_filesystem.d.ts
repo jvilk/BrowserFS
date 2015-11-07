@@ -1,5 +1,5 @@
 import file_system = require('../core/file_system');
-import api_error = require('../core/api_error');
+import { ApiError } from '../core/api_error';
 import node_fs_stats = require('../core/node_fs_stats');
 import file = require('../core/file');
 import file_flag = require('../core/file_flag');
@@ -76,28 +76,28 @@ export declare class SyncKeyValueFileSystem extends file_system.SynchronousFileS
 }
 export interface AsyncKeyValueStore {
     name(): string;
-    clear(cb: (e?: api_error.ApiError) => void): void;
+    clear(cb: (e?: ApiError) => void): void;
     beginTransaction(type: 'readwrite'): AsyncKeyValueRWTransaction;
     beginTransaction(type: 'readonly'): AsyncKeyValueROTransaction;
     beginTransaction(type: string): AsyncKeyValueROTransaction;
 }
 export interface AsyncKeyValueROTransaction {
-    get(key: string, cb: (e: api_error.ApiError, data?: NodeBuffer) => void): void;
+    get(key: string, cb: (e: ApiError, data?: NodeBuffer) => void): void;
 }
 export interface AsyncKeyValueRWTransaction extends AsyncKeyValueROTransaction {
-    put(key: string, data: NodeBuffer, overwrite: boolean, cb: (e: api_error.ApiError, committed?: boolean) => void): void;
-    del(key: string, cb: (e?: api_error.ApiError) => void): void;
-    commit(cb: (e?: api_error.ApiError) => void): void;
-    abort(cb: (e?: api_error.ApiError) => void): void;
+    put(key: string, data: NodeBuffer, overwrite: boolean, cb: (e: ApiError, committed?: boolean) => void): void;
+    del(key: string, cb: (e?: ApiError) => void): void;
+    commit(cb: (e?: ApiError) => void): void;
+    abort(cb: (e?: ApiError) => void): void;
 }
 export declare class AsyncKeyValueFile extends preload_file.PreloadFile<AsyncKeyValueFileSystem> implements file.File {
     constructor(_fs: AsyncKeyValueFileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: NodeBuffer);
-    sync(cb: (e?: api_error.ApiError) => void): void;
-    close(cb: (e?: api_error.ApiError) => void): void;
+    sync(cb: (e?: ApiError) => void): void;
+    close(cb: (e?: ApiError) => void): void;
 }
 export declare class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
     private store;
-    init(store: AsyncKeyValueStore, cb: (e?: api_error.ApiError) => void): void;
+    init(store: AsyncKeyValueStore, cb: (e?: ApiError) => void): void;
     static isAvailable(): boolean;
     getName(): string;
     isReadOnly(): boolean;
@@ -112,15 +112,15 @@ export declare class AsyncKeyValueFileSystem extends file_system.BaseFileSystem 
     private findINodeAndDirListing(tx, p, cb);
     private addNewNode(tx, data, cb);
     private commitNewFile(tx, p, type, mode, data, cb);
-    empty(cb: (e?: api_error.ApiError) => void): void;
-    rename(oldPath: string, newPath: string, cb: (e?: api_error.ApiError) => void): void;
-    stat(p: string, isLstat: boolean, cb: (err: api_error.ApiError, stat?: node_fs_stats.Stats) => void): void;
-    createFile(p: string, flag: file_flag.FileFlag, mode: number, cb: (e: api_error.ApiError, file?: file.File) => void): void;
-    openFile(p: string, flag: file_flag.FileFlag, cb: (e: api_error.ApiError, file?: file.File) => void): void;
+    empty(cb: (e?: ApiError) => void): void;
+    rename(oldPath: string, newPath: string, cb: (e?: ApiError) => void): void;
+    stat(p: string, isLstat: boolean, cb: (err: ApiError, stat?: node_fs_stats.Stats) => void): void;
+    createFile(p: string, flag: file_flag.FileFlag, mode: number, cb: (e: ApiError, file?: file.File) => void): void;
+    openFile(p: string, flag: file_flag.FileFlag, cb: (e: ApiError, file?: file.File) => void): void;
     private removeEntry(p, isDir, cb);
-    unlink(p: string, cb: (e?: api_error.ApiError) => void): void;
-    rmdir(p: string, cb: (e?: api_error.ApiError) => void): void;
-    mkdir(p: string, mode: number, cb: (e?: api_error.ApiError) => void): void;
-    readdir(p: string, cb: (err: api_error.ApiError, files?: string[]) => void): void;
-    _sync(p: string, data: NodeBuffer, stats: node_fs_stats.Stats, cb: (e?: api_error.ApiError) => void): void;
+    unlink(p: string, cb: (e?: ApiError) => void): void;
+    rmdir(p: string, cb: (e?: ApiError) => void): void;
+    mkdir(p: string, mode: number, cb: (e?: ApiError) => void): void;
+    readdir(p: string, cb: (err: ApiError, files?: string[]) => void): void;
+    _sync(p: string, data: NodeBuffer, stats: node_fs_stats.Stats, cb: (e?: ApiError) => void): void;
 }

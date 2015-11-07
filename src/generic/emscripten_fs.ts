@@ -307,7 +307,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   }
 }
 
-export class BFSEmscriptenFS implements EmscriptenFS {
+export default class BFSEmscriptenFS implements EmscriptenFS {
   private FS: any;
   private PATH: any;
   private ERRNO_CODES: any;
@@ -412,6 +412,3 @@ export class BFSEmscriptenFS implements EmscriptenFS {
   public node_ops: EmscriptenNodeOps;
   public stream_ops: EmscriptenStreamOps;
 }
-
-// Make it available on the global BrowserFS object.
-(<any> BrowserFS)['EmscriptenFS'] = BFSEmscriptenFS;

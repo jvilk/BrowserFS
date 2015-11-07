@@ -1,5 +1,4 @@
-var buffer = require("./buffer");
-var Buffer = buffer.Buffer;
+var buffer_1 = require("./buffer");
 (function (ErrorCode) {
     ErrorCode[ErrorCode["EPERM"] = 0] = "EPERM";
     ErrorCode[ErrorCode["ENOENT"] = 1] = "ENOENT";
@@ -49,7 +48,7 @@ var ApiError = (function () {
         return this.code + ": " + ErrorStrings[this.type] + " " + this.message;
     };
     ApiError.prototype.writeToBuffer = function (buffer, i) {
-        if (buffer === void 0) { buffer = new Buffer(this.bufferSize()); }
+        if (buffer === void 0) { buffer = new buffer_1.Buffer(this.bufferSize()); }
         if (i === void 0) { i = 0; }
         buffer.writeUInt8(this.type, i);
         var bytesWritten = buffer.write(this.message, i + 5);
@@ -61,7 +60,7 @@ var ApiError = (function () {
         return new ApiError(buffer.readUInt8(i), buffer.toString("utf8", i + 5, i + 5 + buffer.readUInt32LE(i + 1)));
     };
     ApiError.prototype.bufferSize = function () {
-        return 5 + Buffer.byteLength(this.message);
+        return 5 + buffer_1.Buffer.byteLength(this.message);
     };
     ApiError.FileError = function (code, p) {
         return new ApiError(code, p + ": " + ErrorStrings[code]);
@@ -80,6 +79,9 @@ var ApiError = (function () {
     };
     ApiError.EPERM = function (path) {
         return this.FileError(ErrorCode.EPERM, path);
+    };
+    ApiError.ENOTEMPTY = function (path) {
+        return this.FileError(ErrorCode.ENOTEMPTY, path);
     };
     return ApiError;
 })();

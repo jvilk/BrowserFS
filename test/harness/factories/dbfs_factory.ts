@@ -1,9 +1,9 @@
-import dbfs = require('../../../src/backend/dropbox');
+import DropboxFileSystem from '../../../src/backend/Dropbox';
 import BackendFactory = require('../BackendFactory');
 import file_system = require('../../../src/core/file_system');
 
 function DBFSFactory(cb: (name: string, obj: file_system.FileSystem[]) => void): void {
-  if (dbfs.DropboxFileSystem.isAvailable()) {
+  if (DropboxFileSystem.isAvailable()) {
     var init_client = new Dropbox.Client({
       key: 'c6oex2qavccb2l3'
     }),
@@ -19,7 +19,7 @@ function DBFSFactory(cb: (name: string, obj: file_system.FileSystem[]) => void):
           console.debug("Successfully connected to " + info.name + "'s Dropbox");
         });
 
-        var fs = new dbfs.DropboxFileSystem(authed_client);
+        var fs = new DropboxFileSystem(authed_client);
         fs.empty(() => {
           cb('Dropbox', [fs]);
         });

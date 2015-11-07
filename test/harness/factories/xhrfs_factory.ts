@@ -1,10 +1,10 @@
 import file_system = require('../../../src/core/file_system');
-import xhr_fs = require('../../../src/backend/XmlHttpRequest');
+import XmlHttpRequestFS from '../../../src/backend/XmlHttpRequest';
 import BackendFactory = require('../BackendFactory');
 
 function XHRFSFactory(cb: (name: string, objs: file_system.FileSystem[]) => void): void {
-  if (xhr_fs.XmlHttpRequest.isAvailable()) {
-    cb('XmlHttpRequest', [new xhr_fs.XmlHttpRequest('test/fixtures/xhrfs/listings.json', '../')]);
+  if (XmlHttpRequestFS.isAvailable()) {
+    cb('XmlHttpRequest', [new XmlHttpRequestFS('test/fixtures/xhrfs/listings.json', '../')]);
   } else {
     cb('XmlHttpRequest', []);
   }

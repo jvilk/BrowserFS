@@ -1,6 +1,5 @@
-var node_fs_stats = require('../core/node_fs_stats');
+var node_fs_stats_1 = require('../core/node_fs_stats');
 var path = require('../core/node_path');
-var Stats = node_fs_stats.Stats;
 var FileIndex = (function () {
     function FileIndex() {
         this._index = {};
@@ -17,7 +16,7 @@ var FileIndex = (function () {
             var files = dir.getListing();
             for (var i = 0; i < files.length; i++) {
                 var item = dir.getItem(files[i]);
-                if (item.isFile()) {
+                if (isFileInode(item)) {
                     cb(item.getData());
                 }
             }
@@ -48,7 +47,7 @@ var FileIndex = (function () {
                 return false;
             }
         }
-        if (!inode.isFile()) {
+        if (isDirInode(inode)) {
             this._index[path] = inode;
         }
         return true;
@@ -65,9 +64,8 @@ var FileIndex = (function () {
         if (inode === null) {
             return null;
         }
-        if (!inode.isFile()) {
-            var dirInode = inode;
-            var children = dirInode.getListing();
+        if (isDirInode(inode)) {
+            var children = inode.getListing();
             for (var i = 0; i < children.length; i++) {
                 this.removePath(path + '/' + children[i]);
             }
@@ -97,7 +95,7 @@ var FileIndex = (function () {
         }
         return parent.getItem(itemname);
     };
-    FileIndex.from_listing = function (listing) {
+    FileIndex.fromListing = function (listing) {
         var idx = new FileIndex();
         var rootInode = new DirInode();
         idx._index['/'] = rootInode;
@@ -116,7 +114,7 @@ var FileIndex = (function () {
                     queue.push([name, children, inode]);
                 }
                 else {
-                    inode = new FileInode(new Stats(node_fs_stats.FileType.FILE, -1, 0x16D));
+                    inode = new FileInode(new node_fs_stats_1.Stats(node_fs_stats_1.FileType.FILE, -1, 0x16D));
                 }
                 if (parent != null) {
                     parent._ls[node] = inode;
@@ -150,7 +148,7 @@ var DirInode = (function () {
         return true;
     };
     DirInode.prototype.getStats = function () {
-        return new Stats(node_fs_stats.FileType.DIRECTORY, 4096, 0x16D);
+        return new node_fs_stats_1.Stats(node_fs_stats_1.FileType.DIRECTORY, 4096, 0x16D);
     };
     DirInode.prototype.getListing = function () {
         return Object.keys(this._ls);
@@ -177,4 +175,12 @@ var DirInode = (function () {
     return DirInode;
 })();
 exports.DirInode = DirInode;
+function isFileInode(inode) {
+    return inode && inode.isFile();
+}
+exports.isFileInode = isFileInode;
+function isDirInode(inode) {
+    return inode && inode.isDir();
+}
+exports.isDirInode = isDirInode;
 //# sourceMappingURL=file_index.js.map

@@ -1,7 +1,13 @@
-import fs = require('./node_fs');
-import file_system = require('./file_system');
+/**
+ * BrowserFS's main module. This is exposed in the browser via the BrowserFS global.
+ */
+
 import buffer = require('buffer');
+import fs = require('./node_fs');
 import path = require('path');
+import file_system = require('./file_system');
+import EmscriptenFS from '../generic/emscripten_fs';
+import * as FileSystem from './backends';
 
 /**
  * Installs BrowserFS onto the given object.
@@ -32,9 +38,8 @@ export function install(obj: any) {
   };
 }
 
-export var FileSystem: {[name: string]: any} = {};
 export function registerFileSystem(name: string, fs: file_system.FileSystemConstructor) {
-  FileSystem[name] = fs;
+  (<any> FileSystem)[name] = fs;
 }
 
 export function BFSRequire(module: string) {
@@ -62,3 +67,5 @@ export function BFSRequire(module: string) {
 export function initialize(rootfs: file_system.FileSystem) {
   return fs._initialize(rootfs);
 }
+
+export {EmscriptenFS, FileSystem};

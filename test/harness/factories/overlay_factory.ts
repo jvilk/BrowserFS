@@ -1,14 +1,14 @@
-import OverlayFS = require('../../../src/backend/overlay');
+import OverlayFS from '../../../src/backend/OverlayFS';
 import BackendFactory = require('../BackendFactory');
 import file_system = require('../../../src/core/file_system');
-import in_memory = require('../../../src/backend/in_memory');
+import InMemoryFileSystem from '../../../src/backend/InMemory';
 import ZipFactory = require('./zipfs_factory');
 
 function OverlayFactory(cb: (name: string, objs: file_system.FileSystem[]) => void) {
   ZipFactory((name: string, obj: file_system.FileSystem[]) => {
     // Use only one of the given file systems.
     // Mirror zip changes in in-memory.
-    var ofs = new OverlayFS(new in_memory.InMemoryFileSystem(), obj[0]);
+    var ofs = new OverlayFS(new InMemoryFileSystem(), obj[0]);
     ofs.initialize((err?) => {
       if (err) {
         throw err;

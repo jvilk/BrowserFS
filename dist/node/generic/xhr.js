@@ -3,11 +3,8 @@
  * XmlHttpRequest across browsers.
  */
 var util = require('../core/util');
-var buffer = require('../core/buffer');
-var api_error = require('../core/api_error');
-var ApiError = api_error.ApiError;
-var ErrorCode = api_error.ErrorCode;
-var Buffer = buffer.Buffer;
+var buffer_1 = require('../core/buffer');
+var api_error_1 = require('../core/api_error');
 function getIEByteArray(IEByteArray) {
     var rawBytes = IEBinaryToArray_ByteStr(IEByteArray);
     var lastChr = IEBinaryToArray_ByteStr_Last(IEByteArray);
@@ -27,7 +24,7 @@ function downloadFileIE(async, p, type, cb) {
         case 'json':
             break;
         default:
-            return cb(new ApiError(ErrorCode.EINVAL, "Invalid download type: " + type));
+            return cb(new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Invalid download type: " + type));
     }
     var req = new XMLHttpRequest();
     req.open('GET', p, async);
@@ -39,13 +36,13 @@ function downloadFileIE(async, p, type, cb) {
                 switch (type) {
                     case 'buffer':
                         data_array = getIEByteArray(req.responseBody);
-                        return cb(null, new Buffer(data_array));
+                        return cb(null, new buffer_1.Buffer(data_array));
                     case 'json':
                         return cb(null, JSON.parse(req.responseText));
                 }
             }
             else {
-                return cb(new ApiError(req.status, "XHR error."));
+                return cb(new api_error_1.ApiError(req.status, "XHR error."));
             }
         }
     };
@@ -81,14 +78,14 @@ function asyncDownloadFileModern(p, type, cb) {
             }
             break;
         default:
-            return cb(new ApiError(ErrorCode.EINVAL, "Invalid download type: " + type));
+            return cb(new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Invalid download type: " + type));
     }
     req.onreadystatechange = function (e) {
         if (req.readyState === 4) {
             if (req.status === 200) {
                 switch (type) {
                     case 'buffer':
-                        return cb(null, new Buffer(req.response ? req.response : 0));
+                        return cb(null, new buffer_1.Buffer(req.response ? req.response : 0));
                     case 'json':
                         if (jsonSupported) {
                             return cb(null, req.response);
@@ -99,7 +96,7 @@ function asyncDownloadFileModern(p, type, cb) {
                 }
             }
             else {
-                return cb(new ApiError(req.status, "XHR error."));
+                return cb(new api_error_1.ApiError(req.status, "XHR error."));
             }
         }
     };
@@ -117,7 +114,7 @@ function syncDownloadFileModern(p, type) {
                 switch (type) {
                     case 'buffer':
                         var text = req.responseText;
-                        data = new Buffer(text.length);
+                        data = new buffer_1.Buffer(text.length);
                         for (var i = 0; i < text.length; i++) {
                             data.writeUInt8(text.charCodeAt(i), i);
                         }
@@ -128,7 +125,7 @@ function syncDownloadFileModern(p, type) {
                 }
             }
             else {
-                err = new ApiError(req.status, "XHR error.");
+                err = new api_error_1.ApiError(req.status, "XHR error.");
                 return;
             }
         }
@@ -149,7 +146,7 @@ function syncDownloadFileIE10(p, type) {
         case 'json':
             break;
         default:
-            throw new ApiError(ErrorCode.EINVAL, "Invalid download type: " + type);
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Invalid download type: " + type);
     }
     var data;
     var err;
@@ -158,7 +155,7 @@ function syncDownloadFileIE10(p, type) {
             if (req.status === 200) {
                 switch (type) {
                     case 'buffer':
-                        data = new Buffer(req.response);
+                        data = new buffer_1.Buffer(req.response);
                         break;
                     case 'json':
                         data = JSON.parse(req.response);
@@ -166,7 +163,7 @@ function syncDownloadFileIE10(p, type) {
                 }
             }
             else {
-                err = new ApiError(req.status, "XHR error.");
+                err = new api_error_1.ApiError(req.status, "XHR error.");
             }
         }
     };
@@ -186,11 +183,11 @@ function getFileSize(async, p, cb) {
                     return cb(null, parseInt(req.getResponseHeader('Content-Length'), 10));
                 }
                 catch (e) {
-                    return cb(new ApiError(ErrorCode.EIO, "XHR HEAD error: Could not read content-length."));
+                    return cb(new api_error_1.ApiError(api_error_1.ErrorCode.EIO, "XHR HEAD error: Could not read content-length."));
                 }
             }
             else {
-                return cb(new ApiError(req.status, "XHR HEAD error."));
+                return cb(new api_error_1.ApiError(req.status, "XHR HEAD error."));
             }
         }
     };

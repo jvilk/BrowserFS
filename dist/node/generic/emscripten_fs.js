@@ -1,9 +1,8 @@
 var BrowserFS = require('../core/browserfs');
 var fs = require('../core/node_fs');
 var buffer = require('../core/buffer');
-var buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
+var BufferCoreArrayBuffer = require('../core/buffer_core_arraybuffer');
 var Buffer = buffer.Buffer;
-var BufferCoreArrayBuffer = buffer_core_arraybuffer.BufferCoreArrayBuffer;
 var BFSEmscriptenStreamOps = (function () {
     function BFSEmscriptenStreamOps(fs) {
         this.fs = fs;
@@ -337,6 +336,6 @@ var BFSEmscriptenFS = (function () {
     };
     return BFSEmscriptenFS;
 })();
-exports.BFSEmscriptenFS = BFSEmscriptenFS;
-BrowserFS['EmscriptenFS'] = BFSEmscriptenFS;
+exports.__esModule = true;
+exports["default"] = BFSEmscriptenFS;
 //# sourceMappingURL=emscripten_fs.js.map

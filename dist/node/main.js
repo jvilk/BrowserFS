@@ -222,18 +222,6 @@ if (typeof (document) !== 'undefined' && typeof (window) !== 'undefined' && wind
         "End Function\r\n" +
         "</script>\r\n");
 }
-require('./generic/emscripten_fs');
-require('./backend/IndexedDB');
-require('./backend/XmlHttpRequest');
-require('./backend/async_mirror');
-require('./backend/dropbox');
-require('./backend/html5fs');
-require('./backend/in_memory');
-require('./backend/localStorage');
-require('./backend/mountable_file_system');
-require('./backend/overlay');
-require('./backend/workerfs');
-require('./backend/zipfs');
 var bfs = require('./core/browserfs');
 module.exports = bfs;
 //# sourceMappingURL=main.js.map

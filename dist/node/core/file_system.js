@@ -3,14 +3,10 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var api_error = require('./api_error');
-var file_flag = require('./file_flag');
+var api_error_1 = require('./api_error');
+var file_flag_1 = require('./file_flag');
 var path = require('./node_path');
-var buffer = require('./buffer');
-var ApiError = api_error.ApiError;
-var ErrorCode = api_error.ErrorCode;
-var Buffer = buffer.Buffer;
-var ActionType = file_flag.ActionType;
+var buffer_1 = require('./buffer');
 var BaseFileSystem = (function () {
     function BaseFileSystem() {
     }
@@ -21,42 +17,42 @@ var BaseFileSystem = (function () {
         cb(0, 0);
     };
     BaseFileSystem.prototype.openFile = function (p, flag, cb) {
-        throw new ApiError(ErrorCode.ENOTSUP);
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP);
     };
     BaseFileSystem.prototype.createFile = function (p, flag, mode, cb) {
-        throw new ApiError(ErrorCode.ENOTSUP);
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP);
     };
     BaseFileSystem.prototype.open = function (p, flag, mode, cb) {
         var _this = this;
         var must_be_file = function (e, stats) {
             if (e) {
                 switch (flag.pathNotExistsAction()) {
-                    case ActionType.CREATE_FILE:
+                    case file_flag_1.ActionType.CREATE_FILE:
                         return _this.stat(path.dirname(p), false, function (e, parentStats) {
                             if (e) {
                                 cb(e);
                             }
                             else if (!parentStats.isDirectory()) {
-                                cb(new ApiError(ErrorCode.ENOTDIR, path.dirname(p) + " is not a directory."));
+                                cb(api_error_1.ApiError.ENOTDIR(path.dirname(p)));
                             }
                             else {
                                 _this.createFile(p, flag, mode, cb);
                             }
                         });
-                    case ActionType.THROW_EXCEPTION:
-                        return cb(new ApiError(ErrorCode.ENOENT, "" + p + " doesn't exist."));
+                    case file_flag_1.ActionType.THROW_EXCEPTION:
+                        return cb(api_error_1.ApiError.ENOENT(p));
                     default:
-                        return cb(new ApiError(ErrorCode.EINVAL, 'Invalid FileFlag object.'));
+                        return cb(new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, 'Invalid FileFlag object.'));
                 }
             }
             else {
                 if (stats.isDirectory()) {
-                    return cb(new ApiError(ErrorCode.EISDIR, p + " is a directory."));
+                    return cb(api_error_1.ApiError.EISDIR(p));
                 }
                 switch (flag.pathExistsAction()) {
-                    case ActionType.THROW_EXCEPTION:
-                        return cb(new ApiError(ErrorCode.EEXIST, p + " already exists."));
-                    case ActionType.TRUNCATE_FILE:
+                    case file_flag_1.ActionType.THROW_EXCEPTION:
+                        return cb(api_error_1.ApiError.EEXIST(p));
+                    case file_flag_1.ActionType.TRUNCATE_FILE:
                         return _this.openFile(p, flag, function (e, fd) {
                             if (e) {
                                 cb(e);
@@ -69,32 +65,32 @@ var BaseFileSystem = (function () {
                                 });
                             }
                         });
-                    case ActionType.NOP:
+                    case file_flag_1.ActionType.NOP:
                         return _this.openFile(p, flag, cb);
                     default:
-                        return cb(new ApiError(ErrorCode.EINVAL, 'Invalid FileFlag object.'));
+                        return cb(new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, 'Invalid FileFlag object.'));
                 }
             }
         };
         this.stat(p, false, must_be_file);
     };
     BaseFileSystem.prototype.rename = function (oldPath, newPath, cb) {
-        cb(new ApiError(ErrorCode.ENOTSUP));
+        cb(new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP));
     };
     BaseFileSystem.prototype.renameSync = function (oldPath, newPath) {
-        throw new ApiError(ErrorCode.ENOTSUP);
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP);
     };
     BaseFileSystem.prototype.stat = function (p, isLstat, cb) {
-        cb(new ApiError(ErrorCode.ENOTSUP));
+        cb(new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP));
     };
     BaseFileSystem.prototype.statSync = function (p, isLstat) {
-        throw new ApiError(ErrorCode.ENOTSUP);
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP);
     };
     BaseFileSystem.prototype.openFileSync = function (p, flag) {
-        throw new ApiError(ErrorCode.ENOTSUP);
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP);
     };
     BaseFileSystem.prototype.createFileSync = function (p, flag, mode) {
-        throw new ApiError(ErrorCode.ENOTSUP);
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP);
     };
     BaseFileSystem.prototype.openSync = function (p, flag, mode) {
         var stats;
@@ -103,56 +99,56 @@ var BaseFileSystem = (function () {
         }
         catch (e) {
             switch (flag.pathNotExistsAction()) {
-                case ActionType.CREATE_FILE:
+                case file_flag_1.ActionType.CREATE_FILE:
                     var parentStats = this.statSync(path.dirname(p), false);
                     if (!parentStats.isDirectory()) {
-                        throw new ApiError(ErrorCode.ENOTDIR, path.dirname(p) + " is not a directory.");
+                        throw api_error_1.ApiError.ENOTDIR(path.dirname(p));
                     }
                     return this.createFileSync(p, flag, mode);
-                case ActionType.THROW_EXCEPTION:
-                    throw new ApiError(ErrorCode.ENOENT, "" + p + " doesn't exist.");
+                case file_flag_1.ActionType.THROW_EXCEPTION:
+                    throw api_error_1.ApiError.ENOENT(p);
                 default:
-                    throw new ApiError(ErrorCode.EINVAL, 'Invalid FileFlag object.');
+                    throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, 'Invalid FileFlag object.');
             }
         }
         if (stats.isDirectory()) {
-            throw new ApiError(ErrorCode.EISDIR, p + " is a directory.");
+            throw api_error_1.ApiError.EISDIR(p);
         }
         switch (flag.pathExistsAction()) {
-            case ActionType.THROW_EXCEPTION:
-                throw new ApiError(ErrorCode.EEXIST, p + " already exists.");
-            case ActionType.TRUNCATE_FILE:
+            case file_flag_1.ActionType.THROW_EXCEPTION:
+                throw api_error_1.ApiError.EEXIST(p);
+            case file_flag_1.ActionType.TRUNCATE_FILE:
                 this.unlinkSync(p);
                 return this.createFileSync(p, flag, stats.mode);
-            case ActionType.NOP:
+            case file_flag_1.ActionType.NOP:
                 return this.openFileSync(p, flag);
             default:
-                throw new ApiError(ErrorCode.EINVAL, 'Invalid FileFlag object.');
+                throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, 'Invalid FileFlag object.');
         }
     };
     BaseFileSystem.prototype.unlink = function (p, cb) {
-        cb(new ApiError(ErrorCode.ENOTSUP));
+        cb(new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP));
     };
     BaseFileSystem.prototype.unlinkSync = function (p) {
-        throw new ApiError(ErrorCode.ENOTSUP);
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP);
     };
     BaseFileSystem.prototype.rmdir = function (p, cb) {
-        cb(new ApiError(ErrorCode.ENOTSUP));
+        cb(new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP));
     };
     BaseFileSystem.prototype.rmdirSync = function (p) {
-        throw new ApiError(ErrorCode.ENOTSUP);
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP);
     };
     BaseFileSystem.prototype.mkdir = function (p, mode, cb) {
-        cb(new ApiError(ErrorCode.ENOTSUP));
+        cb(new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP));
     };
     BaseFileSystem.prototype.mkdirSync = function (p, mode) {
-        throw new ApiError(ErrorCode.ENOTSUP);
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP);
     };
     BaseFileSystem.prototype.readdir = function (p, cb) {
-        cb(new ApiError(ErrorCode.ENOTSUP));
+        cb(new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP));
     };
     BaseFileSystem.prototype.readdirSync = function (p) {
-        throw new ApiError(ErrorCode.ENOTSUP);
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP);
     };
     BaseFileSystem.prototype.exists = function (p, cb) {
         this.stat(p, null, function (err) {
@@ -182,7 +178,7 @@ var BaseFileSystem = (function () {
                     cb(null, p);
                 }
                 else {
-                    cb(new ApiError(ErrorCode.ENOENT, "File " + p + " not found."));
+                    cb(api_error_1.ApiError.ENOENT(p));
                 }
             });
         }
@@ -200,12 +196,12 @@ var BaseFileSystem = (function () {
                 return p;
             }
             else {
-                throw new ApiError(ErrorCode.ENOENT, "File " + p + " not found.");
+                throw api_error_1.ApiError.ENOENT(p);
             }
         }
     };
     BaseFileSystem.prototype.truncate = function (p, len, cb) {
-        this.open(p, file_flag.FileFlag.getFileFlag('r+'), 0x1a4, (function (er, fd) {
+        this.open(p, file_flag_1.FileFlag.getFileFlag('r+'), 0x1a4, (function (er, fd) {
             if (er) {
                 return cb(er);
             }
@@ -217,7 +213,7 @@ var BaseFileSystem = (function () {
         }));
     };
     BaseFileSystem.prototype.truncateSync = function (p, len) {
-        var fd = this.openSync(p, file_flag.FileFlag.getFileFlag('r+'), 0x1a4);
+        var fd = this.openSync(p, file_flag_1.FileFlag.getFileFlag('r+'), 0x1a4);
         try {
             fd.truncateSync(len);
         }
@@ -246,7 +242,7 @@ var BaseFileSystem = (function () {
                 if (err != null) {
                     return cb(err);
                 }
-                var buf = new Buffer(stat.size);
+                var buf = new buffer_1.Buffer(stat.size);
                 fd.read(buf, 0, stat.size, 0, function (err) {
                     if (err != null) {
                         return cb(err);
@@ -268,7 +264,7 @@ var BaseFileSystem = (function () {
         var fd = this.openSync(fname, flag, 0x1a4);
         try {
             var stat = fd.statSync();
-            var buf = new Buffer(stat.size);
+            var buf = new buffer_1.Buffer(stat.size);
             fd.readSync(buf, 0, stat.size, 0);
             fd.closeSync();
             if (encoding === null) {
@@ -293,7 +289,7 @@ var BaseFileSystem = (function () {
             };
             try {
                 if (typeof data === 'string') {
-                    data = new Buffer(data, encoding);
+                    data = new buffer_1.Buffer(data, encoding);
                 }
             }
             catch (e) {
@@ -306,7 +302,7 @@ var BaseFileSystem = (function () {
         var fd = this.openSync(fname, flag, mode);
         try {
             if (typeof data === 'string') {
-                data = new Buffer(data, encoding);
+                data = new buffer_1.Buffer(data, encoding);
             }
             fd.writeSync(data, 0, data.length, 0);
         }
@@ -326,7 +322,7 @@ var BaseFileSystem = (function () {
                 });
             };
             if (typeof data === 'string') {
-                data = new Buffer(data, encoding);
+                data = new buffer_1.Buffer(data, encoding);
             }
             fd.write(data, 0, data.length, null, cb);
         });
@@ -335,7 +331,7 @@ var BaseFileSystem = (function () {
         var fd = this.openSync(fname, flag, mode);
         try {
             if (typeof data === 'string') {
-                data = new Buffer(data, encoding);
+                data = new buffer_1.Buffer(data, encoding);
             }
             fd.writeSync(data, 0, data.length, null);
         }
@@ -344,40 +340,40 @@ var BaseFileSystem = (function () {
         }
     };
     BaseFileSystem.prototype.chmod = function (p, isLchmod, mode, cb) {
-        cb(new ApiError(ErrorCode.ENOTSUP));
+        cb(new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP));
     };
     BaseFileSystem.prototype.chmodSync = function (p, isLchmod, mode) {
-        throw new ApiError(ErrorCode.ENOTSUP);
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP);
     };
     BaseFileSystem.prototype.chown = function (p, isLchown, uid, gid, cb) {
-        cb(new ApiError(ErrorCode.ENOTSUP));
+        cb(new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP));
     };
     BaseFileSystem.prototype.chownSync = function (p, isLchown, uid, gid) {
-        throw new ApiError(ErrorCode.ENOTSUP);
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP);
     };
     BaseFileSystem.prototype.utimes = function (p, atime, mtime, cb) {
-        cb(new ApiError(ErrorCode.ENOTSUP));
+        cb(new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP));
     };
     BaseFileSystem.prototype.utimesSync = function (p, atime, mtime) {
-        throw new ApiError(ErrorCode.ENOTSUP);
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP);
     };
     BaseFileSystem.prototype.link = function (srcpath, dstpath, cb) {
-        cb(new ApiError(ErrorCode.ENOTSUP));
+        cb(new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP));
     };
     BaseFileSystem.prototype.linkSync = function (srcpath, dstpath) {
-        throw new ApiError(ErrorCode.ENOTSUP);
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP);
     };
     BaseFileSystem.prototype.symlink = function (srcpath, dstpath, type, cb) {
-        cb(new ApiError(ErrorCode.ENOTSUP));
+        cb(new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP));
     };
     BaseFileSystem.prototype.symlinkSync = function (srcpath, dstpath, type) {
-        throw new ApiError(ErrorCode.ENOTSUP);
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP);
     };
     BaseFileSystem.prototype.readlink = function (p, cb) {
-        cb(new ApiError(ErrorCode.ENOTSUP));
+        cb(new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP));
     };
     BaseFileSystem.prototype.readlinkSync = function (p) {
-        throw new ApiError(ErrorCode.ENOTSUP);
+        throw new api_error_1.ApiError(api_error_1.ErrorCode.ENOTSUP);
     };
     return BaseFileSystem;
 })();

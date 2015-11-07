@@ -18,9 +18,9 @@ src/.baseDir.ts
 test/harness/run.ts
 # as is test.js
 test/harness/test.js
+# as is backends.ts
+src/core/backends.ts
 .tscache
-# main.ts is auto-generated
-src/main.ts
 typings
 generated_node_tsconfig.json
 coverage

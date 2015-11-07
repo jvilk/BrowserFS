@@ -1,5 +1,4 @@
-var node_process = require('./node_process');
-var process = node_process.process;
+var node_process_1 = require('./node_process');
 var path = (function () {
     function path() {
     }
@@ -83,7 +82,7 @@ var path = (function () {
             if (resolved.charAt(0) === '.' && (resolved.length === 1 || resolved.charAt(1) === path.sep)) {
                 resolved = resolved.length === 1 ? '' : resolved.substr(2);
             }
-            var cwd = process.cwd();
+            var cwd = node_process_1.process.cwd();
             if (resolved !== '') {
                 resolved = this.normalize(cwd + (cwd !== '/' ? path.sep : '') + resolved);
             }
