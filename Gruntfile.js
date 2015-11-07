@@ -114,27 +114,6 @@ try {
 }
 
 /**
- * Removes a directory if it exists.
- * Throws an exception if deletion fails.
- */
-function removeDir(dir) {
-  if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
-    // Delete its contents, since you can't delete non-empty folders.
-    // :(
-    var files = fs.readdirSync(dir);
-    for (var i = 0; i < files.length; i++) {
-      var fname = dir + path.sep + files[i];
-      if (fs.statSync(fname).isDirectory()) {
-        removeDir(fname);
-      } else {
-        removeFile(fname);
-      }
-    }
-    fs.rmdirSync(dir);
-  }
-}
-
-/**
  * Retrieves a file listing of backends.
  */
 function getBackends() {
@@ -146,14 +125,6 @@ function getBackends() {
     }
   });
   return rv;
-}
-
-// Removes a file if it exists.
-// Throws an exception if deletion fails.
-function removeFile(file) {
-  if (fs.existsSync(file) && fs.statSync(file).isFile()) {
-    fs.unlinkSync(file);
-  }
 }
 
 module.exports = function(grunt) {
@@ -420,15 +391,15 @@ module.exports = function(grunt) {
   });
 
   grunt.registerTask('clean', 'Removes all built files.', function () {
-    removeFile('./test/fixtures/load_fixtures.js');
-    removeFile('./listings.json');
-    removeDir('./build');
-    removeDir('./test/fixtures/dropbox');
-    removeDir('./test/fixtures/zipfs');
+    grunt.file.delete('./test/fixtures/load_fixtures.js');
+    grunt.file.delete('./listings.json');
+    grunt.file.delete('./build');
+    grunt.file.delete('./test/fixtures/dropbox');
+    grunt.file.delete('./test/fixtures/zipfs');
   });
 
   grunt.registerTask('clean_dist', 'Cleans old distributables.', function() {
-    removeDir('./dist');
+    grunt.file.delete('./dist');
   });
 
   grunt.registerTask('backends.ts', 'Construct backends.ts to include all backends', function() {

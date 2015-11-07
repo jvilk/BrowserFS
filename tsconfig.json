@@ -4,7 +4,8 @@
         "noImplicitAny": false,
         "removeComments": true,
         "preserveConstEnums": true,
-        "sourceMap": true,
+        "inlineSourceMap": true,
+        "inlineSources": true,
         "target": "ES3",
         "declaration": true,
         "outDir": "build/node"

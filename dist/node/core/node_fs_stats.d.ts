@@ -1,5 +1,4 @@
 import fs = require('fs');
-import { Buffer } from './buffer';
 export declare enum FileType {
     FILE = 32768,
     DIRECTORY = 16384,

@@ -1,4 +1,4 @@
-# BrowserFS v0.4.6
+# BrowserFS v0.5.0
 > BrowserFS is an in-browser file system that emulates the [Node JS file system API](http://nodejs.org/api/fs.html) and supports storing and retrieving files from various backends. BrowserFS also integrates nicely into the Emscripten file system.
 
 [![NPM version](https://badge.fury.io/js/browserfs.svg)](http://badge.fury.io/js/browserfs)
@@ -88,11 +88,25 @@ fs.writeFile('/test.txt', 'Cool, I can do this in the browser!', function(err) {
 
 ### Using with Browserify
 
-As of BrowserFS 0.4.0, you can use BrowserFS with your Browserify projects! At the moment, you need to 'opt in' to the entire BrowserFS ecosystem -- e.g. you need to use BrowserFS's `path`, `process`, and `Buffer` in place of Browserify's builtins.
+You can use BrowserFS with your Browserify projects. Simply depend on `browserfs/dist/node/core/node_fs.js` as the provider
+of `fs`, and pull in `browserfs/dist/node/core/browserfs.js` as the provider of the `BrowserFS` variable, through which you
+can construct and initialize the file system.
+
+Do not depend on both `node_fs.js` and the `browserfs` module, as it will pull in the node modules from `dist/node`,
+as well as `dist/browserfs.js`.
+
+Optionally, you can also use the companion modules `bfs-path`, `bfs-buffer`, and `bfs-process` to replace
+browserify's builtins for `path`, `buffer`, and `process`.
 
 I have written an [example project](https://github.com/jvilk/bfs-browserify-test) that illustrates how to do this.
 
-In the future, we will support mixing and matching builtin modules.
+### Using with Node
+
+You can use BrowserFS with Node. Simply add `browserfs` as an NPM dependency, and `require('browserfs')`.
+The object returned from this action is the same `BrowserFS` global described above.
+
+If you need BrowserFS to return Node Buffer objects (instead of objects that implement the same interface),
+simply `require('browserfs/dist/node/core/browserfs')` instead.
 
 ### Using with Emscripten
 
@@ -160,7 +174,9 @@ Prerequisites:
 
 * Karma globally installed: `npm install -g karma`
 
-To run unit tests, simply run `grunt test` **(NOTE: This will launch multiple web browsers!)**. You may need to change `build/karma.conf.js` if you do not have Chrome, Safari, Opera, and Firefox installed.
+To run unit tests, simply run `grunt test`. You may need to change `build/karma.conf.js` if you do not have Chrome, Safari, Opera, and Firefox installed.
+
+`grunt coverage` will run the unit tests, and output code coverage information.
 
 ### License
 

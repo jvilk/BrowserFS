@@ -1,4 +1,3 @@
-import { Buffer } from "./buffer";
 export declare enum ErrorCode {
     EPERM = 0,
     ENOENT = 1,
