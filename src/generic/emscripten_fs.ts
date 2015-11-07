@@ -11,11 +11,8 @@
  */
 import BrowserFS = require('../core/browserfs');
 import fs = require('../core/node_fs');
-import buffer = require('../core/buffer');
-import BufferCoreArrayBuffer = require('../core/buffer_core_arraybuffer');
 import node_fs_stats = require('../core/node_fs_stats');
-
-import Buffer = buffer.Buffer;
+import {uint8Array2Buffer} from '../core/util';
 
 export interface Stats {
   dev: number;
@@ -118,29 +115,20 @@ class BFSEmscriptenStreamOps implements EmscriptenStreamOps {
 
   public read(stream: EmscriptenStream, buffer: Uint8Array, offset: number, length: number, position: number): number {
     // Avoid copying overhead by reading directly into buffer.
-    var bcore = new BufferCoreArrayBuffer(buffer.buffer);
-    var nbuffer = new Buffer(bcore, buffer.byteOffset + offset, buffer.byteOffset + offset + length);
-    var res: number;
     try {
-      res = fs.readSync(stream.nfd, nbuffer, 0, length, position);
+      return fs.readSync(stream.nfd, uint8Array2Buffer(buffer), offset, length, position);
     } catch (e) {
       throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
     }
-    // No copying needed, since we wrote directly into UintArray.
-    return res;
   }
 
   public write(stream: EmscriptenStream, buffer: Uint8Array, offset: number, length: number, position: number): number {
-    // Avoid copying overhead; plug the buffer directly into a BufferCore.
-    var bcore = new BufferCoreArrayBuffer(buffer.buffer);
-    var nbuffer = new Buffer(bcore, buffer.byteOffset + offset, buffer.byteOffset + offset + length);
-    var res: number;
+    // Avoid copying overhead.
     try {
-      res = fs.writeSync(stream.nfd, nbuffer, 0, length, position);
+      return fs.writeSync(stream.nfd, uint8Array2Buffer(buffer), offset, length, position);
     } catch (e) {
       throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
     }
-    return res;
   }
 
   public llseek(stream: EmscriptenStream, offset: number, whence: number): number {

@@ -1,5 +1,4 @@
 import file_system = require('../core/file_system');
-import {Buffer} from '../core/buffer';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
 import util = require('../core/util');
@@ -7,7 +6,7 @@ import file = require('../core/file');
 import {Stats} from '../core/node_fs_stats';
 import preload_file = require('../generic/preload_file');
 import browserfs = require('../core/browserfs');
-import path = require('../core/node_path');
+import path = require('path');
 
 var deletionLogPath = '/.deletedFiles.log';
 

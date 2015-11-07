@@ -1,8 +1,6 @@
 import file_system = require('../core/file_system');
-import buffer = require('../core/buffer');
 import {ApiError, ErrorCode} from '../core/api_error';
 import file_flag = require('../core/file_flag');
-import util = require('../core/util');
 import file = require('../core/file');
 import node_fs_stats = require('../core/node_fs_stats');
 import preload_file = require('../generic/preload_file');

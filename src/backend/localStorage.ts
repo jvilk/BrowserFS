@@ -1,4 +1,3 @@
-import {Buffer} from '../core/buffer';
 import browserfs = require('../core/browserfs');
 import kvfs = require('../generic/key_value_filesystem');
 import {ApiError, ErrorCode} from '../core/api_error';
@@ -47,7 +46,7 @@ export class LocalStorageStore implements kvfs.SyncKeyValueStore, kvfs.SimpleSyn
     } catch (e) {
 
     }
-    // Key doesn't exist, or a failure occurred. 
+    // Key doesn't exist, or a failure occurred.
     return undefined;
   }
 

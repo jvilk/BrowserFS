@@ -4,7 +4,6 @@
  */
 
 import util = require('../core/util');
-import {Buffer} from '../core/buffer';
 import {ApiError, ErrorCode} from '../core/api_error';
 
 // See core/polyfills for the VBScript definition of these functions.

@@ -1,13 +1,12 @@
-import buffer = require('../core/buffer');
 import browserfs = require('../core/browserfs');
 import kvfs = require('../generic/key_value_filesystem');
 import {ApiError, ErrorCode} from '../core/api_error';
 import global = require('../core/global');
-import Buffer = buffer.Buffer;
-  /**
-   * Get the indexedDB constructor for the current browser.
-   */
-  indexedDB: IDBFactory = global.indexedDB ||
+import {arrayBuffer2Buffer, buffer2ArrayBuffer} from '../core/util';
+/**
+ * Get the indexedDB constructor for the current browser.
+ */
+var indexedDB: IDBFactory = global.indexedDB ||
                           (<any>global).mozIndexedDB ||
                           (<any>global).webkitIndexedDB ||
                           global.msIndexedDB;
@@ -57,7 +56,7 @@ export class IndexedDBROTransaction implements kvfs.AsyncKeyValueROTransaction {
           cb(null, result);
         } else {
           // IDB data is stored as an ArrayBuffer
-          cb(null, new Buffer(result));
+          cb(null, arrayBuffer2Buffer(result));
         }
       };
     } catch (e) {
@@ -73,7 +72,7 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements kv
 
   public put(key: string, data: NodeBuffer, overwrite: boolean, cb: (e: ApiError, committed?: boolean) => void): void {
     try {
-      var arraybuffer = (<buffer.Buffer> data).toArrayBuffer(),
+      var arraybuffer = buffer2ArrayBuffer(data),
         r: IDBRequest;
       if (overwrite) {
         r = this.store.put(arraybuffer, key);

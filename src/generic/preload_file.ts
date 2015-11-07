@@ -1,7 +1,6 @@
 import file = require('../core/file');
 import file_system = require('../core/file_system');
 import {Stats} from '../core/node_fs_stats';
-import {Buffer} from '../core/buffer';
 import {FileFlag} from '../core/file_flag';
 import {ApiError, ErrorCode} from '../core/api_error';
 import fs = require('../core/node_fs');

@@ -45,7 +45,6 @@
  *   - Stream it out to a location.
  *   This isn't that bad, so we might do this at a later date.
  */
-import {Buffer} from '../core/buffer';
 import {ApiError, ErrorCode} from '../core/api_error';
 import browserfs = require('../core/browserfs');
 import node_fs_stats = require('../core/node_fs_stats');
@@ -53,14 +52,11 @@ import file_system = require('../core/file_system');
 import file = require('../core/file');
 import {FileFlag, ActionType} from '../core/file_flag';
 import preload_file = require('../generic/preload_file');
-import BufferCoreArrayBuffer = require('../core/buffer_core_arraybuffer');
+import {Arrayish, buffer2Arrayish, arrayish2Buffer, copyingSlice} from '../core/util';
 var inflateRaw: {
-  (data: Uint8Array, options?: {
+  (data: Arrayish<number>, options?: {
     chunkSize: number;
-  }): Uint8Array;
-  (data: number[], options?: {
-    chunkSize: number;
-  }): number[];
+  }): Arrayish<number>;
 } = require('pako/dist/pako_inflate.min').inflateRaw;
 import {FileIndex, DirInode, FileInode, isDirInode, isFileInode} from '../generic/file_index';
 
@@ -232,23 +228,14 @@ export class FileData {
     var compressionMethod: CompressionMethod = this.header.compressionMethod();
     switch (compressionMethod) {
       case CompressionMethod.DEFLATE:
-        // Convert to Uint8Array or an array of bytes for the library.
-        if (typeof(ArrayBuffer) !== 'undefined') {
-          // No copying! :D
-          var data = inflateRaw(
-            (<Buffer> this.data.slice(0, this.record.compressedSize())).toUint8Array(),
-            { chunkSize: this.record.uncompressedSize() });
-          return new Buffer(
-            new BufferCoreArrayBuffer(data.buffer), data.byteOffset, data.byteOffset + data.length);
-        } else {
-          // Convert to an array of bytes and decompress, then write into a new
-          // buffer :(
-          var newBuff = this.data.slice(0, this.record.compressedSize());
-          return new Buffer(inflateRaw(newBuff.toJSON().data, { chunkSize: this.record.uncompressedSize() }));
-        }
+        var data = inflateRaw(
+          buffer2Arrayish(this.data.slice(0, this.record.compressedSize())),
+          { chunkSize: this.record.uncompressedSize() }
+        );
+        return arrayish2Buffer(data);
       case CompressionMethod.STORED:
         // Grab and copy.
-        return (<Buffer> this.data).sliceCopy(0, this.record.uncompressedSize());
+        return copyingSlice(this.data, 0, this.record.uncompressedSize());
       default:
         var name: string = CompressionMethod[compressionMethod];
         name = name ? name : "Unknown: " + compressionMethod;
@@ -575,11 +562,7 @@ export class ZipFS extends file_system.SynchronousFileSystem implements file_sys
       var fdCast = <preload_file.NoSyncFile<ZipFS>> fd;
       var fdBuff = <Buffer> fdCast.getBuffer();
       if (encoding === null) {
-        if (fdBuff.length > 0) {
-          return fdBuff.sliceCopy();
-        } else {
-          return new Buffer(0);
-        }
+        return copyingSlice(fdBuff);
       }
       return fdBuff.toString(encoding);
     } finally {

@@ -1,10 +1,12 @@
 import BrowserFS = require('../../src/core/browserfs');
 import file_system = require('../../src/core/file_system');
-import buffer = require('../../src/core/buffer');
-import BFSBuffer = buffer.Buffer;
+// !!TYPING ONLY!!
+import __buffer = require('bfs-buffer');
+import buffer = require('buffer');
 import BackendFactory = require('./BackendFactory');
 import async = require('async');
 import assert = require('./wrapped-assert');
+var BFSBuffer = <typeof __buffer.Buffer> (<any> buffer).Buffer;
 
 var loadFixtures: () => void = require('../fixtures/load_fixtures');
 

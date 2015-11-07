@@ -1,6 +1,5 @@
 import fs = require('fs');
 import file = require('./file');
-import {Buffer} from './buffer';
 
 /**
  * Indicates the type of the given file. Applied to 'mode'.

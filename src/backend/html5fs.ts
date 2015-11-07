@@ -3,13 +3,12 @@ import file_system = require('../core/file_system');
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
 import {Stats, FileType} from '../core/node_fs_stats';
-import {Buffer} from '../core/buffer';
 import file = require('../core/file');
 import browserfs = require('../core/browserfs');
-import buffer_core_arraybuffer = require('../core/buffer_core_arraybuffer');
-import path = require('../core/node_path');
+import path = require('path');
 import global = require('../core/global');
 import async = require('async');
+import {buffer2ArrayBuffer, arrayBuffer2Buffer} from '../core/util';
 
 function isDirectoryEntry(entry: Entry): entry is DirectoryEntry {
   return entry.isDirectory;
@@ -66,8 +65,8 @@ export class HTML5FSFile extends preload_file.PreloadFile<HTML5FS> implements fi
       var _fs = this._fs;
       var success: FileEntryCallback = (entry) => {
         entry.createWriter((writer) => {
-          var buffer = <Buffer> this.getBuffer();
-          var blob = new Blob([buffer.toArrayBuffer()]);
+          var buffer = this.getBuffer();
+          var blob = new Blob([buffer2ArrayBuffer(buffer)]);
           var length = blob.size;
           writer.onwriteend = () => {
             writer.onwriteend = null;
@@ -342,12 +341,12 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
         cb(this.convert(err, p, false));
       }
     };
-    
+
     this.fs.root.getFile(p, {
       create: flags.pathNotExistsAction() === ActionType.CREATE_FILE,
       exclusive: flags.isExclusive()
     }, (entry: FileEntry): void => {
-      // Try to fetch corresponding file. 
+      // Try to fetch corresponding file.
       entry.file((file: File): void => {
         var reader = new FileReader();
         reader.onloadend = (event: Event): void => {
@@ -375,7 +374,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
    */
   private _makeFile(path: string, flag: FileFlag, stat: File, data: ArrayBuffer = new ArrayBuffer(0)): HTML5FSFile {
     var stats = new Stats(FileType.FILE, stat.size);
-    var buffer = new Buffer(data);
+    var buffer = arrayBuffer2Buffer(data);
     return new HTML5FSFile(this, path, flag, stats, buffer);
   }
 
@@ -445,7 +444,7 @@ export class HTML5FS extends file_system.BaseFileSystem implements file_system.F
     this.fs.root.getDirectory(path, { create: false }, (dirEntry: DirectoryEntry) => {
       var reader = dirEntry.createReader();
       var entries: Entry[] = [];
-      
+
       // Call the reader.readEntries() until no more results are returned.
       var readEntries = () => {
         reader.readEntries(((results) => {

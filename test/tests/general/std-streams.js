@@ -1,6 +1,5 @@
 var assert = require('wrapped-assert'),
-  Buffer = require('buffer').Buffer,
-  process = require('process').process;
+  Buffer = require('buffer').Buffer;
 
 module.exports = function() {
   var datStr = "hey\nhere's some data.",

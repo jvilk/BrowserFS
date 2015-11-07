@@ -4,8 +4,15 @@ var fs = require('fs'),
   mold = require('mold-source-map'),
   browserifyConfig = {
     // Note: Cannot use "bare" here. That's a command-line-only switch.
-    builtins: [],
-    detectGlobals: false,
+    builtins: _.extend({}, require('browserify/lib/builtins'), {
+        "buffer": require.resolve('bfs-buffer'),
+        "path": require.resolve("bfs-path")
+    }),
+    insertGlobalVars: {
+        "Buffer": function() { return "require('bfs-buffer').Buffer" },
+        "process": function () { return "require('bfs-process')" }
+    },
+    detectGlobals: true,
     debug: true,
     transform: [
       'aliasify'
@@ -79,7 +86,7 @@ var karmaConfig = {
         // Our tests have some global state (e.g. # of pending callbacks). Once those get messed up by a failing test,
         // subsequent tests are likely to fail.
         bail: true
-      } 
+      }
     }
   };
 
@@ -202,11 +209,7 @@ module.exports = function(grunt) {
           preprocessors: {
             'test/harness/run.ts': ['browserify']
           },
-          browserify: _.extend({}, browserifyConfig,
-            {
-              builtins: ['assert']
-            }
-          )
+          browserify: browserifyConfig
         }
       }
     },
@@ -240,11 +243,7 @@ module.exports = function(grunt) {
       },
       test: {
         options: {
-          browserifyOptions: _.extend({}, browserifyConfig,
-            {
-              builtins: ['assert']
-            }
-          )
+          browserifyOptions: browserifyConfig
         },
         files: {
           './test/harness/test.js': './test/harness/run.ts'

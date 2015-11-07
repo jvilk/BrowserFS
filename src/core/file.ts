@@ -1,6 +1,5 @@
 import {ApiError, ErrorCode} from './api_error';
 import stats = require('./node_fs_stats');
-import buffer = require('./buffer');
 
 export interface File {
   /**
