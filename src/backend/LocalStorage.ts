@@ -15,7 +15,11 @@ try {
   supportsBinaryString = false;
 }
 binaryEncoding = supportsBinaryString ? 'binary_string' : 'binary_string_ie';
-
+if (!Buffer.isEncoding(binaryEncoding)) {
+  // Fallback for non BrowserFS implementations of buffer that lack a
+  // binary_string format.
+  binaryEncoding = "base64";
+}
 
 /**
  * A synchronous key-value store backed by localStorage.

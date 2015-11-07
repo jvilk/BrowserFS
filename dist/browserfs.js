@@ -8549,6 +8549,9 @@ catch (e) {
     supportsBinaryString = false;
 }
 binaryEncoding = supportsBinaryString ? 'binary_string' : 'binary_string_ie';
+if (!Buffer.isEncoding(binaryEncoding)) {
+    binaryEncoding = "base64";
+}
 var LocalStorageStore = (function () {
     function LocalStorageStore() {
     }
