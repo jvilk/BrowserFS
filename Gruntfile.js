@@ -490,9 +490,15 @@ module.exports = function(grunt) {
     // Remove anything that isn't in the src/ dir.
     var coverageInfo = grunt.file.readJSON('coverage/coverage-combined.json'), newCoverageInfo = {};
     Object.keys(coverageInfo).filter(function (filepath) {
-      return path.relative('.', filepath).slice(0, 3) === 'src';
+      return path.relative('.', filepath).slice(0, 3) === 'src' || path.relative(".", filepath).slice(0, 17) === "node_modules/bfs-";
     }).forEach(function(filePath) {
-      newCoverageInfo[filePath] = coverageInfo[filePath];
+      var newPath = filePath;
+      // Weird issue caused by relative source map URLs.
+      if (filePath.indexOf('node_modules') !== filePath.lastIndexOf('node_modules')) {
+        newPath = path.resolve(filePath.slice(filePath.lastIndexOf('node_modules')));
+      }
+      newCoverageInfo[newPath] = coverageInfo[filePath];
+      newCoverageInfo[newPath]['path'] = newPath;
     });
     grunt.file.write('coverage/coverage-combined.json', JSON.stringify(newCoverageInfo));
   });
