@@ -4,7 +4,7 @@ export declare enum FileType {
     DIRECTORY = 16384,
     SYMLINK = 40960,
 }
-export declare class Stats implements fs.Stats {
+export default class Stats implements fs.Stats {
     size: number;
     mode: number;
     atime: Date;

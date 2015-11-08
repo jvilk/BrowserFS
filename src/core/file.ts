@@ -1,5 +1,5 @@
 import {ApiError, ErrorCode} from './api_error';
-import stats = require('./node_fs_stats');
+import Stats from './node_fs_stats';
 
 export interface File {
   /**
@@ -11,12 +11,12 @@ export interface File {
    * **Core**: Asynchronous `stat`.
    * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] cb
    */
-  stat(cb: (err: ApiError, stats?: stats.Stats) => any): void;
+  stat(cb: (err: ApiError, stats?: Stats) => any): void;
   /**
    * **Core**: Synchronous `stat`.
    * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] cb
    */
-  statSync(): stats.Stats;
+  statSync(): Stats;
   /**
    * **Core**: Asynchronous close.
    * @param [Function(BrowserFS.ApiError)] cb
@@ -41,7 +41,7 @@ export interface File {
    * **Core**: Asynchronous sync.
    * @param [Function(BrowserFS.ApiError)] cb
    */
-  sync(cb: Function): void;
+  sync(cb: (e?: ApiError) => void): void;
   /**
    * **Core**: Synchronous sync.
    */
@@ -108,7 +108,7 @@ export interface File {
    * Default implementation maps to `sync`.
    * @param [Function(BrowserFS.ApiError)] cb
    */
-  datasync(cb: Function): void;
+  datasync(cb: (e?: ApiError) => void): void;
   /**
    * **Supplementary**: Synchronous `datasync`.
    *
@@ -121,7 +121,7 @@ export interface File {
    * @param [Number] gid
    * @param [Function(BrowserFS.ApiError)] cb
    */
-  chown(uid: number, gid: number, cb: Function): void;
+  chown(uid: number, gid: number, cb: (e?: ApiError) => void): void;
   /**
    * **Optional**: Synchronous `chown`.
    * @param [Number] uid
@@ -133,7 +133,7 @@ export interface File {
    * @param [Number] mode
    * @param [Function(BrowserFS.ApiError)] cb
    */
-  chmod(mode: number, cb: Function): void;
+  chmod(mode: number, cb: (e?: ApiError) => void): void;
   /**
    * **Optional**: Synchronous `fchmod`.
    * @param [Number] mode
@@ -145,13 +145,13 @@ export interface File {
    * @param [Date] mtime
    * @param [Function(BrowserFS.ApiError)] cb
    */
-  utimes(atime: number, mtime: number, cb: Function): void;
+  utimes(atime: Date, mtime: Date, cb: (e?: ApiError) => void): void;
   /**
    * **Optional**: Change the file timestamps of the file.
    * @param [Date] atime
    * @param [Date] mtime
    */
-  utimesSync(atime: number, mtime: number): void;
+  utimesSync(atime: Date, mtime: Date): void;
 }
 
 /**
@@ -160,34 +160,34 @@ export interface File {
  * @class
  */
 export class BaseFile {
-  public sync(cb: Function): void {
+  public sync(cb: (e?: ApiError) => void): void {
     cb(new ApiError(ErrorCode.ENOTSUP));
   }
   public syncSync(): void {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
-  public datasync(cb: Function): void {
+  public datasync(cb: (e?: ApiError) => void): void {
     this.sync(cb);
   }
   public datasyncSync(): void {
     return this.syncSync();
   }
-  public chown(uid: number, gid: number, cb: Function): void {
+  public chown(uid: number, gid: number, cb: (e?: ApiError) => void): void {
     cb(new ApiError(ErrorCode.ENOTSUP));
   }
   public chownSync(uid: number, gid: number): void {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
-  public chmod(mode: number, cb: Function): void {
+  public chmod(mode: number, cb: (e?: ApiError) => void): void {
     cb(new ApiError(ErrorCode.ENOTSUP));
   }
   public chmodSync(mode: number): void {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
-  public utimes(atime: number, mtime: number, cb: Function): void {
+  public utimes(atime: Date, mtime: Date, cb: (e?: ApiError) => void): void {
     cb(new ApiError(ErrorCode.ENOTSUP));
   }
-  public utimesSync(atime: number, mtime: number): void {
+  public utimesSync(atime: Date, mtime: Date): void {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
 }

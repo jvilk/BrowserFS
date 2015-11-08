@@ -2,7 +2,7 @@ import preload_file = require('../generic/preload_file');
 import file_system = require('../core/file_system');
 import { ApiError } from '../core/api_error';
 import { FileFlag } from '../core/file_flag';
-import { Stats } from '../core/node_fs_stats';
+import { default as Stats } from '../core/node_fs_stats';
 import file = require('../core/file');
 export declare class HTML5FSFile extends preload_file.PreloadFile<HTML5FS> implements file.File {
     constructor(_fs: HTML5FS, _path: string, _flag: FileFlag, _stat: Stats, contents?: NodeBuffer);

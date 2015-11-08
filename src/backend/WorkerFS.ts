@@ -3,7 +3,7 @@ import {ApiError} from '../core/api_error';
 import file_flag = require('../core/file_flag');
 import {buffer2ArrayBuffer, arrayBuffer2Buffer} from '../core/util';
 import file = require('../core/file');
-import node_fs_stats = require('../core/node_fs_stats');
+import {default as Stats, FileType} from '../core/node_fs_stats';
 import preload_file = require('../generic/preload_file');
 import global = require('../core/global');
 import fs = require('../core/node_fs');
@@ -136,7 +136,7 @@ class FileDescriptorArgumentConverter {
   private _applyFdChanges(remoteFd: IFileDescriptorArgument, cb: (err: ApiError, fd?: file.File) => void): void {
     var fd = this._fileDescriptors[remoteFd.id],
       data = transferrableObjectToBuffer(remoteFd.data),
-      remoteStats = node_fs_stats.Stats.fromBuffer(transferrableObjectToBuffer(remoteFd.stat));
+      remoteStats = Stats.fromBuffer(transferrableObjectToBuffer(remoteFd.stat));
 
     // Write data if the file is writable.
     var flag = file_flag.FileFlag.getFileFlag(remoteFd.flag);
@@ -250,15 +250,15 @@ interface IStatsArgument extends ISpecialArgument {
   statsData: ArrayBuffer;
 }
 
-function statsLocal2Remote(stats: node_fs_stats.Stats): IStatsArgument {
+function statsLocal2Remote(stats: Stats): IStatsArgument {
   return {
     type: SpecialArgType.STATS,
     statsData: bufferToTransferrableObject(stats.toBuffer())
   };
 }
 
-function statsRemote2Local(stats: IStatsArgument): node_fs_stats.Stats {
-  return node_fs_stats.Stats.fromBuffer(transferrableObjectToBuffer(stats.statsData));
+function statsRemote2Local(stats: IStatsArgument): Stats {
+  return Stats.fromBuffer(transferrableObjectToBuffer(stats.statsData));
 }
 
 interface IFileFlagArgument extends ISpecialArgument {
@@ -323,7 +323,7 @@ function isAPIResponse(data: any): data is IAPIResponse {
 class WorkerFile extends preload_file.PreloadFile<WorkerFS> {
   private _remoteFdId: number;
 
-  constructor(_fs: WorkerFS, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, remoteFdId: number, contents?: NodeBuffer) {
+  constructor(_fs: WorkerFS, _path: string, _flag: file_flag.FileFlag, _stat: Stats, remoteFdId: number, contents?: NodeBuffer) {
     super(_fs, _path, _flag, _stat, contents);
     this._remoteFdId = remoteFdId;
   }
@@ -443,7 +443,7 @@ export default class WorkerFS extends file_system.BaseFileSystem implements file
               return apiErrorRemote2Local(<IAPIErrorArgument> specialArg);
             case SpecialArgType.FD:
               var fdArg = <IFileDescriptorArgument> specialArg;
-              return new WorkerFile(this, fdArg.path, file_flag.FileFlag.getFileFlag(fdArg.flag), node_fs_stats.Stats.fromBuffer(transferrableObjectToBuffer(fdArg.stat)), fdArg.id, transferrableObjectToBuffer(fdArg.data));
+              return new WorkerFile(this, fdArg.path, file_flag.FileFlag.getFileFlag(fdArg.flag), Stats.fromBuffer(transferrableObjectToBuffer(fdArg.stat)), fdArg.id, transferrableObjectToBuffer(fdArg.data));
             case SpecialArgType.STATS:
               return statsRemote2Local(<IStatsArgument> specialArg);
             case SpecialArgType.FILEFLAG:
@@ -472,7 +472,7 @@ export default class WorkerFS extends file_system.BaseFileSystem implements file
     }
     switch (typeof arg) {
       case "object":
-        if (arg instanceof node_fs_stats.Stats) {
+        if (arg instanceof Stats) {
           return statsLocal2Remote(arg);
         } else if (arg instanceof ApiError) {
           return apiErrorLocal2Remote(arg);
@@ -537,7 +537,7 @@ export default class WorkerFS extends file_system.BaseFileSystem implements file
   public rename(oldPath: string, newPath: string, cb: (err?: ApiError) => void): void {
     this._rpc('rename', arguments);
   }
-  public stat(p: string, isLstat: boolean, cb: (err: ApiError, stat?: node_fs_stats.Stats) => void): void {
+  public stat(p: string, isLstat: boolean, cb: (err: ApiError, stat?: Stats) => void): void {
     this._rpc('stat', arguments);
   }
   public open(p: string, flag: file_flag.FileFlag, mode: number, cb: (err: ApiError, fd?: file.File) => any): void {
@@ -609,7 +609,7 @@ export default class WorkerFS extends file_system.BaseFileSystem implements file
     function argLocal2Remote(arg: any, requestArgs: any[], cb: (err: ApiError, arg?: any) => void): void {
       switch (typeof arg) {
         case 'object':
-          if (arg instanceof node_fs_stats.Stats) {
+          if (arg instanceof Stats) {
             cb(null, statsLocal2Remote(arg));
           } else if (arg instanceof ApiError) {
             cb(null, apiErrorLocal2Remote(arg));

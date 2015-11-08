@@ -1,6 +1,6 @@
 import file_system = require('../core/file_system');
 import {ApiError, ErrorCode} from '../core/api_error';
-import node_fs_stats = require('../core/node_fs_stats');
+import {default as Stats, FileType} from '../core/node_fs_stats';
 import file = require('../core/file');
 import file_flag = require('../core/file_flag');
 import path = require('path');
@@ -213,7 +213,7 @@ export interface SyncKeyValueFileSystemOptions {
 }
 
 export class SyncKeyValueFile extends preload_file.PreloadFile<SyncKeyValueFileSystem> implements file.File {
-  constructor(_fs: SyncKeyValueFileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: NodeBuffer) {
+  constructor(_fs: SyncKeyValueFileSystem, _path: string, _flag: file_flag.FileFlag, _stat: Stats, contents?: NodeBuffer) {
     super(_fs, _path, _flag, _stat, contents);
   }
 
@@ -263,7 +263,7 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
       // Create new inode.
       var currTime = (new Date()).getTime(),
         // Mode 0666
-        dirInode = new Inode(GenerateRandomID(), 4096, 511 | node_fs_stats.FileType.DIRECTORY, currTime, currTime, currTime);
+        dirInode = new Inode(GenerateRandomID(), 4096, 511 | FileType.DIRECTORY, currTime, currTime, currTime);
       // If the root doesn't exist, the first random ID shouldn't exist,
       // either.
       tx.put(dirInode.id, new Buffer("{}"), false);
@@ -372,7 +372,7 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
    * @param data The data to store at the file's data node.
    * @return The Inode for the new file.
    */
-  private commitNewFile(tx: SyncKeyValueRWTransaction, p: string, type: node_fs_stats.FileType, mode: number, data: NodeBuffer): Inode {
+  private commitNewFile(tx: SyncKeyValueRWTransaction, p: string, type: FileType, mode: number, data: NodeBuffer): Inode {
     var parentDir = path.dirname(p),
       fname = path.basename(p),
       parentNode = this.findINode(tx, parentDir),
@@ -480,7 +480,7 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
     tx.commit();
   }
 
-  public statSync(p: string, isLstat: boolean): node_fs_stats.Stats {
+  public statSync(p: string, isLstat: boolean): Stats {
     // Get the inode to the item, convert it into a Stats object.
     return this.findINode(this.store.beginTransaction('readonly'), p).toStats();
   }
@@ -488,7 +488,7 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
   public createFileSync(p: string, flag: file_flag.FileFlag, mode: number): file.File {
     var tx = this.store.beginTransaction('readwrite'),
       data = new Buffer(0),
-      newFile = this.commitNewFile(tx, p, node_fs_stats.FileType.FILE, mode, data);
+      newFile = this.commitNewFile(tx, p, FileType.FILE, mode, data);
     // Open the file.
     return new SyncKeyValueFile(this, p, flag, newFile.toStats(), data);
   }
@@ -558,7 +558,7 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
   public mkdirSync(p: string, mode: number): void {
     var tx = this.store.beginTransaction('readwrite'),
       data = new Buffer('{}');
-    this.commitNewFile(tx, p, node_fs_stats.FileType.DIRECTORY, mode, data);
+    this.commitNewFile(tx, p, FileType.DIRECTORY, mode, data);
   }
 
   public readdirSync(p: string): string[]{
@@ -566,7 +566,7 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
     return Object.keys(this.getDirListing(tx, p, this.findINode(tx, p)));
   }
 
-  public _syncSync(p: string, data: NodeBuffer, stats: node_fs_stats.Stats): void {
+  public _syncSync(p: string, data: NodeBuffer, stats: Stats): void {
     // @todo Ensure mtime updates properly, and use that to determine if a data
     //       update is required.
     var tx = this.store.beginTransaction('readwrite'),
@@ -656,7 +656,7 @@ export interface AsyncKeyValueRWTransaction extends AsyncKeyValueROTransaction {
 }
 
 export class AsyncKeyValueFile extends preload_file.PreloadFile<AsyncKeyValueFileSystem> implements file.File {
-  constructor(_fs: AsyncKeyValueFileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: NodeBuffer) {
+  constructor(_fs: AsyncKeyValueFileSystem, _path: string, _flag: file_flag.FileFlag, _stat: Stats, contents?: NodeBuffer) {
     super(_fs, _path, _flag, _stat, contents);
   }
 
@@ -712,7 +712,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
         // Create new inode.
         var currTime = (new Date()).getTime(),
           // Mode 0666
-          dirInode = new Inode(GenerateRandomID(), 4096, 511 | node_fs_stats.FileType.DIRECTORY, currTime, currTime, currTime);
+          dirInode = new Inode(GenerateRandomID(), 4096, 511 | FileType.DIRECTORY, currTime, currTime, currTime);
         // If the root doesn't exist, the first random ID shouldn't exist,
         // either.
         tx.put(dirInode.id, new Buffer("{}"), false, (e?: ApiError) => {
@@ -882,7 +882,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
    * @param data The data to store at the file's data node.
    * @param cb Passed an error or the Inode for the new file.
    */
-  private commitNewFile(tx: AsyncKeyValueRWTransaction, p: string, type: node_fs_stats.FileType, mode: number, data: NodeBuffer, cb: (e: ApiError, inode?: Inode) => void): void {
+  private commitNewFile(tx: AsyncKeyValueRWTransaction, p: string, type: FileType, mode: number, data: NodeBuffer, cb: (e: ApiError, inode?: Inode) => void): void {
     var parentDir = path.dirname(p),
       fname = path.basename(p),
       currTime = (new Date()).getTime();
@@ -1063,7 +1063,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
     }
   }
 
-  public stat(p: string, isLstat: boolean, cb: (err: ApiError, stat?: node_fs_stats.Stats) => void): void {
+  public stat(p: string, isLstat: boolean, cb: (err: ApiError, stat?: Stats) => void): void {
     var tx = this.store.beginTransaction('readonly');
     this.findINode(tx, p, (e: ApiError, inode?: Inode): void => {
       if (noError(e, cb)) {
@@ -1076,7 +1076,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
     var tx = this.store.beginTransaction('readwrite'),
       data = new Buffer(0);
 
-    this.commitNewFile(tx, p, node_fs_stats.FileType.FILE, mode, data, (e: ApiError, newFile?: Inode): void => {
+    this.commitNewFile(tx, p, FileType.FILE, mode, data, (e: ApiError, newFile?: Inode): void => {
       if (noError(e, cb)) {
         cb(null, new AsyncKeyValueFile(this, p, flag, newFile.toStats(), data));
       }
@@ -1169,7 +1169,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
   public mkdir(p: string, mode: number, cb: (e?: ApiError) => void): void {
     var tx = this.store.beginTransaction('readwrite'),
       data = new Buffer('{}');
-    this.commitNewFile(tx, p, node_fs_stats.FileType.DIRECTORY, mode, data, cb);
+    this.commitNewFile(tx, p, FileType.DIRECTORY, mode, data, cb);
   }
 
   public readdir(p: string, cb: (err: ApiError, files?: string[]) => void): void {
@@ -1185,7 +1185,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
     });
   }
 
-  public _sync(p: string, data: NodeBuffer, stats: node_fs_stats.Stats, cb: (e?: ApiError) => void): void {
+  public _sync(p: string, data: NodeBuffer, stats: Stats, cb: (e?: ApiError) => void): void {
     // @todo Ensure mtime updates properly, and use that to determine if a data
     //       update is required.
     var tx = this.store.beginTransaction('readwrite');

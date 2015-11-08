@@ -2,7 +2,7 @@ import file_system = require('../core/file_system');
 import {ApiError, ErrorCode} from '../core/api_error';
 import file_flag = require('../core/file_flag');
 import file = require('../core/file');
-import node_fs_stats = require('../core/node_fs_stats');
+import Stats from '../core/node_fs_stats';
 import preload_file = require('../generic/preload_file');
 
 interface IAsyncOperation {
@@ -14,7 +14,7 @@ interface IAsyncOperation {
  * We define our own file to interpose on syncSync() for mirroring purposes.
  */
 class MirrorFile extends preload_file.PreloadFile<AsyncMirror> implements file.File {
-  constructor(fs: AsyncMirror, path: string, flag: file_flag.FileFlag, stat: node_fs_stats.Stats, data: Buffer) {
+  constructor(fs: AsyncMirror, path: string, flag: file_flag.FileFlag, stat: Stats, data: Buffer) {
     super(fs, path, flag, stat, data);
   }
 
@@ -175,7 +175,7 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
       arguments: [oldPath, newPath]
     });
   }
-  public statSync(p: string, isLstat: boolean): node_fs_stats.Stats {
+  public statSync(p: string, isLstat: boolean): Stats {
     return this._sync.statSync(p, isLstat);
   }
   public openSync(p: string, flag: file_flag.FileFlag, mode: number): file.File {

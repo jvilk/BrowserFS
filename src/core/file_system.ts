@@ -1,5 +1,5 @@
 import {ApiError, ErrorCode} from './api_error';
-import {Stats} from './node_fs_stats';
+import Stats from './node_fs_stats';
 import file = require('./file');
 import {FileFlag, ActionType} from './file_flag';
 import path = require('path');

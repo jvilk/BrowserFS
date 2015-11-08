@@ -1,4 +1,4 @@
-import { Stats } from '../core/node_fs_stats';
+import { default as Stats } from '../core/node_fs_stats';
 declare class Inode {
     id: string;
     size: number;

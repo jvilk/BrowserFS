@@ -2,7 +2,7 @@ import file_system = require('../core/file_system');
 import { ApiError } from '../core/api_error';
 import file_flag = require('../core/file_flag');
 import file = require('../core/file');
-import node_fs_stats = require('../core/node_fs_stats');
+import Stats from '../core/node_fs_stats';
 import preload_file = require('../generic/preload_file');
 export default class AsyncMirror extends file_system.SynchronousFileSystem implements file_system.FileSystem {
     private _queue;
@@ -21,7 +21,7 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
     supportsProps(): boolean;
     private enqueueOp(op);
     renameSync(oldPath: string, newPath: string): void;
-    statSync(p: string, isLstat: boolean): node_fs_stats.Stats;
+    statSync(p: string, isLstat: boolean): Stats;
     openSync(p: string, flag: file_flag.FileFlag, mode: number): file.File;
     unlinkSync(p: string): void;
     rmdirSync(p: string): void;

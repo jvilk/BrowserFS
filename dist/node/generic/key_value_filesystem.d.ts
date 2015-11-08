@@ -1,6 +1,6 @@
 import file_system = require('../core/file_system');
 import { ApiError } from '../core/api_error';
-import node_fs_stats = require('../core/node_fs_stats');
+import { default as Stats } from '../core/node_fs_stats';
 import file = require('../core/file');
 import file_flag = require('../core/file_flag');
 import preload_file = require('../generic/preload_file');
@@ -42,7 +42,7 @@ export interface SyncKeyValueFileSystemOptions {
     store: SyncKeyValueStore;
 }
 export declare class SyncKeyValueFile extends preload_file.PreloadFile<SyncKeyValueFileSystem> implements file.File {
-    constructor(_fs: SyncKeyValueFileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: NodeBuffer);
+    constructor(_fs: SyncKeyValueFileSystem, _path: string, _flag: file_flag.FileFlag, _stat: Stats, contents?: NodeBuffer);
     syncSync(): void;
     closeSync(): void;
 }
@@ -64,7 +64,7 @@ export declare class SyncKeyValueFileSystem extends file_system.SynchronousFileS
     private commitNewFile(tx, p, type, mode, data);
     empty(): void;
     renameSync(oldPath: string, newPath: string): void;
-    statSync(p: string, isLstat: boolean): node_fs_stats.Stats;
+    statSync(p: string, isLstat: boolean): Stats;
     createFileSync(p: string, flag: file_flag.FileFlag, mode: number): file.File;
     openFileSync(p: string, flag: file_flag.FileFlag): file.File;
     private removeEntry(p, isDir);
@@ -72,7 +72,7 @@ export declare class SyncKeyValueFileSystem extends file_system.SynchronousFileS
     rmdirSync(p: string): void;
     mkdirSync(p: string, mode: number): void;
     readdirSync(p: string): string[];
-    _syncSync(p: string, data: NodeBuffer, stats: node_fs_stats.Stats): void;
+    _syncSync(p: string, data: NodeBuffer, stats: Stats): void;
 }
 export interface AsyncKeyValueStore {
     name(): string;
@@ -91,7 +91,7 @@ export interface AsyncKeyValueRWTransaction extends AsyncKeyValueROTransaction {
     abort(cb: (e?: ApiError) => void): void;
 }
 export declare class AsyncKeyValueFile extends preload_file.PreloadFile<AsyncKeyValueFileSystem> implements file.File {
-    constructor(_fs: AsyncKeyValueFileSystem, _path: string, _flag: file_flag.FileFlag, _stat: node_fs_stats.Stats, contents?: NodeBuffer);
+    constructor(_fs: AsyncKeyValueFileSystem, _path: string, _flag: file_flag.FileFlag, _stat: Stats, contents?: NodeBuffer);
     sync(cb: (e?: ApiError) => void): void;
     close(cb: (e?: ApiError) => void): void;
 }
@@ -114,7 +114,7 @@ export declare class AsyncKeyValueFileSystem extends file_system.BaseFileSystem 
     private commitNewFile(tx, p, type, mode, data, cb);
     empty(cb: (e?: ApiError) => void): void;
     rename(oldPath: string, newPath: string, cb: (e?: ApiError) => void): void;
-    stat(p: string, isLstat: boolean, cb: (err: ApiError, stat?: node_fs_stats.Stats) => void): void;
+    stat(p: string, isLstat: boolean, cb: (err: ApiError, stat?: Stats) => void): void;
     createFile(p: string, flag: file_flag.FileFlag, mode: number, cb: (e: ApiError, file?: file.File) => void): void;
     openFile(p: string, flag: file_flag.FileFlag, cb: (e: ApiError, file?: file.File) => void): void;
     private removeEntry(p, isDir, cb);
@@ -122,5 +122,5 @@ export declare class AsyncKeyValueFileSystem extends file_system.BaseFileSystem 
     rmdir(p: string, cb: (e?: ApiError) => void): void;
     mkdir(p: string, mode: number, cb: (e?: ApiError) => void): void;
     readdir(p: string, cb: (err: ApiError, files?: string[]) => void): void;
-    _sync(p: string, data: NodeBuffer, stats: node_fs_stats.Stats, cb: (e?: ApiError) => void): void;
+    _sync(p: string, data: NodeBuffer, stats: Stats, cb: (e?: ApiError) => void): void;
 }

@@ -2,7 +2,7 @@ import file_system = require('../core/file_system');
 import { ApiError } from '../core/api_error';
 import file_flag = require('../core/file_flag');
 import file = require('../core/file');
-import node_fs_stats = require('../core/node_fs_stats');
+import { default as Stats } from '../core/node_fs_stats';
 export default class WorkerFS extends file_system.BaseFileSystem implements file_system.FileSystem {
     private _worker;
     private _callbackConverter;
@@ -23,7 +23,7 @@ export default class WorkerFS extends file_system.BaseFileSystem implements file
     supportsProps(): boolean;
     private _rpc(methodName, args);
     rename(oldPath: string, newPath: string, cb: (err?: ApiError) => void): void;
-    stat(p: string, isLstat: boolean, cb: (err: ApiError, stat?: node_fs_stats.Stats) => void): void;
+    stat(p: string, isLstat: boolean, cb: (err: ApiError, stat?: Stats) => void): void;
     open(p: string, flag: file_flag.FileFlag, mode: number, cb: (err: ApiError, fd?: file.File) => any): void;
     unlink(p: string, cb: Function): void;
     rmdir(p: string, cb: Function): void;

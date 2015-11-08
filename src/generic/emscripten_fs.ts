@@ -11,7 +11,7 @@
  */
 import BrowserFS = require('../core/browserfs');
 import fs = require('../core/node_fs');
-import node_fs_stats = require('../core/node_fs_stats');
+import NodeStats from '../core/node_fs_stats';
 import {uint8Array2Buffer} from '../core/util';
 
 export interface Stats {
@@ -168,7 +168,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
 
   public getattr(node: EmscriptenFSNode): Stats {
     var path = this.fs.realPath(node);
-    var stat: node_fs_stats.Stats;
+    var stat: NodeStats;
     try {
       stat = fs.lstatSync(path);
     } catch (e) {
@@ -338,7 +338,7 @@ export default class BFSEmscriptenFS implements EmscriptenFS {
   }
 
   public getMode(path: string): number {
-    var stat: node_fs_stats.Stats;
+    var stat: NodeStats;
     try {
       stat = fs.lstatSync(path);
     } catch (e) {

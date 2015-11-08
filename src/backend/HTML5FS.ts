@@ -2,7 +2,7 @@ import preload_file = require('../generic/preload_file');
 import file_system = require('../core/file_system');
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
-import {Stats, FileType} from '../core/node_fs_stats';
+import {default as Stats, FileType} from '../core/node_fs_stats';
 import file = require('../core/file');
 import path = require('path');
 import global = require('../core/global');

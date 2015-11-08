@@ -3,7 +3,7 @@ import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
 import util = require('../core/util');
 import file = require('../core/file');
-import {Stats} from '../core/node_fs_stats';
+import Stats from '../core/node_fs_stats';
 import preload_file = require('../generic/preload_file');
 import path = require('path');
 let deletionLogPath = '/.deletedFiles.log';
@@ -108,7 +108,7 @@ export default class OverlayFS extends file_system.SynchronousFileSystem impleme
         FileFlag.getFileFlag('r'), (err: ApiError, data?: string) => {
         if (err) {
           // ENOENT === Newly-instantiated file system, and thus empty log.
-          if (err.type !== ErrorCode.ENOENT) {
+          if (err.errno !== ErrorCode.ENOENT) {
             return cb(err);
           }
         } else {

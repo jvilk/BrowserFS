@@ -1,4 +1,4 @@
-import {Stats, FileType} from '../core/node_fs_stats';
+import {default as Stats, FileType} from '../core/node_fs_stats';
 
 /**
  * Generic inode definition that can easily be serialized.

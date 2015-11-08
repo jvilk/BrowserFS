@@ -1,5 +1,5 @@
 import { ApiError } from './api_error';
-import { Stats } from './node_fs_stats';
+import Stats from './node_fs_stats';
 import file = require('./file');
 import { FileFlag } from './file_flag';
 export interface FileSystem {

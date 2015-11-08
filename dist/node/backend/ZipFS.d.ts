@@ -1,4 +1,4 @@
-import node_fs_stats = require('../core/node_fs_stats');
+import { default as Stats } from '../core/node_fs_stats';
 import file_system = require('../core/file_system');
 import file = require('../core/file');
 import { FileFlag } from '../core/file_flag';
@@ -111,7 +111,7 @@ export declare class CentralDirectory {
     useUTF8(): boolean;
     isEncrypted(): boolean;
     getData(): NodeBuffer;
-    getStats(): node_fs_stats.Stats;
+    getStats(): Stats;
 }
 export declare class EndOfCentralDirectory {
     private data;
@@ -136,7 +136,7 @@ export default class ZipFS extends file_system.SynchronousFileSystem implements 
     supportsLinks(): boolean;
     supportsProps(): boolean;
     supportsSynch(): boolean;
-    statSync(path: string, isLstat: boolean): node_fs_stats.Stats;
+    statSync(path: string, isLstat: boolean): Stats;
     openSync(path: string, flags: FileFlag, mode: number): file.File;
     readdirSync(path: string): string[];
     readFileSync(fname: string, encoding: string, flag: FileFlag): any;

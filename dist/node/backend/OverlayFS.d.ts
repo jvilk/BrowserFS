@@ -2,7 +2,7 @@ import file_system = require('../core/file_system');
 import { ApiError } from '../core/api_error';
 import { FileFlag } from '../core/file_flag';
 import file = require('../core/file');
-import { Stats } from '../core/node_fs_stats';
+import Stats from '../core/node_fs_stats';
 import preload_file = require('../generic/preload_file');
 export default class OverlayFS extends file_system.SynchronousFileSystem implements file_system.FileSystem {
     private _writable;

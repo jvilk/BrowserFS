@@ -18,7 +18,7 @@ export enum FileType {
  * @see http://man7.org/linux/man-pages/man2/stat.2.html
  * @class
  */
-export class Stats implements fs.Stats {
+export default class Stats implements fs.Stats {
   public blocks: number;
   /**
    * UNSUPPORTED ATTRIBUTES

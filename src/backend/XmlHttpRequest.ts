@@ -3,7 +3,7 @@ import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
 import {copyingSlice} from '../core/util';
 import file = require('../core/file');
-import {Stats} from '../core/node_fs_stats';
+import Stats from '../core/node_fs_stats';
 import preload_file = require('../generic/preload_file');
 import xhr = require('../generic/xhr');
 import {FileIndex, DirInode, FileInode, Inode, isFileInode, isDirInode} from '../generic/file_index';

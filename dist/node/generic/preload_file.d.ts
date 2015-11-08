@@ -1,6 +1,6 @@
 import file = require('../core/file');
 import file_system = require('../core/file_system');
-import { Stats } from '../core/node_fs_stats';
+import Stats from '../core/node_fs_stats';
 import { FileFlag } from '../core/file_flag';
 import { ApiError } from '../core/api_error';
 export declare class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile {

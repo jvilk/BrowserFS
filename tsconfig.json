@@ -30,6 +30,7 @@
         "src/core/file.ts",
         "src/core/file_flag.ts",
         "src/core/file_system.ts",
+        "src/core/FS.ts",
         "src/core/global.ts",
         "src/core/node_fs.ts",
         "src/core/node_fs_stats.ts",

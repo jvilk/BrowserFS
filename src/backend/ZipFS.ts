@@ -46,7 +46,7 @@
  *   This isn't that bad, so we might do this at a later date.
  */
 import {ApiError, ErrorCode} from '../core/api_error';
-import node_fs_stats = require('../core/node_fs_stats');
+import {default as Stats, FileType} from '../core/node_fs_stats';
 import file_system = require('../core/file_system');
 import file = require('../core/file');
 import {FileFlag, ActionType} from '../core/file_flag';
@@ -418,8 +418,8 @@ export class CentralDirectory {
     var filedata = new FileData(header, this, this.zipData.slice(start + header.totalSize()));
     return filedata.decompress();
   }
-  public getStats(): node_fs_stats.Stats {
-    return new node_fs_stats.Stats(node_fs_stats.FileType.FILE, this.uncompressedSize(), 0x16D, new Date(), this.lastModFileTime());
+  public getStats(): Stats {
+    return new Stats(FileType.FILE, this.uncompressedSize(), 0x16D, new Date(), this.lastModFileTime());
   }
 }
 
@@ -496,12 +496,12 @@ export default class ZipFS extends file_system.SynchronousFileSystem implements 
     return true;
   }
 
-  public statSync(path: string, isLstat: boolean): node_fs_stats.Stats {
+  public statSync(path: string, isLstat: boolean): Stats {
     var inode = this._index.getInode(path);
     if (inode === null) {
       throw ApiError.ENOENT(path);
     }
-    var stats: node_fs_stats.Stats;
+    var stats: Stats;
     if (isFileInode<CentralDirectory>(inode)) {
       stats = inode.getData().getStats();
     } else if (isDirInode(inode)) {

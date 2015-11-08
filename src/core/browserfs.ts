@@ -42,7 +42,12 @@ export function registerFileSystem(name: string, fs: file_system.FileSystemConst
   (<any> FileSystem)[name] = fs;
 }
 
-export function BFSRequire(module: string) {
+export function BFSRequire(module: 'fs'): typeof fs;
+export function BFSRequire(module: 'path'): typeof path;
+export function BFSRequire(module: 'buffer'): typeof buffer;
+export function BFSRequire(module: 'process'): typeof process;
+export function BFSRequire(module: string): any;
+export function BFSRequire(module: string): any {
   switch(module) {
     case 'fs':
       return fs;
@@ -65,7 +70,7 @@ export function BFSRequire(module: string) {
  *   entire BrowserFS file system.
  */
 export function initialize(rootfs: file_system.FileSystem) {
-  return fs._initialize(rootfs);
+  return fs.initialize(rootfs);
 }
 
 export {EmscriptenFS, FileSystem};

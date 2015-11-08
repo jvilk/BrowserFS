@@ -30,11 +30,19 @@ ErrorStrings[ErrorCode.ENOTSUP] = 'Operation is not supported.';
 /**
  * Represents a BrowserFS error. Passed back to applications after a failed
  * call to the BrowserFS API.
+ * errno?: number;
+        code?: string;
+        path?: string;
+        syscall?: string;
+        stack?: string;
  */
-export class ApiError {
-  public type: ErrorCode;
-  public message: string;
+export class ApiError extends Error implements NodeJS.ErrnoException {
+  public errno: ErrorCode;
   public code: string;
+  public path: string;
+  // Unsupported.
+  public syscall: string = "";
+  public stack: string;
 
   /**
    * Represents a BrowserFS error. Passed back to applications after a failed
@@ -46,30 +54,48 @@ export class ApiError {
    * @param type The type of the error.
    * @param [message] A descriptive error message.
    */
-  constructor(type: ErrorCode, message?:string) {
-    this.type = type;
+  constructor(type: ErrorCode, message: string = ErrorStrings[type], path: string = null) {
+    super(message);
+    this.errno = type;
     this.code = ErrorCode[type];
-    if (message != null) {
-      this.message = message;
-    } else {
-      this.message = ErrorStrings[type];
-    }
+    this.path = path;
+    this.stack = (<any>new Error()).stack;
+    this.message = `Error: ${this.code}: ${message}${this.path ? `, '${this.path}'` : ''}`;
   }
 
   /**
    * @return A friendly error message.
    */
   public toString(): string {
-    return this.code +  ": " + ErrorStrings[this.type] + " " + this.message;
+    return this.message;
+  }
+
+  public toJSON(): any {
+    return {
+      errno: this.errno,
+      code: this.code,
+      path: this.path,
+      stack: this.stack,
+      message: this.message
+    };
+  }
+
+  public static fromJSON(json: any): ApiError {
+    var err = new ApiError(0);
+    err.errno = json.errno;
+    err.code = json.code;
+    err.path = json.path;
+    err.stack = json.stack;
+    err.message = json.message;
+    return err;
   }
 
   /**
    * Writes the API error into a buffer.
    */
   public writeToBuffer(buffer: Buffer = new Buffer(this.bufferSize()), i: number = 0): Buffer {
-    buffer.writeUInt8(this.type, i);
-    var bytesWritten = buffer.write(this.message, i + 5);
-    buffer.writeUInt32LE(bytesWritten, i + 1);
+    var bytesWritten = buffer.write(JSON.stringify(this.toJSON()), i + 4);
+    buffer.writeUInt32LE(bytesWritten, i);
     return buffer;
   }
 
@@ -77,19 +103,19 @@ export class ApiError {
    * Creates an ApiError object from a buffer.
    */
   public static fromBuffer(buffer: Buffer, i: number = 0): ApiError {
-    return new ApiError(buffer.readUInt8(i), buffer.toString("utf8", i + 5, i + 5 + buffer.readUInt32LE(i + 1)));
+    return ApiError.fromJSON(JSON.parse(buffer.toString('utf8', i + 4, i + 4 + buffer.readUInt32LE(i))));
   }
 
   /**
    * The size of the API error in buffer-form in bytes.
    */
   public bufferSize(): number {
-    // 4 bytes for string length, 1 for type.
-    return 5 + Buffer.byteLength(this.message);
+    // 4 bytes for string length.
+    return 4 + Buffer.byteLength(JSON.stringify(this.toJSON()));
   }
 
   public static FileError(code: ErrorCode, p: string): ApiError {
-    return new ApiError(code, p + ": " + ErrorStrings[code]);
+    return new ApiError(code, ErrorStrings[code], p);
   }
   public static ENOENT(path: string): ApiError {
     return this.FileError(ErrorCode.ENOENT, path);

@@ -15,12 +15,16 @@ export declare enum ErrorCode {
     ENOTEMPTY = 13,
     ENOTSUP = 14,
 }
-export declare class ApiError {
-    type: ErrorCode;
-    message: string;
+export declare class ApiError extends Error implements NodeJS.ErrnoException {
+    errno: ErrorCode;
     code: string;
-    constructor(type: ErrorCode, message?: string);
+    path: string;
+    syscall: string;
+    stack: string;
+    constructor(type: ErrorCode, message?: string, path?: string);
     toString(): string;
+    toJSON(): any;
+    static fromJSON(json: any): ApiError;
     writeToBuffer(buffer?: Buffer, i?: number): Buffer;
     static fromBuffer(buffer: Buffer, i?: number): ApiError;
     bufferSize(): number;
