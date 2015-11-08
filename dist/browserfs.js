@@ -12270,6 +12270,7 @@ var util_1 = _dereq_('../core/util');
 var BFSEmscriptenStreamOps = (function () {
     function BFSEmscriptenStreamOps(fs) {
         this.fs = fs;
+        this.nodefs = fs.getNodeFS();
         this.FS = fs.getFS();
         this.PATH = fs.getPATH();
         this.ERRNO_CODES = fs.getERRNO_CODES();
@@ -12278,7 +12279,7 @@ var BFSEmscriptenStreamOps = (function () {
         var path = this.fs.realPath(stream.node), FS = this.FS;
         try {
             if (FS.isFile(stream.node.mode)) {
-                stream.nfd = fs.openSync(path, this.fs.flagsToPermissionString(stream.flags));
+                stream.nfd = this.nodefs.openSync(path, this.fs.flagsToPermissionString(stream.flags));
             }
         }
         catch (e) {
@@ -12291,7 +12292,7 @@ var BFSEmscriptenStreamOps = (function () {
         var FS = this.FS;
         try {
             if (FS.isFile(stream.node.mode) && stream.nfd) {
-                fs.closeSync(stream.nfd);
+                this.nodefs.closeSync(stream.nfd);
             }
         }
         catch (e) {
@@ -12302,7 +12303,7 @@ var BFSEmscriptenStreamOps = (function () {
     };
     BFSEmscriptenStreamOps.prototype.read = function (stream, buffer, offset, length, position) {
         try {
-            return fs.readSync(stream.nfd, util_1.uint8Array2Buffer(buffer), offset, length, position);
+            return this.nodefs.readSync(stream.nfd, util_1.uint8Array2Buffer(buffer), offset, length, position);
         }
         catch (e) {
             throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
@@ -12310,7 +12311,7 @@ var BFSEmscriptenStreamOps = (function () {
     };
     BFSEmscriptenStreamOps.prototype.write = function (stream, buffer, offset, length, position) {
         try {
-            return fs.writeSync(stream.nfd, util_1.uint8Array2Buffer(buffer), offset, length, position);
+            return this.nodefs.writeSync(stream.nfd, util_1.uint8Array2Buffer(buffer), offset, length, position);
         }
         catch (e) {
             throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
@@ -12324,7 +12325,7 @@ var BFSEmscriptenStreamOps = (function () {
         else if (whence === 2) {
             if (this.FS.isFile(stream.node.mode)) {
                 try {
-                    var stat = fs.fstatSync(stream.nfd);
+                    var stat = this.nodefs.fstatSync(stream.nfd);
                     position += stat.size;
                 }
                 catch (e) {
@@ -12343,6 +12344,7 @@ var BFSEmscriptenStreamOps = (function () {
 var BFSEmscriptenNodeOps = (function () {
     function BFSEmscriptenNodeOps(fs) {
         this.fs = fs;
+        this.nodefs = fs.getNodeFS();
         this.FS = fs.getFS();
         this.PATH = fs.getPATH();
         this.ERRNO_CODES = fs.getERRNO_CODES();
@@ -12351,7 +12353,7 @@ var BFSEmscriptenNodeOps = (function () {
         var path = this.fs.realPath(node);
         var stat;
         try {
-            stat = fs.lstatSync(path);
+            stat = this.nodefs.lstatSync(path);
         }
         catch (e) {
             if (!e.code)
@@ -12378,12 +12380,12 @@ var BFSEmscriptenNodeOps = (function () {
         var path = this.fs.realPath(node);
         try {
             if (attr.mode !== undefined) {
-                fs.chmodSync(path, attr.mode);
+                this.nodefs.chmodSync(path, attr.mode);
                 node.mode = attr.mode;
             }
             if (attr.timestamp !== undefined) {
                 var date = new Date(attr.timestamp);
-                fs.utimesSync(path, date, date);
+                this.nodefs.utimesSync(path, date, date);
             }
         }
         catch (e) {
@@ -12395,7 +12397,7 @@ var BFSEmscriptenNodeOps = (function () {
         }
         if (attr.size !== undefined) {
             try {
-                fs.truncateSync(path, attr.size);
+                this.nodefs.truncateSync(path, attr.size);
             }
             catch (e) {
                 if (!e.code)
@@ -12414,10 +12416,10 @@ var BFSEmscriptenNodeOps = (function () {
         var path = this.fs.realPath(node);
         try {
             if (this.FS.isDir(node.mode)) {
-                fs.mkdirSync(path, node.mode);
+                this.nodefs.mkdirSync(path, node.mode);
             }
             else {
-                fs.writeFileSync(path, '', { mode: node.mode });
+                this.nodefs.writeFileSync(path, '', { mode: node.mode });
             }
         }
         catch (e) {
@@ -12431,7 +12433,7 @@ var BFSEmscriptenNodeOps = (function () {
         var oldPath = this.fs.realPath(oldNode);
         var newPath = this.PATH.join2(this.fs.realPath(newDir), newName);
         try {
-            fs.renameSync(oldPath, newPath);
+            this.nodefs.renameSync(oldPath, newPath);
         }
         catch (e) {
             if (!e.code)
@@ -12442,7 +12444,7 @@ var BFSEmscriptenNodeOps = (function () {
     BFSEmscriptenNodeOps.prototype.unlink = function (parent, name) {
         var path = this.PATH.join2(this.fs.realPath(parent), name);
         try {
-            fs.unlinkSync(path);
+            this.nodefs.unlinkSync(path);
         }
         catch (e) {
             if (!e.code)
@@ -12453,7 +12455,7 @@ var BFSEmscriptenNodeOps = (function () {
     BFSEmscriptenNodeOps.prototype.rmdir = function (parent, name) {
         var path = this.PATH.join2(this.fs.realPath(parent), name);
         try {
-            fs.rmdirSync(path);
+            this.nodefs.rmdirSync(path);
         }
         catch (e) {
             if (!e.code)
@@ -12464,7 +12466,7 @@ var BFSEmscriptenNodeOps = (function () {
     BFSEmscriptenNodeOps.prototype.readdir = function (node) {
         var path = this.fs.realPath(node);
         try {
-            return fs.readdirSync(path);
+            return this.nodefs.readdirSync(path);
         }
         catch (e) {
             if (!e.code)
@@ -12475,7 +12477,7 @@ var BFSEmscriptenNodeOps = (function () {
     BFSEmscriptenNodeOps.prototype.symlink = function (parent, newName, oldPath) {
         var newPath = this.PATH.join2(this.fs.realPath(parent), newName);
         try {
-            fs.symlinkSync(oldPath, newPath);
+            this.nodefs.symlinkSync(oldPath, newPath);
         }
         catch (e) {
             if (!e.code)
@@ -12486,7 +12488,7 @@ var BFSEmscriptenNodeOps = (function () {
     BFSEmscriptenNodeOps.prototype.readlink = function (node) {
         var path = this.fs.realPath(node);
         try {
-            return fs.readlinkSync(path);
+            return this.nodefs.readlinkSync(path);
         }
         catch (e) {
             if (!e.code)
@@ -12497,10 +12499,11 @@ var BFSEmscriptenNodeOps = (function () {
     return BFSEmscriptenNodeOps;
 })();
 var BFSEmscriptenFS = (function () {
-    function BFSEmscriptenFS(_FS, _PATH, _ERRNO_CODES) {
+    function BFSEmscriptenFS(_FS, _PATH, _ERRNO_CODES, nodefs) {
         if (_FS === void 0) { _FS = self['FS']; }
         if (_PATH === void 0) { _PATH = self['PATH']; }
         if (_ERRNO_CODES === void 0) { _ERRNO_CODES = self['ERRNO_CODES']; }
+        if (nodefs === void 0) { nodefs = fs; }
         this.flagsToPermissionStringMap = {
             0: 'r',
             1: 'r+',
@@ -12530,6 +12533,7 @@ var BFSEmscriptenFS = (function () {
         if (typeof BrowserFS === 'undefined') {
             throw new Error("BrowserFS is not loaded. Please load it before this library.");
         }
+        this.nodefs = nodefs;
         this.FS = _FS;
         this.PATH = _PATH;
         this.ERRNO_CODES = _ERRNO_CODES;
@@ -12552,7 +12556,7 @@ var BFSEmscriptenFS = (function () {
     BFSEmscriptenFS.prototype.getMode = function (path) {
         var stat;
         try {
-            stat = fs.lstatSync(path);
+            stat = this.nodefs.lstatSync(path);
         }
         catch (e) {
             if (!e.code)
@@ -12580,6 +12584,9 @@ var BFSEmscriptenFS = (function () {
         else {
             return flags;
         }
+    };
+    BFSEmscriptenFS.prototype.getNodeFS = function () {
+        return this.nodefs;
     };
     BFSEmscriptenFS.prototype.getFS = function () {
         return this.FS;

@@ -1,3 +1,4 @@
+import FS from '../core/FS';
 export interface Stats {
     dev: number;
     ino: number;
@@ -67,7 +68,8 @@ export default class BFSEmscriptenFS implements EmscriptenFS {
     private FS;
     private PATH;
     private ERRNO_CODES;
-    constructor(_FS?: any, _PATH?: any, _ERRNO_CODES?: any);
+    private nodefs;
+    constructor(_FS?: any, _PATH?: any, _ERRNO_CODES?: any, nodefs?: FS);
     mount(mount: {
         opts: {
             root: string;
@@ -103,6 +105,7 @@ export default class BFSEmscriptenFS implements EmscriptenFS {
         4098: string;
     };
     flagsToPermissionString(flags: string): string;
+    getNodeFS(): FS;
     getFS(): any;
     getPATH(): any;
     getERRNO_CODES(): any;

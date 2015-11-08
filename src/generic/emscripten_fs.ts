@@ -10,6 +10,7 @@
  * https://raw.github.com/kripken/emscripten/master/src/library_nodefs.js
  */
 import BrowserFS = require('../core/browserfs');
+import FS from '../core/FS';
 import fs = require('../core/node_fs');
 import NodeStats from '../core/node_fs_stats';
 import {uint8Array2Buffer} from '../core/util';
@@ -81,8 +82,10 @@ class BFSEmscriptenStreamOps implements EmscriptenStreamOps {
   private FS: any;
   private PATH: any;
   private ERRNO_CODES: any;
+  private nodefs: FS;
 
   constructor(private fs: BFSEmscriptenFS) {
+    this.nodefs = fs.getNodeFS();
     this.FS = fs.getFS();
     this.PATH = fs.getPATH();
     this.ERRNO_CODES = fs.getERRNO_CODES();
@@ -93,7 +96,7 @@ class BFSEmscriptenStreamOps implements EmscriptenStreamOps {
       FS = this.FS;
     try {
       if (FS.isFile(stream.node.mode)) {
-        stream.nfd = fs.openSync(path, this.fs.flagsToPermissionString(stream.flags));
+        stream.nfd = this.nodefs.openSync(path, this.fs.flagsToPermissionString(stream.flags));
       }
     } catch (e) {
       if (!e.code) throw e;
@@ -105,7 +108,7 @@ class BFSEmscriptenStreamOps implements EmscriptenStreamOps {
     var FS = this.FS;
     try {
       if (FS.isFile(stream.node.mode) && stream.nfd) {
-        fs.closeSync(stream.nfd);
+        this.nodefs.closeSync(stream.nfd);
       }
     } catch (e) {
       if (!e.code) throw e;
@@ -116,7 +119,7 @@ class BFSEmscriptenStreamOps implements EmscriptenStreamOps {
   public read(stream: EmscriptenStream, buffer: Uint8Array, offset: number, length: number, position: number): number {
     // Avoid copying overhead by reading directly into buffer.
     try {
-      return fs.readSync(stream.nfd, uint8Array2Buffer(buffer), offset, length, position);
+      return this.nodefs.readSync(stream.nfd, uint8Array2Buffer(buffer), offset, length, position);
     } catch (e) {
       throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
     }
@@ -125,7 +128,7 @@ class BFSEmscriptenStreamOps implements EmscriptenStreamOps {
   public write(stream: EmscriptenStream, buffer: Uint8Array, offset: number, length: number, position: number): number {
     // Avoid copying overhead.
     try {
-      return fs.writeSync(stream.nfd, uint8Array2Buffer(buffer), offset, length, position);
+      return this.nodefs.writeSync(stream.nfd, uint8Array2Buffer(buffer), offset, length, position);
     } catch (e) {
       throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
     }
@@ -138,7 +141,7 @@ class BFSEmscriptenStreamOps implements EmscriptenStreamOps {
     } else if (whence === 2) {  // SEEK_END.
       if (this.FS.isFile(stream.node.mode)) {
         try {
-          var stat = fs.fstatSync(stream.nfd);
+          var stat = this.nodefs.fstatSync(stream.nfd);
           position += stat.size;
         } catch (e) {
           throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
@@ -159,8 +162,10 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   private FS: any;
   private PATH: any;
   private ERRNO_CODES: any;
+  private nodefs: FS;
 
   constructor(private fs: BFSEmscriptenFS) {
+    this.nodefs = fs.getNodeFS();
     this.FS = fs.getFS();
     this.PATH = fs.getPATH();
     this.ERRNO_CODES = fs.getERRNO_CODES();
@@ -170,7 +175,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
     var path = this.fs.realPath(node);
     var stat: NodeStats;
     try {
-      stat = fs.lstatSync(path);
+      stat = this.nodefs.lstatSync(path);
     } catch (e) {
       if (!e.code) throw e;
       throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
@@ -196,13 +201,13 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
     var path = this.fs.realPath(node);
     try {
       if (attr.mode !== undefined) {
-        fs.chmodSync(path, attr.mode);
+        this.nodefs.chmodSync(path, attr.mode);
         // update the common node structure mode as well
         node.mode = attr.mode;
       }
       if (attr.timestamp !== undefined) {
         var date = new Date(attr.timestamp);
-        fs.utimesSync(path, date, date);
+        this.nodefs.utimesSync(path, date, date);
       }
     } catch (e) {
       if (!e.code) throw e;
@@ -214,7 +219,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
     }
     if (attr.size !== undefined) {
       try {
-        fs.truncateSync(path, attr.size);
+        this.nodefs.truncateSync(path, attr.size);
       } catch (e) {
         if (!e.code) throw e;
         throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
@@ -234,9 +239,9 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
     var path = this.fs.realPath(node);
     try {
       if (this.FS.isDir(node.mode)) {
-        fs.mkdirSync(path, node.mode);
+        this.nodefs.mkdirSync(path, node.mode);
       } else {
-        fs.writeFileSync(path, '', { mode: node.mode });
+        this.nodefs.writeFileSync(path, '', { mode: node.mode });
       }
     } catch (e) {
       if (!e.code) throw e;
@@ -249,7 +254,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
     var oldPath = this.fs.realPath(oldNode);
     var newPath = this.PATH.join2(this.fs.realPath(newDir), newName);
     try {
-      fs.renameSync(oldPath, newPath);
+      this.nodefs.renameSync(oldPath, newPath);
     } catch (e) {
       if (!e.code) throw e;
       throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
@@ -259,7 +264,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   public unlink(parent: EmscriptenFSNode, name: string): void {
     var path = this.PATH.join2(this.fs.realPath(parent), name);
     try {
-      fs.unlinkSync(path);
+      this.nodefs.unlinkSync(path);
     } catch (e) {
       if (!e.code) throw e;
       throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
@@ -269,7 +274,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   public rmdir(parent: EmscriptenFSNode, name: string) {
     var path = this.PATH.join2(this.fs.realPath(parent), name);
     try {
-      fs.rmdirSync(path);
+      this.nodefs.rmdirSync(path);
     } catch (e) {
       if (!e.code) throw e;
       throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
@@ -279,7 +284,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   public readdir(node: EmscriptenFSNode): string[] {
     var path = this.fs.realPath(node);
     try {
-      return fs.readdirSync(path);
+      return this.nodefs.readdirSync(path);
     } catch (e) {
       if (!e.code) throw e;
       throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
@@ -289,7 +294,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   public symlink(parent: EmscriptenFSNode, newName: string, oldPath: string): void {
     var newPath = this.PATH.join2(this.fs.realPath(parent), newName);
     try {
-      fs.symlinkSync(oldPath, newPath);
+      this.nodefs.symlinkSync(oldPath, newPath);
     } catch (e) {
       if (!e.code) throw e;
       throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
@@ -299,7 +304,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   public readlink(node: EmscriptenFSNode): string {
     var path = this.fs.realPath(node);
     try {
-      return fs.readlinkSync(path);
+      return this.nodefs.readlinkSync(path);
     } catch (e) {
       if (!e.code) throw e;
       throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
@@ -311,10 +316,12 @@ export default class BFSEmscriptenFS implements EmscriptenFS {
   private FS: any;
   private PATH: any;
   private ERRNO_CODES: any;
-  constructor(_FS = (<any> self)['FS'], _PATH = (<any> self)['PATH'], _ERRNO_CODES = (<any> self)['ERRNO_CODES']) {
+  private nodefs: FS;
+  constructor(_FS = (<any> self)['FS'], _PATH = (<any> self)['PATH'], _ERRNO_CODES = (<any> self)['ERRNO_CODES'], nodefs: FS = fs) {
     if (typeof BrowserFS === 'undefined') {
       throw new Error("BrowserFS is not loaded. Please load it before this library.");
     }
+    this.nodefs = nodefs;
     this.FS = _FS;
     this.PATH = _PATH;
     this.ERRNO_CODES = _ERRNO_CODES;
@@ -340,7 +347,7 @@ export default class BFSEmscriptenFS implements EmscriptenFS {
   public getMode(path: string): number {
     var stat: NodeStats;
     try {
-      stat = fs.lstatSync(path);
+      stat = this.nodefs.lstatSync(path);
     } catch (e) {
       if (!e.code) throw e;
       throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
@@ -395,6 +402,10 @@ export default class BFSEmscriptenFS implements EmscriptenFS {
     } else {
       return flags;
     }
+  }
+
+  public getNodeFS() {
+    return this.nodefs;
   }
 
   public getFS() {
