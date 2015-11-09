@@ -34,54 +34,62 @@ module.exports = function() {
   // ASYNC_CALL
 
   fs.stat(fn, function(err) {
-    // BFS: Maybe we will support this later when we have standard error messages.
-    // For now, there's no reason to.
-    //assert.equal(fn, err.path);
+    assert.equal(fn, err.path);
     assert.ok(0 <= err.message.indexOf(fn));
   });
 
   fs.lstat(fn, function(err) {
+    assert.equal(fn, err.path);
     assert.ok(0 <= err.message.indexOf(fn));
   });
 
   if (canWrite) {
     fs.unlink(fn, function(err) {
+      assert.equal(fn, err.path);
       assert.ok(0 <= err.message.indexOf(fn));
     });
 
     fs.rename(fn, 'foo', function(err) {
+      assert.equal(fn, err.path);
       assert.ok(0 <= err.message.indexOf(fn));
     });
 
     fs.rmdir(fn, function(err) {
+      assert.equal(fn, err.path);
       assert.ok(0 <= err.message.indexOf(fn));
     });
 
     fs.mkdir(existingFile, 0666, function(err) {
+      assert.equal(existingFile, err.path);
       assert.ok(0 <= err.message.indexOf(existingFile));
     });
 
     fs.rmdir(existingFile, function(err) {
+      assert.equal(existingFile, err.path);
       assert.ok(0 <= err.message.indexOf(existingFile));
     });
   }
 
   fs.open(fn, 'r', 0666, function(err) {
+    assert.equal(fn, err.path);
     assert.ok(0 <= err.message.indexOf(fn));
   });
 
   fs.readFile(fn, function(err) {
+    assert.equal(fn, err.path);
     assert.ok(0 <= err.message.indexOf(fn));
   });
 
   // BFS: Only run if the FS supports links
   if (rootFS.supportsLinks()) {
     fs.readlink(fn, function(err) {
+      assert.equal(fn, err.path);
       assert.ok(0 <= err.message.indexOf(fn));
     });
 
     if (canWrite) {
       fs.link(fn, 'foo', function(err) {
+        assert.equal(fn, err.path);
         assert.ok(0 <= err.message.indexOf(fn));
       });
     }
@@ -89,6 +97,7 @@ module.exports = function() {
 
   if (rootFS.supportsProps() && canWrite ) {
     fs.chmod(fn, 0666, function(err) {
+      assert.equal(fn, err.path);
       assert.ok(0 <= err.message.indexOf(fn));
     });
   }
@@ -104,6 +113,7 @@ module.exports = function() {
       fs.statSync(fn);
     } catch (err) {
       errors.push('stat');
+      assert.equal(fn, err.path);
       assert.ok(0 <= err.message.indexOf(fn));
     }
 
@@ -113,6 +123,7 @@ module.exports = function() {
         fs.mkdirSync(existingFile, 0666);
       } catch (err) {
         errors.push('mkdir');
+        assert.equal(existingFile, err.path);
         assert.ok(0 <= err.message.indexOf(existingFile));
       }
 
@@ -121,6 +132,7 @@ module.exports = function() {
         fs.rmdirSync(fn);
       } catch (err) {
         errors.push('rmdir');
+        assert.equal(fn, err.path);
         assert.ok(0 <= err.message.indexOf(fn));
       }
 
@@ -129,6 +141,7 @@ module.exports = function() {
         fs.rmdirSync(existingFile);
       } catch (err) {
         errors.push('rmdir');
+        assert.equal(existingFile, err.path);
         assert.ok(0 <= err.message.indexOf(existingFile));
       }
 
@@ -137,6 +150,7 @@ module.exports = function() {
         fs.renameSync(fn, 'foo');
       } catch (err) {
         errors.push('rename');
+        assert.equal(fn, err.path);
         assert.ok(0 <= err.message.indexOf(fn));
       }
 
@@ -145,6 +159,7 @@ module.exports = function() {
         fs.lstatSync(fn);
       } catch (err) {
         errors.push('lstat');
+        assert.equal(fn, err.path);
         assert.ok(0 <= err.message.indexOf(fn));
       }
 
@@ -153,6 +168,7 @@ module.exports = function() {
         fs.openSync(fn, 'r');
       } catch (err) {
         errors.push('opens');
+        assert.equal(fn, err.path);
         assert.ok(0 <= err.message.indexOf(fn));
       }
 
@@ -161,6 +177,7 @@ module.exports = function() {
         fs.readdirSync(fn);
       } catch (err) {
         errors.push('readdir');
+        assert.equal(fn, err.path);
         assert.ok(0 <= err.message.indexOf(fn));
       }
 
@@ -178,6 +195,7 @@ module.exports = function() {
           fs.chmodSync(fn, 0666);
         } catch (err) {
           errors.push('chmod');
+          assert.equal(fn, err.path);
           assert.ok(0 <= err.message.indexOf(fn));
         }
       }
@@ -188,6 +206,7 @@ module.exports = function() {
           fs.linkSync(fn, 'foo');
         } catch (err) {
           errors.push('link');
+          assert.equal(fn, err.path);
           assert.ok(0 <= err.message.indexOf(fn));
         }
 
@@ -196,6 +215,7 @@ module.exports = function() {
           fs.readlinkSync(fn);
         } catch (err) {
           errors.push('readlink');
+          assert.equal(fn, err.path);
           assert.ok(0 <= err.message.indexOf(fn));
         }
       }

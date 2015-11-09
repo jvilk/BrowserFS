@@ -2,6 +2,8 @@ import file_system = require('../core/file_system');
 import InMemoryFileSystem from './InMemory';
 import {ApiError, ErrorCode} from '../core/api_error';
 import fs = require('../core/node_fs');
+import path = require('path');
+import {mkdirpSync} from '../core/util';
 
 /**
  * The MountableFileSystem allows you to mount multiple backend types or
@@ -26,31 +28,34 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
   /**
    * Mounts the file system at the given mount point.
    */
-  public mount(mnt_pt: string, fs: file_system.FileSystem): void {
-    if (this.mntMap[mnt_pt]) {
-      throw new ApiError(ErrorCode.EINVAL, "Mount point " + mnt_pt + " is already taken.");
+  public mount(mountPoint: string, fs: file_system.FileSystem): void {
+    if (mountPoint[0] !== '/') {
+      mountPoint = `/${mountPoint}`;
     }
+    if (this.mntMap[mountPoint]) {
+      throw new ApiError(ErrorCode.EINVAL, "Mount point " + mountPoint + " is already taken.");
+    }
+    mkdirpSync(mountPoint, 0x1ff, this.rootFs);
     // @todo Ensure new mount path is not subsumed by active mount paths.
-    this.rootFs.mkdirSync(mnt_pt, 0x1ff);
-    this.mntMap[mnt_pt] = fs;
+    this.mntMap[mountPoint] = fs;
   }
 
-  public umount(mnt_pt: string): void {
-    if (!this.mntMap[mnt_pt]) {
-      throw new ApiError(ErrorCode.EINVAL, "Mount point " + mnt_pt + " is already unmounted.");
+  public umount(mountPoint: string): void {
+    if (!this.mntMap[mountPoint]) {
+      throw new ApiError(ErrorCode.EINVAL, "Mount point " + mountPoint + " is already unmounted.");
     }
-    delete this.mntMap[mnt_pt];
-    this.rootFs.rmdirSync(mnt_pt);
+    delete this.mntMap[mountPoint];
+    this.rootFs.rmdirSync(mountPoint);
   }
 
   /**
    * Returns the file system that the path points to.
    */
-  public _get_fs(path: string): {fs: file_system.FileSystem; path: string} {
-    for (var mnt_pt in this.mntMap) {
-      var fs = this.mntMap[mnt_pt];
-      if (path.indexOf(mnt_pt) === 0) {
-        path = path.substr(mnt_pt.length > 1 ? mnt_pt.length : 0);
+  public _getFs(path: string): {fs: file_system.FileSystem; path: string} {
+    for (var mountPoint in this.mntMap) {
+      var fs = this.mntMap[mountPoint];
+      if (path.indexOf(mountPoint) === 0) {
+        path = path.substr(mountPoint.length > 1 ? mountPoint.length : 0);
         if (path === '') {
           path = '/';
         }
@@ -102,6 +107,7 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
     if (-1 !== (index = err.message.indexOf(path))) {
       err.message = err.message.substr(0, index) + realPath + err.message.substr(index + path.length);
     }
+    err.path = realPath;
     return err;
   }
 
@@ -112,8 +118,8 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
 
   public rename(oldPath: string, newPath: string, cb: (e?: ApiError) => void): void {
     // Scenario 1: old and new are on same FS.
-    var fs1_rv = this._get_fs(oldPath);
-    var fs2_rv = this._get_fs(newPath);
+    var fs1_rv = this._getFs(oldPath);
+    var fs2_rv = this._getFs(newPath);
     if (fs1_rv.fs === fs2_rv.fs) {
       var _this = this;
       return fs1_rv.fs.rename(fs1_rv.path, fs2_rv.path, function(e?: ApiError) {
@@ -139,8 +145,8 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
 
   public renameSync(oldPath: string, newPath: string): void {
     // Scenario 1: old and new are on same FS.
-    var fs1_rv = this._get_fs(oldPath);
-    var fs2_rv = this._get_fs(newPath);
+    var fs1_rv = this._getFs(oldPath);
+    var fs2_rv = this._getFs(newPath);
     if (fs1_rv.fs === fs2_rv.fs) {
       try {
         return fs1_rv.fs.renameSync(fs1_rv.path, fs2_rv.path);
@@ -165,27 +171,28 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
 function defineFcn(name: string, isSync: boolean, numArgs: number): (...args: any[]) => any {
   if (isSync) {
     return function(...args: any[]) {
+      let self: MountableFileSystem = this;
       var path = args[0];
-      var rv = this._get_fs(path);
+      var rv = self._getFs(path);
       args[0] = rv.path;
       try {
         return rv.fs[name].apply(rv.fs, args);
       } catch (e) {
-        this.standardizeError(e, rv.path, path);
+        (<any> self).standardizeError(e, rv.path, path);
         throw e;
       }
     };
   } else {
     return function(...args: any[]) {
+      let self: MountableFileSystem = this;
       var path = args[0];
-      var rv = this._get_fs(path);
+      var rv = self._getFs(path);
       args[0] = rv.path;
       if (typeof args[args.length-1] === 'function') {
         var cb = args[args.length - 1];
-        var _this = this;
         args[args.length - 1] = function(...args: any[]) {
           if (args.length > 0 && args[0] instanceof ApiError) {
-            _this.standardizeError(args[0], rv.path, path);
+            (<any> self).standardizeError(args[0], rv.path, path);
           }
           cb.apply(null, args);
         }

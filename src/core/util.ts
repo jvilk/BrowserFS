@@ -1,6 +1,8 @@
 /**
  * Grab bag of utility functions used across the code.
  */
+import {FileSystem} from './file_system';
+import path = require('path');
 
 /**
  * Checks for any IE version, including IE11 which removed MSIE from the
@@ -16,6 +18,18 @@ export var isWebWorker: boolean = typeof window === "undefined";
 export interface Arrayish<T> {
   [idx: number]: T;
   length: number;
+}
+
+/**
+ * Synchronous recursive makedir.
+ */
+export function mkdirpSync(p: string, mode: number, fs: FileSystem): void {
+  let parent = path.dirname(p);
+  if (!fs.existsSync(parent)) {
+    mkdirpSync(parent, mode, fs);
+  } else {
+    fs.mkdirSync(p, mode);
+  }
 }
 
 /**
