@@ -52,6 +52,7 @@ import file = require('../core/file');
 import {FileFlag, ActionType} from '../core/file_flag';
 import preload_file = require('../generic/preload_file');
 import {Arrayish, buffer2Arrayish, arrayish2Buffer, copyingSlice} from '../core/util';
+import ExtendedASCII from 'bfs-buffer/js/extended_ascii';
 var inflateRaw: {
   (data: Arrayish<number>, options?: {
     chunkSize: number;
@@ -119,7 +120,13 @@ function msdos2date(time: number, date: number): Date {
  * exception).
  */
 function safeToString(buff: NodeBuffer, useUTF8: boolean, start: number, length: number): string {
-  return length === 0 ? "" : buff.toString(useUTF8 ? 'utf8' : 'extended_ascii', start, start + length);
+  if (length === 0) {
+    return "";
+  } else if (useUTF8) {
+    return buff.toString('utf8', start, start + length);
+  } else {
+    return ExtendedASCII.byte2str(buff.slice(start, start + length));
+  }
 }
 
 /*
