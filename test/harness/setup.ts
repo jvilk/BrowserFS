@@ -47,22 +47,11 @@ export = function(tests: {
 
   var process = BrowserFS.BFSRequire('process');
 
-  // Polyfill for `process.on('exit')`.
-  process.on = (trigger, cb) => {
-    if (trigger == 'exit') {
-      (<any>process)._exitCb = cb;
-    } else {
-      throw new Error("Unsupported trigger: " + trigger);
-    }
-    // XXX: Typing hack.
-    return null;
-  };
-
   // Generates a Jasmine unit test from a CommonJS test.
   function generateTest(testName: string, test: () => void, postCb: () => void = () => {}) {
     it(testName, function (done: (e?: any) => void) {
       // Reset the exit callback.
-      process.on('exit', function () { });
+      process.removeAllListeners('exit');
       test();
       waitsFor(() => {
         return __numWaiting === 0;
@@ -72,7 +61,8 @@ export = function(tests: {
           done(e);
         } else {
           // Run the exit callback, if any.
-          (<any>process)._exitCb();
+          process.exit(0);
+          process.removeAllListeners('exit');
           waitsFor(() => {
             return __numWaiting === 0;
           }, "All callbacks should fire", timeout, (e?: Error) => {

@@ -14,9 +14,13 @@ let _fsMock: FSModule = <any> {};
 
 let FSProto = FS.prototype;
 Object.keys(FSProto).forEach((key) => {
-  _fsMock[key] = function() {
-    return (<Function> fs[key]).apply(fs, arguments);
-  };
+  if (typeof fs[key] === 'function') {
+    _fsMock[key] = function() {
+      return (<Function> fs[key]).apply(fs, arguments);
+    };
+  } else {
+    _fsMock[key] = fs[key];
+  }
 });
 
 _fsMock['changeFSModule'] = function(newFs: FS): void {
