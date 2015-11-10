@@ -1,9 +1,11 @@
+import { FileSystem } from './file_system';
 export declare var isIE: boolean;
 export declare var isWebWorker: boolean;
 export interface Arrayish<T> {
     [idx: number]: T;
     length: number;
 }
+export declare function mkdirpSync(p: string, mode: number, fs: FileSystem): void;
 export declare function buffer2ArrayBuffer(buff: Buffer): ArrayBuffer;
 export declare function buffer2Uint8array(buff: Buffer): Uint8Array;
 export declare function buffer2Arrayish(buff: Buffer): Arrayish<number>;

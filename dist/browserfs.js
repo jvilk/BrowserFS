@@ -4111,22 +4111,39 @@ module.exports = path;
 
 },{"bfs-process":10}],10:[function(_dereq_,module,exports){
 var Process = _dereq_('./process');
-var process = new Process();
-// Manually export the individual public functions of Process.
-// Required because some code will invoke functions off of the module.
-// e.g. the `async` library sets `async.nextTick = process.nextTick`,
-// so the 'this' object is set to `async` when it is invoked.
-exports.chdir = function (dir) { return process.chdir(dir); };
-exports.cwd = function () { return process.cwd(); };
-exports.platform = process.platform;
-exports.uptime = function () { return process.uptime(); };
-exports.argv = process.argv;
-exports.stdout = process.stdout;
-exports.stderr = process.stderr;
-exports.stdin = process.stdin;
-exports.nextTick = function () {
-    return process.nextTick.apply(process, arguments);
+var process = new Process(), processProxy = {};
+function defineKey(key) {
+    if (processProxy[key]) {
+        // Probably a builtin Object property we don't care about.
+        return;
+    }
+    if (typeof process[key] === 'function') {
+        processProxy[key] = function () {
+            return process[key].apply(process, arguments);
+        };
+    }
+    else {
+        processProxy[key] = process[key];
+    }
+}
+for (var key in process) {
+    // Don't check if process.hasOwnProperty; we want to also expose objects
+    // up the prototype hierarchy.
+    defineKey(key);
+}
+// Special key: Ensure we update public-facing values of stdin/stdout/stderr.
+processProxy.initializeTTYs = function () {
+    if (process.stdin === null) {
+        process.initializeTTYs();
+        processProxy.stdin = process.stdin;
+        processProxy.stdout = process.stdout;
+        processProxy.stderr = process.stderr;
+    }
 };
+process.nextTick(function () {
+    processProxy.initializeTTYs();
+});
+module.exports = processProxy;
 
 },{"./process":11}],11:[function(_dereq_,module,exports){
 (function (__dirname){
@@ -4135,7 +4152,6 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var TTY = _dereq_('./tty');
 var events = _dereq_('events');
 // Path depends on process. Avoid a circular reference by dynamically including path when we need it.
 var path = null;
@@ -4223,9 +4239,9 @@ var Process = (function (_super) {
          */
         this.platform = 'browser';
         this.argv = [];
-        this.stdout = new TTY();
-        this.stderr = new TTY();
-        this.stdin = new TTY();
+        this.stdout = null;
+        this.stderr = null;
+        this.stdin = null;
         this._queue = new NextTickQueue();
         this.execPath = __dirname;
         this.env = {};
@@ -4372,6 +4388,18 @@ var Process = (function (_super) {
         timeinfo -= secs * 1000;
         timeinfo = (timeinfo * 1000000) | 0;
         return [secs, timeinfo];
+    };
+    /**
+     * [BFS only] Initialize the TTY devices.
+     */
+    Process.prototype.initializeTTYs = function () {
+        // Guard against multiple invocations.
+        if (this.stdout === null) {
+            var TTY = _dereq_('./tty');
+            this.stdout = new TTY();
+            this.stderr = new TTY();
+            this.stdin = new TTY();
+        }
     };
     return Process;
 })(events.EventEmitter);
@@ -8623,6 +8651,7 @@ var file_system = _dereq_('../core/file_system');
 var InMemory_1 = _dereq_('./InMemory');
 var api_error_1 = _dereq_('../core/api_error');
 var fs = _dereq_('../core/node_fs');
+var util_1 = _dereq_('../core/util');
 var MountableFileSystem = (function (_super) {
     __extends(MountableFileSystem, _super);
     function MountableFileSystem() {
@@ -8630,25 +8659,28 @@ var MountableFileSystem = (function (_super) {
         this.mntMap = {};
         this.rootFs = new InMemory_1["default"]();
     }
-    MountableFileSystem.prototype.mount = function (mnt_pt, fs) {
-        if (this.mntMap[mnt_pt]) {
-            throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Mount point " + mnt_pt + " is already taken.");
+    MountableFileSystem.prototype.mount = function (mountPoint, fs) {
+        if (mountPoint[0] !== '/') {
+            mountPoint = "/" + mountPoint;
         }
-        this.rootFs.mkdirSync(mnt_pt, 0x1ff);
-        this.mntMap[mnt_pt] = fs;
-    };
-    MountableFileSystem.prototype.umount = function (mnt_pt) {
-        if (!this.mntMap[mnt_pt]) {
-            throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Mount point " + mnt_pt + " is already unmounted.");
+        if (this.mntMap[mountPoint]) {
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Mount point " + mountPoint + " is already taken.");
         }
-        delete this.mntMap[mnt_pt];
-        this.rootFs.rmdirSync(mnt_pt);
+        util_1.mkdirpSync(mountPoint, 0x1ff, this.rootFs);
+        this.mntMap[mountPoint] = fs;
     };
-    MountableFileSystem.prototype._get_fs = function (path) {
-        for (var mnt_pt in this.mntMap) {
-            var fs = this.mntMap[mnt_pt];
-            if (path.indexOf(mnt_pt) === 0) {
-                path = path.substr(mnt_pt.length > 1 ? mnt_pt.length : 0);
+    MountableFileSystem.prototype.umount = function (mountPoint) {
+        if (!this.mntMap[mountPoint]) {
+            throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Mount point " + mountPoint + " is already unmounted.");
+        }
+        delete this.mntMap[mountPoint];
+        this.rootFs.rmdirSync(mountPoint);
+    };
+    MountableFileSystem.prototype._getFs = function (path) {
+        for (var mountPoint in this.mntMap) {
+            var fs = this.mntMap[mountPoint];
+            if (path.indexOf(mountPoint) === 0) {
+                path = path.substr(mountPoint.length > 1 ? mountPoint.length : 0);
                 if (path === '') {
                     path = '/';
                 }
@@ -8683,11 +8715,12 @@ var MountableFileSystem = (function (_super) {
         if (-1 !== (index = err.message.indexOf(path))) {
             err.message = err.message.substr(0, index) + realPath + err.message.substr(index + path.length);
         }
+        err.path = realPath;
         return err;
     };
     MountableFileSystem.prototype.rename = function (oldPath, newPath, cb) {
-        var fs1_rv = this._get_fs(oldPath);
-        var fs2_rv = this._get_fs(newPath);
+        var fs1_rv = this._getFs(oldPath);
+        var fs2_rv = this._getFs(newPath);
         if (fs1_rv.fs === fs2_rv.fs) {
             var _this = this;
             return fs1_rv.fs.rename(fs1_rv.path, fs2_rv.path, function (e) {
@@ -8709,8 +8742,8 @@ var MountableFileSystem = (function (_super) {
         });
     };
     MountableFileSystem.prototype.renameSync = function (oldPath, newPath) {
-        var fs1_rv = this._get_fs(oldPath);
-        var fs2_rv = this._get_fs(newPath);
+        var fs1_rv = this._getFs(oldPath);
+        var fs2_rv = this._getFs(newPath);
         if (fs1_rv.fs === fs2_rv.fs) {
             try {
                 return fs1_rv.fs.renameSync(fs1_rv.path, fs2_rv.path);
@@ -8735,14 +8768,15 @@ function defineFcn(name, isSync, numArgs) {
             for (var _i = 0; _i < arguments.length; _i++) {
                 args[_i - 0] = arguments[_i];
             }
+            var self = this;
             var path = args[0];
-            var rv = this._get_fs(path);
+            var rv = self._getFs(path);
             args[0] = rv.path;
             try {
                 return rv.fs[name].apply(rv.fs, args);
             }
             catch (e) {
-                this.standardizeError(e, rv.path, path);
+                self.standardizeError(e, rv.path, path);
                 throw e;
             }
         };
@@ -8753,19 +8787,19 @@ function defineFcn(name, isSync, numArgs) {
             for (var _i = 0; _i < arguments.length; _i++) {
                 args[_i - 0] = arguments[_i];
             }
+            var self = this;
             var path = args[0];
-            var rv = this._get_fs(path);
+            var rv = self._getFs(path);
             args[0] = rv.path;
             if (typeof args[args.length - 1] === 'function') {
                 var cb = args[args.length - 1];
-                var _this = this;
                 args[args.length - 1] = function () {
                     var args = [];
                     for (var _i = 0; _i < arguments.length; _i++) {
                         args[_i - 0] = arguments[_i];
                     }
                     if (args.length > 0 && args[0] instanceof api_error_1.ApiError) {
-                        _this.standardizeError(args[0], rv.path, path);
+                        self.standardizeError(args[0], rv.path, path);
                     }
                     cb.apply(null, args);
                 };
@@ -8789,7 +8823,7 @@ for (var i = 0; i < fsCmdMap.length; i++) {
     }
 }
 
-},{"../core/api_error":47,"../core/file_system":52,"../core/node_fs":54,"./InMemory":37}],41:[function(_dereq_,module,exports){
+},{"../core/api_error":47,"../core/file_system":52,"../core/node_fs":54,"../core/util":56,"./InMemory":37}],41:[function(_dereq_,module,exports){
 (function (Buffer){
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -12034,9 +12068,14 @@ var fs = new FS_1.default();
 var _fsMock = {};
 var FSProto = FS_1.default.prototype;
 Object.keys(FSProto).forEach(function (key) {
-    _fsMock[key] = function () {
-        return fs[key].apply(fs, arguments);
-    };
+    if (typeof fs[key] === 'function') {
+        _fsMock[key] = function () {
+            return fs[key].apply(fs, arguments);
+        };
+    }
+    else {
+        _fsMock[key] = fs[key];
+    }
 });
 _fsMock['changeFSModule'] = function (newFs) {
     fs = newFs;
@@ -12138,11 +12177,19 @@ exports["default"] = Stats;
 
 },{"bfs-buffer":2}],56:[function(_dereq_,module,exports){
 (function (Buffer){
-/**
- * Grab bag of utility functions used across the code.
- */
+var path = _dereq_('path');
 exports.isIE = typeof navigator !== "undefined" && (/(msie) ([\w.]+)/.exec(navigator.userAgent.toLowerCase()) != null || navigator.userAgent.indexOf('Trident') !== -1);
 exports.isWebWorker = typeof window === "undefined";
+function mkdirpSync(p, mode, fs) {
+    var parent = path.dirname(p);
+    if (!fs.existsSync(parent)) {
+        mkdirpSync(parent, mode, fs);
+    }
+    else {
+        fs.mkdirSync(p, mode);
+    }
+}
+exports.mkdirpSync = mkdirpSync;
 function buffer2ArrayBuffer(buff) {
     var u8 = buffer2Uint8array(buff), u8offset = u8.byteOffset, u8Len = u8.byteLength;
     if (u8offset === 0 && u8Len === u8.buffer.byteLength) {
@@ -12263,7 +12310,7 @@ exports.copyingSlice = copyingSlice;
 
 }).call(this,_dereq_('bfs-buffer').Buffer)
 
-},{"bfs-buffer":2}],57:[function(_dereq_,module,exports){
+},{"bfs-buffer":2,"path":9}],57:[function(_dereq_,module,exports){
 var BrowserFS = _dereq_('../core/browserfs');
 var fs = _dereq_('../core/node_fs');
 var util_1 = _dereq_('../core/util');

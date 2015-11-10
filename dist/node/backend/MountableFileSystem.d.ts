@@ -4,9 +4,9 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
     private mntMap;
     private rootFs;
     constructor();
-    mount(mnt_pt: string, fs: file_system.FileSystem): void;
-    umount(mnt_pt: string): void;
-    _get_fs(path: string): {
+    mount(mountPoint: string, fs: file_system.FileSystem): void;
+    umount(mountPoint: string): void;
+    _getFs(path: string): {
         fs: file_system.FileSystem;
         path: string;
     };
