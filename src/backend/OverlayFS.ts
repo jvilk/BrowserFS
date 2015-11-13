@@ -227,6 +227,99 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
     }
   }
 
+  public rename(oldPath: string, newPath: string, cb: (err?: ApiError) => void): void {
+    // nothing to do if paths match
+    if (oldPath === newPath)
+      return cb();
+
+    this.stat(oldPath, false, (oldErr: ApiError, oldStats?: Stats) => {
+      if (oldErr)
+        return cb(oldErr);
+
+      return this.stat(newPath, false, (newErr: ApiError, newStats?: Stats) => {
+
+        // precondition: both oldPath and newPath exist and are dirs.
+        // decreases: |files|
+        // Need to move *every file/folder* currently stored on
+        // readable to its new location on writable.
+        function copyDirContents(files: string[]): void {
+          let file = files.shift();
+          if (!file)
+            return cb();
+
+          let oldFile = path.resolve(oldPath, file);
+          let newFile = path.resolve(newPath, file);
+
+          // Recursion! Should work for any nested files / folders.
+          this.rename(oldFile, newFile, (err?: ApiError) => {
+            if (err)
+              return cb(err);
+
+            copyDirContents(files);
+          });
+        }
+
+        let mode = 0o777;
+
+        // from linux's rename(2) manpage: oldpath can specify a
+        // directory.  In this case, newpath must either not exist, or
+        // it must specify an empty directory.
+        if (oldStats.isDirectory()) {
+          if (newErr) {
+            if (newErr.errno !== ErrorCode.ENOENT)
+              return cb(newErr);
+
+            return this._writable.exists(oldPath, (exists: boolean) => {
+              // simple case - both old and new are on the writable layer
+              if (exists)
+                return this._writable.rename(oldPath, newPath, cb);
+
+              this._writable.mkdir(newPath, mode, (mkdirErr?: ApiError) => {
+                if (mkdirErr)
+                  return cb(mkdirErr);
+
+                this._readable.readdir(oldPath, (err: ApiError, files?: string[]) => {
+                  if (err)
+                    return cb();
+                  copyDirContents(files);
+                });
+              });
+            });
+          }
+
+          mode = newStats.mode;
+          if (!newStats.isDirectory())
+            return cb(ApiError.ENOTDIR(newPath));
+
+          this.readdir(newPath, (readdirErr: ApiError, files?: string[]) => {
+            if (files && files.length)
+              return cb(ApiError.ENOTEMPTY(newPath));
+
+            this._readable.readdir(oldPath, (err: ApiError, files?: string[]) => {
+              if (err)
+                return cb();
+              copyDirContents(files);
+            });
+          });
+        }
+
+        if (newStats && newStats.isDirectory())
+          return cb(ApiError.EISDIR(newPath));
+
+        this.readFile(oldPath, null, getFlag('r'), (err: ApiError, data?: any) => {
+          if (err)
+            return cb(err);
+
+          return this.writeFile(newPath, data, null, getFlag('w'), oldStats.mode, (err: ApiError) => {
+            if (err)
+              return cb(err);
+            return this.unlink(oldPath, cb);
+          });
+        });
+      });
+    });
+  }
+
   public renameSync(oldPath: string, newPath: string): void {
     this.checkInitialized();
     // Write newPath using oldPath's contents, delete oldPath.
@@ -279,6 +372,29 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
       this.unlinkSync(oldPath);
     }
   }
+
+  public stat(p: string, isLstat: boolean,  cb: (err: ApiError, stat?: Stats) => void): void {
+    this._writable.stat(p, isLstat, (err: ApiError, stat?: Stats) => {
+      if (err && err.errno === ErrorCode.ENOENT) {
+        if (this._deletedFiles[p]) {
+          cb(ApiError.ENOENT(p));
+        }
+        this._readable.stat(p, isLstat, (err: ApiError, stat?: Stats) => {
+          if (stat) {
+            // Make the oldStat's mode writable. Preserve the topmost
+            // part of the mode, which specifies if it is a file or a
+            // directory.
+            stat = stat.clone();
+            stat.mode = makeModeWritable(stat.mode);
+          }
+          cb(err, stat);
+        });
+      } else {
+        cb(err, stat);
+      }
+    });
+  }
+
   public statSync(p: string, isLstat: boolean): Stats {
     this.checkInitialized();
     try {
