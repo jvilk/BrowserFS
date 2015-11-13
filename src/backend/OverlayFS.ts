@@ -2,8 +2,8 @@ import file_system = require('../core/file_system');
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
 import util = require('../core/util');
-import file = require('../core/file');
-import Stats from '../core/node_fs_stats';
+import {File} from '../core/file';
+import {default as Stats, FileType} from '../core/node_fs_stats';
 import {PreloadFile} from '../generic/preload_file';
 import {LockedFS} from '../generic/locked_fs';
 import path = require('path');
@@ -23,7 +23,7 @@ function getFlag(f: string): FileFlag {
 /**
  * Overlays a RO file to make it writable.
  */
-class OverlayFile extends PreloadFile<UnlockedOverlayFS> implements file.File {
+class OverlayFile extends PreloadFile<UnlockedOverlayFS> implements File {
   constructor(fs: UnlockedOverlayFS, path: string, flag: FileFlag, stats: Stats, data: Buffer) {
     super(fs, path, flag, stats, data);
   }
@@ -67,7 +67,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
   private _isInitialized: boolean = false;
   private _initializeCallbacks: ((e?: ApiError) => void)[] = [];
   private _deletedFiles: {[path: string]: boolean} = {};
-  private _deleteLog: file.File = null;
+  private _deleteLog: File = null;
   private _isAsync: boolean;
 
   constructor(writable: file_system.FileSystem, readable: file_system.FileSystem) {
@@ -110,17 +110,22 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
     }
 
     function createParents(): void {
-      if (!toCreate.length) {
-        cb();
-        return;
-      }
+      if (!toCreate.length)
+        return cb();
+
       let dir = toCreate.pop();
-      // FIXME: get correct permissions
-      _this._writable.mkdir(dir, 0o777, (err?: ApiError) => {
-        // FIXME: better error handling
-        if (err)
-          throw err;
-        createParents();
+      _this._readable.stat(dir, false, (err: ApiError, stats?: Stats) => {
+        // stop if we couldn't read the dir
+        if (!stats)
+          return cb();
+
+        // FIXME: get correct permissions
+        _this._writable.mkdir(dir, stats.mode, (err?: ApiError) => {
+          // FIXME: better error handling
+          if (err)
+            throw err;
+          createParents();
+        });
       });
     }
   }
@@ -198,7 +203,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
         });
       }
       // Open up the deletion log for appending.
-      this._writable.open(deletionLogPath, getFlag('a'), 0o644, (err: ApiError, fd?: file.File) => {
+      this._writable.open(deletionLogPath, getFlag('a'), 0o644, (err: ApiError, fd?: File) => {
         if (!err)
           this._deleteLog = fd;
         end(err);
@@ -410,7 +415,49 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
       return oldStat;
     }
   }
-  public openSync(p: string, flag: FileFlag, mode: number): file.File {
+
+  public open(p: string, flag: FileFlag, mode: number, cb: (err: ApiError, fd?: File) => any): void {
+    this.stat(p, false, (err: ApiError, stats?: Stats) => {
+      if (stats) {
+        switch (flag.pathExistsAction()) {
+        case ActionType.TRUNCATE_FILE:
+          return this.createParentDirectoriesAsync(p, ()=> {
+            this._writable.open(p, flag, mode, cb);
+          });
+        case ActionType.NOP:
+          return this._writable.exists(p, (exists: boolean) => {
+            if (exists) {
+              this._writable.open(p, flag, mode, cb);
+            } else {
+              // at this point we know the stats object we got is from
+              // the readable FS.
+              stats = stats.clone();
+              stats.mode = mode;
+              this._readable.readFile(p, null, getFlag('r'), (readFileErr: ApiError, data?: any) => {
+                if (readFileErr)
+                  return cb(readFileErr);
+                let f = new OverlayFile(this, p, flag, stats, data);
+                cb(null, f);
+              });
+            }
+          });
+        default:
+          return cb(ApiError.EEXIST(p));
+        }
+      } else {
+        switch(flag.pathNotExistsAction()) {
+        case ActionType.CREATE_FILE:
+          return this.createParentDirectoriesAsync(p, () => {
+            return this._writable.open(p, flag, mode, cb);
+          });
+        default:
+          return cb(ApiError.ENOENT(p));
+        }
+      }
+    });
+  }
+
+  public openSync(p: string, flag: FileFlag, mode: number): File {
     this.checkInitialized();
     if (this.existsSync(p)) {
       switch (flag.pathExistsAction()) {
@@ -439,6 +486,34 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
       }
     }
   }
+
+  public unlink(p: string, cb: (err: ApiError) => void): void {
+    this.exists(p, (exists: boolean) => {
+      if (!exists)
+        return cb(ApiError.ENOENT(p))
+
+      this._writable.exists(p, (writableExists: boolean) => {
+        if (writableExists) {
+          return this._writable.unlink(p, (err: ApiError) => {
+            if (err)
+              return cb(err);
+
+            this.exists(p, (readableExists: boolean) => {
+              if (readableExists)
+                this.deletePath(p);
+              cb(null);
+            });
+          });
+        } else {
+          // if this only exists on the readable FS, add it to the
+          // delete map.
+          this.deletePath(p);
+          cb(null);
+        }
+      });
+    });
+  }
+
   public unlinkSync(p: string): void {
     this.checkInitialized();
     if (this.existsSync(p)) {
@@ -455,6 +530,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
       throw ApiError.ENOENT(p);
     }
   }
+
   public rmdirSync(p: string): void {
     this.checkInitialized();
     if (this.existsSync(p)) {
