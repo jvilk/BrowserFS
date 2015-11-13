@@ -12376,7 +12376,7 @@ function buffer2Uint8array(buff) {
 }
 exports.buffer2Uint8array = buffer2Uint8array;
 function buffer2Arrayish(buff) {
-    if (buff.length === 0 || typeof (buff[0]) === 'number') {
+    if (typeof (buff[0]) === 'number') {
         return buff;
     }
     else if (typeof (ArrayBuffer) !== 'undefined') {

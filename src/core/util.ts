@@ -71,7 +71,7 @@ export function buffer2Uint8array(buff: Buffer): Uint8Array {
  * Required for BrowserFS buffers, which do not support indexing.
  */
 export function buffer2Arrayish(buff: Buffer): Arrayish<number> {
-  if (buff.length === 0 || typeof(buff[0]) === 'number') {
+  if (typeof(buff[0]) === 'number') {
     return buff;
   } else if (typeof(ArrayBuffer) !== 'undefined') {
     return buffer2Uint8array(buff);
