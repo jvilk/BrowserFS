@@ -1679,14 +1679,21 @@ var Buffer = (function () {
         if (sourceEnd <= sourceStart || sourceStart >= this.length || targetStart > target.length) {
             return 0;
         }
-        var bytesCopied = Math.min(sourceEnd - sourceStart, target.length - targetStart, this.length - sourceStart), i;
+        var bytesCopied = Math.min(sourceEnd - sourceStart, target.length - targetStart, this.length - sourceStart);
+        // Fast path.
+        if (target instanceof Buffer && this.data instanceof BufferCoreArrayBuffer) {
+            var targetCore = target.getBufferCore();
+            if (targetCore instanceof BufferCoreArrayBuffer) {
+                return this.data.copyTo(targetCore, targetStart, sourceStart, sourceStart + bytesCopied);
+            }
+        }
         // Copy as many 32-bit chunks as possible.
         // TODO: Alignment.
-        for (i = 0; i < bytesCopied - 3; i += 4) {
+        for (var i = 0; i < bytesCopied - 3; i += 4) {
             target.writeInt32LE(this.readInt32LE(sourceStart + i), targetStart + i);
         }
         // Copy any remaining bytes, if applicable
-        for (i = bytesCopied & 0xFFFFFFFC; i < bytesCopied; i++) {
+        for (var i = bytesCopied & 0xFFFFFFFC; i < bytesCopied; i++) {
             target.writeUInt8(this.readUInt8(sourceStart + i), targetStart + i);
         }
         return bytesCopied;
@@ -3004,21 +3011,31 @@ var BufferCoreArrayBuffer = (function (_super) {
     };
     BufferCoreArrayBuffer.prototype.copy = function (start, end) {
         var aBuff = this.buff.buffer;
+        var aBuffOff = this.buff.byteOffset;
         var newBuff;
         // Some ArrayBuffer implementations (IE10) do not have 'slice'.
         if (ArrayBuffer.prototype.slice) {
             // ArrayBuffer.slice is copying; exactly what we want.
-            newBuff = aBuff.slice(start, end);
+            newBuff = aBuff.slice(aBuffOff + start, aBuffOff + end);
         }
         else {
             var len = end - start;
             newBuff = new ArrayBuffer(len);
             // Copy the old contents in.
             var newUintArray = new Uint8Array(newBuff);
-            var oldUintArray = new Uint8Array(aBuff);
+            var oldUintArray = new Uint8Array(aBuff, aBuffOff);
             newUintArray.set(oldUintArray.subarray(start, end));
         }
         return new BufferCoreArrayBuffer(newBuff);
+    };
+    /**
+     * (Nonstandard) Copy [start, end) to [offset+start, offset+end) in target.
+     */
+    BufferCoreArrayBuffer.prototype.copyTo = function (target, offset, start, end) {
+        var targetU8 = new Uint8Array(target.buff.buffer, target.buff.byteOffset);
+        var sourceU8 = new Uint8Array(this.buff.buffer, this.buff.byteOffset + start, end - start);
+        targetU8.set(sourceU8, offset);
+        return end - start;
     };
     BufferCoreArrayBuffer.prototype.fill = function (value, start, end) {
         // Value must be a byte wide.
@@ -10185,6 +10202,9 @@ var FileHeader = (function () {
     FileHeader.prototype.lastModFileTime = function () {
         return msdos2date(this.data.readUInt16LE(10), this.data.readUInt16LE(12));
     };
+    FileHeader.prototype.rawLastModFileTime = function () {
+        return this.data.readUInt32LE(10);
+    };
     FileHeader.prototype.crc32 = function () { return this.data.readUInt32LE(14); };
     FileHeader.prototype.fileNameLength = function () { return this.data.readUInt16LE(26); };
     FileHeader.prototype.extraFieldLength = function () { return this.data.readUInt16LE(28); };
@@ -10219,6 +10239,15 @@ var FileData = (function () {
                 name = name ? name : "Unknown: " + compressionMethod;
                 throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Invalid compression method on file '" + this.header.fileName() + "': " + name);
         }
+    };
+    FileData.prototype.getHeader = function () {
+        return this.header;
+    };
+    FileData.prototype.getRecord = function () {
+        return this.record;
+    };
+    FileData.prototype.getRawData = function () {
+        return this.data;
     };
     return FileData;
 })();
@@ -10271,6 +10300,9 @@ var CentralDirectory = (function () {
     CentralDirectory.prototype.lastModFileTime = function () {
         return msdos2date(this.data.readUInt16LE(12), this.data.readUInt16LE(14));
     };
+    CentralDirectory.prototype.rawLastModFileTime = function () {
+        return this.data.readUInt32LE(12);
+    };
     CentralDirectory.prototype.crc32 = function () { return this.data.readUInt32LE(16); };
     CentralDirectory.prototype.compressedSize = function () { return this.data.readUInt32LE(20); };
     CentralDirectory.prototype.uncompressedSize = function () { return this.data.readUInt32LE(24); };
@@ -10285,6 +10317,9 @@ var CentralDirectory = (function () {
         var fileName = safeToString(this.data, this.useUTF8(), 46, this.fileNameLength());
         return fileName.replace(/\\/g, "/");
     };
+    CentralDirectory.prototype.rawFileName = function () {
+        return this.data.slice(46, 46 + this.fileNameLength());
+    };
     CentralDirectory.prototype.extraField = function () {
         var start = 44 + this.fileNameLength();
         return this.data.slice(start, start + this.extraFieldLength());
@@ -10292,6 +10327,10 @@ var CentralDirectory = (function () {
     CentralDirectory.prototype.fileComment = function () {
         var start = 46 + this.fileNameLength() + this.extraFieldLength();
         return safeToString(this.data, this.useUTF8(), start, this.fileCommentLength());
+    };
+    CentralDirectory.prototype.rawFileComment = function () {
+        var start = 46 + this.fileNameLength() + this.extraFieldLength();
+        return this.data.slice(start, start + this.fileCommentLength());
     };
     CentralDirectory.prototype.totalSize = function () {
         return 46 + this.fileNameLength() + this.extraFieldLength() + this.fileCommentLength();
@@ -10303,11 +10342,16 @@ var CentralDirectory = (function () {
     CentralDirectory.prototype.isFile = function () { return !this.isDirectory(); };
     CentralDirectory.prototype.useUTF8 = function () { return (this.flag() & 0x800) === 0x800; };
     CentralDirectory.prototype.isEncrypted = function () { return (this.flag() & 0x1) === 0x1; };
-    CentralDirectory.prototype.getData = function () {
+    CentralDirectory.prototype.getFileData = function () {
         var start = this.headerRelativeOffset();
         var header = new FileHeader(this.zipData.slice(start));
-        var filedata = new FileData(header, this, this.zipData.slice(start + header.totalSize()));
-        return filedata.decompress();
+        return new FileData(header, this, this.zipData.slice(start + header.totalSize()));
+    };
+    CentralDirectory.prototype.getData = function () {
+        return this.getFileData().decompress();
+    };
+    CentralDirectory.prototype.getRawData = function () {
+        return this.getFileData().getRawData();
     };
     CentralDirectory.prototype.getStats = function () {
         return new node_fs_stats_1.default(node_fs_stats_1.FileType.FILE, this.uncompressedSize(), 0x16D, new Date(), this.lastModFileTime());
@@ -10327,8 +10371,12 @@ var EndOfCentralDirectory = (function () {
     EndOfCentralDirectory.prototype.cdTotalEntryCount = function () { return this.data.readUInt16LE(10); };
     EndOfCentralDirectory.prototype.cdSize = function () { return this.data.readUInt32LE(12); };
     EndOfCentralDirectory.prototype.cdOffset = function () { return this.data.readUInt32LE(16); };
+    EndOfCentralDirectory.prototype.cdZipCommentLength = function () { return this.data.readUInt16LE(20); };
     EndOfCentralDirectory.prototype.cdZipComment = function () {
-        return safeToString(this.data, true, 22, this.data.readUInt16LE(20));
+        return safeToString(this.data, true, 22, this.cdZipCommentLength());
+    };
+    EndOfCentralDirectory.prototype.rawCdZipComment = function () {
+        return this.data.slice(22, 22 + this.cdZipCommentLength());
     };
     return EndOfCentralDirectory;
 })();
@@ -10341,10 +10389,37 @@ var ZipFS = (function (_super) {
         this.data = data;
         this.name = name;
         this._index = new file_index_1.FileIndex();
+        this._directoryEntries = [];
+        this._eocd = null;
         this.populateIndex();
     }
     ZipFS.prototype.getName = function () {
         return 'ZipFS' + (this.name !== '' ? ' ' + this.name : '');
+    };
+    ZipFS.prototype.getCentralDirectoryEntry = function (path) {
+        var inode = this._index.getInode(path);
+        if (inode === null) {
+            throw api_error_1.ApiError.ENOENT(path);
+        }
+        if (file_index_1.isFileInode(inode)) {
+            return inode.getData();
+        }
+        else if (file_index_1.isDirInode(inode)) {
+            return inode.getData();
+        }
+    };
+    ZipFS.prototype.getCentralDirectoryEntryAt = function (index) {
+        var dirEntry = this._directoryEntries[index];
+        if (!dirEntry) {
+            throw new RangeError("Invalid directory index: " + index + ".");
+        }
+        return dirEntry;
+    };
+    ZipFS.prototype.getNumberOfCentralDirectoryEntries = function () {
+        return this._directoryEntries.length;
+    };
+    ZipFS.prototype.getEndOfCentralDirectory = function () {
+        return this._eocd;
     };
     ZipFS.isAvailable = function () { return true; };
     ZipFS.prototype.diskSpace = function (path, cb) {
@@ -10442,7 +10517,7 @@ var ZipFS = (function (_super) {
         throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Invalid ZIP file: Could not locate End of Central Directory signature.");
     };
     ZipFS.prototype.populateIndex = function () {
-        var eocd = this.getEOCD();
+        var eocd = this._eocd = this.getEOCD();
         if (eocd.diskNumber() !== eocd.cdDiskNumber())
             throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "ZipFS does not support spanned zip files.");
         var cdPtr = eocd.cdOffset();
@@ -10459,11 +10534,12 @@ var ZipFS = (function (_super) {
                 filename = filename.substr(0, filename.length - 1);
             }
             if (cd.isDirectory()) {
-                this._index.addPath('/' + filename, new file_index_1.DirInode());
+                this._index.addPath('/' + filename, new file_index_1.DirInode(cd));
             }
             else {
                 this._index.addPath('/' + filename, new file_index_1.FileInode(cd));
             }
+            this._directoryEntries.push(cd);
         }
     };
     return ZipFS;
@@ -11474,6 +11550,7 @@ var emscripten_fs_1 = _dereq_('../generic/emscripten_fs');
 exports.EmscriptenFS = emscripten_fs_1["default"];
 var FileSystem = _dereq_('./backends');
 exports.FileSystem = FileSystem;
+var BFSUtils = _dereq_('./util');
 function install(obj) {
     obj.Buffer = Buffer;
     obj.process = process;
@@ -11503,6 +11580,8 @@ function BFSRequire(module) {
             return buffer;
         case 'process':
             return process;
+        case 'bfs_utils':
+            return BFSUtils;
         default:
             return FileSystem[module];
     }
@@ -11515,7 +11594,7 @@ exports.initialize = initialize;
 
 }).call(this,_dereq_('bfs-process'),_dereq_('bfs-buffer').Buffer)
 
-},{"../generic/emscripten_fs":58,"./backends":49,"./node_fs":55,"bfs-buffer":2,"bfs-process":11,"buffer":2,"path":10}],51:[function(_dereq_,module,exports){
+},{"../generic/emscripten_fs":58,"./backends":49,"./node_fs":55,"./util":57,"bfs-buffer":2,"bfs-process":11,"buffer":2,"path":10}],51:[function(_dereq_,module,exports){
 var api_error_1 = _dereq_('./api_error');
 var BaseFile = (function () {
     function BaseFile() {
@@ -12874,7 +12953,9 @@ var FileInode = (function () {
 })();
 exports.FileInode = FileInode;
 var DirInode = (function () {
-    function DirInode() {
+    function DirInode(data) {
+        if (data === void 0) { data = null; }
+        this.data = data;
         this._ls = {};
     }
     DirInode.prototype.isFile = function () {
@@ -12883,6 +12964,7 @@ var DirInode = (function () {
     DirInode.prototype.isDir = function () {
         return true;
     };
+    DirInode.prototype.getData = function () { return this.data; };
     DirInode.prototype.getStats = function () {
         return new node_fs_stats_1.default(node_fs_stats_1.FileType.DIRECTORY, 4096, 0x16D);
     };

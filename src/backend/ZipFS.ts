@@ -186,6 +186,9 @@ export class FileHeader {
     // Time and date is in MS-DOS format.
     return msdos2date(this.data.readUInt16LE(10), this.data.readUInt16LE(12));
   }
+  public rawLastModFileTime(): number {
+    return this.data.readUInt32LE(10);
+  }
   public crc32(): number { return this.data.readUInt32LE(14); }
   /**
    * These two values are COMPLETELY USELESS.
@@ -247,6 +250,15 @@ export class FileData {
         name = name ? name : "Unknown: " + compressionMethod;
         throw new ApiError(ErrorCode.EINVAL, "Invalid compression method on file '" + this.header.fileName() + "': " + name);
     }
+  }
+  public getHeader(): FileHeader {
+    return this.header;
+  }
+  public getRecord(): CentralDirectory {
+    return this.record;
+  }
+  public getRawData(): NodeBuffer {
+    return this.data;
   }
 }
 
@@ -364,6 +376,9 @@ export class CentralDirectory {
     // Time and date is in MS-DOS format.
     return msdos2date(this.data.readUInt16LE(12), this.data.readUInt16LE(14));
   }
+  public rawLastModFileTime(): number {
+    return this.data.readUInt32LE(12);
+  }
   public crc32(): number { return this.data.readUInt32LE(16); }
   public compressedSize(): number { return this.data.readUInt32LE(20); }
   public uncompressedSize(): number { return this.data.readUInt32LE(24); }
@@ -391,6 +406,9 @@ export class CentralDirectory {
     var fileName: string = safeToString(this.data, this.useUTF8(), 46, this.fileNameLength());
     return fileName.replace(/\\/g, "/");
   }
+  public rawFileName(): NodeBuffer {
+    return this.data.slice(46, 46 + this.fileNameLength());
+  }
   public extraField(): NodeBuffer {
     var start = 44 + this.fileNameLength();
     return this.data.slice(start, start + this.extraFieldLength());
@@ -398,6 +416,10 @@ export class CentralDirectory {
   public fileComment(): string {
     var start = 46 + this.fileNameLength() + this.extraFieldLength();
     return safeToString(this.data, this.useUTF8(), start, this.fileCommentLength());
+  }
+  public rawFileComment(): NodeBuffer {
+    let start = 46 + this.fileNameLength() + this.extraFieldLength();
+    return this.data.slice(start, start + this.fileCommentLength());
   }
   public totalSize(): number {
     return 46 + this.fileNameLength() + this.extraFieldLength() + this.fileCommentLength();
@@ -417,13 +439,18 @@ export class CentralDirectory {
   public isFile(): boolean { return !this.isDirectory(); }
   public useUTF8(): boolean { return (this.flag() & 0x800) === 0x800; }
   public isEncrypted(): boolean { return (this.flag() & 0x1) === 0x1; }
-  public getData(): NodeBuffer {
+  public getFileData(): FileData {
     // Need to grab the header before we can figure out where the actual
     // compressed data starts.
     var start = this.headerRelativeOffset();
     var header = new FileHeader(this.zipData.slice(start));
-    var filedata = new FileData(header, this, this.zipData.slice(start + header.totalSize()));
-    return filedata.decompress();
+    return new FileData(header, this, this.zipData.slice(start + header.totalSize()));
+  }
+  public getData(): NodeBuffer {
+    return this.getFileData().decompress();
+  }
+  public getRawData(): NodeBuffer {
+    return this.getFileData().getRawData();
   }
   public getStats(): Stats {
     return new Stats(FileType.FILE, this.uncompressedSize(), 0x16D, new Date(), this.lastModFileTime());
@@ -458,14 +485,20 @@ export class EndOfCentralDirectory {
   public cdTotalEntryCount(): number { return this.data.readUInt16LE(10); }
   public cdSize(): number { return this.data.readUInt32LE(12); }
   public cdOffset(): number { return this.data.readUInt32LE(16); }
+  public cdZipCommentLength(): number { return this.data.readUInt16LE(20); }
   public cdZipComment(): string {
     // Assuming UTF-8. The specification doesn't specify.
-    return safeToString(this.data, true, 22, this.data.readUInt16LE(20));
+    return safeToString(this.data, true, 22, this.cdZipCommentLength());
+  }
+  public rawCdZipComment(): NodeBuffer {
+    return this.data.slice(22, 22 + this.cdZipCommentLength())
   }
 }
 
 export default class ZipFS extends file_system.SynchronousFileSystem implements file_system.FileSystem {
-  private _index: FileIndex = new FileIndex();
+  private _index: FileIndex<CentralDirectory> = new FileIndex<CentralDirectory>();
+  private _directoryEntries: CentralDirectory[] = [];
+  private _eocd: EndOfCentralDirectory = null;
   /**
    * Constructs a ZipFS from the given zip file data. Name is optional, and is
    * used primarily for our unit tests' purposes to differentiate different
@@ -478,6 +511,37 @@ export default class ZipFS extends file_system.SynchronousFileSystem implements 
 
   public getName(): string {
     return 'ZipFS' + (this.name !== '' ? ' ' + this.name : '');
+  }
+
+  /**
+   * Get the CentralDirectory object for the given path.
+   */
+  public getCentralDirectoryEntry(path: string): CentralDirectory {
+    let inode = this._index.getInode(path);
+    if (inode === null) {
+      throw ApiError.ENOENT(path);
+    }
+    if (isFileInode<CentralDirectory>(inode)) {
+      return inode.getData();
+    } else if (isDirInode<CentralDirectory>(inode)) {
+      return inode.getData();
+    }
+  }
+
+  public getCentralDirectoryEntryAt(index: number): CentralDirectory {
+    let dirEntry = this._directoryEntries[index];
+    if (!dirEntry) {
+      throw new RangeError(`Invalid directory index: ${index}.`);
+    }
+    return dirEntry;
+  }
+
+  public getNumberOfCentralDirectoryEntries(): number {
+    return this._directoryEntries.length;
+  }
+
+  public getEndOfCentralDirectory(): EndOfCentralDirectory {
+    return this._eocd;
   }
 
   public static isAvailable(): boolean { return true; }
@@ -601,7 +665,7 @@ export default class ZipFS extends file_system.SynchronousFileSystem implements 
   }
 
   private populateIndex() {
-    var eocd: EndOfCentralDirectory = this.getEOCD();
+    var eocd: EndOfCentralDirectory = this._eocd = this.getEOCD();
     if (eocd.diskNumber() !== eocd.cdDiskNumber())
       throw new ApiError(ErrorCode.EINVAL, "ZipFS does not support spanned zip files.");
 
@@ -621,10 +685,11 @@ export default class ZipFS extends file_system.SynchronousFileSystem implements 
         filename = filename.substr(0, filename.length-1);
       }
       if (cd.isDirectory()) {
-        this._index.addPath('/' + filename, new DirInode());
+        this._index.addPath('/' + filename, new DirInode<CentralDirectory>(cd));
       } else {
         this._index.addPath('/' + filename, new FileInode<CentralDirectory>(cd));
       }
+      this._directoryEntries.push(cd);
     }
   }
 }

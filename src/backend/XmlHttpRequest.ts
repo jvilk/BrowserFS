@@ -12,7 +12,7 @@ import {FileIndex, DirInode, FileInode, Inode, isFileInode, isDirInode} from '..
  * A simple filesystem backed by XmlHttpRequests.
  */
 export default class XmlHttpRequest extends file_system.BaseFileSystem implements file_system.FileSystem {
-  private _index: FileIndex;
+  private _index: FileIndex<{}>;
   public prefixUrl: string;
   /**
    * Constructs the file system.

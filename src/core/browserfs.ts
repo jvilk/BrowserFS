@@ -8,6 +8,7 @@ import path = require('path');
 import file_system = require('./file_system');
 import EmscriptenFS from '../generic/emscripten_fs';
 import * as FileSystem from './backends';
+import * as BFSUtils from './util';
 
 /**
  * Installs BrowserFS onto the given object.
@@ -46,6 +47,7 @@ export function BFSRequire(module: 'fs'): typeof fs;
 export function BFSRequire(module: 'path'): typeof path;
 export function BFSRequire(module: 'buffer'): typeof buffer;
 export function BFSRequire(module: 'process'): typeof process;
+export function BFSRequire(module: 'bfs_utils'): typeof BFSUtils;
 export function BFSRequire(module: string): any;
 export function BFSRequire(module: string): any {
   switch(module) {
@@ -58,6 +60,8 @@ export function BFSRequire(module: string): any {
       return buffer;
     case 'process':
       return process;
+    case 'bfs_utils':
+      return BFSUtils;
     default:
       return FileSystem[module];
   }

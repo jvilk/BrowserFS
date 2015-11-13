@@ -1,5 +1,5 @@
 import { default as Stats } from '../core/node_fs_stats';
-export declare class FileIndex {
+export declare class FileIndex<T> {
     private _index;
     constructor();
     private _split_path(p);
@@ -8,7 +8,7 @@ export declare class FileIndex {
     removePath(path: string): Inode;
     ls(path: string): string[];
     getInode(path: string): Inode;
-    static fromListing(listing: any): FileIndex;
+    static fromListing<T>(listing: any): FileIndex<T>;
 }
 export interface Inode {
     isFile(): boolean;
@@ -22,11 +22,13 @@ export declare class FileInode<T> implements Inode {
     getData(): T;
     setData(data: T): void;
 }
-export declare class DirInode implements Inode {
+export declare class DirInode<T> implements Inode {
+    private data;
     private _ls;
-    constructor();
+    constructor(data?: T);
     isFile(): boolean;
     isDir(): boolean;
+    getData(): T;
     getStats(): Stats;
     getListing(): string[];
     getItem(p: string): Inode;
@@ -34,4 +36,4 @@ export declare class DirInode implements Inode {
     remItem(p: string): Inode;
 }
 export declare function isFileInode<T>(inode: Inode): inode is FileInode<T>;
-export declare function isDirInode(inode: Inode): inode is DirInode;
+export declare function isDirInode<T>(inode: Inode): inode is DirInode<T>;

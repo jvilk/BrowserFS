@@ -49,6 +49,7 @@ export declare class FileHeader {
     flags(): number;
     compressionMethod(): CompressionMethod;
     lastModFileTime(): Date;
+    rawLastModFileTime(): number;
     crc32(): number;
     fileNameLength(): number;
     extraFieldLength(): number;
@@ -63,6 +64,9 @@ export declare class FileData {
     private data;
     constructor(header: FileHeader, record: CentralDirectory, data: NodeBuffer);
     decompress(): NodeBuffer;
+    getHeader(): FileHeader;
+    getRecord(): CentralDirectory;
+    getRawData(): NodeBuffer;
 }
 export declare class DataDescriptor {
     private data;
@@ -92,6 +96,7 @@ export declare class CentralDirectory {
     flag(): number;
     compressionMethod(): CompressionMethod;
     lastModFileTime(): Date;
+    rawLastModFileTime(): number;
     crc32(): number;
     compressedSize(): number;
     uncompressedSize(): number;
@@ -103,14 +108,18 @@ export declare class CentralDirectory {
     externalAttributes(): number;
     headerRelativeOffset(): number;
     fileName(): string;
+    rawFileName(): NodeBuffer;
     extraField(): NodeBuffer;
     fileComment(): string;
+    rawFileComment(): NodeBuffer;
     totalSize(): number;
     isDirectory(): boolean;
     isFile(): boolean;
     useUTF8(): boolean;
     isEncrypted(): boolean;
+    getFileData(): FileData;
     getData(): NodeBuffer;
+    getRawData(): NodeBuffer;
     getStats(): Stats;
 }
 export declare class EndOfCentralDirectory {
@@ -122,14 +131,22 @@ export declare class EndOfCentralDirectory {
     cdTotalEntryCount(): number;
     cdSize(): number;
     cdOffset(): number;
+    cdZipCommentLength(): number;
     cdZipComment(): string;
+    rawCdZipComment(): NodeBuffer;
 }
 export default class ZipFS extends file_system.SynchronousFileSystem implements file_system.FileSystem {
     private data;
     private name;
     private _index;
+    private _directoryEntries;
+    private _eocd;
     constructor(data: NodeBuffer, name?: string);
     getName(): string;
+    getCentralDirectoryEntry(path: string): CentralDirectory;
+    getCentralDirectoryEntryAt(index: number): CentralDirectory;
+    getNumberOfCentralDirectoryEntries(): number;
+    getEndOfCentralDirectory(): EndOfCentralDirectory;
     static isAvailable(): boolean;
     diskSpace(path: string, cb: (total: number, free: number) => void): void;
     isReadOnly(): boolean;
