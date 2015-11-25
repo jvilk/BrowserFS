@@ -424,6 +424,7 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
       // Remove oldPath from parent's directory listing.
       oldDirNode = this.findINode(tx, oldParent),
       oldDirList = this.getDirListing(tx, oldParent, oldDirNode);
+
     if (!oldDirList[oldName]) {
       throw ApiError.ENOENT(oldPath);
     }

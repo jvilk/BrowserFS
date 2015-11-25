@@ -24,10 +24,8 @@ export interface Arrayish<T> {
  * Synchronous recursive makedir.
  */
 export function mkdirpSync(p: string, mode: number, fs: FileSystem): void {
-  let parent = path.dirname(p);
-  if (!fs.existsSync(parent)) {
-    mkdirpSync(parent, mode, fs);
-  } else {
+  if (!fs.existsSync(p)) {
+    mkdirpSync(path.dirname(p), mode, fs);
     fs.mkdirSync(p, mode);
   }
 }

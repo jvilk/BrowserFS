@@ -16,6 +16,10 @@ import {mkdirpSync} from '../core/util';
  */
 export default class MountableFileSystem extends file_system.BaseFileSystem implements file_system.FileSystem {
   private mntMap: {[path: string]: file_system.FileSystem};
+  // Contains the list of mount points in mntMap, sorted by string length in decreasing order.
+  // Ensures that we scan the most specific mount points for a match first, which lets us
+  // nest mount points.
+  private mountList: string[] = [];
   private rootFs: file_system.FileSystem;
   constructor() {
     super();
@@ -32,34 +36,51 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
     if (mountPoint[0] !== '/') {
       mountPoint = `/${mountPoint}`;
     }
+    mountPoint = path.resolve(mountPoint);
     if (this.mntMap[mountPoint]) {
       throw new ApiError(ErrorCode.EINVAL, "Mount point " + mountPoint + " is already taken.");
     }
     mkdirpSync(mountPoint, 0x1ff, this.rootFs);
-    // @todo Ensure new mount path is not subsumed by active mount paths.
     this.mntMap[mountPoint] = fs;
+    this.mountList.push(mountPoint);
+    this.mountList = this.mountList.sort((a, b) => b.length - a.length);
   }
 
   public umount(mountPoint: string): void {
+    if (mountPoint[0] !== '/') {
+      mountPoint = `/${mountPoint}`;
+    }
+    mountPoint = path.resolve(mountPoint);
     if (!this.mntMap[mountPoint]) {
       throw new ApiError(ErrorCode.EINVAL, "Mount point " + mountPoint + " is already unmounted.");
     }
     delete this.mntMap[mountPoint];
-    this.rootFs.rmdirSync(mountPoint);
+    this.mountList.splice(this.mountList.indexOf(mountPoint), 1);
+
+    while (mountPoint !== '/') {
+      if (this.rootFs.readdirSync(mountPoint).length === 0) {
+        this.rootFs.rmdirSync(mountPoint);
+        mountPoint = path.dirname(mountPoint);
+      } else {
+        break;
+      }
+    }
   }
 
   /**
    * Returns the file system that the path points to.
    */
   public _getFs(path: string): {fs: file_system.FileSystem; path: string} {
-    for (var mountPoint in this.mntMap) {
-      var fs = this.mntMap[mountPoint];
-      if (path.indexOf(mountPoint) === 0) {
+    let mountList = this.mountList, len = mountList.length;
+    for (let i = 0; i < len; i++) {
+      let mountPoint = mountList[i];
+      // We know path is normalized, so it is a substring of the mount point.
+      if (mountPoint.length <= path.length && path.indexOf(mountPoint) === 0) {
         path = path.substr(mountPoint.length > 1 ? mountPoint.length : 0);
         if (path === '') {
           path = '/';
         }
-        return {fs: fs, path: path};
+        return {fs: this.mntMap[mountPoint], path: path};
       }
     }
     // Query our root file system.
@@ -106,8 +127,8 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
     var index: number;
     if (-1 !== (index = err.message.indexOf(path))) {
       err.message = err.message.substr(0, index) + realPath + err.message.substr(index + path.length);
+      err.path = realPath;
     }
-    err.path = realPath;
     return err;
   }
 
@@ -160,6 +181,105 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
     fs.writeFileSync(newPath, data);
     return fs.unlinkSync(oldPath);
   }
+
+  public readdirSync(p: string): string[] {
+    let fsInfo = this._getFs(p);
+
+    // If null, rootfs did not have the directory
+    // (or the target FS is the root fs).
+    let rv = null;
+    // Mount points are all defined in the root FS.
+    // Ensure that we list those, too.
+    if (fsInfo.fs !== this.rootFs) {
+      try {
+        rv = this.rootFs.readdirSync(p);
+      } catch (e) {
+        // Ignore.
+      }
+    }
+
+    try {
+      let rv2 = fsInfo.fs.readdirSync(fsInfo.path);
+      if (rv === null) {
+        return rv2;
+      } else {
+        // Filter out duplicates.
+        return rv2.concat(rv.filter((val) => rv2.indexOf(val) === -1));
+      }
+    } catch(e) {
+      if (rv === null) {
+        throw this.standardizeError(e, fsInfo.path, p);
+      } else {
+        // The root FS had something.
+        return rv;
+      }
+    }
+  }
+
+  public readdir(p: string, cb: (err: NodeJS.ErrnoException, listing?: string[]) => any): void {
+    let fsInfo = this._getFs(p);
+    fsInfo.fs.readdir(fsInfo.path, (err, files) => {
+      if (fsInfo.fs !== this.rootFs) {
+        try {
+          let rv = this.rootFs.readdirSync(p);
+          if (files) {
+            // Filter out duplicates.
+            files = files.concat(rv.filter((val) => files.indexOf(val) === -1));
+          } else {
+            files = rv;
+          }
+        } catch (e) {
+          // Root FS and target FS did not have directory.
+          if (err) {
+            return cb(this.standardizeError(err, fsInfo.path, p));
+          }
+        }
+      } else if (err) {
+        // Root FS and target FS are the same, and did not have directory.
+        return cb(this.standardizeError(err, fsInfo.path, p));
+      }
+
+      cb(null, files);
+    });
+  }
+
+  public rmdirSync(p: string): void {
+    let fsInfo = this._getFs(p);
+    if (this._containsMountPt(p)) {
+      throw ApiError.ENOTEMPTY(p);
+    } else {
+      try {
+        fsInfo.fs.rmdirSync(fsInfo.path);
+      } catch (e) {
+        throw this.standardizeError(e, fsInfo.path, p);
+      }
+    }
+  }
+
+  /**
+   * Returns true if the given path contains a mount point.
+   */
+  private _containsMountPt(p: string): boolean {
+    let mountPoints = this.mountList, len = mountPoints.length;
+    for (let i = 0; i < len; i++) {
+      let pt = mountPoints[i];
+      if (pt.length >= p.length && pt.slice(0, p.length) === p) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public rmdir(p: string, cb: (err?: NodeJS.ErrnoException) => any): void {
+    let fsInfo = this._getFs(p);
+    if (this._containsMountPt(p)) {
+      cb(ApiError.ENOTEMPTY(p));
+    } else {
+      fsInfo.fs.rmdir(fsInfo.path, (err?) => {
+        cb(err ? this.standardizeError(err, fsInfo.path, p) : null);
+      });
+    }
+  }
 }
 
 /**
@@ -167,6 +287,7 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
  * relevant file system, or return/throw an error.
  * Take advantage of the fact that the *first* argument is always the path, and
  * the *last* is the callback function (if async).
+ * @todo Can use numArgs to make proxying more efficient.
  */
 function defineFcn(name: string, isSync: boolean, numArgs: number): (...args: any[]) => any {
   if (isSync) {
@@ -204,7 +325,7 @@ function defineFcn(name: string, isSync: boolean, numArgs: number): (...args: an
 
 var fsCmdMap = [
    // 1 arg functions
-   ['readdir', 'exists', 'unlink', 'rmdir', 'readlink'],
+   ['exists', 'unlink', 'readlink'],
    // 2 arg functions
    ['stat', 'mkdir', 'realpath', 'truncate'],
    // 3 arg functions
