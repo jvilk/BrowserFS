@@ -363,10 +363,13 @@ export class DigitalSignature {
     file comment (variable size)
  */
 export class CentralDirectory {
+  // Optimization: The filename is frequently read, so stash it here.
+  private _filename: string;
   constructor(private zipData: NodeBuffer, private data: NodeBuffer) {
     // Sanity check.
     if (this.data.readUInt32LE(0) !== 0x02014b50)
       throw new ApiError(ErrorCode.EINVAL, "Invalid Zip file: Central directory record has invalid signature: " + this.data.readUInt32LE(0));
+    this._filename = this.produceFilename();
   }
   public versionMadeBy(): number { return this.data.readUInt16LE(4); }
   public versionNeeded(): number { return this.data.readUInt16LE(6); }
@@ -389,7 +392,7 @@ export class CentralDirectory {
   public internalAttributes(): number { return this.data.readUInt16LE(36); }
   public externalAttributes(): number { return this.data.readUInt32LE(38); }
   public headerRelativeOffset(): number { return this.data.readUInt32LE(42); }
-  public fileName(): string {
+  public produceFilename(): string {
     /*
       4.4.17.1 claims:
       * All slashes are forward ('/') slashes.
@@ -405,6 +408,9 @@ export class CentralDirectory {
     */
     var fileName: string = safeToString(this.data, this.useUTF8(), 46, this.fileNameLength());
     return fileName.replace(/\\/g, "/");
+  }
+  public fileName(): string {
+    return this._filename;
   }
   public rawFileName(): NodeBuffer {
     return this.data.slice(46, 46 + this.fileNameLength());

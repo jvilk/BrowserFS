@@ -9,6 +9,19 @@ import xhr = require('../generic/xhr');
 import {FileIndex, DirInode, FileInode, Inode, isFileInode, isDirInode} from '../generic/file_index';
 
 /**
+ * Try to convert the given buffer into a string, and pass it to the callback.
+ * Optimization that removes the needed try/catch into a helper function, as
+ * this is an uncommon case.
+ */
+function tryToString(buff: Buffer, encoding: string, cb: (e: ApiError, rv?: string) => void) {
+  try {
+    cb(null, buff.toString(encoding));
+  } catch (e) {
+    cb(e);
+  }
+}
+
+/**
  * A simple filesystem backed by XmlHttpRequests.
  */
 export default class XmlHttpRequest extends file_system.BaseFileSystem implements file_system.FileSystem {
@@ -299,12 +312,9 @@ export default class XmlHttpRequest extends file_system.BaseFileSystem implement
       var fdCast = <preload_file.NoSyncFile<XmlHttpRequest>> fd;
       var fdBuff = <Buffer> fdCast.getBuffer();
       if (encoding === null) {
-        return cb(err, copyingSlice(fdBuff));
-      }
-      try {
-        cb(null, fdBuff.toString(encoding));
-      } catch (e) {
-        cb(e);
+        cb(err, copyingSlice(fdBuff));
+      } else {
+        tryToString(fdBuff, encoding, cb);
       }
     });
   }
