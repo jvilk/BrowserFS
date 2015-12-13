@@ -90,6 +90,7 @@ export declare class DigitalSignature {
 export declare class CentralDirectory {
     private zipData;
     private data;
+    private _filename;
     constructor(zipData: NodeBuffer, data: NodeBuffer);
     versionMadeBy(): number;
     versionNeeded(): number;
@@ -107,6 +108,7 @@ export declare class CentralDirectory {
     internalAttributes(): number;
     externalAttributes(): number;
     headerRelativeOffset(): number;
+    produceFilename(): string;
     fileName(): string;
     rawFileName(): NodeBuffer;
     extraField(): NodeBuffer;

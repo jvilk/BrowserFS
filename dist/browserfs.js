@@ -1684,7 +1684,7 @@ var Buffer = (function () {
         if (target instanceof Buffer && this.data instanceof BufferCoreArrayBuffer) {
             var targetCore = target.getBufferCore();
             if (targetCore instanceof BufferCoreArrayBuffer) {
-                return this.data.copyTo(targetCore, targetStart, sourceStart, sourceStart + bytesCopied);
+                return this.data.copyTo(targetCore, targetStart + target.offset, sourceStart + this.offset, sourceStart + bytesCopied + this.offset);
             }
         }
         // Copy as many 32-bit chunks as possible.
@@ -7546,7 +7546,7 @@ var AsyncMirror = (function (_super) {
 exports.__esModule = true;
 exports["default"] = AsyncMirror;
 
-},{"../core/file_flag":52,"../core/file_system":53,"../generic/preload_file":62}],36:[function(_dereq_,module,exports){
+},{"../core/file_flag":53,"../core/file_system":54,"../generic/preload_file":63}],36:[function(_dereq_,module,exports){
 (function (Buffer){
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -8050,7 +8050,118 @@ exports["default"] = DropboxFileSystem;
 
 }).call(this,_dereq_('bfs-buffer').Buffer)
 
-},{"../core/api_error":48,"../core/file_system":53,"../core/node_fs_stats":56,"../core/util":57,"../generic/preload_file":62,"async":1,"bfs-buffer":2,"path":10}],37:[function(_dereq_,module,exports){
+},{"../core/api_error":49,"../core/file_system":54,"../core/node_fs_stats":57,"../core/util":58,"../generic/preload_file":63,"async":1,"bfs-buffer":2,"path":10}],37:[function(_dereq_,module,exports){
+var __extends = (this && this.__extends) || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+};
+var file_system_1 = _dereq_('../core/file_system');
+var path = _dereq_('path');
+var api_error_1 = _dereq_('../core/api_error');
+var FolderAdapter = (function (_super) {
+    __extends(FolderAdapter, _super);
+    function FolderAdapter(folder, wrapped) {
+        _super.call(this);
+        this._folder = folder;
+        this._wrapped = wrapped;
+    }
+    FolderAdapter.prototype.initialize = function (cb) {
+        var _this = this;
+        this._wrapped.exists(this._folder, function (exists) {
+            if (exists) {
+                cb();
+            }
+            else if (_this._wrapped.isReadOnly()) {
+                cb(api_error_1.ApiError.ENOENT(_this._folder));
+            }
+            else {
+                _this._wrapped.mkdir(_this._folder, 0x1ff, cb);
+            }
+        });
+    };
+    FolderAdapter.prototype.getName = function () { return this._wrapped.getName(); };
+    FolderAdapter.prototype.isReadOnly = function () { return this._wrapped.isReadOnly(); };
+    FolderAdapter.prototype.supportsProps = function () { return this._wrapped.supportsProps(); };
+    FolderAdapter.prototype.supportsSynch = function () { return this._wrapped.supportsSynch(); };
+    FolderAdapter.prototype.supportsLinks = function () { return false; };
+    FolderAdapter.isAvailable = function () {
+        return true;
+    };
+    return FolderAdapter;
+})(file_system_1.BaseFileSystem);
+exports.__esModule = true;
+exports["default"] = FolderAdapter;
+function translateError(folder, e) {
+    if (e !== null && typeof e === 'object') {
+        var err = e;
+        var p = err.path;
+        if (p) {
+            p = '/' + path.relative(folder, p);
+            err.message = err.message.replace(err.path, p);
+            err.path = p;
+        }
+    }
+    return e;
+}
+function wrapCallback(folder, cb) {
+    if (typeof cb === 'function') {
+        return function (err) {
+            if (arguments.length > 0) {
+                arguments[0] = translateError(folder, err);
+            }
+            cb.apply(null, arguments);
+        };
+    }
+    else {
+        return cb;
+    }
+}
+function wrapFunction(name, wrapFirst, wrapSecond) {
+    if (name.slice(name.length - 4) !== 'Sync') {
+        return function () {
+            if (arguments.length > 0) {
+                if (wrapFirst) {
+                    arguments[0] = path.join(this._folder, arguments[0]);
+                }
+                if (wrapSecond) {
+                    arguments[1] = path.join(this._folder, arguments[1]);
+                }
+                arguments[arguments.length - 1] = wrapCallback(this._folder, arguments[arguments.length - 1]);
+            }
+            return this._wrapped[name].apply(this._wrapped, arguments);
+        };
+    }
+    else {
+        return function () {
+            try {
+                if (wrapFirst) {
+                    arguments[0] = path.join(this._folder, arguments[0]);
+                }
+                if (wrapSecond) {
+                    arguments[1] = path.join(this._folder, arguments[1]);
+                }
+                return this._wrapped[name].apply(this._wrapped, arguments);
+            }
+            catch (e) {
+                throw translateError(this._folder, e);
+            }
+        };
+    }
+}
+['diskSpace', 'stat', 'statSync', 'open', 'openSync', 'unlink', 'unlinkSync',
+    'rmdir', 'rmdirSync', 'mkdir', 'mkdirSync', 'readdir', 'readdirSync', 'exists',
+    'existsSync', 'realpath', 'realpathSync', 'truncate', 'truncateSync', 'readFile',
+    'readFileSync', 'writeFile', 'writeFileSync', 'appendFile', 'appendFileSync',
+    'chmod', 'chmodSync', 'chown', 'chownSync', 'utimes', 'utimeSync', 'readlink',
+    'readlinkSync'].forEach(function (name) {
+    FolderAdapter.prototype[name] = wrapFunction(name, true, false);
+});
+['rename', 'renameSync', 'link', 'linkSync', 'symlink', 'symlinkSync'].forEach(function (name) {
+    FolderAdapter.prototype[name] = wrapFunction(name, true, true);
+});
+
+},{"../core/api_error":49,"../core/file_system":54,"path":10}],38:[function(_dereq_,module,exports){
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -8417,7 +8528,7 @@ var HTML5FS = (function (_super) {
 exports.__esModule = true;
 exports["default"] = HTML5FS;
 
-},{"../core/api_error":48,"../core/file_flag":52,"../core/file_system":53,"../core/global":54,"../core/node_fs_stats":56,"../core/util":57,"../generic/preload_file":62,"async":1,"path":10}],38:[function(_dereq_,module,exports){
+},{"../core/api_error":49,"../core/file_flag":53,"../core/file_system":54,"../core/global":55,"../core/node_fs_stats":57,"../core/util":58,"../generic/preload_file":63,"async":1,"path":10}],39:[function(_dereq_,module,exports){
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -8459,7 +8570,7 @@ var InMemoryFileSystem = (function (_super) {
 exports.__esModule = true;
 exports["default"] = InMemoryFileSystem;
 
-},{"../generic/key_value_filesystem":61}],39:[function(_dereq_,module,exports){
+},{"../generic/key_value_filesystem":62}],40:[function(_dereq_,module,exports){
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -8650,7 +8761,7 @@ var IndexedDBFileSystem = (function (_super) {
 exports.__esModule = true;
 exports["default"] = IndexedDBFileSystem;
 
-},{"../core/api_error":48,"../core/global":54,"../core/util":57,"../generic/key_value_filesystem":61}],40:[function(_dereq_,module,exports){
+},{"../core/api_error":49,"../core/global":55,"../core/util":58,"../generic/key_value_filesystem":62}],41:[function(_dereq_,module,exports){
 (function (Buffer){
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -8733,7 +8844,7 @@ exports["default"] = LocalStorageFileSystem;
 
 }).call(this,_dereq_('bfs-buffer').Buffer)
 
-},{"../core/api_error":48,"../core/global":54,"../generic/key_value_filesystem":61,"bfs-buffer":2}],41:[function(_dereq_,module,exports){
+},{"../core/api_error":49,"../core/global":55,"../generic/key_value_filesystem":62,"bfs-buffer":2}],42:[function(_dereq_,module,exports){
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -8743,11 +8854,13 @@ var file_system = _dereq_('../core/file_system');
 var InMemory_1 = _dereq_('./InMemory');
 var api_error_1 = _dereq_('../core/api_error');
 var fs = _dereq_('../core/node_fs');
+var path = _dereq_('path');
 var util_1 = _dereq_('../core/util');
 var MountableFileSystem = (function (_super) {
     __extends(MountableFileSystem, _super);
     function MountableFileSystem() {
         _super.call(this);
+        this.mountList = [];
         this.mntMap = {};
         this.rootFs = new InMemory_1["default"]();
     }
@@ -8755,28 +8868,45 @@ var MountableFileSystem = (function (_super) {
         if (mountPoint[0] !== '/') {
             mountPoint = "/" + mountPoint;
         }
+        mountPoint = path.resolve(mountPoint);
         if (this.mntMap[mountPoint]) {
             throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Mount point " + mountPoint + " is already taken.");
         }
         util_1.mkdirpSync(mountPoint, 0x1ff, this.rootFs);
         this.mntMap[mountPoint] = fs;
+        this.mountList.push(mountPoint);
+        this.mountList = this.mountList.sort(function (a, b) { return b.length - a.length; });
     };
     MountableFileSystem.prototype.umount = function (mountPoint) {
+        if (mountPoint[0] !== '/') {
+            mountPoint = "/" + mountPoint;
+        }
+        mountPoint = path.resolve(mountPoint);
         if (!this.mntMap[mountPoint]) {
             throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Mount point " + mountPoint + " is already unmounted.");
         }
         delete this.mntMap[mountPoint];
-        this.rootFs.rmdirSync(mountPoint);
+        this.mountList.splice(this.mountList.indexOf(mountPoint), 1);
+        while (mountPoint !== '/') {
+            if (this.rootFs.readdirSync(mountPoint).length === 0) {
+                this.rootFs.rmdirSync(mountPoint);
+                mountPoint = path.dirname(mountPoint);
+            }
+            else {
+                break;
+            }
+        }
     };
     MountableFileSystem.prototype._getFs = function (path) {
-        for (var mountPoint in this.mntMap) {
-            var fs = this.mntMap[mountPoint];
-            if (path.indexOf(mountPoint) === 0) {
+        var mountList = this.mountList, len = mountList.length;
+        for (var i_1 = 0; i_1 < len; i_1++) {
+            var mountPoint = mountList[i_1];
+            if (mountPoint.length <= path.length && path.indexOf(mountPoint) === 0) {
                 path = path.substr(mountPoint.length > 1 ? mountPoint.length : 0);
                 if (path === '') {
                     path = '/';
                 }
-                return { fs: fs, path: path };
+                return { fs: this.mntMap[mountPoint], path: path };
             }
         }
         return { fs: this.rootFs, path: path };
@@ -8806,8 +8936,8 @@ var MountableFileSystem = (function (_super) {
         var index;
         if (-1 !== (index = err.message.indexOf(path))) {
             err.message = err.message.substr(0, index) + realPath + err.message.substr(index + path.length);
+            err.path = realPath;
         }
-        err.path = realPath;
         return err;
     };
     MountableFileSystem.prototype.rename = function (oldPath, newPath, cb) {
@@ -8848,6 +8978,96 @@ var MountableFileSystem = (function (_super) {
         var data = fs.readFileSync(oldPath);
         fs.writeFileSync(newPath, data);
         return fs.unlinkSync(oldPath);
+    };
+    MountableFileSystem.prototype.readdirSync = function (p) {
+        var fsInfo = this._getFs(p);
+        var rv = null;
+        if (fsInfo.fs !== this.rootFs) {
+            try {
+                rv = this.rootFs.readdirSync(p);
+            }
+            catch (e) {
+            }
+        }
+        try {
+            var rv2 = fsInfo.fs.readdirSync(fsInfo.path);
+            if (rv === null) {
+                return rv2;
+            }
+            else {
+                return rv2.concat(rv.filter(function (val) { return rv2.indexOf(val) === -1; }));
+            }
+        }
+        catch (e) {
+            if (rv === null) {
+                throw this.standardizeError(e, fsInfo.path, p);
+            }
+            else {
+                return rv;
+            }
+        }
+    };
+    MountableFileSystem.prototype.readdir = function (p, cb) {
+        var _this = this;
+        var fsInfo = this._getFs(p);
+        fsInfo.fs.readdir(fsInfo.path, function (err, files) {
+            if (fsInfo.fs !== _this.rootFs) {
+                try {
+                    var rv = _this.rootFs.readdirSync(p);
+                    if (files) {
+                        files = files.concat(rv.filter(function (val) { return files.indexOf(val) === -1; }));
+                    }
+                    else {
+                        files = rv;
+                    }
+                }
+                catch (e) {
+                    if (err) {
+                        return cb(_this.standardizeError(err, fsInfo.path, p));
+                    }
+                }
+            }
+            else if (err) {
+                return cb(_this.standardizeError(err, fsInfo.path, p));
+            }
+            cb(null, files);
+        });
+    };
+    MountableFileSystem.prototype.rmdirSync = function (p) {
+        var fsInfo = this._getFs(p);
+        if (this._containsMountPt(p)) {
+            throw api_error_1.ApiError.ENOTEMPTY(p);
+        }
+        else {
+            try {
+                fsInfo.fs.rmdirSync(fsInfo.path);
+            }
+            catch (e) {
+                throw this.standardizeError(e, fsInfo.path, p);
+            }
+        }
+    };
+    MountableFileSystem.prototype._containsMountPt = function (p) {
+        var mountPoints = this.mountList, len = mountPoints.length;
+        for (var i_2 = 0; i_2 < len; i_2++) {
+            var pt = mountPoints[i_2];
+            if (pt.length >= p.length && pt.slice(0, p.length) === p) {
+                return true;
+            }
+        }
+        return false;
+    };
+    MountableFileSystem.prototype.rmdir = function (p, cb) {
+        var _this = this;
+        var fsInfo = this._getFs(p);
+        if (this._containsMountPt(p)) {
+            cb(api_error_1.ApiError.ENOTEMPTY(p));
+        }
+        else {
+            fsInfo.fs.rmdir(fsInfo.path, function (err) {
+                cb(err ? _this.standardizeError(err, fsInfo.path, p) : null);
+            });
+        }
     };
     return MountableFileSystem;
 })(file_system.BaseFileSystem);
@@ -8901,7 +9121,7 @@ function defineFcn(name, isSync, numArgs) {
     }
 }
 var fsCmdMap = [
-    ['readdir', 'exists', 'unlink', 'rmdir', 'readlink'],
+    ['exists', 'unlink', 'readlink'],
     ['stat', 'mkdir', 'realpath', 'truncate'],
     ['open', 'readFile', 'chmod', 'utimes'],
     ['chown'],
@@ -8915,7 +9135,7 @@ for (var i = 0; i < fsCmdMap.length; i++) {
     }
 }
 
-},{"../core/api_error":48,"../core/file_system":53,"../core/node_fs":55,"../core/util":57,"./InMemory":38}],42:[function(_dereq_,module,exports){
+},{"../core/api_error":49,"../core/file_system":54,"../core/node_fs":56,"../core/util":58,"./InMemory":39,"path":10}],43:[function(_dereq_,module,exports){
 (function (Buffer){
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -9233,7 +9453,7 @@ exports["default"] = OverlayFS;
 
 }).call(this,_dereq_('bfs-buffer').Buffer)
 
-},{"../core/api_error":48,"../core/file_flag":52,"../core/file_system":53,"../generic/preload_file":62,"bfs-buffer":2,"path":10}],43:[function(_dereq_,module,exports){
+},{"../core/api_error":49,"../core/file_flag":53,"../core/file_system":54,"../generic/preload_file":63,"bfs-buffer":2,"path":10}],44:[function(_dereq_,module,exports){
 (function (Buffer){
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -9842,7 +10062,7 @@ exports["default"] = WorkerFS;
 
 }).call(this,_dereq_('bfs-buffer').Buffer)
 
-},{"../core/api_error":48,"../core/file":51,"../core/file_flag":52,"../core/file_system":53,"../core/global":54,"../core/node_fs":55,"../core/node_fs_stats":56,"../core/util":57,"../generic/preload_file":62,"bfs-buffer":2}],44:[function(_dereq_,module,exports){
+},{"../core/api_error":49,"../core/file":52,"../core/file_flag":53,"../core/file_system":54,"../core/global":55,"../core/node_fs":56,"../core/node_fs_stats":57,"../core/util":58,"../generic/preload_file":63,"bfs-buffer":2}],45:[function(_dereq_,module,exports){
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -9855,6 +10075,14 @@ var util_1 = _dereq_('../core/util');
 var preload_file = _dereq_('../generic/preload_file');
 var xhr = _dereq_('../generic/xhr');
 var file_index_1 = _dereq_('../generic/file_index');
+function tryToString(buff, encoding, cb) {
+    try {
+        cb(null, buff.toString(encoding));
+    }
+    catch (e) {
+        cb(e);
+    }
+}
 var XmlHttpRequest = (function (_super) {
     __extends(XmlHttpRequest, _super);
     function XmlHttpRequest(listingUrl, prefixUrl) {
@@ -10083,13 +10311,10 @@ var XmlHttpRequest = (function (_super) {
             var fdCast = fd;
             var fdBuff = fdCast.getBuffer();
             if (encoding === null) {
-                return cb(err, util_1.copyingSlice(fdBuff));
+                cb(err, util_1.copyingSlice(fdBuff));
             }
-            try {
-                cb(null, fdBuff.toString(encoding));
-            }
-            catch (e) {
-                cb(e);
+            else {
+                tryToString(fdBuff, encoding, cb);
             }
         });
     };
@@ -10112,7 +10337,7 @@ var XmlHttpRequest = (function (_super) {
 exports.__esModule = true;
 exports["default"] = XmlHttpRequest;
 
-},{"../core/api_error":48,"../core/file_flag":52,"../core/file_system":53,"../core/util":57,"../generic/file_index":59,"../generic/preload_file":62,"../generic/xhr":63}],45:[function(_dereq_,module,exports){
+},{"../core/api_error":49,"../core/file_flag":53,"../core/file_system":54,"../core/util":58,"../generic/file_index":60,"../generic/preload_file":63,"../generic/xhr":64}],46:[function(_dereq_,module,exports){
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -10292,6 +10517,7 @@ var CentralDirectory = (function () {
         this.data = data;
         if (this.data.readUInt32LE(0) !== 0x02014b50)
             throw new api_error_1.ApiError(api_error_1.ErrorCode.EINVAL, "Invalid Zip file: Central directory record has invalid signature: " + this.data.readUInt32LE(0));
+        this._filename = this.produceFilename();
     }
     CentralDirectory.prototype.versionMadeBy = function () { return this.data.readUInt16LE(4); };
     CentralDirectory.prototype.versionNeeded = function () { return this.data.readUInt16LE(6); };
@@ -10313,9 +10539,12 @@ var CentralDirectory = (function () {
     CentralDirectory.prototype.internalAttributes = function () { return this.data.readUInt16LE(36); };
     CentralDirectory.prototype.externalAttributes = function () { return this.data.readUInt32LE(38); };
     CentralDirectory.prototype.headerRelativeOffset = function () { return this.data.readUInt32LE(42); };
-    CentralDirectory.prototype.fileName = function () {
+    CentralDirectory.prototype.produceFilename = function () {
         var fileName = safeToString(this.data, this.useUTF8(), 46, this.fileNameLength());
         return fileName.replace(/\\/g, "/");
+    };
+    CentralDirectory.prototype.fileName = function () {
+        return this._filename;
     };
     CentralDirectory.prototype.rawFileName = function () {
         return this.data.slice(46, 46 + this.fileNameLength());
@@ -10547,11 +10776,11 @@ var ZipFS = (function (_super) {
 exports.__esModule = true;
 exports["default"] = ZipFS;
 
-},{"../core/api_error":48,"../core/file_flag":52,"../core/file_system":53,"../core/node_fs_stats":56,"../core/util":57,"../generic/file_index":59,"../generic/preload_file":62,"bfs-buffer/js/extended_ascii":7,"pako/dist/pako_inflate.min":20}],46:[function(_dereq_,module,exports){
+},{"../core/api_error":49,"../core/file_flag":53,"../core/file_system":54,"../core/node_fs_stats":57,"../core/util":58,"../generic/file_index":60,"../generic/preload_file":63,"bfs-buffer/js/extended_ascii":7,"pako/dist/pako_inflate.min":20}],47:[function(_dereq_,module,exports){
 /// <reference path="../typings/tsd.d.ts" />
 module.exports = _dereq_('./main');
 
-},{"./main":64}],47:[function(_dereq_,module,exports){
+},{"./main":65}],48:[function(_dereq_,module,exports){
 (function (Buffer){
 var api_error_1 = _dereq_('./api_error');
 var file_flag_1 = _dereq_('./file_flag');
@@ -11398,7 +11627,7 @@ var _ = new FS();
 
 }).call(this,_dereq_('bfs-buffer').Buffer)
 
-},{"./api_error":48,"./file_flag":52,"./node_fs_stats":56,"bfs-buffer":2,"path":10}],48:[function(_dereq_,module,exports){
+},{"./api_error":49,"./file_flag":53,"./node_fs_stats":57,"bfs-buffer":2,"path":10}],49:[function(_dereq_,module,exports){
 (function (Buffer){
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -11514,11 +11743,13 @@ exports.ApiError = ApiError;
 
 }).call(this,_dereq_('bfs-buffer').Buffer)
 
-},{"bfs-buffer":2}],49:[function(_dereq_,module,exports){
+},{"bfs-buffer":2}],50:[function(_dereq_,module,exports){
 var AsyncMirror_1 = _dereq_('../backend/AsyncMirror');
 exports.AsyncMirror = AsyncMirror_1["default"];
 var Dropbox_1 = _dereq_('../backend/Dropbox');
 exports.Dropbox = Dropbox_1["default"];
+var FolderAdapter_1 = _dereq_('../backend/FolderAdapter');
+exports.FolderAdapter = FolderAdapter_1["default"];
 var HTML5FS_1 = _dereq_('../backend/HTML5FS');
 exports.HTML5FS = HTML5FS_1["default"];
 var InMemory_1 = _dereq_('../backend/InMemory');
@@ -11538,7 +11769,7 @@ exports.XmlHttpRequest = XmlHttpRequest_1["default"];
 var ZipFS_1 = _dereq_('../backend/ZipFS');
 exports.ZipFS = ZipFS_1["default"];
 
-},{"../backend/AsyncMirror":35,"../backend/Dropbox":36,"../backend/HTML5FS":37,"../backend/InMemory":38,"../backend/IndexedDB":39,"../backend/LocalStorage":40,"../backend/MountableFileSystem":41,"../backend/OverlayFS":42,"../backend/WorkerFS":43,"../backend/XmlHttpRequest":44,"../backend/ZipFS":45}],50:[function(_dereq_,module,exports){
+},{"../backend/AsyncMirror":35,"../backend/Dropbox":36,"../backend/FolderAdapter":37,"../backend/HTML5FS":38,"../backend/InMemory":39,"../backend/IndexedDB":40,"../backend/LocalStorage":41,"../backend/MountableFileSystem":42,"../backend/OverlayFS":43,"../backend/WorkerFS":44,"../backend/XmlHttpRequest":45,"../backend/ZipFS":46}],51:[function(_dereq_,module,exports){
 (function (process,Buffer){
 /**
  * BrowserFS's main module. This is exposed in the browser via the BrowserFS global.
@@ -11594,7 +11825,7 @@ exports.initialize = initialize;
 
 }).call(this,_dereq_('bfs-process'),_dereq_('bfs-buffer').Buffer)
 
-},{"../generic/emscripten_fs":58,"./backends":49,"./node_fs":55,"./util":57,"bfs-buffer":2,"bfs-process":11,"buffer":2,"path":10}],51:[function(_dereq_,module,exports){
+},{"../generic/emscripten_fs":59,"./backends":50,"./node_fs":56,"./util":58,"bfs-buffer":2,"bfs-process":11,"buffer":2,"path":10}],52:[function(_dereq_,module,exports){
 var api_error_1 = _dereq_('./api_error');
 var BaseFile = (function () {
     function BaseFile() {
@@ -11633,7 +11864,7 @@ var BaseFile = (function () {
 })();
 exports.BaseFile = BaseFile;
 
-},{"./api_error":48}],52:[function(_dereq_,module,exports){
+},{"./api_error":49}],53:[function(_dereq_,module,exports){
 var api_error = _dereq_('./api_error');
 (function (ActionType) {
     ActionType[ActionType["NOP"] = 0] = "NOP";
@@ -11701,7 +11932,7 @@ var FileFlag = (function () {
 })();
 exports.FileFlag = FileFlag;
 
-},{"./api_error":48}],53:[function(_dereq_,module,exports){
+},{"./api_error":49}],54:[function(_dereq_,module,exports){
 (function (Buffer){
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -12209,7 +12440,7 @@ exports.SynchronousFileSystem = SynchronousFileSystem;
 
 }).call(this,_dereq_('bfs-buffer').Buffer)
 
-},{"./api_error":48,"./file_flag":52,"bfs-buffer":2,"path":10}],54:[function(_dereq_,module,exports){
+},{"./api_error":49,"./file_flag":53,"bfs-buffer":2,"path":10}],55:[function(_dereq_,module,exports){
 (function (global){
 var toExport;
 if (typeof (window) !== 'undefined') {
@@ -12225,7 +12456,7 @@ module.exports = toExport;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],55:[function(_dereq_,module,exports){
+},{}],56:[function(_dereq_,module,exports){
 var FS_1 = _dereq_('./FS');
 var fs = new FS_1.default();
 var _fsMock = {};
@@ -12249,7 +12480,7 @@ _fsMock['getFSModule'] = function () {
 _fsMock['FS'] = FS_1.default;
 module.exports = _fsMock;
 
-},{"./FS":47}],56:[function(_dereq_,module,exports){
+},{"./FS":48}],57:[function(_dereq_,module,exports){
 (function (Buffer){
 (function (FileType) {
     FileType[FileType["FILE"] = 32768] = "FILE";
@@ -12338,17 +12569,14 @@ exports["default"] = Stats;
 
 }).call(this,_dereq_('bfs-buffer').Buffer)
 
-},{"bfs-buffer":2}],57:[function(_dereq_,module,exports){
+},{"bfs-buffer":2}],58:[function(_dereq_,module,exports){
 (function (Buffer){
 var path = _dereq_('path');
 exports.isIE = typeof navigator !== "undefined" && (/(msie) ([\w.]+)/.exec(navigator.userAgent.toLowerCase()) != null || navigator.userAgent.indexOf('Trident') !== -1);
 exports.isWebWorker = typeof window === "undefined";
 function mkdirpSync(p, mode, fs) {
-    var parent = path.dirname(p);
-    if (!fs.existsSync(parent)) {
-        mkdirpSync(parent, mode, fs);
-    }
-    else {
+    if (!fs.existsSync(p)) {
+        mkdirpSync(path.dirname(p), mode, fs);
         fs.mkdirSync(p, mode);
     }
 }
@@ -12473,7 +12701,7 @@ exports.copyingSlice = copyingSlice;
 
 }).call(this,_dereq_('bfs-buffer').Buffer)
 
-},{"bfs-buffer":2,"path":10}],58:[function(_dereq_,module,exports){
+},{"bfs-buffer":2,"path":10}],59:[function(_dereq_,module,exports){
 var BrowserFS = _dereq_('../core/browserfs');
 var fs = _dereq_('../core/node_fs');
 var util_1 = _dereq_('../core/util');
@@ -12812,7 +13040,7 @@ var BFSEmscriptenFS = (function () {
 exports.__esModule = true;
 exports["default"] = BFSEmscriptenFS;
 
-},{"../core/browserfs":50,"../core/node_fs":55,"../core/util":57}],59:[function(_dereq_,module,exports){
+},{"../core/browserfs":51,"../core/node_fs":56,"../core/util":58}],60:[function(_dereq_,module,exports){
 var node_fs_stats_1 = _dereq_('../core/node_fs_stats');
 var path = _dereq_('path');
 var FileIndex = (function () {
@@ -13002,7 +13230,7 @@ function isDirInode(inode) {
 }
 exports.isDirInode = isDirInode;
 
-},{"../core/node_fs_stats":56,"path":10}],60:[function(_dereq_,module,exports){
+},{"../core/node_fs_stats":57,"path":10}],61:[function(_dereq_,module,exports){
 (function (Buffer){
 var node_fs_stats_1 = _dereq_('../core/node_fs_stats');
 var Inode = (function () {
@@ -13075,7 +13303,7 @@ module.exports = Inode;
 
 }).call(this,_dereq_('bfs-buffer').Buffer)
 
-},{"../core/node_fs_stats":56,"bfs-buffer":2}],61:[function(_dereq_,module,exports){
+},{"../core/node_fs_stats":57,"bfs-buffer":2}],62:[function(_dereq_,module,exports){
 (function (Buffer){
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -13822,7 +14050,7 @@ exports.AsyncKeyValueFileSystem = AsyncKeyValueFileSystem;
 
 }).call(this,_dereq_('bfs-buffer').Buffer)
 
-},{"../core/api_error":48,"../core/file_system":53,"../core/node_fs_stats":56,"../generic/inode":60,"../generic/preload_file":62,"bfs-buffer":2,"path":10}],62:[function(_dereq_,module,exports){
+},{"../core/api_error":49,"../core/file_system":54,"../core/node_fs_stats":57,"../generic/inode":61,"../generic/preload_file":63,"bfs-buffer":2,"path":10}],63:[function(_dereq_,module,exports){
 (function (Buffer){
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
@@ -14049,7 +14277,7 @@ exports.NoSyncFile = NoSyncFile;
 
 }).call(this,_dereq_('bfs-buffer').Buffer)
 
-},{"../core/api_error":48,"../core/file":51,"../core/node_fs":55,"bfs-buffer":2}],63:[function(_dereq_,module,exports){
+},{"../core/api_error":49,"../core/file":52,"../core/node_fs":56,"bfs-buffer":2}],64:[function(_dereq_,module,exports){
 (function (Buffer){
 /**
  * Contains utility methods for performing a variety of tasks with
@@ -14265,7 +14493,7 @@ exports.getFileSizeAsync = getFileSizeAsync;
 
 }).call(this,_dereq_('bfs-buffer').Buffer)
 
-},{"../core/api_error":48,"../core/util":57,"bfs-buffer":2}],64:[function(_dereq_,module,exports){
+},{"../core/api_error":49,"../core/util":58,"bfs-buffer":2}],65:[function(_dereq_,module,exports){
 var global = _dereq_('./core/global');
 if (!Date.now) {
     Date.now = function now() {
@@ -14493,6 +14721,6 @@ if (typeof (document) !== 'undefined' && typeof (window) !== 'undefined' && wind
 var bfs = _dereq_('./core/browserfs');
 module.exports = bfs;
 
-},{"./core/browserfs":50,"./core/global":54}]},{},[46])(46)
+},{"./core/browserfs":51,"./core/global":55}]},{},[47])(47)
 });
 //# sourceMappingURL=browserfs.js.map

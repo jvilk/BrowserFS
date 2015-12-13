@@ -186,4 +186,24 @@ module.exports = function() {
    */
   buff.set(0, -5);
   assert(buff.get(0) === 251);
+
+  /**
+   * Copying to/from buffers that are slices.
+   */
+  var originalBuff1 = new Buffer(10),
+    originalBuff2 = new Buffer(10),
+    slice1 = originalBuff1.slice(1),
+    slice2 = originalBuff2.slice(1);
+
+  // Zero first two offsets of destination slice.
+  originalBuff2.writeUInt8(0, 0);
+  originalBuff2.writeUInt8(0, 1);
+
+  originalBuff1.writeUInt8(1, 0);
+  originalBuff1.writeUInt8(2, 1);
+
+  // slice2[1] should be 2.
+  slice1.copy(slice2, 0, 0, 1);
+  assert.equal(slice2.readUInt8(0), 2);
+  assert.equal(originalBuff2.readUInt8(1), 2);
 };

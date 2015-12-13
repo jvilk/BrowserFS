@@ -1,6 +1,6 @@
 {
   "name": "BrowserFS",
-  "version": "0.5.7",
+  "version": "0.5.8",
   "main": [
     "./dist/browserfs.min.js",
     "./dist/browserfs.min.js.map"
