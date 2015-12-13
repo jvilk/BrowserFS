@@ -76,7 +76,6 @@
   },
   "dependencies": {
     "async": "^1.5.0",
-    "bfs-buffer": "^0.1.2",
     "pako": "^0.2.8"
   }
 }
