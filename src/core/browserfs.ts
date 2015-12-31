@@ -10,6 +10,10 @@ import EmscriptenFS from '../generic/emscripten_fs';
 import * as FileSystem from './backends';
 import * as BFSUtils from './util';
 
+if (process['initializeTTYs']) {
+  process['initializeTTYs']();
+}
+
 /**
  * Installs BrowserFS onto the given object.
  * We recommend that you run install with the 'window' object to make things

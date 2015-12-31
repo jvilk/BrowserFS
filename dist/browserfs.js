@@ -11791,6 +11791,9 @@ exports.EmscriptenFS = emscripten_fs_1["default"];
 var FileSystem = _dereq_('./backends');
 exports.FileSystem = FileSystem;
 var BFSUtils = _dereq_('./util');
+if (process['initializeTTYs']) {
+    process['initializeTTYs']();
+}
 function install(obj) {
     obj.Buffer = Buffer;
     obj.process = process;
