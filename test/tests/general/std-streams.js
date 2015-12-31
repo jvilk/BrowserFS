@@ -1,38 +1,41 @@
 var assert = require('wrapped-assert'),
-  Buffer = require('buffer').Buffer;
+  Buffer = require('buffer').Buffer,
+  fs = require('fs');
 
 module.exports = function() {
   var datStr = "hey\nhere's some data.",
-      cb = function(data) {
-        if (currentEncoding === null) {
-          assert(typeof(data) !== 'string');
-          assert(data.toString() === datStr);
-        } else {
-          assert(data === datStr);
-        }
-      },
-      currentEncoding = null,
-      streams = [process.stdout, process.stderr, process.stdin],
-      i;
+      count = 0,
+      streamComplete = 0,
+      cb = function(stream) {
+          var localCount = 0;
+          return function(data) {
+            assert(typeof(data) !== 'string');
+            assert.equal(data.toString(), datStr);
+            count++;
+            if (++localCount === 2) {
+              localCount = 0;
+              if (++streamComplete === 3) {
+                streamComplete = 0;
+              }
+            }
+          }
+        },
+        streams = [process.stdout, process.stderr, process.stdin],
+        i;
 
   for (i = 0; i < streams.length; i++) {
-    streams[i].setEncoding(null);
-    streams[i].on('data', cb);
+    streams[i].on('data', cb(streams[i]));
     // Write as string, receive as buffer.
     streams[i].write(datStr);
     // Write as buffer, receive as buffer.
     streams[i].write(new Buffer(datStr));
-    // Prepare for next loop.
-    streams[i].setEncoding('utf8');
   }
 
-  currentEncoding = 'utf8';
-  for (i = 0; i < streams.length; i++) {
-    // Write as string, receive as string.
-    streams[i].write(datStr);
-    // Write as buffer, receive as string.
-    streams[i].write(new Buffer(datStr));
-    // Remove all listeners.
-    streams[i].removeAllListeners();
-  }
+  process.on('exit', function() {
+    for (i = 0; i < streams.length; i++) {
+     // Remove all listeners.
+     streams[i].removeAllListeners();
+    }
+    assert.equal(count, 6);
+  });
 };

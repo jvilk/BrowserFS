@@ -4516,6 +4516,7 @@ var TTY = (function (_super) {
         this.rows = 120;
         this.isTTY = true;
         this._bufferedWrites = [];
+        this._waitingForWrites = false;
     }
     /**
      * Toggle raw mode.
@@ -4565,6 +4566,9 @@ var TTY = (function (_super) {
                 data = chunk;
             }
             this._bufferedWrites.push(data);
+            if (this._waitingForWrites) {
+                this._read(1024);
+            }
         }
         catch (e) {
             error = e;
@@ -4575,13 +4579,17 @@ var TTY = (function (_super) {
     };
     TTY.prototype._read = function (size) {
         // Size is advisory -- we can ignore it.
-        var i;
-        for (i = 0; i < this._bufferedWrites.length; i++) {
-            if (!this.push(this._bufferedWrites[i])) {
-                break;
+        if (this._bufferedWrites.length === 0) {
+            this._waitingForWrites = true;
+        }
+        else {
+            while (this._bufferedWrites.length > 0) {
+                this._waitingForWrites = this.push(this._bufferedWrites.shift());
+                if (!this._waitingForWrites) {
+                    break;
+                }
             }
         }
-        this._bufferedWrites = this._bufferedWrites.slice(i + 1);
     };
     return TTY;
 })(stream.Duplex);
@@ -10886,6 +10894,7 @@ var FS = (function () {
         this.R_OK = 4;
         this.W_OK = 2;
         this.X_OK = 1;
+        this._wrapCb = wrapCb;
     }
     FS.prototype.getFdForFile = function (file) {
         var fd = this.nextFd++;
@@ -12476,6 +12485,9 @@ _fsMock['changeFSModule'] = function (newFs) {
 };
 _fsMock['getFSModule'] = function () {
     return fs;
+};
+_fsMock['_wrapCb'] = function (cb, numArgs) {
+    return fs._wrapCb(cb, numArgs);
 };
 _fsMock['FS'] = FS_1.default;
 module.exports = _fsMock;

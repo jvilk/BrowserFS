@@ -29,6 +29,9 @@ _fsMock['changeFSModule'] = function(newFs: FS): void {
 _fsMock['getFSModule'] = function(): FS {
   return fs;
 }
+_fsMock['_wrapCb'] = function(cb: Function, numArgs: number): Function {
+  return fs._wrapCb(cb, numArgs);
+};
 _fsMock['FS'] = FS;
 
 export = _fsMock;

@@ -1,6 +1,6 @@
 {
   "name": "browserfs",
-  "version": "0.5.8",
+  "version": "0.5.9",
   "description": "A filesystem in your browser!",
   "main": "dist/browserfs.js",
   "typings": "dist/node/main",
@@ -27,7 +27,7 @@
     "archiver": "^0.15.1",
     "bfs-buffer": "^0.1.4",
     "bfs-path": "^0.1.1",
-    "bfs-process": "^0.1.4",
+    "bfs-process": "^0.1.5",
     "browserify": "^10.2.6",
     "browserify-derequire": "~0.9.4",
     "browserify-shim": "~3.8.7",

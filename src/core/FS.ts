@@ -1448,6 +1448,8 @@ export default class FS {
     }): _fs.WriteStream {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
+
+  public _wrapCb: (cb: Function, args: number) => Function = wrapCb;
 }
 
 // Type checking.

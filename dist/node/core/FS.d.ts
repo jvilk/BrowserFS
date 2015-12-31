@@ -161,6 +161,7 @@ export default class FS {
         fd?: number;
         mode?: number;
     }): _fs.WriteStream;
+    _wrapCb: (cb: Function, args: number) => Function;
 }
 export interface FSModule extends FS {
     getFSModule(): FS;
