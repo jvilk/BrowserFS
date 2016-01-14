@@ -23,7 +23,7 @@ module.exports = function() {
     }
   }
 
-  var newXFS = new BrowserFS.FileSystem.XmlHttpRequest(listing, "test/tests/fs/xhrFS");
+  var newXFS = new BrowserFS.FileSystem.XmlHttpRequest(listing, "/");
   BrowserFS.initialize(newXFS);
 
 
