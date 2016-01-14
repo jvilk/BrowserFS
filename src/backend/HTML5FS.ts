@@ -413,7 +413,16 @@ export default class HTML5FS extends file_system.BaseFileSystem implements file_
   }
 
   public rmdir(path: string, cb: (e?: ApiError) => void): void {
-    this._remove(path, cb, false);
+    // Check if directory is non-empty, first.
+    this.readdir(path, (e, files?) => {
+      if (e) {
+        cb(e);
+      } else if (files.length > 0) {
+        cb(ApiError.ENOTEMPTY(path));
+      } else {
+        this._remove(path, cb, false);
+      }
+    });
   }
 
   public mkdir(path: string, mode: number, cb: (e?: ApiError) => void): void {

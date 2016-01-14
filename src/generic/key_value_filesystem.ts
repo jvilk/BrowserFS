@@ -553,7 +553,12 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
   }
 
   public rmdirSync(p: string): void {
-    this.removeEntry(p, true);
+    // Check first if directory is empty.
+    if (this.readdirSync(p).length > 0) {
+      throw ApiError.ENOTEMPTY(p);
+    } else {
+      this.removeEntry(p, true);
+    }
   }
 
   public mkdirSync(p: string, mode: number): void {
@@ -1164,7 +1169,16 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
   }
 
   public rmdir(p: string, cb: (e?: ApiError) => void): void {
-    this.removeEntry(p, true, cb);
+    // Check first if directory is empty.
+    this.readdir(p, (err, files?) => {
+      if (err) {
+        cb(err);
+      } else if (files.length > 0) {
+        cb(ApiError.ENOTEMPTY(p));
+      } else {
+        this.removeEntry(p, true, cb);
+      }
+    });
   }
 
   public mkdir(p: string, mode: number, cb: (e?: ApiError) => void): void {
