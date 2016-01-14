@@ -501,18 +501,33 @@ export class EndOfCentralDirectory {
   }
 }
 
+export class ZipTOC {
+  constructor(public index: FileIndex<CentralDirectory>, public directoryEntries: CentralDirectory[], public eocd: EndOfCentralDirectory, public data: NodeBuffer) {
+  }
+}
+
 export default class ZipFS extends file_system.SynchronousFileSystem implements file_system.FileSystem {
   private _index: FileIndex<CentralDirectory> = new FileIndex<CentralDirectory>();
   private _directoryEntries: CentralDirectory[] = [];
   private _eocd: EndOfCentralDirectory = null;
+  private data: NodeBuffer;
+
   /**
    * Constructs a ZipFS from the given zip file data. Name is optional, and is
    * used primarily for our unit tests' purposes to differentiate different
    * test zip files in test output.
    */
-  constructor(private data: NodeBuffer, private name: string = '') {
+  constructor(private input: NodeBuffer | ZipTOC, private name: string = '') {
     super();
-    this.populateIndex();
+    if (input instanceof ZipTOC) {
+      this._index = input.index;
+      this._directoryEntries = input.directoryEntries;
+      this._eocd = input.eocd;
+      this.data = input.data;
+    } else {
+      this.data = input as NodeBuffer;
+      this.populateIndex();
+    }
   }
 
   public getName(): string {
@@ -650,7 +665,7 @@ export default class ZipFS extends file_system.SynchronousFileSystem implements 
    * Locates the end of central directory record at the end of the file.
    * Throws an exception if it cannot be found.
    */
-  private getEOCD(): EndOfCentralDirectory {
+  private static getEOCD(data: NodeBuffer): EndOfCentralDirectory {
     // Unfortunately, the comment is variable size and up to 64K in size.
     // We assume that the magic signature does not appear in the comment, and
     // in the bytes between the comment and the signature. Other ZIP
@@ -658,20 +673,67 @@ export default class ZipFS extends file_system.SynchronousFileSystem implements 
     // read thread every entry in the file to get to it. :(
     // These are *negative* offsets from the end of the file.
     var startOffset = 22;
-    var endOffset = Math.min(startOffset + 0xFFFF, this.data.length - 1);
+    var endOffset = Math.min(startOffset + 0xFFFF, data.length - 1);
     // There's not even a byte alignment guarantee on the comment so we need to
     // search byte by byte. *grumble grumble*
     for (var i = startOffset; i < endOffset; i++) {
       // Magic number: EOCD Signature
-      if (this.data.readUInt32LE(this.data.length - i) === 0x06054b50) {
-        return new EndOfCentralDirectory(this.data.slice(this.data.length - i));
+      if (data.readUInt32LE(data.length - i) === 0x06054b50) {
+        return new EndOfCentralDirectory(data.slice(data.length - i));
       }
     }
     throw new ApiError(ErrorCode.EINVAL, "Invalid ZIP file: Could not locate End of Central Directory signature.");
   }
 
+  private static addToIndex(cd: CentralDirectory, index: FileIndex<CentralDirectory>) {
+    // Paths must be absolute, yet zip file paths are always relative to the
+    // zip root. So we append '/' and call it a day.
+    let filename = cd.fileName();
+    if (filename.charAt(0) === '/') throw new Error("WHY IS THIS ABSOLUTE");
+    // XXX: For the file index, strip the trailing '/'.
+    if (filename.charAt(filename.length - 1) === '/') {
+      filename = filename.substr(0, filename.length-1);
+    }
+
+    if (cd.isDirectory()) {
+      index.addPathFast('/' + filename, new DirInode<CentralDirectory>(cd));
+    } else {
+      index.addPathFast('/' + filename, new FileInode<CentralDirectory>(cd));
+    }
+  }
+
+  static computeIndexResponsive(data: NodeBuffer, index: FileIndex<CentralDirectory>, cdPtr: number, cdEnd: number, cb: (zipTOC: ZipTOC) => void, cdEntries: CentralDirectory[], eocd: EndOfCentralDirectory) {
+    if (cdPtr < cdEnd) {
+      let count = 0;
+      while (count++ < 200 && cdPtr < cdEnd) {
+        const cd: CentralDirectory = new CentralDirectory(data, data.slice(cdPtr));
+        ZipFS.addToIndex(cd, index);
+        cdPtr += cd.totalSize();
+        cdEntries.push(cd);
+      }
+      setImmediate(() => {
+        ZipFS.computeIndexResponsive(data, index, cdPtr, cdEnd, cb, cdEntries, eocd);
+      });
+    } else {
+      cb(new ZipTOC(index, cdEntries, eocd, data));
+    }
+  }
+
+  static computeIndex(data: NodeBuffer, cb: (zipTOC: ZipTOC) => void) {
+    const index: FileIndex<CentralDirectory> = new FileIndex<CentralDirectory>();
+    const eocd: EndOfCentralDirectory = ZipFS.getEOCD(data);
+    if (eocd.diskNumber() !== eocd.cdDiskNumber())
+      throw new ApiError(ErrorCode.EINVAL, "ZipFS does not support spanned zip files.");
+
+    const cdPtr = eocd.cdOffset();
+    if (cdPtr === 0xFFFFFFFF)
+      throw new ApiError(ErrorCode.EINVAL, "ZipFS does not support Zip64.");
+    const cdEnd = cdPtr + eocd.cdSize();
+    ZipFS.computeIndexResponsive(data, index, cdPtr, cdEnd, cb, [], eocd);
+  }
+
   private populateIndex() {
-    var eocd: EndOfCentralDirectory = this._eocd = this.getEOCD();
+    var eocd: EndOfCentralDirectory = this._eocd = ZipFS.getEOCD(this.data);
     if (eocd.diskNumber() !== eocd.cdDiskNumber())
       throw new ApiError(ErrorCode.EINVAL, "ZipFS does not support spanned zip files.");
 
@@ -680,20 +742,21 @@ export default class ZipFS extends file_system.SynchronousFileSystem implements 
       throw new ApiError(ErrorCode.EINVAL, "ZipFS does not support Zip64.");
     var cdEnd = cdPtr + eocd.cdSize();
     while (cdPtr < cdEnd) {
-      var cd: CentralDirectory = new CentralDirectory(this.data, this.data.slice(cdPtr));
+      const cd: CentralDirectory = new CentralDirectory(this.data, this.data.slice(cdPtr));
       cdPtr += cd.totalSize();
       // Paths must be absolute, yet zip file paths are always relative to the
       // zip root. So we append '/' and call it a day.
-      var filename = cd.fileName();
+      let filename = cd.fileName();
       if (filename.charAt(0) === '/') throw new Error("WHY IS THIS ABSOLUTE");
       // XXX: For the file index, strip the trailing '/'.
       if (filename.charAt(filename.length - 1) === '/') {
         filename = filename.substr(0, filename.length-1);
       }
+
       if (cd.isDirectory()) {
-        this._index.addPath('/' + filename, new DirInode<CentralDirectory>(cd));
+        this._index.addPathFast('/' + filename, new DirInode<CentralDirectory>(cd));
       } else {
-        this._index.addPath('/' + filename, new FileInode<CentralDirectory>(cd));
+        this._index.addPathFast('/' + filename, new FileInode<CentralDirectory>(cd));
       }
       this._directoryEntries.push(cd);
     }
