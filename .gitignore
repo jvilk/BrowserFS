@@ -24,6 +24,3 @@ src/core/backends.ts
 typings
 generated_node_tsconfig.json
 coverage
-
-# vim swap files
-.*.swp
