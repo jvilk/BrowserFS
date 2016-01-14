@@ -2,20 +2,7 @@
  * Unit tests for MountableFileSystem's mount/unmount features.
  */
 var fs = require('fs'),
-    path = require('path'),
-    assert = require('wrapped-assert'),
-    Buffer = require('buffer').Buffer;
-
-function codeAssertThrows(op, assertMsg) {
-  var thrown = false;
-  try {
-    op();
-  } catch (e) {
-    thrown = true;
-  } finally {
-    assert(thrown, assertMsg);
-  }
-}
+    assert = require('wrapped-assert');
 
 module.exports = function() {
   var oldRootFS = fs.getRootFS();
@@ -27,7 +14,7 @@ module.exports = function() {
     "README.md":null,
     "test": {
       "fixtures": {
-        "files": {
+        "static": {
           "49chars.txt": null
         }
       }
@@ -50,7 +37,7 @@ module.exports = function() {
   fs.readdir('/tRoot', function(err, files) {
     assert(!err, t1text);
     assert.deepEqual(files.sort(), expectedTestListing, t1text);
-    fs.stat("/tRoot/test/fixtures/files/49chars.txt", function(err, stats) {
+    fs.stat("/tRoot/test/fixtures/static/49chars.txt", function(err, stats) {
       assert(!err, "Can stat an existing file");
       assert(stats.isFile(), "File should be interpreted as a file");
       assert(!stats.isDirectory(), "File should be interpreted as a directory");
