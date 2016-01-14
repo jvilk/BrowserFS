@@ -66,6 +66,8 @@ module.exports = function() {
     fs.stat("/tRoot/src/not-existing-name", function(err, stats) {
       assert(!!err, "Non existing file should return an error");
     });
+
+    rootForXFS.umount("/tRoot");
   });
 
 
