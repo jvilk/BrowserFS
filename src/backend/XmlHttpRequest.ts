@@ -36,7 +36,7 @@ export default class XmlHttpRequest extends file_system.BaseFileSystem implement
    */
   constructor(listingUrlOrObj: string | Object, prefixUrl: string = '') {
     super();
-    if (listingUrlOrObj == null) {
+    if (!listingUrlOrObj) {
       listingUrlOrObj = 'index.json';
     }
     // prefix_url must end in a directory separator.
