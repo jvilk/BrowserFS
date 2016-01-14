@@ -21,6 +21,5 @@ test/harness/test.js
 # as is backends.ts
 src/core/backends.ts
 .tscache
-typings
 generated_node_tsconfig.json
 coverage

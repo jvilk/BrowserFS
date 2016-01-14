@@ -148,14 +148,6 @@ module.exports = function(grunt) {
         tsconfig: path.resolve(__dirname, "generated_node_tsconfig.json")
       }
     },
-    tsd: {
-      browserfs: {
-        options: {
-          command: "reinstall",
-          config: "tsd.json"
-        }
-      }
-    },
     karma: {
       options: karmaConfig,
       // Useful for development.
@@ -330,7 +322,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-shell');
   grunt.loadNpmTasks('grunt-ts');
   grunt.loadNpmTasks('grunt-contrib-copy');
-  grunt.loadNpmTasks('grunt-tsd');
   grunt.loadNpmTasks('remap-istanbul');
   grunt.loadNpmTasks('grunt-istanbul');
 
@@ -474,7 +465,7 @@ module.exports = function(grunt) {
     grunt.file.write('coverage/coverage-combined.json', JSON.stringify(newCoverageInfo));
   });
 
-  var testCommon = ['tsd:browserfs', 'backends.ts', 'run.ts', 'browserify:workerfs_worker', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect'];
+  var testCommon = ['backends.ts', 'run.ts', 'browserify:workerfs_worker', 'shell:gen_zipfs_fixtures', 'shell:gen_listings', 'shell:load_fixtures', 'connect'];
   if (dropboxEnabled) {
     testCommon.push('shell:gen_cert', 'shell:gen_token');
   }
@@ -488,9 +479,9 @@ module.exports = function(grunt) {
   // coverage
   grunt.registerTask('coverage', testCommon.concat('browserify:test', 'adjust_test_bundle', 'karma-sequence:coverage', 'remapIstanbul', 'adjust_coverage_json', 'makeReport'));
   // dev build + watch for changes.
-  grunt.registerTask('watch', ['tsd:browserfs', 'backends.ts', 'browserify:watch']);
+  grunt.registerTask('watch', ['backends.ts', 'browserify:watch']);
   // dev build
-  grunt.registerTask('dev', ['tsd:browserfs', 'backends.ts', 'browserify:browserfs', 'exorcise', 'ts']);
+  grunt.registerTask('dev', ['backends.ts', 'browserify:browserfs', 'exorcise', 'ts']);
   // release build (default)
   grunt.registerTask('default', ['dev', 'uglify']);
   // dist
