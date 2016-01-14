@@ -45,11 +45,11 @@ export default class XmlHttpRequest extends file_system.BaseFileSystem implement
     }
     this.prefixUrl = prefixUrl;
 
-    let listing:Object = null;
-    if (typeof listingUrlOrObj == "string") {
+    let listing: Object = null;
+    if (typeof(listingUrlOrObj) === "string") {
       listing = this._requestFileSync(<string> listingUrlOrObj, 'json');
-      if (listing == null) {
-        throw new Error("Unable to find listing at URL: " + listingUrlOrObj);
+      if (!listing) {
+        throw new Error("Unable to find listing at URL: ${listingUrlOrObj}");
       }
     } else {
       listing = listingUrlOrObj;
