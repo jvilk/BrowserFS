@@ -111,11 +111,11 @@ export class FileIndex<T> {
    * @todo If adding fails and implicitly creates directories, we do not clean up
    *   the new empty directories.
    */
-  public addPathFast(filename: string, inode: Inode): boolean {
+  public addPathFast(path: string, inode: Inode): boolean {
 
-    const itemNameMark = filename.lastIndexOf('/');
-    const parentPath = itemNameMark == 0 ? "/" : filename.substring(0, itemNameMark);
-    const itemName = filename.substring(itemNameMark+1);
+    const itemNameMark = path.lastIndexOf('/');
+    const parentPath = itemNameMark == 0 ? "/" : path.substring(0, itemNameMark);
+    const itemName = path.substring(itemNameMark+1);
 
     // Try to add to its parent directory first.
     let parent = this._index[parentPath];
