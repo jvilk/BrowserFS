@@ -23,7 +23,7 @@
     "node": ">= 0.10"
   },
   "devDependencies": {
-    "aliasify": "^1.7.2",
+    "aliasify": "^1.9.0",
     "archiver": "^0.15.1",
     "bfs-buffer": "^0.1.4",
     "bfs-path": "^0.1.1",
@@ -39,7 +39,7 @@
     "grunt-cli": "^0.1.13",
     "grunt-contrib-connect": "^0.7.1",
     "grunt-contrib-copy": "^0.8.1",
-    "grunt-contrib-uglify": "~0.9.1",
+    "grunt-contrib-uglify": "^0.9.2",
     "grunt-contrib-watch": "*",
     "grunt-exorcise": "^2.0.0",
     "grunt-istanbul": "^0.6.1",
@@ -58,9 +58,9 @@
     "mocha": "^2.3.3",
     "mold-source-map": "^0.4.0",
     "object-wrapper": "^0.1.1",
-    "remap-istanbul": "^0.3.0",
+    "remap-istanbul": "^0.3.1",
     "tsify": "^0.12.2",
-    "typescript": "~1.6",
+    "typescript": "^1.6.2",
     "underscore": "^1.8.3"
   },
   "scripts": {
