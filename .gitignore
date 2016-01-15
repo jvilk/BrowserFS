@@ -23,3 +23,5 @@ src/core/backends.ts
 .tscache
 generated_node_tsconfig.json
 coverage
+
+dist
