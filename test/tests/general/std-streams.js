@@ -5,19 +5,11 @@ var assert = require('wrapped-assert'),
 module.exports = function() {
   var datStr = "hey\nhere's some data.",
       count = 0,
-      streamComplete = 0,
       cb = function(stream) {
-          var localCount = 0;
           return function(data) {
             assert(typeof(data) !== 'string');
             assert.equal(data.toString(), datStr);
             count++;
-            if (++localCount === 2) {
-              localCount = 0;
-              if (++streamComplete === 3) {
-                streamComplete = 0;
-              }
-            }
           }
         },
         streams = [process.stdout, process.stderr, process.stdin],
@@ -34,7 +26,7 @@ module.exports = function() {
   process.on('exit', function() {
     for (i = 0; i < streams.length; i++) {
      // Remove all listeners.
-     streams[i].removeAllListeners();
+     streams[i].removeAllListeners('data');
     }
     assert.equal(count, 6);
   });
