@@ -131,7 +131,7 @@ export class FileIndex<T> {
 
     // If adding a directory, add to the index as well.
     if (inode.isDir()) {
-      this._index[parentPath + "/" + itemName] = <DirInode<T>> inode;
+      this._index[path] = <DirInode<T>> inode;
     }
     return true;
   }
