@@ -680,20 +680,21 @@ export default class ZipFS extends file_system.SynchronousFileSystem implements 
       throw new ApiError(ErrorCode.EINVAL, "ZipFS does not support Zip64.");
     var cdEnd = cdPtr + eocd.cdSize();
     while (cdPtr < cdEnd) {
-      var cd: CentralDirectory = new CentralDirectory(this.data, this.data.slice(cdPtr));
+      const cd: CentralDirectory = new CentralDirectory(this.data, this.data.slice(cdPtr));
       cdPtr += cd.totalSize();
       // Paths must be absolute, yet zip file paths are always relative to the
       // zip root. So we append '/' and call it a day.
-      var filename = cd.fileName();
+      let filename = cd.fileName();
       if (filename.charAt(0) === '/') throw new Error("WHY IS THIS ABSOLUTE");
       // XXX: For the file index, strip the trailing '/'.
       if (filename.charAt(filename.length - 1) === '/') {
         filename = filename.substr(0, filename.length-1);
       }
+
       if (cd.isDirectory()) {
-        this._index.addPath('/' + filename, new DirInode<CentralDirectory>(cd));
+        this._index.addPathFast('/' + filename, new DirInode<CentralDirectory>(cd));
       } else {
-        this._index.addPath('/' + filename, new FileInode<CentralDirectory>(cd));
+        this._index.addPathFast('/' + filename, new FileInode<CentralDirectory>(cd));
       }
       this._directoryEntries.push(cd);
     }
