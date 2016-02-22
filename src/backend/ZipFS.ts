@@ -702,7 +702,7 @@ export default class ZipFS extends file_system.SynchronousFileSystem implements 
     }
   }
 
-  static computeIndexResponsive(data: NodeBuffer, index: FileIndex<CentralDirectory>, cdPtr: number, cdEnd: number, cb: (zipTOC: ZipTOC) => void, cdEntries: CentralDirectory[], eocd: EndOfCentralDirectory) {
+  private static computeIndexResponsive(data: NodeBuffer, index: FileIndex<CentralDirectory>, cdPtr: number, cdEnd: number, cb: (zipTOC: ZipTOC) => void, cdEntries: CentralDirectory[], eocd: EndOfCentralDirectory) {
     if (cdPtr < cdEnd) {
       let count = 0;
       while (count++ < 200 && cdPtr < cdEnd) {
