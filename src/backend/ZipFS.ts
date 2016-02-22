@@ -744,20 +744,7 @@ export default class ZipFS extends file_system.SynchronousFileSystem implements 
     while (cdPtr < cdEnd) {
       const cd: CentralDirectory = new CentralDirectory(this.data, this.data.slice(cdPtr));
       cdPtr += cd.totalSize();
-      // Paths must be absolute, yet zip file paths are always relative to the
-      // zip root. So we append '/' and call it a day.
-      let filename = cd.fileName();
-      if (filename.charAt(0) === '/') throw new Error("WHY IS THIS ABSOLUTE");
-      // XXX: For the file index, strip the trailing '/'.
-      if (filename.charAt(filename.length - 1) === '/') {
-        filename = filename.substr(0, filename.length-1);
-      }
-
-      if (cd.isDirectory()) {
-        this._index.addPathFast('/' + filename, new DirInode<CentralDirectory>(cd));
-      } else {
-        this._index.addPathFast('/' + filename, new FileInode<CentralDirectory>(cd));
-      }
+      ZipFS.addToIndex(cd, this._index);
       this._directoryEntries.push(cd);
     }
   }
