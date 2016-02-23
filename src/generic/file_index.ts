@@ -99,6 +99,44 @@ export class FileIndex<T> {
   }
 
   /**
+   * Adds the given absolute path to the index if it is not already in the index.
+   * The path is added without special treatment (no joining of adjacent separators, etc).
+   * Creates any needed parent directories.
+   * @param [String] path The path to add to the index.
+   * @param [BrowserFS.FileInode | BrowserFS.DirInode] inode The inode for the
+   *   path to add.
+   * @return [Boolean] 'True' if it was added or already exists, 'false' if there
+   *   was an issue adding it (e.g. item in path is a file, item exists but is
+   *   different).
+   * @todo If adding fails and implicitly creates directories, we do not clean up
+   *   the new empty directories.
+   */
+  public addPathFast(path: string, inode: Inode): boolean {
+
+    const itemNameMark = path.lastIndexOf('/');
+    const parentPath = itemNameMark == 0 ? "/" : path.substring(0, itemNameMark);
+    const itemName = path.substring(itemNameMark+1);
+
+    // Try to add to its parent directory first.
+    let parent = this._index[parentPath];
+    if (parent === undefined) {
+      // Create parent.
+      parent = new DirInode<T>();
+      this.addPathFast(parentPath, parent);
+    }
+
+    if (!parent.addItem(itemName, inode)) {
+      return false;
+    }
+
+    // If adding a directory, add to the index as well.
+    if (inode.isDir()) {
+      this._index[path] = <DirInode<T>> inode;
+    }
+    return true;
+  }
+
+  /**
    * Removes the given path. Can be a file or a directory.
    * @return [BrowserFS.FileInode | BrowserFS.DirInode | null] The removed item,
    *   or null if it did not exist.

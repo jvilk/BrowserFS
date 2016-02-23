@@ -18,14 +18,19 @@ function ZipFSFactory(cb: (name: string, objs: file_system.FileSystem[]) => void
       // Leverage the XHRFS to download the fixtures for this FS.
       BrowserFS.initialize(xhrfs[0]);
       for (i = 0; i < zipFiles.length; i++) {
-        ((zipFilename: string) => {
+        ((zipFilename: string, isLast: boolean) => {
           fs.readFile(zipFilename, (e, data?) => {
             if (e) throw e;
-            if (rv.push(new ZipFS(data, zipFilename)) === zipFiles.length) {
-              cb('zipfs', rv);
+            if (isLast) {
+              ZipFS.computeIndex(data, (index) => {
+                rv.push(new ZipFS(index, zipFilename));
+                cb('zipfs', rv);
+              });
+            } else {
+              rv.push(new ZipFS(data, zipFilename));
             }
           });
-        })('/test/fixtures/zipfs/zipfs_fixtures_l' + zipFiles[i] + '.zip');
+        })('/test/fixtures/zipfs/zipfs_fixtures_l' + zipFiles[i] + '.zip', i == zipFiles.length - 1);
       }
     });
   } else {
