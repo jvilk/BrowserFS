@@ -625,7 +625,6 @@ export default class ZipFS extends file_system.SynchronousFileSystem implements 
         default:
           throw new ApiError(ErrorCode.EINVAL, 'Invalid FileMode object.');
       }
-      return null;
     } else {
       throw ApiError.EISDIR(path);
     }
