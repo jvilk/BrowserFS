@@ -1,9 +1,10 @@
+// Compiled using typings@0.6.8
+// Source: https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/66f88ec51858bb21bc375fa91a963c04bc09401e/filesystem/filesystem.d.ts
 // Type definitions for File System API
 // Project: http://www.w3.org/TR/file-system-api/
 // Definitions by: Kon <http://phyzkit.net/> 
 // Definitions: https://github.com/borisyankov/DefinitelyTyped 
 
-/// <reference path="../filewriter/filewriter.d.ts" />
 
 interface LocalFileSystem {
     

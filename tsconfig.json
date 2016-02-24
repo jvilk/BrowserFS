@@ -11,7 +11,7 @@
         "outDir": "build/node"
     },
     "files": [
-        "typings/tsd.d.ts",
+        "typings/main.d.ts",
         "src/browserify_main.ts",
         "src/main.ts",
         "src/backend/AsyncMirror.ts",

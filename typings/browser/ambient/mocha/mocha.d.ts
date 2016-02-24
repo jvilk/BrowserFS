@@ -1,3 +1,5 @@
+// Compiled using typings@0.6.8
+// Source: https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/904aa971e95fe2d52c96ec5fb74a92ad8c15462e/mocha/mocha.d.ts
 // Type definitions for mocha 2.2.5
 // Project: http://mochajs.org/
 // Definitions by: Kazi Manzur Rashid <https://github.com/kazimanzurrashid/>, otiai10 <https://github.com/otiai10>, jt000 <https://github.com/jt000>, Vadim Macagon <https://github.com/enlight>

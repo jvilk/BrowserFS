@@ -1,4 +1,4 @@
-/// <reference path="../typings/tsd.d.ts" />
+/// <reference path="../typings/main.d.ts" />
 
 // Shim for Browserify so we can reference tsd.d.ts without
 // accidentally referencing it in our *.d.ts files, which

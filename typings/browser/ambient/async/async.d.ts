@@ -1,3 +1,5 @@
+// Compiled using typings@0.6.8
+// Source: https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/66f88ec51858bb21bc375fa91a963c04bc09401e/async/async.d.ts
 // Type definitions for Async 1.4.2
 // Project: https://github.com/caolan/async
 // Definitions by: Boris Yankov <https://github.com/borisyankov/>, Arseniy Maximov <https://github.com/kern0>

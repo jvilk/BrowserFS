@@ -1,3 +1,5 @@
+// Compiled using typings@0.6.8
+// Source: https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/66f88ec51858bb21bc375fa91a963c04bc09401e/dropboxjs/dropboxjs.d.ts
 // Type definitions for dropbox-js
 // Project: https://github.com/dropbox/dropbox-js
 // Definitions by: Steve Fenton <https://github.com/Steve-Fenton>, Pedro Casaubon <https://github.com/xperiments>

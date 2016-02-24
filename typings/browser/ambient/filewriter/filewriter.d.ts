@@ -1,3 +1,5 @@
+// Compiled using typings@0.6.8
+// Source: https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/66f88ec51858bb21bc375fa91a963c04bc09401e/filewriter/filewriter.d.ts
 // Type definitions for File API: Writer
 // Project: http://www.w3.org/TR/file-writer-api/
 // Definitions by: Kon <http://phyzkit.net/> 

@@ -1,0 +1,11 @@
+{
+  "name": "browserfs",
+  "ambientDependencies": {
+    "async": "github:DefinitelyTyped/DefinitelyTyped/async/async.d.ts#66f88ec51858bb21bc375fa91a963c04bc09401e",
+    "filewriter": "github:DefinitelyTyped/DefinitelyTyped/filewriter/filewriter.d.ts#66f88ec51858bb21bc375fa91a963c04bc09401e",
+    "filesystem": "github:DefinitelyTyped/DefinitelyTyped/filesystem/filesystem.d.ts#66f88ec51858bb21bc375fa91a963c04bc09401e",
+    "node": "github:DefinitelyTyped/DefinitelyTyped/node/node.d.ts#d6c98baa7fd703e449cf37f3ec39ed3bd92cfd35",
+    "dropboxjs": "github:DefinitelyTyped/DefinitelyTyped/dropboxjs/dropboxjs.d.ts#66f88ec51858bb21bc375fa91a963c04bc09401e",
+    "mocha": "github:DefinitelyTyped/DefinitelyTyped/mocha/mocha.d.ts#904aa971e95fe2d52c96ec5fb74a92ad8c15462e"
+  }
+}
