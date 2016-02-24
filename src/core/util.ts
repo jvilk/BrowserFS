@@ -4,6 +4,8 @@
 import {FileSystem} from './file_system';
 import path = require('path');
 
+const SUPPORTS_TYPED_ARRAYS = typeof(ArrayBuffer) !== 'undefined';
+
 /**
  * Checks for any IE version, including IE11 which removed MSIE from the
  * userAgent string.
@@ -71,7 +73,7 @@ export function buffer2Uint8array(buff: Buffer): Uint8Array {
 export function buffer2Arrayish(buff: Buffer): Arrayish<number> {
   if (typeof(buff[0]) === 'number') {
     return buff;
-  } else if (typeof(ArrayBuffer) !== 'undefined') {
+  } else if (SUPPORTS_TYPED_ARRAYS) {
     return buffer2Uint8array(buff);
   } else {
     return buff.toJSON().data;
@@ -83,7 +85,7 @@ export function buffer2Arrayish(buff: Buffer): Arrayish<number> {
  * be zero-copy.
  */
 export function arrayish2Buffer(arr: Arrayish<number>): Buffer {
-  if (arr instanceof Uint8Array) {
+  if (SUPPORTS_TYPED_ARRAYS && arr instanceof Uint8Array) {
     return uint8Array2Buffer(arr);
   } else if (arr instanceof Buffer) {
     return arr;
@@ -112,7 +114,7 @@ export function arrayBuffer2Buffer(ab: ArrayBuffer): Buffer {
     // Works in BFS and Node v4.2.
     return new Buffer(<any> ab);
   } catch (e) {
-    // I believe this copies, but there's no avoiding it in Node < v0.12
+    // I believe this copies, but there's no avoiding it in Node < v4.2
     return new Buffer(new Uint8Array(ab));
   }
 }
@@ -153,7 +155,7 @@ export function copyingSlice(buff: Buffer, start: number = 0, end = buff.length)
   if (buff.length === 0) {
     // Avoid s0 corner case in ArrayBuffer case.
     return new Buffer(0);
-  } else if (typeof(ArrayBuffer) !== 'undefined') {
+  } else if (SUPPORTS_TYPED_ARRAYS) {
     var u8 = buffer2Uint8array(buff),
       s0 = buff.readUInt8(0),
       newS0 = (s0 + 1) % 0xFF;

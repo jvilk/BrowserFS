@@ -39,7 +39,8 @@ module.exports = function() {
       assert(!err, "Can stat an existing file");
       assert(stats.isFile(), "File should be interpreted as a file");
       assert(!stats.isDirectory(), "File should be interpreted as a directory");
-      assert(stats.size == 49, "file size should match");
+      // NOTE: Size is 50 in Windows due to line endings.
+      assert(stats.size == 49 || stats.size == 50, "file size should match");
     });
 
     fs.stat("/src/backend", function(err, stats) {
