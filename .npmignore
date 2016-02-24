@@ -6,4 +6,4 @@ coverage
 doc
 build
 typings
-
+.tscache
