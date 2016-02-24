@@ -46,6 +46,7 @@ export default class OverlayFS extends file_system.SynchronousFileSystem impleme
   private _writable: file_system.FileSystem;
   private _readable: file_system.FileSystem;
   private _isInitialized: boolean = false;
+  private _initializeCallbacks: ((e?: ApiError) => void)[] = [];
   private _deletedFiles: {[path: string]: boolean} = {};
   private _deleteLog: file.File = null;
 
@@ -58,6 +59,12 @@ export default class OverlayFS extends file_system.SynchronousFileSystem impleme
     }
     if (!this._writable.supportsSynch() || !this._readable.supportsSynch()) {
       throw new ApiError(ErrorCode.EINVAL, "OverlayFS currently only operates on synchronous file systems.");
+    }
+  }
+
+  private checkInitialized(): void {
+    if (!this._isInitialized) {
+      throw new ApiError(ErrorCode.EPERM, "OverlayFS is not initialized. Please initialize OverlayFS using its initialize() method before using it.");
     }
   }
 
@@ -102,34 +109,45 @@ export default class OverlayFS extends file_system.SynchronousFileSystem impleme
    * Called once to load up metadata stored on the writable file system.
    */
   public initialize(cb: (err?: ApiError) => void): void {
+    const callbackArray = this._initializeCallbacks;
+
+    const end = (e?: ApiError): void => {
+      this._isInitialized = !e;
+      this._initializeCallbacks = [];
+      callbackArray.forEach(((cb) => cb(e)));
+    };
+
     if (!this._isInitialized) {
-      // Read deletion log, process into metadata.
-      this._writable.readFile(deletionLogPath, 'utf8',
-        FileFlag.getFileFlag('r'), (err: ApiError, data?: string) => {
-        if (err) {
-          // ENOENT === Newly-instantiated file system, and thus empty log.
-          if (err.errno !== ErrorCode.ENOENT) {
-            return cb(err);
-          }
-        } else {
-          data.split('\n').forEach((path: string) => {
-            // If the log entry begins w/ 'd', it's a deletion. Otherwise, it's
-            // an undeletion.
-            // TODO: Clean up log during initialization phase.
-            this._deletedFiles[path.slice(1)] = path.slice(0, 1) === 'd';
-          });
-        }
-        // Open up the deletion log for appending.
-        this._writable.open(deletionLogPath, FileFlag.getFileFlag('a'),
-          0x1a4, (err: ApiError, fd?: file.File) => {
+      // The first call to initialize initializes, the rest wait for it to complete.
+      if (callbackArray.push(cb) === 1) {
+        // Read deletion log, process into metadata.
+        this._writable.readFile(deletionLogPath, 'utf8',
+          FileFlag.getFileFlag('r'), (err: ApiError, data?: string) => {
           if (err) {
-            cb(err);
+            // ENOENT === Newly-instantiated file system, and thus empty log.
+            if (err.errno !== ErrorCode.ENOENT) {
+              return end(err);
+            }
           } else {
-            this._deleteLog = fd;
-            cb();
+            data.split('\n').forEach((path: string) => {
+              // If the log entry begins w/ 'd', it's a deletion. Otherwise, it's
+              // an undeletion.
+              // TODO: Clean up log during initialization phase.
+              this._deletedFiles[path.slice(1)] = path.slice(0, 1) === 'd';
+            });
           }
+          // Open up the deletion log for appending.
+          this._writable.open(deletionLogPath, FileFlag.getFileFlag('a'),
+            0x1a4, (err: ApiError, fd?: file.File) => {
+            if (err) {
+              end(err);
+            } else {
+              this._deleteLog = fd;
+              end();
+            }
+          });
         });
-      });
+      }
     } else {
       cb();
     }
@@ -157,6 +175,7 @@ export default class OverlayFS extends file_system.SynchronousFileSystem impleme
   }
 
   public renameSync(oldPath: string, newPath: string): void {
+    this.checkInitialized();
     // Write newPath using oldPath's contents, delete oldPath.
     var oldStats = this.statSync(oldPath, false);
     if (oldStats.isDirectory()) {
@@ -209,6 +228,7 @@ export default class OverlayFS extends file_system.SynchronousFileSystem impleme
     }
   }
   public statSync(p: string, isLstat: boolean): Stats {
+    this.checkInitialized();
     try {
       return this._writable.statSync(p, isLstat);
     } catch (e) {
@@ -223,6 +243,7 @@ export default class OverlayFS extends file_system.SynchronousFileSystem impleme
     }
   }
   public openSync(p: string, flag: FileFlag, mode: number): file.File {
+    this.checkInitialized();
     if (this.existsSync(p)) {
       switch (flag.pathExistsAction()) {
         case ActionType.TRUNCATE_FILE:
@@ -251,6 +272,7 @@ export default class OverlayFS extends file_system.SynchronousFileSystem impleme
     }
   }
   public unlinkSync(p: string): void {
+    this.checkInitialized();
     if (this.existsSync(p)) {
       if (this._writable.existsSync(p)) {
         this._writable.unlinkSync(p);
@@ -266,6 +288,7 @@ export default class OverlayFS extends file_system.SynchronousFileSystem impleme
     }
   }
   public rmdirSync(p: string): void {
+    this.checkInitialized();
     if (this.existsSync(p)) {
       if (this._writable.existsSync(p)) {
         this._writable.rmdirSync(p);
@@ -283,6 +306,7 @@ export default class OverlayFS extends file_system.SynchronousFileSystem impleme
     }
   }
   public mkdirSync(p: string, mode: number): void {
+    this.checkInitialized();
     if (this.existsSync(p)) {
       throw ApiError.EEXIST(p);
     } else {
@@ -293,6 +317,7 @@ export default class OverlayFS extends file_system.SynchronousFileSystem impleme
     }
   }
   public readdirSync(p: string): string[] {
+    this.checkInitialized();
     var dirStats = this.statSync(p, false);
     if (!dirStats.isDirectory()) {
       throw ApiError.ENOTDIR(p);
@@ -316,19 +341,23 @@ export default class OverlayFS extends file_system.SynchronousFileSystem impleme
     });
   }
   public existsSync(p: string): boolean {
+    this.checkInitialized();
     return this._writable.existsSync(p) || (this._readable.existsSync(p) && this._deletedFiles[p] !== true);
   }
   public chmodSync(p: string, isLchmod: boolean, mode: number): void {
+    this.checkInitialized();
     this.operateOnWritable(p, () => {
       this._writable.chmodSync(p, isLchmod, mode);
     });
   }
   public chownSync(p: string, isLchown: boolean, uid: number, gid: number): void {
+    this.checkInitialized();
     this.operateOnWritable(p, () => {
       this._writable.chownSync(p, isLchown, uid, gid);
     });
   }
   public utimesSync(p: string, atime: Date, mtime: Date): void {
+    this.checkInitialized();
     this.operateOnWritable(p, () => {
       this._writable.utimesSync(p, atime, mtime);
     });

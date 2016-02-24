@@ -49,6 +49,7 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
   private _sync: file_system.FileSystem;
   private _async: file_system.FileSystem;
   private _isInitialized: boolean = false;
+  private _initializeCallbacks: ((e?: ApiError) => void)[] = [];
   constructor(sync: file_system.FileSystem, async: file_system.FileSystem) {
     super();
     this._sync = sync;
@@ -80,65 +81,75 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
   /**
    * Called once to load up files from async storage into sync storage.
    */
-  public initialize(finalCb: (err?: ApiError) => void): void {
+  public initialize(userCb: (err?: ApiError) => void): void {
+    const callbacks = this._initializeCallbacks;
+
+    const end = (e?: ApiError): void => {
+      this._isInitialized = !e;
+      this._initializeCallbacks = [];
+      callbacks.forEach((cb) => cb(e));
+    };
+
     if (!this._isInitialized) {
-      var copyDirectory = (p: string, mode: number, cb: (err?: ApiError) => void) => {
-        if (p !== '/') {
-          this._sync.mkdirSync(p, mode);
-        }
-        this._async.readdir(p, (err, files) => {
-          if (err) {
-            cb(err);
-          } else {
-            var i = 0;
-            function copyNextFile(err?: ApiError) {
-              if (err) {
+      // First call triggers initialization, the rest wait.
+      if (callbacks.push(userCb) === 1) {
+        const copyDirectory = (p: string, mode: number, cb: (err?: ApiError) => void) => {
+          if (p !== '/') {
+            this._sync.mkdirSync(p, mode);
+          }
+          this._async.readdir(p, (err, files) => {
+            if (err) {
+              cb(err);
+            } else {
+              var i = 0;
+              function copyNextFile(err?: ApiError) {
+                if (err) {
+                  cb(err);
+                } else if (i < files.length) {
+                  copyItem(`${p}/${files[i]}`, copyNextFile);
+                  i++;
+                } else {
+                  cb();
+                }
+              }
+              copyNextFile();
+            }
+          });
+        }, copyFile = (p: string, mode: number, cb: (err?: ApiError) => void) => {
+          this._async.readFile(p, null, file_flag.FileFlag.getFileFlag('r'), (err, data) => {
+            if (err) {
+              cb(err);
+            } else {
+              try {
+                this._sync.writeFileSync(p, data, null, file_flag.FileFlag.getFileFlag('w'), mode);
+              } catch (e) {
+                err = e;
+              } finally {
                 cb(err);
-              } else if (i < files.length) {
-                copyItem(`${p}/${files[i]}`, copyNextFile);
-                i++;
-              } else {
-                cb();
               }
             }
-            copyNextFile();
-          }
-        });
-      }, copyFile = (p: string, mode: number, cb: (err?: ApiError) => void) => {
-        this._async.readFile(p, null, file_flag.FileFlag.getFileFlag('r'), (err, data) => {
-          if (err) {
-            cb(err);
-          } else {
-            try {
-              this._sync.writeFileSync(p, data, null, file_flag.FileFlag.getFileFlag('w'), mode);
-            } catch (e) {
-              err = e;
-            } finally {
+          });
+        }, copyItem = (p: string, cb: (err?: ApiError) => void) => {
+          this._async.stat(p, false, (err, stats) => {
+            if (err) {
               cb(err);
+            } else if (stats.isDirectory()) {
+              copyDirectory(p, stats.mode, cb);
+            } else {
+              copyFile(p, stats.mode, cb);
             }
-          }
-        });
-      }, copyItem = (p: string, cb: (err?: ApiError) => void) => {
-        this._async.stat(p, false, (err, stats) => {
-          if (err) {
-            cb(err);
-          } else if (stats.isDirectory()) {
-            copyDirectory(p, stats.mode, cb);
-          } else {
-            copyFile(p, stats.mode, cb);
-          }
-        });
-      };
-      copyDirectory('/', 0, (err?: ApiError) => {
-        if (err) {
-          finalCb(err);
-        } else {
-          this._isInitialized = true;
-          finalCb();
-        }
-      });
+          });
+        };
+        copyDirectory('/', 0, end);
+      }
     } else {
-      finalCb();
+      userCb();
+    }
+  }
+
+  private checkInitialized(): void {
+    if (!this._isInitialized) {
+      throw new ApiError(ErrorCode.EPERM, "OverlayFS is not initialized. Please initialize OverlayFS using its initialize() method before using it.");
     }
   }
 
@@ -169,6 +180,7 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
   }
 
   public renameSync(oldPath: string, newPath: string): void {
+    this.checkInitialized();
     this._sync.renameSync(oldPath, newPath);
     this.enqueueOp({
       apiMethod: 'rename',
@@ -176,15 +188,18 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
     });
   }
   public statSync(p: string, isLstat: boolean): Stats {
+    this.checkInitialized();
     return this._sync.statSync(p, isLstat);
   }
   public openSync(p: string, flag: file_flag.FileFlag, mode: number): file.File {
+    this.checkInitialized();
     // Sanity check: Is this open/close permitted?
     var fd = this._sync.openSync(p, flag, mode);
     fd.closeSync();
     return new MirrorFile(this, p, flag, this._sync.statSync(p, false), this._sync.readFileSync(p, null, file_flag.FileFlag.getFileFlag('r')));
   }
   public unlinkSync(p: string): void {
+    this.checkInitialized();
     this._sync.unlinkSync(p);
     this.enqueueOp({
       apiMethod: 'unlink',
@@ -192,6 +207,7 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
     });
   }
   public rmdirSync(p: string): void {
+    this.checkInitialized();
     this._sync.rmdirSync(p);
     this.enqueueOp({
       apiMethod: 'rmdir',
@@ -199,6 +215,7 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
     });
   }
   public mkdirSync(p: string, mode: number): void {
+    this.checkInitialized();
     this._sync.mkdirSync(p, mode);
     this.enqueueOp({
       apiMethod: 'mkdir',
@@ -206,12 +223,15 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
     });
   }
   public readdirSync(p: string): string[] {
+    this.checkInitialized();
     return this._sync.readdirSync(p);
   }
   public existsSync(p: string): boolean {
+    this.checkInitialized();
     return this._sync.existsSync(p);
   }
   public chmodSync(p: string, isLchmod: boolean, mode: number): void {
+    this.checkInitialized();
     this._sync.chmodSync(p, isLchmod, mode);
     this.enqueueOp({
       apiMethod: 'chmod',
@@ -219,6 +239,7 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
     });
   }
   public chownSync(p: string, isLchown: boolean, uid: number, gid: number): void {
+    this.checkInitialized();
     this._sync.chownSync(p, isLchown, uid, gid);
     this.enqueueOp({
       apiMethod: 'chown',
@@ -226,6 +247,7 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
     });
   }
   public utimesSync(p: string, atime: Date, mtime: Date): void {
+    this.checkInitialized();
     this._sync.utimesSync(p, atime, mtime);
     this.enqueueOp({
       apiMethod: 'utimes',

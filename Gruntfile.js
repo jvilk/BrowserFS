@@ -270,6 +270,7 @@ module.exports = function(grunt) {
       gen_listings: {
         command: path.resolve('node_modules', '.bin', 'coffee') + " " + path.resolve('tools', 'XHRIndexer.coffee'),
         options: {
+          stdout: false,
           callback: function(err, stdout, stderr, cb) {
             if (err) throw err;
             // Write listings to a file.
