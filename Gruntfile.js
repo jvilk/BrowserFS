@@ -191,7 +191,7 @@ module.exports = function(grunt) {
         options: {
           browserifyOptions: _.extend({}, browserifyConfig, {
             insertGlobalVars: _.extend({}, browserifyConfig.insertGlobalVars, {
-               RELEASE: () => 'true'
+               RELEASE: function() {return 'true'}
              })
           })
         },
@@ -203,7 +203,7 @@ module.exports = function(grunt) {
         options: {
           browserifyOptions: _.extend({}, browserifyConfig, {
             insertGlobalVars: _.extend({}, browserifyConfig.insertGlobalVars, {
-               RELEASE: () => 'false'
+               RELEASE: function() {return 'true'}
              })
           })
         },
@@ -218,7 +218,7 @@ module.exports = function(grunt) {
             // wrapped as an UMD module.
             standalone: 'BrowserFS',
             insertGlobalVars: _.extend({}, browserifyConfig.insertGlobalVars, {
-               RELEASE: () => 'true'
+               RELEASE: function() {return 'true'}
              })
           })
         },
