@@ -189,7 +189,11 @@ module.exports = function(grunt) {
     browserify: {
       workerfs_worker: {
         options: {
-          browserifyOptions: browserifyConfig
+          browserifyOptions: _.extend({}, browserifyConfig, {
+            insertGlobalVars: _.extend({}, browserifyConfig.insertGlobalVars, {
+               RELEASE: () => 'true'
+             })
+          })
         },
         files: {
           './test/harness/factories/workerfs_worker.js': './test/harness/factories/workerfs_worker.ts'
@@ -197,7 +201,11 @@ module.exports = function(grunt) {
       },
       test: {
         options: {
-          browserifyOptions: browserifyConfig
+          browserifyOptions: _.extend({}, browserifyConfig, {
+            insertGlobalVars: _.extend({}, browserifyConfig.insertGlobalVars, {
+               RELEASE: () => 'false'
+             })
+          })
         },
         files: {
           './test/harness/test.js': './test/harness/run.ts'
@@ -208,7 +216,10 @@ module.exports = function(grunt) {
           browserifyOptions: _.extend({}, browserifyConfig, {
             // Expose what's exported in main.ts under the name BrowserFS,
             // wrapped as an UMD module.
-            standalone: 'BrowserFS'
+            standalone: 'BrowserFS',
+            insertGlobalVars: _.extend({}, browserifyConfig.insertGlobalVars, {
+               RELEASE: () => 'true'
+             })
           })
         },
         files: {
