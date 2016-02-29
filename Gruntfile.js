@@ -203,7 +203,7 @@ module.exports = function(grunt) {
         options: {
           browserifyOptions: _.extend({}, browserifyConfig, {
             insertGlobalVars: _.extend({}, browserifyConfig.insertGlobalVars, {
-               RELEASE: function() {return 'true'}
+               RELEASE: function() {return 'false'}
              })
           })
         },
