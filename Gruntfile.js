@@ -233,6 +233,11 @@ module.exports = function(grunt) {
     uglify: {
       min: {
         options: {
+          compress: {
+            global_defs: {
+              RELEASE: true
+            }
+          },
           sourceMap: true,
           sourceMapIncludeSources: true,
           sourceMapIn: './build/browserfs.js.map'
