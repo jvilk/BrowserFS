@@ -64,8 +64,8 @@
     "underscore": "^1.8.3"
   },
   "scripts": {
-    "test": "./node_modules/.bin/grunt test",
-    "prepublish": "./node_modules/.bin/grunt dist"
+    "test": "grunt test",
+    "prepublish": "grunt dist"
   },
   "aliasify": {
     "aliases": {
