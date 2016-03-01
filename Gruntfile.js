@@ -9,6 +9,7 @@ var fs = require('fs'),
         "path": require.resolve("bfs-path")
     }),
     insertGlobalVars: {
+        "RELEASE": function() { return "false"; },
         "Buffer": function() { return "require('bfs-buffer').Buffer" },
         "process": function () { return "require('bfs-process')" }
     },
@@ -189,11 +190,7 @@ module.exports = function(grunt) {
     browserify: {
       workerfs_worker: {
         options: {
-          browserifyOptions: _.extend({}, browserifyConfig, {
-            insertGlobalVars: _.extend({}, browserifyConfig.insertGlobalVars, {
-               RELEASE: function() {return 'true'}
-             })
-          })
+          browserifyOptions: browserifyConfig
         },
         files: {
           './test/harness/factories/workerfs_worker.js': './test/harness/factories/workerfs_worker.ts'
@@ -201,11 +198,7 @@ module.exports = function(grunt) {
       },
       test: {
         options: {
-          browserifyOptions: _.extend({}, browserifyConfig, {
-            insertGlobalVars: _.extend({}, browserifyConfig.insertGlobalVars, {
-               RELEASE: function() {return 'false'}
-             })
-          })
+          browserifyOptions: browserifyConfig
         },
         files: {
           './test/harness/test.js': './test/harness/run.ts'
@@ -218,7 +211,7 @@ module.exports = function(grunt) {
             // wrapped as an UMD module.
             standalone: 'BrowserFS',
             insertGlobalVars: _.extend({}, browserifyConfig.insertGlobalVars, {
-               RELEASE: function() {return 'true'}
+               RELEASE: function() { return 'true'; }
              })
           })
         },

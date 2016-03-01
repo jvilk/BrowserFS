@@ -112,7 +112,7 @@ export = function(tests: {
             if (genericTests.hasOwnProperty(testName)) {
               // Capture testName in a closure.
               ((testName: string) => {
-                generateTest(`${testName} [${bci.name}]`, () => {
+                generateTest(`${testName} [${bci.bufferType}]`, () => {
                   BFSBuffer.setPreferredBufferCore(bci);
                   genericTests[testName]();
                 }, () => {

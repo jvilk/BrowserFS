@@ -1,4 +1,4 @@
-/// <reference path="../../../typings/tsd.d.ts" />
+/// <reference path="../../../typings/main.d.ts" />
 import BrowserFS = require("../../../src/main");
 import WorkerFS from "../../../src/backend/WorkerFS";
 import inmemfs_factory = require('./inmemory_factory');
