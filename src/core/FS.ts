@@ -8,7 +8,10 @@ import Stats from './node_fs_stats';
 import _fs = require('fs');
 
 declare var __numWaiting: number;
+
 declare var setImmediate: (cb: Function) => void;
+
+declare var RELEASE: boolean;
 
 /**
  * Wraps a callback with a setImmediate call.
@@ -17,41 +20,45 @@ declare var setImmediate: (cb: Function) => void;
  * @return [Function] The wrapped callback.
  */
 function wrapCb<T extends Function>(cb: T, numArgs: number): T {
-  if (typeof cb !== 'function') {
-    throw new ApiError(ErrorCode.EINVAL, 'Callback must be a function.');
-  }
-  // @todo This is used for unit testing. Maybe we should inject this logic
-  //       dynamically rather than bundle it in 'production' code.
-  if (typeof __numWaiting === 'undefined') {
-    __numWaiting = 0;
-  }
-  __numWaiting++;
-  // We could use `arguments`, but Function.call/apply is expensive. And we only
-  // need to handle 1-3 arguments
-  switch (numArgs) {
-    case 1:
-      return <any> function(arg1: any) {
-        setImmediate(function() {
-          __numWaiting--;
-          return cb(arg1);
-        });
-      };
-    case 2:
-      return <any> function(arg1: any, arg2: any) {
-        setImmediate(function() {
-          __numWaiting--;
-          return cb(arg1, arg2);
-        });
-      };
-    case 3:
-      return <any> function(arg1: any, arg2: any, arg3: any) {
-        setImmediate(function() {
-          __numWaiting--;
-          return cb(arg1, arg2, arg3);
-        });
-      };
-    default:
-      throw new Error('Invalid invocation of wrapCb.');
+  if (RELEASE) {
+    return cb;
+  } else {
+    if (typeof cb !== 'function') {
+      throw new ApiError(ErrorCode.EINVAL, 'Callback must be a function.');
+    }
+    // This is used for unit testing.
+    // We could use `arguments`, but Function.call/apply is expensive. And we only
+    // need to handle 1-3 arguments
+    if (typeof __numWaiting === 'undefined') {
+      __numWaiting = 0;
+    }
+    __numWaiting++;
+
+    switch (numArgs) {
+      case 1:
+        return <any> function(arg1: any) {
+          setImmediate(function() {
+            __numWaiting--;
+            return cb(arg1);
+          });
+        };
+      case 2:
+        return <any> function(arg1: any, arg2: any) {
+          setImmediate(function() {
+            __numWaiting--;
+            return cb(arg1, arg2);
+          });
+        };
+      case 3:
+        return <any> function(arg1: any, arg2: any, arg3: any) {
+          setImmediate(function() {
+            __numWaiting--;
+            return cb(arg1, arg2, arg3);
+          });
+        };
+      default:
+        throw new Error('Invalid invocation of wrapCb.');
+    }
   }
 }
 
