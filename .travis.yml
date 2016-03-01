@@ -7,7 +7,6 @@ sudo: false
 cache:
   directories:
     - node_modules
-    - typings
 
 before_install:
   - "node --version"
