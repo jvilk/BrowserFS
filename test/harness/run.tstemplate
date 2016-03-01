@@ -12,10 +12,11 @@
  * dependencies, as it prevents bundling. Thus, I compromised with this file.
  * (It's also less hacky, as now things will be typechecked at bundle-time. :) )
  */
+// Install polyfills first.
+require('../../src/main');
+ 
 import runTests = require('./setup');
 import BackendFactory = require('./BackendFactory');
-
-require('../../src/main');
 
 // Will be replaced with arrays of hardcoded require statements for the various modules.
 var backends: BackendFactory[] = [/*FACTORIES*/],
