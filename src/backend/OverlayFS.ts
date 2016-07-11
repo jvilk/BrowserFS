@@ -490,7 +490,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
   public unlink(p: string, cb: (err: ApiError) => void): void {
     this.exists(p, (exists: boolean) => {
       if (!exists)
-        return cb(ApiError.ENOENT(p))
+        return cb(ApiError.ENOENT(p));
 
       this._writable.exists(p, (writableExists: boolean) => {
         if (writableExists) {
@@ -531,6 +531,45 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
     }
   }
 
+  public rmdir(p: string, cb: (err?: ApiError) => void): void {
+
+    let rmdirLower = (): void => {
+      this.readdir(p, (err: ApiError, files: string[]): void => {
+        if (err)
+          return cb(err);
+
+        if (files.length)
+          return cb(ApiError.ENOTEMPTY(p));
+
+        this.deletePath(p);
+        cb(null);
+      });
+    };
+
+    this.exists(p, (exists: boolean) => {
+      if (!exists)
+        return cb(ApiError.ENOENT(p));
+
+      this._writable.exists(p, (writableExists: boolean) => {
+        if (writableExists) {
+          this._writable.rmdir(p, (err: ApiError) => {
+            if (err)
+              return cb(err);
+
+            this._readable.exists(p, (readableExists: boolean) => {
+              if (readableExists)
+                rmdirLower();
+              else
+                cb();
+            });
+          });
+        } else {
+          rmdirLower();
+        }
+      });
+    });
+  }
+
   public rmdirSync(p: string): void {
     this.checkInitialized();
     if (this.existsSync(p)) {
@@ -549,6 +588,20 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
       throw ApiError.ENOENT(p);
     }
   }
+
+  public mkdir(p: string, mode: number, cb: (err: ApiError, stat?: Stats) => void): void {
+    this.exists(p, (exists: boolean) => {
+      if (exists)
+        return cb(ApiError.EEXIST(p));
+
+      // The below will throw should any of the parent directories
+      // fail to exist on _writable.
+      this.createParentDirectoriesAsync(p, () => {
+        this._writable.mkdir(p, mode, cb);
+      });
+    });
+  }
+
   public mkdirSync(p: string, mode: number): void {
     this.checkInitialized();
     if (this.existsSync(p)) {
@@ -560,6 +613,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
       this._writable.mkdirSync(p, mode);
     }
   }
+
   public readdirSync(p: string): string[] {
     this.checkInitialized();
     var dirStats = this.statSync(p, false);
@@ -584,22 +638,64 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
       return result;
     });
   }
+
+  public exists(p: string, cb: (exists: boolean) => void): boolean {
+    this._writable.exists(p, (existsWritable: boolean) => {
+      if (existsWritable)
+        return cb(true);
+
+      this._readable.exists(p, (existsReadable: boolean) => {
+        cb(existsReadable && this._deletedFiles[p] !== true);
+      });
+    });
+  }
+
   public existsSync(p: string): boolean {
     this.checkInitialized();
     return this._writable.existsSync(p) || (this._readable.existsSync(p) && this._deletedFiles[p] !== true);
   }
+
+  public chmod(p: string, isLchmod: boolean, mode: number, cb: (error?: ApiError) => void): void {
+    this.operateOnWritableAsync(p, (err?: ApiError) => {
+      if (err)
+        return cb(err);
+      else
+        this._writable.chmod(p, isLchmod, mode, cb);
+    });
+  }
+
   public chmodSync(p: string, isLchmod: boolean, mode: number): void {
     this.checkInitialized();
     this.operateOnWritable(p, () => {
       this._writable.chmodSync(p, isLchmod, mode);
     });
   }
+
+  public chown(p: string, isLchmod: boolean, uid: number, gid: number, cb: (error?: ApiError) => void): void {
+    this.operateOnWritableAsync(p, (err?: ApiError) => {
+      if (err)
+        return cb(err);
+      else
+        this._writable.chown(p, isLchmod, uid, gid, cb);
+    });
+  }
+
   public chownSync(p: string, isLchown: boolean, uid: number, gid: number): void {
     this.checkInitialized();
     this.operateOnWritable(p, () => {
       this._writable.chownSync(p, isLchown, uid, gid);
     });
   }
+
+  public utimes(p: string, atime: Date, mtime: Date, cb: (error?: ApiError) => void): void {
+    this.operateOnWritableAsync(p, (err?: ApiError) => {
+      if (err)
+        return cb(err);
+      else
+        this._writable.utimes(p, atime, mtime, cb);
+    });
+  }
+
   public utimesSync(p: string, atime: Date, mtime: Date): void {
     this.checkInitialized();
     this.operateOnWritable(p, () => {
@@ -625,6 +721,20 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
     }
   }
 
+  private operateOnWritableAsync(p: string, cb: (error?: ApiError) => void): void {
+    this.exists(p, (exists: boolean) => {
+      if (!exists)
+        return cb(ApiError.ENOENT(p));
+
+      this._writable.exists(p, (existsWritable: boolean) => {
+        if (existsWritable)
+          cb();
+        else
+          return this.copyToWritableAsync(p, cb);
+      });
+    });
+  }
+
   /**
    * Copy from readable to writable storage.
    * PRECONDITION: File does not exist on writable storage.
@@ -638,6 +748,24 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
         this._readable.readFileSync(p, null, getFlag('r')), null,
         getFlag('w'), this.statSync(p, false).mode);
     }
+  }
+
+  private copyToWritableAsync(p: string, cb: (err?: ApiError) => void): void {
+    this.stat(p, (err: ApiError, pStats?: Stats) => {
+      if (err)
+        return cb(err);
+
+      if (pStats.isDirectory())
+        return this._writable.mkdir(p, pStats.mode, cb);
+
+      // need to copy file.
+      this._readable.readFile(p, null, getFlag('r'), (err: ApiError, data?: Buffer) => {
+        if (err)
+          return cb(err);
+
+        this.writeFile(p, data, null, getFlag('w'), pStats.mode, f);
+      });
+    });
   }
 }
 
