@@ -614,6 +614,41 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
     }
   }
 
+  public readdir(p: string, cb: (error: ApiError, files?: string[]) => void): void {
+    this.stat(p, false, (err: ApiError, dirStats?: Stats) => {
+      if (err)
+        return cb(err);
+
+      if (!dirStats.isDirectory())
+        return cb(ApiError.ENOTDIR(p));
+
+      this._writable.readdir(p, (err: ApiError, wFiles: string[]) => {
+        if (err && err.code !== 'ENOENT') {
+          return cb(err);
+        } else if (err || !wFiles)
+          wFiles = [];
+
+        this._readable.readdir(p, (err: ApiError, rFiles: string[]) => {
+          // if the directory doesn't exist on the lower FS set rFiles
+          // here to simplify the following code.
+          if (err || !rFiles)
+            rFiles = [];
+
+          // Readdir in both, merge, check delete log on each file, return.
+          let contents: string[] = wFiles.concat(rFiles);
+          let seenMap: {[name: string]: boolean} = {};
+          let filtered = contents.filter((fPath: string) => {
+            let result = !seenMap[fPath] && !this._deletedFiles[p + "/" + fPath];
+            seenMap[fPath] = true;
+            return result;
+          });
+
+          cb(null, filtered);
+        });
+      });
+    });
+  }
+
   public readdirSync(p: string): string[] {
     this.checkInitialized();
     var dirStats = this.statSync(p, false);
@@ -639,7 +674,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
     });
   }
 
-  public exists(p: string, cb: (exists: boolean) => void): boolean {
+  public exists(p: string, cb: (exists: boolean) => void): void {
     this._writable.exists(p, (existsWritable: boolean) => {
       if (existsWritable)
         return cb(true);
@@ -751,7 +786,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
   }
 
   private copyToWritableAsync(p: string, cb: (err?: ApiError) => void): void {
-    this.stat(p, (err: ApiError, pStats?: Stats) => {
+    this.stat(p, false, (err: ApiError, pStats?: Stats) => {
       if (err)
         return cb(err);
 
@@ -763,7 +798,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
         if (err)
           return cb(err);
 
-        this.writeFile(p, data, null, getFlag('w'), pStats.mode, f);
+        this.writeFile(p, data, null, getFlag('w'), pStats.mode, cb);
       });
     });
   }
