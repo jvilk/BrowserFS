@@ -183,13 +183,15 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
     };
 
     // if we're already initialized, immediately invoke the callback
-    if (this._isInitialized)
-        return cb();
+    if (this._isInitialized) {
+      return cb();
+    }
 
     callbackArray.push(cb);
     // The first call to initialize initializes, the rest wait for it to complete.
-    if (callbackArray.length !== 1)
+    if (callbackArray.length !== 1) {
       return;
+    }
 
     // Read deletion log, process into metadata.
     this._writable.readFile(deletionLogPath, 'utf8', getFlag('r'), (err: ApiError, data?: string) => {
@@ -208,8 +210,9 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
       }
       // Open up the deletion log for appending.
       this._writable.open(deletionLogPath, getFlag('a'), 0o644, (err: ApiError, fd?: File) => {
-        if (!err)
+        if (!err) {
           this._deleteLog = fd;
+        }
         end(err);
       });
     });
@@ -238,12 +241,14 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
 
   public rename(oldPath: string, newPath: string, cb: (err?: ApiError) => void): void {
     // nothing to do if paths match
-    if (oldPath === newPath)
+    if (oldPath === newPath) {
       return cb();
+    }
 
     this.stat(oldPath, false, (oldErr: ApiError, oldStats?: Stats) => {
-      if (oldErr)
+      if (oldErr) {
         return cb(oldErr);
+      }
 
       return this.stat(newPath, false, (newErr: ApiError, newStats?: Stats) => {
 
@@ -253,17 +258,18 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
         // readable to its new location on writable.
         function copyDirContents(files: string[]): void {
           let file = files.shift();
-          if (!file)
+          if (!file) {
             return cb();
+          }
 
           let oldFile = path.resolve(oldPath, file);
           let newFile = path.resolve(newPath, file);
 
           // Recursion! Should work for any nested files / folders.
           this.rename(oldFile, newFile, (err?: ApiError) => {
-            if (err)
+            if (err) {
               return cb(err);
-
+            }
             copyDirContents(files);
           });
         }
@@ -275,21 +281,25 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
         // it must specify an empty directory.
         if (oldStats.isDirectory()) {
           if (newErr) {
-            if (newErr.errno !== ErrorCode.ENOENT)
+            if (newErr.errno !== ErrorCode.ENOENT) {
               return cb(newErr);
+            }
 
             return this._writable.exists(oldPath, (exists: boolean) => {
               // simple case - both old and new are on the writable layer
-              if (exists)
+              if (exists) {
                 return this._writable.rename(oldPath, newPath, cb);
+              }
 
               this._writable.mkdir(newPath, mode, (mkdirErr?: ApiError) => {
-                if (mkdirErr)
+                if (mkdirErr) {
                   return cb(mkdirErr);
+                }
 
                 this._readable.readdir(oldPath, (err: ApiError, files?: string[]) => {
-                  if (err)
+                  if (err) {
                     return cb();
+                  }
                   copyDirContents(files);
                 });
               });
@@ -297,31 +307,37 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
           }
 
           mode = newStats.mode;
-          if (!newStats.isDirectory())
+          if (!newStats.isDirectory()) {
             return cb(ApiError.ENOTDIR(newPath));
+          }
 
           this.readdir(newPath, (readdirErr: ApiError, files?: string[]) => {
-            if (files && files.length)
+            if (files && files.length) {
               return cb(ApiError.ENOTEMPTY(newPath));
+            }
 
             this._readable.readdir(oldPath, (err: ApiError, files?: string[]) => {
-              if (err)
+              if (err) {
                 return cb();
+              }
               copyDirContents(files);
             });
           });
         }
 
-        if (newStats && newStats.isDirectory())
+        if (newStats && newStats.isDirectory()) {
           return cb(ApiError.EISDIR(newPath));
+        }
 
         this.readFile(oldPath, null, getFlag('r'), (err: ApiError, data?: any) => {
-          if (err)
+          if (err) {
             return cb(err);
+          }
 
           return this.writeFile(newPath, data, null, getFlag('w'), oldStats.mode, (err: ApiError) => {
-            if (err)
+            if (err) {
               return cb(err);
+            }
             return this.unlink(oldPath, cb);
           });
         });
@@ -441,10 +457,12 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
               stats = stats.clone();
               stats.mode = mode;
               this._readable.readFile(p, null, getFlag('r'), (readFileErr: ApiError, data?: any) => {
-                if (readFileErr)
+                if (readFileErr) {
                   return cb(readFileErr);
-                if (stats.size === -1)
+                }
+                if (stats.size === -1) {
                   stats.size = data.length;
+                }
                 let f = new OverlayFile(this, p, flag, stats, data);
                 cb(null, f);
               });
@@ -507,12 +525,14 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
       this._writable.exists(p, (writableExists: boolean) => {
         if (writableExists) {
           return this._writable.unlink(p, (err: ApiError) => {
-            if (err)
+            if (err) {
               return cb(err);
+            }
 
             this.exists(p, (readableExists: boolean) => {
-              if (readableExists)
+              if (readableExists) {
                 this.deletePath(p);
+              }
               cb(null);
             });
           });
@@ -533,9 +553,8 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
         this._writable.unlinkSync(p);
       }
 
-      // Does it still exist?
+      // if it still exists add to the delete log
       if (this.existsSync(p)) {
-        // Add to delete log.
         this.deletePath(p);
       }
     } else {
@@ -547,11 +566,13 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
 
     let rmdirLower = (): void => {
       this.readdir(p, (err: ApiError, files: string[]): void => {
-        if (err)
+        if (err) {
           return cb(err);
+        }
 
-        if (files.length)
+        if (files.length) {
           return cb(ApiError.ENOTEMPTY(p));
+        }
 
         this.deletePath(p);
         cb(null);
@@ -559,20 +580,23 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
     };
 
     this.exists(p, (exists: boolean) => {
-      if (!exists)
+      if (!exists) {
         return cb(ApiError.ENOENT(p));
+      }
 
       this._writable.exists(p, (writableExists: boolean) => {
         if (writableExists) {
           this._writable.rmdir(p, (err: ApiError) => {
-            if (err)
+            if (err) {
               return cb(err);
+            }
 
             this._readable.exists(p, (readableExists: boolean) => {
-              if (readableExists)
+              if (readableExists) {
                 rmdirLower();
-              else
+              } else {
                 cb();
+              }
             });
           });
         } else {
@@ -632,23 +656,27 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
 
   public readdir(p: string, cb: (error: ApiError, files?: string[]) => void): void {
     this.stat(p, false, (err: ApiError, dirStats?: Stats) => {
-      if (err)
+      if (err) {
         return cb(err);
+      }
 
-      if (!dirStats.isDirectory())
+      if (!dirStats.isDirectory()) {
         return cb(ApiError.ENOTDIR(p));
+      }
 
       this._writable.readdir(p, (err: ApiError, wFiles: string[]) => {
         if (err && err.code !== 'ENOENT') {
           return cb(err);
-        } else if (err || !wFiles)
+        } else if (err || !wFiles) {
           wFiles = [];
+        }
 
         this._readable.readdir(p, (err: ApiError, rFiles: string[]) => {
           // if the directory doesn't exist on the lower FS set rFiles
           // here to simplify the following code.
-          if (err || !rFiles)
+          if (err || !rFiles) {
             rFiles = [];
+          }
 
           // Readdir in both, merge, check delete log on each file, return.
           let contents: string[] = wFiles.concat(rFiles);
@@ -692,8 +720,9 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
 
   public exists(p: string, cb: (exists: boolean) => void): void {
     this._writable.exists(p, (existsWritable: boolean) => {
-      if (existsWritable)
+      if (existsWritable) {
         return cb(true);
+      }
 
       this._readable.exists(p, (existsReadable: boolean) => {
         cb(existsReadable && this._deletedFiles[p] !== true);
@@ -708,10 +737,11 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
 
   public chmod(p: string, isLchmod: boolean, mode: number, cb: (error?: ApiError) => void): void {
     this.operateOnWritableAsync(p, (err?: ApiError) => {
-      if (err)
+      if (err) {
         return cb(err);
-      else
+      } else {
         this._writable.chmod(p, isLchmod, mode, cb);
+      }
     });
   }
 
@@ -724,10 +754,11 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
 
   public chown(p: string, isLchmod: boolean, uid: number, gid: number, cb: (error?: ApiError) => void): void {
     this.operateOnWritableAsync(p, (err?: ApiError) => {
-      if (err)
+      if (err) {
         return cb(err);
-      else
+      } else {
         this._writable.chown(p, isLchmod, uid, gid, cb);
+      }
     });
   }
 
@@ -740,10 +771,11 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
 
   public utimes(p: string, atime: Date, mtime: Date, cb: (error?: ApiError) => void): void {
     this.operateOnWritableAsync(p, (err?: ApiError) => {
-      if (err)
+      if (err) {
         return cb(err);
-      else
+      } else {
         this._writable.utimes(p, atime, mtime, cb);
+      }
     });
   }
 
@@ -774,14 +806,16 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
 
   private operateOnWritableAsync(p: string, cb: (error?: ApiError) => void): void {
     this.exists(p, (exists: boolean) => {
-      if (!exists)
+      if (!exists) {
         return cb(ApiError.ENOENT(p));
+      }
 
       this._writable.exists(p, (existsWritable: boolean) => {
-        if (existsWritable)
+        if (existsWritable) {
           cb();
-        else
+        } else {
           return this.copyToWritableAsync(p, cb);
+        }
       });
     });
   }
@@ -803,16 +837,19 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
 
   private copyToWritableAsync(p: string, cb: (err?: ApiError) => void): void {
     this.stat(p, false, (err: ApiError, pStats?: Stats) => {
-      if (err)
+      if (err) {
         return cb(err);
+      }
 
-      if (pStats.isDirectory())
+      if (pStats.isDirectory()) {
         return this._writable.mkdir(p, pStats.mode, cb);
+      }
 
       // need to copy file.
       this._readable.readFile(p, null, getFlag('r'), (err: ApiError, data?: Buffer) => {
-        if (err)
+        if (err) {
           return cb(err);
+        }
 
         this.writeFile(p, data, null, getFlag('w'), pStats.mode, cb);
       });
