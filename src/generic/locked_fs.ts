@@ -62,6 +62,12 @@ export LockedFile<T extends File> implements File {
 */
 
 /// This class serializes access to an underlying async filesystem.
+/// For example, on an OverlayFS instance with an async lower
+/// directory operations like rename and rmdir may involve multiple
+/// requests involving both the upper and lower filesystems -- they
+/// are not executed in a single atomic step.  OverlayFS uses this
+/// LockedFS to avoid having to reason about the correctness of
+/// multiple requests interleaving.
 export class LockedFS<T extends FileSystem> implements FileSystem {
   private _fs: T;
   private _mu: Mutex;
