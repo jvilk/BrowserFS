@@ -240,6 +240,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
   }
 
   public rename(oldPath: string, newPath: string, cb: (err?: ApiError) => void): void {
+    this.checkInitialized();
     // nothing to do if paths match
     if (oldPath === newPath) {
       return cb();
@@ -399,6 +400,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
   }
 
   public stat(p: string, isLstat: boolean,  cb: (err: ApiError, stat?: Stats) => void): void {
+    this.checkInitialized();
     this._writable.stat(p, isLstat, (err: ApiError, stat?: Stats) => {
       if (err && err.errno === ErrorCode.ENOENT) {
         if (this._deletedFiles[p]) {
@@ -437,6 +439,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
   }
 
   public open(p: string, flag: FileFlag, mode: number, cb: (err: ApiError, fd?: File) => any): void {
+    this.checkInitialized();
     this.stat(p, false, (err: ApiError, stats?: Stats) => {
       if (stats) {
         switch (flag.pathExistsAction()) {
@@ -518,6 +521,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
   }
 
   public unlink(p: string, cb: (err: ApiError) => void): void {
+    this.checkInitialized();
     this.exists(p, (exists: boolean) => {
       if (!exists)
         return cb(ApiError.ENOENT(p));
@@ -563,6 +567,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
   }
 
   public rmdir(p: string, cb: (err?: ApiError) => void): void {
+    this.checkInitialized();
 
     let rmdirLower = (): void => {
       this.readdir(p, (err: ApiError, files: string[]): void => {
@@ -626,6 +631,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
   }
 
   public mkdir(p: string, mode: number, cb: (err: ApiError, stat?: Stats) => void): void {
+    this.checkInitialized();
     this.exists(p, (exists: boolean) => {
       if (exists) {
         return cb(ApiError.EEXIST(p));
@@ -655,6 +661,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
   }
 
   public readdir(p: string, cb: (error: ApiError, files?: string[]) => void): void {
+    this.checkInitialized();
     this.stat(p, false, (err: ApiError, dirStats?: Stats) => {
       if (err) {
         return cb(err);
@@ -719,6 +726,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
   }
 
   public exists(p: string, cb: (exists: boolean) => void): void {
+    this.checkInitialized();
     this._writable.exists(p, (existsWritable: boolean) => {
       if (existsWritable) {
         return cb(true);
@@ -736,6 +744,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
   }
 
   public chmod(p: string, isLchmod: boolean, mode: number, cb: (error?: ApiError) => void): void {
+    this.checkInitialized();
     this.operateOnWritableAsync(p, (err?: ApiError) => {
       if (err) {
         return cb(err);
@@ -753,6 +762,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
   }
 
   public chown(p: string, isLchmod: boolean, uid: number, gid: number, cb: (error?: ApiError) => void): void {
+    this.checkInitialized();
     this.operateOnWritableAsync(p, (err?: ApiError) => {
       if (err) {
         return cb(err);
@@ -770,6 +780,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
   }
 
   public utimes(p: string, atime: Date, mtime: Date, cb: (error?: ApiError) => void): void {
+    this.checkInitialized();
     this.operateOnWritableAsync(p, (err?: ApiError) => {
       if (err) {
         return cb(err);
