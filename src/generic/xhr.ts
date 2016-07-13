@@ -220,7 +220,7 @@ function getFileSize(async: boolean, p: string, cb: (err: ApiError, size?: numbe
     if (req.readyState === 4) {
       if (req.status == 200) {
         try {
-          return cb(null, parseInt(req.getResponseHeader('Content-Length'), 10));
+          return cb(null, parseInt(req.getResponseHeader('Content-Length') || '-1', 10));
         } catch(e) {
           // In the event that the header isn't present or there is an error...
           return cb(new ApiError(ErrorCode.EIO, "XHR HEAD error: Could not read content-length."));
