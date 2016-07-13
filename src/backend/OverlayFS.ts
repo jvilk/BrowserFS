@@ -93,7 +93,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
     };
   }
 
-  private createParentDirectoriesAsync(p: string, cb: ()=>void): void {
+  private createParentDirectoriesAsync(p: string, cb: (err?: ApiError)=>void): void {
     let parent = path.dirname(p)
     let toCreate: string[] = [];
     let _this = this;
@@ -110,20 +110,21 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
     }
 
     function createParents(): void {
-      if (!toCreate.length)
+      if (!toCreate.length) {
         return cb();
+      }
 
       let dir = toCreate.pop();
       _this._readable.stat(dir, false, (err: ApiError, stats?: Stats) => {
         // stop if we couldn't read the dir
-        if (!stats)
+        if (!stats) {
           return cb();
+        }
 
-        // FIXME: get correct permissions
         _this._writable.mkdir(dir, stats.mode, (err?: ApiError) => {
-          // FIXME: better error handling
-          if (err)
-            throw err;
+          if (err) {
+            return cb(err);
+          }
           createParents();
         });
       });
@@ -152,7 +153,10 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
   }
 
   public _syncAsync(file: PreloadFile<UnlockedOverlayFS>, cb: (err: ApiError)=>void): void {
-    this.createParentDirectoriesAsync(file.getPath(), () => {
+    this.createParentDirectoriesAsync(file.getPath(), (err?: ApiError) => {
+      if (err) {
+        return cb(err);
+      }
       this._writable.writeFile(file.getPath(), file.getBuffer(), null, getFlag('w'), file.getStats().mode, cb);
     });
   }
@@ -421,7 +425,10 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
       if (stats) {
         switch (flag.pathExistsAction()) {
         case ActionType.TRUNCATE_FILE:
-          return this.createParentDirectoriesAsync(p, ()=> {
+          return this.createParentDirectoriesAsync(p, (err?: ApiError)=> {
+            if (err) {
+              return cb(err);
+            }
             this._writable.open(p, flag, mode, cb);
           });
         case ActionType.NOP:
@@ -449,7 +456,10 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
       } else {
         switch(flag.pathNotExistsAction()) {
         case ActionType.CREATE_FILE:
-          return this.createParentDirectoriesAsync(p, () => {
+          return this.createParentDirectoriesAsync(p, (err?: ApiError) => {
+            if (err) {
+              return cb(err);
+            }
             return this._writable.open(p, flag, mode, cb);
           });
         default:
@@ -593,12 +603,16 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
 
   public mkdir(p: string, mode: number, cb: (err: ApiError, stat?: Stats) => void): void {
     this.exists(p, (exists: boolean) => {
-      if (exists)
+      if (exists) {
         return cb(ApiError.EEXIST(p));
+      }
 
       // The below will throw should any of the parent directories
       // fail to exist on _writable.
-      this.createParentDirectoriesAsync(p, () => {
+      this.createParentDirectoriesAsync(p, (err: ApiError) => {
+        if (err) {
+          return cb(err);
+        }
         this._writable.mkdir(p, mode, cb);
       });
     });
