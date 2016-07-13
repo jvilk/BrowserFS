@@ -68,7 +68,6 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
   private _initializeCallbacks: ((e?: ApiError) => void)[] = [];
   private _deletedFiles: {[path: string]: boolean} = {};
   private _deleteLog: File = null;
-  private _isAsync: boolean;
 
   constructor(writable: file_system.FileSystem, readable: file_system.FileSystem) {
     super();
@@ -77,7 +76,6 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
     if (this._writable.isReadOnly()) {
       throw new ApiError(ErrorCode.EINVAL, "Writable file system must be writable.");
     }
-    this._isAsync = !this._writable.supportsSynch() || !this._readable.supportsSynch();
   }
 
   private checkInitialized(): void {
@@ -219,7 +217,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
   }
 
   public isReadOnly(): boolean { return false; }
-  public supportsSynch(): boolean { return true; }
+  public supportsSynch(): boolean { return this._readable.supportsSynch() && this._writable.supportsSynch(); }
   public supportsLinks(): boolean { return false; }
   public supportsProps(): boolean { return this._readable.supportsProps() && this._writable.supportsProps(); }
 
