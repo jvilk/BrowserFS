@@ -1,4 +1,4 @@
-import {Mutex} from './mutex';
+import Mutex from './mutex';
 import {FileSystem, SynchronousFileSystem} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
@@ -6,7 +6,7 @@ import {default as Stats, FileType} from '../core/node_fs_stats';
 import {File} from '../core/file';
 
 // TODO: also implement LockedFile to ensure that operations on files
-// also grab the appropriate locks.
+// also grab the appropriate locks?.
 /*
 export LockedFile<T extends File> implements File {
   private _file: File;

@@ -2,7 +2,7 @@
 declare var setImmediate: (cb: Function) => void;
 
 /// non-recursive mutex
-export class Mutex {
+export default class Mutex {
   private _locked: boolean = false;
   private _waiters: Function[] = [];
 
