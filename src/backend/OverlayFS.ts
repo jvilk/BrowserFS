@@ -436,6 +436,8 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
               this._readable.readFile(p, null, getFlag('r'), (readFileErr: ApiError, data?: any) => {
                 if (readFileErr)
                   return cb(readFileErr);
+                if (stats.size === -1)
+                  stats.size = data.length;
                 let f = new OverlayFile(this, p, flag, stats, data);
                 cb(null, f);
               });
