@@ -1,4 +1,4 @@
-import file_system = require('../core/file_system');
+import {FileSystem, BaseFileSystem} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
 import util = require('../core/util');
@@ -61,15 +61,15 @@ class OverlayFile extends PreloadFile<UnlockedOverlayFS> implements File {
  * writable file system. Deletes are persisted via metadata stored on the writable
  * file system.
  */
-export class UnlockedOverlayFS extends file_system.SynchronousFileSystem implements file_system.FileSystem {
-  private _writable: file_system.FileSystem;
-  private _readable: file_system.FileSystem;
+export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
+  private _writable: FileSystem;
+  private _readable: FileSystem;
   private _isInitialized: boolean = false;
   private _initializeCallbacks: ((e?: ApiError) => void)[] = [];
   private _deletedFiles: {[path: string]: boolean} = {};
   private _deleteLog: File = null;
 
-  constructor(writable: file_system.FileSystem, readable: file_system.FileSystem) {
+  constructor(writable: FileSystem, readable: FileSystem) {
     super();
     this._writable = writable;
     this._readable = readable;
@@ -84,7 +84,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
     }
   }
 
-  public getOverlayedFileSystems(): { readable: file_system.FileSystem; writable: file_system.FileSystem; } {
+  public getOverlayedFileSystems(): { readable: FileSystem; writable: FileSystem; } {
     return {
       readable: this._readable,
       writable: this._writable
@@ -867,7 +867,7 @@ export class UnlockedOverlayFS extends file_system.SynchronousFileSystem impleme
 }
 
 export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
-	constructor(writable: file_system.FileSystem, readable: file_system.FileSystem) {
+	constructor(writable: FileSystem, readable: FileSystem) {
 		super(UnlockedOverlayFS, writable, readable);
 	}
 
@@ -879,7 +879,7 @@ export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
 		return UnlockedOverlayFS.isAvailable();
 	}
 
-	getOverlayedFileSystems(): { readable: file_system.FileSystem; writable: file_system.FileSystem; } {
+	getOverlayedFileSystems(): { readable: FileSystem; writable: FileSystem; } {
 		return super.getFSUnlocked().getOverlayedFileSystems();
 	}
 }
