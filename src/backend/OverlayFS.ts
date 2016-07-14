@@ -868,7 +868,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 
 export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
 	constructor(writable: FileSystem, readable: FileSystem) {
-		super(UnlockedOverlayFS, writable, readable);
+		super(new UnlockedOverlayFS(writable, readable));
 	}
 
 	initialize(cb: (err?: ApiError) => void): void {

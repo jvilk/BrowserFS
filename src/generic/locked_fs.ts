@@ -72,8 +72,8 @@ export class LockedFS<T extends FileSystem> implements FileSystem {
   private _fs: T;
   private _mu: Mutex;
 
-  constructor(cls: {new(...args: any[]): T}, ...args: any[]) {
-    this._fs = new (Function.prototype.bind.apply(cls, [null].concat(args)));
+  constructor(fs: T) {
+    this._fs = fs;
     this._mu = new Mutex();
   }
 
