@@ -5,7 +5,7 @@ import util = require('../core/util');
 import {File} from '../core/file';
 import {default as Stats, FileType} from '../core/node_fs_stats';
 import {PreloadFile} from '../generic/preload_file';
-import {LockedFS} from '../generic/locked_fs';
+import LockedFS from '../generic/locked_fs';
 import path = require('path');
 let deletionLogPath = '/.deletedFiles.log';
 

@@ -68,7 +68,7 @@ export LockedFile<T extends File> implements File {
 /// are not executed in a single atomic step.  OverlayFS uses this
 /// LockedFS to avoid having to reason about the correctness of
 /// multiple requests interleaving.
-export class LockedFS<T extends FileSystem> implements FileSystem {
+export default class LockedFS<T extends FileSystem> implements FileSystem {
   private _fs: T;
   private _mu: Mutex;
 
