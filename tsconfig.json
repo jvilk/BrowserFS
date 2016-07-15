@@ -42,6 +42,8 @@
         "src/generic/key_value_filesystem.ts",
         "src/generic/preload_file.ts",
         "src/generic/xhr.ts",
+        "src/generic/mutex.ts",
+        "src/generic/locked_fs.ts",
         "test/harness/BackendFactory.ts",
         "test/harness/run.ts",
         "test/harness/common.ts",

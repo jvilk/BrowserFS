@@ -4,6 +4,7 @@ import file_flag = require('../core/file_flag');
 import file = require('../core/file');
 import Stats from '../core/node_fs_stats';
 import preload_file = require('../generic/preload_file');
+import * as path from 'path';
 
 interface IAsyncOperation {
 	apiMethod: string;
@@ -106,7 +107,7 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
                 if (err) {
                   cb(err);
                 } else if (i < files.length) {
-                  copyItem(`${p}/${files[i]}`, copyNextFile);
+                  copyItem(path.join(p, files[i]), copyNextFile);
                   i++;
                 } else {
                   cb();
