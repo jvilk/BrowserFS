@@ -22,7 +22,6 @@ BrowserFS is highly extensible, and ships with many filesystem backends:
 * `WorkerFS`: Lets you mount the BrowserFS file system configured in the main thread in a WebWorker, or the other way around!
 * `MountableFileSystem`: Lets you mount multiple file systems into a single directory hierarchy, as in *nix-based OSes.
 * `OverlayFS`: Mount a read-only file system as read-write by overlaying a writable file system on top of it. Like Docker's overlayfs, it will only write changed files to the writable file system.
-  * Note: Does not support asynchronous file systems at the moment. Wrap them in `AsyncMirrorFS` first.
 * `AsyncMirrorFS`: Use an asynchronous backend synchronously. Invaluable for Emscripten; let your Emscripten applications write to larger file stores with no additional effort!
   * Note: Loads the entire contents of the file system into a synchronous backend during construction. Performs synchronous operations in-memory, and enqueues them to be mirrored onto the asynchronous backend.
 * `FolderAdapter`: Wraps a file system, and scopes all interactions to a subfolder of that file system.
