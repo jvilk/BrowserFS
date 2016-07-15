@@ -5,61 +5,6 @@ import {FileFlag, ActionType} from '../core/file_flag';
 import {default as Stats, FileType} from '../core/node_fs_stats';
 import {File} from '../core/file';
 
-// TODO: also implement LockedFile to ensure that operations on files
-// also grab the appropriate locks?.
-/*
-export LockedFile<T extends File> implements File {
-  private _file: File;
-  private _mu: Mutex;
-
-  constructor(mu: Mutex, f: File) {
-    this._file = f;
-    this._mu = mu;
-  }
-
-  getPos(): number;
-
-  stat(cb: (err: ApiError, stats?: Stats) => any): void;
-
-  statSync(): Stats;
-
-  close(cb: Function): void;
-
-  closeSync(): void;
-
-  truncate(len: number, cb: Function): void;
-
-  truncateSync(len: number): void;
-
-  sync(cb: (e?: ApiError) => void): void;
-
-  syncSync(): void;
-
-  write(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (err: ApiError, written?: number, buffer?: NodeBuffer) => any): void;
-
-  writeSync(buffer: NodeBuffer, offset: number, length: number, position: number): number;
-
-  read(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (err: ApiError, bytesRead?: number, buffer?: NodeBuffer) => void): void;
-
-  readSync(buffer: NodeBuffer, offset: number, length: number, position: number): number;
-
-  datasync(cb: (e?: ApiError) => void): void;
-
-  datasyncSync(): void;
-
-  chown(uid: number, gid: number, cb: (e?: ApiError) => void): void;
-
-  chownSync(uid: number, gid: number): void;
-
-  chmod(mode: number, cb: (e?: ApiError) => void): void;
-
-  chmodSync(mode: number): void;
-
-  utimes(atime: Date, mtime: Date, cb: (e?: ApiError) => void): void;
-
-  utimesSync(atime: Date, mtime: Date): void;
-}
-*/
 
 /// This class serializes access to an underlying async filesystem.
 /// For example, on an OverlayFS instance with an async lower
