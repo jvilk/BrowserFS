@@ -567,9 +567,10 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
             return this._writable.openSync(p, flag, mode);
           } else {
             // Create an OverlayFile.
+            var buf = this._readable.readFileSync(p, null, getFlag('r'));
             var stats = this._readable.statSync(p, false).clone();
             stats.mode = mode;
-            return new OverlayFile(this, p, flag, stats, this._readable.readFileSync(p, null, getFlag('r')));
+            return new OverlayFile(this, p, flag, stats, buf);
           }
         default:
           throw ApiError.EEXIST(p);
