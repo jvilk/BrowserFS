@@ -136,7 +136,7 @@ function setupBFS() {
 
 Note: Do **NOT** use `BrowserFS.install(window)` on a page with an Emscripten application! Emscripten will be tricked into thinking that it is running in Node JS.
 
-If you wish to use an asynchronous BrowserFS backend with Emscripten (e.g. Dropbox), you'll need to wrap it into an `AsyncMirrorFS` first:
+If you wish to use an asynchronous BrowserFS backend with Emscripten (e.g. Dropbox), you'll need to wrap it into an `AsyncMirror` file system first:
 
 ```javascript
 /**
@@ -146,13 +146,13 @@ If you wish to use an asynchronous BrowserFS backend with Emscripten (e.g. Dropb
 function asyncSetup(dropboxClient, cb) {
   var dbfs = new BrowserFS.FileSystem.Dropbox(dropboxClient);
   // Wrap in AsyncMirrorFS.
-  var asyncMirror = new BrowserFS.FileSystem.AsyncMirrorFS(
+  var asyncMirror = new BrowserFS.FileSystem.AsyncMirror(
     new BrowserFS.FileSystem.InMemory(), dbfs);
 
   // Downloads the entire contents of the Dropbox backend into memory.
   // You'll probably want to use an app folder, and check that you
   // aren't pulling in a huge amount of data here.
-  asyncMirror.initialize((err?) => {
+  asyncMirror.initialize(function(err) {
     // Initialize it as the root file system.
     BrowserFS.initialize(asyncMirror);
     // BFS is ready for Emscripten!
