@@ -16,6 +16,7 @@
         "src/main.ts",
         "src/backend/AsyncMirror.ts",
         "src/backend/Dropbox.ts",
+        "src/backend/Emscripten.ts",
         "src/backend/FolderAdapter.ts",
         "src/backend/HTML5FS.ts",
         "src/backend/InMemory.ts",
