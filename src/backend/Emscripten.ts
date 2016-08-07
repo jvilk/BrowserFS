@@ -123,8 +123,6 @@ export default class EmscriptenFileSystem extends file_system.SynchronousFileSys
   }
 
   public _syncSync(p: string, data: NodeBuffer, stats: Stats): void {
-    // @todo Ensure mtime updates properly, and use that to determine if a data
-    //       update is required.
 		const abuffer = new ArrayBuffer(data.length);
 		const view = new Uint8Array(abuffer);
 		let i = 0;
@@ -133,5 +131,8 @@ export default class EmscriptenFileSystem extends file_system.SynchronousFileSys
 			i++;
     }
     this._FS.writeFile(p, view, {encoding: 'binary'});
+    this.chmodSync(p, false, stats.mode);
+    this.chownSync(p, false, stats.uid, stats.gid);
+    this._FS.utime(p, stats.atime, stats.mtime);
   }
 }
