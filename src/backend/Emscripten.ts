@@ -123,12 +123,12 @@ export default class EmscriptenFileSystem extends file_system.SynchronousFileSys
   }
 
   public _syncSync(p: string, data: NodeBuffer, stats: Stats): void {
-		const abuffer = new ArrayBuffer(data.length);
-		const view = new Uint8Array(abuffer);
-		let i = 0;
-		while(i < data.length) {
-			view[i] = data.readUInt8(i);
-			i++;
+    const abuffer = new ArrayBuffer(data.length);
+    const view = new Uint8Array(abuffer);
+    let i = 0;
+    while(i < data.length) {
+      view[i] = data.readUInt8(i);
+      i++;
     }
     this._FS.writeFile(p, view, {encoding: 'binary'});
     this.chmodSync(p, false, stats.mode);
