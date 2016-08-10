@@ -150,7 +150,7 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
 
   private checkInitialized(): void {
     if (!this._isInitialized) {
-      throw new ApiError(ErrorCode.EPERM, "OverlayFS is not initialized. Please initialize OverlayFS using its initialize() method before using it.");
+      throw new ApiError(ErrorCode.EPERM, "AsyncMirrorFS is not initialized. Please initialize AsyncMirrorFS using its initialize() method before using it.");
     }
   }
 
