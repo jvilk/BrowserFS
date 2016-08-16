@@ -52,7 +52,7 @@ import file = require('../core/file');
 import {FileFlag, ActionType} from '../core/file_flag';
 import preload_file = require('../generic/preload_file');
 import {Arrayish, buffer2Arrayish, arrayish2Buffer, copyingSlice} from '../core/util';
-import ExtendedASCII from 'bfs-buffer/js/extended_ascii';
+import ExtendedASCII from '../generic/extended_ascii';
 var inflateRaw: {
   (data: Arrayish<number>, options?: {
     chunkSize: number;

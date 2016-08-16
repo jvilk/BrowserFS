@@ -25,12 +25,12 @@
   "devDependencies": {
     "aliasify": "^1.9.0",
     "archiver": "^0.21.0",
-    "bfs-buffer": "^0.1.7",
     "bfs-path": "^0.1.2",
     "bfs-process": "^0.1.6",
     "browserify": "^13.0.0",
     "browserify-derequire": "~0.9.4",
     "browserify-shim": "^3.8.12",
+    "buffer": "^4.9.0",
     "coffee-script": "^1.10.0",
     "detect-browsers": "^2.0.0",
     "dropbox": "^0.10.3",

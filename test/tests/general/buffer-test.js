@@ -172,20 +172,22 @@ module.exports = function() {
 
   /**
    * Testing extended ASCII support.
+   * TODO: Test explicitly on ExtendedAscii class, since we no longer
+   * use our own buffer implementation.
    */
   // Write as UTF-8, read as ASCII/Extended ASCII. Boundary condition.
-  buff.write("Hello" + String.fromCharCode(0x7F) + "World");
+  /*buff.write("Hello" + String.fromCharCode(0x7F) + "World");
   assert(buff.toString('ascii', 0, 11) === buff.toString('extended_ascii', 0, 11));
   buff.write('\u00A6', 0, 1, 'extended_ascii');
   assert(buff.toString('ascii', 0, 1) !== buff.toString('extended_ascii', 0, 1));
   assert(buff.toString('ascii', 0, 1) !== '\u00A6');
-  assert(buff.toString('extended_ascii', 0, 1) === '\u00A6');
+  assert(buff.toString('extended_ascii', 0, 1) === '\u00A6');*/
 
   /**
    * Array setter accepts signed numbers.
    */
-  buff.set(0, -5);
-  assert(buff.get(0) === 251);
+  buff[0] = -5;
+  assert(buff[0] === 251);
 
   /**
    * Copying to/from buffers that are slices.

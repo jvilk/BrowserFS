@@ -5,7 +5,6 @@ import BackendFactory from './BackendFactory';
 import {eachSeries as asyncEachSeries} from 'async';
 import assert = require('./wrapped-assert');
 const loadFixtures = require('../fixtures/load_fixtures');
-const BFSBuffer = (<any> require('bfs-buffer')).Buffer;
 
 declare var __numWaiting: number;
 declare var __karma__: any;
@@ -102,24 +101,16 @@ export default function(tests: {
       describe('General Tests', (): void => {
         var genericTests = tests.general, testName: string;
         __numWaiting = 0;
-        var pcb = BFSBuffer.getPreferredBufferCore();
-        // Test each available buffer core type!
-        BFSBuffer.getAvailableBufferCores().forEach((bci) => {
-          for (testName in genericTests) {
-            if (genericTests.hasOwnProperty(testName)) {
-              // Capture testName in a closure.
-              ((testName: string) => {
-                generateTest(`${testName} [${bci.bufferType}]`, () => {
-                  BFSBuffer.setPreferredBufferCore(bci);
-                  genericTests[testName]();
-                }, () => {
-                  // Restore the previous preferred core.
-                  BFSBuffer.setPreferredBufferCore(pcb);
-                });
-              })(testName);
-            }
+        for (testName in genericTests) {
+          if (genericTests.hasOwnProperty(testName)) {
+            // Capture testName in a closure.
+            ((testName: string) => {
+              generateTest(testName, () => {
+                genericTests[testName]();
+              });
+            })(testName);
           }
-        });
+        }
       });
 
       describe('FS Tests', (): void => {

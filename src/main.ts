@@ -291,9 +291,8 @@ if (!Array.prototype.map) {
  * This is harmless to inject into non-IE browsers.
  */
 if (typeof(document) !== 'undefined' && typeof(window) !== 'undefined' && (<any> window)['chrome'] === undefined) {
-  document.write("<!-- IEBinaryToArray_ByteStr -->\r\n"+
-    "<script type='text/vbscript'>\r\n"+
-    "Function IEBinaryToArray_ByteStr(Binary)\r\n"+
+  // Explicitly use Windows-style line endings.
+  const VBFunction = "Function IEBinaryToArray_ByteStr(Binary)\r\n"+
     " IEBinaryToArray_ByteStr = CStr(Binary)\r\n"+
     "End Function\r\n"+
     "Function IEBinaryToArray_ByteStr_Last(Binary)\r\n"+
@@ -304,8 +303,17 @@ if (typeof(document) !== 'undefined' && typeof(window) !== 'undefined' && (<any>
     " Else\r\n"+
     " IEBinaryToArray_ByteStr_Last = "+'""'+"\r\n"+
     " End If\r\n"+
-    "End Function\r\n"+
-    "</script>\r\n");
+    "End Function\r\n";
+  if (document.readyState === 'loading') {
+    // Inject script into page while loading.
+    document.write("<script type='text/vbscript'>\r\n" + VBFunction + "</script>\r\n");
+  } else {
+    // Add script to HEAD after loaded.
+    const scriptElement = document.createElement('script');
+    scriptElement.type = "text/vbscript";
+    scriptElement.innerHTML = VBFunction;
+    document.head.appendChild(scriptElement);
+  }
 }
 
 import bfs = require('./core/browserfs');

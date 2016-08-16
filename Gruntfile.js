@@ -5,12 +5,12 @@ var fs = require('fs'),
   browserifyConfig = {
     // Note: Cannot use "bare" here. That's a command-line-only switch.
     builtins: _.extend({}, require('browserify/lib/builtins'), {
-        "buffer": require.resolve('bfs-buffer'),
+        "buffer": path.resolve(__dirname, 'node_modules', 'buffer', 'index.js'),
         "path": require.resolve("bfs-path")
     }),
     insertGlobalVars: {
         "RELEASE": function() { return "false"; },
-        "Buffer": function() { return "require('bfs-buffer').Buffer" },
+        "Buffer": function() { return "require('buffer').Buffer" },
         "process": function () { return "require('bfs-process')" }
     },
     detectGlobals: true,
@@ -43,10 +43,6 @@ var fs = require('fs'),
     return arr.indexOf(name) === index && arr.indexOf(' ') === -1;
   });
 
-if (karmaBrowsers.indexOf('IE') !== -1) {
-  karmaBrowsers.push('IE9', 'IE8');
-}
-
 var karmaConfig = {
     // base path, that will be used to resolve files and exclude
     basePath: '.',
@@ -59,16 +55,6 @@ var karmaConfig = {
     colors: true,
     logLevel: 'INFO',
     autoWatch: true,
-    customLaunchers: {
-      IE9: {
-        base: 'IE',
-        'x-ua-compatible': 'IE=EmulateIE9'
-      },
-      IE8: {
-        base: 'IE',
-        'x-ua-compatible': 'IE=EmulateIE8'
-      }
-    },
     browsers: karmaBrowsers,
     captureTimeout: 60000,
     // Avoid hardcoding and cross-origin issues.

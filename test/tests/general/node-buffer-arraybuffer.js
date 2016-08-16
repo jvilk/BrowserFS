@@ -6,7 +6,7 @@ module.exports = function() {
     // This browser doesn't support ArrayBuffers.
     return;
   }
-  
+
   var LENGTH = 16,
     ab = new ArrayBuffer(LENGTH),
     dv = new DataView(ab),
@@ -27,7 +27,7 @@ module.exports = function() {
   for (var i = 0; i < LENGTH; i++) {
     assert.equal(ui[i], 0xC);
     ui[i] = 0xF;
-    assert.equal(buf.get(i), 0xF);
+    assert.equal(buf[i], 0xF);
   }
 
   buf.writeUInt32LE(0xF00, 0);
