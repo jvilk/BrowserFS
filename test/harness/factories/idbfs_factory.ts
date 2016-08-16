@@ -1,8 +1,8 @@
 import IndexedDBFileSystem from '../../../src/backend/IndexedDB';
-import BackendFactory = require('../BackendFactory');
-import file_system = require('../../../src/core/file_system');
+import BackendFactory from '../BackendFactory';
+import {FileSystem} from '../../../src/core/file_system';
 
-function IDBFSFactory(cb: (name: string, obj: file_system.FileSystem[]) => void): void {
+export default function IDBFSFactory(cb: (name: string, obj: FileSystem[]) => void): void {
   if (IndexedDBFileSystem.isAvailable()) {
     new IndexedDBFileSystem((e, idbfs?) => {
       if (e) {
@@ -24,4 +24,3 @@ function IDBFSFactory(cb: (name: string, obj: file_system.FileSystem[]) => void)
 
 var _: BackendFactory = IDBFSFactory;
 
-export = IDBFSFactory;

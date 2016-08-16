@@ -11,7 +11,7 @@
  */
 import BrowserFS = require('../core/browserfs');
 import FS from '../core/FS';
-import fs = require('../core/node_fs');
+import * as fs from '../core/node_fs';
 import NodeStats from '../core/node_fs_stats';
 import {uint8Array2Buffer} from '../core/util';
 

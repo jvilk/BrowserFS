@@ -1,5 +1,4 @@
-import fs = require('fs');
-import file = require('./file');
+import * as fs from 'fs';
 
 /**
  * Indicates the type of the given file. Applied to 'mode'.
@@ -43,7 +42,7 @@ export default class Stats implements fs.Stats {
   // time file was created (currently unsupported)
   public birthtime: Date = new Date(0);
   // XXX: Some file systems stash data on stats objects.
-  public file_data: NodeBuffer = null;
+  public file_data: Buffer = null;
 
   /**
    * Provides information about a particular entry in the file system.

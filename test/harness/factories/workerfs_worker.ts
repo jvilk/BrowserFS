@@ -1,7 +1,7 @@
-/// <reference path="../../../typings/main.d.ts" />
-import BrowserFS = require("../../../src/main");
+/// <reference path="../../../typings/index.d.ts" />
+import * as BrowserFS from "../../../src/main";
 import WorkerFS from "../../../src/backend/WorkerFS";
-import inmemfs_factory = require('./inmemory_factory');
+import inmemfs_factory from './inmemory_factory';
 
 // Construct an in-memory file system,
 inmemfs_factory((name, objs) => {

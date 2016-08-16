@@ -432,18 +432,22 @@ module.exports = function(grunt) {
     testsStringified = JSON.stringify(tests).replace(/:\"require\('([^)]*)'\)\"/g, ":require('$1')");
     // Remove { }.
     testsStringified = testsStringified.slice(1, testsStringified.length - 1);
+    var factoryList = [];
     factoryStringified = fs.readdirSync('test/harness/factories')
       .filter(function(file) {
         return file.slice(file.length-11) === "_factory.ts";
       })
       .map(function(file) {
-        return "require('./factories/" + file + "')";
-      }).join(', ');
+        var name = file.slice(0, file.length - 11);
+        factoryList.push(name);
+        return "import " + name + " from './factories/" + file + "';";
+      }).join('\n');
 
     fs.writeFileSync('test/harness/run.ts',
       fs.readFileSync('test/harness/run.tstemplate')
         .toString()
-        .replace(/\/\*FACTORIES\*\//g, factoryStringified)
+        .replace(/\/\*FACTORY_IMPORTS\*\//g, factoryStringified)
+        .replace(/\/\*FACTORIES\*\//g, factoryList.join(", "))
         .replace(/\/\*TESTS\*\//g, testsStringified), 'utf8'
     );
   });

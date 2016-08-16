@@ -1,9 +1,9 @@
-import BackendFactory = require('../BackendFactory');
+import BackendFactory from '../BackendFactory';
 import {FileSystem} from '../../../src/core/file_system';
 import InMemoryFileSystem from '../../../src/backend/InMemory';
 import FolderAdapter from '../../../src/backend/FolderAdapter';
 
-function FolderAdapterFactory(cb: (name: string, obj: FileSystem[]) => void): void {
+export default function FolderAdapterFactory(cb: (name: string, obj: FileSystem[]) => void): void {
   let fa = new FolderAdapter('/home', new InMemoryFileSystem());
   fa.initialize((err) => {
     if (!err) {
@@ -16,5 +16,3 @@ function FolderAdapterFactory(cb: (name: string, obj: FileSystem[]) => void): vo
 
 // Typecheck;
 var _: BackendFactory = FolderAdapterFactory;
-
-export = FolderAdapterFactory;

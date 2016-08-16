@@ -2,10 +2,10 @@ import {File} from './file';
 import {ApiError, ErrorCode} from './api_error';
 import file_system = require('./file_system');
 import {FileFlag} from './file_flag';
-import path = require('path');
+import * as path from 'path';
 import Stats from './node_fs_stats';
 // Typing info only.
-import _fs = require('fs');
+import * as _fs from 'fs';
 
 declare var __numWaiting: number;
 
@@ -1460,7 +1460,7 @@ export default class FS {
 }
 
 // Type checking.
-var _: typeof _fs = new FS();
+// var _: typeof _fs = new FS();
 
 export interface FSModule extends FS {
   /**

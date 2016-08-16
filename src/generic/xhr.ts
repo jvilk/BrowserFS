@@ -3,7 +3,7 @@
  * XmlHttpRequest across browsers.
  */
 
-import util = require('../core/util');
+import {isIE} from '../core/util';
 import {ApiError, ErrorCode} from '../core/api_error';
 
 // See core/polyfills for the VBScript definition of these functions.
@@ -57,14 +57,14 @@ function downloadFileIE(async: boolean, p: string, type: string, cb: (err: ApiEr
   req.send();
 }
 
-function asyncDownloadFileIE(p: string, type: 'buffer', cb: (err: ApiError, data?: NodeBuffer) => void): void;
+function asyncDownloadFileIE(p: string, type: 'buffer', cb: (err: ApiError, data?: Buffer) => void): void;
 function asyncDownloadFileIE(p: string, type: 'json', cb: (err: ApiError, data?: any) => void): void;
 function asyncDownloadFileIE(p: string, type: string, cb: (err: ApiError, data?: any) => void): void;
 function asyncDownloadFileIE(p: string, type: string, cb: (err: ApiError, data?: any) => void): void {
   downloadFileIE(true, p, type, cb);
 }
 
-function syncDownloadFileIE(p: string, type: 'buffer'): NodeBuffer;
+function syncDownloadFileIE(p: string, type: 'buffer'): Buffer;
 function syncDownloadFileIE(p: string, type: 'json'): any;
 function syncDownloadFileIE(p: string, type: string): any;
 function syncDownloadFileIE(p: string, type: string): any {
@@ -76,7 +76,7 @@ function syncDownloadFileIE(p: string, type: string): any {
   return rv;
 }
 
-function asyncDownloadFileModern(p: string, type: 'buffer', cb: (err: ApiError, data?: NodeBuffer) => void): void;
+function asyncDownloadFileModern(p: string, type: 'buffer', cb: (err: ApiError, data?: Buffer) => void): void;
 function asyncDownloadFileModern(p: string, type: 'json', cb: (err: ApiError, data?: any) => void): void;
 function asyncDownloadFileModern(p: string, type: string, cb: (err: ApiError, data?: any) => void): void;
 function asyncDownloadFileModern(p: string, type: string, cb: (err: ApiError, data?: any) => void): void {
@@ -123,7 +123,7 @@ function asyncDownloadFileModern(p: string, type: string, cb: (err: ApiError, da
   req.send();
 }
 
-function syncDownloadFileModern(p: string, type: 'buffer'): NodeBuffer;
+function syncDownloadFileModern(p: string, type: 'buffer'): Buffer;
 function syncDownloadFileModern(p: string, type: 'json'): any;
 function syncDownloadFileModern(p: string, type: string): any;
 function syncDownloadFileModern(p: string, type: string): any {
@@ -172,7 +172,7 @@ function syncDownloadFileModern(p: string, type: string): any {
  * IE10 allows us to perform synchronous binary file downloads.
  * @todo Feature detect this, as older versions of FF/Chrome do too!
  */
-function syncDownloadFileIE10(p: string, type: 'buffer'): NodeBuffer;
+function syncDownloadFileIE10(p: string, type: 'buffer'): Buffer;
 function syncDownloadFileIE10(p: string, type: 'json'): any;
 function syncDownloadFileIE10(p: string, type: string): any;
 function syncDownloadFileIE10(p: string, type: string): any {
@@ -240,10 +240,10 @@ function getFileSize(async: boolean, p: string, cb: (err: ApiError, size?: numbe
  * constants.
  */
 export var asyncDownloadFile: {
-  (p: string, type: 'buffer', cb: (err: ApiError, data?: NodeBuffer) => void): void;
+  (p: string, type: 'buffer', cb: (err: ApiError, data?: Buffer) => void): void;
   (p: string, type: 'json', cb: (err: ApiError, data?: any) => void): void;
   (p: string, type: string, cb: (err: ApiError, data?: any) => void): void;
-} = (util.isIE && typeof Blob === 'undefined') ? asyncDownloadFileIE : asyncDownloadFileModern;
+} = (isIE && typeof Blob === 'undefined') ? asyncDownloadFileIE : asyncDownloadFileModern;
 
 /**
  * Synchronously download a file as a buffer or a JSON object.
@@ -252,10 +252,10 @@ export var asyncDownloadFile: {
  * constants.
  */
 export var syncDownloadFile: {
-  (p: string, type: 'buffer'): NodeBuffer;
+  (p: string, type: 'buffer'): Buffer;
   (p: string, type: 'json'): any;
   (p: string, type: string): any;
-} = (util.isIE && typeof Blob === 'undefined') ? syncDownloadFileIE : (util.isIE && typeof Blob !== 'undefined') ? syncDownloadFileIE10 : syncDownloadFileModern;
+} = (isIE && typeof Blob === 'undefined') ? syncDownloadFileIE : (isIE && typeof Blob !== 'undefined') ? syncDownloadFileIE10 : syncDownloadFileModern;
 
 /**
  * Synchronously retrieves the size of the given file in bytes.

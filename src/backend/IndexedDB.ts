@@ -1,11 +1,11 @@
-import kvfs = require('../generic/key_value_filesystem');
+import {AsyncKeyValueROTransaction, AsyncKeyValueRWTransaction, AsyncKeyValueStore, AsyncKeyValueFileSystem} from '../generic/key_value_filesystem';
 import {ApiError, ErrorCode} from '../core/api_error';
-import global = require('../core/global');
+import global from '../core/global';
 import {arrayBuffer2Buffer, buffer2ArrayBuffer} from '../core/util';
 /**
  * Get the indexedDB constructor for the current browser.
  */
-var indexedDB: IDBFactory = global.indexedDB ||
+const indexedDB: IDBFactory = global.indexedDB ||
                           (<any>global).mozIndexedDB ||
                           (<any>global).webkitIndexedDB ||
                           global.msIndexedDB;
@@ -40,10 +40,10 @@ function onErrorHandler(cb: (e: ApiError) => void,
   };
 }
 
-export class IndexedDBROTransaction implements kvfs.AsyncKeyValueROTransaction {
+export class IndexedDBROTransaction implements AsyncKeyValueROTransaction {
   constructor(public tx: IDBTransaction, public store: IDBObjectStore) { }
 
-  get(key: string, cb: (e: ApiError, data?: NodeBuffer) => void): void {
+  get(key: string, cb: (e: ApiError, data?: Buffer) => void): void {
     try {
       var r: IDBRequest = this.store.get(key);
       r.onerror = onErrorHandler(cb);
@@ -64,12 +64,12 @@ export class IndexedDBROTransaction implements kvfs.AsyncKeyValueROTransaction {
   }
 }
 
-export class IndexedDBRWTransaction extends IndexedDBROTransaction implements kvfs.AsyncKeyValueRWTransaction, kvfs.AsyncKeyValueROTransaction {
+export class IndexedDBRWTransaction extends IndexedDBROTransaction implements AsyncKeyValueRWTransaction, AsyncKeyValueROTransaction {
   constructor(tx: IDBTransaction, store: IDBObjectStore) {
     super(tx, store);
   }
 
-  public put(key: string, data: NodeBuffer, overwrite: boolean, cb: (e: ApiError, committed?: boolean) => void): void {
+  public put(key: string, data: Buffer, overwrite: boolean, cb: (e: ApiError, committed?: boolean) => void): void {
     try {
       var arraybuffer = buffer2ArrayBuffer(data),
         r: IDBRequest;
@@ -121,7 +121,7 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements kv
   }
 }
 
-export class IndexedDBStore implements kvfs.AsyncKeyValueStore {
+export class IndexedDBStore implements AsyncKeyValueStore {
   private db: IDBDatabase;
 
   /**
@@ -172,7 +172,7 @@ export class IndexedDBStore implements kvfs.AsyncKeyValueStore {
     }
   }
 
-  public beginTransaction(type: string = 'readonly'): kvfs.AsyncKeyValueROTransaction {
+  public beginTransaction(type: string = 'readonly'): AsyncKeyValueROTransaction {
     var tx = this.db.transaction(this.storeName, type),
       objectStore = tx.objectStore(this.storeName);
     if (type === 'readwrite') {
@@ -188,7 +188,7 @@ export class IndexedDBStore implements kvfs.AsyncKeyValueStore {
 /**
  * A file system that uses the IndexedDB key value file system.
  */
-export default class IndexedDBFileSystem extends kvfs.AsyncKeyValueFileSystem {
+export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
   constructor(cb: (e: ApiError, fs?: IndexedDBFileSystem) => void, storeName?: string) {
     super();
     new IndexedDBStore((e, store?): void => {

@@ -1,12 +1,12 @@
-import preload_file = require('../generic/preload_file');
-import file_system = require('../core/file_system');
+import PreloadFile from '../generic/preload_file';
+import {BaseFileSystem, FileSystem as IFileSystem} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
 import {default as Stats, FileType} from '../core/node_fs_stats';
-import file = require('../core/file');
-import path = require('path');
-import global = require('../core/global');
-import async = require('async');
+import {File as IFile} from '../core/file';
+import * as path from 'path';
+import global from '../core/global';
+import {each as asyncEach} from 'async';
 import {buffer2ArrayBuffer, arrayBuffer2Buffer} from '../core/util';
 
 function isDirectoryEntry(entry: Entry): entry is DirectoryEntry {
@@ -50,8 +50,8 @@ function _toArray(list?: any[]): any[] {
 //   - exclusive: If true, only create the entry if it doesn't already exist,
 //                and throw an error if it does.
 
-export class HTML5FSFile extends preload_file.PreloadFile<HTML5FS> implements file.File {
-  constructor(_fs: HTML5FS, _path: string, _flag: FileFlag, _stat: Stats, contents?: NodeBuffer) {
+export class HTML5FSFile extends PreloadFile<HTML5FS> implements IFile {
+  constructor(_fs: HTML5FS, _path: string, _flag: FileFlag, _stat: Stats, contents?: Buffer) {
     super(_fs, _path, _flag, _stat, contents);
   }
 
@@ -93,7 +93,7 @@ export class HTML5FSFile extends preload_file.PreloadFile<HTML5FS> implements fi
   }
 }
 
-export default class HTML5FS extends file_system.BaseFileSystem implements file_system.FileSystem {
+export default class HTML5FS extends BaseFileSystem implements IFileSystem {
   private size: number;
   private type: number;
   // HTML5File reaches into HTML5FS. :/
@@ -237,7 +237,7 @@ export default class HTML5FS extends file_system.BaseFileSystem implements file_
         };
         // Loop through the entries and remove them, then call the callback
         // when they're all finished.
-        async.each(entries, deleteEntry, finished);
+        asyncEach(entries, deleteEntry, finished);
       }
     });
   }
@@ -332,7 +332,7 @@ export default class HTML5FS extends file_system.BaseFileSystem implements file_
     this.fs.root.getFile(path, opts, loadAsFile, failedToLoadAsFile);
   }
 
-  public open(p: string, flags: FileFlag, mode: number, cb: (err: ApiError, fd?: file.File) => any): void {
+  public open(p: string, flags: FileFlag, mode: number, cb: (err: ApiError, fd?: IFile) => any): void {
     var error = (err: DOMError): void => {
       if (err.name === 'InvalidModificationError' && flags.isExclusive()) {
         cb(ApiError.EEXIST(p));

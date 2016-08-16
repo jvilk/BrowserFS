@@ -1,12 +1,12 @@
-import file_system = require('../core/file_system');
+import {FileSystem, BaseFileSystem, SynchronousFileSystem} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {default as Stats, FileType} from '../core/node_fs_stats';
-import file = require('../core/file');
-import file_flag = require('../core/file_flag');
-import path = require('path');
-import Inode = require('../generic/inode');
-import preload_file = require('../generic/preload_file');
-var ROOT_NODE_ID: string = "/";
+import {File}  from '../core/file';
+import {FileFlag} from  '../core/file_flag';
+import * as path from 'path';
+import Inode from '../generic/inode';
+import PreloadFile from '../generic/preload_file';
+const ROOT_NODE_ID: string = "/";
 
 /**
  * Generates a random ID.
@@ -78,7 +78,7 @@ export interface SyncKeyValueROTransaction {
    * @param key The key to look under for data.
    * @return The data stored under the key, or undefined if not present.
    */
-  get(key: string): NodeBuffer;
+  get(key: string): Buffer;
 }
 
 /**
@@ -93,7 +93,7 @@ export interface SyncKeyValueRWTransaction extends SyncKeyValueROTransaction {
    *   avoids storing the data if the key exists.
    * @return True if storage succeeded, false otherwise.
    */
-  put(key: string, data: NodeBuffer, overwrite: boolean): boolean;
+  put(key: string, data: Buffer, overwrite: boolean): boolean;
   /**
    * Deletes the data at the given key.
    * @param key The key to delete from the store.
@@ -114,8 +114,8 @@ export interface SyncKeyValueRWTransaction extends SyncKeyValueROTransaction {
  * support for transactions and such.
  */
 export interface SimpleSyncStore {
-  get(key: string): NodeBuffer;
-  put(key: string, data: NodeBuffer, overwrite: boolean): boolean;
+  get(key: string): Buffer;
+  put(key: string, data: Buffer, overwrite: boolean): boolean;
   del(key: string): void;
 }
 
@@ -128,7 +128,7 @@ export class SimpleSyncRWTransaction implements SyncKeyValueRWTransaction {
    * Stores data in the keys we modify prior to modifying them.
    * Allows us to roll back commits.
    */
-  private originalData: { [key: string]: NodeBuffer } = {};
+  private originalData: { [key: string]: Buffer } = {};
   /**
    * List of keys modified in this transaction, if any.
    */
@@ -139,7 +139,7 @@ export class SimpleSyncRWTransaction implements SyncKeyValueRWTransaction {
    * prevent needless `get` requests if the program modifies the data later
    * on during the transaction.
    */
-  private stashOldValue(key: string, value: NodeBuffer) {
+  private stashOldValue(key: string, value: Buffer) {
     // Keep only the earliest value in the transaction.
     if (!this.originalData.hasOwnProperty(key)) {
       this.originalData[key] = value
@@ -158,13 +158,13 @@ export class SimpleSyncRWTransaction implements SyncKeyValueRWTransaction {
     }
   }
 
-  public get(key: string): NodeBuffer {
+  public get(key: string): Buffer {
     var val = this.store.get(key);
     this.stashOldValue(key, val);
     return val;
   }
 
-  public put(key: string, data: NodeBuffer, overwrite: boolean): boolean {
+  public put(key: string, data: Buffer, overwrite: boolean): boolean {
     this.markModified(key);
     return this.store.put(key, data, overwrite);
   }
@@ -177,7 +177,7 @@ export class SimpleSyncRWTransaction implements SyncKeyValueRWTransaction {
   public commit(): void {/* NOP */}
   public abort(): void {
     // Rollback old values.
-    var i: number, key: string, value: NodeBuffer;
+    var i: number, key: string, value: Buffer;
     for (i = 0; i < this.modifiedKeys.length; i++) {
       key = this.modifiedKeys[i];
       value = this.originalData[key];
@@ -212,8 +212,8 @@ export interface SyncKeyValueFileSystemOptions {
   //supportLinks?: boolean;
 }
 
-export class SyncKeyValueFile extends preload_file.PreloadFile<SyncKeyValueFileSystem> implements file.File {
-  constructor(_fs: SyncKeyValueFileSystem, _path: string, _flag: file_flag.FileFlag, _stat: Stats, contents?: NodeBuffer) {
+export class SyncKeyValueFile extends PreloadFile<SyncKeyValueFileSystem> implements File {
+  constructor(_fs: SyncKeyValueFileSystem, _path: string, _flag: FileFlag, _stat: Stats, contents?: Buffer) {
     super(_fs, _path, _flag, _stat, contents);
   }
 
@@ -238,7 +238,7 @@ export class SyncKeyValueFile extends preload_file.PreloadFile<SyncKeyValueFileS
  * @todo Introduce Node ID caching.
  * @todo Check modes.
  */
-export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
+export class SyncKeyValueFileSystem extends SynchronousFileSystem {
   private store: SyncKeyValueStore;
   constructor(options: SyncKeyValueFileSystemOptions) {
     super();
@@ -348,7 +348,7 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
    * the exceedingly unlikely chance that we try to reuse a random GUID.
    * @return The GUID that the data was stored under.
    */
-  private addNewNode(tx: SyncKeyValueRWTransaction, data: NodeBuffer): string {
+  private addNewNode(tx: SyncKeyValueRWTransaction, data: Buffer): string {
     var retries = 0, currId: string;
     while (retries < 5) {
       try {
@@ -372,7 +372,7 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
    * @param data The data to store at the file's data node.
    * @return The Inode for the new file.
    */
-  private commitNewFile(tx: SyncKeyValueRWTransaction, p: string, type: FileType, mode: number, data: NodeBuffer): Inode {
+  private commitNewFile(tx: SyncKeyValueRWTransaction, p: string, type: FileType, mode: number, data: Buffer): Inode {
     var parentDir = path.dirname(p),
       fname = path.basename(p),
       parentNode = this.findINode(tx, parentDir),
@@ -486,7 +486,7 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
     return this.findINode(this.store.beginTransaction('readonly'), p).toStats();
   }
 
-  public createFileSync(p: string, flag: file_flag.FileFlag, mode: number): file.File {
+  public createFileSync(p: string, flag: FileFlag, mode: number): File {
     var tx = this.store.beginTransaction('readwrite'),
       data = new Buffer(0),
       newFile = this.commitNewFile(tx, p, FileType.FILE, mode, data);
@@ -494,7 +494,7 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
     return new SyncKeyValueFile(this, p, flag, newFile.toStats(), data);
   }
 
-  public openFileSync(p: string, flag: file_flag.FileFlag): file.File {
+  public openFileSync(p: string, flag: FileFlag): File {
     var tx = this.store.beginTransaction('readonly'),
       node = this.findINode(tx, p),
       data = tx.get(node.id);
@@ -572,7 +572,7 @@ export class SyncKeyValueFileSystem extends file_system.SynchronousFileSystem {
     return Object.keys(this.getDirListing(tx, p, this.findINode(tx, p)));
   }
 
-  public _syncSync(p: string, data: NodeBuffer, stats: Stats): void {
+  public _syncSync(p: string, data: Buffer, stats: Stats): void {
     // @todo Ensure mtime updates properly, and use that to determine if a data
     //       update is required.
     var tx = this.store.beginTransaction('readwrite'),
@@ -627,7 +627,7 @@ export interface AsyncKeyValueROTransaction {
    * Retrieves the data at the given key.
    * @param key The key to look under for data.
    */
-  get(key: string, cb: (e: ApiError, data?: NodeBuffer) => void): void;
+  get(key: string, cb: (e: ApiError, data?: Buffer) => void): void;
 }
 
 /**
@@ -644,7 +644,7 @@ export interface AsyncKeyValueRWTransaction extends AsyncKeyValueROTransaction {
    * @param cb Triggered with an error and whether or not the value was
    *   committed.
    */
-  put(key: string, data: NodeBuffer, overwrite: boolean, cb: (e: ApiError,
+  put(key: string, data: Buffer, overwrite: boolean, cb: (e: ApiError,
     committed?: boolean) => void): void;
   /**
    * Deletes the data at the given key.
@@ -661,8 +661,8 @@ export interface AsyncKeyValueRWTransaction extends AsyncKeyValueROTransaction {
   abort(cb: (e?: ApiError) => void): void;
 }
 
-export class AsyncKeyValueFile extends preload_file.PreloadFile<AsyncKeyValueFileSystem> implements file.File {
-  constructor(_fs: AsyncKeyValueFileSystem, _path: string, _flag: file_flag.FileFlag, _stat: Stats, contents?: NodeBuffer) {
+export class AsyncKeyValueFile extends PreloadFile<AsyncKeyValueFileSystem> implements File {
+  constructor(_fs: AsyncKeyValueFileSystem, _path: string, _flag: FileFlag, _stat: Stats, contents?: Buffer) {
     super(_fs, _path, _flag, _stat, contents);
   }
 
@@ -688,7 +688,7 @@ export class AsyncKeyValueFile extends preload_file.PreloadFile<AsyncKeyValueFil
  * An "Asynchronous key-value file system". Stores data to/retrieves data from
  * an underlying asynchronous key-value store.
  */
-export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
+export class AsyncKeyValueFileSystem extends BaseFileSystem {
   private store: AsyncKeyValueStore;
 
   /**
@@ -713,7 +713,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
    */
   private makeRootDirectory(cb: (e?: ApiError) => void) {
     var tx = this.store.beginTransaction('readwrite');
-    tx.get(ROOT_NODE_ID, (e: ApiError, data?: NodeBuffer) => {
+    tx.get(ROOT_NODE_ID, (e: ApiError, data?: Buffer) => {
       if (e || data === undefined) {
         // Create new inode.
         var currTime = (new Date()).getTime(),
@@ -801,7 +801,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
    * @param cb Passed an error or the inode under the given id.
    */
   private getINode(tx: AsyncKeyValueROTransaction, p: string, id: string, cb: (e: ApiError, inode?: Inode) => void): void {
-    tx.get(id, (e: ApiError, data?: NodeBuffer): void => {
+    tx.get(id, (e: ApiError, data?: Buffer): void => {
       if (noError(e, cb)) {
         if (data === undefined) {
           cb(ApiError.ENOENT(p));
@@ -820,7 +820,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
     if (!inode.isDirectory()) {
       cb(ApiError.ENOTDIR(p));
     } else {
-      tx.get(inode.id, (e: ApiError, data?: NodeBuffer): void => {
+      tx.get(inode.id, (e: ApiError, data?: Buffer): void => {
         if (noError(e, cb)) {
           try {
             cb(null, JSON.parse(data.toString()));
@@ -856,7 +856,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
    * the exceedingly unlikely chance that we try to reuse a random GUID.
    * @param cb Passed an error or the GUID that the data was stored under.
    */
-  private addNewNode(tx: AsyncKeyValueRWTransaction, data: NodeBuffer, cb: (e: ApiError, guid?: string) => void): void {
+  private addNewNode(tx: AsyncKeyValueRWTransaction, data: Buffer, cb: (e: ApiError, guid?: string) => void): void {
     var retries = 0, currId: string,
       reroll = () => {
         if (++retries === 5) {
@@ -888,7 +888,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
    * @param data The data to store at the file's data node.
    * @param cb Passed an error or the Inode for the new file.
    */
-  private commitNewFile(tx: AsyncKeyValueRWTransaction, p: string, type: FileType, mode: number, data: NodeBuffer, cb: (e: ApiError, inode?: Inode) => void): void {
+  private commitNewFile(tx: AsyncKeyValueRWTransaction, p: string, type: FileType, mode: number, data: Buffer, cb: (e: ApiError, inode?: Inode) => void): void {
     var parentDir = path.dirname(p),
       fname = path.basename(p),
       currTime = (new Date()).getTime();
@@ -1078,7 +1078,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
     });
   }
 
-  public createFile(p: string, flag: file_flag.FileFlag, mode: number, cb: (e: ApiError, file?: file.File) => void): void {
+  public createFile(p: string, flag: FileFlag, mode: number, cb: (e: ApiError, file?: File) => void): void {
     var tx = this.store.beginTransaction('readwrite'),
       data = new Buffer(0);
 
@@ -1089,13 +1089,13 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
     });
   }
 
-  public openFile(p: string, flag: file_flag.FileFlag, cb: (e: ApiError, file?: file.File) => void): void {
+  public openFile(p: string, flag: FileFlag, cb: (e: ApiError, file?: File) => void): void {
     var tx = this.store.beginTransaction('readonly');
     // Step 1: Grab the file's inode.
     this.findINode(tx, p, (e: ApiError, inode?: Inode) => {
       if (noError(e, cb)) {
         // Step 2: Grab the file's data.
-        tx.get(inode.id, (e: ApiError, data?: NodeBuffer): void => {
+        tx.get(inode.id, (e: ApiError, data?: Buffer): void => {
           if (noError(e, cb)) {
             if (data === undefined) {
               cb(ApiError.ENOENT(p));
@@ -1200,7 +1200,7 @@ export class AsyncKeyValueFileSystem extends file_system.BaseFileSystem {
     });
   }
 
-  public _sync(p: string, data: NodeBuffer, stats: Stats, cb: (e?: ApiError) => void): void {
+  public _sync(p: string, data: Buffer, stats: Stats, cb: (e?: ApiError) => void): void {
     // @todo Ensure mtime updates properly, and use that to determine if a data
     //       update is required.
     var tx = this.store.beginTransaction('readwrite');

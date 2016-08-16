@@ -1,8 +1,8 @@
 import file_system = require('../core/file_system');
 import InMemoryFileSystem from './InMemory';
 import {ApiError, ErrorCode} from '../core/api_error';
-import fs = require('../core/node_fs');
-import path = require('path');
+import * as fs from '../core/node_fs';
+import * as path from 'path';
 import {mkdirpSync} from '../core/util';
 
 /**

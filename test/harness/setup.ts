@@ -1,14 +1,11 @@
-import BrowserFS = require('../../src/core/browserfs');
-import file_system = require('../../src/core/file_system');
-// !!TYPING ONLY!!
-import __buffer = require('bfs-buffer');
-import buffer = require('buffer');
-import BackendFactory = require('./BackendFactory');
-import async = require('async');
+import * as BrowserFS from '../../src/core/browserfs';
+import {FileSystem} from '../../src/core/file_system';
+import * as buffer from 'buffer';
+import BackendFactory from './BackendFactory';
+import {eachSeries as asyncEachSeries} from 'async';
 import assert = require('./wrapped-assert');
-var BFSBuffer = <typeof __buffer.Buffer> (<any> buffer).Buffer;
-
-var loadFixtures: () => void = require('../fixtures/load_fixtures');
+const loadFixtures = require('../fixtures/load_fixtures');
+const BFSBuffer = (<any> require('bfs-buffer')).Buffer;
 
 declare var __numWaiting: number;
 declare var __karma__: any;
@@ -33,14 +30,14 @@ function waitsFor(test: () => boolean, what: string, timeout: number, done: (e?:
 
 
 // Defines and starts all of our unit tests.
-export = function(tests: {
+export default function(tests: {
     fs: {
       [name: string]: {[name: string]: () => void};
       all: {[name: string]: () => void};
     };
     general: {[name: string]: () => void};
   }, backendFactories: BackendFactory[]) {
-  var fsBackends: { name: string; backends: file_system.FileSystem[]; }[] = [];
+  var fsBackends: { name: string; backends: FileSystem[]; }[] = [];
 
   // Install BFS as a global.
   (<any> window)['BrowserFS'] = BrowserFS;
@@ -74,7 +71,7 @@ export = function(tests: {
     });
   }
 
-  function generateBackendTests(name: string, backend: file_system.FileSystem) {
+  function generateBackendTests(name: string, backend: FileSystem) {
     var testName: string;
     generateTest("Load filesystem", function () {
       __numWaiting = 0;
@@ -140,8 +137,8 @@ export = function(tests: {
     __karma__.start();
   }
 
-  async.eachSeries(backendFactories, (factory: BackendFactory, cb: (e?: any) => void) => {
-    factory((name: string, backends: file_system.FileSystem[]) => {
+  asyncEachSeries(backendFactories, (factory: BackendFactory, cb: (e?: any) => void) => {
+    factory((name: string, backends: FileSystem[]) => {
       fsBackends.push({name: name, backends: backends});
       cb();
     });

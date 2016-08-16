@@ -119,7 +119,7 @@ function msdos2date(time: number, date: number): Date {
  * (Normally, calling toString() on a buffer with start === end causes an
  * exception).
  */
-function safeToString(buff: NodeBuffer, useUTF8: boolean, start: number, length: number): string {
+function safeToString(buff: Buffer, useUTF8: boolean, start: number, length: number): string {
   if (length === 0) {
     return "";
   } else if (useUTF8) {
@@ -174,7 +174,7 @@ function safeToString(buff: NodeBuffer, useUTF8: boolean, start: number, length:
       extra field (variable size)
  */
 export class FileHeader {
-  constructor(private data: NodeBuffer) {
+  constructor(private data: Buffer) {
     if (data.readUInt32LE(0) !== 0x04034b50) {
       throw new ApiError(ErrorCode.EINVAL, "Invalid Zip file: Local file header has invalid signature: " + this.data.readUInt32LE(0));
     }
@@ -208,7 +208,7 @@ export class FileHeader {
   public fileName(): string {
     return safeToString(this.data, this.useUTF8(), 30, this.fileNameLength());
   }
-  public extraField(): NodeBuffer {
+  public extraField(): Buffer {
     var start = 30 + this.fileNameLength();
     return this.data.slice(start, start + this.extraFieldLength());
   }
@@ -231,8 +231,8 @@ export class FileHeader {
     contain no content MUST not include file data.
 */
 export class FileData {
-  constructor(private header: FileHeader, private record: CentralDirectory, private data: NodeBuffer) {}
-  public decompress(): NodeBuffer {
+  constructor(private header: FileHeader, private record: CentralDirectory, private data: Buffer) {}
+  public decompress(): Buffer {
     // Check the compression
     var compressionMethod: CompressionMethod = this.header.compressionMethod();
     switch (compressionMethod) {
@@ -257,7 +257,7 @@ export class FileData {
   public getRecord(): CentralDirectory {
     return this.record;
   }
-  public getRawData(): NodeBuffer {
+  public getRawData(): Buffer {
     return this.data;
   }
 }
@@ -270,7 +270,7 @@ export class FileData {
       uncompressed size               4 bytes
  */
 export class DataDescriptor {
-  constructor(private data: NodeBuffer) {}
+  constructor(private data: Buffer) {}
   public crc32(): number { return this.data.readUInt32LE(0); }
   public compressedSize(): number { return this.data.readUInt32LE(4); }
   public uncompressedSize(): number { return this.data.readUInt32LE(8); }
@@ -301,13 +301,13 @@ export class DataDescriptor {
       directory data structure.
 */
 export class ArchiveExtraDataRecord {
-  constructor(private data: NodeBuffer) {
+  constructor(private data: Buffer) {
     if (this.data.readUInt32LE(0) !== 0x08064b50) {
       throw new ApiError(ErrorCode.EINVAL, "Invalid archive extra data record signature: " + this.data.readUInt32LE(0));
     }
   }
   public length(): number { return this.data.readUInt32LE(4); }
-  public extraFieldData(): NodeBuffer { return this.data.slice(8, 8 + this.length()); }
+  public extraFieldData(): Buffer { return this.data.slice(8, 8 + this.length()); }
 }
 
 /*
@@ -328,13 +328,13 @@ export class ArchiveExtraDataRecord {
       Signature record will be neither compressed nor encrypted.
 */
 export class DigitalSignature {
-  constructor(private data: NodeBuffer) {
+  constructor(private data: Buffer) {
     if (this.data.readUInt32LE(0) !== 0x05054b50) {
       throw new ApiError(ErrorCode.EINVAL, "Invalid digital signature signature: " + this.data.readUInt32LE(0));
     }
   }
   public size(): number { return this.data.readUInt16LE(4); }
-  public signatureData(): NodeBuffer { return this.data.slice(6, 6 + this.size()); }
+  public signatureData(): Buffer { return this.data.slice(6, 6 + this.size()); }
 }
 
 /*
@@ -365,7 +365,7 @@ export class DigitalSignature {
 export class CentralDirectory {
   // Optimization: The filename is frequently read, so stash it here.
   private _filename: string;
-  constructor(private zipData: NodeBuffer, private data: NodeBuffer) {
+  constructor(private zipData: Buffer, private data: Buffer) {
     // Sanity check.
     if (this.data.readUInt32LE(0) !== 0x02014b50)
       throw new ApiError(ErrorCode.EINVAL, "Invalid Zip file: Central directory record has invalid signature: " + this.data.readUInt32LE(0));
@@ -412,10 +412,10 @@ export class CentralDirectory {
   public fileName(): string {
     return this._filename;
   }
-  public rawFileName(): NodeBuffer {
+  public rawFileName(): Buffer {
     return this.data.slice(46, 46 + this.fileNameLength());
   }
-  public extraField(): NodeBuffer {
+  public extraField(): Buffer {
     var start = 44 + this.fileNameLength();
     return this.data.slice(start, start + this.extraFieldLength());
   }
@@ -423,7 +423,7 @@ export class CentralDirectory {
     var start = 46 + this.fileNameLength() + this.extraFieldLength();
     return safeToString(this.data, this.useUTF8(), start, this.fileCommentLength());
   }
-  public rawFileComment(): NodeBuffer {
+  public rawFileComment(): Buffer {
     let start = 46 + this.fileNameLength() + this.extraFieldLength();
     return this.data.slice(start, start + this.fileCommentLength());
   }
@@ -452,10 +452,10 @@ export class CentralDirectory {
     var header = new FileHeader(this.zipData.slice(start));
     return new FileData(header, this, this.zipData.slice(start + header.totalSize()));
   }
-  public getData(): NodeBuffer {
+  public getData(): Buffer {
     return this.getFileData().decompress();
   }
-  public getRawData(): NodeBuffer {
+  public getRawData(): Buffer {
     return this.getFileData().getRawData();
   }
   public getStats(): Stats {
@@ -481,7 +481,7 @@ export class CentralDirectory {
     .ZIP file comment       (variable size)
 */
 export class EndOfCentralDirectory {
-  constructor(private data: NodeBuffer) {
+  constructor(private data: Buffer) {
     if (this.data.readUInt32LE(0) !== 0x06054b50)
       throw new ApiError(ErrorCode.EINVAL, "Invalid Zip file: End of central directory record has invalid signature: " + this.data.readUInt32LE(0));
   }
@@ -496,13 +496,13 @@ export class EndOfCentralDirectory {
     // Assuming UTF-8. The specification doesn't specify.
     return safeToString(this.data, true, 22, this.cdZipCommentLength());
   }
-  public rawCdZipComment(): NodeBuffer {
+  public rawCdZipComment(): Buffer {
     return this.data.slice(22, 22 + this.cdZipCommentLength())
   }
 }
 
 export class ZipTOC {
-  constructor(public index: FileIndex<CentralDirectory>, public directoryEntries: CentralDirectory[], public eocd: EndOfCentralDirectory, public data: NodeBuffer) {
+  constructor(public index: FileIndex<CentralDirectory>, public directoryEntries: CentralDirectory[], public eocd: EndOfCentralDirectory, public data: Buffer) {
   }
 }
 
@@ -510,14 +510,14 @@ export default class ZipFS extends file_system.SynchronousFileSystem implements 
   private _index: FileIndex<CentralDirectory> = new FileIndex<CentralDirectory>();
   private _directoryEntries: CentralDirectory[] = [];
   private _eocd: EndOfCentralDirectory = null;
-  private data: NodeBuffer;
+  private data: Buffer;
 
   /**
    * Constructs a ZipFS from the given zip file data. Name is optional, and is
    * used primarily for our unit tests' purposes to differentiate different
    * test zip files in test output.
    */
-  constructor(private input: NodeBuffer | ZipTOC, private name: string = '') {
+  constructor(private input: Buffer | ZipTOC, private name: string = '') {
     super();
     if (input instanceof ZipTOC) {
       this._index = input.index;
@@ -525,7 +525,7 @@ export default class ZipFS extends file_system.SynchronousFileSystem implements 
       this._eocd = input.eocd;
       this.data = input.data;
     } else {
-      this.data = input as NodeBuffer;
+      this.data = input as Buffer;
       this.populateIndex();
     }
   }
@@ -664,7 +664,7 @@ export default class ZipFS extends file_system.SynchronousFileSystem implements 
    * Locates the end of central directory record at the end of the file.
    * Throws an exception if it cannot be found.
    */
-  private static getEOCD(data: NodeBuffer): EndOfCentralDirectory {
+  private static getEOCD(data: Buffer): EndOfCentralDirectory {
     // Unfortunately, the comment is variable size and up to 64K in size.
     // We assume that the magic signature does not appear in the comment, and
     // in the bytes between the comment and the signature. Other ZIP
@@ -701,7 +701,7 @@ export default class ZipFS extends file_system.SynchronousFileSystem implements 
     }
   }
 
-  private static computeIndexResponsive(data: NodeBuffer, index: FileIndex<CentralDirectory>, cdPtr: number, cdEnd: number, cb: (zipTOC: ZipTOC) => void, cdEntries: CentralDirectory[], eocd: EndOfCentralDirectory) {
+  private static computeIndexResponsive(data: Buffer, index: FileIndex<CentralDirectory>, cdPtr: number, cdEnd: number, cb: (zipTOC: ZipTOC) => void, cdEntries: CentralDirectory[], eocd: EndOfCentralDirectory) {
     if (cdPtr < cdEnd) {
       let count = 0;
       while (count++ < 200 && cdPtr < cdEnd) {
@@ -718,7 +718,7 @@ export default class ZipFS extends file_system.SynchronousFileSystem implements 
     }
   }
 
-  static computeIndex(data: NodeBuffer, cb: (zipTOC: ZipTOC) => void) {
+  static computeIndex(data: Buffer, cb: (zipTOC: ZipTOC) => void) {
     const index: FileIndex<CentralDirectory> = new FileIndex<CentralDirectory>();
     const eocd: EndOfCentralDirectory = ZipFS.getEOCD(data);
     if (eocd.diskNumber() !== eocd.cdDiskNumber())

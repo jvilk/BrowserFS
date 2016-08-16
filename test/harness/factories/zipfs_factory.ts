@@ -1,11 +1,11 @@
-import XHRFSFactory = require('./xhrfs_factory');
-import file_system = require('../../../src/core/file_system');
+import XHRFSFactory from './xhrfs_factory';
+import {FileSystem} from '../../../src/core/file_system';
 import ZipFS from '../../../src/backend/ZipFS';
-import BackendFactory = require('../BackendFactory');
-import BrowserFS = require('../../../src/core/browserfs');
-import _fs = require('../../../src/core/node_fs');
+import BackendFactory from '../BackendFactory';
+import * as BrowserFS from '../../../src/core/browserfs';
+import * as _fs from '../../../src/core/node_fs';
 
-function ZipFSFactory(cb: (name: string, objs: file_system.FileSystem[]) => void): void {
+export default function ZipFSFactory(cb: (name: string, objs: FileSystem[]) => void): void {
   if (ZipFS.isAvailable()) {
     XHRFSFactory((_, xhrfs) => {
       if (xhrfs.length === 0) {
@@ -14,7 +14,7 @@ function ZipFSFactory(cb: (name: string, objs: file_system.FileSystem[]) => void
 
       // Add three Zip FS variants for different zip files.
       var zipFiles = ['0', '4', '9'], i: number,
-        rv: file_system.FileSystem[] = [], fs: typeof _fs = BrowserFS.BFSRequire('fs');
+        rv: FileSystem[] = [], fs: typeof _fs = BrowserFS.BFSRequire('fs');
       // Leverage the XHRFS to download the fixtures for this FS.
       BrowserFS.initialize(xhrfs[0]);
       for (i = 0; i < zipFiles.length; i++) {
@@ -40,5 +40,3 @@ function ZipFSFactory(cb: (name: string, objs: file_system.FileSystem[]) => void
 
 // Typechecking.
 var _: BackendFactory = ZipFSFactory;
-
-export = ZipFSFactory;

@@ -1,9 +1,9 @@
-import file = require('../core/file');
-import file_system = require('../core/file_system');
+import {BaseFile, File} from '../core/file';
+import {FileSystem} from '../core/file_system';
 import Stats from '../core/node_fs_stats';
 import {FileFlag} from '../core/file_flag';
 import {ApiError, ErrorCode} from '../core/api_error';
-import fs = require('../core/node_fs');
+import * as fs from '../core/node_fs';
 
 /**
  * An implementation of the File interface that operates on a file that is
@@ -14,13 +14,13 @@ import fs = require('../core/node_fs');
  * extend this class and implement those two methods.
  * @todo 'close' lever that disables functionality once closed.
  */
-export class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile {
+export default class PreloadFile<T extends FileSystem> extends BaseFile {
   private _pos: number = 0;
   private _path: string;
   protected _fs: T;
   private _stat: Stats;
   private _flag: FileFlag;
-  private _buffer: NodeBuffer;
+  private _buffer: Buffer;
   private _dirty: boolean = false;
   /**
    * Creates a file with the given path and, optionally, the given contents. Note
@@ -36,7 +36,7 @@ export class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile
    *   contents of the file. PreloadFile will mutate this buffer. If not
    *   specified, we assume it is a new file.
    */
-  constructor(_fs: T, _path: string, _flag: FileFlag, _stat: Stats, contents?: NodeBuffer) {
+  constructor(_fs: T, _path: string, _flag: FileFlag, _stat: Stats, contents?: Buffer) {
     super();
     this._fs = _fs;
     this._path = _path;
@@ -71,7 +71,7 @@ export class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile
   /**
    * NONSTANDARD: Get the underlying buffer for this file. !!DO NOT MUTATE!! Will mess up dirty tracking.
    */
-  public getBuffer(): NodeBuffer {
+  public getBuffer(): Buffer {
     return this._buffer;
   }
 
@@ -248,7 +248,7 @@ export class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile
    * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
    *   cb The number specifies the number of bytes written into the file.
    */
-  public write(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (e: ApiError, len?: number, buff?: NodeBuffer) => void): void {
+  public write(buffer: Buffer, offset: number, length: number, position: number, cb: (e: ApiError, len?: number, buff?: Buffer) => void): void {
     try {
       cb(null, this.writeSync(buffer, offset, length, position), buffer);
     } catch (e) {
@@ -269,7 +269,7 @@ export class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile
    *   the current position.
    * @return [Number]
    */
-  public writeSync(buffer: NodeBuffer, offset: number, length: number, position: number): number {
+  public writeSync(buffer: Buffer, offset: number, length: number, position: number): number {
     this._dirty = true;
     if (position == null) {
       position = this.getPos();
@@ -310,7 +310,7 @@ export class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile
    * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)] cb The
    *   number is the number of bytes read
    */
-  public read(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (e: ApiError, len?: number, buff?: NodeBuffer) => void): void {
+  public read(buffer: Buffer, offset: number, length: number, position: number, cb: (e: ApiError, len?: number, buff?: Buffer) => void): void {
     try {
       cb(null, this.readSync(buffer, offset, length, position), buffer);
     } catch (e) {
@@ -330,7 +330,7 @@ export class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile
    *   position.
    * @return [Number]
    */
-  public readSync(buffer: NodeBuffer, offset: number, length: number, position: number): number {
+  public readSync(buffer: Buffer, offset: number, length: number, position: number): number {
     if (!this._flag.isReadable()) {
       throw new ApiError(ErrorCode.EPERM, 'File not opened with a readable mode.');
     }
@@ -379,8 +379,8 @@ export class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile
  * File class for the InMemory and XHR file systems.
  * Doesn't sync to anything, so it works nicely for memory-only files.
  */
-export class NoSyncFile<T extends file_system.FileSystem> extends PreloadFile<T> implements file.File {
-  constructor(_fs: T, _path: string, _flag: FileFlag, _stat: Stats, contents?: NodeBuffer) {
+export class NoSyncFile<T extends FileSystem> extends PreloadFile<T> implements File {
+  constructor(_fs: T, _path: string, _flag: FileFlag, _stat: Stats, contents?: Buffer) {
     super(_fs, _path, _flag, _stat, contents);
   }
   /**

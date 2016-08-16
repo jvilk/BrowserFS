@@ -1,5 +1,5 @@
 import {default as Stats, FileType} from '../core/node_fs_stats';
-import path = require('path');
+import * as path from 'path';
 
 /**
  * A simple class for storing a filesystem index. Assumes that all paths passed

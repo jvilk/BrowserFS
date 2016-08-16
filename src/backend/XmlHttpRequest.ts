@@ -84,7 +84,7 @@ export default class XmlHttpRequest extends file_system.BaseFileSystem implement
   /**
    * Asynchronously download the given file.
    */
-  private _requestFileAsync(p: string, type: 'buffer', cb: (err: ApiError, data?: NodeBuffer) => void): void;
+  private _requestFileAsync(p: string, type: 'buffer', cb: (err: ApiError, data?: Buffer) => void): void;
   private _requestFileAsync(p: string, type: 'json', cb: (err: ApiError, data?: any) => void): void;
   private _requestFileAsync(p: string, type: string, cb: (err: ApiError, data?: any) => void): void;
   private _requestFileAsync(p: string, type: string, cb: (err: ApiError, data?: any) => void): void {
@@ -94,7 +94,7 @@ export default class XmlHttpRequest extends file_system.BaseFileSystem implement
   /**
    * Synchronously download the given file.
    */
-  private _requestFileSync(p: string, type: 'buffer'): NodeBuffer;
+  private _requestFileSync(p: string, type: 'buffer'): Buffer;
   private _requestFileSync(p: string, type: 'json'): any;
   private _requestFileSync(p: string, type: string): any;
   private _requestFileSync(p: string, type: string): any {
@@ -137,7 +137,7 @@ export default class XmlHttpRequest extends file_system.BaseFileSystem implement
    * @param [String] path
    * @param [BrowserFS.Buffer] buffer
    */
-  public preloadFile(path: string, buffer: NodeBuffer): void {
+  public preloadFile(path: string, buffer: Buffer): void {
     var inode = this._index.getInode(path);
     if (isFileInode<Stats>(inode)) {
       if (inode === null) {
@@ -223,7 +223,7 @@ export default class XmlHttpRequest extends file_system.BaseFileSystem implement
             return cb(null, new preload_file.NoSyncFile(_this, path, flags, stats.clone(), stats.file_data));
           }
           // @todo be lazier about actually requesting the file
-          this._requestFileAsync(path, 'buffer', function(err: ApiError, buffer?: NodeBuffer) {
+          this._requestFileAsync(path, 'buffer', function(err: ApiError, buffer?: Buffer) {
             if (err) {
               return cb(err);
             }

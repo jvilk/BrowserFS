@@ -60,7 +60,7 @@ export interface File {
    * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
    *   cb The number specifies the number of bytes written into the file.
    */
-  write(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (err: ApiError, written?: number, buffer?: NodeBuffer) => any): void;
+  write(buffer: Buffer, offset: number, length: number, position: number, cb: (err: ApiError, written?: number, buffer?: Buffer) => any): void;
   /**
    * **Core**: Write buffer to the file.
    * Note that it is unsafe to use fs.writeSync multiple times on the same file
@@ -74,7 +74,7 @@ export interface File {
    *   the current position.
    * @return [Number]
    */
-  writeSync(buffer: NodeBuffer, offset: number, length: number, position: number): number;
+  writeSync(buffer: Buffer, offset: number, length: number, position: number): number;
   /**
    * **Core**: Read data from the file.
    * @param [BrowserFS.node.Buffer] buffer The buffer that the data will be
@@ -88,7 +88,7 @@ export interface File {
    * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)] cb The
    *   number is the number of bytes read
    */
-  read(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (err: ApiError, bytesRead?: number, buffer?: NodeBuffer) => void): void;
+  read(buffer: Buffer, offset: number, length: number, position: number, cb: (err: ApiError, bytesRead?: number, buffer?: Buffer) => void): void;
   /**
    * **Core**: Read data from the file.
    * @param [BrowserFS.node.Buffer] buffer The buffer that the data will be
@@ -101,7 +101,7 @@ export interface File {
    *   position.
    * @return [Number]
    */
-  readSync(buffer: NodeBuffer, offset: number, length: number, position: number): number;
+  readSync(buffer: Buffer, offset: number, length: number, position: number): number;
   /**
    * **Supplementary**: Asynchronous `datasync`.
    *

@@ -1,5 +1,5 @@
 import {BaseFileSystem, FileSystem} from '../core/file_system';
-import path = require('path');
+import * as path from 'path';
 import {ApiError} from '../core/api_error';
 
 /**

@@ -1,4 +1,4 @@
-import api_error = require('./api_error');
+import {ErrorCode, ApiError} from './api_error';
 
 /**
  * @class
@@ -62,7 +62,7 @@ export class FileFlag {
   constructor(flagStr: string) {
     this.flagStr = flagStr;
     if (FileFlag.validFlagStrs.indexOf(flagStr) < 0) {
-      throw new api_error.ApiError(api_error.ErrorCode.EINVAL, "Invalid flag: " + flagStr);
+      throw new ApiError(ErrorCode.EINVAL, "Invalid flag: " + flagStr);
     }
   }
 

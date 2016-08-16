@@ -1,11 +1,11 @@
 import AsyncMirrorFS from '../../../src/backend/AsyncMirror';
-import BackendFactory = require('../BackendFactory');
-import file_system = require('../../../src/core/file_system');
+import BackendFactory from '../BackendFactory';
+import {FileSystem} from '../../../src/core/file_system';
 import InMemoryFileSystem from '../../../src/backend/InMemory';
-import IDBFSFactory = require('./idbfs_factory');
+import IDBFSFactory from './idbfs_factory';
 
-function AsyncMirrorFactory(cb: (name: string, objs: file_system.FileSystem[]) => void) {
-  IDBFSFactory((name: string, obj: file_system.FileSystem[]) => {
+export default function AsyncMirrorFactory(cb: (name: string, objs: FileSystem[]) => void) {
+  IDBFSFactory((name: string, obj: FileSystem[]) => {
 	 if (obj.length > 0) {
 		 var amfs = new AsyncMirrorFS(new InMemoryFileSystem(), obj[0]);
      amfs.initialize((err?) => {
@@ -22,5 +22,3 @@ function AsyncMirrorFactory(cb: (name: string, objs: file_system.FileSystem[]) =
 }
 
 var _: BackendFactory = AsyncMirrorFactory;
-
-export = AsyncMirrorFactory;

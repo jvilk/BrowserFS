@@ -13,4 +13,4 @@ if (typeof(window) !== 'undefined') {
 } else {
   toExport = global;
 }
-export = toExport;
+export default toExport;

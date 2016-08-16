@@ -1,12 +1,12 @@
-import file_system = require('../core/file_system');
+import {BaseFileSystem, FileSystem} from '../core/file_system';
 import {ApiError} from '../core/api_error';
-import file_flag = require('../core/file_flag');
+import {FileFlag} from '../core/file_flag';
 import {buffer2ArrayBuffer, arrayBuffer2Buffer} from '../core/util';
-import file = require('../core/file');
+import {File, BaseFile} from '../core/file';
 import {default as Stats, FileType} from '../core/node_fs_stats';
-import preload_file = require('../generic/preload_file');
-import global = require('../core/global');
-import fs = require('../core/node_fs');
+import PreloadFile from '../generic/preload_file';
+import global from '../core/global';
+import * as fs from '../core/node_fs';
 
 interface IBrowserFSMessage {
   browserfsMessage: boolean;
@@ -84,10 +84,10 @@ interface IFileDescriptorArgument extends ISpecialArgument {
 }
 
 class FileDescriptorArgumentConverter {
-  private _fileDescriptors: { [id: number]: file.File } = {};
+  private _fileDescriptors: { [id: number]: File } = {};
   private _nextId: number = 0;
 
-  public toRemoteArg(fd: file.File, p: string, flag: file_flag.FileFlag, cb: (err: ApiError, arg?: IFileDescriptorArgument) => void): void {
+  public toRemoteArg(fd: File, p: string, flag: FileFlag, cb: (err: ApiError, arg?: IFileDescriptorArgument) => void): void {
     var id = this._nextId++,
       data: ArrayBuffer,
       stat: ArrayBuffer,
@@ -133,13 +133,13 @@ class FileDescriptorArgumentConverter {
     });
   }
 
-  private _applyFdChanges(remoteFd: IFileDescriptorArgument, cb: (err: ApiError, fd?: file.File) => void): void {
+  private _applyFdChanges(remoteFd: IFileDescriptorArgument, cb: (err: ApiError, fd?: File) => void): void {
     var fd = this._fileDescriptors[remoteFd.id],
       data = transferrableObjectToBuffer(remoteFd.data),
       remoteStats = Stats.fromBuffer(transferrableObjectToBuffer(remoteFd.stat));
 
     // Write data if the file is writable.
-    var flag = file_flag.FileFlag.getFileFlag(remoteFd.flag);
+    var flag = FileFlag.getFileFlag(remoteFd.flag);
     if (flag.isWriteable()) {
       // Appendable: Write to end of file.
       // Writeable: Replace entire contents of file.
@@ -265,22 +265,22 @@ interface IFileFlagArgument extends ISpecialArgument {
   flagStr: string;
 }
 
-function fileFlagLocal2Remote(flag: file_flag.FileFlag): IFileFlagArgument {
+function fileFlagLocal2Remote(flag: FileFlag): IFileFlagArgument {
   return {
     type: SpecialArgType.FILEFLAG,
     flagStr: flag.getFlagString()
   };
 }
 
-function fileFlagRemote2Local(remoteFlag: IFileFlagArgument): file_flag.FileFlag {
-  return file_flag.FileFlag.getFileFlag(remoteFlag.flagStr);
+function fileFlagRemote2Local(remoteFlag: IFileFlagArgument): FileFlag {
+  return FileFlag.getFileFlag(remoteFlag.flagStr);
 }
 
 interface IBufferArgument extends ISpecialArgument {
   data: ArrayBuffer;
 }
 
-function bufferToTransferrableObject(buff: NodeBuffer): ArrayBuffer {
+function bufferToTransferrableObject(buff: Buffer): ArrayBuffer {
   return buffer2ArrayBuffer(buff);
 }
 
@@ -320,10 +320,10 @@ function isAPIResponse(data: any): data is IAPIResponse {
 /**
  * Represents a remote file in a different worker/thread.
  */
-class WorkerFile extends preload_file.PreloadFile<WorkerFS> {
+class WorkerFile extends PreloadFile<WorkerFS> {
   private _remoteFdId: number;
 
-  constructor(_fs: WorkerFS, _path: string, _flag: file_flag.FileFlag, _stat: Stats, remoteFdId: number, contents?: NodeBuffer) {
+  constructor(_fs: WorkerFS, _path: string, _flag: FileFlag, _stat: Stats, remoteFdId: number, contents?: Buffer) {
     super(_fs, _path, _flag, _stat, contents);
     this._remoteFdId = remoteFdId;
   }
@@ -388,7 +388,7 @@ class WorkerFile extends preload_file.PreloadFile<WorkerFS> {
  * Note that synchronous operations are not permitted on the WorkerFS, regardless
  * of the configuration option of the remote FS.
  */
-export default class WorkerFS extends file_system.BaseFileSystem implements file_system.FileSystem {
+export default class WorkerFS extends BaseFileSystem implements FileSystem {
   private _worker: Worker;
   private _callbackConverter = new CallbackArgumentConverter();
 
@@ -443,7 +443,7 @@ export default class WorkerFS extends file_system.BaseFileSystem implements file
               return apiErrorRemote2Local(<IAPIErrorArgument> specialArg);
             case SpecialArgType.FD:
               var fdArg = <IFileDescriptorArgument> specialArg;
-              return new WorkerFile(this, fdArg.path, file_flag.FileFlag.getFileFlag(fdArg.flag), Stats.fromBuffer(transferrableObjectToBuffer(fdArg.stat)), fdArg.id, transferrableObjectToBuffer(fdArg.data));
+              return new WorkerFile(this, fdArg.path, FileFlag.getFileFlag(fdArg.flag), Stats.fromBuffer(transferrableObjectToBuffer(fdArg.stat)), fdArg.id, transferrableObjectToBuffer(fdArg.data));
             case SpecialArgType.STATS:
               return statsRemote2Local(<IStatsArgument> specialArg);
             case SpecialArgType.FILEFLAG:
@@ -478,7 +478,7 @@ export default class WorkerFS extends file_system.BaseFileSystem implements file
           return apiErrorLocal2Remote(arg);
         } else if (arg instanceof WorkerFile) {
           return (<WorkerFile> arg).toRemoteArg();
-        } else if (arg instanceof file_flag.FileFlag) {
+        } else if (arg instanceof FileFlag) {
           return fileFlagLocal2Remote(arg);
         } else if (arg instanceof Buffer) {
           return bufferLocal2Remote(arg);
@@ -540,7 +540,7 @@ export default class WorkerFS extends file_system.BaseFileSystem implements file
   public stat(p: string, isLstat: boolean, cb: (err: ApiError, stat?: Stats) => void): void {
     this._rpc('stat', arguments);
   }
-  public open(p: string, flag: file_flag.FileFlag, mode: number, cb: (err: ApiError, fd?: file.File) => any): void {
+  public open(p: string, flag: FileFlag, mode: number, cb: (err: ApiError, fd?: File) => any): void {
     this._rpc('open', arguments);
   }
   public unlink(p: string, cb: Function): void {
@@ -564,13 +564,13 @@ export default class WorkerFS extends file_system.BaseFileSystem implements file
   public truncate(p: string, len: number, cb: Function): void {
     this._rpc('truncate', arguments);
   }
-  public readFile(fname: string, encoding: string, flag: file_flag.FileFlag, cb: (err: ApiError, data?: any) => void): void {
+  public readFile(fname: string, encoding: string, flag: FileFlag, cb: (err: ApiError, data?: any) => void): void {
     this._rpc('readFile', arguments);
   }
-  public writeFile(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number, cb: (err: ApiError) => void): void {
+  public writeFile(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cb: (err: ApiError) => void): void {
     this._rpc('writeFile', arguments);
   }
-  public appendFile(fname: string, data: any, encoding: string, flag: file_flag.FileFlag, mode: number, cb: (err: ApiError) => void): void {
+  public appendFile(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cb: (err: ApiError) => void): void {
     this._rpc('appendFile', arguments);
   }
   public chmod(p: string, isLchmod: boolean, mode: number, cb: Function): void {
@@ -592,7 +592,7 @@ export default class WorkerFS extends file_system.BaseFileSystem implements file
     this._rpc('readlink', arguments);
   }
 
-  public syncClose(method: string, fd: file.File, cb: (e: ApiError) => void): void {
+  public syncClose(method: string, fd: File, cb: (e: ApiError) => void): void {
     this._worker.postMessage(<IAPIRequest> {
       browserfsMessage: true,
       method: method,
@@ -613,10 +613,10 @@ export default class WorkerFS extends file_system.BaseFileSystem implements file
             cb(null, statsLocal2Remote(arg));
           } else if (arg instanceof ApiError) {
             cb(null, apiErrorLocal2Remote(arg));
-          } else if (arg instanceof file.BaseFile) {
+          } else if (arg instanceof BaseFile) {
             // Pass in p and flags from original request.
             cb(null, fdConverter.toRemoteArg(arg, requestArgs[0], requestArgs[1], cb));
-          } else if (arg instanceof file_flag.FileFlag) {
+          } else if (arg instanceof FileFlag) {
             cb(null, fileFlagLocal2Remote(arg));
           } else if (arg instanceof Buffer) {
             cb(null, bufferLocal2Remote(arg));
@@ -738,7 +738,7 @@ export default class WorkerFS extends file_system.BaseFileSystem implements file
             break;
           case 'probe':
             (() => {
-              var rootFs = <file_system.FileSystem> fs.getRootFS(),
+              var rootFs = <FileSystem> fs.getRootFS(),
                 remoteCb = <ICallbackArgument> args[1],
                 probeResponse: IProbeResponse = {
                   type: SpecialArgType.PROBE,

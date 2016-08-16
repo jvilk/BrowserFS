@@ -2,7 +2,7 @@
  * Grab bag of utility functions used across the code.
  */
 import {FileSystem} from './file_system';
-import path = require('path');
+import * as path from 'path';
 
 const SUPPORTS_TYPED_ARRAYS = typeof(ArrayBuffer) !== 'undefined';
 

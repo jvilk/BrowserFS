@@ -3,7 +3,7 @@ import {default as Stats, FileType} from '../core/node_fs_stats';
 /**
  * Generic inode definition that can easily be serialized.
  */
-class Inode {
+export default class Inode {
   constructor(public id: string,
     public size: number,
     public mode: number,
@@ -31,7 +31,7 @@ class Inode {
   /**
    * Writes the inode into the start of the buffer.
    */
-  public toBuffer(buff: NodeBuffer = new Buffer(this.getSize())): NodeBuffer {
+  public toBuffer(buff: Buffer = new Buffer(this.getSize())): Buffer {
     buff.writeUInt32LE(this.size, 0);
     buff.writeUInt16LE(this.mode, 4);
     buff.writeDoubleLE(this.atime, 6);
@@ -87,7 +87,7 @@ class Inode {
   /**
    * Converts the buffer into an Inode.
    */
-  public static fromBuffer(buffer: NodeBuffer): Inode {
+  public static fromBuffer(buffer: Buffer): Inode {
     if (buffer === undefined) {
       throw new Error("NO");
     }
@@ -117,5 +117,3 @@ class Inode {
     return (this.mode & 0xF000) === FileType.DIRECTORY;
   }
 }
-
-export = Inode;
