@@ -148,7 +148,7 @@ function syncDownloadFileModern(p: string, type: string): any {
             for (var i = 0; i < text.length; i++) {
               // This will automatically throw away the upper bit of each
               // character for us.
-              data.writeUInt8(text.charCodeAt(i), i);
+              data[i] = text.charCodeAt(i);
             }
             return;
           case 'json':

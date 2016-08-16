@@ -51,7 +51,7 @@ import file_system = require('../core/file_system');
 import file = require('../core/file');
 import {FileFlag, ActionType} from '../core/file_flag';
 import preload_file = require('../generic/preload_file');
-import {Arrayish, buffer2Arrayish, arrayish2Buffer, copyingSlice} from '../core/util';
+import {Arrayish, arrayish2Buffer, copyingSlice} from '../core/util';
 import ExtendedASCII from '../generic/extended_ascii';
 var inflateRaw: {
   (data: Arrayish<number>, options?: {
@@ -238,7 +238,7 @@ export class FileData {
     switch (compressionMethod) {
       case CompressionMethod.DEFLATE:
         var data = inflateRaw(
-          buffer2Arrayish(this.data.slice(0, this.record.compressedSize())),
+          this.data.slice(0, this.record.compressedSize()),
           { chunkSize: this.record.uncompressedSize() }
         );
         return arrayish2Buffer(data);

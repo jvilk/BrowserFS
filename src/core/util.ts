@@ -65,30 +65,14 @@ export function buffer2Uint8array(buff: Buffer): Uint8Array {
 }
 
 /**
- * Converts the given buffer into a Uint8 arrayish form. Attempts
- * to be zero-copy.
- *
- * Required for BrowserFS buffers, which do not support indexing.
- */
-export function buffer2Arrayish(buff: Buffer): Arrayish<number> {
-  if (typeof(buff[0]) === 'number') {
-    return buff;
-  } else if (SUPPORTS_TYPED_ARRAYS) {
-    return buffer2Uint8array(buff);
-  } else {
-    return buff.toJSON().data;
-  }
-}
-
-/**
  * Converts the given arrayish object into a Buffer. Attempts to
  * be zero-copy.
  */
 export function arrayish2Buffer(arr: Arrayish<number>): Buffer {
-  if (SUPPORTS_TYPED_ARRAYS && arr instanceof Uint8Array) {
-    return uint8Array2Buffer(arr);
-  } else if (arr instanceof Buffer) {
+  if (arr instanceof Buffer) {
     return arr;
+  } else if (SUPPORTS_TYPED_ARRAYS && arr instanceof Uint8Array) {
+    return uint8Array2Buffer(arr);
   } else {
     return new Buffer(<number[]> arr);
   }
@@ -98,7 +82,9 @@ export function arrayish2Buffer(arr: Arrayish<number>): Buffer {
  * Converts the given Uint8Array into a Buffer. Attempts to be zero-copy.
  */
 export function uint8Array2Buffer(u8: Uint8Array): Buffer {
-  if (u8.byteOffset === 0 && u8.byteLength === u8.buffer.byteLength) {
+  if (u8 instanceof Buffer) {
+    return u8;
+  } else if (u8.byteOffset === 0 && u8.byteLength === u8.buffer.byteLength) {
     return arrayBuffer2Buffer(u8);
   } else {
     return new Buffer(u8);
@@ -157,17 +143,17 @@ export function copyingSlice(buff: Buffer, start: number = 0, end = buff.length)
     return new Buffer(0);
   } else if (SUPPORTS_TYPED_ARRAYS) {
     var u8 = buffer2Uint8array(buff),
-      s0 = buff.readUInt8(0),
+      s0 = buff[0],
       newS0 = (s0 + 1) % 0xFF;
 
-    buff.writeUInt8(newS0, 0);
+    buff[0] = newS0;
     if (u8[0] === newS0) {
       // Same memory. Revert & copy.
       u8[0] = s0;
       return uint8Array2Buffer(u8.slice(start, end));
     } else {
       // Revert.
-      buff.writeUInt8(s0, 0);
+      buff[0] = s0;
       return uint8Array2Buffer(u8.subarray(start, end));
     }
   } else {

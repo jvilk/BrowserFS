@@ -36,7 +36,7 @@ export default class ExtendedASCII {
         }
         // Otherwise, keep it as-is.
       }
-      buf.writeUInt8(charCode, i);
+      buf[charCode] = i;
     }
     return length;
   }
@@ -44,7 +44,7 @@ export default class ExtendedASCII {
   public static byte2str(buff: Buffer): string {
     var chars = new Array(buff.length);
     for (var i = 0; i < buff.length; i++) {
-      var charCode = buff.readUInt8(i);
+      var charCode = buff[i];
       if (charCode > 0x7F) {
         chars[i] = ExtendedASCII.extendedChars[charCode - 128]
       } else {
