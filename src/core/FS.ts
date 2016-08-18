@@ -6,6 +6,7 @@ import path = require('path');
 import Stats from './node_fs_stats';
 // Typing info only.
 import _fs = require('fs');
+import global = require('./global');
 
 declare var __numWaiting: number;
 
@@ -30,7 +31,7 @@ function wrapCb<T extends Function>(cb: T, numArgs: number): T {
     // We could use `arguments`, but Function.call/apply is expensive. And we only
     // need to handle 1-3 arguments
     if (typeof __numWaiting === 'undefined') {
-      __numWaiting = 0;
+      global.__numWaiting = 0;
     }
     __numWaiting++;
 
