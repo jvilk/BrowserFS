@@ -423,7 +423,7 @@ export default class WorkerFS extends file_system.BaseFileSystem implements file
   }
 
   public static isAvailable(): boolean {
-    return typeof Worker !== 'undefined';
+    return typeof(importScripts) !== 'undefined' || typeof(Worker) !== 'undefined';
   }
 
   public getName(): string {
