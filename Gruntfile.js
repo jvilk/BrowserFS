@@ -20,7 +20,8 @@ var fs = require('fs'),
     ],
     plugin: [
       'tsify', 'browserify-derequire'
-    ]
+    ],
+    extensions: ['.js', '.json', '.ts']
   },
   nodeTSConfig = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'tsconfig.json')).toString()),
   karmaFiles = [
@@ -48,8 +49,6 @@ if (karmaBrowsers.indexOf('IE') !== -1) {
 }
 
 var karmaConfig = {
-    // base path, that will be used to resolve files and exclude
-    basePath: '.',
     frameworks: ['mocha'],
     files: karmaFiles,
     exclude: [],
@@ -59,6 +58,7 @@ var karmaConfig = {
     colors: true,
     logLevel: 'INFO',
     autoWatch: true,
+    concurrency: 1,
     customLaunchers: {
       IE9: {
         base: 'IE',
