@@ -63,10 +63,6 @@ var karmaConfig = {
       IE9: {
         base: 'IE',
         'x-ua-compatible': 'IE=EmulateIE9'
-      },
-      IE8: {
-        base: 'IE',
-        'x-ua-compatible': 'IE=EmulateIE8'
       }
     },
     browsers: karmaBrowsers,
