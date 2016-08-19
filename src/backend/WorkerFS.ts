@@ -144,26 +144,25 @@ class FileDescriptorArgumentConverter {
       // Appendable: Write to end of file.
       // Writeable: Replace entire contents of file.
       fd.write(data, 0, data.length, flag.isAppendable() ? fd.getPos() : 0, (e) => {
+        function applyStatChanges() {
+          // Check if mode changed.
+          fd.stat((e, stats?) => {
+            if (e) {
+              cb(e);
+            } else {
+              if (stats.mode !== remoteStats.mode) {
+                fd.chmod(remoteStats.mode, (e: any) => {
+                  cb(e, fd);
+                });
+              } else {
+                cb(e, fd);
+              }
+            }
+          });
+        }
         if (e) {
           cb(e);
         } else {
-          function applyStatChanges() {
-            // Check if mode changed.
-            fd.stat((e, stats?) => {
-              if (e) {
-                cb(e);
-              } else {
-                if (stats.mode !== remoteStats.mode) {
-                  fd.chmod(remoteStats.mode, (e: any) => {
-                    cb(e, fd);
-                  });
-                } else {
-                  cb(e, fd);
-                }
-              }
-            });
-          }
-
           // If writeable & not appendable, we need to ensure file contents are
           // identical to those from the remote FD. Thus, we truncate to the
           // length of the remote file.
@@ -423,7 +422,7 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
   }
 
   public static isAvailable(): boolean {
-    return typeof Worker !== 'undefined';
+    return typeof(importScripts) !== 'undefined' || typeof(Worker) !== 'undefined';
   }
 
   public getName(): string {

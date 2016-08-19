@@ -99,20 +99,23 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
             this._sync.mkdirSync(p, mode);
           }
           this._async.readdir(p, (err, files) => {
+            var i = 0;
+            // NOTE: This function must not be in a lexically nested statement,
+            // such as an if or while statement. Safari refuses to run the
+            // script since it is undefined behavior.
+            function copyNextFile(err?: ApiError) {
+              if (err) {
+                cb(err);
+              } else if (i < files.length) {
+                copyItem(path.join(p, files[i]), copyNextFile);
+                i++;
+              } else {
+                cb();
+              }
+            }
             if (err) {
               cb(err);
             } else {
-              var i = 0;
-              function copyNextFile(err?: ApiError) {
-                if (err) {
-                  cb(err);
-                } else if (i < files.length) {
-                  copyItem(path.join(p, files[i]), copyNextFile);
-                  i++;
-                } else {
-                  cb();
-                }
-              }
               copyNextFile();
             }
           });

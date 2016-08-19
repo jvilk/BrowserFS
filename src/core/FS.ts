@@ -4,6 +4,8 @@ import file_system = require('./file_system');
 import {FileFlag} from './file_flag';
 import * as path from 'path';
 import Stats from './node_fs_stats';
+import global from './global';
+
 // Typing info only.
 import * as _fs from 'fs';
 
@@ -30,7 +32,7 @@ function wrapCb<T extends Function>(cb: T, numArgs: number): T {
     // We could use `arguments`, but Function.call/apply is expensive. And we only
     // need to handle 1-3 arguments
     if (typeof __numWaiting === 'undefined') {
-      __numWaiting = 0;
+      global.__numWaiting = 0;
     }
     __numWaiting++;
 
