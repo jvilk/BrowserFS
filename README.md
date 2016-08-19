@@ -1,4 +1,4 @@
-# BrowserFS v0.5.12
+# BrowserFS v0.5.13
 > BrowserFS is an in-browser file system that emulates the [Node JS file system API](http://nodejs.org/api/fs.html) and supports storing and retrieving files from various backends. BrowserFS also integrates nicely into the Emscripten file system.
 
 [![Build Status](https://travis-ci.org/jvilk/BrowserFS.svg?branch=master)](https://travis-ci.org/jvilk/BrowserFS)
@@ -171,11 +171,7 @@ function setupBFS() {
 
 ### Testing
 
-Prerequisites:
-
-* Karma globally installed: `npm install -g karma`
-
-To run unit tests, simply run `grunt test`. You may need to change `build/karma.conf.js` if you do not have Chrome, Safari, Opera, and Firefox installed.
+To run unit tests, simply run `grunt test`.
 
 `grunt coverage` will run the unit tests, and output code coverage information.
 
