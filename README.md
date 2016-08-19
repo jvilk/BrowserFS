@@ -1,4 +1,4 @@
-# BrowserFS v0.5.13
+# BrowserFS v1.0.0
 > BrowserFS is an in-browser file system that emulates the [Node JS file system API](http://nodejs.org/api/fs.html) and supports storing and retrieving files from various backends. BrowserFS also integrates nicely into the Emscripten file system.
 
 [![Build Status](https://travis-ci.org/jvilk/BrowserFS.svg?branch=master)](https://travis-ci.org/jvilk/BrowserFS)
@@ -96,8 +96,8 @@ can construct and initialize the file system.
 Do not depend on both `node_fs.js` and the `browserfs` module, as it will pull in the node modules from `dist/node`,
 as well as `dist/browserfs.js`.
 
-Optionally, you can also use the companion modules `bfs-path`, `bfs-buffer`, and `bfs-process` to replace
-browserify's builtins for `path`, `buffer`, and `process`.
+Optionally, you can also use the companion modules `bfs-path` and `bfs-process` to replace
+browserify's builtins for `path` and `process`.
 
 I have written an [example project](https://github.com/jvilk/bfs-browserify-test) that illustrates how to do this.
 
