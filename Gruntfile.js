@@ -45,7 +45,7 @@ var fs = require('fs'),
   });
 
 if (karmaBrowsers.indexOf('IE') !== -1) {
-  karmaBrowsers.push('IE9', 'IE8');
+  karmaBrowsers.push('IE9');
 }
 
 var karmaConfig = {
