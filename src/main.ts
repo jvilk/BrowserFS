@@ -78,4 +78,30 @@ if (typeof setImmediate === 'undefined') {
   }
 }
 
+// Polyfill for Uint8Array.prototype.slice.
+// Safari and some other browsers do not define it.
+if (typeof(ArrayBuffer) !== 'undefined' && typeof(Uint8Array) !== 'undefined') {
+  if (!Uint8Array.prototype['slice']) {
+    Uint8Array.prototype.slice = function(start: number = 0, end: number = this.length): Uint8Array {
+      let self: Uint8Array = this;
+      if (start < 0) {
+        start = this.length + start;
+        if (start < 0) {
+          start = 0;
+        }
+      }
+      if (end < 0) {
+        end = this.length + end;
+        if (end < 0) {
+          end = 0;
+        }
+      }
+      if (end < start) {
+        end = start;
+      }
+      return new Uint8Array(self.buffer, self.byteOffset + start, end - start);
+    };
+  }
+}
+
 export * from './core/browserfs';

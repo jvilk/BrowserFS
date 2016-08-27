@@ -4,8 +4,6 @@
 import {FileSystem} from './file_system';
 import * as path from 'path';
 
-const SUPPORTS_TYPED_ARRAYS = typeof(ArrayBuffer) !== 'undefined';
-
 /**
  * Checks for any IE version, including IE11 which removed MSIE from the
  * userAgent string.
@@ -37,7 +35,7 @@ export function mkdirpSync(p: string, mode: number, fs: FileSystem): void {
  * zero-copy manner, e.g. the array references the same memory.
  */
 export function buffer2ArrayBuffer(buff: Buffer): ArrayBuffer {
-  var u8 = buffer2Uint8array(buff),
+  const u8 = buffer2Uint8array(buff),
     u8offset = u8.byteOffset,
     u8Len = u8.byteLength;
   if (u8offset === 0 && u8Len === u8.buffer.byteLength) {
@@ -52,10 +50,8 @@ export function buffer2ArrayBuffer(buff: Buffer): ArrayBuffer {
  * zero-copy manner, e.g. the array references the same memory.
  */
 export function buffer2Uint8array(buff: Buffer): Uint8Array {
-  if (buff['toUint8Array']) {
-    return (<any> buff).toUint8Array();
-  } else if (buff instanceof Uint8Array) {
-    // Node v4.0 buffers *are* Uint8Arrays.
+  if (buff instanceof Uint8Array) {
+    // BFS & Node v4.0 buffers *are* Uint8Arrays.
     return <any> buff;
   } else {
     // Uint8Arrays can be constructed from arrayish numbers.
@@ -71,7 +67,7 @@ export function buffer2Uint8array(buff: Buffer): Uint8Array {
 export function arrayish2Buffer(arr: Arrayish<number>): Buffer {
   if (arr instanceof Buffer) {
     return arr;
-  } else if (SUPPORTS_TYPED_ARRAYS && arr instanceof Uint8Array) {
+  } else if (arr instanceof Uint8Array) {
     return uint8Array2Buffer(arr);
   } else {
     return new Buffer(<number[]> arr);
@@ -105,32 +101,6 @@ export function arrayBuffer2Buffer(ab: ArrayBuffer): Buffer {
   }
 }
 
-// Polyfill for Uint8Array.prototype.slice.
-// Safari and some other browsers do not define it.
-if (typeof(ArrayBuffer) !== 'undefined' && typeof(Uint8Array) !== 'undefined') {
-  if (!Uint8Array.prototype['slice']) {
-    Uint8Array.prototype.slice = function(start: number = 0, end: number = this.length): Uint8Array {
-      let self: Uint8Array = this;
-      if (start < 0) {
-        start = this.length + start;
-        if (start < 0) {
-          start = 0;
-        }
-      }
-      if (end < 0) {
-        end = this.length + end;
-        if (end < 0) {
-          end = 0;
-        }
-      }
-      if (end < start) {
-        end = start;
-      }
-      return new Uint8Array(self.buffer, self.byteOffset + start, end - start);
-    };
-  }
-}
-
 /**
  * Copies a slice of the given buffer
  */
@@ -141,7 +111,7 @@ export function copyingSlice(buff: Buffer, start: number = 0, end = buff.length)
   if (buff.length === 0) {
     // Avoid s0 corner case in ArrayBuffer case.
     return new Buffer(0);
-  } else if (SUPPORTS_TYPED_ARRAYS) {
+  } else {
     var u8 = buffer2Uint8array(buff),
       s0 = buff[0],
       newS0 = (s0 + 1) % 0xFF;
@@ -156,9 +126,5 @@ export function copyingSlice(buff: Buffer, start: number = 0, end = buff.length)
       buff[0] = s0;
       return uint8Array2Buffer(u8.subarray(start, end));
     }
-  } else {
-    var buffSlice = new Buffer(end - start);
-    buff.copy(buffSlice, 0, start, end);
-    return buffSlice;
   }
 }

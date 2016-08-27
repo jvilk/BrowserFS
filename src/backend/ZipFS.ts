@@ -26,13 +26,8 @@
  * feature, it is best implemented as a generic file system wrapper that can
  * cache data from arbitrary file systems.
  *
- * For inflation, we use `pajo`'s implementation:
+ * For inflation, we use `pako`'s implementation:
  * https://github.com/nodeca/pako
- *
- * Unfortunately, their implementation falls back to an array of bytes for non-
- * TypedArray browsers, which is results in a much larger memory footprint in
- * those browsers. Perhaps one day we'll have an implementation of inflate that
- * works on Buffers? :)
  *
  * Current limitations:
  * * No encryption.
