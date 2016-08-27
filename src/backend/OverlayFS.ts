@@ -67,7 +67,14 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
   private _isInitialized: boolean = false;
   private _initializeCallbacks: ((e?: ApiError) => void)[] = [];
   private _deletedFiles: {[path: string]: boolean} = {};
-  private _deleteLog: File = null;
+  private _deleteLog: string = '';
+  // If 'true', we have scheduled a delete log update.
+  private _deleteLogUpdatePending: boolean = false;
+  // If 'true', a delete log update is needed after the scheduled delete log
+  // update finishes.
+  private _deleteLogUpdateNeeded: boolean = false;
+  // If there was an error updating the delete log...
+  private _deleteLogError: ApiError = null;
 
   constructor(writable: FileSystem, readable: FileSystem) {
     super();
@@ -81,6 +88,10 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
   private checkInitialized(): void {
     if (!this._isInitialized) {
       throw new ApiError(ErrorCode.EPERM, "OverlayFS is not initialized. Please initialize OverlayFS using its initialize() method before using it.");
+    } else if (this._deleteLogError !== null) {
+      const e = this._deleteLogError;
+      this._deleteLogError = null;
+      throw e;
     }
   }
 
@@ -88,8 +99,27 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
     if (!this._isInitialized) {
       cb(new ApiError(ErrorCode.EPERM, "OverlayFS is not initialized. Please initialize OverlayFS using its initialize() method before using it."));
       return false;
+    } else if (this._deleteLogError !== null) {
+      const e = this._deleteLogError;
+      this._deleteLogError = null;
+      cb(e);
+      return false;
     }
     return true;
+  }
+
+  private checkPath(p: string): void {
+    if (p === deletionLogPath) {
+      throw ApiError.EPERM(p);
+    }
+  }
+
+  private checkPathAsync(p: string, cb: (e?: ApiError) => void): boolean {
+    if (p === deletionLogPath) {
+      cb(ApiError.EPERM(p));
+      return true;
+    }
+    return false;
   }
 
   public getOverlayedFileSystems(): { readable: FileSystem; writable: FileSystem; } {
@@ -207,20 +237,10 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
           return end(err);
         }
       } else {
-        data.split('\n').forEach((path: string) => {
-          // If the log entry begins w/ 'd', it's a deletion. Otherwise, it's
-          // an undeletion.
-          // TODO: Clean up log during initialization phase.
-          this._deletedFiles[path.slice(1)] = path.slice(0, 1) === 'd';
-        });
+        this._deleteLog = data;
       }
-      // Open up the deletion log for appending.
-      this._writable.open(deletionLogPath, getFlag('a'), 0o644, (err: ApiError, fd?: File) => {
-        if (!err) {
-          this._deleteLog = fd;
-        }
-        end(err);
-      });
+      this._reparseDeletionLog();
+      end(null);
     });
   }
 
@@ -231,22 +251,52 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 
   private deletePath(p: string): void {
     this._deletedFiles[p] = true;
-    var buff = new Buffer("d" + p + "\n");
-    this._deleteLog.writeSync(buff, 0, buff.length, null);
-    this._deleteLog.syncSync();
+    this.updateLog(`d${p}\n`);
   }
 
-  private undeletePath(p: string): void {
-    if (this._deletedFiles[p]) {
-      this._deletedFiles[p] = false;
-      var buff = new Buffer("u" + p);
-      this._deleteLog.writeSync(buff, 0, buff.length, null);
-      this._deleteLog.syncSync();
+  private updateLog(addition: string) {
+    this._deleteLog += addition;
+    if (this._deleteLogUpdatePending) {
+      this._deleteLogUpdateNeeded = true;
+    } else {
+      this._deleteLogUpdatePending = true;
+      this._writable.writeFile(deletionLogPath, this._deleteLog, 'utf8', FileFlag.getFileFlag('w'), 0o644, (e) => {
+        this._deleteLogUpdatePending = false;
+        if (e) {
+          this._deleteLogError = e;
+        } else if (this._deleteLogUpdateNeeded) {
+          this._deleteLogUpdateNeeded = false;
+          this.updateLog('');
+        }
+      });
     }
   }
 
+  public getDeletionLog(): string {
+    return this._deleteLog;
+  }
+
+  private _reparseDeletionLog(): void {
+    this._deletedFiles = {};
+    this._deleteLog.split('\n').forEach((path: string) => {
+      // If the log entry begins w/ 'd', it's a deletion.
+      this._deletedFiles[path.slice(1)] = path.slice(0, 1) === 'd';
+    });
+  }
+
+  public restoreDeletionLog(log: string): void {
+    this._deleteLog = log;
+    this._reparseDeletionLog();
+    this.updateLog('');
+  }
+
   public rename(oldPath: string, newPath: string, cb: (err?: ApiError) => void): void {
-    if (!this.checkInitAsync(cb)) return;
+    if (!this.checkInitAsync(cb) || this.checkPathAsync(oldPath, cb) || this.checkPathAsync(newPath, cb)) return;
+
+    if (oldPath === deletionLogPath || newPath === deletionLogPath) {
+      return cb(ApiError.EPERM('Cannot rename deletion log.'));
+    }
+
     // nothing to do if paths match
     if (oldPath === newPath) {
       return cb();
@@ -354,6 +404,11 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 
   public renameSync(oldPath: string, newPath: string): void {
     this.checkInitialized();
+    this.checkPath(oldPath);
+    this.checkPath(newPath);
+    if (oldPath === deletionLogPath || newPath === deletionLogPath) {
+      throw ApiError.EPERM('Cannot rename deletion log.');
+    }
     // Write newPath using oldPath's contents, delete oldPath.
     var oldStats = this.statSync(oldPath, false);
     if (oldStats.isDirectory()) {
@@ -445,7 +500,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
   }
 
   public open(p: string, flag: FileFlag, mode: number, cb: (err: ApiError, fd?: File) => any): void {
-    if (!this.checkInitAsync(cb)) return;
+    if (!this.checkInitAsync(cb) || this.checkPathAsync(p, cb)) return;
     this.stat(p, false, (err: ApiError, stats?: Stats) => {
       if (stats) {
         switch (flag.pathExistsAction()) {
@@ -498,6 +553,10 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 
   public openSync(p: string, flag: FileFlag, mode: number): File {
     this.checkInitialized();
+    this.checkPath(p);
+    if (p === deletionLogPath) {
+      throw ApiError.EPERM('Cannot open deletion log.');
+    }
     if (this.existsSync(p)) {
       switch (flag.pathExistsAction()) {
         case ActionType.TRUNCATE_FILE:
@@ -508,9 +567,10 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
             return this._writable.openSync(p, flag, mode);
           } else {
             // Create an OverlayFile.
+            var buf = this._readable.readFileSync(p, null, getFlag('r'));
             var stats = this._readable.statSync(p, false).clone();
             stats.mode = mode;
-            return new OverlayFile(this, p, flag, stats, this._readable.readFileSync(p, null, getFlag('r')));
+            return new OverlayFile(this, p, flag, stats, buf);
           }
         default:
           throw ApiError.EEXIST(p);
@@ -527,7 +587,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
   }
 
   public unlink(p: string, cb: (err: ApiError) => void): void {
-    if (!this.checkInitAsync(cb)) return;
+    if (!this.checkInitAsync(cb) || this.checkPathAsync(p, cb)) return;
     this.exists(p, (exists: boolean) => {
       if (!exists)
         return cb(ApiError.ENOENT(p));
@@ -558,6 +618,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 
   public unlinkSync(p: string): void {
     this.checkInitialized();
+    this.checkPath(p);
     if (this.existsSync(p)) {
       if (this._writable.existsSync(p)) {
         this._writable.unlinkSync(p);
@@ -691,15 +752,16 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
             rFiles = [];
           }
 
-          // Readdir in both, merge, check delete log on each file, return.
-          let contents: string[] = wFiles.concat(rFiles);
+          // Readdir in both, check delete log on read-only file system's files, merge, return.
           let seenMap: {[name: string]: boolean} = {};
-          let filtered = contents.filter((fPath: string) => {
-            let result = !seenMap[fPath] && !this._deletedFiles[p + "/" + fPath];
+          let filtered: string[] = wFiles.concat(rFiles.filter((fPath: string) =>
+            !this._deletedFiles[`${p}/${fPath}`]
+          )).filter((fPath: string) => {
+            // Remove duplicates.
+            let result = !seenMap[fPath];
             seenMap[fPath] = true;
             return result;
           });
-
           cb(null, filtered);
         });
       });
@@ -713,19 +775,21 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
       throw ApiError.ENOTDIR(p);
     }
 
-    // Readdir in both, merge, check delete log on each file, return.
+    // Readdir in both, check delete log on RO file system's listing, merge, return.
     var contents: string[] = [];
     try {
       contents = contents.concat(this._writable.readdirSync(p));
     } catch (e) {
     }
     try {
-      contents = contents.concat(this._readable.readdirSync(p));
+      contents = contents.concat(this._readable.readdirSync(p).filter((fPath: string) =>
+        !this._deletedFiles[`${p}/${fPath}`]
+      ));
     } catch (e) {
     }
     var seenMap: {[name: string]: boolean} = {};
     return contents.filter((fileP: string) => {
-      var result = seenMap[fileP] === undefined && this._deletedFiles[p + "/" + fileP] !== true;
+      var result = !seenMap[fileP];
       seenMap[fileP] = true;
       return result;
     });
@@ -892,4 +956,8 @@ export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
 	getOverlayedFileSystems(): { readable: FileSystem; writable: FileSystem; } {
 		return super.getFSUnlocked().getOverlayedFileSystems();
 	}
+
+  unwrap(): UnlockedOverlayFS {
+    return super.getFSUnlocked();
+  }
 }

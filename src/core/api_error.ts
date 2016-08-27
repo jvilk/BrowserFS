@@ -4,8 +4,21 @@
  * @url http://www.gnu.org/software/libc/manual/html_node/Error-Codes.html
  */
 export enum ErrorCode {
-  EPERM, ENOENT, EIO, EBADF, EACCES, EBUSY, EEXIST, ENOTDIR, EISDIR, EINVAL,
-  EFBIG, ENOSPC, EROFS, ENOTEMPTY, ENOTSUP
+  EPERM     = 1,
+  ENOENT    = 2,
+  EIO       = 5,
+  EBADF     = 9,
+  EACCES    = 13,
+  EBUSY     = 16,
+  EEXIST    = 17,
+  ENOTDIR   = 20,
+  EISDIR    = 21,
+  EINVAL    = 22,
+  EFBIG     = 27,
+  ENOSPC    = 28,
+  EROFS     = 30,
+  ENOTEMPTY = 39,
+  ENOTSUP   = 95,
 }
 /**
  * Strings associated with each error code.
