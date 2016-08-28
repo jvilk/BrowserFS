@@ -14,7 +14,7 @@
  */
 // Install polyfills first.
 require('../../src/main');
- 
+
 import runTests = require('./setup');
 import BackendFactory = require('./BackendFactory');
 
@@ -26,6 +26,7 @@ var backends: BackendFactory[] = [/*FACTORIES*/],
       all: {[name: string]: () => void};
     };
     general: {[name: string]: () => void};
+    emscripten: {[name: string]: (Module: any) => void};
   } = {/*TESTS*/};
 
 runTests(tests, backends);

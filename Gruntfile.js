@@ -111,6 +111,13 @@ try {
 }
 
 /**
+ * Get the user's HOME directory.
+ */
+function getUserHome() {
+  return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
+}
+
+/**
  * Retrieves a file listing of backends.
  */
 function getBackends() {
@@ -416,8 +423,10 @@ module.exports = function(grunt) {
         var filePath = path.resolve(dir, file),
           relPath = path.relative(path.resolve('test/harness'), filePath);
         if (fs.statSync(filePath).isFile()) {
-          relPath.slice(0, relPath.length - 3);
-          dirInfo[file] = "require('" + relPath + "')";
+          if (path.extname(file) === '.js') {
+            relPath.slice(0, relPath.length - 3);
+            dirInfo[file] = "require('" + relPath + "')";
+          }
         } else {
           dirInfo[file] = {};
           processDir(filePath, dirInfo[file]);

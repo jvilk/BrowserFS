@@ -1,5 +1,6 @@
 import BrowserFS = require('../../src/core/browserfs');
 import file_system = require('../../src/core/file_system');
+import BFSEmscriptenFS from '../../src/generic/emscripten_fs';
 // !!TYPING ONLY!!
 import __buffer = require('bfs-buffer');
 import buffer = require('buffer');
@@ -39,6 +40,7 @@ export = function(tests: {
       all: {[name: string]: () => void};
     };
     general: {[name: string]: () => void};
+    emscripten: {[name: string]: (Module: any) => void};
   }, backendFactories: BackendFactory[]) {
   var fsBackends: { name: string; backends: file_system.FileSystem[]; }[] = [];
 
@@ -72,6 +74,52 @@ export = function(tests: {
         }
       });
     });
+  }
+
+  function generateEmscriptenTest(testName: string, test: (module: any) => void) {
+    // Only applicable to typed array-compatible browsers.
+    if (typeof(Uint8Array) !== 'undefined') {
+      it(`[Emscripten] Initialize FileSystem`, () => {
+        BrowserFS.initialize(new BrowserFS.FileSystem.InMemory());
+      });
+      generateTest(`[Emscripten] Load fixtures (${testName})`, loadFixtures);
+      it(`[Emscripten] ${testName}`, function(done: (e?: any) => void) {
+        let stdout = "";
+        let stderr = "";
+
+        const Module = {
+          print: function(text: string) { stdout += text + '\n'; },
+          printErr: function(text: string) { stderr += text + '\n'; },
+          onExit: function(code) {
+            if (code !== 0) {
+              done(new Error(`Program exited with code ${code}.\nstdout:\n${stdout}\nstderr:\n${stderr}`));
+            } else {
+              done();
+            }
+          },
+          // Block standard input. Otherwise, the unit tests inexplicably read from stdin???
+          stdin: function() {
+            return null;
+          },
+          locateFile: function(fname: string): string {
+            return `/test/tests/emscripten/${fname}`;
+          },
+          preRun: function() {
+            const FS = Module.FS;
+            const BFS = new BFSEmscriptenFS(FS, Module.PATH, Module.ERRNO_CODES);
+            FS.mkdir('/files');
+            console.log(BrowserFS.BFSRequire('fs').readdirSync('/test/fixtures/files/emscripten'));
+            FS.mount(BFS, {root: '/test/fixtures/files/emscripten'}, '/files');
+            FS.chdir('/files');
+          },
+          ENVIRONMENT: "WEB",
+          FS: <any> undefined,
+          PATH: <any> undefined,
+          ERRNO_CODES: <any> undefined
+        };
+        test(Module);
+      });
+    }
   }
 
   function generateBackendTests(name: string, backend: file_system.FileSystem) {
@@ -122,6 +170,13 @@ export = function(tests: {
               })(testName);
             }
           }
+        });
+      });
+
+      describe('Emscripten Tests', (): void => {
+        var emscriptenTests = tests.emscripten;
+        Object.keys(emscriptenTests).forEach((testName) => {
+          generateEmscriptenTest(testName, emscriptenTests[testName]);
         });
       });
 
