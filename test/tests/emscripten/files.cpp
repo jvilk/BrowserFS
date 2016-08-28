@@ -43,7 +43,7 @@ int main()
 
   // Standard streams
 
-  printf("input:%s\n", gets((char*)malloc(1024)));
+  //printf("input:%s\n", gets((char*)malloc(1024)));
   fwrite("texto\n", 1, 6, stdout);
   fwrite("texte\n", 1, 6, stderr);
   putchar('$');
@@ -128,9 +128,9 @@ int main()
     assert(f);
     fclose(f);
 
-    char* str = tmpnam(NULL);
+    //char* str = tmpnam(NULL);
     //printf("temp: %s\n", str);
-    assert(strncmp("/tmp/", str, 5) == 0);
+    //assert(strncmp("/tmp/", str, 5) == 0);
   }
 
   FILE *n = fopen("/dev/null", "w");

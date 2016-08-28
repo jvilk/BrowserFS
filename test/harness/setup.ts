@@ -86,6 +86,17 @@ export = function(tests: {
       it(`[Emscripten] ${testName}`, function(done: (e?: any) => void) {
         let stdout = "";
         let stderr = "";
+        let fs = BrowserFS.BFSRequire('fs');
+        let path = BrowserFS.BFSRequire('path');
+        let expectedStdout: string = null;
+        let expectedStderr: string = null;
+        let testNameNoExt = testName.slice(0, testName.length - path.extname(testName).length);
+        try {
+          expectedStdout = fs.readFileSync(`/test/fixtures/files/emscripten/${testNameNoExt}.out`).toString().replace(/\r/g, '');
+          expectedStderr = fs.readFileSync(`/test/fixtures/files/emscripten/${testNameNoExt}.err`).toString().replace(/\r/g, '');
+        } catch (e) {
+          // No stdout/stderr test.
+        }
 
         const Module = {
           print: function(text: string) { stdout += text + '\n'; },
@@ -94,6 +105,10 @@ export = function(tests: {
             if (code !== 0) {
               done(new Error(`Program exited with code ${code}.\nstdout:\n${stdout}\nstderr:\n${stderr}`));
             } else {
+              if (expectedStdout !== null) {
+                assert.equal(stdout.trim(), expectedStdout.trim());
+                assert.equal(stderr.trim(), expectedStderr.trim());
+              }
               done();
             }
           },
