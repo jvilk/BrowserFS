@@ -712,11 +712,10 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
     }
 
     worker.addEventListener('message',(e: MessageEvent) => {
-      var request: Object = e.data;
+      const request: Object = e.data;
       if (isAPIRequest(request)) {
-        var args = request.args,
-          fixedArgs = new Array<any>(args.length),
-          i: number;
+        const args = request.args,
+          fixedArgs = new Array<any>(args.length);
 
         switch (request.method) {
           case 'close':
@@ -756,10 +755,10 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
             break;
           default:
             // File system methods.
-            for (i = 0; i < args.length; i++) {
+            for (let i = 0; i < args.length; i++) {
               fixedArgs[i] = argRemote2Local(args[i], fixedArgs);
             }
-            var rootFS = fs.getRootFS();
+            const rootFS = fs.getRootFS();
             (<Function> rootFS[request.method]).apply(rootFS, fixedArgs);
             break;
         }

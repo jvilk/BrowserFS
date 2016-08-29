@@ -13,7 +13,7 @@ function isDirectoryEntry(entry: Entry): entry is DirectoryEntry {
   return entry.isDirectory;
 }
 
-var _getFS: (type:number, size:number, successCallback: FileSystemCallback, errorCallback?: ErrorCallback) => void = global.webkitRequestFileSystem || global.requestFileSystem || null;
+const _getFS: (type:number, size:number, successCallback: FileSystemCallback, errorCallback?: ErrorCallback) => void = global.webkitRequestFileSystem || global.requestFileSystem || null;
 
 function _requestQuota(type: number, size: number, success: (size: number) => void, errorCallback: ErrorCallback) {
   // We cast navigator and window to '<any>' because everything here is

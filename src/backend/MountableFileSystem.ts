@@ -323,7 +323,7 @@ function defineFcn(name: string, isSync: boolean, numArgs: number): (...args: an
   }
 }
 
-var fsCmdMap = [
+const fsCmdMap = [
    // 1 arg functions
    ['exists', 'unlink', 'readlink'],
    // 2 arg functions
@@ -335,10 +335,10 @@ var fsCmdMap = [
    // 5 arg functions
    ['writeFile', 'appendFile']];
 
-for (var i = 0; i < fsCmdMap.length; i++) {
-  var cmds = fsCmdMap[i];
-  for (var j = 0; j < cmds.length; j++) {
-    var fnName = cmds[j];
+for (let i = 0; i < fsCmdMap.length; i++) {
+  const cmds = fsCmdMap[i];
+  for (let j = 0; j < cmds.length; j++) {
+    const fnName = cmds[j];
     (<any> MountableFileSystem.prototype)[fnName] = defineFcn(fnName, false, i + 1);
     (<any> MountableFileSystem.prototype)[fnName + 'Sync'] = defineFcn(fnName + 'Sync', true, i + 1);
   }

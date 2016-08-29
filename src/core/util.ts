@@ -13,7 +13,7 @@ export var isIE: boolean = typeof navigator !== "undefined" && (/(msie) ([\w.]+)
 /**
  * Check if we're in a web worker.
  */
-export var isWebWorker: boolean = typeof window === "undefined";
+export const isWebWorker: boolean = typeof window === "undefined";
 
 export interface Arrayish<T> {
   [idx: number]: T;

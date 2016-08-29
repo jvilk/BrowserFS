@@ -5,7 +5,7 @@ import global from '../core/global';
 // Some versions of FF and all versions of IE do not support the full range of
 // 16-bit numbers encoded as characters, as they enforce UTF-16 restrictions.
 // http://stackoverflow.com/questions/11170716/are-there-any-characters-that-are-not-allowed-in-localstorage/11173673#11173673
-var supportsBinaryString: boolean = false,
+let supportsBinaryString: boolean = false,
   binaryEncoding: string;
 try {
   global.localStorage.setItem("__test__", String.fromCharCode(0xD800));
