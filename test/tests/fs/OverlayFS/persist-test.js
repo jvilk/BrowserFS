@@ -27,18 +27,18 @@ module.exports = function() {
   fs.rmdirSync('/test/fixtures/files/node');
 
   assert(fs.existsSync('/test/fixtures/files/node') === false, 'Directory must be deleted');
-  assert(fs.readdirSync('/test/fixtures/files').length === 0, 'File system must be empty.');
+  assert(fs.readdirSync('/test/fixtures/files').indexOf('node') === -1, 'Directory must be empty.');
 
   var newCombined = new BrowserFS.FileSystem.OverlayFS(writable, readable);
   newCombined.initialize(function() {
     assert(newCombined.existsSync('/test/fixtures/files/node') === false, 'Directory must still be deleted.');
-    assert(newCombined.readdirSync('/test/fixtures/files').length === 0, "File system must still be empty.");
+    assert(newCombined.readdirSync('/test/fixtures/files').indexOf('node') === -1, "Directory must still be empty.");
 
     var newFs = new BrowserFS.FileSystem.OverlayFS(new BrowserFS.FileSystem.InMemory(), readable);
     newFs.initialize(function() {
       BrowserFS.initialize(newFs);
       assert(fs.existsSync('/test/fixtures/files/node') === true, "Directory must be back");
-      assert(fs.readdirSync('/test/fixtures/files').length > 0, "Directory must be back.");
+      assert(fs.readdirSync('/test/fixtures/files').indexOf('node') > -1, "Directory must be back.");
       // XXX: Remake the tmpdir.
       fs.mkdirSync(common.tmpDir);
     });

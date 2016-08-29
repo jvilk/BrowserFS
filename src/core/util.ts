@@ -81,7 +81,7 @@ export function uint8Array2Buffer(u8: Uint8Array): Buffer {
   if (u8 instanceof Buffer) {
     return u8;
   } else if (u8.byteOffset === 0 && u8.byteLength === u8.buffer.byteLength) {
-    return arrayBuffer2Buffer(u8);
+    return arrayBuffer2Buffer(u8.buffer);
   } else {
     return new Buffer(u8);
   }

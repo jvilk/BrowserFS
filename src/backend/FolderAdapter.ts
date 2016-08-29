@@ -105,7 +105,7 @@ function wrapFunction(name: string, wrapFirst: boolean, wrapSecond: boolean): Fu
  'rmdir', 'rmdirSync' ,'mkdir', 'mkdirSync', 'readdir', 'readdirSync', 'exists',
  'existsSync', 'realpath', 'realpathSync', 'truncate', 'truncateSync', 'readFile',
  'readFileSync', 'writeFile', 'writeFileSync', 'appendFile', 'appendFileSync',
- 'chmod', 'chmodSync', 'chown', 'chownSync', 'utimes', 'utimeSync', 'readlink',
+ 'chmod', 'chmodSync', 'chown', 'chownSync', 'utimes', 'utimesSync', 'readlink',
  'readlinkSync'].forEach((name: string) => {
   FolderAdapter.prototype[name] = wrapFunction(name, true, false);
 });

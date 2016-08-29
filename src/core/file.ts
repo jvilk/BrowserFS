@@ -21,7 +21,7 @@ export interface File {
    * **Core**: Asynchronous close.
    * @param [Function(BrowserFS.ApiError)] cb
    */
-  close(cb: Function): void;
+  close(cb: (err?: ApiError) => void): void;
   /**
    * **Core**: Synchronous close.
    */
@@ -31,7 +31,7 @@ export interface File {
    * @param [Number] len
    * @param [Function(BrowserFS.ApiError)] cb
    */
-  truncate(len: number, cb: Function): void;
+  truncate(len: number, cb: (err?: ApiError) => void): void;
   /**
    * **Core**: Synchronous truncate.
    * @param [Number] len

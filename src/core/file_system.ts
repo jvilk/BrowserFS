@@ -581,7 +581,7 @@ export class BaseFileSystem {
    * @param flag The flag to use when opening the file.
    * @return A File object corresponding to the opened file.
    */
-  public openFileSync(p: string, flag: FileFlag): file.File {
+  public openFileSync(p: string, flag: FileFlag, mode: number): file.File {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
   /**
@@ -629,7 +629,7 @@ export class BaseFileSystem {
         // supports those properties.
         return this.createFileSync(p, flag, stats.mode);
       case ActionType.NOP:
-        return this.openFileSync(p, flag);
+        return this.openFileSync(p, flag, mode);
       default:
         throw new ApiError(ErrorCode.EINVAL, 'Invalid FileFlag object.');
     }

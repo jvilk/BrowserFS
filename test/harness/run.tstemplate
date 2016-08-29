@@ -26,6 +26,7 @@ const backends: BackendFactory[] = [/*FACTORIES*/],
       all: {[name: string]: () => void};
     };
     general: {[name: string]: () => void};
+    emscripten: {[name: string]: (Module: any) => void};
   } = {/*TESTS*/};
 
 runTests(tests, backends);

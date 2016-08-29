@@ -18,7 +18,6 @@ if ('ab'.substr(-1) !== 'b') {
 }
 
 // Only IE10 has setImmediate.
-// @todo: Determine viability of switching to the 'proper' polyfill for this.
 if (typeof setImmediate === 'undefined') {
   var gScope = global;
   var timeouts: (() => void)[] = [];

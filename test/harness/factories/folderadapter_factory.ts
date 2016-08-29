@@ -15,4 +15,4 @@ export default function FolderAdapterFactory(cb: (name: string, obj: FileSystem[
 }
 
 // Typecheck;
-var _: BackendFactory = FolderAdapterFactory;
+const _: BackendFactory = FolderAdapterFactory;

@@ -3,6 +3,7 @@ import {FileSystem} from '../../src/core/file_system';
 import * as buffer from 'buffer';
 import BackendFactory from './BackendFactory';
 import {eachSeries as asyncEachSeries} from 'async';
+import BFSEmscriptenFS from '../../src/generic/emscripten_fs';
 import assert = require('./wrapped-assert');
 const loadFixtures = require('../fixtures/load_fixtures');
 
@@ -35,6 +36,7 @@ export default function(tests: {
       all: {[name: string]: () => void};
     };
     general: {[name: string]: () => void};
+    emscripten: {[name: string]: (Module: any) => void};
   }, backendFactories: BackendFactory[]) {
   var fsBackends: { name: string; backends: FileSystem[]; }[] = [];
 
@@ -68,6 +70,67 @@ export default function(tests: {
         }
       });
     });
+  }
+
+  function generateEmscriptenTest(testName: string, test: (module: any) => void) {
+    // Only applicable to typed array-compatible browsers.
+    if (typeof(Uint8Array) !== 'undefined') {
+      it(`[Emscripten] Initialize FileSystem`, () => {
+        BrowserFS.initialize(new BrowserFS.FileSystem.InMemory());
+      });
+      generateTest(`[Emscripten] Load fixtures (${testName})`, loadFixtures);
+      it(`[Emscripten] ${testName}`, function(done: (e?: any) => void) {
+        let stdout = "";
+        let stderr = "";
+        let fs = BrowserFS.BFSRequire('fs');
+        let path = BrowserFS.BFSRequire('path');
+        let expectedStdout: string = null;
+        let expectedStderr: string = null;
+        let testNameNoExt = testName.slice(0, testName.length - path.extname(testName).length);
+        try {
+          expectedStdout = fs.readFileSync(`/test/fixtures/files/emscripten/${testNameNoExt}.out`).toString().replace(/\r/g, '');
+          expectedStderr = fs.readFileSync(`/test/fixtures/files/emscripten/${testNameNoExt}.err`).toString().replace(/\r/g, '');
+        } catch (e) {
+          // No stdout/stderr test.
+        }
+
+        const Module = {
+          print: function(text: string) { stdout += text + '\n'; },
+          printErr: function(text: string) { stderr += text + '\n'; },
+          onExit: function(code) {
+            if (code !== 0) {
+              done(new Error(`Program exited with code ${code}.\nstdout:\n${stdout}\nstderr:\n${stderr}`));
+            } else {
+              if (expectedStdout !== null) {
+                assert.equal(stdout.trim(), expectedStdout.trim());
+                assert.equal(stderr.trim(), expectedStderr.trim());
+              }
+              done();
+            }
+          },
+          // Block standard input. Otherwise, the unit tests inexplicably read from stdin???
+          stdin: function() {
+            return null;
+          },
+          locateFile: function(fname: string): string {
+            return `/test/tests/emscripten/${fname}`;
+          },
+          preRun: function() {
+            const FS = Module.FS;
+            const BFS = new BFSEmscriptenFS(FS, Module.PATH, Module.ERRNO_CODES);
+            FS.mkdir('/files');
+            console.log(BrowserFS.BFSRequire('fs').readdirSync('/test/fixtures/files/emscripten'));
+            FS.mount(BFS, {root: '/test/fixtures/files/emscripten'}, '/files');
+            FS.chdir('/files');
+          },
+          ENVIRONMENT: "WEB",
+          FS: <any> undefined,
+          PATH: <any> undefined,
+          ERRNO_CODES: <any> undefined
+        };
+        test(Module);
+      });
+    }
   }
 
   function generateBackendTests(name: string, backend: FileSystem) {
@@ -113,6 +176,13 @@ export default function(tests: {
         }
       });
 
+      describe('Emscripten Tests', (): void => {
+        var emscriptenTests = tests.emscripten;
+        Object.keys(emscriptenTests).forEach((testName) => {
+          generateEmscriptenTest(testName, emscriptenTests[testName]);
+        });
+      });
+
       describe('FS Tests', (): void => {
         fsBackends.forEach((fsBackend) => {
           fsBackend.backends.forEach((backend) => {
@@ -128,8 +198,13 @@ export default function(tests: {
     __karma__.start();
   }
 
+
   asyncEachSeries(backendFactories, (factory: BackendFactory, cb: (e?: any) => void) => {
+    let timeout = setTimeout(() => {
+      throw new Error(`Backend ${factory['name']} failed to initialize promptly.`);
+    }, 10000);
     factory((name: string, backends: FileSystem[]) => {
+      clearTimeout(timeout);
       fsBackends.push({name: name, backends: backends});
       cb();
     });

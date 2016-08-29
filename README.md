@@ -25,6 +25,7 @@ BrowserFS is highly extensible, and ships with many filesystem backends:
 * `AsyncMirrorFS`: Use an asynchronous backend synchronously. Invaluable for Emscripten; let your Emscripten applications write to larger file stores with no additional effort!
   * Note: Loads the entire contents of the file system into a synchronous backend during construction. Performs synchronous operations in-memory, and enqueues them to be mirrored onto the asynchronous backend.
 * `FolderAdapter`: Wraps a file system, and scopes all interactions to a subfolder of that file system.
+* `Emscripten`: Lets you mount Emscripten file systems inside BrowserFS.
 
 More backends can be defined by separate libraries, so long as they extend the `BaseFileSystem`. Multiple backends can be active at once at different locations in the directory hierarchy.
 
