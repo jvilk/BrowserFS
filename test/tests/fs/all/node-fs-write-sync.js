@@ -44,6 +44,6 @@ module.exports = function() {
     assert.ok(written > 3);
     fs.closeSync(fd);
 
-    assert.equal(fs.readFileSync(fn), 'foobár');
+    assert.equal(fs.readFileSync(fn).toString(), 'foobár');
   }
 };

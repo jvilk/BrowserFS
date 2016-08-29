@@ -2,7 +2,7 @@ import file_system = require('../core/file_system');
 import {default as Stats, FileType} from '../core/node_fs_stats';
 import {FileFlag, ActionType} from '../core/file_flag';
 import {BaseFile, File} from '../core/file';
-import {arrayBuffer2Buffer, buffer2Uint8array} from '../core/util';
+import {uint8Array2Buffer, buffer2Uint8array} from '../core/util';
 import {ApiError, ErrorCode, ErrorStrings} from '../core/api_error';
 import {Stats as EmscriptenStats, EmscriptenFSNode} from '../generic/emscripten_fs';
 
@@ -35,7 +35,7 @@ export class EmscriptenFile extends BaseFile implements File {
     super();
   }
   public getPos(): number {
-    return this._stream.position;
+    return undefined;
   }
   public close(cb: (err?: ApiError) => void): void {
     let err: ApiError = null;
@@ -95,6 +95,10 @@ export class EmscriptenFile extends BaseFile implements File {
   public writeSync(buffer: NodeBuffer, offset: number, length: number, position: number): number {
     try {
       const u8 = buffer2Uint8array(buffer);
+      // Emscripten is particular about what position is set to.
+      if (position === null) {
+        position = undefined;
+      }
       return this._FS.write(this._stream, u8, offset, length, position);
     } catch (e) {
       throw convertError(e, this._path);
@@ -110,6 +114,10 @@ export class EmscriptenFile extends BaseFile implements File {
   public readSync(buffer: NodeBuffer, offset: number, length: number, position: number): number {
     try {
       const u8 = buffer2Uint8array(buffer);
+      // Emscripten is particular about what position is set to.
+      if (position === null) {
+        position = undefined;
+      }
       return this._FS.read(this._stream, u8, offset, length, position);
     } catch (e) {
       throw convertError(e, this._path);
@@ -167,11 +175,7 @@ export class EmscriptenFile extends BaseFile implements File {
     }
   }
   public utimesSync(atime: Date, mtime: Date): void {
-    try {
-      this._FS.utime(this._path, atime.getTime(), mtime.getTime());
-    } catch (e) {
-      throw convertError(e, this._path);
-    }
+    this._fs.utimesSync(this._path, atime, mtime);
   }
 }
 
@@ -189,7 +193,7 @@ export default class EmscriptenFileSystem extends file_system.SynchronousFileSys
   public static isAvailable(): boolean { return true; }
   public getName(): string { return this._FS.DB_NAME(); }
   public isReadOnly(): boolean { return false; }
-  public supportsSymlinks(): boolean { return true; }
+  public supportsLinks(): boolean { return true; }
   public supportsProps(): boolean { return true; }
   public supportsSynch(): boolean { return true; }
 
@@ -197,7 +201,11 @@ export default class EmscriptenFileSystem extends file_system.SynchronousFileSys
     try {
       this._FS.rename(oldPath, newPath);
     } catch (e) {
-      throw convertError(e);
+      if (e.errno === ErrorCode.ENOENT) {
+        throw convertError(e, this.existsSync(oldPath) ? newPath : oldPath);
+      } else {
+        throw convertError(e);
+      }
     }
   }
 
@@ -242,6 +250,10 @@ export default class EmscriptenFileSystem extends file_system.SynchronousFileSys
   public openSync(p: string, flag: FileFlag, mode: number): EmscriptenFile {
     try {
       const stream = this._FS.open(p, flag.getFlagString(), mode);
+      if (this._FS.isDir(stream.node.mode)) {
+        this._FS.close(stream);
+        throw ApiError.EISDIR(p);
+      }
       return new EmscriptenFile(this, this._FS, p, flag, stream);
     } catch (e) {
       throw convertError(e, p);
@@ -274,7 +286,43 @@ export default class EmscriptenFileSystem extends file_system.SynchronousFileSys
 
   public readdirSync(p: string): string[] {
     try {
-      return this._FS.readdir(p);
+      // Emscripten returns items for '.' and '..'. Node does not.
+      return this._FS.readdir(p).filter((p) => p !== '.' && p !== '..');
+    } catch (e) {
+      throw convertError(e, p);
+    }
+  }
+
+  public truncateSync(p: string, len: number): void {
+    try {
+      this._FS.truncate(p, len);
+    } catch (e) {
+      throw convertError(e, p);
+    }
+  }
+
+  public readFileSync(p: string, encoding: string, flag: FileFlag): any {
+    try {
+      const data: Uint8Array = this._FS.readFile(p, { flags: flag.getFlagString() })
+      const buff = uint8Array2Buffer(data);
+      if (encoding) {
+        return buff.toString(encoding);
+      } else {
+        return buff;
+      }
+    } catch (e) {
+      throw convertError(e, p);
+    }
+  }
+
+  public writeFileSync(p: string, data: any, encoding: string, flag: FileFlag, mode: number): void {
+    try {
+      if (encoding) {
+        data = new Buffer(data, encoding);
+      }
+      const u8 = buffer2Uint8array(data);
+      this._FS.writeFile(p, u8, { flags: flag.getFlagString(), encoding: 'binary' });
+      this._FS.chmod(p, mode);
     } catch (e) {
       throw convertError(e, p);
     }
@@ -311,4 +359,13 @@ export default class EmscriptenFileSystem extends file_system.SynchronousFileSys
       throw convertError(e, p);
     }
   }
+
+  public utimesSync(p: string, atime: Date, mtime: Date): void {
+    try {
+      this._FS.utime(p, atime.getTime(), mtime.getTime());
+    } catch (e) {
+      throw convertError(e, p);
+    }
+  }
+
 }

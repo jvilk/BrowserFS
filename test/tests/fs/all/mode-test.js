@@ -110,7 +110,7 @@ module.exports = function() {
         // permissions in the directory.
         assert(is_writable(dirMode), p + " is not a writeable directory, yet we could write a new file into it!");
         // Clean up.
-        fs.unlink(testFile, function() {});
+        fs.unlink(testFile, function(e) { assert(!e, "Received error when trying to clean up: " + e); });
       });
     });
   }
