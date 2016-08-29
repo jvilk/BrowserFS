@@ -23,7 +23,7 @@ export enum ErrorCode {
 /**
  * Strings associated with each error code.
  */
-var ErrorStrings: {[code: string]: string} = {};
+export const ErrorStrings: {[code: string]: string; [code: number]: string;} = {};
 ErrorStrings[ErrorCode.EPERM] = 'Operation not permitted.';
 ErrorStrings[ErrorCode.ENOENT] = 'No such file or directory.';
 ErrorStrings[ErrorCode.EIO] = 'Input/output error.';

@@ -51,6 +51,7 @@
         "test/harness/wrapped-assert.ts",
         "test/harness/factories/async_mirror_factory.ts",
         "test/harness/factories/dbfs_factory.ts",
+        "test/harness/factories/emscripten_factory.ts",
         "test/harness/factories/folderadapter_factory.ts",
         "test/harness/factories/html5fs_factory.ts",
         "test/harness/factories/idbfs_factory.ts",
