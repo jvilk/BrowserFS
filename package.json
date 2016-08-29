@@ -1,6 +1,6 @@
 {
   "name": "browserfs",
-  "version": "0.5.13",
+  "version": "0.6.0",
   "description": "A filesystem in your browser!",
   "main": "dist/browserfs.js",
   "typings": "dist/node/main",
