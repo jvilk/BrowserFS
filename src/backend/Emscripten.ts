@@ -1,22 +1,181 @@
 import file_system = require('../core/file_system');
 import {default as Stats, FileType} from '../core/node_fs_stats';
-import {FileFlag} from '../core/file_flag';
-import {PreloadFile} from '../generic/preload_file';
+import {FileFlag, ActionType} from '../core/file_flag';
+import {BaseFile, File} from '../core/file';
+import {uint8Array2Buffer, buffer2Uint8array} from '../core/util';
+import {ApiError, ErrorCode, ErrorStrings} from '../core/api_error';
+import {Stats as EmscriptenStats, EmscriptenFSNode} from '../generic/emscripten_fs';
 
-export class EmscriptenFile extends PreloadFile<EmscriptenFileSystem> {
-  constructor(_fs: EmscriptenFileSystem, _path: string, _flag: FileFlag, _stat: Stats, contents?: NodeBuffer) {
-    super(_fs, _path, _flag, _stat, contents);
+interface EmscriptenError {
+  node: EmscriptenFSNode;
+  errno: number;
+}
+
+function convertError(e: EmscriptenError, path: string = ''): ApiError {
+  const errno = e.errno;
+  let parent = e.node;
+  let paths = [];
+  while (parent) {
+    paths.unshift(parent.name);
+    if (parent === parent.parent) {
+      break;
+    }
+    parent = parent.parent;
   }
+  return new ApiError(errno, ErrorStrings[errno], paths.length > 0 ? '/' + paths.join('/') : path);
+}
 
-  public syncSync(): void {
-    if (this.isDirty()) {
-      this._fs._syncSync(this.getPath(), this.getBuffer(), this.getStats());
-      this.resetDirty();
+export class EmscriptenFile extends BaseFile implements File {
+  constructor(
+    private _fs: EmscriptenFileSystem,
+    private _FS: any,
+    private _path: string,
+    private _flag: FileFlag,
+    private _stream: any) {
+    super();
+  }
+  public getPos(): number {
+    return undefined;
+  }
+  public close(cb: (err?: ApiError) => void): void {
+    let err: ApiError = null;
+    try {
+      this.closeSync();
+    } catch (e) {
+      err = e;
+    } finally {
+      cb(err);
     }
   }
-
   public closeSync(): void {
-    this.syncSync();
+    try {
+      this._FS.close(this._stream);
+    } catch (e) {
+      throw convertError(e, this._path);
+    }
+  }
+  public stat(cb: (err: ApiError, stats?: Stats) => any): void {
+    try {
+      cb(null, this.statSync());
+    } catch (e) {
+      cb(e);
+    }
+  }
+  public statSync(): Stats {
+    try {
+      return this._fs.statSync(this._path, false);
+    } catch (e) {
+      throw convertError(e, this._path);
+    }
+  }
+  public truncate(len: number, cb: (err?: ApiError) => void): void {
+    let err: ApiError = null;
+    try {
+      this.truncateSync(len);
+    } catch (e) {
+      err = e;
+    } finally {
+      cb(err);
+    }
+  }
+  public truncateSync(len: number): void {
+    try {
+      this._FS.ftruncate(this._stream.fd, len);
+    } catch (e) {
+      throw convertError(e, this._path);
+    }
+  }
+  public write(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (err: ApiError, written?: number, buffer?: NodeBuffer) => any): void {
+    try {
+      cb(null, this.writeSync(buffer, offset, length, position), buffer);
+    } catch (e) {
+      cb(e);
+    }
+  }
+  public writeSync(buffer: NodeBuffer, offset: number, length: number, position: number): number {
+    try {
+      const u8 = buffer2Uint8array(buffer);
+      // Emscripten is particular about what position is set to.
+      if (position === null) {
+        position = undefined;
+      }
+      return this._FS.write(this._stream, u8, offset, length, position);
+    } catch (e) {
+      throw convertError(e, this._path);
+    }
+  }
+  public read(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (err: ApiError, bytesRead?: number, buffer?: NodeBuffer) => void): void {
+    try {
+      cb(null, this.readSync(buffer, offset, length, position), buffer);
+    } catch (e) {
+      cb(e);
+    }
+  }
+  public readSync(buffer: NodeBuffer, offset: number, length: number, position: number): number {
+    try {
+      const u8 = buffer2Uint8array(buffer);
+      // Emscripten is particular about what position is set to.
+      if (position === null) {
+        position = undefined;
+      }
+      return this._FS.read(this._stream, u8, offset, length, position);
+    } catch (e) {
+      throw convertError(e, this._path);
+    }
+  }
+  public sync(cb: (e?: ApiError) => void): void {
+    // NOP.
+    cb();
+  }
+  public syncSync(): void {
+    // NOP.
+  }
+  public chown(uid: number, gid: number, cb: (e?: ApiError) => void): void {
+    let err: ApiError = null;
+    try {
+      this.chownSync(uid, gid);
+    } catch (e) {
+      err = e;
+    } finally {
+      cb(err);
+    }
+  }
+  public chownSync(uid: number, gid: number): void {
+    try {
+      this._FS.fchown(this._stream.fd, uid, gid);
+    } catch (e) {
+      throw convertError(e, this._path);
+    }
+  }
+  public chmod(mode: number, cb: (e?: ApiError) => void): void {
+    let err: ApiError = null;
+    try {
+      this.chmodSync(mode);
+    } catch (e) {
+      err = e;
+    } finally {
+      cb(err);
+    }
+  }
+  public chmodSync(mode: number): void {
+    try {
+      this._FS.fchmod(this._stream.fd, mode);
+    } catch (e) {
+      throw convertError(e, this._path);
+    }
+  }
+  public utimes(atime: Date, mtime: Date, cb: (e?: ApiError) => void): void {
+    let err: ApiError = null;
+    try {
+      this.utimesSync(atime, mtime);
+    } catch (e) {
+      err = e;
+    } finally {
+      cb(err);
+    }
+  }
+  public utimesSync(atime: Date, mtime: Date): void {
+    this._fs.utimesSync(this._path, atime, mtime);
   }
 }
 
@@ -34,25 +193,37 @@ export default class EmscriptenFileSystem extends file_system.SynchronousFileSys
   public static isAvailable(): boolean { return true; }
   public getName(): string { return this._FS.DB_NAME(); }
   public isReadOnly(): boolean { return false; }
-  public supportsSymlinks(): boolean { return true; }
+  public supportsLinks(): boolean { return true; }
   public supportsProps(): boolean { return true; }
   public supportsSynch(): boolean { return true; }
 
   public renameSync(oldPath: string, newPath: string): void {
-    this._FS.rename(oldPath, newPath);
+    try {
+      this._FS.rename(oldPath, newPath);
+    } catch (e) {
+      if (e.errno === ErrorCode.ENOENT) {
+        throw convertError(e, this.existsSync(oldPath) ? newPath : oldPath);
+      } else {
+        throw convertError(e);
+      }
+    }
   }
 
   public statSync(p: string, isLstat: boolean): Stats {
-    const stats = isLstat ? this._FS.lstat(p) : this._FS.stat(p);
-    const item_type = this.modeToFileType(stats.mode);
-    return new Stats(
-      item_type,
-      stats.size,
-      stats.mode,
-      stats.atime,
-      stats.mtime,
-      stats.ctime
-    );
+    try {
+      const stats = isLstat ? this._FS.lstat(p) : this._FS.stat(p);
+      const item_type = this.modeToFileType(stats.mode);
+      return new Stats(
+        item_type,
+        stats.size,
+        stats.mode,
+        stats.atime,
+        stats.mtime,
+        stats.ctime
+      );
+    } catch (e) {
+      throw convertError(e, p);
+    }
   }
 
   private modeToFileType(mode: number): FileType {
@@ -66,73 +237,135 @@ export default class EmscriptenFileSystem extends file_system.SynchronousFileSys
   }
 
   /**
-   * Opens the file at path p with the given flag. The file must exist.
-   * @param p The path to open.
-   * @param flag The flag to use when opening the file.
-   * @return A File object corresponding to the opened file.
+   * Moved to separate function to avoid perf hit.
    */
-  public openFileSync(p: string, flag: FileFlag): EmscriptenFile {
-    const data = this._FS.readFile(p).buffer;
-    const file = new EmscriptenFile(this, p, flag, this.statSync(p, false), data);
-    return file;
+  private _tryStats(p: string): Stats {
+    try {
+      return this.statSync(p, false);
+    } catch (e) {
+      return null;
+    }
   }
 
-  /**
-   * Create the file at path p with the given mode. Then, open it with the given
-   * flag.
-   */
-  public createFileSync(p: string, flag: FileFlag, mode: number): EmscriptenFile {
-    const data = new Uint8Array(0);
-    const fsStream = this._FS.open(p, flag.getFlagString(), mode);
-    this._FS.write(fsStream, data, 0, data.length, 0);
-    this._FS.close(fsStream);
-    const file = new EmscriptenFile(this, p, flag, this.statSync(p, false), new Buffer(0));
-    return file;
+  public openSync(p: string, flag: FileFlag, mode: number): EmscriptenFile {
+    try {
+      const stream = this._FS.open(p, flag.getFlagString(), mode);
+      if (this._FS.isDir(stream.node.mode)) {
+        this._FS.close(stream);
+        throw ApiError.EISDIR(p);
+      }
+      return new EmscriptenFile(this, this._FS, p, flag, stream);
+    } catch (e) {
+      throw convertError(e, p);
+    }
   }
 
   public unlinkSync(p: string): void {
-    this._FS.unlink(p);
+    try {
+      this._FS.unlink(p);
+    } catch (e) {
+      throw convertError(e, p);
+    }
   }
 
   public rmdirSync(p: string): void {
-    this._FS.rmdir(p);
+    try {
+      this._FS.rmdir(p);
+    } catch (e) {
+      throw convertError(e, p);
+    }
   }
 
   public mkdirSync(p: string, mode: number): void {
-    this._FS.mkdir(p, mode);
+    try {
+      this._FS.mkdir(p, mode);
+    } catch (e) {
+      throw convertError(e, p);
+    }
   }
 
   public readdirSync(p: string): string[] {
-    return this._FS.readdir(p);
+    try {
+      // Emscripten returns items for '.' and '..'. Node does not.
+      return this._FS.readdir(p).filter((p) => p !== '.' && p !== '..');
+    } catch (e) {
+      throw convertError(e, p);
+    }
+  }
+
+  public truncateSync(p: string, len: number): void {
+    try {
+      this._FS.truncate(p, len);
+    } catch (e) {
+      throw convertError(e, p);
+    }
+  }
+
+  public readFileSync(p: string, encoding: string, flag: FileFlag): any {
+    try {
+      const data: Uint8Array = this._FS.readFile(p, { flags: flag.getFlagString() })
+      const buff = uint8Array2Buffer(data);
+      if (encoding) {
+        return buff.toString(encoding);
+      } else {
+        return buff;
+      }
+    } catch (e) {
+      throw convertError(e, p);
+    }
+  }
+
+  public writeFileSync(p: string, data: any, encoding: string, flag: FileFlag, mode: number): void {
+    try {
+      if (encoding) {
+        data = new Buffer(data, encoding);
+      }
+      const u8 = buffer2Uint8array(data);
+      this._FS.writeFile(p, u8, { flags: flag.getFlagString(), encoding: 'binary' });
+      this._FS.chmod(p, mode);
+    } catch (e) {
+      throw convertError(e, p);
+    }
   }
 
   public chmodSync(p: string, isLchmod: boolean, mode: number) {
-    isLchmod ? this._FS.lchmod(p, mode) : this._FS.chmod(p, mode);
+    try {
+      isLchmod ? this._FS.lchmod(p, mode) : this._FS.chmod(p, mode);
+    } catch (e) {
+      throw convertError(e, p);
+    }
   }
 
   public chownSync(p: string, isLchown: boolean, uid: number, gid: number): void {
-    isLchown ? this._FS.lchown(p, uid, gid) : this._FS.chown(p, uid, gid);
+    try {
+      isLchown ? this._FS.lchown(p, uid, gid) : this._FS.chown(p, uid, gid);
+    } catch (e) {
+      throw convertError(e, p);
+    }
   }
 
   public symlinkSync(srcpath: string, dstpath: string, type: string): void {
-    this._FS.symlink(srcpath, dstpath);
+    try {
+      this._FS.symlink(srcpath, dstpath);
+    } catch (e) {
+      throw convertError(e);
+    }
   }
 
   public readlinkSync(p: string): string {
-    return this._FS.readlink(p);
+    try {
+      return this._FS.readlink(p);
+    } catch (e) {
+      throw convertError(e, p);
+    }
   }
 
-  public _syncSync(p: string, data: NodeBuffer, stats: Stats): void {
-    const abuffer = new ArrayBuffer(data.length);
-    const view = new Uint8Array(abuffer);
-    let i = 0;
-    while(i < data.length) {
-      view[i] = data.readUInt8(i);
-      i++;
+  public utimesSync(p: string, atime: Date, mtime: Date): void {
+    try {
+      this._FS.utime(p, atime.getTime(), mtime.getTime());
+    } catch (e) {
+      throw convertError(e, p);
     }
-    this._FS.writeFile(p, view, {encoding: 'binary'});
-    this.chmodSync(p, false, stats.mode);
-    this.chownSync(p, false, stats.uid, stats.gid);
-    this._FS.utime(p, stats.atime, stats.mtime);
   }
+
 }

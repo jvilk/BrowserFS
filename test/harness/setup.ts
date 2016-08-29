@@ -211,7 +211,11 @@ export = function(tests: {
   }
 
   async.eachSeries(backendFactories, (factory: BackendFactory, cb: (e?: any) => void) => {
+    let timeout = setTimeout(() => {
+      throw new Error(`Backend ${factory['name']} failed to initialize promptly.`);
+    }, 10000);
     factory((name: string, backends: file_system.FileSystem[]) => {
+      clearTimeout(timeout);
       fsBackends.push({name: name, backends: backends});
       cb();
     });
