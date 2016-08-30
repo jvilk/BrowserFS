@@ -1,6 +1,6 @@
 import {ApiError, ErrorCode} from './api_error';
 import Stats from './node_fs_stats';
-import file = require('./file');
+import {File, BaseFile} from './file';
 import {FileFlag, ActionType} from './file_flag';
 import * as path from 'path';
 
@@ -149,7 +149,7 @@ export interface FileSystem {
    *   filesystem doesn't support permissions.
    * @param {FileSystem~fileCallback} cb
    */
-  open(p: string, flag:FileFlag, mode: number, cb: (err: ApiError, fd?: file.File) => any): void;
+  open(p: string, flag:FileFlag, mode: number, cb: (err: ApiError, fd?: File) => any): void;
   /**
    * **Core**: Synchronous file open.
    * @see http://www.manpagez.com/man/2/open/
@@ -161,7 +161,7 @@ export interface FileSystem {
    *   filesystem doesn't support permissions.
    * @return {BrowserFS.File}
    */
-  openSync(p: string, flag: FileFlag, mode: number): file.File;
+  openSync(p: string, flag: FileFlag, mode: number): File;
   /**
    * **Core**: Asynchronous `unlink`.
    * @method FileSystem#unlink
@@ -499,17 +499,17 @@ export class BaseFileSystem {
    * @param p The path to open.
    * @param flag The flag to use when opening the file.
    */
-  public openFile(p: string, flag: FileFlag, cb: (e: ApiError, file?: file.File) => void): void {
+  public openFile(p: string, flag: FileFlag, cb: (e: ApiError, file?: File) => void): void {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
   /**
    * Create the file at path p with the given mode. Then, open it with the given
    * flag.
    */
-  public createFile(p: string, flag: FileFlag, mode: number, cb: (e: ApiError, file?: file.File) => void): void {
+  public createFile(p: string, flag: FileFlag, mode: number, cb: (e: ApiError, file?: File) => void): void {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
-  public open(p: string, flag:FileFlag, mode: number, cb: (err: ApiError, fd?: file.BaseFile) => any): void {
+  public open(p: string, flag:FileFlag, mode: number, cb: (err: ApiError, fd?: BaseFile) => any): void {
     var must_be_file = (e: ApiError, stats?: Stats): void => {
       if (e) {
         // File does not exist.
@@ -543,7 +543,7 @@ export class BaseFileSystem {
             // re-created it. However, this created a race condition if another
             // asynchronous request was trying to read the file, as the file
             // would not exist for a small period of time.
-            return this.openFile(p, flag, (e: ApiError, fd?: file.File): void => {
+            return this.openFile(p, flag, (e: ApiError, fd?: File): void => {
               if (e) {
                 cb(e);
               } else {
@@ -581,17 +581,17 @@ export class BaseFileSystem {
    * @param flag The flag to use when opening the file.
    * @return A File object corresponding to the opened file.
    */
-  public openFileSync(p: string, flag: FileFlag, mode: number): file.File {
+  public openFileSync(p: string, flag: FileFlag, mode: number): File {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
   /**
    * Create the file at path p with the given mode. Then, open it with the given
    * flag.
    */
-  public createFileSync(p: string, flag: FileFlag, mode: number): file.File {
+  public createFileSync(p: string, flag: FileFlag, mode: number): File {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
-  public openSync(p: string, flag: FileFlag, mode: number): file.File {
+  public openSync(p: string, flag: FileFlag, mode: number): File {
     // Check if the path exists, and is a file.
     var stats: Stats;
     try {
@@ -712,7 +712,7 @@ export class BaseFileSystem {
     }
   }
   public truncate(p: string, len: number, cb: Function): void {
-    this.open(p, FileFlag.getFileFlag('r+'), 0x1a4, (function(er: ApiError, fd?: file.File) {
+    this.open(p, FileFlag.getFileFlag('r+'), 0x1a4, (function(er: ApiError, fd?: File) {
       if (er) {
         return cb(er);
       }
@@ -738,11 +738,11 @@ export class BaseFileSystem {
     // Wrap cb in file closing code.
     var oldCb = cb;
     // Get file.
-    this.open(fname, flag, 0x1a4, function(err: ApiError, fd?: file.File) {
+    this.open(fname, flag, 0x1a4, function(err: ApiError, fd?: File) {
       if (err) {
         return cb(err);
       }
-      cb = function(err: ApiError, arg?: file.File) {
+      cb = function(err: ApiError, arg?: File) {
         fd.close(function(err2: any) {
           if (err == null) {
             err = err2;
@@ -792,7 +792,7 @@ export class BaseFileSystem {
     // Wrap cb in file closing code.
     var oldCb = cb;
     // Get file.
-    this.open(fname, flag, 0x1a4, function(err: ApiError, fd?:file.File) {
+    this.open(fname, flag, 0x1a4, function(err: ApiError, fd?: File) {
       if (err != null) {
         return cb(err);
       }
@@ -829,7 +829,7 @@ export class BaseFileSystem {
   public appendFile(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cb: (err: ApiError) => void): void {
     // Wrap cb in file closing code.
     var oldCb = cb;
-    this.open(fname, flag, mode, function(err: ApiError, fd?: file.File) {
+    this.open(fname, flag, mode, function(err: ApiError, fd?: File) {
       if (err != null) {
         return cb(err);
       }

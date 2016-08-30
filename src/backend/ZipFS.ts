@@ -42,10 +42,10 @@
  */
 import {ApiError, ErrorCode} from '../core/api_error';
 import {default as Stats, FileType} from '../core/node_fs_stats';
-import file_system = require('../core/file_system');
-import file = require('../core/file');
+import {SynchronousFileSystem, FileSystem} from '../core/file_system';
+import {File} from '../core/file';
 import {FileFlag, ActionType} from '../core/file_flag';
-import preload_file = require('../generic/preload_file');
+import {NoSyncFile}from '../generic/preload_file';
 import {Arrayish, arrayish2Buffer, copyingSlice} from '../core/util';
 import ExtendedASCII from '../generic/extended_ascii';
 var inflateRaw: {
@@ -501,7 +501,7 @@ export class ZipTOC {
   }
 }
 
-export default class ZipFS extends file_system.SynchronousFileSystem implements file_system.FileSystem {
+export default class ZipFS extends SynchronousFileSystem implements FileSystem {
   private _index: FileIndex<CentralDirectory> = new FileIndex<CentralDirectory>();
   private _directoryEntries: CentralDirectory[] = [];
   private _eocd: EndOfCentralDirectory = null;
@@ -599,7 +599,7 @@ export default class ZipFS extends file_system.SynchronousFileSystem implements 
     return stats;
   }
 
-  public openSync(path: string, flags: FileFlag, mode: number): file.File {
+  public openSync(path: string, flags: FileFlag, mode: number): File {
     // INVARIANT: Cannot write to RO file systems.
     if (flags.isWriteable()) {
       throw new ApiError(ErrorCode.EPERM, path);
@@ -616,7 +616,7 @@ export default class ZipFS extends file_system.SynchronousFileSystem implements 
         case ActionType.TRUNCATE_FILE:
           throw ApiError.EEXIST(path);
         case ActionType.NOP:
-          return new preload_file.NoSyncFile(this, path, flags, stats, cdRecord.getData());
+          return new NoSyncFile(this, path, flags, stats, cdRecord.getData());
         default:
           throw new ApiError(ErrorCode.EINVAL, 'Invalid FileMode object.');
       }
@@ -644,7 +644,7 @@ export default class ZipFS extends file_system.SynchronousFileSystem implements 
     // Get file.
     var fd = this.openSync(fname, flag, 0x1a4);
     try {
-      var fdCast = <preload_file.NoSyncFile<ZipFS>> fd;
+      var fdCast = <NoSyncFile<ZipFS>> fd;
       var fdBuff = <Buffer> fdCast.getBuffer();
       if (encoding === null) {
         return copyingSlice(fdBuff);

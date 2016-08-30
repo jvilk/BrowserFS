@@ -1,6 +1,6 @@
 import {File} from './file';
 import {ApiError, ErrorCode} from './api_error';
-import file_system = require('./file_system');
+import {FileSystem} from './file_system';
 import {FileFlag} from './file_flag';
 import * as path from 'path';
 import Stats from './node_fs_stats';
@@ -145,7 +145,7 @@ export default class FS {
   // Exported fs.Stats.
   public static Stats = Stats;
 
-  private root: file_system.FileSystem = null;
+  private root: FileSystem = null;
   private fdMap: {[fd: number]: File} = {};
   private nextFd = 100;
   private getFdForFile(file: File): number {
@@ -165,7 +165,7 @@ export default class FS {
     delete this.fdMap[fd];
   }
 
-  public initialize(rootFS: file_system.FileSystem): file_system.FileSystem {
+  public initialize(rootFS: FileSystem): FileSystem {
     if (!(<any> rootFS).constructor.isAvailable()) {
       throw new ApiError(ErrorCode.EINVAL, 'Tried to instantiate BrowserFS with an unavailable file system.');
     }
@@ -190,7 +190,7 @@ export default class FS {
    * @return [BrowserFS.FileSystem | null] Returns null if the file system has
    *   not been initialized.
    */
-  public getRootFS(): file_system.FileSystem {
+  public getRootFS(): FileSystem {
     if (this.root) {
       return this.root;
     } else {

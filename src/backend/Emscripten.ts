@@ -1,4 +1,4 @@
-import file_system = require('../core/file_system');
+import {SynchronousFileSystem} from '../core/file_system';
 import {default as Stats, FileType} from '../core/node_fs_stats';
 import {FileFlag, ActionType} from '../core/file_flag';
 import {BaseFile, File} from '../core/file';
@@ -182,7 +182,7 @@ export class EmscriptenFile extends BaseFile implements File {
 /**
  * A simple in-memory file system backed by an InMemoryStore.
  */
-export default class EmscriptenFileSystem extends file_system.SynchronousFileSystem {
+export default class EmscriptenFileSystem extends SynchronousFileSystem {
   private _FS: any;
 
   constructor(_FS: any) {

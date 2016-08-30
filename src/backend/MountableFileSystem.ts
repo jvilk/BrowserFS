@@ -1,4 +1,4 @@
-import file_system = require('../core/file_system');
+import {FileSystem, BaseFileSystem} from '../core/file_system';
 import InMemoryFileSystem from './InMemory';
 import {ApiError, ErrorCode} from '../core/api_error';
 import * as fs from '../core/node_fs';
@@ -14,13 +14,13 @@ import {mkdirpSync} from '../core/util';
  * For example, if a file system is mounted at /mnt/blah, and a request came in
  * for /mnt/blah/foo.txt, the file system would see a request for /foo.txt.
  */
-export default class MountableFileSystem extends file_system.BaseFileSystem implements file_system.FileSystem {
-  private mntMap: {[path: string]: file_system.FileSystem};
+export default class MountableFileSystem extends BaseFileSystem implements FileSystem {
+  private mntMap: {[path: string]: FileSystem};
   // Contains the list of mount points in mntMap, sorted by string length in decreasing order.
   // Ensures that we scan the most specific mount points for a match first, which lets us
   // nest mount points.
   private mountList: string[] = [];
-  private rootFs: file_system.FileSystem;
+  private rootFs: FileSystem;
   constructor() {
     super();
     this.mntMap = {};
@@ -32,7 +32,7 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
   /**
    * Mounts the file system at the given mount point.
    */
-  public mount(mountPoint: string, fs: file_system.FileSystem): void {
+  public mount(mountPoint: string, fs: FileSystem): void {
     if (mountPoint[0] !== '/') {
       mountPoint = `/${mountPoint}`;
     }
@@ -70,7 +70,7 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
   /**
    * Returns the file system that the path points to.
    */
-  public _getFs(path: string): {fs: file_system.FileSystem; path: string} {
+  public _getFs(path: string): {fs: FileSystem; path: string} {
     let mountList = this.mountList, len = mountList.length;
     for (let i = 0; i < len; i++) {
       let mountPoint = mountList[i];

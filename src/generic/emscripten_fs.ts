@@ -9,7 +9,6 @@
  * Adapted from Emscripten's NodeFS:
  * https://raw.github.com/kripken/emscripten/master/src/library_nodefs.js
  */
-import BrowserFS = require('../core/browserfs');
 import FS from '../core/FS';
 import * as fs from '../core/node_fs';
 import NodeStats from '../core/node_fs_stats';
@@ -318,9 +317,6 @@ export default class BFSEmscriptenFS implements EmscriptenFS {
   private ERRNO_CODES: any;
   private nodefs: FS;
   constructor(_FS = (<any> self)['FS'], _PATH = (<any> self)['PATH'], _ERRNO_CODES = (<any> self)['ERRNO_CODES'], nodefs: FS = fs) {
-    if (typeof BrowserFS === 'undefined') {
-      throw new Error("BrowserFS is not loaded. Please load it before this library.");
-    }
     this.nodefs = nodefs;
     this.FS = _FS;
     this.PATH = _PATH;

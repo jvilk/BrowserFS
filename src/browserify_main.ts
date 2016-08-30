@@ -5,4 +5,4 @@
 // causes problems for TypeScript projects that depend on
 // us.
 
-export = require('./main');
+export * from './main';

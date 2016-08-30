@@ -1,7 +1,6 @@
 import {FileSystem, BaseFileSystem} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
-import util = require('../core/util');
 import {File} from '../core/file';
 import {default as Stats, FileType} from '../core/node_fs_stats';
 import PreloadFile from '../generic/preload_file';

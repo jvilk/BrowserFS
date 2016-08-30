@@ -1,4 +1,4 @@
-import file_system = require('../core/file_system');
+import {FileSystem, SynchronousFileSystem} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag} from '../core/file_flag';
 import {File} from '../core/file';
@@ -41,17 +41,17 @@ class MirrorFile extends PreloadFile<AsyncMirror> implements File {
  * The two stores will be kept in sync. The most common use-case is to pair a synchronous
  * in-memory filesystem with an asynchronous backing store.
  */
-export default class AsyncMirror extends file_system.SynchronousFileSystem implements file_system.FileSystem {
+export default class AsyncMirror extends SynchronousFileSystem implements FileSystem {
   /**
    * Queue of pending asynchronous operations.
    */
   private _queue: IAsyncOperation[] = [];
   private _queueRunning: boolean = false;
-  private _sync: file_system.FileSystem;
-  private _async: file_system.FileSystem;
+  private _sync: FileSystem;
+  private _async: FileSystem;
   private _isInitialized: boolean = false;
   private _initializeCallbacks: ((e?: ApiError) => void)[] = [];
-  constructor(sync: file_system.FileSystem, async: file_system.FileSystem) {
+  constructor(sync: FileSystem, async: FileSystem) {
     super();
     this._sync = sync;
     this._async = async;

@@ -1,5 +1,5 @@
 import PreloadFile from '../generic/preload_file';
-import file_system = require('../core/file_system');
+import {BaseFileSystem, FileSystem} from '../core/file_system';
 import {FileFlag} from '../core/file_flag';
 import {default as Stats, FileType} from '../core/node_fs_stats';
 import {ApiError, ErrorCode} from '../core/api_error';
@@ -311,7 +311,7 @@ export class DropboxFile extends PreloadFile<DropboxFileSystem> implements File 
   }
 }
 
-export default class DropboxFileSystem extends file_system.BaseFileSystem implements file_system.FileSystem {
+export default class DropboxFileSystem extends BaseFileSystem implements FileSystem {
   // The Dropbox client.
   private _client: CachedDropboxClient;
 
