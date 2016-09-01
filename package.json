@@ -29,7 +29,7 @@
     "bfs-process": "^0.1.6",
     "buffer": "^4.9.0",
     "coffee-script": "^1.10.0",
-    "detect-browsers": "^3.3.0",
+    "detect-browsers": "^2.0.0",
     "dropbox": "^0.10.3",
     "gulp": "^3.9.1",
     "gulp-connect": "^5.0.0",

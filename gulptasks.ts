@@ -26,7 +26,7 @@ const rollup = require('gulp-rollup'),
   inject = require('rollup-plugin-inject'),
   connect = require('gulp-connect'),
   remapIstanbul = require('remap-istanbul/lib/gulpRemapIstanbul'),
-  installedBrowsers = (<{name: string}[]> require('detect-browsers').getInstalledBrowsersSync())
+  installedBrowsers = (<{name: string}[]> require('detect-browsers').getInstalledBrowsers())
     .map((item) => item.name)
     // Remove duplicates, and items with a space in them.
     .filter((name, index, arr) => arr.indexOf(name) === index && arr.indexOf(' ') === -1),
