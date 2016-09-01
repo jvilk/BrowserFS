@@ -47,6 +47,7 @@
     "karma-mocha": "^1.1.1",
     "karma-opera-launcher": "^1.0.0",
     "karma-safari-launcher": "^1.0.0",
+    "lodash-es": "^4.15.0",
     "merge2": "^1.0.2",
     "minimist": "^1.2.0",
     "mocha": "^3.0.2",
