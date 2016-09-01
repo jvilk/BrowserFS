@@ -23,4 +23,4 @@ before_script:
   - sh -e /etc/init.d/xvfb start
 
 script:
-  - "grunt test_travis"
+  - "npm run test"
