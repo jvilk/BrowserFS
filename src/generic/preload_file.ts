@@ -3,7 +3,7 @@ import {FileSystem} from '../core/file_system';
 import Stats from '../core/node_fs_stats';
 import {FileFlag} from '../core/file_flag';
 import {ApiError, ErrorCode} from '../core/api_error';
-import * as fs from '../core/node_fs';
+import fs from '../core/node_fs';
 
 /**
  * An implementation of the File interface that operates on a file that is

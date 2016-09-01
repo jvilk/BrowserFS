@@ -1,6 +1,6 @@
-import assert = require('assert');
-import wrapper = require('object-wrapper');
-import wrapperInterfaces = require('object-wrapper/interfaces');
+import * as assert from 'assert';
+const wrapper = require('object-wrapper');
+import * as wrapperInterfaces from 'object-wrapper/interfaces';
 
 function construct(constructor: any, args: any): any {
     function F() : void {
@@ -42,4 +42,4 @@ function wrapperFcn(funcInfo: wrapperInterfaces.IFunctionInfo, args: IArguments,
  * mocha. Avoids the issue where Mocha can only report the throw site, and
  * not the stack trace.
  */
-export = <typeof assert> wrapper(assert, wrapperFcn, 'assert');
+export default <typeof assert> wrapper(assert, wrapperFcn, 'assert');

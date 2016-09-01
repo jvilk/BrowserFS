@@ -3,11 +3,11 @@
  */
 
 import * as buffer from 'buffer';
-import * as fs from './node_fs';
+import fs from './node_fs';
 import * as path from 'path';
 import {FileSystemConstructor, FileSystem} from './file_system';
 import EmscriptenFS from '../generic/emscripten_fs';
-import * as Backends from './backends';
+import Backends from './backends';
 import * as BFSUtils from './util';
 
 if (process['initializeTTYs']) {

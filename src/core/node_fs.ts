@@ -34,4 +34,4 @@ _fsMock['_wrapCb'] = function(cb: Function, numArgs: number): Function {
 };
 _fsMock['FS'] = FS;
 
-export = _fsMock;
+export default _fsMock;

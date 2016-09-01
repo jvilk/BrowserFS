@@ -13,8 +13,10 @@
  * (It's also less hacky, as now things will be typechecked at bundle-time. :) )
  */
 // Install polyfills first.
-require('../../src/main');
-/*FACTORY_IMPORTS*/
+import * as main from '../../src/main';
+// Prevent from being eliminated as dead code.
+main.BFSRequire('buffer');
+/*IMPORTS*/
 import runTests from './setup';
 import BackendFactory from './BackendFactory';
 

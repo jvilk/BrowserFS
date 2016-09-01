@@ -10,7 +10,7 @@
  * https://raw.github.com/kripken/emscripten/master/src/library_nodefs.js
  */
 import FS from '../core/FS';
-import * as fs from '../core/node_fs';
+import fs from '../core/node_fs';
 import NodeStats from '../core/node_fs_stats';
 import {uint8Array2Buffer} from '../core/util';
 
@@ -325,8 +325,8 @@ export default class BFSEmscriptenFS implements EmscriptenFS {
     this.stream_ops = new BFSEmscriptenStreamOps(this);
   }
 
-  public mount(mount: {opts: {root: string}}): EmscriptenFSNode {
-    return this.createNode(null, '/', this.getMode(mount.opts.root), 0);
+  public mount(m: {opts: {root: string}}): EmscriptenFSNode {
+    return this.createNode(null, '/', this.getMode(m.opts.root), 0);
   }
 
   public createNode(parent: EmscriptenFSNode, name: string, mode: number, dev?: any): EmscriptenFSNode {

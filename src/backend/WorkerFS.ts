@@ -6,7 +6,7 @@ import {File, BaseFile} from '../core/file';
 import {default as Stats, FileType} from '../core/node_fs_stats';
 import PreloadFile from '../generic/preload_file';
 import global from '../core/global';
-import * as fs from '../core/node_fs';
+import fs from '../core/node_fs';
 
 interface IBrowserFSMessage {
   browserfsMessage: boolean;

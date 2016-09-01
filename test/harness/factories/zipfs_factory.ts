@@ -3,7 +3,7 @@ import {FileSystem} from '../../../src/core/file_system';
 import ZipFS from '../../../src/backend/ZipFS';
 import BackendFactory from '../BackendFactory';
 import * as BrowserFS from '../../../src/core/browserfs';
-import * as _fs from '../../../src/core/node_fs';
+import _fs from '../../../src/core/node_fs';
 
 export default function ZipFSFactory(cb: (name: string, objs: FileSystem[]) => void): void {
   if (ZipFS.isAvailable()) {

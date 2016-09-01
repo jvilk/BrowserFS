@@ -4,8 +4,8 @@ import * as buffer from 'buffer';
 import BackendFactory from './BackendFactory';
 import {eachSeries as asyncEachSeries} from 'async';
 import BFSEmscriptenFS from '../../src/generic/emscripten_fs';
-import assert = require('./wrapped-assert');
-const loadFixtures = require('../fixtures/load_fixtures');
+import assert from './wrapped-assert';
+import loadFixtures from '../fixtures/load_fixtures';
 
 declare var __numWaiting: number;
 declare var __karma__: any;
@@ -202,7 +202,7 @@ export default function(tests: {
   asyncEachSeries(backendFactories, (factory: BackendFactory, cb: (e?: any) => void) => {
     let timeout = setTimeout(() => {
       throw new Error(`Backend ${factory['name']} failed to initialize promptly.`);
-    }, 10000);
+    }, 30000);
     factory((name: string, backends: FileSystem[]) => {
       clearTimeout(timeout);
       fsBackends.push({name: name, backends: backends});
