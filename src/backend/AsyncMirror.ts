@@ -56,10 +56,7 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
     this._sync = sync;
     this._async = async;
     if (!sync.supportsSynch()) {
-      throw new Error("Expected synchronous storage.");
-    }
-    if (async.supportsSynch()) {
-      throw new Error("Expected asynchronous storage.");
+      throw new Error("The first argument to AsyncMirror needs to be a synchronous file system.");
     }
   }
 
