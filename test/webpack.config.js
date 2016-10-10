@@ -28,7 +28,7 @@ module.exports = {
     extensions: ['', '.js', '.json'],
     // Use our versions of Node modules.
     alias: {
-      'buffer': path.resolve(__dirname, '..', 'node_modules', 'buffer', 'index.js'),
+      'buffer': require.resolve(__dirname, '..', 'node_modules', 'buffer', 'index.js'),
       'path': require.resolve('bfs-path'),
       'process': require.resolve('bfs-process'),
       'BFSBuffer': require.resolve('../build/temp/tests/webpack/BFSBuffer.js')
@@ -41,7 +41,7 @@ module.exports = {
       // Ignore source-map-loader requests.
       const req = requireReq.request;
       if (req.indexOf('!') === -1) {
-        requireReq.request = path.resolve(__dirname, 'tests', 'emscripten', path.basename(req));
+        requireReq.request = require.resolve(__dirname, 'tests', 'emscripten', path.basename(req));
       }
     })
   ],
@@ -61,6 +61,6 @@ module.exports = {
     ]
   },
   resolveLoader: {
-    root: path.resolve(__dirname, '..', 'node_modules')
+    root: require.resolve(__dirname, '..', 'node_modules')
   }
 };

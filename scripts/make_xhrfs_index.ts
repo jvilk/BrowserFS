@@ -1,5 +1,6 @@
 #! /usr/bin/env node
 import * as fs from 'fs';
+import * as path from 'path';
 
 const symLinks: {[dev: number]: {[ino: number]: boolean}} = {};
 const ignoreFiles = ['.git', 'node_modules', 'bower_components', 'build'];
@@ -43,7 +44,13 @@ function rdSync(dpath: string, tree: FileTree, name: string): FileTree {
 
 const fsListing = JSON.stringify(rdSync(process.cwd(), {}, '/'));
 if (process.argv.length === 3) {
-  fs.writeFileSync(process.argv[2], fsListing, { encoding: 'utf8' });
+  const fname = process.argv[2];
+  let parent = path.dirname(fname);
+  while (!fs.existsSync(parent)) {
+    fs.mkdirSync(parent);
+    parent = path.dirname(parent);
+  }
+  fs.writeFileSync(fname, fsListing, { encoding: 'utf8' });
 } else {
   console.log(fsListing);
 }
