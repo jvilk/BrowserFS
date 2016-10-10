@@ -1,13 +1,10 @@
 import fs from '../../../../src/core/node_fs';
 import * as path from 'path';
 import assert from '../../../harness/wrapped-assert';
-import common from '../../../harness/common';
 
 export default function() {
   var rootFS = fs.getRootFS(),
-      isReadOnly = rootFS.isReadOnly(),
-      oldParentName = '/_renameTest',
-      newParentName = '/_renameTest2';
+      isReadOnly = rootFS.isReadOnly();
 
   if (isReadOnly) {
     return;
@@ -18,11 +15,11 @@ export default function() {
    *   - lol.txt
    * - file.dat
    */
-  function populate_directory(dir, cb) {
+  function populate_directory(dir: string, cb: Function) {
     var dir1 = path.resolve(dir, '_rename_me'),
       file1 = path.resolve(dir, 'file.dat'),
       file2 = path.resolve(dir1, 'lol.txt');
-    fs.mkdir(dir1, function(e) {
+    fs.mkdir(dir1, function(e: NodeJS.ErrnoException) {
       if (e) {
         throw e;
       }
@@ -43,7 +40,7 @@ export default function() {
   /**
    * Check that the directory structure created in populate_directory remains.
    */
-  function check_directory(dir, cb) {
+  function check_directory(dir: string, cb: Function) {
     var dir1 = path.resolve(dir, '_rename_me'),
       file1 = path.resolve(dir, 'file.dat'),
       file2 = path.resolve(dir1, 'lol.txt');
@@ -72,7 +69,7 @@ export default function() {
     newDir = '/rename_test2';
 
   // Directory rename.
-  fs.mkdir(oldDir, function (e) {
+  fs.mkdir(oldDir, function (e: NodeJS.ErrnoException) {
     if (e) {
       throw e;
     }
@@ -82,7 +79,7 @@ export default function() {
           throw new Error("Failed invariant: CAN rename a directory to itself.");
         }
         check_directory(oldDir, function () {
-          fs.mkdir(newDir, function (e) {
+          fs.mkdir(newDir, function (e: NodeJS.ErrnoException) {
             if (e) {
               throw e;
             }
@@ -100,7 +97,7 @@ export default function() {
                       throw new Error("Failed invariant: Renamed directory still exists at old name.");
                     }
                     // Renaming directories with *different* parent directories.
-                    fs.mkdir(oldDir, function (e) {
+                    fs.mkdir(oldDir, function (e: NodeJS.ErrnoException) {
                       if (e) {
                         throw e;
                       }
@@ -126,7 +123,7 @@ export default function() {
   var fileDir = '/rename_file_test',
     file1 = path.resolve(fileDir, 'fun.js'),
     file2 = path.resolve(fileDir, 'fun2.js');
-  fs.mkdir(fileDir, function (e) {
+  fs.mkdir(fileDir, function (e: NodeJS.ErrnoException) {
     if (e) {
       throw e;
     }
@@ -166,7 +163,7 @@ export default function() {
   // file-2-dir and dir-2-file rename
   var dir = '/rename_filedir_test',
     file = '/rename_filedir_test.txt';
-  fs.mkdir(dir, function (e) {
+  fs.mkdir(dir, function (e: NodeJS.ErrnoException) {
     if (e) {
       throw e;
     }
@@ -196,7 +193,7 @@ export default function() {
 
   // cannot rename a directory inside itself
   var renDir1 = '/renamedir_1', renDir2 = '/renamedir_1/lol';
-  fs.mkdir(renDir1, function (e) {
+  fs.mkdir(renDir1, function (e: NodeJS.ErrnoException) {
     if (e) {
       throw e;
     }

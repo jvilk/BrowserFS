@@ -29,19 +29,19 @@ export default function() {
       testFileContents = new Buffer('this is a test file, plz ignore.');
 
   // @todo Introduce helpers for this.
-  function is_writable(mode) {
+  function is_writable(mode: number) {
     return (mode & 146) > 0;
   }
 
-  function is_readable(mode) {
+  function is_readable(mode: number) {
     return (mode & 0x124) > 0;
   }
 
-  function is_executable(mode) {
+  function is_executable(mode: number) {
     return (mode & 0x49) > 0;
   }
 
-  function process_file(p, fileMode) {
+  function process_file(p: string, fileMode: number) {
     fs.readFile(p, function(e, data) {
       if (e) {
         if (e.code === 'EPERM') {
@@ -74,7 +74,7 @@ export default function() {
     });
   }
 
-  function process_directory(p, dirMode) {
+  function process_directory(p: string, dirMode: number) {
     fs.readdir(p, function (e, dirs) {
       if (e) {
         if (e.code === 'EPERM') {
@@ -88,8 +88,7 @@ export default function() {
       // Invariant 2: We can only readdir if we have read permissions on the
       // directory.
       assert(is_readable(dirMode), p + " is not a readable directory, yet we could read its contents!");
-      var i;
-      for (i = 0; i < dirs.length; i++) {
+      for (let i = 0; i < dirs.length; i++) {
         process_item(path.resolve(p, dirs[i]), dirMode);
       }
 
@@ -114,7 +113,7 @@ export default function() {
     });
   }
 
-  function process_item(p, parentMode) {
+  function process_item(p: string, parentMode: number) {
     fs.stat(p, function (e, stat) {
       if (e) {
         if (e.code === 'EPERM') {

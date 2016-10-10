@@ -1,4 +1,3 @@
-import BackendFactory from '../BackendFactory';
 import {FileSystem} from '../../../src/core/file_system';
 import InMemoryFileSystem from '../../../src/backend/InMemory';
 import FolderAdapter from '../../../src/backend/FolderAdapter';
@@ -13,6 +12,3 @@ export default function FolderAdapterFactory(cb: (name: string, obj: FileSystem[
     }
   });
 }
-
-// Typecheck;
-const _: BackendFactory = FolderAdapterFactory;

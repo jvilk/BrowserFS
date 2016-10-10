@@ -1,5 +1,4 @@
 import HTML5FS from '../../../src/backend/HTML5FS';
-import BackendFactory from '../BackendFactory';
 import {FileSystem} from '../../../src/core/file_system';
 
 export default function HTML5FSFactory(cb: (name: string, obj: FileSystem[]) => void): void {
@@ -22,6 +21,3 @@ export default function HTML5FSFactory(cb: (name: string, obj: FileSystem[]) => 
     cb('HTML5FS', []);
   }
 }
-
-var _: BackendFactory = HTML5FSFactory;
-

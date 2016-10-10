@@ -1,9 +1,9 @@
 import assert from '../../harness/wrapped-assert';
 
 export default function() {
-  var zero = [];
-  var one  = [ new Buffer('asdf') ];
-  var _long = [];
+  var zero: Buffer[] = [];
+  var one = [ new Buffer('asdf') ];
+  var _long: Buffer[] = [];
   for (var i = 0; i < 10; i++) _long.push(new Buffer('asdf'));
 
   var flatZero = Buffer.concat(zero);

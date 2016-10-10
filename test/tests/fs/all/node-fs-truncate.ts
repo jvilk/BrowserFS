@@ -13,7 +13,7 @@ export default function() {
   var data = new Buffer(1024 * 16);
   data.fill('x');
 
-  var stat;
+  var stat: any;
 
   // truncateSync
   if (rootFS.supportsSynch()) {
@@ -48,7 +48,7 @@ export default function() {
     fs.closeSync(fd);
   }
 
-  function testTruncate(cb) {
+  function testTruncate(cb: Function) {
     fs.writeFile(filename, data, function(er) {
       if (er) return cb(er);
       fs.stat(filename, function(er, stat) {
@@ -76,7 +76,7 @@ export default function() {
   }
 
 
-  function testFtruncate(cb) {
+  function testFtruncate(cb: Function) {
     fs.writeFile(filename, data, function(er) {
       if (er) return cb(er);
       fs.stat(filename, function(er, stat) {
@@ -102,7 +102,7 @@ export default function() {
                     fs.stat(filename, function(er, stat) {
                       if (er) return cb(er);
                       assert.equal(stat.size, 0);
-                      fs.close(fd, cb);
+                      (<any> fs).close(fd, cb);
                     });
                   });
                 });
@@ -116,10 +116,10 @@ export default function() {
 
   // async tests
   var success = 0;
-  testTruncate(function(er) {
+  testTruncate(function(er: NodeJS.ErrnoException) {
     if (er) throw er;
     success++;
-    testFtruncate(function(er) {
+    testFtruncate(function(er: NodeJS.ErrnoException) {
       if (er) throw er;
       success++;
     });

@@ -5,12 +5,12 @@ import common from '../../../harness/common';
 
 export default function() {
   var openCount = 0;
-  var mode;
-  var content;
+  var mode: number;
+  var content: string;
   var rootFS = fs.getRootFS();
 
   // Removes a file if it exists.
-  function removeFile(file) {
+  function removeFile(file: string) {
     try {
       //if (isWindows)
       //  fs.chmodSync(file, 0666);

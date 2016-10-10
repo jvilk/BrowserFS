@@ -19,6 +19,7 @@ export enum FileType {
  */
 export default class Stats implements fs.Stats {
   public blocks: number;
+  public mode: number;
   /**
    * UNSUPPORTED ATTRIBUTES
    * I assume no one is going to need these details, although we could fake
@@ -57,11 +58,11 @@ export default class Stats implements fs.Stats {
   constructor(
     item_type: FileType,
     public size: number,
-    public mode?: number,
+    mode?: number,
     public atime: Date = new Date(),
     public mtime: Date = new Date(),
     public ctime: Date = new Date()) {
-    if (this.mode == null) {
+    if (mode == null) {
       switch(item_type) {
         case FileType.FILE:
           this.mode = 0x1a4;
@@ -70,6 +71,8 @@ export default class Stats implements fs.Stats {
         default:
           this.mode = 0x1ff;
       }
+    } else {
+      this.mode = mode;
     }
     // number of 512B blocks allocated
     this.blocks = Math.ceil(size / 512);

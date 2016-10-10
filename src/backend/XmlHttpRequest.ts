@@ -6,7 +6,7 @@ import {File} from '../core/file';
 import Stats from '../core/node_fs_stats';
 import {NoSyncFile} from '../generic/preload_file';
 import {asyncDownloadFile, syncDownloadFile, getFileSizeAsync, getFileSizeSync} from '../generic/xhr';
-import {FileIndex, DirInode, FileInode, Inode, isFileInode, isDirInode} from '../generic/file_index';
+import {FileIndex, isFileInode, isDirInode} from '../generic/file_index';
 
 /**
  * Try to convert the given buffer into a string, and pass it to the callback.

@@ -43,11 +43,6 @@ ErrorStrings[ErrorCode.ENOTSUP] = 'Operation is not supported.';
 /**
  * Represents a BrowserFS error. Passed back to applications after a failed
  * call to the BrowserFS API.
- * errno?: number;
-        code?: string;
-        path?: string;
-        syscall?: string;
-        stack?: string;
  */
 export class ApiError extends Error implements NodeJS.ErrnoException {
   public errno: ErrorCode;

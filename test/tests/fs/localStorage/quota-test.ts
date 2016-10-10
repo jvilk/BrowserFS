@@ -1,15 +1,13 @@
 import fs from '../../../../src/core/node_fs';
-import * as path from 'path';
 import assert from '../../../harness/wrapped-assert';
-import common from '../../../harness/common';
 
 export default function() {
   // Ignore Opera; it lets the user expand the LocalStorage quota as a syncronous
   // blocking popup, interrupting our test.
   if (!(typeof navigator !== "undefined" && navigator.userAgent.indexOf("Presto") > -1)) {
     // Avoid encoding overhead, and store 256KB chunks until LS is full.
-    var numChunks = 0, i, chunk = "";
-    for (i = 0; i < 256*1024; i++) {
+    var numChunks = 0, chunk = "";
+    for (let i = 0; i < 256*1024; i++) {
       chunk += " ";
     }
     try {

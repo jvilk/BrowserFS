@@ -11,7 +11,7 @@ export default function() {
     var buf = new Buffer(512);
     buf.fill(42);
 
-    fs.mkdir(dirName, function(err) {
+    fs.mkdir(dirName, function(err: NodeJS.ErrnoException) {
       if (err) throw err;
       fs.writeFile(fileName, buf, function(err) {
         if (err) throw err;

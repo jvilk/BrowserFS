@@ -4,65 +4,16 @@ import {FileSystem} from './file_system';
 import {FileFlag} from './file_flag';
 import * as path from 'path';
 import Stats from './node_fs_stats';
-import global from './global';
 
 // Typing info only.
 import * as _fs from 'fs';
 
-declare var __numWaiting: number;
-
-declare var setImmediate: (cb: Function) => void;
-
-declare var RELEASE: boolean;
-
 /**
- * Wraps a callback with a setImmediate call.
- * @param [Function] cb The callback to wrap.
- * @param [Number] numArgs The number of arguments that the callback takes.
- * @return [Function] The wrapped callback.
+ * Wraps a callback function. Used for unit testing. Defaults to a NOP.
  */
-function wrapCb<T extends Function>(cb: T, numArgs: number): T {
-  if (RELEASE) {
-    return cb;
-  } else {
-    if (typeof cb !== 'function') {
-      throw new ApiError(ErrorCode.EINVAL, 'Callback must be a function.');
-    }
-    // This is used for unit testing.
-    // We could use `arguments`, but Function.call/apply is expensive. And we only
-    // need to handle 1-3 arguments
-    if (typeof __numWaiting === 'undefined') {
-      global.__numWaiting = 0;
-    }
-    __numWaiting++;
-
-    switch (numArgs) {
-      case 1:
-        return <any> function(arg1: any) {
-          setImmediate(function() {
-            __numWaiting--;
-            return cb(arg1);
-          });
-        };
-      case 2:
-        return <any> function(arg1: any, arg2: any) {
-          setImmediate(function() {
-            __numWaiting--;
-            return cb(arg1, arg2);
-          });
-        };
-      case 3:
-        return <any> function(arg1: any, arg2: any, arg3: any) {
-          setImmediate(function() {
-            __numWaiting--;
-            return cb(arg1, arg2, arg3);
-          });
-        };
-      default:
-        throw new Error('Invalid invocation of wrapCb.');
-    }
-  }
-}
+let wrapCb = function<T extends Function>(cb: T, numArgs: number): T {
+  return cb;
+};
 
 function normalizeMode(mode: number|string, def: number): number {
   switch(typeof mode) {
@@ -72,10 +23,11 @@ function normalizeMode(mode: number|string, def: number): number {
     case 'string':
       // (path, flag, modeString, cb?)
       var trueMode = parseInt(<string> mode, 8);
-      if (trueMode !== NaN) {
+      if (!isNaN(trueMode)) {
         return trueMode;
       }
-      // FALL THROUGH if mode is an invalid string!
+      // Invalid string.
+      return def;
     default:
       return def;
   }
@@ -1007,9 +959,7 @@ export default class FS {
    * @param [Date] mtime
    * @param [Function(BrowserFS.ApiError)] callback
    */
-  public futimes(fd: number, atime: number, mtime: number, cb: (e?: ApiError) => void): void;
-  public futimes(fd: number, atime: Date, mtime: Date, cb: (e?: ApiError) => void): void;
-  public futimes(fd: number, atime: any, mtime: any, cb: (e?: ApiError) => void = nopCb): void {
+  public futimes(fd: number, atime: number | Date, mtime: number | Date, cb: (e?: ApiError) => void = nopCb): void {
     var newCb = wrapCb(cb, 1);
     try {
       let file = this.fd2file(fd);
@@ -1312,7 +1262,7 @@ export default class FS {
    * @param [Number] mode
    * @param [Function(BrowserFS.ApiError)] callback
    */
-  public lchmod(path: string, mode: number|string, cb: Function = nopCb): void {
+  public lchmod(path: string, mode: number|string, cb: (e?: ApiError) => void = nopCb): void {
     var newCb = wrapCb(cb, 1);
     try {
       let numMode = normalizeMode(mode, -1);
@@ -1458,11 +1408,13 @@ export default class FS {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
 
-  public _wrapCb: (cb: Function, args: number) => Function = wrapCb;
+  /**
+   * For unit testing. Passes all incoming callbacks to cbWrapper for wrapping.
+   */
+  public wrapCallbacks(cbWrapper: (cb: Function, args: number) => Function) {
+    wrapCb = cbWrapper;
+  }
 }
-
-// Type checking.
-// var _: typeof _fs = new FS();
 
 export interface FSModule extends FS {
   /**

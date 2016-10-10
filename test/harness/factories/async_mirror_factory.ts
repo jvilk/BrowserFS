@@ -1,5 +1,4 @@
 import AsyncMirrorFS from '../../../src/backend/AsyncMirror';
-import BackendFactory from '../BackendFactory';
 import {FileSystem} from '../../../src/core/file_system';
 import InMemoryFileSystem from '../../../src/backend/InMemory';
 import IDBFSFactory from './idbfs_factory';
@@ -20,5 +19,3 @@ export default function AsyncMirrorFactory(cb: (name: string, objs: FileSystem[]
 	 }
   });
 }
-
-var _: BackendFactory = AsyncMirrorFactory;

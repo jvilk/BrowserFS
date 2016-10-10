@@ -151,7 +151,7 @@ export default function() {
   var bb = new Buffer(10);
   bb.fill('hello crazy world');
 
-  var caught_error = null;
+  var caught_error: NodeJS.ErrnoException = null;
 
   // try to copy from before the beginning of b
   caught_error = null;
@@ -184,8 +184,6 @@ export default function() {
 
   // when targetStart > targetLength, zero copied
   assert.equal(b.copy(c, 512, 0, 10), 0);
-
-  var caught_error;
 
   // invalid encoding for Buffer.toString
   caught_error = null;
@@ -352,7 +350,7 @@ export default function() {
   assert.equal(d[1], 42);
   assert.equal(d[2], 255);
   // BFS: Changed deepEqual -> equal on toJSON.
-  function equalCheck(b1, b2) {
+  function equalCheck(b1: Buffer, b2: Buffer) {
     assert.equal(JSON.stringify(b1), JSON.stringify(b2));
   }
   equalCheck(d, new Buffer(d));
@@ -613,7 +611,7 @@ export default function() {
   assert.equal(b2, b3);
   assert.equal(b2, b4);
 
-  function buildBuffer(data) {
+  function buildBuffer(data: number[]) {
     if (Array.isArray(data)) {
       var buffer = new Buffer(data.length);
       data.forEach(function(v, k) {
@@ -919,19 +917,19 @@ export default function() {
   [16, 32].forEach(function(bits) {
     var buf = new Buffer(bits / 8 - 1);
 
-    assert.throws(function() { buf['readUInt' + bits + 'BE'](0); },
+    assert.throws(function() { (<any>buf)['readUInt' + bits + 'BE'](0); },
                   RangeError,
                   'readUInt' + bits + 'BE');
 
-    assert.throws(function() { buf['readUInt' + bits + 'LE'](0); },
+    assert.throws(function() { (<any>buf)['readUInt' + bits + 'LE'](0); },
                   RangeError,
                   'readUInt' + bits + 'LE');
 
-    assert.throws(function() { buf['readInt' + bits + 'BE'](0); },
+    assert.throws(function() { (<any>buf)['readInt' + bits + 'BE'](0); },
                   RangeError,
                   'readInt' + bits + 'BE()');
 
-    assert.throws(function() { buf['readInt' + bits + 'LE'](0); },
+    assert.throws(function() { (<any>buf)['readInt' + bits + 'LE'](0); },
                   RangeError,
                   'readInt' + bits + 'LE()');
   });
@@ -939,16 +937,16 @@ export default function() {
   [16, 32].forEach(function(bits) {
     var buf = new Buffer([0xFF, 0xFF, 0xFF, 0xFF]);
 
-    assert.equal(buf['readUInt' + bits + 'BE'](0),
+    assert.equal((<any>buf)['readUInt' + bits + 'BE'](0),
                   (0xFFFFFFFF >>> (32 - bits)));
 
-    assert.equal(buf['readUInt' + bits + 'LE'](0),
+    assert.equal((<any>buf)['readUInt' + bits + 'LE'](0),
                   (0xFFFFFFFF >>> (32 - bits)));
 
-    assert.equal(buf['readInt' + bits + 'BE'](0),
+    assert.equal((<any>buf)['readInt' + bits + 'BE'](0),
                   (0xFFFFFFFF >> (32 - bits)));
 
-    assert.equal(buf['readInt' + bits + 'LE'](0),
+    assert.equal((<any>buf)['readInt' + bits + 'LE'](0),
                   (0xFFFFFFFF >> (32 - bits)));
   });
 

@@ -10,7 +10,7 @@ export default function() {
 
   // BFS: Link/symlink support is required for this test.
   if (rootFS.supportsLinks()) {
-    var runtest = function(skip_symlinks) {
+    var runtest = function(skip_symlinks: boolean) {
       if (!skip_symlinks) {
         // test creating and reading symbolic link
         var linkData = path.join(common.fixturesDir, '/cycles/root.js');

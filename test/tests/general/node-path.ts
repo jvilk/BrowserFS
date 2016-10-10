@@ -3,7 +3,7 @@ import * as path from 'path';
 
 export default function() {
   var isWindows = process.platform === 'win32';
-  var failures = [];
+  var failures: string[] = [];
 
   // BFS: Make explicit for the browser.
   var f = '/Users/jvilk/Code/BrowserFS/test/node/test-path.js';
@@ -270,7 +270,7 @@ export default function() {
        [['/some/dir', '.', '/absolute/'], '/absolute'],
        [['/foo/tmp.3/', '../tmp.3/cycles/root.js'], '/foo/tmp.3/cycles/root.js']];
 
-  var failures = [];
+  failures = [];
   resolveTests.forEach(function(test) {
     var actual = path.resolve.apply(path, test[0]);
     var expected = test[1];
@@ -305,7 +305,7 @@ export default function() {
        ['/baz-quux', '/baz', '../baz'],
        ['/baz', '/baz-quux', '../baz-quux']
      ];
-  var failures = [];
+  failures = [];
   relativeTests.forEach(function(test) {
     var actual = path.relative(test[0], test[1]);
     var expected = test[2];

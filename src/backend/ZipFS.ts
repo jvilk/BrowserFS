@@ -48,11 +48,11 @@ import {FileFlag, ActionType} from '../core/file_flag';
 import {NoSyncFile}from '../generic/preload_file';
 import {Arrayish, arrayish2Buffer, copyingSlice} from '../core/util';
 import ExtendedASCII from '../generic/extended_ascii';
-var inflateRaw: {
+const inflateRaw: {
   (data: Arrayish<number>, options?: {
     chunkSize: number;
   }): Arrayish<number>;
-} = require('pako/dist/pako_inflate.min').inflateRaw;
+} = require('pako/lib/inflate').inflateRaw;
 import {FileIndex, DirInode, FileInode, isDirInode, isFileInode} from '../generic/file_index';
 
 
@@ -512,7 +512,7 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
    * used primarily for our unit tests' purposes to differentiate different
    * test zip files in test output.
    */
-  constructor(private input: Buffer | ZipTOC, private name: string = '') {
+  constructor(input: Buffer | ZipTOC, private name: string = '') {
     super();
     if (input instanceof ZipTOC) {
       this._index = input.index;
@@ -541,6 +541,9 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
       return inode.getData();
     } else if (isDirInode<CentralDirectory>(inode)) {
       return inode.getData();
+    } else {
+      // Should never occur.
+      throw ApiError.EPERM(`Invalid inode: ${inode}`);
     }
   }
 

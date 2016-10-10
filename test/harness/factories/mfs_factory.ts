@@ -1,5 +1,4 @@
 import MountableFileSystem from '../../../src/backend/MountableFileSystem';
-import BackendFactory from '../BackendFactory';
 import {FileSystem} from '../../../src/core/file_system';
 import InMemoryFileSystem from '../../../src/backend/InMemory';
 
@@ -15,5 +14,3 @@ export default function MFSFactory(cb: (name: string, objs: FileSystem[]) => voi
     cb('MountableFileSystem', []);
   }
 }
-
-var _: BackendFactory = MFSFactory;

@@ -5,8 +5,8 @@ import common from '../../../harness/common';
 
 export default function() {
   var f = path.join(common.fixturesDir, 'x.txt');
-  var exists;
-  var doesNotExist;
+  var exists: boolean;
+  var doesNotExist: boolean;
 
   fs.exists(f, function(y) {
     exists = y;

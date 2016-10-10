@@ -55,7 +55,7 @@ export default function() {
   if (fs.getRootFS().supportsSynch()) {
     // fstatSync
     fs.open(existing_file, 'r', undefined, function(err, fd) {
-      var stats;
+      var stats: any;
       try {
         stats = fs.fstatSync(fd);
       } catch (e) {

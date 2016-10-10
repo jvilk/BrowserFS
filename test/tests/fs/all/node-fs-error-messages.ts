@@ -84,7 +84,7 @@ export default function() {
   // Sync
   // BFS: Only run if the FS supports sync ops
   if (rootFS.supportsSynch()) {
-    var errors = [];
+    var errors: string[] = [];
 
     try {
       ++expected;

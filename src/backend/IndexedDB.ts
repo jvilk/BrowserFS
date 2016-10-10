@@ -172,6 +172,8 @@ export class IndexedDBStore implements AsyncKeyValueStore {
     }
   }
 
+  public beginTransaction(type: 'readonly'): AsyncKeyValueROTransaction;
+  public beginTransaction(type: 'readwrite'): AsyncKeyValueRWTransaction;
   public beginTransaction(type: string = 'readonly'): AsyncKeyValueROTransaction {
     var tx = this.db.transaction(this.storeName, type),
       objectStore = tx.objectStore(this.storeName);

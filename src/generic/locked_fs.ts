@@ -1,8 +1,8 @@
 import Mutex from './mutex';
-import {FileSystem, SynchronousFileSystem} from '../core/file_system';
-import {ApiError, ErrorCode} from '../core/api_error';
-import {FileFlag, ActionType} from '../core/file_flag';
-import {default as Stats, FileType} from '../core/node_fs_stats';
+import {FileSystem} from '../core/file_system';
+import {ApiError} from '../core/api_error';
+import {FileFlag} from '../core/file_flag';
+import {default as Stats} from '../core/node_fs_stats';
 import {File} from '../core/file';
 
 

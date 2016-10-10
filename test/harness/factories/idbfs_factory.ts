@@ -1,5 +1,4 @@
 import IndexedDBFileSystem from '../../../src/backend/IndexedDB';
-import BackendFactory from '../BackendFactory';
 import {FileSystem} from '../../../src/core/file_system';
 
 export default function IDBFSFactory(cb: (name: string, obj: FileSystem[]) => void): void {
@@ -21,6 +20,3 @@ export default function IDBFSFactory(cb: (name: string, obj: FileSystem[]) => vo
     cb('IndexedDB', []);
   }
 }
-
-var _: BackendFactory = IDBFSFactory;
-

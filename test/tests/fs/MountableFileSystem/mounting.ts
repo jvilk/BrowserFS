@@ -2,12 +2,10 @@
  * Unit tests for MountableFileSystem's mount/unmount features.
  */
 import fs from '../../../../src/core/node_fs';
-import * as path from 'path';
 import assert from '../../../harness/wrapped-assert';
-import common from '../../../harness/common';
 import * as BrowserFS from '../../../../src/core/browserfs';
 
-function codeAssertThrows(op, assertMsg) {
+function codeAssertThrows(op: Function, assertMsg: string) {
   var thrown = false;
   try {
     op();

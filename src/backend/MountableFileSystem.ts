@@ -123,7 +123,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
    * to the MFS root, not to the particular FS's root.
    * Mutates the input error, and returns it.
    */
-  private standardizeError(err: ApiError, path: string, realPath: string): ApiError {
+  public standardizeError(err: ApiError, path: string, realPath: string): ApiError {
     var index: number;
     if (-1 !== (index = err.message.indexOf(path))) {
       err.message = err.message.substr(0, index) + realPath + err.message.substr(index + path.length);
@@ -142,9 +142,8 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
     var fs1_rv = this._getFs(oldPath);
     var fs2_rv = this._getFs(newPath);
     if (fs1_rv.fs === fs2_rv.fs) {
-      var _this = this;
-      return fs1_rv.fs.rename(fs1_rv.path, fs2_rv.path, function(e?: ApiError) {
-        if (e) _this.standardizeError(_this.standardizeError(e, fs1_rv.path, oldPath), fs2_rv.path, newPath);
+      return fs1_rv.fs.rename(fs1_rv.path, fs2_rv.path, (e?: ApiError) => {
+        if (e) this.standardizeError(this.standardizeError(e, fs1_rv.path, oldPath), fs2_rv.path, newPath);
         cb(e);
       });
     }
@@ -155,7 +154,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
       if (err) {
         return cb(err);
       }
-      fs.writeFile(newPath, data, function(err) {
+      fs.writeFile(newPath, data, function(err: ApiError) {
         if (err) {
           return cb(err);
         }
@@ -187,7 +186,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
 
     // If null, rootfs did not have the directory
     // (or the target FS is the root fs).
-    let rv = null;
+    let rv: string[] = null;
     // Mount points are all defined in the root FS.
     // Ensure that we list those, too.
     if (fsInfo.fs !== this.rootFs) {
@@ -291,34 +290,32 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
  */
 function defineFcn(name: string, isSync: boolean, numArgs: number): (...args: any[]) => any {
   if (isSync) {
-    return function(...args: any[]) {
-      let self: MountableFileSystem = this;
+    return function(this: MountableFileSystem, ...args: any[]) {
       var path = args[0];
-      var rv = self._getFs(path);
+      var rv = this._getFs(path);
       args[0] = rv.path;
       try {
-        return rv.fs[name].apply(rv.fs, args);
+        return (<any> rv.fs)[name].apply(rv.fs, args);
       } catch (e) {
-        (<any> self).standardizeError(e, rv.path, path);
+        this.standardizeError(e, rv.path, path);
         throw e;
       }
     };
   } else {
-    return function(...args: any[]) {
-      let self: MountableFileSystem = this;
+    return function(this: MountableFileSystem, ...args: any[]) {
       var path = args[0];
-      var rv = self._getFs(path);
+      var rv = this._getFs(path);
       args[0] = rv.path;
       if (typeof args[args.length-1] === 'function') {
         var cb = args[args.length - 1];
-        args[args.length - 1] = function(...args: any[]) {
+        args[args.length - 1] = (...args: any[]) => {
           if (args.length > 0 && args[0] instanceof ApiError) {
-            (<any> self).standardizeError(args[0], rv.path, path);
+            this.standardizeError(args[0], rv.path, path);
           }
           cb.apply(null, args);
-        }
+        };
       }
-      return rv.fs[name].apply(rv.fs, args);
+      return (<any> rv.fs)[name].apply(rv.fs, args);
     };
   }
 }

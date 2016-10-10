@@ -4,7 +4,6 @@
  * accidentally re-written and reloaded by test runner). This is a Good Thing.
  */
 import fs from '../../../../src/core/node_fs';
-import * as path from 'path';
 import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 import OverlayFS from '../../../../src/backend/OverlayFS';
@@ -18,7 +17,7 @@ export default function() {
     writable = fses.writable;
 
   // Ensure no files are doubled.
-  var seenMap = [];
+  var seenMap: string[] = [];
   fs.readdirSync('/test/fixtures/files/node').forEach(function(file) {
     assert(seenMap.indexOf(file) === -1, "File " + file + " cannot exist multiple times.");
     seenMap.push(file);

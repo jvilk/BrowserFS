@@ -10,7 +10,6 @@ export default function() {
 
     var currentFileData = 'ABCD';
 
-    var n = 220;
     var s = '南越国是前203年至前111年存在于岭南地区的一个国家，国都位于番禺，疆域包括今天中国的广东、' +
             '广西两省区的大部份地区，福建省、湖南、贵州、云南的一小部份地区和越南的北部。' +
             '南越国是秦朝灭亡后，由南海郡尉赵佗于前203年起兵兼并桂林郡和象郡后建立。' +
@@ -32,12 +31,6 @@ export default function() {
         assert.equal(Buffer.byteLength(s), buffer.length);
       });
     });
-
-    var testCb = function(err) {
-      if (err) {
-        throw err;
-      }
-    };
 
     // test that appends data to a non empty file
     var filename2 = join(common.tmpDir, 'append2.txt');

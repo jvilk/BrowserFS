@@ -2,9 +2,7 @@
  * Ensures that the deletion log works properly.
  */
 import fs from '../../../../src/core/node_fs';
-import * as path from 'path';
 import assert from '../../../harness/wrapped-assert';
-import common from '../../../harness/common';
 import OverlayFS from '../../../../src/backend/OverlayFS';
 const logPath = '/.deletedFiles.log';
 declare var __numWaiting: number;
@@ -17,7 +15,6 @@ export default function() {
     writable = fses.writable;
   // Back up the current log.
   var deletionLog = rootFS.getDeletionLog();
-  var aContents = fs.readFileSync('/test/fixtures/files/node/a.js').toString('utf8');
   // Delete a file in the underlay.
   fs.unlinkSync('/test/fixtures/files/node/a.js');
   assert(!fs.existsSync('/test/fixtures/files/node/a.js'), 'Failed to properly delete a.js.');

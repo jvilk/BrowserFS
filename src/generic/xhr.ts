@@ -62,8 +62,8 @@ function syncDownloadFileModern(p: string, type: string): any {
 
   // On most platforms, we cannot set the responseType of synchronous downloads.
   // @todo Test for this; IE10 allows this, as do older versions of Chrome/FF.
-  var data = null;
-  var err = null;
+  var data: any = null;
+  var err: any = null;
   // Classic hack to download binary data as a string.
   req.overrideMimeType('text/plain; charset=x-user-defined');
   req.onreadystatechange = function(e) {
@@ -118,8 +118,8 @@ function syncDownloadFileIE10(p: string, type: string): any {
     default:
       throw new ApiError(ErrorCode.EINVAL, "Invalid download type: " + type);
   }
-  var data;
-  var err;
+  var data: any;
+  var err: any;
   req.onreadystatechange = function(e) {
     if (req.readyState === 4) {
       if (req.status === 200) {

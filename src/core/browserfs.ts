@@ -10,8 +10,8 @@ import EmscriptenFS from '../generic/emscripten_fs';
 import Backends from './backends';
 import * as BFSUtils from './util';
 
-if (process['initializeTTYs']) {
-  process['initializeTTYs']();
+if ((<any> process)['initializeTTYs']) {
+  (<any> process)['initializeTTYs']();
 }
 
 /**
@@ -67,7 +67,7 @@ export function BFSRequire(module: string): any {
     case 'bfs_utils':
       return BFSUtils;
     default:
-      return Backends[module];
+      return (<any> Backends)[module];
   }
 }
 

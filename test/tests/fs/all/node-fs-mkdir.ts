@@ -1,5 +1,4 @@
 import fs from '../../../../src/core/node_fs';
-import * as path from 'path';
 import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
@@ -7,7 +6,7 @@ export default function() {
   if (!fs.getRootFS().isReadOnly()) {
     var pathname1 = common.tmpDir + '/mkdir-test1';
 
-    fs.mkdir(pathname1, function(err) {
+    fs.mkdir(pathname1, function(err: NodeJS.ErrnoException) {
       assert.equal(err, null,
           'fs.mkdir(' + pathname1 + ') reports non-null error: ' + err);
       fs.exists(pathname1, function(y){

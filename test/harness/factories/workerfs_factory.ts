@@ -1,5 +1,4 @@
 import WorkerFS from "../../../src/backend/WorkerFS";
-import BackendFactory from '../BackendFactory';
 import {FileSystem} from '../../../src/core/file_system';
 
 export default function WorkerFSFactory(cb: (name: string, obj: FileSystem[]) => void): void {
@@ -20,5 +19,3 @@ export default function WorkerFSFactory(cb: (name: string, obj: FileSystem[]) =>
     cb("WorkerFS", []);
   }
 }
-
-var _: BackendFactory = WorkerFSFactory;

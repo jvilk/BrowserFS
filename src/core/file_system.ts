@@ -168,7 +168,7 @@ export interface FileSystem {
    * @param [string] path
    * @param [FileSystem~nodeCallback] cb
    */
-  unlink(p: string, cb: Function): void;
+  unlink(p: string, cb: (e?: ApiError) => void): void;
   /**
    * **Core**: Synchronous `unlink`.
    * @method FileSystem#unlinkSync
@@ -182,7 +182,7 @@ export interface FileSystem {
    * @param {string} path
    * @param {FileSystem~nodeCallback} cb
    */
-  rmdir(p: string, cb: Function): void;
+  rmdir(p: string, cb: (e?: ApiError) => void): void;
   /**
    * **Core**: Synchronous `rmdir`.
    * @method FileSystem#rmdirSync
@@ -197,7 +197,7 @@ export interface FileSystem {
    *   the filesystem doesn't support permissions.
    * @param {FileSystem~nodeCallback} cb
    */
-  mkdir(p: string, mode: number, cb: Function): void;
+  mkdir(p: string, mode: number, cb: (e?: ApiError) => void): void;
   /**
    * **Core**: Synchronous `mkdir`.
    * @method FileSystem#mkdirSync
@@ -275,7 +275,7 @@ export interface FileSystem {
    * @param {number} len
    * @param {FileSystem~nodeCallback} cb
    */
-  truncate(p: string, len: number, cb: Function): void;
+  truncate(p: string, len: number, cb: (e?: ApiError) => void): void;
   /**
    * **Supplemental**: Synchronous `truncate`.
    * @method FileSystem#truncateSync
@@ -294,7 +294,7 @@ export interface FileSystem {
    * @param {FileSystem~readCallback} cb If no encoding is specified, then the
    *   raw buffer is returned.
    */
-  readFile(fname: string, encoding: string, flag: FileFlag, cb: (err: ApiError, data?: any) => void): void;
+  readFile(fname: string, encoding: string | null, flag: FileFlag, cb: (err: ApiError, data?: any) => void): void;
   /**
    * **Supplemental**: Synchronously reads the entire contents of a file.
    * @method FileSystem#readFileSync
@@ -332,7 +332,7 @@ export interface FileSystem {
    * @param {BrowserFS.FileMode} flag
    * @param {number} mode
    */
-  writeFileSync(fname: string, data: any, encoding: string, flag: FileFlag, mode: number): void;
+  writeFileSync(fname: string, data: string | Buffer, encoding: string | null, flag: FileFlag, mode: number): void;
   /**
    * **Supplemental**: Asynchronously append data to a file, creating the file if
    * it not yet exists.
@@ -344,7 +344,7 @@ export interface FileSystem {
    * @param {number} mode
    * @param {FileSystem~nodeCallback} cb
    */
-  appendFile(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cb: (err: ApiError) => void): void;
+  appendFile(fname: string, data: string | Buffer, encoding: string | null, flag: FileFlag, mode: number, cb: (err: ApiError) => void): void;
   /**
    * **Supplemental**: Synchronously append data to a file, creating the file if
    * it not yet exists.
@@ -355,7 +355,7 @@ export interface FileSystem {
    * @param {BrowserFS.FileMode} flag
    * @param {number} mode
    */
-  appendFileSync(fname: string, data: any, encoding: string, flag: FileFlag, mode: number): void;
+  appendFileSync(fname: string, data: string | Buffer, encoding: string | null, flag: FileFlag, mode: number): void;
   // **OPTIONAL INTERFACE METHODS**
   // Property operations
   // This isn't always possible on some filesystem types (e.g. Dropbox).
@@ -368,7 +368,7 @@ export interface FileSystem {
    * @param {number} mode
    * @param {FileSystem~nodeCallback} cb
    */
-  chmod(p: string, isLchmod: boolean, mode: number, cb: Function): void;
+  chmod(p: string, isLchmod: boolean, mode: number, cb: (e?: ApiError) => void): void;
   /**
    * **Optional**: Synchronous `chmod` or `lchmod`.
    * @method FileSystem#chmodSync
@@ -388,7 +388,7 @@ export interface FileSystem {
    * @param {number} gid
    * @param {FileSystem~nodeCallback} cb
    */
-  chown(p: string, isLchown: boolean, uid: number, gid: number, cb: Function): void;
+  chown(p: string, isLchown: boolean, uid: number, gid: number, cb: (e?: ApiError) => void): void;
   /**
    * **Optional**: Synchronous `chown` or `lchown`.
    * @method FileSystem#chownSync
@@ -408,7 +408,7 @@ export interface FileSystem {
    * @param {Date} mtime
    * @param {FileSystem~nodeCallback} cb
    */
-  utimes(p: string, atime: Date, mtime: Date, cb: Function): void;
+  utimes(p: string, atime: Date, mtime: Date, cb: (e?: ApiError) => void): void;
   /**
    * **Optional**: Change file timestamps of the file referenced by the supplied
    * path.
@@ -427,7 +427,7 @@ export interface FileSystem {
    * @param {string} dstpath
    * @param {FileSystem~nodeCallback} cb
    */
-  link(srcpath: string, dstpath: string, cb: Function): void;
+  link(srcpath: string, dstpath: string, cb: (e?: ApiError) => void): void;
   /**
    * **Optional**: Synchronous `link`.
    * @method FileSystem#linkSync
@@ -443,7 +443,7 @@ export interface FileSystem {
    * @param {string} type can be either `'dir'` or `'file'`
    * @param {FileSystem~nodeCallback} cb
    */
-  symlink(srcpath: string, dstpath: string, type: string, cb: Function): void;
+  symlink(srcpath: string, dstpath: string, type: string, cb: (e?: ApiError) => void): void;
   /**
    * **Optional**: Synchronous `symlink`.
    * @method FileSystem#symlinkSync
@@ -458,7 +458,7 @@ export interface FileSystem {
    * @param {string} path
    * @param {FileSystem~pathCallback} callback
    */
-  readlink(p: string, cb: Function): void;
+  readlink(p: string, cb: (e: ApiError, p?: string) => void): void;
   /**
    * **Optional**: Synchronous readlink.
    * @method FileSystem#readlinkSync
@@ -700,8 +700,9 @@ export class BaseFileSystem {
       // TODO: Simpler to just pass through file, find sep and such.
       for (var i = 0; i < splitPath.length; i++) {
         var addPaths = splitPath.slice(0, i + 1);
-        splitPath[i] = path.join.apply(null, addPaths);
+        splitPath[i] = path.join.apply(path, addPaths);
       }
+      return splitPath.join(path.sep);
     } else {
       // No symlinks. We just need to verify that it exists.
       if (this.existsSync(p)) {

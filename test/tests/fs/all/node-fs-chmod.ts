@@ -6,8 +6,8 @@ import common from '../../../harness/common';
 export default function() {
   var got_error = false;
   var success_count = 0;
-  var mode_async;
-  var mode_sync;
+  var mode_async: number;
+  var mode_sync: number;
   var is_windows = process.platform === 'win32';
   var rootFS = fs.getRootFS();
 

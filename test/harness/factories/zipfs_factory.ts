@@ -1,7 +1,6 @@
 import XHRFSFactory from './xhrfs_factory';
 import {FileSystem} from '../../../src/core/file_system';
 import ZipFS from '../../../src/backend/ZipFS';
-import BackendFactory from '../BackendFactory';
 import * as BrowserFS from '../../../src/core/browserfs';
 import _fs from '../../../src/core/node_fs';
 
@@ -37,6 +36,3 @@ export default function ZipFSFactory(cb: (name: string, objs: FileSystem[]) => v
     cb('ZipFS', []);
   }
 }
-
-// Typechecking.
-var _: BackendFactory = ZipFSFactory;

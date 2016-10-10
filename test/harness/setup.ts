@@ -1,6 +1,5 @@
 import * as BrowserFS from '../../src/core/browserfs';
 import {FileSystem} from '../../src/core/file_system';
-import * as buffer from 'buffer';
 import BackendFactory from './BackendFactory';
 import {eachSeries as asyncEachSeries} from 'async';
 import BFSEmscriptenFS from '../../src/generic/emscripten_fs';
@@ -43,7 +42,47 @@ export default function(tests: {
   // Install BFS as a global.
   (<any> window)['BrowserFS'] = BrowserFS;
 
-  var process = BrowserFS.BFSRequire('process');
+  const process = BrowserFS.BFSRequire('process');
+  const fs = BrowserFS.BFSRequire('fs');
+  const path = BrowserFS.BFSRequire('path');
+  fs.wrapCallbacks((cb, numArgs) => {
+    if (typeof cb !== 'function') {
+      throw new Error('Callback must be a function.');
+    }
+    // This is used for unit testing.
+    // We could use `arguments`, but Function.call/apply is expensive. And we only
+    // need to handle 1-3 arguments
+    if (typeof __numWaiting === 'undefined') {
+      (<any> global).__numWaiting = 0;
+    }
+    __numWaiting++;
+
+    switch (numArgs) {
+      case 1:
+        return <any> function(arg1: any) {
+          setImmediate(function() {
+            __numWaiting--;
+            return cb(arg1);
+          });
+        };
+      case 2:
+        return <any> function(arg1: any, arg2: any) {
+          setImmediate(function() {
+            __numWaiting--;
+            return cb(arg1, arg2);
+          });
+        };
+      case 3:
+        return <any> function(arg1: any, arg2: any, arg3: any) {
+          setImmediate(function() {
+            __numWaiting--;
+            return cb(arg1, arg2, arg3);
+          });
+        };
+      default:
+        throw new Error('Invalid invocation of wrapCb.');
+    }
+  });
 
   // Generates a Jasmine unit test from a CommonJS test.
   function generateTest(testName: string, test: () => void, postCb: () => void = () => {}) {
@@ -82,8 +121,6 @@ export default function(tests: {
       it(`[Emscripten] ${testName}`, function(done: (e?: any) => void) {
         let stdout = "";
         let stderr = "";
-        let fs = BrowserFS.BFSRequire('fs');
-        let path = BrowserFS.BFSRequire('path');
         let expectedStdout: string = null;
         let expectedStderr: string = null;
         let testNameNoExt = testName.slice(0, testName.length - path.extname(testName).length);
@@ -97,7 +134,7 @@ export default function(tests: {
         const Module = {
           print: function(text: string) { stdout += text + '\n'; },
           printErr: function(text: string) { stderr += text + '\n'; },
-          onExit: function(code) {
+          onExit: function(code: number) {
             if (code !== 0) {
               done(new Error(`Program exited with code ${code}.\nstdout:\n${stdout}\nstderr:\n${stderr}`));
             } else {
@@ -109,7 +146,7 @@ export default function(tests: {
             }
           },
           // Block standard input. Otherwise, the unit tests inexplicably read from stdin???
-          stdin: function() {
+          stdin: function(): any {
             return null;
           },
           locateFile: function(fname: string): string {
@@ -157,7 +194,7 @@ export default function(tests: {
   }
 
   function generateAllTests() {
-    describe('BrowserFS Tests', function(): void {
+    describe('BrowserFS Tests', function(this: Mocha): void {
       this.timeout(0);
 
       // generate generic non-backend specific tests

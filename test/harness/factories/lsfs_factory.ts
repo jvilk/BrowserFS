@@ -1,6 +1,5 @@
 import LocalStorageFileSystem from '../../../src/backend/LocalStorage';
 import {FileSystem} from '../../../src/core/file_system';
-import BackendFactory from '../BackendFactory';
 
 export default function LSFSFactory(cb: (name: string, objs: FileSystem[]) => void) {
   if (LocalStorageFileSystem.isAvailable()) {
@@ -11,5 +10,3 @@ export default function LSFSFactory(cb: (name: string, objs: FileSystem[]) => vo
     cb('localStorage', []);
   }
 }
-
-var _: BackendFactory = LSFSFactory;

@@ -3,17 +3,16 @@ import assert from '../../harness/wrapped-assert';
 export default function() {
   var datStr = "hey\nhere's some data.",
       count = 0,
-      cb = function(stream) {
-          return function(data) {
+      cb = function(stream: NodeJS.ReadWriteStream) {
+          return function(data: Buffer) {
             assert(typeof(data) !== 'string');
             assert.equal(data.toString(), datStr);
             count++;
           }
         },
-        streams = [process.stdout, <any> process.stderr, process.stdin],
-        i;
+        streams = [process.stdout, <any> process.stderr, process.stdin];
 
-  for (i = 0; i < streams.length; i++) {
+  for (let i = 0; i < streams.length; i++) {
     streams[i].on('data', cb(streams[i]));
     // Write as string, receive as buffer.
     streams[i].write(datStr);
@@ -22,7 +21,7 @@ export default function() {
   }
 
   process.on('exit', function() {
-    for (i = 0; i < streams.length; i++) {
+    for (let i = 0; i < streams.length; i++) {
      // Remove all listeners.
      streams[i].removeAllListeners('data');
     }

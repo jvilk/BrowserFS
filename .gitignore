@@ -19,10 +19,10 @@ src/.baseDir.ts
 test/harness/run.ts
 # as is test.js
 test/harness/test.js*
-# as is backends.ts
-src/core/backends.ts
 .tscache
 generated_node_tsconfig.json
 coverage
 /gulptasks.js*
 dist
+.vscode
+.tscache

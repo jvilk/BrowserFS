@@ -3,10 +3,12 @@ import {ApiError} from '../core/api_error';
 import {FileFlag} from '../core/file_flag';
 import {buffer2ArrayBuffer, arrayBuffer2Buffer} from '../core/util';
 import {File, BaseFile} from '../core/file';
-import {default as Stats, FileType} from '../core/node_fs_stats';
+import {default as Stats} from '../core/node_fs_stats';
 import PreloadFile from '../generic/preload_file';
 import global from '../core/global';
 import fs from '../core/node_fs';
+
+declare const importScripts: Function;
 
 interface IBrowserFSMessage {
   browserfsMessage: boolean;
@@ -90,8 +92,7 @@ class FileDescriptorArgumentConverter {
   public toRemoteArg(fd: File, p: string, flag: FileFlag, cb: (err: ApiError, arg?: IFileDescriptorArgument) => void): void {
     var id = this._nextId++,
       data: ArrayBuffer,
-      stat: ArrayBuffer,
-      argsLeft: number = 2;
+      stat: ArrayBuffer;
     this._fileDescriptors[id] = fd;
 
     // Extract needed information asynchronously.
@@ -397,11 +398,6 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
   private _supportProps: boolean = false;
 
   /**
-   * Stores outstanding API requests to the remote BrowserFS instance.
-   */
-  private _outstandingRequests: { [id: number]: () => void } = {};
-
-  /**
    * Constructs a new WorkerFS instance that connects with BrowserFS running on
    * the specified worker.
    */
@@ -614,7 +610,7 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
             cb(null, apiErrorLocal2Remote(arg));
           } else if (arg instanceof BaseFile) {
             // Pass in p and flags from original request.
-            cb(null, fdConverter.toRemoteArg(arg, requestArgs[0], requestArgs[1], cb));
+            cb(null, fdConverter.toRemoteArg(<File> arg, requestArgs[0], requestArgs[1], cb));
           } else if (arg instanceof FileFlag) {
             cb(null, fileFlagLocal2Remote(arg));
           } else if (arg instanceof Buffer) {
@@ -759,7 +755,7 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
               fixedArgs[i] = argRemote2Local(args[i], fixedArgs);
             }
             const rootFS = fs.getRootFS();
-            (<Function> rootFS[request.method]).apply(rootFS, fixedArgs);
+            (<Function> (<any> rootFS)[request.method]).apply(rootFS, fixedArgs);
             break;
         }
       }

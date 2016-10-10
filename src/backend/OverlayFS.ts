@@ -2,7 +2,7 @@ import {FileSystem, BaseFileSystem} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
 import {File} from '../core/file';
-import {default as Stats, FileType} from '../core/node_fs_stats';
+import {default as Stats} from '../core/node_fs_stats';
 import PreloadFile from '../generic/preload_file';
 import LockedFS from '../generic/locked_fs';
 import * as path from 'path';
@@ -307,7 +307,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
       }
 
       return this.stat(newPath, false, (newErr: ApiError, newStats?: Stats) => {
-
+        const self = this;
         // precondition: both oldPath and newPath exist and are dirs.
         // decreases: |files|
         // Need to move *every file/folder* currently stored on
@@ -322,7 +322,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
           let newFile = path.resolve(newPath, file);
 
           // Recursion! Should work for any nested files / folders.
-          this.rename(oldFile, newFile, (err?: ApiError) => {
+          self.rename(oldFile, newFile, (err?: ApiError) => {
             if (err) {
               return cb(err);
             }

@@ -2,9 +2,7 @@
  * Ensures that OverlayFS throws initialization errors.
  */
 import fs from '../../../../src/core/node_fs';
-import * as path from 'path';
 import assert from '../../../harness/wrapped-assert';
-import common from '../../../harness/common';
 import OverlayFS from '../../../../src/backend/OverlayFS';
 
 export default function() {
@@ -15,7 +13,7 @@ export default function() {
     writable = fses.writable;
   fs.initialize(new OverlayFS(writable, readable));
 
-  var err = null;
+  var err: NodeJS.ErrnoException = null;
   try {
     fs.readdirSync('/');
   } catch (e) {

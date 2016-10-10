@@ -73,7 +73,7 @@ export class HTML5FSFile extends PreloadFile<HTML5FS> implements IFile {
             this.resetDirty();
             cb();
           };
-          writer.onerror = (err: DOMError) => {
+          writer.onerror = (err: any) => {
             cb(_fs.convert(err, this.getPath(), false));
           };
           writer.write(blob);
@@ -358,13 +358,6 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
         reader.readAsArrayBuffer(file);
       }, error);
     }, error);
-  }
-
-  /**
-   * Returns a BrowserFS object representing the type of a Dropbox.js stat object
-   */
-  private _statType(stat: Entry): FileType {
-    return stat.isFile ? FileType.FILE : FileType.DIRECTORY;
   }
 
   /**

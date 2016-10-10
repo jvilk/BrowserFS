@@ -8,7 +8,7 @@ export default function() {
   var tests_run = 0;
   var rootFS = fs.getRootFS();
 
-  function stat_resource(resource) {
+  function stat_resource(resource: string | number) {
     if (typeof resource == 'string') {
       return fs.statSync(resource);
     } else {
@@ -18,16 +18,16 @@ export default function() {
     }
   }
 
-  function check_mtime(resource, mtime) {
-    mtime = fs._toUnixTimestamp(mtime);
+  function check_mtime(resource: string | number, mtime: Date | number) {
+    var mtimeNo = fs._toUnixTimestamp(mtime);
     var stats = stat_resource(resource);
     var real_mtime = fs._toUnixTimestamp(stats.mtime);
     // check up to single-second precision
     // sub-second precision is OS and fs dependant
-    return Math.floor(mtime) == Math.floor(real_mtime);
+    return Math.floor(mtimeNo) == Math.floor(real_mtime);
   }
 
-  function expect_errno(syscall, resource, err, errno) {
+  function expect_errno(syscall: string, resource: string | number, err: NodeJS.ErrnoException, errno: string) {
     tests_run++;
     if (err) {//&& (err.code === errno || err.code === 'ENOSYS')) {
       tests_ok++;
@@ -38,7 +38,7 @@ export default function() {
     }
   }
 
-  function expect_ok(syscall, resource, err, atime, mtime) {
+  function expect_ok(syscall: string, resource: string | number, err: NodeJS.ErrnoException, atime: Date | number, mtime: Date | number) {
     tests_run++;
     if (!err && check_mtime(resource, mtime) ||
         err) { //&& err.code === 'ENOSYS') {
@@ -54,8 +54,8 @@ export default function() {
   // this should be a fairly safe assumption; testing against a temp file
   // would be even better though (node doesn't have such functionality yet)
   var filename = path.join(common.fixturesDir, 'x.txt');
-  function runTest(atime, mtime, callback) {
-    var fd, err;
+  function runTest(atime: Date | number, mtime: Date | number, callback: any): void {
+    var fd: number;
     //
     // test synchronized code paths, these functions throw on failure
     //
@@ -72,7 +72,7 @@ export default function() {
         expect_errno('futimesSync', fd, ex, 'ENOSYS');
       }
 
-      var err;
+      var err: NodeJS.ErrnoException;
       err = undefined;
       try {
         fs.utimesSync('foobarbaz', atime, mtime);

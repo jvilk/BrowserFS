@@ -1,5 +1,4 @@
 import OverlayFS from '../../../src/backend/OverlayFS';
-import BackendFactory from '../BackendFactory';
 import {FileSystem} from '../../../src/core/file_system';
 import InMemoryFileSystem from '../../../src/backend/InMemory';
 import ZipFactory from './zipfs_factory';
@@ -18,5 +17,3 @@ export default function OverlayFactory(cb: (name: string, objs: FileSystem[]) =>
     });
   });
 }
-
-var _: BackendFactory = OverlayFactory;

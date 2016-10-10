@@ -1,5 +1,4 @@
 import DropboxFileSystem from '../../../src/backend/Dropbox';
-import BackendFactory from '../BackendFactory';
 import {FileSystem} from '../../../src/core/file_system';
 
 export default function DBFSFactory(cb: (name: string, obj: FileSystem[]) => void): void {
@@ -43,5 +42,3 @@ export default function DBFSFactory(cb: (name: string, obj: FileSystem[]) => voi
     cb('Dropbox', []);
   }
 }
-
-var _: BackendFactory = DBFSFactory;

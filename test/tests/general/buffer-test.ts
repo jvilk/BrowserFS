@@ -5,19 +5,20 @@
 import assert from '../../harness/wrapped-assert';
 
 export default function() {
-  var i, buff = new Buffer(8);
+  var i: number, buff = new Buffer(8);
 
   /**
    * Simple get/set tests
    */
 
-  function testFunction(readFunc, writeFunc) {
-    return function(nums) {
-      var writeNum = nums;
-      var expectNum = nums;
+  function testFunction(readFunc: string, writeFunc: string) {
+    return function(nums: number | number[]) {
+      let writeNum: number, expectNum: number;
       if (Array.isArray(nums)) {
         writeNum = nums[0];
         expectNum = nums[1];
+      } else {
+        writeNum = expectNum = nums;
       }
       (<any>buff)[writeFunc](writeNum, 0, true);
       if (!isNaN(expectNum)) {

@@ -2,16 +2,16 @@
  * Unit tests for XHRFS
  */
 import fs from '../../../../src/core/node_fs';
-import * as path from 'path';
 import assert from '../../../harness/wrapped-assert';
-import common from '../../../harness/common';
 import * as BrowserFS from '../../../../src/core/browserfs';
 
-export default function() {
-  var oldRootFS = fs.getRootFS();
+type Listing = {[name: string]: Listing | any};
 
-  var listing = {
-    "README.md":null,
+export default function() {
+  let oldRootFS = fs.getRootFS();
+
+  let listing: Listing = {
+    "README.md": null,
     "test": {
       "fixtures": {
         "static": {
@@ -20,19 +20,18 @@ export default function() {
       }
     },
     "src":{
-      "README.md":null,
-      "backend":{"AsyncMirror.ts":null, "XmlHttpRequest.ts":null, "ZipFS.ts":null},
-      "main.ts":null
+      "README.md": null,
+      "backend":{"AsyncMirror.ts": null, "XmlHttpRequest.ts": null, "ZipFS.ts": null},
+      "main.ts": null
     }
   }
 
-  var newXFS = new BrowserFS.FileSystem.XmlHttpRequest(listing, "/");
+  let newXFS = new BrowserFS.FileSystem.XmlHttpRequest(listing, "/");
   BrowserFS.initialize(newXFS);
 
-
-  var t1text = 'Invariant fail: Can query folder that contains items and a mount point.';
-  var expectedTestListing = ['README.md', 'src', 'test'];
-  var testListing = fs.readdirSync('/').sort();
+  let t1text = 'Invariant fail: Can query folder that contains items and a mount point.';
+  let expectedTestListing = ['README.md', 'src', 'test'];
+  let testListing = fs.readdirSync('/').sort();
   assert.deepEqual(testListing, expectedTestListing, t1text);
 
   fs.readdir('/', function(err, files) {

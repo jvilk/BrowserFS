@@ -1,7 +1,5 @@
 import fs from '../../../../src/core/node_fs';
-import * as path from 'path';
 import assert from '../../../harness/wrapped-assert';
-import common from '../../../harness/common';
 
 export default function() {
   fs.readdir('/', function(err, data) {

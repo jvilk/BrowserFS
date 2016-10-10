@@ -6,8 +6,8 @@ import {ApiError} from '../core/api_error';
  * The FolderAdapter file system wraps a file system, and scopes all interactions to a subfolder of that file system.
  */
 export default class FolderAdapter extends BaseFileSystem implements FileSystem {
-  private _wrapped: FileSystem;
-  private _folder: string;
+  public _wrapped: FileSystem;
+  public _folder: string;
   constructor(folder: string, wrapped: FileSystem) {
     super();
     this._folder = folder;
@@ -56,7 +56,7 @@ function translateError(folder: string, e: any): any {
 
 function wrapCallback(folder: string, cb: any): any {
   if (typeof cb === 'function') {
-    return function(err) {
+    return function(err: ApiError) {
       if (arguments.length > 0) {
         arguments[0] = translateError(folder, err);
       }
@@ -70,7 +70,7 @@ function wrapCallback(folder: string, cb: any): any {
 function wrapFunction(name: string, wrapFirst: boolean, wrapSecond: boolean): Function {
   if (name.slice(name.length - 4) !== 'Sync') {
     // Async function. Translate error in callback.
-    return function() {
+    return function(this: FolderAdapter) {
       if (arguments.length > 0) {
         if (wrapFirst) {
           arguments[0] = path.join(this._folder, arguments[0]);
@@ -80,11 +80,11 @@ function wrapFunction(name: string, wrapFirst: boolean, wrapSecond: boolean): Fu
         }
         arguments[arguments.length - 1] = wrapCallback(this._folder, arguments[arguments.length - 1]);
       }
-      return this._wrapped[name].apply(this._wrapped, arguments);
+      return (<any> this._wrapped)[name].apply(this._wrapped, arguments);
     };
   } else {
     // Sync function. Translate error in catch.
-    return function() {
+    return function(this: FolderAdapter) {
       try {
         if (wrapFirst) {
           arguments[0] = path.join(this._folder, arguments[0]);
@@ -92,7 +92,7 @@ function wrapFunction(name: string, wrapFirst: boolean, wrapSecond: boolean): Fu
         if (wrapSecond) {
           arguments[1] = path.join(this._folder, arguments[1]);
         }
-        return this._wrapped[name].apply(this._wrapped, arguments);
+        return (<any> this._wrapped)[name].apply(this._wrapped, arguments);
       } catch (e) {
         throw translateError(this._folder, e);
       }
@@ -107,10 +107,10 @@ function wrapFunction(name: string, wrapFirst: boolean, wrapSecond: boolean): Fu
  'readFileSync', 'writeFile', 'writeFileSync', 'appendFile', 'appendFileSync',
  'chmod', 'chmodSync', 'chown', 'chownSync', 'utimes', 'utimesSync', 'readlink',
  'readlinkSync'].forEach((name: string) => {
-  FolderAdapter.prototype[name] = wrapFunction(name, true, false);
+  (<any> FolderAdapter.prototype)[name] = wrapFunction(name, true, false);
 });
 
 // First and second arguments are paths.
 ['rename', 'renameSync', 'link', 'linkSync', 'symlink', 'symlinkSync'].forEach((name: string) => {
-  FolderAdapter.prototype[name] = wrapFunction(name, true, true);
+  (<any> FolderAdapter.prototype)[name] = wrapFunction(name, true, true);
 });

@@ -3,11 +3,11 @@ const wrapper = require('object-wrapper');
 import * as wrapperInterfaces from 'object-wrapper/interfaces';
 
 function construct(constructor: any, args: any): any {
-    function F() : void {
+    function F(this: any): void {
         constructor.apply(this, args);
     }
     F.prototype = constructor.prototype;
-    return new F();
+    return new (<any> F)();
 }
 
 function isAssertionError(e: any): e is assert.AssertionError {

@@ -4,7 +4,7 @@ const SlowBuffer = buffer.SlowBuffer,
  ones = [1, 1, 1, 1];
 
 // BFS: Changed deepEqual -> equal on toJSON.
-function equalCheck(b1, b2) {
+function equalCheck(b1: Buffer, b2: Buffer | number[]) {
   if (!Buffer.isBuffer(b2)) {
     b2 = new Buffer(b2);
   }

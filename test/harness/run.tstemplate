@@ -1,4 +1,3 @@
-/// <reference path="../../typings/index.d.ts" />
 /**
  * The template from which `run.ts` is generated.
  *
@@ -12,10 +11,6 @@
  * dependencies, as it prevents bundling. Thus, I compromised with this file.
  * (It's also less hacky, as now things will be typechecked at bundle-time. :) )
  */
-// Install polyfills first.
-import * as main from '../../src/main';
-// Prevent from being eliminated as dead code.
-main.BFSRequire('buffer');
 /*IMPORTS*/
 import runTests from './setup';
 import BackendFactory from './BackendFactory';

@@ -1,4 +1,4 @@
-import {FileSystem, BaseFileSystem, SynchronousFileSystem} from '../core/file_system';
+import {BaseFileSystem, SynchronousFileSystem} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {default as Stats, FileType} from '../core/node_fs_stats';
 import {File}  from '../core/file';

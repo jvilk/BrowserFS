@@ -1,5 +1,4 @@
-/// <reference path="../../../typings/index.d.ts" />
-import * as BrowserFS from "../../../src/main";
+import * as BrowserFS from "../../../src/index";
 import WorkerFS from "../../../src/backend/WorkerFS";
 import inmemfs_factory from './inmemory_factory';
 

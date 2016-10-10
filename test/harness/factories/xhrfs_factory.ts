@@ -1,6 +1,5 @@
 import {FileSystem} from '../../../src/core/file_system';
 import XmlHttpRequestFS from '../../../src/backend/XmlHttpRequest';
-import BackendFactory from '../BackendFactory';
 
 export default function XHRFSFactory(cb: (name: string, objs: FileSystem[]) => void): void {
   if (XmlHttpRequestFS.isAvailable()) {
@@ -9,6 +8,3 @@ export default function XHRFSFactory(cb: (name: string, objs: FileSystem[]) => v
     cb('XmlHttpRequest', []);
   }
 }
-
-// For typechecking
-var _: BackendFactory = XHRFSFactory;
