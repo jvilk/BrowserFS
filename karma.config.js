@@ -1,3 +1,4 @@
+'use strict';
 const express = require('express');
 const detectBrowsers = require('detect-browsers');
 const installedBrowsers = detectBrowsers.getInstalledBrowsers().map(function(browser) { return browser.name; });
