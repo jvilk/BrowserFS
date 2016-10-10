@@ -53,7 +53,7 @@ while (processDirs.length > 0) {
     const itemStat = fs.statSync(itemPath);
     if (itemStat.isFile()) {
       debugPrint(`Adding ${itemPath} to list of files to create...`);
-      files.push(itemPath);
+      files.push(itemPath.replace(/\\/g, '/'));
     } else {
       processDirs.push(itemPath);
     }

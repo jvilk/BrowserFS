@@ -28,7 +28,7 @@ module.exports = {
     extensions: ['', '.js', '.json'],
     // Use our versions of Node modules.
     alias: {
-      'buffer': path.resolve(__dirname, '..', 'node_modules', 'buffer', 'index.js'),
+      'buffer': path.posix.resolve(__dirname, '..', 'node_modules', 'buffer', 'index.js'),
       'path': require.resolve('bfs-path'),
       'process': require.resolve('bfs-process'),
       'BFSBuffer': require.resolve('../build/temp/library/webpack/BFSBuffer.js')

@@ -16,12 +16,12 @@ function generateRunFile() {
         name = name.slice(0, name.length - 3);
         switch (path.extname(file)) {
         case '.ts':
-          let modPath = relPath.slice(0, relPath.length - 3);
+          let modPath = relPath.slice(0, relPath.length - 3).replace(/\\/g, '/');
           testImports.push('import ' + name + ' from \'' + modPath + '\';');
           tests += '\'' + file + '\':' + name + ',';
           break;
         case '.js':
-          let jsModPath = relPath.slice(0, relPath.length - 3);
+          let jsModPath = relPath.slice(0, relPath.length - 3).replace(/\\/g, '/');
           testImports.push('const ' + name + ' = require(\'' + jsModPath + '\');');
           tests += '\'' + file + '\':' + name + ',';
           break;
