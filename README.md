@@ -36,29 +36,23 @@ For more information, see the [wiki](https://github.com/jvilk/BrowserFS/wiki).
 Prerequisites:
 
 * Node and NPM
-* Grunt-cli globally installed: `npm install -g grunt-cli`
 * Run `npm install` to install local dependencies
 
-Release:
+Build:
 
-    grunt
+    npm run dist
 
-The minified release build can be found in `build/browserfs.min.js`.
-
-Development:
-
-    grunt dev
-
-The development build can be found as `build/browserfs.js`.
+A minified build can be found in `dist/browserfs.min.js`, and the unminified build can be found in `dist/browserfs.js`.
 
 Custom builds:
 
 If you want to build BrowserFS with a subset of the available backends,
-change the `getBackends()` function in `Gruntfile.js` to return an
-array of backends you wish to use. Then, perform a release build.
+change `src/core/backends.ts` to include only the backends you require,
+and re-build.
 
 ### Using
-Here's a simple example, using the LocalStorage-backed file system:
+
+Here's a simple usage example using the LocalStorage-backed file system:
 
 ```html
 <script type="text/javascript" src="browserfs.min.js"></script>
