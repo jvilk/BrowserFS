@@ -76,7 +76,7 @@
     "build_tests": "tsc -p test && rollup -c test/rollup.config.js && rollup -c test/rollup.worker.config.js && webpack --config test/webpack.config.js",
     "build_scripts": "tsc -p scripts",
     "dist": "npm run build && npm run build_scripts && node build/scripts/make_dist.js && tsc -p src/tsconfig.node.json",
-    "test": "npm run build_scripts && node build/scripts/make_fixture_loader.js && node build/scripts/make_test_launcher.js && npm run build_tests && node build/scripts/make_xhrfs_index.js test/fixtures/xhrfs/listings.json && node build/scripts/make_zip_fixtures.js && karma start karma.config.js",
+    "test": "npm run build_scripts && node build/scripts/make_fixture_loader.js && node build/scripts/make_test_launcher.js && npm run build_tests && node build/scripts/make_zip_fixtures.js && node build/scripts/make_xhrfs_index.js test/fixtures/xhrfs/listings.json && karma start karma.config.js",
     "prepublish": "npm run dist"
   },
   "dependencies": {
