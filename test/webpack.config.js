@@ -41,7 +41,7 @@ module.exports = {
       // Ignore source-map-loader requests.
       const req = requireReq.request;
       if (req.indexOf('!') === -1) {
-        requireReq.request = path.posix.resolve(__dirname, 'tests', 'emscripten', path.basename(req));
+        requireReq.request = path.resolve(__dirname, 'tests', 'emscripten', path.basename(req));
       }
     })
   ],
