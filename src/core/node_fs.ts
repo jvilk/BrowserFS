@@ -9,8 +9,8 @@ import {default as FS, FSModule} from './FS';
 let fs: any = new FS();
 let _fsMock: FSModule = <any> {};
 
-let FSProto = FS.prototype;
-Object.keys(FSProto).forEach((key) => {
+let fsProto = FS.prototype;
+Object.keys(fsProto).forEach((key) => {
   if (typeof fs[key] === 'function') {
     (<any> _fsMock)[key] = function() {
       return (<Function> fs[key]).apply(fs, arguments);
@@ -22,10 +22,10 @@ Object.keys(FSProto).forEach((key) => {
 
 _fsMock['changeFSModule'] = function(newFs: FS): void {
   fs = newFs;
-}
+};
 _fsMock['getFSModule'] = function(): FS {
   return fs;
-}
+};
 _fsMock['FS'] = FS;
 
 export default _fsMock;

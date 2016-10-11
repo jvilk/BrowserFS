@@ -15,14 +15,14 @@ let wrapCb = function<T extends Function>(cb: T, numArgs: number): T {
   return cb;
 };
 
-function normalizeMode(mode: number|string, def: number): number {
-  switch(typeof mode) {
+function normalizeMode(mode: number | string, def: number): number {
+  switch (typeof mode) {
     case 'number':
       // (path, flag, mode, cb?)
       return <number> mode;
     case 'string':
       // (path, flag, modeString, cb?)
-      var trueMode = parseInt(<string> mode, 8);
+      let trueMode = parseInt(<string> mode, 8);
       if (!isNaN(trueMode)) {
         return trueMode;
       }
@@ -77,7 +77,9 @@ function normalizeOptions(options: any, defEnc: string, defFlag: string, defMode
 }
 
 // The default callback is a NOP.
-function nopCb() {};
+function nopCb() {
+  // NOP.
+}
 
 /**
  * The node frontend to all filesystems.
@@ -94,28 +96,19 @@ function nopCb() {};
  * @class
  */
 export default class FS {
+  /* tslint:disable:variable-name */
   // Exported fs.Stats.
   public static Stats = Stats;
+  /* tslint:enable:variable-name */
+
+  public F_OK: number = 0;
+  public R_OK: number = 4;
+  public W_OK: number = 2;
+  public X_OK: number = 1;
 
   private root: FileSystem = null;
   private fdMap: {[fd: number]: File} = {};
   private nextFd = 100;
-  private getFdForFile(file: File): number {
-    let fd = this.nextFd++;
-    this.fdMap[fd] = file;
-    return fd;
-  }
-  private fd2file(fd: number): File {
-    let rv = this.fdMap[fd];
-    if (rv) {
-      return rv;
-    } else {
-      throw new ApiError(ErrorCode.EBADF, 'Invalid file descriptor.');
-    }
-  }
-  private closeFd(fd: number): void {
-    delete this.fdMap[fd];
-  }
 
   public initialize(rootFS: FileSystem): FileSystem {
     if (!(<any> rootFS).constructor.isAvailable()) {
@@ -160,7 +153,7 @@ export default class FS {
    * @param [Function(BrowserFS.ApiError)] callback
    */
   public rename(oldPath: string, newPath: string, cb: (err?: ApiError) => void = nopCb): void {
-    var newCb = wrapCb(cb, 1);
+    let newCb = wrapCb(cb, 1);
     try {
       this.root.rename(normalizePath(oldPath), normalizePath(newPath), newCb);
     } catch (e) {
@@ -188,7 +181,7 @@ export default class FS {
    * @param [Function(Boolean)] callback
    */
   public exists(path: string, cb: (exists: boolean) => void = nopCb): void {
-    var newCb = wrapCb(cb, 1);
+    let newCb = wrapCb(cb, 1);
     try {
       return this.root.exists(normalizePath(path), newCb);
     } catch (e) {
@@ -219,7 +212,7 @@ export default class FS {
    * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] callback
    */
   public stat(path: string, cb: (err: ApiError, stats?: Stats) => any = nopCb): void {
-    var newCb = wrapCb(cb, 2);
+    let newCb = wrapCb(cb, 2);
     try {
       return this.root.stat(normalizePath(path), false, newCb);
     } catch (e) {
@@ -244,7 +237,7 @@ export default class FS {
    * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] callback
    */
   public lstat(path: string, cb: (err: ApiError, stats?: Stats) => any = nopCb): void {
-    var newCb = wrapCb(cb, 2);
+    let newCb = wrapCb(cb, 2);
     try {
       return this.root.stat(normalizePath(path), true, newCb);
     } catch (e) {
@@ -274,14 +267,14 @@ export default class FS {
   public truncate(path: string, cb?: (err?: ApiError) => void): void;
   public truncate(path: string, len: number, cb?: (err?: ApiError) => void): void;
   public truncate(path: string, arg2: any = 0, cb: (err?: ApiError) => void = nopCb): void {
-    var len = 0;
+    let len = 0;
     if (typeof arg2 === 'function') {
       cb = arg2;
     } else if (typeof arg2 === 'number') {
       len = arg2;
     }
 
-    var newCb = wrapCb(cb, 1);
+    let newCb = wrapCb(cb, 1);
     try {
       if (len < 0) {
         throw new ApiError(ErrorCode.EINVAL);
@@ -310,7 +303,7 @@ export default class FS {
    * @param [Function(BrowserFS.ApiError)] callback
    */
   public unlink(path: string, cb: (err?: ApiError) => void = nopCb): void {
-    var newCb = wrapCb(cb, 1);
+    let newCb = wrapCb(cb, 1);
     try {
       return this.root.unlink(normalizePath(path), newCb);
     } catch (e) {
@@ -354,9 +347,9 @@ export default class FS {
   public open(path: string, flag: string, cb?: (err: ApiError, fd?: number) => any): void;
   public open(path: string, flag: string, mode: number|string, cb?: (err: ApiError, fd?: number) => any): void;
   public open(path: string, flag: string, arg2?: any, cb: (err: ApiError, fd?: number) => any = nopCb): void {
-    var mode = normalizeMode(arg2, 0x1a4);
+    let mode = normalizeMode(arg2, 0x1a4);
     cb = typeof arg2 === 'function' ? arg2 : cb;
-    var newCb = wrapCb(cb, 2);
+    let newCb = wrapCb(cb, 2);
     try {
       this.root.open(normalizePath(path), FileFlag.getFileFlag(flag), mode, (e: ApiError, file?: File) => {
         if (file) {
@@ -401,11 +394,11 @@ export default class FS {
   public readFile(filename: string, options: { encoding: string; flag?: string; }, callback: (err: ApiError, data: string) => void): void;
   public readFile(filename: string, encoding: string, cb?: (err: ApiError, data?: string) => void ): void;
   public readFile(filename: string, arg2: any = {}, cb: (err: ApiError, data?: any) => void = nopCb ) {
-    var options = normalizeOptions(arg2, null, 'r', null);
+    let options = normalizeOptions(arg2, null, 'r', null);
     cb = typeof arg2 === 'function' ? arg2 : cb;
-    var newCb = wrapCb(cb, 2);
+    let newCb = wrapCb(cb, 2);
     try {
-      var flag = FileFlag.getFileFlag(options['flag']);
+      let flag = FileFlag.getFileFlag(options['flag']);
       if (!flag.isReadable()) {
         return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to readFile must allow for reading.'));
       }
@@ -427,8 +420,8 @@ export default class FS {
   public readFileSync(filename: string, options: { encoding: string; flag?: string; }): string;
   public readFileSync(filename: string, encoding: string): string;
   public readFileSync(filename: string, arg2: any = {}): any {
-    var options = normalizeOptions(arg2, null, 'r', null);
-    var flag = FileFlag.getFileFlag(options.flag);
+    let options = normalizeOptions(arg2, null, 'r', null);
+    let flag = FileFlag.getFileFlag(options.flag);
     if (!flag.isReadable()) {
       throw new ApiError(ErrorCode.EINVAL, 'Flag passed to readFile must allow for reading.');
     }
@@ -458,11 +451,11 @@ export default class FS {
   public writeFile(filename: string, data: any, encoding?: string, cb?: (err?: ApiError) => void): void;
   public writeFile(filename: string, data: any, options?: { encoding?: string; mode?: string | number; flag?: string; }, cb?: (err?: ApiError) => void): void;
   public writeFile(filename: string, data: any, arg3: any = {}, cb: (err?: ApiError) => void = nopCb): void {
-    var options = normalizeOptions(arg3, 'utf8', 'w', 0x1a4);
+    let options = normalizeOptions(arg3, 'utf8', 'w', 0x1a4);
     cb = typeof arg3 === 'function' ? arg3 : cb;
-    var newCb = wrapCb(cb, 1);
+    let newCb = wrapCb(cb, 1);
     try {
-      var flag = FileFlag.getFileFlag(options.flag);
+      let flag = FileFlag.getFileFlag(options.flag);
       if (!flag.isWriteable()) {
         return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to writeFile must allow for writing.'));
       }
@@ -487,8 +480,8 @@ export default class FS {
   public writeFileSync(filename: string, data: any, options?: { encoding?: string; mode?: number | string; flag?: string; }): void;
   public writeFileSync(filename: string, data: any, encoding?: string): void;
   public writeFileSync(filename: string, data: any, arg3?: any): void {
-    var options = normalizeOptions(arg3, 'utf8', 'w', 0x1a4);
-    var flag = FileFlag.getFileFlag(options.flag);
+    let options = normalizeOptions(arg3, 'utf8', 'w', 0x1a4);
+    let flag = FileFlag.getFileFlag(options.flag);
     if (!flag.isWriteable()) {
       throw new ApiError(ErrorCode.EINVAL, 'Flag passed to writeFile must allow for writing.');
     }
@@ -516,11 +509,11 @@ export default class FS {
   public appendFile(filename: string, data: any, options?: { encoding?: string; mode?: number|string; flag?: string; }, cb?: (err: ApiError) => void): void;
   public appendFile(filename: string, data: any, encoding?: string, cb?: (err: ApiError) => void): void;
   public appendFile(filename: string, data: any, arg3?: any, cb: (err: ApiError) => void = nopCb): void {
-    var options = normalizeOptions(arg3, 'utf8', 'a', 0x1a4);
+    let options = normalizeOptions(arg3, 'utf8', 'a', 0x1a4);
     cb = typeof arg3 === 'function' ? arg3 : cb;
-    var newCb = wrapCb(cb, 1);
+    let newCb = wrapCb(cb, 1);
     try {
-      var flag = FileFlag.getFileFlag(options.flag);
+      let flag = FileFlag.getFileFlag(options.flag);
       if (!flag.isAppendable()) {
         return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to appendFile must allow for appending.'));
       }
@@ -549,8 +542,8 @@ export default class FS {
   public appendFileSync(filename: string, data: any, options?: { encoding?: string; mode?: number | string; flag?: string; }): void;
   public appendFileSync(filename: string, data: any, encoding?: string): void;
   public appendFileSync(filename: string, data: any, arg3?: any): void {
-    var options = normalizeOptions(arg3, 'utf8', 'a', 0x1a4);
-    var flag = FileFlag.getFileFlag(options.flag);
+    let options = normalizeOptions(arg3, 'utf8', 'a', 0x1a4);
+    let flag = FileFlag.getFileFlag(options.flag);
     if (!flag.isAppendable()) {
       throw new ApiError(ErrorCode.EINVAL, 'Flag passed to appendFile must allow for appending.');
     }
@@ -567,7 +560,7 @@ export default class FS {
    * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] callback
    */
   public fstat(fd: number, cb: (err: ApiError, stats?: Stats) => any = nopCb): void {
-    var newCb = wrapCb(cb, 2);
+    let newCb = wrapCb(cb, 2);
     try {
       let file = this.fd2file(fd);
       file.stat(newCb);
@@ -593,7 +586,7 @@ export default class FS {
    * @param [Function(BrowserFS.ApiError)] callback
    */
   public close(fd: number, cb: (e?: ApiError) => void = nopCb): void {
-    var newCb = wrapCb(cb, 1);
+    let newCb = wrapCb(cb, 1);
     try {
       this.fd2file(fd).close((e: ApiError) => {
         if (!e) {
@@ -624,9 +617,9 @@ export default class FS {
   public ftruncate(fd: number, cb?: (err?: ApiError) => void): void;
   public ftruncate(fd: number, len?: number, cb?: (err?: ApiError) => void): void;
   public ftruncate(fd: number, arg2?: any, cb: (err?: ApiError) => void = nopCb): void {
-    var length = typeof arg2 === 'number' ? arg2 : 0;
+    let length = typeof arg2 === 'number' ? arg2 : 0;
     cb = typeof arg2 === 'function' ? arg2 : cb;
-    var newCb = wrapCb(cb, 1);
+    let newCb = wrapCb(cb, 1);
     try {
       let file = this.fd2file(fd);
       if (length < 0) {
@@ -657,7 +650,7 @@ export default class FS {
    * @param [Function(BrowserFS.ApiError)] callback
    */
   public fsync(fd: number, cb: (err?: ApiError) => void = nopCb): void {
-    var newCb = wrapCb(cb, 1);
+    let newCb = wrapCb(cb, 1);
     try {
       this.fd2file(fd).sync(newCb);
     } catch (e) {
@@ -679,7 +672,7 @@ export default class FS {
    * @param [Function(BrowserFS.ApiError)] callback
    */
   public fdatasync(fd: number, cb: (err?: ApiError) => void = nopCb): void {
-    var newCb = wrapCb(cb, 1);
+    let newCb = wrapCb(cb, 1);
     try {
       this.fd2file(fd).datasync(newCb);
     } catch (e) {
@@ -716,10 +709,10 @@ export default class FS {
   public write(fd: number, data: any, position: number, cb?: (err: ApiError, written: number, str: string) => any): void;
   public write(fd: number, data: any, position: number, encoding: string, cb?: (err: ApiError, written: number, str: string) => void): void;
   public write(fd: number, arg2: any, arg3?: any, arg4?: any, arg5?: any, cb: (err: ApiError, written?: number, buffer?: Buffer) => void = nopCb): void {
-    var buffer: Buffer, offset: number, length: number, position: number = null;
+    let buffer: Buffer, offset: number, length: number, position: number = null;
     if (typeof arg2 === 'string') {
       // Signature 1: (fd, string, [position?, [encoding?]], cb?)
-      var encoding = 'utf8';
+      let encoding = 'utf8';
       switch (typeof arg3) {
         case 'function':
           // (fd, string, cb)
@@ -748,10 +741,10 @@ export default class FS {
       cb = typeof arg5 === 'function' ? arg5 : cb;
     }
 
-    var newCb = wrapCb(cb, 3);
+    let newCb = wrapCb(cb, 3);
     try {
       let file = this.fd2file(fd);
-      if (position == null) {
+      if (position === undefined || position === null) {
         position = file.getPos();
       }
       file.write(buffer, offset, length, position, newCb);
@@ -777,11 +770,11 @@ export default class FS {
   public writeSync(fd: number, buffer: Buffer, offset: number, length: number, position?: number): number;
   public writeSync(fd: number, data: string, position?: number, encoding?: string): number;
   public writeSync(fd: number, arg2: any, arg3?: any, arg4?: any, arg5?: any): number {
-    var buffer: Buffer, offset: number = 0, length: number, position: number;
+    let buffer: Buffer, offset: number = 0, length: number, position: number;
     if (typeof arg2 === 'string') {
       // Signature 1: (fd, string, [position?, [encoding?]])
       position = typeof arg3 === 'number' ? arg3 : null;
-      var encoding = typeof arg4 === 'string' ? arg4 : 'utf8';
+      let encoding = typeof arg4 === 'string' ? arg4 : 'utf8';
       offset = 0;
       buffer = new Buffer(arg2, encoding);
       length = buffer.length;
@@ -794,7 +787,7 @@ export default class FS {
     }
 
     let file = this.fd2file(fd);
-    if (position == null) {
+    if (position === undefined || position === null) {
       position = file.getPos();
     }
     return file.writeSync(buffer, offset, length, position);
@@ -817,13 +810,13 @@ export default class FS {
   public read(fd: number, length: number, position: number, encoding: string, cb?: (err: ApiError, data?: string, bytesRead?: number) => void): void;
   public read(fd: number, buffer: Buffer, offset: number, length: number, position: number, cb?: (err: ApiError, bytesRead?: number, buffer?: Buffer) => void): void;
   public read(fd: number, arg2: any, arg3: any, arg4: any, arg5?: any, cb: (err: ApiError, arg2?: any, arg3?: any) => void = nopCb): void {
-    var position: number, offset: number, length: number, buffer: Buffer, newCb: (err: ApiError, bytesRead?: number, buffer?: Buffer) => void;
+    let position: number, offset: number, length: number, buffer: Buffer, newCb: (err: ApiError, bytesRead?: number, buffer?: Buffer) => void;
     if (typeof arg2 === 'number') {
       // legacy interface
       // (fd, length, position, encoding, callback)
       length = arg2;
       position = arg3;
-      var encoding = arg4;
+      let encoding = arg4;
       cb = typeof arg5 === 'function' ? arg5 : cb;
       offset = 0;
       buffer = new Buffer(length);
@@ -846,7 +839,7 @@ export default class FS {
 
     try {
       let file = this.fd2file(fd);
-      if (position == null) {
+      if (position === undefined || position === null) {
         position = file.getPos();
       }
       file.read(buffer, offset, length, position, newCb);
@@ -871,12 +864,12 @@ export default class FS {
   public readSync(fd: number, length: number, position: number, encoding: string): string;
   public readSync(fd: number, buffer: Buffer, offset: number, length: number, position: number): number;
   public readSync(fd: number, arg2: any, arg3: any, arg4: any, arg5?: any): any {
-    var shenanigans = false;
-    var buffer: Buffer, offset: number, length: number, position: number;
+    let shenanigans = false;
+    let buffer: Buffer, offset: number, length: number, position: number, encoding: string;
     if (typeof arg2 === 'number') {
       length = arg2;
       position = arg3;
-      var encoding = arg4;
+      encoding = arg4;
       offset = 0;
       buffer = new Buffer(length);
       shenanigans = true;
@@ -887,11 +880,11 @@ export default class FS {
       position = arg5;
     }
     let file = this.fd2file(fd);
-    if (position == null) {
+    if (position === undefined || position === null) {
       position = file.getPos();
     }
 
-    var rv = file.readSync(buffer, offset, length, position);
+    let rv = file.readSync(buffer, offset, length, position);
     if (!shenanigans) {
       return rv;
     } else {
@@ -907,7 +900,7 @@ export default class FS {
    * @param [Function(BrowserFS.ApiError)] callback
    */
   public fchown(fd: number, uid: number, gid: number, callback: (e?: ApiError) => void = nopCb): void {
-    var newCb = wrapCb(callback, 1);
+    let newCb = wrapCb(callback, 1);
     try {
       this.fd2file(fd).chown(uid, gid, newCb);
     } catch (e) {
@@ -932,7 +925,7 @@ export default class FS {
    * @param [Function(BrowserFS.ApiError)] callback
    */
   public fchmod(fd: number, mode: string | number, cb?: (e?: ApiError) => void): void {
-    var newCb = wrapCb(cb, 1);
+    let newCb = wrapCb(cb, 1);
     try {
       let numMode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
       this.fd2file(fd).chmod(numMode, newCb);
@@ -960,7 +953,7 @@ export default class FS {
    * @param [Function(BrowserFS.ApiError)] callback
    */
   public futimes(fd: number, atime: number | Date, mtime: number | Date, cb: (e?: ApiError) => void = nopCb): void {
-    var newCb = wrapCb(cb, 1);
+    let newCb = wrapCb(cb, 1);
     try {
       let file = this.fd2file(fd);
       if (typeof atime === 'number') {
@@ -994,7 +987,7 @@ export default class FS {
    * @param [Function(BrowserFS.ApiError)] callback
    */
   public rmdir(path: string, cb: (e?: ApiError) => void = nopCb): void {
-    var newCb = wrapCb(cb, 1);
+    let newCb = wrapCb(cb, 1);
     try {
       path = normalizePath(path);
       this.root.rmdir(path, newCb);
@@ -1023,7 +1016,7 @@ export default class FS {
       cb = mode;
       mode = 0x1ff;
     }
-    var newCb = wrapCb(cb, 1);
+    let newCb = wrapCb(cb, 1);
     try {
       path = normalizePath(path);
       this.root.mkdir(path, mode, newCb);
@@ -1049,7 +1042,7 @@ export default class FS {
    * @param [Function(BrowserFS.ApiError, String[])] callback
    */
   public readdir(path: string, cb: (err: ApiError, files?: string[]) => void = nopCb): void {
-    var newCb = <(err: ApiError, files?: string[]) => void> wrapCb(cb, 2);
+    let newCb = <(err: ApiError, files?: string[]) => void> wrapCb(cb, 2);
     try {
       path = normalizePath(path);
       this.root.readdir(path, newCb);
@@ -1077,7 +1070,7 @@ export default class FS {
    * @param [Function(BrowserFS.ApiError)] callback
    */
   public link(srcpath: string, dstpath: string, cb: (e?: ApiError) => void = nopCb): void {
-    var newCb = wrapCb(cb, 1);
+    let newCb = wrapCb(cb, 1);
     try {
       srcpath = normalizePath(srcpath);
       dstpath = normalizePath(dstpath);
@@ -1108,9 +1101,9 @@ export default class FS {
   public symlink(srcpath: string, dstpath: string, cb?: (e?: ApiError) => void): void;
   public symlink(srcpath: string, dstpath: string, type?: string, cb?: (e?: ApiError) => void): void;
   public symlink(srcpath: string, dstpath: string, arg3?: any, cb: (e?: ApiError) => void = nopCb): void {
-    var type = typeof arg3 === 'string' ? arg3 : 'file';
+    let type = typeof arg3 === 'string' ? arg3 : 'file';
     cb = typeof arg3 === 'function' ? arg3 : cb;
-    var newCb = wrapCb(cb, 1);
+    let newCb = wrapCb(cb, 1);
     try {
       if (type !== 'file' && type !== 'dir') {
         return newCb(new ApiError(ErrorCode.EINVAL, "Invalid type: " + type));
@@ -1130,7 +1123,7 @@ export default class FS {
    * @param [String?] type can be either `'dir'` or `'file'` (default is `'file'`)
    */
   public symlinkSync(srcpath: string, dstpath: string, type?: string): void {
-    if (type == null) {
+    if (!type) {
       type = 'file';
     } else if (type !== 'file' && type !== 'dir') {
       throw new ApiError(ErrorCode.EINVAL, "Invalid type: " + type);
@@ -1146,7 +1139,7 @@ export default class FS {
    * @param [Function(BrowserFS.ApiError, String)] callback
    */
   public readlink(path: string, cb: (err: ApiError, linkString?: string) => any = nopCb): void {
-    var newCb = wrapCb(cb, 2);
+    let newCb = wrapCb(cb, 2);
     try {
       path = normalizePath(path);
       this.root.readlink(path, newCb);
@@ -1175,7 +1168,7 @@ export default class FS {
    * @param [Function(BrowserFS.ApiError)] callback
    */
   public chown(path: string, uid: number, gid: number, cb: (e?: ApiError) => void = nopCb): void {
-    var newCb = wrapCb(cb, 1);
+    let newCb = wrapCb(cb, 1);
     try {
       path = normalizePath(path);
       this.root.chown(path, false, uid, gid, newCb);
@@ -1203,7 +1196,7 @@ export default class FS {
    * @param [Function(BrowserFS.ApiError)] callback
    */
   public lchown(path: string, uid: number, gid: number, cb: (e?: ApiError) => void = nopCb): void {
-    var newCb = wrapCb(cb, 1);
+    let newCb = wrapCb(cb, 1);
     try {
       path = normalizePath(path);
       this.root.chown(path, true, uid, gid, newCb);
@@ -1230,7 +1223,7 @@ export default class FS {
    * @param [Function(BrowserFS.ApiError)] callback
    */
   public chmod(path: string, mode: number | string, cb: (e?: ApiError) => void = nopCb): void {
-    var newCb = wrapCb(cb, 1);
+    let newCb = wrapCb(cb, 1);
     try {
       let numMode = normalizeMode(mode, -1);
       if (numMode < 0) {
@@ -1263,7 +1256,7 @@ export default class FS {
    * @param [Function(BrowserFS.ApiError)] callback
    */
   public lchmod(path: string, mode: number|string, cb: (e?: ApiError) => void = nopCb): void {
-    var newCb = wrapCb(cb, 1);
+    let newCb = wrapCb(cb, 1);
     try {
       let numMode = normalizeMode(mode, -1);
       if (numMode < 0) {
@@ -1296,7 +1289,7 @@ export default class FS {
    * @param [Function(BrowserFS.ApiError)] callback
    */
   public utimes(path: string, atime: number|Date, mtime: number|Date, cb: (e?: ApiError) => void = nopCb): void {
-    var newCb = wrapCb(cb, 1);
+    let newCb = wrapCb(cb, 1);
     try {
       this.root.utimes(normalizePath(path), normalizeTime(atime), normalizeTime(mtime), newCb);
     } catch (e) {
@@ -1319,7 +1312,7 @@ export default class FS {
    * `(err, resolvedPath)`. May use `process.cwd` to resolve relative paths.
    *
    * @example Usage example
-   *   var cache = {'/etc':'/private/etc'};
+   *   let cache = {'/etc':'/private/etc'};
    *   fs.realpath('/etc/passwd', cache, function (err, resolvedPath) {
    *     if (err) throw err;
    *     console.log(resolvedPath);
@@ -1331,12 +1324,12 @@ export default class FS {
    *   known real paths.
    * @param [Function(BrowserFS.ApiError, String)] callback
    */
-  public realpath(path: string, cb?: (err: ApiError, resolvedPath?: string) =>any): void;
-  public realpath(path: string, cache: {[path: string]: string}, cb: (err: ApiError, resolvedPath?: string) =>any): void;
+  public realpath(path: string, cb?: (err: ApiError, resolvedPath?: string) => any): void;
+  public realpath(path: string, cache: {[path: string]: string}, cb: (err: ApiError, resolvedPath?: string) => any): void;
   public realpath(path: string, arg2?: any, cb: (err: ApiError, resolvedPath?: string) => any = nopCb): void {
-    var cache = typeof arg2 === 'object' ? arg2 : {};
-    cb = typeof arg2 === 'function' ? arg2 : nopCb;
-    var newCb = <(err: ApiError, resolvedPath?: string) =>any> wrapCb(cb, 2);
+    let cache = typeof(arg2) === 'object' ? arg2 : {};
+    cb = typeof(arg2) === 'function' ? arg2 : nopCb;
+    let newCb = <(err: ApiError, resolvedPath?: string) => any> wrapCb(cb, 2);
     try {
       path = normalizePath(path);
       this.root.realpath(path, cache, newCb);
@@ -1374,11 +1367,6 @@ export default class FS {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
 
-  public F_OK: number = 0;
-  public R_OK: number = 4;
-  public W_OK: number = 2;
-  public X_OK: number = 1;
-
   public access(path: string, callback: (err: ApiError) => void): void;
   public access(path: string, mode: number, callback: (err: ApiError) => void): void;
   public access(path: string, arg2: any, cb: (e: ApiError) => void = nopCb): void {
@@ -1414,9 +1402,30 @@ export default class FS {
   public wrapCallbacks(cbWrapper: (cb: Function, args: number) => Function) {
     wrapCb = cbWrapper;
   }
+
+  private getFdForFile(file: File): number {
+    let fd = this.nextFd++;
+    this.fdMap[fd] = file;
+    return fd;
+  }
+  private fd2file(fd: number): File {
+    let rv = this.fdMap[fd];
+    if (rv) {
+      return rv;
+    } else {
+      throw new ApiError(ErrorCode.EBADF, 'Invalid file descriptor.');
+    }
+  }
+  private closeFd(fd: number): void {
+    delete this.fdMap[fd];
+  }
 }
 
 export interface FSModule extends FS {
+  /**
+   * The FS constructor.
+   */
+  FS: typeof FS;
   /**
    * Retrieve the FS object backing the fs module.
    */
@@ -1425,8 +1434,4 @@ export interface FSModule extends FS {
    * Set the FS object backing the fs module.
    */
   changeFSModule(newFs: FS): void;
-  /**
-   * The FS constructor.
-   */
-  FS: typeof FS;
 }

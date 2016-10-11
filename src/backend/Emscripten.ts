@@ -182,14 +182,14 @@ export class EmscriptenFile extends BaseFile implements File {
  * A simple in-memory file system backed by an InMemoryStore.
  */
 export default class EmscriptenFileSystem extends SynchronousFileSystem {
+  public static isAvailable(): boolean { return true; }
+
   private _FS: any;
 
   constructor(_FS: any) {
     super();
     this._FS = _FS;
   }
-
-  public static isAvailable(): boolean { return true; }
   public getName(): string { return this._FS.DB_NAME(); }
   public isReadOnly(): boolean { return false; }
   public supportsLinks(): boolean { return true; }
@@ -211,9 +211,9 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
   public statSync(p: string, isLstat: boolean): Stats {
     try {
       const stats = isLstat ? this._FS.lstat(p) : this._FS.stat(p);
-      const item_type = this.modeToFileType(stats.mode);
+      const itemType = this.modeToFileType(stats.mode);
       return new Stats(
-        item_type,
+        itemType,
         stats.size,
         stats.mode,
         stats.atime,
@@ -222,18 +222,6 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
       );
     } catch (e) {
       throw convertError(e, p);
-    }
-  }
-
-  private modeToFileType(mode: number): FileType {
-    if (this._FS.isDir(mode)) {
-      return FileType.DIRECTORY;
-    } else if (this._FS.isFile(mode)) {
-      return FileType.FILE;
-    } else if (this._FS.isLink(mode)) {
-      return FileType.SYMLINK;
-    } else {
-      throw ApiError.EPERM(`Invalid mode: ${mode}`);
     }
   }
 
@@ -293,7 +281,7 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
 
   public readFileSync(p: string, encoding: string, flag: FileFlag): any {
     try {
-      const data: Uint8Array = this._FS.readFile(p, { flags: flag.getFlagString() })
+      const data: Uint8Array = this._FS.readFile(p, { flags: flag.getFlagString() });
       const buff = uint8Array2Buffer(data);
       if (encoding) {
         return buff.toString(encoding);
@@ -355,6 +343,18 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
       this._FS.utime(p, atime.getTime(), mtime.getTime());
     } catch (e) {
       throw convertError(e, p);
+    }
+  }
+
+  private modeToFileType(mode: number): FileType {
+    if (this._FS.isDir(mode)) {
+      return FileType.DIRECTORY;
+    } else if (this._FS.isFile(mode)) {
+      return FileType.FILE;
+    } else if (this._FS.isLink(mode)) {
+      return FileType.SYMLINK;
+    } else {
+      throw ApiError.EPERM(`Invalid mode: ${mode}`);
     }
   }
 

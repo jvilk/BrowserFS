@@ -88,24 +88,7 @@ BrowserFS is published as a UMD module, so you can either include it on your web
 JavaScript module bundler.
 
 You can also use BrowserFS to supply your application with `fs`, `path`, and `buffer` modules, as well as the `Buffer` and `process`
-globals. The easiest way to do this with Browserify and Webpack is to create shim modules for `fs`, `buffer`, `path`, and `process`
-that contain the following JavaScript:
-
-```javascript
-// shims/fs.js
-module.exports = BrowserFS.BFSRequire('fs');
-// shims/buffer.js
-module.exports = BrowserFS.BFSRequire('buffer');
-// shims/path.js
-module.exports = BrowserFS.BFSRequire('path');
-// shims/process.js
-module.exports = BrowserFS.BFSRequire('process');
-// shims/bufferGlobal.js
-module.exports = BrowserFS.BFSRequire('buffer').Buffer;
-```
-*Note: The above code assumes that BrowserFS is a global on the webpage. If you are using BrowserFS as a module, just add an import statement for BrowserFS in each module.*
-
-Then, instruct Browserify or Webpack to alias the relevant Node modules to these shim modules, and to insert the `Buffer` / `process` global variables.
+globals. BrowserFS contains shim modules for `fs`, `buffer`, `path`, and `process` that you can use with Webpack and Browserify.
 
 Webpack:
 
@@ -114,16 +97,19 @@ module.exports = {
   resolve: {
     // Use our versions of Node modules.
     alias: {
-      'fs': './shims/fs.js',
-      'buffer': './shims/buffer.js',
-      'path': './shims/path.js',
-      'process': './shims/process.js',
-      'bufferGlobal': './shims/bufferGlobal.js'
+      'fs': 'browserfs/dist/shims/fs.js',
+      'buffer': 'browserfs/dist/shims/buffer.js',
+      'path': 'browserfs/dist/shims/path.js',
+      'processGlobal': 'browserfs/dist/shims/process.js',
+      'bufferGlobal': 'browserfs/dist/shims/bufferGlobal.js',
+      'bfsGlobal': require.resolve('browserfs')
     }
   },
   plugins: [
-    // Expose process and Buffer globals.
-    new webpack.ProvidePlugin({ process: 'process', Buffer: 'bufferGlobal' })
+    // Expose BrowserFS, process, and Buffer globals.
+    // NOTE: If you intend to use BrowserFS in a script tag, you do not need
+    // to expose a BrowserFS global.
+    new webpack.ProvidePlugin({ BrowserFS: 'bfsGlobal', process: 'processGlobal', Buffer: 'bufferGlobal' })
   ],
   // DISABLE Webpack's built-in process and Buffer polyfills!
   node: {
@@ -136,17 +122,21 @@ module.exports = {
 Browserify:
 
 ```javascript
-module.exports = {
+var browserfsPath = require.resolve('browserfs');
+var browserifyConfig = {
   // Override Browserify's builtins for buffer/fs/path.
   builtins: Object.assign({}, require('browserify/lib/builtins'), {
-    "buffer": require.resolve('./shims/buffer.js'),
-    "fs": require.resolve("./shims/fs.js"),
-    "path": require.resolve("./shims/path.js")
+    "buffer": require.resolve('browserfs/dist/shims/buffer.js'),
+    "fs": require.resolve("browserfs/dist/shims/fs.js"),
+    "path": require.resolve("browserfs/dist/shims/path.js")
   }),
   insertGlobalVars: {
-    // process and Buffer globals
-    "process": function () { return "require('./shims/process.js')" },
-    'Buffer': function () { return "require('buffer').Buffer" }
+    // process, Buffer, and BrowserFS globals.
+    // BrowserFS global is not required if you include browserfs.js
+    // in a script tag.
+    "process": function () { return "require('browserfs/dist/shims/process.js')" },
+    'Buffer': function () { return "require('buffer').Buffer" },
+    "BrowserFS": function() { return "require('" + browserfsPath + "')" }
   }
 };
 ```

@@ -33,7 +33,7 @@ rimraf(distFolder, (err) => {
 
   // TypeScript interface
   fs.writeFileSync(path.join(distFolder, 'browserfs.d.ts'),
-`export * from './node/main';
+`export * from './node/index';
 export as namespace BrowserFS;
 `);
 
@@ -43,5 +43,19 @@ export as namespace BrowserFS;
       copyToDist(`${file}${ext}`);
     });
   });
+
+  // Shims
+  const shimFolder = path.join(distFolder, 'shims');
+  if (!fs.existsSync(shimFolder)) {
+    fs.mkdirSync(shimFolder);
+  }
+  ['fs', 'path', 'process', 'buffer'].forEach((mod) => {
+    fs.writeFileSync(path.join(shimFolder, `${mod}.js`),
+`module.exports = BrowserFS.BFSRequire('${mod}');
+`);
+  });
+  fs.writeFileSync(path.join(shimFolder, 'bufferGlobal.js'),
+`module.exports = BrowserFS.BFSRequire('buffer').Buffer;
+`);
 });
 

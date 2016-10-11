@@ -45,7 +45,7 @@ import {default as Stats, FileType} from '../core/node_fs_stats';
 import {SynchronousFileSystem, FileSystem} from '../core/file_system';
 import {File} from '../core/file';
 import {FileFlag, ActionType} from '../core/file_flag';
-import {NoSyncFile}from '../generic/preload_file';
+import {NoSyncFile} from '../generic/preload_file';
 import {Arrayish, arrayish2Buffer, copyingSlice} from '../core/util';
 import ExtendedASCII from '../generic/extended_ascii';
 const inflateRaw: {
@@ -54,7 +54,6 @@ const inflateRaw: {
   }): Arrayish<number>;
 } = require('pako/lib/inflate').inflateRaw;
 import {FileIndex, DirInode, FileInode, isDirInode, isFileInode} from '../generic/file_index';
-
 
 /**
  * 4.4.2.2: Indicates the compatibiltiy of a file's external attributes.
@@ -94,18 +93,18 @@ export enum CompressionMethod {
  */
 function msdos2date(time: number, date: number): Date {
   // MS-DOS Date
-  //|0 0 0 0  0|0 0 0  0|0 0 0  0 0 0 0
-  //  D (1-31)  M (1-23)  Y (from 1980)
-  var day = date & 0x1F;
+  // |0 0 0 0  0|0 0 0  0|0 0 0  0 0 0 0
+  //   D (1-31)  M (1-23)  Y (from 1980)
+  let day = date & 0x1F;
   // JS date is 0-indexed, DOS is 1-indexed.
-  var month = ((date >> 5) & 0xF) - 1;
-  var year = (date >> 9) + 1980;
+  let month = ((date >> 5) & 0xF) - 1;
+  let year = (date >> 9) + 1980;
   // MS DOS Time
-  //|0 0 0 0  0|0 0 0  0 0 0|0  0 0 0 0
-  //   Second      Minute       Hour
-  var second = time & 0x1F;
-  var minute = (time >> 5) & 0x3F;
-  var hour = time >> 11;
+  // |0 0 0 0  0|0 0 0  0 0 0|0  0 0 0 0
+  //    Second      Minute       Hour
+  let second = time & 0x1F;
+  let minute = (time >> 5) & 0x3F;
+  let hour = time >> 11;
   return new Date(year, month, day, hour, minute, second);
 }
 
@@ -204,7 +203,7 @@ export class FileHeader {
     return safeToString(this.data, this.useUTF8(), 30, this.fileNameLength());
   }
   public extraField(): Buffer {
-    var start = 30 + this.fileNameLength();
+    let start = 30 + this.fileNameLength();
     return this.data.slice(start, start + this.extraFieldLength());
   }
   public totalSize(): number { return 30 + this.fileNameLength() + this.extraFieldLength(); }
@@ -212,27 +211,27 @@ export class FileHeader {
 }
 
 /**
-  4.3.8  File data
-
-    Immediately following the local header for a file
-    SHOULD be placed the compressed or stored data for the file.
-    If the file is encrypted, the encryption header for the file
-    SHOULD be placed after the local header and before the file
-    data. The series of [local file header][encryption header]
-    [file data][data descriptor] repeats for each file in the
-    .ZIP archive.
-
-    Zero-byte files, directories, and other file types that
-    contain no content MUST not include file data.
-*/
+ * 4.3.8  File data
+ *
+ *   Immediately following the local header for a file
+ *   SHOULD be placed the compressed or stored data for the file.
+ *   If the file is encrypted, the encryption header for the file
+ *   SHOULD be placed after the local header and before the file
+ *   data. The series of [local file header][encryption header]
+ *   [file data][data descriptor] repeats for each file in the
+ *   .ZIP archive.
+ *
+ *   Zero-byte files, directories, and other file types that
+ *   contain no content MUST not include file data.
+ */
 export class FileData {
   constructor(private header: FileHeader, private record: CentralDirectory, private data: Buffer) {}
   public decompress(): Buffer {
     // Check the compression
-    var compressionMethod: CompressionMethod = this.header.compressionMethod();
+    let compressionMethod: CompressionMethod = this.header.compressionMethod();
     switch (compressionMethod) {
       case CompressionMethod.DEFLATE:
-        var data = inflateRaw(
+        let data = inflateRaw(
           this.data.slice(0, this.record.compressedSize()),
           { chunkSize: this.record.uncompressedSize() }
         );
@@ -241,7 +240,7 @@ export class FileData {
         // Grab and copy.
         return copyingSlice(this.data, 0, this.record.uncompressedSize());
       default:
-        var name: string = CompressionMethod[compressionMethod];
+        let name: string = CompressionMethod[compressionMethod];
         name = name ? name : "Unknown: " + compressionMethod;
         throw new ApiError(ErrorCode.EINVAL, "Invalid compression method on file '" + this.header.fileName() + "': " + name);
     }
@@ -362,8 +361,9 @@ export class CentralDirectory {
   private _filename: string;
   constructor(private zipData: Buffer, private data: Buffer) {
     // Sanity check.
-    if (this.data.readUInt32LE(0) !== 0x02014b50)
-      throw new ApiError(ErrorCode.EINVAL, "Invalid Zip file: Central directory record has invalid signature: " + this.data.readUInt32LE(0));
+    if (this.data.readUInt32LE(0) !== 0x02014b50) {
+      throw new ApiError(ErrorCode.EINVAL, `Invalid Zip file: Central directory record has invalid signature: ${this.data.readUInt32LE(0)}`);
+    }
     this._filename = this.produceFilename();
   }
   public versionMadeBy(): number { return this.data.readUInt16LE(4); }
@@ -401,7 +401,7 @@ export class CentralDirectory {
       To avoid seeking all over the file to recover the known-good filenames
       from file headers, we simply convert '/' to '\' here.
     */
-    var fileName: string = safeToString(this.data, this.useUTF8(), 46, this.fileNameLength());
+    let fileName: string = safeToString(this.data, this.useUTF8(), 46, this.fileNameLength());
     return fileName.replace(/\\/g, "/");
   }
   public fileName(): string {
@@ -411,11 +411,11 @@ export class CentralDirectory {
     return this.data.slice(46, 46 + this.fileNameLength());
   }
   public extraField(): Buffer {
-    var start = 44 + this.fileNameLength();
+    let start = 44 + this.fileNameLength();
     return this.data.slice(start, start + this.extraFieldLength());
   }
   public fileComment(): string {
-    var start = 46 + this.fileNameLength() + this.extraFieldLength();
+    let start = 46 + this.fileNameLength() + this.extraFieldLength();
     return safeToString(this.data, this.useUTF8(), start, this.fileCommentLength());
   }
   public rawFileComment(): Buffer {
@@ -434,8 +434,8 @@ export class CentralDirectory {
     //       platform-dependent.
     //       If that fails, we also check if the name of the file ends in '/',
     //       which is what Java's ZipFile implementation does.
-    var fileName = this.fileName();
-    return (this.externalAttributes() & 0x10 ? true : false) || (fileName.charAt(fileName.length-1) === '/');
+    let fileName = this.fileName();
+    return (this.externalAttributes() & 0x10 ? true : false) || (fileName.charAt(fileName.length - 1) === '/');
   }
   public isFile(): boolean { return !this.isDirectory(); }
   public useUTF8(): boolean { return (this.flag() & 0x800) === 0x800; }
@@ -443,8 +443,8 @@ export class CentralDirectory {
   public getFileData(): FileData {
     // Need to grab the header before we can figure out where the actual
     // compressed data starts.
-    var start = this.headerRelativeOffset();
-    var header = new FileHeader(this.zipData.slice(start));
+    let start = this.headerRelativeOffset();
+    let header = new FileHeader(this.zipData.slice(start));
     return new FileData(header, this, this.zipData.slice(start + header.totalSize()));
   }
   public getData(): Buffer {
@@ -477,8 +477,9 @@ export class CentralDirectory {
 */
 export class EndOfCentralDirectory {
   constructor(private data: Buffer) {
-    if (this.data.readUInt32LE(0) !== 0x06054b50)
-      throw new ApiError(ErrorCode.EINVAL, "Invalid Zip file: End of central directory record has invalid signature: " + this.data.readUInt32LE(0));
+    if (this.data.readUInt32LE(0) !== 0x06054b50) {
+      throw new ApiError(ErrorCode.EINVAL, `Invalid Zip file: End of central directory record has invalid signature: ${this.data.readUInt32LE(0)}`);
+    }
   }
   public diskNumber(): number { return this.data.readUInt16LE(4); }
   public cdDiskNumber(): number { return this.data.readUInt16LE(6); }
@@ -492,7 +493,7 @@ export class EndOfCentralDirectory {
     return safeToString(this.data, true, 22, this.cdZipCommentLength());
   }
   public rawCdZipComment(): Buffer {
-    return this.data.slice(22, 22 + this.cdZipCommentLength())
+    return this.data.slice(22, 22 + this.cdZipCommentLength());
   }
 }
 
@@ -502,6 +503,83 @@ export class ZipTOC {
 }
 
 export default class ZipFS extends SynchronousFileSystem implements FileSystem {
+  public static isAvailable(): boolean { return true; }
+
+  public static computeIndex(data: Buffer, cb: (zipTOC: ZipTOC) => void) {
+    const index: FileIndex<CentralDirectory> = new FileIndex<CentralDirectory>();
+    const eocd: EndOfCentralDirectory = ZipFS.getEOCD(data);
+    if (eocd.diskNumber() !== eocd.cdDiskNumber()) {
+      throw new ApiError(ErrorCode.EINVAL, "ZipFS does not support spanned zip files.");
+    }
+
+    const cdPtr = eocd.cdOffset();
+    if (cdPtr === 0xFFFFFFFF) {
+      throw new ApiError(ErrorCode.EINVAL, "ZipFS does not support Zip64.");
+    }
+    const cdEnd = cdPtr + eocd.cdSize();
+    ZipFS.computeIndexResponsive(data, index, cdPtr, cdEnd, cb, [], eocd);
+  }
+
+  /**
+   * Locates the end of central directory record at the end of the file.
+   * Throws an exception if it cannot be found.
+   */
+  private static getEOCD(data: Buffer): EndOfCentralDirectory {
+    // Unfortunately, the comment is variable size and up to 64K in size.
+    // We assume that the magic signature does not appear in the comment, and
+    // in the bytes between the comment and the signature. Other ZIP
+    // implementations make this same assumption, since the alternative is to
+    // read thread every entry in the file to get to it. :(
+    // These are *negative* offsets from the end of the file.
+    let startOffset = 22;
+    let endOffset = Math.min(startOffset + 0xFFFF, data.length - 1);
+    // There's not even a byte alignment guarantee on the comment so we need to
+    // search byte by byte. *grumble grumble*
+    for (let i = startOffset; i < endOffset; i++) {
+      // Magic number: EOCD Signature
+      if (data.readUInt32LE(data.length - i) === 0x06054b50) {
+        return new EndOfCentralDirectory(data.slice(data.length - i));
+      }
+    }
+    throw new ApiError(ErrorCode.EINVAL, "Invalid ZIP file: Could not locate End of Central Directory signature.");
+  }
+
+  private static addToIndex(cd: CentralDirectory, index: FileIndex<CentralDirectory>) {
+    // Paths must be absolute, yet zip file paths are always relative to the
+    // zip root. So we append '/' and call it a day.
+    let filename = cd.fileName();
+    if (filename.charAt(0) === '/') {
+      throw new Error("WHY IS THIS ABSOLUTE");
+    }
+    // XXX: For the file index, strip the trailing '/'.
+    if (filename.charAt(filename.length - 1) === '/') {
+      filename = filename.substr(0, filename.length - 1);
+    }
+
+    if (cd.isDirectory()) {
+      index.addPathFast('/' + filename, new DirInode<CentralDirectory>(cd));
+    } else {
+      index.addPathFast('/' + filename, new FileInode<CentralDirectory>(cd));
+    }
+  }
+
+  private static computeIndexResponsive(data: Buffer, index: FileIndex<CentralDirectory>, cdPtr: number, cdEnd: number, cb: (zipTOC: ZipTOC) => void, cdEntries: CentralDirectory[], eocd: EndOfCentralDirectory) {
+    if (cdPtr < cdEnd) {
+      let count = 0;
+      while (count++ < 200 && cdPtr < cdEnd) {
+        const cd: CentralDirectory = new CentralDirectory(data, data.slice(cdPtr));
+        ZipFS.addToIndex(cd, index);
+        cdPtr += cd.totalSize();
+        cdEntries.push(cd);
+      }
+      setImmediate(() => {
+        ZipFS.computeIndexResponsive(data, index, cdPtr, cdEnd, cb, cdEntries, eocd);
+      });
+    } else {
+      cb(new ZipTOC(index, cdEntries, eocd, data));
+    }
+  }
+
   private _index: FileIndex<CentralDirectory> = new FileIndex<CentralDirectory>();
   private _directoryEntries: CentralDirectory[] = [];
   private _eocd: EndOfCentralDirectory = null;
@@ -563,8 +641,6 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
     return this._eocd;
   }
 
-  public static isAvailable(): boolean { return true; }
-
   public diskSpace(path: string, cb: (total: number, free: number) => void): void {
     // Read-only file system.
     cb(this.data.length, 0);
@@ -587,11 +663,11 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
   }
 
   public statSync(path: string, isLstat: boolean): Stats {
-    var inode = this._index.getInode(path);
+    let inode = this._index.getInode(path);
     if (inode === null) {
       throw ApiError.ENOENT(path);
     }
-    var stats: Stats;
+    let stats: Stats;
     if (isFileInode<CentralDirectory>(inode)) {
       stats = inode.getData().getStats();
     } else if (isDirInode(inode)) {
@@ -608,12 +684,12 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
       throw new ApiError(ErrorCode.EPERM, path);
     }
     // Check if the path exists, and is a file.
-    var inode = this._index.getInode(path);
+    let inode = this._index.getInode(path);
     if (!inode) {
       throw ApiError.ENOENT(path);
     } else if (isFileInode<CentralDirectory>(inode)) {
-      var cdRecord = inode.getData();
-      var stats = cdRecord.getStats();
+      let cdRecord = inode.getData();
+      let stats = cdRecord.getStats();
       switch (flags.pathExistsAction()) {
         case ActionType.THROW_EXCEPTION:
         case ActionType.TRUNCATE_FILE:
@@ -630,7 +706,7 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
 
   public readdirSync(path: string): string[] {
     // Check if it exists.
-    var inode = this._index.getInode(path);
+    let inode = this._index.getInode(path);
     if (!inode) {
       throw ApiError.ENOENT(path);
     } else if (isDirInode(inode)) {
@@ -645,10 +721,10 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
    */
   public readFileSync(fname: string, encoding: string, flag: FileFlag): any {
     // Get file.
-    var fd = this.openSync(fname, flag, 0x1a4);
+    let fd = this.openSync(fname, flag, 0x1a4);
     try {
-      var fdCast = <NoSyncFile<ZipFS>> fd;
-      var fdBuff = <Buffer> fdCast.getBuffer();
+      let fdCast = <NoSyncFile<ZipFS>> fd;
+      let fdBuff = <Buffer> fdCast.getBuffer();
       if (encoding === null) {
         return copyingSlice(fdBuff);
       }
@@ -658,86 +734,17 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
     }
   }
 
-  /**
-   * Locates the end of central directory record at the end of the file.
-   * Throws an exception if it cannot be found.
-   */
-  private static getEOCD(data: Buffer): EndOfCentralDirectory {
-    // Unfortunately, the comment is variable size and up to 64K in size.
-    // We assume that the magic signature does not appear in the comment, and
-    // in the bytes between the comment and the signature. Other ZIP
-    // implementations make this same assumption, since the alternative is to
-    // read thread every entry in the file to get to it. :(
-    // These are *negative* offsets from the end of the file.
-    var startOffset = 22;
-    var endOffset = Math.min(startOffset + 0xFFFF, data.length - 1);
-    // There's not even a byte alignment guarantee on the comment so we need to
-    // search byte by byte. *grumble grumble*
-    for (var i = startOffset; i < endOffset; i++) {
-      // Magic number: EOCD Signature
-      if (data.readUInt32LE(data.length - i) === 0x06054b50) {
-        return new EndOfCentralDirectory(data.slice(data.length - i));
-      }
-    }
-    throw new ApiError(ErrorCode.EINVAL, "Invalid ZIP file: Could not locate End of Central Directory signature.");
-  }
-
-  private static addToIndex(cd: CentralDirectory, index: FileIndex<CentralDirectory>) {
-    // Paths must be absolute, yet zip file paths are always relative to the
-    // zip root. So we append '/' and call it a day.
-    let filename = cd.fileName();
-    if (filename.charAt(0) === '/') throw new Error("WHY IS THIS ABSOLUTE");
-    // XXX: For the file index, strip the trailing '/'.
-    if (filename.charAt(filename.length - 1) === '/') {
-      filename = filename.substr(0, filename.length-1);
-    }
-
-    if (cd.isDirectory()) {
-      index.addPathFast('/' + filename, new DirInode<CentralDirectory>(cd));
-    } else {
-      index.addPathFast('/' + filename, new FileInode<CentralDirectory>(cd));
-    }
-  }
-
-  private static computeIndexResponsive(data: Buffer, index: FileIndex<CentralDirectory>, cdPtr: number, cdEnd: number, cb: (zipTOC: ZipTOC) => void, cdEntries: CentralDirectory[], eocd: EndOfCentralDirectory) {
-    if (cdPtr < cdEnd) {
-      let count = 0;
-      while (count++ < 200 && cdPtr < cdEnd) {
-        const cd: CentralDirectory = new CentralDirectory(data, data.slice(cdPtr));
-        ZipFS.addToIndex(cd, index);
-        cdPtr += cd.totalSize();
-        cdEntries.push(cd);
-      }
-      setImmediate(() => {
-        ZipFS.computeIndexResponsive(data, index, cdPtr, cdEnd, cb, cdEntries, eocd);
-      });
-    } else {
-      cb(new ZipTOC(index, cdEntries, eocd, data));
-    }
-  }
-
-  static computeIndex(data: Buffer, cb: (zipTOC: ZipTOC) => void) {
-    const index: FileIndex<CentralDirectory> = new FileIndex<CentralDirectory>();
-    const eocd: EndOfCentralDirectory = ZipFS.getEOCD(data);
-    if (eocd.diskNumber() !== eocd.cdDiskNumber())
-      throw new ApiError(ErrorCode.EINVAL, "ZipFS does not support spanned zip files.");
-
-    const cdPtr = eocd.cdOffset();
-    if (cdPtr === 0xFFFFFFFF)
-      throw new ApiError(ErrorCode.EINVAL, "ZipFS does not support Zip64.");
-    const cdEnd = cdPtr + eocd.cdSize();
-    ZipFS.computeIndexResponsive(data, index, cdPtr, cdEnd, cb, [], eocd);
-  }
-
   private populateIndex() {
-    var eocd: EndOfCentralDirectory = this._eocd = ZipFS.getEOCD(this.data);
-    if (eocd.diskNumber() !== eocd.cdDiskNumber())
+    let eocd: EndOfCentralDirectory = this._eocd = ZipFS.getEOCD(this.data);
+    if (eocd.diskNumber() !== eocd.cdDiskNumber()) {
       throw new ApiError(ErrorCode.EINVAL, "ZipFS does not support spanned zip files.");
+    }
 
-    var cdPtr = eocd.cdOffset();
-    if (cdPtr === 0xFFFFFFFF)
+    let cdPtr = eocd.cdOffset();
+    if (cdPtr === 0xFFFFFFFF) {
       throw new ApiError(ErrorCode.EINVAL, "ZipFS does not support Zip64.");
-    var cdEnd = cdPtr + eocd.cdSize();
+    }
+    let cdEnd = cdPtr + eocd.cdSize();
     while (cdPtr < cdEnd) {
       const cd: CentralDirectory = new CentralDirectory(this.data, this.data.slice(cdPtr));
       cdPtr += cd.totalSize();

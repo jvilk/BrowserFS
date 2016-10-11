@@ -7,8 +7,8 @@ import PreloadFile from '../generic/preload_file';
 import * as path from 'path';
 
 interface IAsyncOperation {
-	apiMethod: string;
-	arguments: any[];
+  apiMethod: string;
+  arguments: any[];
 }
 
 /**
@@ -42,6 +42,10 @@ class MirrorFile extends PreloadFile<AsyncMirror> implements File {
  * in-memory filesystem with an asynchronous backing store.
  */
 export default class AsyncMirror extends SynchronousFileSystem implements FileSystem {
+  public static isAvailable(): boolean {
+    return true;
+  }
+
   /**
    * Queue of pending asynchronous operations.
    */
@@ -64,11 +68,7 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
   }
 
   public getName(): string {
-	 	return "AsyncMirror";
-  }
-
-  public static isAvailable(): boolean {
-    return true;
+    return "AsyncMirror";
   }
 
   public _syncSync(fd: PreloadFile<any>) {
@@ -99,7 +99,7 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
             this._sync.mkdirSync(p, mode);
           }
           this._async.readdir(p, (err, files) => {
-            var i = 0;
+            let i = 0;
             // NOTE: This function must not be in a lexically nested statement,
             // such as an if or while statement. Safari refuses to run the
             // script since it is undefined behavior.
@@ -151,37 +151,10 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
     }
   }
 
-  private checkInitialized(): void {
-    if (!this._isInitialized) {
-      throw new ApiError(ErrorCode.EPERM, "AsyncMirrorFS is not initialized. Please initialize AsyncMirrorFS using its initialize() method before using it.");
-    }
-  }
-
   public isReadOnly(): boolean { return false; }
   public supportsSynch(): boolean { return true; }
   public supportsLinks(): boolean { return false; }
   public supportsProps(): boolean { return this._sync.supportsProps() && this._async.supportsProps(); }
-
-  private enqueueOp(op: IAsyncOperation) {
-    this._queue.push(op);
-    if (!this._queueRunning) {
-      this._queueRunning = true;
-      var doNextOp = (err?: ApiError) => {
-        if (err) {
-          console.error(`WARNING: File system has desynchronized. Received following error: ${err}\n$`);
-        }
-        if (this._queue.length > 0) {
-          var op = this._queue.shift(),
-            args = op.arguments;
-          args.push(doNextOp);
-          (<Function> (<any> this._async)[op.apiMethod]).apply(this._async, args);
-        } else {
-          this._queueRunning = false;
-        }
-      };
-      doNextOp();
-    }
-  }
 
   public renameSync(oldPath: string, newPath: string): void {
     this.checkInitialized();
@@ -191,17 +164,20 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
       arguments: [oldPath, newPath]
     });
   }
+
   public statSync(p: string, isLstat: boolean): Stats {
     this.checkInitialized();
     return this._sync.statSync(p, isLstat);
   }
+
   public openSync(p: string, flag: FileFlag, mode: number): File {
     this.checkInitialized();
     // Sanity check: Is this open/close permitted?
-    var fd = this._sync.openSync(p, flag, mode);
+    let fd = this._sync.openSync(p, flag, mode);
     fd.closeSync();
     return new MirrorFile(this, p, flag, this._sync.statSync(p, false), this._sync.readFileSync(p, null, FileFlag.getFileFlag('r')));
   }
+
   public unlinkSync(p: string): void {
     this.checkInitialized();
     this._sync.unlinkSync(p);
@@ -210,6 +186,7 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
       arguments: [p]
     });
   }
+
   public rmdirSync(p: string): void {
     this.checkInitialized();
     this._sync.rmdirSync(p);
@@ -218,6 +195,7 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
       arguments: [p]
     });
   }
+
   public mkdirSync(p: string, mode: number): void {
     this.checkInitialized();
     this._sync.mkdirSync(p, mode);
@@ -226,14 +204,17 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
       arguments: [p, mode]
     });
   }
+
   public readdirSync(p: string): string[] {
     this.checkInitialized();
     return this._sync.readdirSync(p);
   }
+
   public existsSync(p: string): boolean {
     this.checkInitialized();
     return this._sync.existsSync(p);
   }
+
   public chmodSync(p: string, isLchmod: boolean, mode: number): void {
     this.checkInitialized();
     this._sync.chmodSync(p, isLchmod, mode);
@@ -242,6 +223,7 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
       arguments: [p, isLchmod, mode]
     });
   }
+
   public chownSync(p: string, isLchown: boolean, uid: number, gid: number): void {
     this.checkInitialized();
     this._sync.chownSync(p, isLchown, uid, gid);
@@ -250,6 +232,7 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
       arguments: [p, isLchown, uid, gid]
     });
   }
+
   public utimesSync(p: string, atime: Date, mtime: Date): void {
     this.checkInitialized();
     this._sync.utimesSync(p, atime, mtime);
@@ -257,5 +240,32 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
       apiMethod: 'utimes',
       arguments: [p, atime, mtime]
     });
+  }
+
+  private checkInitialized(): void {
+    if (!this._isInitialized) {
+      throw new ApiError(ErrorCode.EPERM, "AsyncMirrorFS is not initialized. Please initialize AsyncMirrorFS using its initialize() method before using it.");
+    }
+  }
+
+  private enqueueOp(op: IAsyncOperation) {
+    this._queue.push(op);
+    if (!this._queueRunning) {
+      this._queueRunning = true;
+      let doNextOp = (err?: ApiError) => {
+        if (err) {
+          console.error(`WARNING: File system has desynchronized. Received following error: ${err}\n$`);
+        }
+        if (this._queue.length > 0) {
+          let op = this._queue.shift(),
+            args = op.arguments;
+          args.push(doNextOp);
+          (<Function> (<any> this._async)[op.apiMethod]).apply(this._async, args);
+        } else {
+          this._queueRunning = false;
+        }
+      };
+      doNextOp();
+    }
   }
 }

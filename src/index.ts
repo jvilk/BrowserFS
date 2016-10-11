@@ -10,24 +10,26 @@ if ('ab'.substr(-1) !== 'b') {
     return function(this: string, start: number, length?: number): string {
       // did we get a negative start, calculate how much it is from the
       // beginning of the string
-      if (start < 0) start = this.length + start;
+      if (start < 0) {
+        start = this.length + start;
+      }
       // call the original function
       return substr.call(this, start, length);
-    }
+    };
   }(String.prototype.substr);
 }
 
 // Only IE10 has setImmediate.
 if (typeof setImmediate === 'undefined') {
-  var gScope = global;
-  var timeouts: (() => void)[] = [];
-  var messageName = "zero-timeout-message";
-  var canUsePostMessage = function() {
+  let gScope = global;
+  let timeouts: (() => void)[] = [];
+  let messageName = "zero-timeout-message";
+  let canUsePostMessage = function() {
     if (typeof gScope.importScripts !== 'undefined' || !gScope.postMessage) {
       return false;
     }
-    var postMessageIsAsync = true;
-    var oldOnMessage = gScope.onmessage;
+    let postMessageIsAsync = true;
+    let oldOnMessage = gScope.onmessage;
     gScope.onmessage = function() {
       postMessageIsAsync = false;
     };
@@ -40,7 +42,7 @@ if (typeof setImmediate === 'undefined') {
       timeouts.push(fn);
       gScope.postMessage(messageName, "*");
     };
-    var handleMessage = function(event: MessageEvent) {
+    let handleMessage = function(event: MessageEvent) {
       if (event.source === self && event.data === messageName) {
         if (event.stopPropagation) {
           event.stopPropagation();
@@ -48,7 +50,7 @@ if (typeof setImmediate === 'undefined') {
           event.cancelBubble = true;
         }
         if (timeouts.length > 0) {
-          var fn = timeouts.shift();
+          let fn = timeouts.shift();
           return fn();
         }
       }
@@ -60,7 +62,7 @@ if (typeof setImmediate === 'undefined') {
     }
   } else if (gScope.MessageChannel) {
     // WebWorker MessageChannel
-    var channel = new gScope.MessageChannel();
+    let channel = new gScope.MessageChannel();
     channel.port1.onmessage = (event: any) => {
       if (timeouts.length > 0) {
         return timeouts.shift()();

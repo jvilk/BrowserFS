@@ -31,12 +31,12 @@ if ((<any> process)['initializeTTYs']) {
 export function install(obj: any) {
   obj.Buffer = Buffer;
   obj.process = process;
-  var oldRequire = obj.require != null ? obj.require : null;
+  let oldRequire = obj.require ? obj.require : null;
   // Monkey-patch require for Node-style code.
   obj.require = function(arg: string) {
-    var rv = BFSRequire(arg);
-    if (rv == null) {
-      return oldRequire.apply(null, Array.prototype.slice.call(arguments, 0))
+    let rv = BFSRequire(arg);
+    if (!rv) {
+      return oldRequire.apply(null, Array.prototype.slice.call(arguments, 0));
     } else {
       return rv;
     }
@@ -54,7 +54,7 @@ export function BFSRequire(module: 'process'): typeof process;
 export function BFSRequire(module: 'bfs_utils'): typeof BFSUtils;
 export function BFSRequire(module: string): any;
 export function BFSRequire(module: string): any {
-  switch(module) {
+  switch (module) {
     case 'fs':
       return fs;
     case 'path':

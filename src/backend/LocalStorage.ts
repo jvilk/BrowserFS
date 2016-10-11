@@ -25,8 +25,6 @@ if (!Buffer.isEncoding(binaryEncoding)) {
  * A synchronous key-value store backed by localStorage.
  */
 export class LocalStorageStore implements SyncKeyValueStore, SimpleSyncStore {
-  constructor() { }
-
   public name(): string {
     return 'LocalStorage';
   }
@@ -42,12 +40,12 @@ export class LocalStorageStore implements SyncKeyValueStore, SimpleSyncStore {
 
   public get(key: string): Buffer {
     try {
-      var data = global.localStorage.getItem(key);
+      let data = global.localStorage.getItem(key);
       if (data !== null) {
         return new Buffer(data, binaryEncoding);
       }
     } catch (e) {
-
+      // Do nothing.
     }
     // Key doesn't exist, or a failure occurred.
     return undefined;
@@ -80,8 +78,8 @@ export class LocalStorageStore implements SyncKeyValueStore, SimpleSyncStore {
  * LocalStorageStore to our SyncKeyValueFileSystem.
  */
 export default class LocalStorageFileSystem extends SyncKeyValueFileSystem {
-  constructor() { super({ store: new LocalStorageStore() }); }
   public static isAvailable(): boolean {
     return typeof global.localStorage !== 'undefined';
   }
+  constructor() { super({ store: new LocalStorageStore() }); }
 }

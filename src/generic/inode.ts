@@ -4,12 +4,28 @@ import {default as Stats, FileType} from '../core/node_fs_stats';
  * Generic inode definition that can easily be serialized.
  */
 export default class Inode {
+  /**
+   * Converts the buffer into an Inode.
+   */
+  public static fromBuffer(buffer: Buffer): Inode {
+    if (buffer === undefined) {
+      throw new Error("NO");
+    }
+    return new Inode(buffer.toString('ascii', 30),
+      buffer.readUInt32LE(0),
+      buffer.readUInt16LE(4),
+      buffer.readDoubleLE(6),
+      buffer.readDoubleLE(14),
+      buffer.readDoubleLE(22)
+    );
+  }
+
   constructor(public id: string,
-    public size: number,
-    public mode: number,
-    public atime: number,
-    public mtime: number,
-    public ctime: number) { }
+              public size: number,
+              public mode: number,
+              public atime: number,
+              public mtime: number,
+              public ctime: number) { }
 
   /**
    * Handy function that converts the Inode to a Node Stats object.
@@ -52,7 +68,7 @@ export default class Inode {
    * @return True if any changes have occurred.
    */
   public update(stats: Stats): boolean {
-    var hasChanged = false;
+    let hasChanged = false;
     if (this.size !== stats.size) {
       this.size = stats.size;
       hasChanged = true;
@@ -63,41 +79,25 @@ export default class Inode {
       hasChanged = true;
     }
 
-    var atimeMs = stats.atime.getTime();
+    let atimeMs = stats.atime.getTime();
     if (this.atime !== atimeMs) {
       this.atime = atimeMs;
       hasChanged = true;
     }
 
-    var mtimeMs = stats.mtime.getTime();
+    let mtimeMs = stats.mtime.getTime();
     if (this.mtime !== mtimeMs) {
       this.mtime = mtimeMs;
       hasChanged = true;
     }
 
-    var ctimeMs = stats.ctime.getTime();
+    let ctimeMs = stats.ctime.getTime();
     if (this.ctime !== ctimeMs) {
       this.ctime = ctimeMs;
       hasChanged = true;
     }
 
     return hasChanged;
-  }
-
-  /**
-   * Converts the buffer into an Inode.
-   */
-  public static fromBuffer(buffer: Buffer): Inode {
-    if (buffer === undefined) {
-      throw new Error("NO");
-    }
-    return new Inode(buffer.toString('ascii', 30),
-      buffer.readUInt32LE(0),
-      buffer.readUInt16LE(4),
-      buffer.readDoubleLE(6),
-      buffer.readDoubleLE(14),
-      buffer.readDoubleLE(22)
-    );
   }
 
   // XXX: Copied from Stats. Should reconcile these two into something more

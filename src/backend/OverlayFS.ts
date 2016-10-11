@@ -61,6 +61,10 @@ class OverlayFile extends PreloadFile<UnlockedOverlayFS> implements File {
  * file system.
  */
 export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
+  public static isAvailable(): boolean {
+    return true;
+  }
+
   private _writable: FileSystem;
   private _readable: FileSystem;
   private _isInitialized: boolean = false;
@@ -84,43 +88,6 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
     }
   }
 
-  private checkInitialized(): void {
-    if (!this._isInitialized) {
-      throw new ApiError(ErrorCode.EPERM, "OverlayFS is not initialized. Please initialize OverlayFS using its initialize() method before using it.");
-    } else if (this._deleteLogError !== null) {
-      const e = this._deleteLogError;
-      this._deleteLogError = null;
-      throw e;
-    }
-  }
-
-  private checkInitAsync(cb: (e?: ApiError) => void): boolean {
-    if (!this._isInitialized) {
-      cb(new ApiError(ErrorCode.EPERM, "OverlayFS is not initialized. Please initialize OverlayFS using its initialize() method before using it."));
-      return false;
-    } else if (this._deleteLogError !== null) {
-      const e = this._deleteLogError;
-      this._deleteLogError = null;
-      cb(e);
-      return false;
-    }
-    return true;
-  }
-
-  private checkPath(p: string): void {
-    if (p === deletionLogPath) {
-      throw ApiError.EPERM(p);
-    }
-  }
-
-  private checkPathAsync(p: string, cb: (e?: ApiError) => void): boolean {
-    if (p === deletionLogPath) {
-      cb(ApiError.EPERM(p));
-      return true;
-    }
-    return false;
-  }
-
   public getOverlayedFileSystems(): { readable: FileSystem; writable: FileSystem; } {
     return {
       readable: this._readable,
@@ -128,66 +95,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
     };
   }
 
-  private createParentDirectoriesAsync(p: string, cb: (err?: ApiError)=>void): void {
-    let parent = path.dirname(p)
-    let toCreate: string[] = [];
-    let _this = this;
-
-    this._writable.stat(parent, false, statDone);
-    function statDone(err: ApiError, stat?: Stats): void {
-      if (err) {
-        toCreate.push(parent);
-        parent = path.dirname(parent);
-        _this._writable.stat(parent, false, statDone);
-      } else {
-        createParents();
-      }
-    }
-
-    function createParents(): void {
-      if (!toCreate.length) {
-        return cb();
-      }
-
-      let dir = toCreate.pop();
-      _this._readable.stat(dir, false, (err: ApiError, stats?: Stats) => {
-        // stop if we couldn't read the dir
-        if (!stats) {
-          return cb();
-        }
-
-        _this._writable.mkdir(dir, stats.mode, (err?: ApiError) => {
-          if (err) {
-            return cb(err);
-          }
-          createParents();
-        });
-      });
-    }
-  }
-
-  /**
-   * With the given path, create the needed parent directories on the writable storage
-   * should they not exist. Use modes from the read-only storage.
-   */
-  private createParentDirectories(p: string): void {
-    var parent = path.dirname(p), toCreate: string[] = [];
-    while (!this._writable.existsSync(parent)) {
-      toCreate.push(parent);
-      parent = path.dirname(parent);
-    }
-    toCreate = toCreate.reverse();
-
-    toCreate.forEach((p: string) => {
-      this._writable.mkdirSync(p, this.statSync(p, false).mode);
-    });
-  }
-
-  public static isAvailable(): boolean {
-    return true;
-  }
-
-  public _syncAsync(file: PreloadFile<UnlockedOverlayFS>, cb: (err: ApiError)=>void): void {
+  public _syncAsync(file: PreloadFile<UnlockedOverlayFS>, cb: (err: ApiError) => void): void {
     this.createParentDirectoriesAsync(file.getPath(), (err?: ApiError) => {
       if (err) {
         return cb(err);
@@ -248,39 +156,8 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
   public supportsLinks(): boolean { return false; }
   public supportsProps(): boolean { return this._readable.supportsProps() && this._writable.supportsProps(); }
 
-  private deletePath(p: string): void {
-    this._deletedFiles[p] = true;
-    this.updateLog(`d${p}\n`);
-  }
-
-  private updateLog(addition: string) {
-    this._deleteLog += addition;
-    if (this._deleteLogUpdatePending) {
-      this._deleteLogUpdateNeeded = true;
-    } else {
-      this._deleteLogUpdatePending = true;
-      this._writable.writeFile(deletionLogPath, this._deleteLog, 'utf8', FileFlag.getFileFlag('w'), 0o644, (e) => {
-        this._deleteLogUpdatePending = false;
-        if (e) {
-          this._deleteLogError = e;
-        } else if (this._deleteLogUpdateNeeded) {
-          this._deleteLogUpdateNeeded = false;
-          this.updateLog('');
-        }
-      });
-    }
-  }
-
   public getDeletionLog(): string {
     return this._deleteLog;
-  }
-
-  private _reparseDeletionLog(): void {
-    this._deletedFiles = {};
-    this._deleteLog.split('\n').forEach((path: string) => {
-      // If the log entry begins w/ 'd', it's a deletion.
-      this._deletedFiles[path.slice(1)] = path.slice(0, 1) === 'd';
-    });
   }
 
   public restoreDeletionLog(log: string): void {
@@ -290,7 +167,9 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
   }
 
   public rename(oldPath: string, newPath: string, cb: (err?: ApiError) => void): void {
-    if (!this.checkInitAsync(cb) || this.checkPathAsync(oldPath, cb) || this.checkPathAsync(newPath, cb)) return;
+    if (!this.checkInitAsync(cb) || this.checkPathAsync(oldPath, cb) || this.checkPathAsync(newPath, cb)) {
+      return;
+    }
 
     if (oldPath === deletionLogPath || newPath === deletionLogPath) {
       return cb(ApiError.EPERM('Cannot rename deletion log.'));
@@ -409,17 +288,17 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
       throw ApiError.EPERM('Cannot rename deletion log.');
     }
     // Write newPath using oldPath's contents, delete oldPath.
-    var oldStats = this.statSync(oldPath, false);
+    let oldStats = this.statSync(oldPath, false);
     if (oldStats.isDirectory()) {
       // Optimization: Don't bother moving if old === new.
       if (oldPath === newPath) {
         return;
       }
 
-      var mode = 0o777;
+      let mode = 0o777;
       if (this.existsSync(newPath)) {
-        var stats = this.statSync(newPath, false),
-          mode = stats.mode;
+        let stats = this.statSync(newPath, false);
+        mode = stats.mode;
         if (stats.isDirectory()) {
           if (this.readdirSync(newPath).length > 0) {
             throw ApiError.ENOTEMPTY(newPath);
@@ -460,7 +339,9 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
   }
 
   public stat(p: string, isLstat: boolean,  cb: (err: ApiError, stat?: Stats) => void): void {
-    if (!this.checkInitAsync(cb)) return;
+    if (!this.checkInitAsync(cb)) {
+      return;
+    }
     this._writable.stat(p, isLstat, (err: ApiError, stat?: Stats) => {
       if (err && err.errno === ErrorCode.ENOENT) {
         if (this._deletedFiles[p]) {
@@ -490,7 +371,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
       if (this._deletedFiles[p]) {
         throw ApiError.ENOENT(p);
       }
-      var oldStat = this._readable.statSync(p, isLstat).clone();
+      let oldStat = this._readable.statSync(p, isLstat).clone();
       // Make the oldStat's mode writable. Preserve the topmost part of the
       // mode, which specifies if it is a file or a directory.
       oldStat.mode = makeModeWritable(oldStat.mode);
@@ -499,12 +380,14 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
   }
 
   public open(p: string, flag: FileFlag, mode: number, cb: (err: ApiError, fd?: File) => any): void {
-    if (!this.checkInitAsync(cb) || this.checkPathAsync(p, cb)) return;
+    if (!this.checkInitAsync(cb) || this.checkPathAsync(p, cb)) {
+      return;
+    }
     this.stat(p, false, (err: ApiError, stats?: Stats) => {
       if (stats) {
         switch (flag.pathExistsAction()) {
         case ActionType.TRUNCATE_FILE:
-          return this.createParentDirectoriesAsync(p, (err?: ApiError)=> {
+          return this.createParentDirectoriesAsync(p, (err?: ApiError) => {
             if (err) {
               return cb(err);
             }
@@ -535,7 +418,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
           return cb(ApiError.EEXIST(p));
         }
       } else {
-        switch(flag.pathNotExistsAction()) {
+        switch (flag.pathNotExistsAction()) {
         case ActionType.CREATE_FILE:
           return this.createParentDirectoriesAsync(p, (err?: ApiError) => {
             if (err) {
@@ -566,8 +449,8 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
             return this._writable.openSync(p, flag, mode);
           } else {
             // Create an OverlayFile.
-            var buf = this._readable.readFileSync(p, null, getFlag('r'));
-            var stats = this._readable.statSync(p, false).clone();
+            let buf = this._readable.readFileSync(p, null, getFlag('r'));
+            let stats = this._readable.statSync(p, false).clone();
             stats.mode = mode;
             return new OverlayFile(this, p, flag, stats, buf);
           }
@@ -575,7 +458,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
           throw ApiError.EEXIST(p);
       }
     } else {
-      switch(flag.pathNotExistsAction()) {
+      switch (flag.pathNotExistsAction()) {
         case ActionType.CREATE_FILE:
           this.createParentDirectories(p);
           return this._writable.openSync(p, flag, mode);
@@ -586,10 +469,13 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
   }
 
   public unlink(p: string, cb: (err: ApiError) => void): void {
-    if (!this.checkInitAsync(cb) || this.checkPathAsync(p, cb)) return;
+    if (!this.checkInitAsync(cb) || this.checkPathAsync(p, cb)) {
+      return;
+    }
     this.exists(p, (exists: boolean) => {
-      if (!exists)
+      if (!exists) {
         return cb(ApiError.ENOENT(p));
+      }
 
       this._writable.exists(p, (writableExists: boolean) => {
         if (writableExists) {
@@ -633,7 +519,9 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
   }
 
   public rmdir(p: string, cb: (err?: ApiError) => void): void {
-    if (!this.checkInitAsync(cb)) return;
+    if (!this.checkInitAsync(cb)) {
+      return;
+    }
 
     let rmdirLower = (): void => {
       this.readdir(p, (err: ApiError, files: string[]): void => {
@@ -697,7 +585,9 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
   }
 
   public mkdir(p: string, mode: number, cb: (err: ApiError, stat?: Stats) => void): void {
-    if (!this.checkInitAsync(cb)) return;
+    if (!this.checkInitAsync(cb)) {
+      return;
+    }
     this.exists(p, (exists: boolean) => {
       if (exists) {
         return cb(ApiError.EEXIST(p));
@@ -727,7 +617,9 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
   }
 
   public readdir(p: string, cb: (error: ApiError, files?: string[]) => void): void {
-    if (!this.checkInitAsync(cb)) return;
+    if (!this.checkInitAsync(cb)) {
+      return;
+    }
     this.stat(p, false, (err: ApiError, dirStats?: Stats) => {
       if (err) {
         return cb(err);
@@ -769,26 +661,28 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 
   public readdirSync(p: string): string[] {
     this.checkInitialized();
-    var dirStats = this.statSync(p, false);
+    let dirStats = this.statSync(p, false);
     if (!dirStats.isDirectory()) {
       throw ApiError.ENOTDIR(p);
     }
 
     // Readdir in both, check delete log on RO file system's listing, merge, return.
-    var contents: string[] = [];
+    let contents: string[] = [];
     try {
       contents = contents.concat(this._writable.readdirSync(p));
     } catch (e) {
+      // NOP.
     }
     try {
       contents = contents.concat(this._readable.readdirSync(p).filter((fPath: string) =>
         !this._deletedFiles[`${p}/${fPath}`]
       ));
     } catch (e) {
+      // NOP.
     }
-    var seenMap: {[name: string]: boolean} = {};
+    let seenMap: {[name: string]: boolean} = {};
     return contents.filter((fileP: string) => {
-      var result = !seenMap[fileP];
+      let result = !seenMap[fileP];
       seenMap[fileP] = true;
       return result;
     });
@@ -815,7 +709,9 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
   }
 
   public chmod(p: string, isLchmod: boolean, mode: number, cb: (error?: ApiError) => void): void {
-    if (!this.checkInitAsync(cb)) return;
+    if (!this.checkInitAsync(cb)) {
+      return;
+    }
     this.operateOnWritableAsync(p, (err?: ApiError) => {
       if (err) {
         return cb(err);
@@ -833,7 +729,9 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
   }
 
   public chown(p: string, isLchmod: boolean, uid: number, gid: number, cb: (error?: ApiError) => void): void {
-    if (!this.checkInitAsync(cb)) return;
+    if (!this.checkInitAsync(cb)) {
+      return;
+    }
     this.operateOnWritableAsync(p, (err?: ApiError) => {
       if (err) {
         return cb(err);
@@ -851,7 +749,9 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
   }
 
   public utimes(p: string, atime: Date, mtime: Date, cb: (error?: ApiError) => void): void {
-    if (!this.checkInitAsync(cb)) return;
+    if (!this.checkInitAsync(cb)) {
+      return;
+    }
     this.operateOnWritableAsync(p, (err?: ApiError) => {
       if (err) {
         return cb(err);
@@ -865,6 +765,129 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
     this.checkInitialized();
     this.operateOnWritable(p, () => {
       this._writable.utimesSync(p, atime, mtime);
+    });
+  }
+
+  private deletePath(p: string): void {
+    this._deletedFiles[p] = true;
+    this.updateLog(`d${p}\n`);
+  }
+
+  private updateLog(addition: string) {
+    this._deleteLog += addition;
+    if (this._deleteLogUpdatePending) {
+      this._deleteLogUpdateNeeded = true;
+    } else {
+      this._deleteLogUpdatePending = true;
+      this._writable.writeFile(deletionLogPath, this._deleteLog, 'utf8', FileFlag.getFileFlag('w'), 0o644, (e) => {
+        this._deleteLogUpdatePending = false;
+        if (e) {
+          this._deleteLogError = e;
+        } else if (this._deleteLogUpdateNeeded) {
+          this._deleteLogUpdateNeeded = false;
+          this.updateLog('');
+        }
+      });
+    }
+  }
+
+  private _reparseDeletionLog(): void {
+    this._deletedFiles = {};
+    this._deleteLog.split('\n').forEach((path: string) => {
+      // If the log entry begins w/ 'd', it's a deletion.
+      this._deletedFiles[path.slice(1)] = path.slice(0, 1) === 'd';
+    });
+  }
+
+  private checkInitialized(): void {
+    if (!this._isInitialized) {
+      throw new ApiError(ErrorCode.EPERM, "OverlayFS is not initialized. Please initialize OverlayFS using its initialize() method before using it.");
+    } else if (this._deleteLogError !== null) {
+      const e = this._deleteLogError;
+      this._deleteLogError = null;
+      throw e;
+    }
+  }
+
+  private checkInitAsync(cb: (e?: ApiError) => void): boolean {
+    if (!this._isInitialized) {
+      cb(new ApiError(ErrorCode.EPERM, "OverlayFS is not initialized. Please initialize OverlayFS using its initialize() method before using it."));
+      return false;
+    } else if (this._deleteLogError !== null) {
+      const e = this._deleteLogError;
+      this._deleteLogError = null;
+      cb(e);
+      return false;
+    }
+    return true;
+  }
+
+  private checkPath(p: string): void {
+    if (p === deletionLogPath) {
+      throw ApiError.EPERM(p);
+    }
+  }
+
+  private checkPathAsync(p: string, cb: (e?: ApiError) => void): boolean {
+    if (p === deletionLogPath) {
+      cb(ApiError.EPERM(p));
+      return true;
+    }
+    return false;
+  }
+
+  private createParentDirectoriesAsync(p: string, cb: (err?: ApiError) => void): void {
+    let parent = path.dirname(p);
+    let toCreate: string[] = [];
+    let _this = this;
+
+    this._writable.stat(parent, false, statDone);
+    function statDone(err: ApiError, stat?: Stats): void {
+      if (err) {
+        toCreate.push(parent);
+        parent = path.dirname(parent);
+        _this._writable.stat(parent, false, statDone);
+      } else {
+        createParents();
+      }
+    }
+
+    function createParents(): void {
+      if (!toCreate.length) {
+        return cb();
+      }
+
+      let dir = toCreate.pop();
+      _this._readable.stat(dir, false, (err: ApiError, stats?: Stats) => {
+        // stop if we couldn't read the dir
+        if (!stats) {
+          return cb();
+        }
+
+        _this._writable.mkdir(dir, stats.mode, (err?: ApiError) => {
+          if (err) {
+            return cb(err);
+          }
+          createParents();
+        });
+      });
+    }
+  }
+
+  /**
+   * With the given path, create the needed parent directories on the writable storage
+   * should they not exist. Use modes from the read-only storage.
+   */
+  private createParentDirectories(p: string): void {
+    let parent = path.dirname(p), toCreate: string[] = [];
+    while (!this._writable.existsSync(parent)) {
+      toCreate.push(parent);
+      parent = path.dirname(parent);
+    }
+    toCreate = toCreate.reverse();
+
+    toCreate.forEach((p: string) => {
+      this._writable.mkdirSync(p, this.statSync(p, false).mode);
     });
   }
 
@@ -907,7 +930,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
    * PRECONDITION: File does not exist on writable storage.
    */
   private copyToWritable(p: string): void {
-    var pStats = this.statSync(p, false);
+    let pStats = this.statSync(p, false);
     if (pStats.isDirectory()) {
       this._writable.mkdirSync(p, pStats.mode);
     } else {
@@ -940,23 +963,23 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 }
 
 export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
-	constructor(writable: FileSystem, readable: FileSystem) {
-		super(new UnlockedOverlayFS(writable, readable));
-	}
+  public static isAvailable(): boolean {
+    return UnlockedOverlayFS.isAvailable();
+  }
 
-	initialize(cb: (err?: ApiError) => void): void {
-		super.initialize(cb);
-	}
+  constructor(writable: FileSystem, readable: FileSystem) {
+    super(new UnlockedOverlayFS(writable, readable));
+  }
 
-	static isAvailable(): boolean {
-		return UnlockedOverlayFS.isAvailable();
-	}
+  public initialize(cb: (err?: ApiError) => void): void {
+    super.initialize(cb);
+  }
 
-	getOverlayedFileSystems(): { readable: FileSystem; writable: FileSystem; } {
-		return super.getFSUnlocked().getOverlayedFileSystems();
-	}
+  public getOverlayedFileSystems(): { readable: FileSystem; writable: FileSystem; } {
+    return super.getFSUnlocked().getOverlayedFileSystems();
+  }
 
-  unwrap(): UnlockedOverlayFS {
+  public unwrap(): UnlockedOverlayFS {
     return super.getFSUnlocked();
   }
 }

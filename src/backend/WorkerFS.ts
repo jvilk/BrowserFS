@@ -57,7 +57,7 @@ class CallbackArgumentConverter {
   private _nextId: number = 0;
 
   public toRemoteArg(cb: Function): ICallbackArgument {
-    var id = this._nextId++;
+    let id = this._nextId++;
     this._callbacks[id] = cb;
     return {
       type: SpecialArgType.CB,
@@ -66,7 +66,7 @@ class CallbackArgumentConverter {
   }
 
   public toLocalArg(id: number): Function {
-    var cb = this._callbacks[id];
+    let cb = this._callbacks[id];
     delete this._callbacks[id];
     return cb;
   }
@@ -90,7 +90,7 @@ class FileDescriptorArgumentConverter {
   private _nextId: number = 0;
 
   public toRemoteArg(fd: File, p: string, flag: FileFlag, cb: (err: ApiError, arg?: IFileDescriptorArgument) => void): void {
-    var id = this._nextId++,
+    let id = this._nextId++,
       data: ArrayBuffer,
       stat: ArrayBuffer;
     this._fileDescriptors[id] = fd;
@@ -134,13 +134,30 @@ class FileDescriptorArgumentConverter {
     });
   }
 
+  public applyFdAPIRequest(request: IAPIRequest, cb: (err?: ApiError) => void): void {
+    let fdArg = <IFileDescriptorArgument> request.args[0];
+    this._applyFdChanges(fdArg, (err, fd?) => {
+      if (err) {
+        cb(err);
+      } else {
+        // Apply method on now-changed file descriptor.
+        (<any> fd)[request.method]((e?: ApiError) => {
+          if (request.method === 'close') {
+            delete this._fileDescriptors[fdArg.id];
+          }
+          cb(e);
+        });
+      }
+    });
+  }
+
   private _applyFdChanges(remoteFd: IFileDescriptorArgument, cb: (err: ApiError, fd?: File) => void): void {
-    var fd = this._fileDescriptors[remoteFd.id],
+    let fd = this._fileDescriptors[remoteFd.id],
       data = transferrableObjectToBuffer(remoteFd.data),
       remoteStats = Stats.fromBuffer(transferrableObjectToBuffer(remoteFd.stat));
 
     // Write data if the file is writable.
-    var flag = FileFlag.getFileFlag(remoteFd.flag);
+    let flag = FileFlag.getFileFlag(remoteFd.flag);
     if (flag.isWriteable()) {
       // Appendable: Write to end of file.
       // Writeable: Replace entire contents of file.
@@ -170,7 +187,7 @@ class FileDescriptorArgumentConverter {
           if (!flag.isAppendable()) {
             fd.truncate(data.length, () => {
               applyStatChanges();
-            })
+            });
           } else {
             applyStatChanges();
           }
@@ -179,23 +196,6 @@ class FileDescriptorArgumentConverter {
     } else {
       cb(null, fd);
     }
-  }
-
-  public applyFdAPIRequest(request: IAPIRequest, cb: (err?: ApiError) => void): void {
-    var fdArg = <IFileDescriptorArgument> request.args[0];
-    this._applyFdChanges(fdArg, (err, fd?) => {
-      if (err) {
-        cb(err);
-      } else {
-        // Apply method on now-changed file descriptor.
-        (<any> fd)[request.method]((e?: ApiError) => {
-          if (request.method === 'close') {
-            delete this._fileDescriptors[fdArg.id];
-          }
-          cb(e);
-        });
-      }
-    });
   }
 }
 
@@ -234,13 +234,13 @@ function errorLocal2Remote(e: Error): IErrorArgument {
 }
 
 function errorRemote2Local(e: IErrorArgument): Error {
-  var cnstr: {
+  let cnstr: {
     new (msg: string): Error;
   } = global[e.name];
   if (typeof(cnstr) !== 'function') {
     cnstr = Error;
   }
-  var err = new cnstr(e.message);
+  let err = new cnstr(e.message);
   err.stack = e.stack;
   return err;
 }
@@ -305,7 +305,7 @@ interface IAPIRequest extends IBrowserFSMessage {
 }
 
 function isAPIRequest(data: any): data is IAPIRequest {
-  return data != null && typeof data === 'object' && data.hasOwnProperty('browserfsMessage') && data['browserfsMessage'];
+  return data && typeof data === 'object' && data.hasOwnProperty('browserfsMessage') && data['browserfsMessage'];
 }
 
 interface IAPIResponse extends IBrowserFSMessage {
@@ -314,7 +314,7 @@ interface IAPIResponse extends IBrowserFSMessage {
 }
 
 function isAPIResponse(data: any): data is IAPIResponse {
-  return data != null && typeof data === 'object' && data.hasOwnProperty('browserfsMessage') && data['browserfsMessage'];
+  return data && typeof data === 'object' && data.hasOwnProperty('browserfsMessage') && data['browserfsMessage'];
 }
 
 /**
@@ -343,6 +343,14 @@ class WorkerFile extends PreloadFile<WorkerFS> {
     };
   }
 
+  public sync(cb: (e?: ApiError) => void): void {
+    this._syncClose('sync', cb);
+  }
+
+  public close(cb: (e?: ApiError) => void): void {
+    this._syncClose('close', cb);
+  }
+
   private _syncClose(type: string, cb: (e?: ApiError) => void): void {
     if (this.isDirty()) {
       (<WorkerFS> this._fs).syncClose(type, this, (e?: ApiError) => {
@@ -354,14 +362,6 @@ class WorkerFile extends PreloadFile<WorkerFS> {
     } else {
       cb();
     }
-  }
-
-  public sync(cb: (e?: ApiError) => void): void {
-    this._syncClose('sync', cb);
-  }
-
-  public close(cb: (e?: ApiError) => void): void {
-    this._syncClose('close', cb);
   }
 }
 
@@ -389,6 +389,176 @@ class WorkerFile extends PreloadFile<WorkerFS> {
  * of the configuration option of the remote FS.
  */
 export default class WorkerFS extends BaseFileSystem implements FileSystem {
+  public static isAvailable(): boolean {
+    return typeof(importScripts) !== 'undefined' || typeof(Worker) !== 'undefined';
+  }
+
+  /**
+   * Attaches a listener to the remote worker for file system requests.
+   */
+  public static attachRemoteListener(worker: Worker) {
+    let fdConverter = new FileDescriptorArgumentConverter();
+
+    function argLocal2Remote(arg: any, requestArgs: any[], cb: (err: ApiError, arg?: any) => void): void {
+      switch (typeof arg) {
+        case 'object':
+          if (arg instanceof Stats) {
+            cb(null, statsLocal2Remote(arg));
+          } else if (arg instanceof ApiError) {
+            cb(null, apiErrorLocal2Remote(arg));
+          } else if (arg instanceof BaseFile) {
+            // Pass in p and flags from original request.
+            cb(null, fdConverter.toRemoteArg(<File> arg, requestArgs[0], requestArgs[1], cb));
+          } else if (arg instanceof FileFlag) {
+            cb(null, fileFlagLocal2Remote(arg));
+          } else if (arg instanceof Buffer) {
+            cb(null, bufferLocal2Remote(arg));
+          } else if (arg instanceof Error) {
+            cb(null, errorLocal2Remote(arg));
+          } else {
+            cb(null, arg);
+          }
+          break;
+        default:
+          cb(null, arg);
+          break;
+      }
+    }
+
+    function argRemote2Local(arg: any, fixedRequestArgs: any[]): any {
+      if (!arg) {
+        return arg;
+      }
+      switch (typeof arg) {
+        case 'object':
+          if (typeof arg['type'] === 'number') {
+            let specialArg = <ISpecialArgument> arg;
+            switch (specialArg.type) {
+              case SpecialArgType.CB:
+                let cbId = (<ICallbackArgument> arg).id;
+                return function() {
+                  let i: number, fixedArgs = new Array(arguments.length),
+                    message: IAPIResponse,
+                    countdown = arguments.length;
+
+                  function abortAndSendError(err: ApiError) {
+                    if (countdown > 0) {
+                      countdown = -1;
+                      message = {
+                        browserfsMessage: true,
+                        cbId: cbId,
+                        args: [apiErrorLocal2Remote(err)]
+                      };
+                      worker.postMessage(message);
+                    }
+                  }
+
+                  for (i = 0; i < arguments.length; i++) {
+                    // Capture i and argument.
+                    ((i: number, arg: any) => {
+                      argLocal2Remote(arg, fixedRequestArgs, (err, fixedArg?) => {
+                        fixedArgs[i] = fixedArg;
+                        if (err) {
+                          abortAndSendError(err);
+                        } else if (--countdown === 0) {
+                          message = {
+                            browserfsMessage: true,
+                            cbId: cbId,
+                            args: fixedArgs
+                          };
+                          worker.postMessage(message);
+                        }
+                      });
+                    })(i, arguments[i]);
+                  }
+
+                  if (arguments.length === 0) {
+                    message = {
+                      browserfsMessage: true,
+                      cbId: cbId,
+                      args: fixedArgs
+                    };
+                    worker.postMessage(message);
+                  }
+
+                };
+              case SpecialArgType.API_ERROR:
+                return apiErrorRemote2Local(<IAPIErrorArgument> specialArg);
+              case SpecialArgType.STATS:
+                return statsRemote2Local(<IStatsArgument> specialArg);
+              case SpecialArgType.FILEFLAG:
+                return fileFlagRemote2Local(<IFileFlagArgument> specialArg);
+              case SpecialArgType.BUFFER:
+                return bufferRemote2Local(<IBufferArgument> specialArg);
+              case SpecialArgType.ERROR:
+                return errorRemote2Local(<IErrorArgument> specialArg);
+              default:
+                // No idea what this is.
+                return arg;
+            }
+          } else {
+            return arg;
+          }
+        default:
+          return arg;
+      }
+    }
+
+    worker.addEventListener('message', (e: MessageEvent) => {
+      const request: Object = e.data;
+      if (isAPIRequest(request)) {
+        const args = request.args,
+          fixedArgs = new Array<any>(args.length);
+
+        switch (request.method) {
+          case 'close':
+          case 'sync':
+            (() => {
+              // File descriptor-relative methods.
+              let remoteCb = <ICallbackArgument> args[1];
+              fdConverter.applyFdAPIRequest(request, (err?: ApiError) => {
+                // Send response.
+                let response: IAPIResponse = {
+                  browserfsMessage: true,
+                  cbId: remoteCb.id,
+                  args: err ? [apiErrorLocal2Remote(err)] : []
+                };
+                worker.postMessage(response);
+              });
+            })();
+            break;
+          case 'probe':
+            (() => {
+              let rootFs = <FileSystem> fs.getRootFS(),
+                remoteCb = <ICallbackArgument> args[1],
+                probeResponse: IProbeResponse = {
+                  type: SpecialArgType.PROBE,
+                  isReadOnly: rootFs.isReadOnly(),
+                  supportsLinks: rootFs.supportsLinks(),
+                  supportsProps: rootFs.supportsProps()
+                },
+                response: IAPIResponse = {
+                  browserfsMessage: true,
+                  cbId: remoteCb.id,
+                  args: [probeResponse]
+                };
+
+              worker.postMessage(response);
+            })();
+            break;
+          default:
+            // File system methods.
+            for (let i = 0; i < args.length; i++) {
+              fixedArgs[i] = argRemote2Local(args[i], fixedArgs);
+            }
+            const rootFS = fs.getRootFS();
+            (<Function> (<any> rootFS)[request.method]).apply(rootFS, fixedArgs);
+            break;
+        }
+      }
+    });
+  }
+
   private _worker: Worker;
   private _callbackConverter = new CallbackArgumentConverter();
 
@@ -404,10 +574,10 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
   constructor(worker: Worker) {
     super();
     this._worker = worker;
-    this._worker.addEventListener('message',(e: MessageEvent) => {
-      var resp: Object = e.data;
+    this._worker.addEventListener('message', (e: MessageEvent) => {
+      let resp: Object = e.data;
       if (isAPIResponse(resp)) {
-        var i: number, args = resp.args, fixedArgs = new Array(args.length);
+        let i: number, args = resp.args, fixedArgs = new Array(args.length);
         // Dispatch event to correct id.
         for (i = 0; i < fixedArgs.length; i++) {
           fixedArgs[i] = this._argRemote2Local(args[i]);
@@ -417,52 +587,15 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
     });
   }
 
-  public static isAvailable(): boolean {
-    return typeof(importScripts) !== 'undefined' || typeof(Worker) !== 'undefined';
-  }
-
   public getName(): string {
     return 'WorkerFS';
-  }
-
-  private _argRemote2Local(arg: any): any {
-    if (arg == null) {
-      return arg;
-    }
-    switch (typeof arg) {
-      case 'object':
-        if (arg['type'] != null && typeof arg['type'] === 'number') {
-          var specialArg = <ISpecialArgument> arg;
-          switch (specialArg.type) {
-            case SpecialArgType.API_ERROR:
-              return apiErrorRemote2Local(<IAPIErrorArgument> specialArg);
-            case SpecialArgType.FD:
-              var fdArg = <IFileDescriptorArgument> specialArg;
-              return new WorkerFile(this, fdArg.path, FileFlag.getFileFlag(fdArg.flag), Stats.fromBuffer(transferrableObjectToBuffer(fdArg.stat)), fdArg.id, transferrableObjectToBuffer(fdArg.data));
-            case SpecialArgType.STATS:
-              return statsRemote2Local(<IStatsArgument> specialArg);
-            case SpecialArgType.FILEFLAG:
-              return fileFlagRemote2Local(<IFileFlagArgument> specialArg);
-            case SpecialArgType.BUFFER:
-              return bufferRemote2Local(<IBufferArgument> specialArg);
-            case SpecialArgType.ERROR:
-              return errorRemote2Local(<IErrorArgument> specialArg);
-            default:
-              return arg;
-          }
-        } else {
-          return arg;
-        }
-      default:
-        return arg;
-    }
   }
 
   /**
    * Converts a local argument into a remote argument. Public so WorkerFile objects can call it.
    */
   public _argLocal2Remote(arg: any): any {
-    if (arg == null) {
+    if (!arg) {
       return arg;
     }
     switch (typeof arg) {
@@ -494,7 +627,7 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
    */
   public initialize(cb: () => void): void {
     if (!this._isInitialized) {
-      var message: IAPIRequest = {
+      let message: IAPIRequest = {
         browserfsMessage: true,
         method: 'probe',
         args: [this._argLocal2Remote(new Buffer(0)), this._callbackConverter.toRemoteArg((probeResponse: IProbeResponse) => {
@@ -515,19 +648,6 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
   public supportsSynch(): boolean { return false; }
   public supportsLinks(): boolean { return this._supportLinks; }
   public supportsProps(): boolean { return this._supportProps; }
-
-  private _rpc(methodName: string, args: IArguments) {
-    var message: IAPIRequest = {
-      browserfsMessage: true,
-      method: methodName,
-      args: null
-    }, fixedArgs = new Array(args.length), i: number;
-    for (i = 0; i < args.length; i++) {
-      fixedArgs[i] = this._argLocal2Remote(args[i]);
-    }
-    message.args = fixedArgs;
-    this._worker.postMessage(message);
-  }
 
   public rename(oldPath: string, newPath: string, cb: (err?: ApiError) => void): void {
     this._rpc('rename', arguments);
@@ -595,170 +715,49 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
     });
   }
 
-  /**
-   * Attaches a listener to the remote worker for file system requests.
-   */
-  public static attachRemoteListener(worker: Worker) {
-    var fdConverter = new FileDescriptorArgumentConverter();
-
-    function argLocal2Remote(arg: any, requestArgs: any[], cb: (err: ApiError, arg?: any) => void): void {
-      switch (typeof arg) {
-        case 'object':
-          if (arg instanceof Stats) {
-            cb(null, statsLocal2Remote(arg));
-          } else if (arg instanceof ApiError) {
-            cb(null, apiErrorLocal2Remote(arg));
-          } else if (arg instanceof BaseFile) {
-            // Pass in p and flags from original request.
-            cb(null, fdConverter.toRemoteArg(<File> arg, requestArgs[0], requestArgs[1], cb));
-          } else if (arg instanceof FileFlag) {
-            cb(null, fileFlagLocal2Remote(arg));
-          } else if (arg instanceof Buffer) {
-            cb(null, bufferLocal2Remote(arg));
-          } else if (arg instanceof Error) {
-            cb(null, errorLocal2Remote(arg));
-          } else {
-            cb(null, arg);
-          }
-          break;
-        default:
-          cb(null, arg);
-          break;
-      }
+  private _argRemote2Local(arg: any): any {
+    if (!arg) {
+      return arg;
     }
-
-    function argRemote2Local(arg: any, fixedRequestArgs: any[]): any {
-      if (arg == null) {
-        return arg;
-      }
-      switch (typeof arg) {
-        case 'object':
-          if (typeof arg['type'] === 'number') {
-            var specialArg = <ISpecialArgument> arg;
-            switch (specialArg.type) {
-              case SpecialArgType.CB:
-                var cbId = (<ICallbackArgument> arg).id;
-                return function() {
-                  var i: number, fixedArgs = new Array(arguments.length),
-                    message: IAPIResponse,
-                    countdown = arguments.length;
-
-                  function abortAndSendError(err: ApiError) {
-                    if (countdown > 0) {
-                      countdown = -1;
-                      message = {
-                        browserfsMessage: true,
-                        cbId: cbId,
-                        args: [apiErrorLocal2Remote(err)]
-                      };
-                      worker.postMessage(message);
-                    }
-                  }
-
-
-                  for (i = 0; i < arguments.length; i++) {
-                    // Capture i and argument.
-                    ((i: number, arg: any) => {
-                      argLocal2Remote(arg, fixedRequestArgs, (err, fixedArg?) => {
-                        fixedArgs[i] = fixedArg;
-                        if (err) {
-                          abortAndSendError(err);
-                        } else if (--countdown === 0) {
-                          message = {
-                            browserfsMessage: true,
-                            cbId: cbId,
-                            args: fixedArgs
-                          };
-                          worker.postMessage(message);
-                        }
-                      });
-                    })(i, arguments[i]);
-                  }
-
-                  if (arguments.length === 0) {
-                    message = {
-                      browserfsMessage: true,
-                      cbId: cbId,
-                      args: fixedArgs
-                    };
-                    worker.postMessage(message);
-                  }
-
-                };
-              case SpecialArgType.API_ERROR:
-                return apiErrorRemote2Local(<IAPIErrorArgument> specialArg);
-              case SpecialArgType.STATS:
-                return statsRemote2Local(<IStatsArgument> specialArg);
-              case SpecialArgType.FILEFLAG:
-                return fileFlagRemote2Local(<IFileFlagArgument> specialArg);
-              case SpecialArgType.BUFFER:
-                return bufferRemote2Local(<IBufferArgument> specialArg);
-              case SpecialArgType.ERROR:
-                return errorRemote2Local(<IErrorArgument> specialArg);
-              default:
-                // No idea what this is.
-                return arg;
-            }
-          } else {
-            return arg;
+    switch (typeof arg) {
+      case 'object':
+        if (typeof arg['type'] === 'number') {
+          let specialArg = <ISpecialArgument> arg;
+          switch (specialArg.type) {
+            case SpecialArgType.API_ERROR:
+              return apiErrorRemote2Local(<IAPIErrorArgument> specialArg);
+            case SpecialArgType.FD:
+              let fdArg = <IFileDescriptorArgument> specialArg;
+              return new WorkerFile(this, fdArg.path, FileFlag.getFileFlag(fdArg.flag), Stats.fromBuffer(transferrableObjectToBuffer(fdArg.stat)), fdArg.id, transferrableObjectToBuffer(fdArg.data));
+            case SpecialArgType.STATS:
+              return statsRemote2Local(<IStatsArgument> specialArg);
+            case SpecialArgType.FILEFLAG:
+              return fileFlagRemote2Local(<IFileFlagArgument> specialArg);
+            case SpecialArgType.BUFFER:
+              return bufferRemote2Local(<IBufferArgument> specialArg);
+            case SpecialArgType.ERROR:
+              return errorRemote2Local(<IErrorArgument> specialArg);
+            default:
+              return arg;
           }
-        default:
+        } else {
           return arg;
-      }
-    }
-
-    worker.addEventListener('message',(e: MessageEvent) => {
-      const request: Object = e.data;
-      if (isAPIRequest(request)) {
-        const args = request.args,
-          fixedArgs = new Array<any>(args.length);
-
-        switch (request.method) {
-          case 'close':
-          case 'sync':
-            (() => {
-              // File descriptor-relative methods.
-              var remoteCb = <ICallbackArgument> args[1];
-              fdConverter.applyFdAPIRequest(request, (err?: ApiError) => {
-                // Send response.
-                var response: IAPIResponse = {
-                  browserfsMessage: true,
-                  cbId: remoteCb.id,
-                  args: err ? [apiErrorLocal2Remote(err)] : []
-                };
-                worker.postMessage(response);
-              });
-            })();
-            break;
-          case 'probe':
-            (() => {
-              var rootFs = <FileSystem> fs.getRootFS(),
-                remoteCb = <ICallbackArgument> args[1],
-                probeResponse: IProbeResponse = {
-                  type: SpecialArgType.PROBE,
-                  isReadOnly: rootFs.isReadOnly(),
-                  supportsLinks: rootFs.supportsLinks(),
-                  supportsProps: rootFs.supportsProps()
-                },
-                response: IAPIResponse = {
-                  browserfsMessage: true,
-                  cbId: remoteCb.id,
-                  args: [probeResponse]
-                };
-
-              worker.postMessage(response);
-            })();
-            break;
-          default:
-            // File system methods.
-            for (let i = 0; i < args.length; i++) {
-              fixedArgs[i] = argRemote2Local(args[i], fixedArgs);
-            }
-            const rootFS = fs.getRootFS();
-            (<Function> (<any> rootFS)[request.method]).apply(rootFS, fixedArgs);
-            break;
         }
-      }
-    });
+      default:
+        return arg;
+    }
+  }
+
+  private _rpc(methodName: string, args: IArguments) {
+    let message: IAPIRequest = {
+      browserfsMessage: true,
+      method: methodName,
+      args: null
+    }, fixedArgs = new Array(args.length), i: number;
+    for (i = 0; i < args.length; i++) {
+      fixedArgs[i] = this._argLocal2Remote(args[i]);
+    }
+    message.args = fixedArgs;
+    this._worker.postMessage(message);
   }
 }

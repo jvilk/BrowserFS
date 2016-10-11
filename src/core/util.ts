@@ -8,9 +8,9 @@ import * as path from 'path';
  * Checks for any IE version, including IE11 which removed MSIE from the
  * userAgent string.
  */
-export const isIE: boolean = typeof navigator !== "undefined" && (/(msie) ([\w.]+)/.exec(navigator.userAgent.toLowerCase()) != null || navigator.userAgent.indexOf('Trident') !== -1);
+export const isIE: boolean = typeof navigator !== "undefined" && !!(/(msie) ([\w.]+)/.exec(navigator.userAgent.toLowerCase()) || navigator.userAgent.indexOf('Trident') !== -1);
 
-/**
+/**å
  * Check if we're in a web worker.
  */
 export const isWebWorker: boolean = typeof window === "undefined";
@@ -41,7 +41,7 @@ export function buffer2ArrayBuffer(buff: Buffer): ArrayBuffer {
   if (u8offset === 0 && u8Len === u8.buffer.byteLength) {
     return u8.buffer;
   } else {
-    return u8.buffer.slice(u8offset, u8offset + u8Len)
+    return u8.buffer.slice(u8offset, u8offset + u8Len);
   }
 }
 
@@ -112,7 +112,7 @@ export function copyingSlice(buff: Buffer, start: number = 0, end = buff.length)
     // Avoid s0 corner case in ArrayBuffer case.
     return new Buffer(0);
   } else {
-    var u8 = buffer2Uint8array(buff),
+    let u8 = buffer2Uint8array(buff),
       s0 = buff[0],
       newS0 = (s0 + 1) % 0xFF;
 

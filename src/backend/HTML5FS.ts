@@ -13,7 +13,7 @@ function isDirectoryEntry(entry: Entry): entry is DirectoryEntry {
   return entry.isDirectory;
 }
 
-const _getFS: (type:number, size:number, successCallback: FileSystemCallback, errorCallback?: ErrorCallback) => void = global.webkitRequestFileSystem || global.requestFileSystem || null;
+const _getFS: (type: number, size: number, successCallback: FileSystemCallback, errorCallback?: ErrorCallback) => void = global.webkitRequestFileSystem || global.requestFileSystem || null;
 
 function _requestQuota(type: number, size: number, success: (size: number) => void, errorCallback: ErrorCallback) {
   // We cast navigator and window to '<any>' because everything here is
@@ -22,13 +22,13 @@ function _requestQuota(type: number, size: number, success: (size: number) => vo
   // process. Thus, these objects defined off of navigator and window are not
   // present in the DefinitelyTyped TypeScript typings for FileSystem.
   if (typeof (<any> navigator)['webkitPersistentStorage'] !== 'undefined') {
-    switch(type) {
+    switch (type) {
       case global.PERSISTENT:
         (<any> navigator).webkitPersistentStorage.requestQuota(size, success, errorCallback);
         break;
       case global.TEMPORARY:
         (<any> navigator).webkitTemporaryStorage.requestQuota(size, success, errorCallback);
-        break
+        break;
       default:
         errorCallback(new TypeError(`Invalid storage type: ${type}`));
         break;
@@ -58,15 +58,15 @@ export class HTML5FSFile extends PreloadFile<HTML5FS> implements IFile {
   public sync(cb: (e?: ApiError) => void): void {
     if (this.isDirty()) {
       // Don't create the file (it should already have been created by `open`)
-      var opts = {
+      let opts = {
         create: false
       };
-      var _fs = this._fs;
-      var success: FileEntryCallback = (entry) => {
+      let _fs = this._fs;
+      let success: FileEntryCallback = (entry) => {
         entry.createWriter((writer) => {
-          var buffer = this.getBuffer();
-          var blob = new Blob([buffer2ArrayBuffer(buffer)]);
-          var length = blob.size;
+          let buffer = this.getBuffer();
+          let blob = new Blob([buffer2ArrayBuffer(buffer)]);
+          let length = blob.size;
           writer.onwriteend = () => {
             writer.onwriteend = null;
             writer.truncate(length);
@@ -79,7 +79,7 @@ export class HTML5FSFile extends PreloadFile<HTML5FS> implements IFile {
           writer.write(blob);
         });
       };
-      var error = (err: DOMError) => {
+      let error = (err: DOMError) => {
         cb(_fs.convert(err, this.getPath(), false));
       };
       _fs.fs.root.getFile(this.getPath(), opts, success, error);
@@ -94,10 +94,14 @@ export class HTML5FSFile extends PreloadFile<HTML5FS> implements IFile {
 }
 
 export default class HTML5FS extends BaseFileSystem implements IFileSystem {
-  private size: number;
-  private type: number;
+  public static isAvailable(): boolean {
+    return !!_getFS;
+  }
+
   // HTML5File reaches into HTML5FS. :/
   public fs: FileSystem;
+  private size: number;
+  private type: number;
   /**
    * Arguments:
    *   - type: PERSISTENT or TEMPORARY
@@ -112,10 +116,6 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
 
   public getName(): string {
     return 'HTML5 FileSystem';
-  }
-
-  public static isAvailable(): boolean {
-    return _getFS != null;
   }
 
   public isReadOnly(): boolean {
@@ -182,12 +182,12 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
    * Nonstandard
    * Requests a storage quota from the browser to back this FS.
    */
-  public allocate(cb: (e?: ApiError) => void = function(){}): void {
-    var success = (fs: FileSystem): void => {
+  public allocate(cb: (e?: ApiError) => void = () => {/*nop*/}): void {
+    let success = (fs: FileSystem): void => {
       this.fs = fs;
-      cb()
+      cb();
     };
-    var error = (err: DOMException): void => {
+    let error = (err: DOMException): void => {
       cb(this.convert(err, "/", true));
     };
     if (this.type === global.PERSISTENT) {
@@ -213,7 +213,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
         mainCb(err);
       } else {
         // Called when every entry has been operated on
-        var finished = (er: any): void => {
+        let finished = (er: any): void => {
           if (err) {
             console.error("Failed to empty FS");
             mainCb(err);
@@ -222,11 +222,11 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
           }
         };
         // Removes files and recursively removes directories
-        var deleteEntry = (entry: Entry, cb: (e?: any) => void): void => {
-          var succ = () => {
+        let deleteEntry = (entry: Entry, cb: (e?: any) => void): void => {
+          let succ = () => {
             cb();
           };
-          var error = (err: DOMException) => {
+          let error = (err: DOMException) => {
             cb(this.convert(err, entry.fullPath, !entry.isDirectory));
           };
           if (isDirectoryEntry(entry)) {
@@ -243,7 +243,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
   }
 
   public rename(oldPath: string, newPath: string, cb: (e?: ApiError) => void): void {
-    var semaphore: number = 2,
+    let semaphore: number = 2,
       successCount: number = 0,
       root: DirectoryEntry = this.fs.root,
       currentPath: string = oldPath,
@@ -298,32 +298,32 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
   public stat(path: string, isLstat: boolean, cb: (err: ApiError, stat?: Stats) => void): void {
     // Throw an error if the entry doesn't exist, because then there's nothing
     // to stat.
-    var opts = {
+    let opts = {
       create: false
     };
     // Called when the path has been successfully loaded as a file.
-    var loadAsFile = (entry: FileEntry): void => {
-      var fileFromEntry = (file: File): void => {
-        var stat = new Stats(FileType.FILE, file.size);
+    let loadAsFile = (entry: FileEntry): void => {
+      let fileFromEntry = (file: File): void => {
+        let stat = new Stats(FileType.FILE, file.size);
         cb(null, stat);
       };
       entry.file(fileFromEntry, failedToLoad);
     };
     // Called when the path has been successfully loaded as a directory.
-    var loadAsDir = (dir: DirectoryEntry): void => {
+    let loadAsDir = (dir: DirectoryEntry): void => {
       // Directory entry size can't be determined from the HTML5 FS API, and is
       // implementation-dependant anyway, so a dummy value is used.
-      var size = 4096;
-      var stat = new Stats(FileType.DIRECTORY, size);
+      let size = 4096;
+      let stat = new Stats(FileType.DIRECTORY, size);
       cb(null, stat);
     };
     // Called when the path couldn't be opened as a directory or a file.
-    var failedToLoad = (err: DOMException): void => {
+    let failedToLoad = (err: DOMException): void => {
       cb(this.convert(err, path, false /* Unknown / irrelevant */));
     };
     // Called when the path couldn't be opened as a file, but might still be a
     // directory.
-    var failedToLoadAsFile = (): void => {
+    let failedToLoadAsFile = (): void => {
       this.fs.root.getDirectory(path, opts, loadAsDir, failedToLoad);
     };
     // No method currently exists to determine whether a path refers to a
@@ -333,7 +333,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
   }
 
   public open(p: string, flags: FileFlag, mode: number, cb: (err: ApiError, fd?: IFile) => any): void {
-    var error = (err: DOMError): void => {
+    let error = (err: DOMError): void => {
       if (err.name === 'InvalidModificationError' && flags.isExclusive()) {
         cb(ApiError.EEXIST(p));
       } else {
@@ -347,10 +347,10 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
     }, (entry: FileEntry): void => {
       // Try to fetch corresponding file.
       entry.file((file: File): void => {
-        var reader = new FileReader();
+        let reader = new FileReader();
         reader.onloadend = (event: Event): void => {
-          var bfs_file = this._makeFile(p, flags, file, <ArrayBuffer> reader.result);
-          cb(null, bfs_file);
+          let bfsFile = this._makeFile(p, flags, file, <ArrayBuffer> reader.result);
+          cb(null, bfsFile);
         };
         reader.onerror = (ev: Event) => {
           error(reader.error);
@@ -358,47 +358,6 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
         reader.readAsArrayBuffer(file);
       }, error);
     }, error);
-  }
-
-  /**
-   * Returns a BrowserFS object representing a File, created from the data
-   * returned by calls to the Dropbox API.
-   */
-  private _makeFile(path: string, flag: FileFlag, stat: File, data: ArrayBuffer = new ArrayBuffer(0)): HTML5FSFile {
-    var stats = new Stats(FileType.FILE, stat.size);
-    var buffer = arrayBuffer2Buffer(data);
-    return new HTML5FSFile(this, path, flag, stats, buffer);
-  }
-
-  /**
-   * Delete a file or directory from the file system
-   * isFile should reflect which call was made to remove the it (`unlink` or
-   * `rmdir`). If this doesn't match what's actually at `path`, an error will be
-   * returned
-   */
-  private _remove(path: string, cb: (e?: ApiError) => void, isFile: boolean): void {
-    var success = (entry: Entry): void => {
-      var succ = () => {
-        cb();
-      };
-      var err = (err: DOMException) => {
-        cb(this.convert(err, path, !isFile));
-      };
-      entry.remove(succ, err);
-    };
-    var error = (err: DOMException): void => {
-      cb(this.convert(err, path, !isFile));
-    };
-    // Deleting the entry, so don't create it
-    var opts = {
-      create: false
-    };
-
-    if (isFile) {
-      this.fs.root.getFile(path, opts, success, error);
-    } else {
-      this.fs.root.getDirectory(path, opts, success, error);
-    }
   }
 
   public unlink(path: string, cb: (e?: ApiError) => void): void {
@@ -421,33 +380,59 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
   public mkdir(path: string, mode: number, cb: (e?: ApiError) => void): void {
     // Create the directory, but throw an error if it already exists, as per
     // mkdir(1)
-    var opts = {
+    let opts = {
       create: true,
       exclusive: true
     };
-    var success = (dir: DirectoryEntry): void => {
+    let success = (dir: DirectoryEntry): void => {
       cb();
     };
-    var error = (err: DOMException): void => {
+    let error = (err: DOMException): void => {
       cb(this.convert(err, path, true));
     };
     this.fs.root.getDirectory(path, opts, success, error);
   }
 
   /**
+   * Map _readdir's list of `FileEntry`s to their names and return that.
+   */
+  public readdir(path: string, cb: (err: ApiError, files?: string[]) => void): void {
+    this._readdir(path, (e: ApiError, entries?: Entry[]): void => {
+      if (e) {
+        return cb(e);
+      }
+      let rv: string[] = [];
+      for (let i = 0; i < entries.length; i++) {
+        rv.push(entries[i].name);
+      }
+      cb(null, rv);
+    });
+  }
+
+  /**
+   * Returns a BrowserFS object representing a File, created from the data
+   * returned by calls to the Dropbox API.
+   */
+  private _makeFile(path: string, flag: FileFlag, stat: File, data: ArrayBuffer = new ArrayBuffer(0)): HTML5FSFile {
+    let stats = new Stats(FileType.FILE, stat.size);
+    let buffer = arrayBuffer2Buffer(data);
+    return new HTML5FSFile(this, path, flag, stats, buffer);
+  }
+
+  /**
    * Returns an array of `FileEntry`s. Used internally by empty and readdir.
    */
   private _readdir(path: string, cb: (e: ApiError, entries?: Entry[]) => void): void {
-    var error = (err: DOMException): void => {
+    let error = (err: DOMException): void => {
       cb(this.convert(err, path, true));
     };
     // Grab the requested directory.
     this.fs.root.getDirectory(path, { create: false }, (dirEntry: DirectoryEntry) => {
-      var reader = dirEntry.createReader();
-      var entries: Entry[] = [];
+      let reader = dirEntry.createReader();
+      let entries: Entry[] = [];
 
       // Call the reader.readEntries() until no more results are returned.
-      var readEntries = () => {
+      let readEntries = () => {
         reader.readEntries(((results) => {
           if (results.length) {
             entries = entries.concat(_toArray(results));
@@ -462,18 +447,33 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
   }
 
   /**
-   * Map _readdir's list of `FileEntry`s to their names and return that.
+   * Delete a file or directory from the file system
+   * isFile should reflect which call was made to remove the it (`unlink` or
+   * `rmdir`). If this doesn't match what's actually at `path`, an error will be
+   * returned
    */
-  public readdir(path: string, cb: (err: ApiError, files?: string[]) => void): void {
-    this._readdir(path, (e: ApiError, entries?: Entry[]): void => {
-      if (e) {
-        return cb(e);
-      }
-      var rv: string[] = [];
-      for (var i = 0; i < entries.length; i++) {
-        rv.push(entries[i].name);
-      }
-      cb(null, rv);
-    });
+  private _remove(path: string, cb: (e?: ApiError) => void, isFile: boolean): void {
+    let success = (entry: Entry): void => {
+      let succ = () => {
+        cb();
+      };
+      let err = (err: DOMException) => {
+        cb(this.convert(err, path, !isFile));
+      };
+      entry.remove(succ, err);
+    };
+    let error = (err: DOMException): void => {
+      cb(this.convert(err, path, !isFile));
+    };
+    // Deleting the entry, so don't create it
+    let opts = {
+      create: false
+    };
+
+    if (isFile) {
+      this.fs.root.getFile(path, opts, success, error);
+    } else {
+      this.fs.root.getDirectory(path, opts, success, error);
+    }
   }
 }

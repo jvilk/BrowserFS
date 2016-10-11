@@ -1,12 +1,13 @@
-
 declare var setImmediate: (cb: Function) => void;
 
-/// non-recursive mutex
+/**
+ * Non-recursive mutex
+ */
 export default class Mutex {
   private _locked: boolean = false;
   private _waiters: Function[] = [];
 
-  lock(cb: Function): void {
+  public lock(cb: Function): void {
     if (this._locked) {
       this._waiters.push(cb);
       return;
@@ -15,9 +16,10 @@ export default class Mutex {
     cb();
   }
 
-  unlock(): void {
-    if (!this._locked)
+  public unlock(): void {
+    if (!this._locked) {
       throw new Error('unlock of a non-locked mutex');
+    }
 
     let next = this._waiters.shift();
     // don't unlock - we want to queue up next for the
@@ -34,15 +36,16 @@ export default class Mutex {
     this._locked = false;
   }
 
-  tryLock(): boolean {
-    if (this._locked)
+  public tryLock(): boolean {
+    if (this._locked) {
       return false;
+    }
 
     this._locked = true;
     return true;
   }
 
-  isLocked(): boolean {
+  public isLocked(): boolean {
     return this._locked;
   }
 }

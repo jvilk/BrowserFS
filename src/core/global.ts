@@ -5,7 +5,7 @@
  * In Node, this is "global".
  */
 declare var global: any;
-var toExport: any;
+let toExport: any;
 if (typeof(window) !== 'undefined') {
   toExport = window;
 } else if (typeof(self) !== 'undefined') {

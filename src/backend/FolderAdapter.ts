@@ -6,6 +6,10 @@ import {ApiError} from '../core/api_error';
  * The FolderAdapter file system wraps a file system, and scopes all interactions to a subfolder of that file system.
  */
 export default class FolderAdapter extends BaseFileSystem implements FileSystem {
+  public static isAvailable(): boolean {
+    return true;
+  }
+
   public _wrapped: FileSystem;
   public _folder: string;
   constructor(folder: string, wrapped: FileSystem) {
@@ -35,10 +39,6 @@ export default class FolderAdapter extends BaseFileSystem implements FileSystem 
   public supportsProps(): boolean { return this._wrapped.supportsProps(); }
   public supportsSynch(): boolean { return this._wrapped.supportsSynch(); }
   public supportsLinks(): boolean { return false; }
-
-  public static isAvailable(): boolean {
-    return true;
-  }
 }
 
 function translateError(folder: string, e: any): any {
@@ -102,7 +102,7 @@ function wrapFunction(name: string, wrapFirst: boolean, wrapSecond: boolean): Fu
 
 // First argument is a path.
 ['diskSpace', 'stat', 'statSync', 'open', 'openSync', 'unlink', 'unlinkSync',
- 'rmdir', 'rmdirSync' ,'mkdir', 'mkdirSync', 'readdir', 'readdirSync', 'exists',
+ 'rmdir', 'rmdirSync', 'mkdir', 'mkdirSync', 'readdir', 'readdirSync', 'exists',
  'existsSync', 'realpath', 'realpathSync', 'truncate', 'truncateSync', 'readFile',
  'readFileSync', 'writeFile', 'writeFileSync', 'appendFile', 'appendFileSync',
  'chmod', 'chmodSync', 'chown', 'chownSync', 'utimes', 'utimesSync', 'readlink',

@@ -61,15 +61,17 @@
     "rollup-plugin-sourcemaps": "^0.4.1",
     "rollup-watch": "^2.5.0",
     "source-map-loader": "^0.1.5",
+    "tslint": "^3.15.1",
     "typescript": "^2.0.3",
     "webpack": "^1.13.2",
     "webpack-dev-server": "^1.16.2"
   },
   "scripts": {
+    "lint": "tslint -c src/tslint.json --project src/tsconfig.json",
     "build": "tsc -p src && rollup -c src/rollup.config.js && webpack --config src/webpack.config.js && webpack -p --config src/webpack.config.js",
     "build_tests": "tsc -p test && rollup -c test/rollup.config.js && rollup -c test/rollup.worker.config.js && webpack --config test/webpack.config.js",
     "build_scripts": "tsc -p scripts",
-    "dist": "npm run build && npm run build_scripts && node build/scripts/make_dist.js && tsc -p src/tsconfig.node.json",
+    "dist": "npm run build && npm run build_scripts && npm run lint && node build/scripts/make_dist.js && tsc -p src/tsconfig.node.json",
     "test": "npm run build_scripts && node build/scripts/make_fixture_loader.js && node build/scripts/make_test_launcher.js && npm run build_tests && node build/scripts/make_zip_fixtures.js && node build/scripts/make_xhrfs_index.js test/fixtures/xhrfs/listings.json && karma start karma.config.js",
     "prepublish": "npm run dist"
   },
