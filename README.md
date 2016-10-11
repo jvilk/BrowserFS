@@ -88,19 +88,74 @@ fs.writeFile('/test.txt', 'Cool, I can do this in the browser!', function(err) {
 });
 ```
 
-### Using with Browserify
+### Using with Browserify and Webpack
 
-You can use BrowserFS with your Browserify projects. Simply depend on `browserfs/dist/node/core/node_fs.js` as the provider
-of `fs`, and pull in `browserfs/dist/node/main.js` as the provider of the `BrowserFS` variable, through which you
-can construct and initialize the file system.
+BrowserFS is published as a UMD module, so you can either include it on your webpage in a `script` tag or bundle it with your favorite
+JavaScript module bundler.
 
-Do not depend on both `node_fs.js` and the `browserfs` module, as it will pull in the node modules from `dist/node`,
-as well as `dist/browserfs.js`.
+You can also use BrowserFS to supply your application with `fs`, `path`, and `buffer` modules, as well as the `Buffer` and `process`
+globals. The easiest way to do this with Browserify and Webpack is to create shim modules for `fs`, `buffer`, `path`, and `process`
+that contain the following JavaScript:
 
-Optionally, you can also use the companion modules `bfs-path` and `bfs-process` to replace
-browserify's builtins for `path` and `process`.
+```javascript
+// shims/fs.js
+module.exports = BrowserFS.BFSRequire('fs');
+// shims/buffer.js
+module.exports = BrowserFS.BFSRequire('buffer');
+// shims/path.js
+module.exports = BrowserFS.BFSRequire('path');
+// shims/process.js
+module.exports = BrowserFS.BFSRequire('process');
+// shims/bufferGlobal.js
+module.exports = BrowserFS.BFSRequire('buffer').Buffer;
+```
+*Note: The above code assumes that BrowserFS is a global on the webpage. If you are using BrowserFS as a module, just add an import statement for BrowserFS in each module.*
 
-I have written an [example project](https://github.com/jvilk/bfs-browserify-test) that illustrates how to do this.
+Then, instruct Browserify or Webpack to alias the relevant Node modules to these shim modules, and to insert the `Buffer` / `process` global variables.
+
+Webpack:
+
+```javascript
+module.exports = {
+  resolve: {
+    // Use our versions of Node modules.
+    alias: {
+      'fs': './shims/fs.js',
+      'buffer': './shims/buffer.js',
+      'path': './shims/path.js',
+      'process': './shims/process.js',
+      'bufferGlobal': './shims/bufferGlobal.js'
+    }
+  },
+  plugins: [
+    // Expose process and Buffer globals.
+    new webpack.ProvidePlugin({ process: 'process', Buffer: 'bufferGlobal' })
+  ],
+  // DISABLE Webpack's built-in process and Buffer polyfills!
+  node: {
+    process: false,
+    Buffer: false
+  }
+};
+```
+
+Browserify:
+
+```javascript
+module.exports = {
+  // Override Browserify's builtins for buffer/fs/path.
+  builtins: Object.assign({}, require('browserify/lib/builtins'), {
+    "buffer": require.resolve('./shims/buffer.js'),
+    "fs": require.resolve("./shims/fs.js"),
+    "path": require.resolve("./shims/path.js")
+  }),
+  insertGlobalVars: {
+    // process and Buffer globals
+    "process": function () { return "require('./shims/process.js')" },
+    'Buffer': function () { return "require('buffer').Buffer" }
+  }
+};
+```
 
 ### Using with Node
 
@@ -172,9 +227,7 @@ function setupBFS() {
 
 ### Testing
 
-To run unit tests, simply run `grunt test`.
-
-`grunt coverage` will run the unit tests, and output code coverage information.
+To run unit tests, simply run `npm test`.
 
 ### License
 
