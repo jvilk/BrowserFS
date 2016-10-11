@@ -1,19 +1,26 @@
 'use strict';
 const express = require('express');
 const detectBrowsers = require('detect-browsers');
-const installedBrowsers = detectBrowsers.getInstalledBrowsers().map(function(browser) { return browser.name; });
+const seenBrowsers = {};
+const installedBrowsers = detectBrowsers.getInstalledBrowsers()
+  .map(function(browser) { return browser.name; })
+  .filter(function(browser) {
+    if (seenBrowsers[browser]) {
+      return false;
+    } else {
+      seenBrowsers[browser] = true;
+      return true;
+    }
+  });
+
 let dropbox = false;
 let continuous = false;
 let coverage = false;
-
 let karmaFiles = [
   // Main module and fixtures loader
   'test/harness/test.js',
   // WebWorker script.
-  { pattern: 'test/harness/factories/workerfs_worker.js', included: false, watched: true },
-  //{ pattern: 'test/**/*', included: false, served: true, watched: false, nocache: true },
-  //{ pattern: 'src/**/*', included: false, served: true, watched: false, nocache: true },
-  //{ pattern: '*', included: false, served: true, watched: false, nocache: true }
+  { pattern: 'test/harness/factories/workerfs_worker.js', included: false, watched: true }
 ];
 
 // The presence of the Dropbox library dynamically toggles the tests.
