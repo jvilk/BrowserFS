@@ -2,7 +2,9 @@
 const express = require('express');
 const detectBrowsers = require('detect-browsers');
 const seenBrowsers = {};
-const installedBrowsers = detectBrowsers.getInstalledBrowsers()
+const isTravis = process.env.TRAVIS;
+// Browser detection does not work properly on Travis.
+const installedBrowsers = isTravis ? ['Firefox'] : detectBrowsers.getInstalledBrowsers()
   .map(function(browser) { return browser.name; })
   .filter(function(browser) {
     if (seenBrowsers[browser]) {
