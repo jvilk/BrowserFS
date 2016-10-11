@@ -1,5 +1,4 @@
-import fs = require('fs');
-import file = require('./file');
+import * as fs from 'fs';
 
 /**
  * Indicates the type of the given file. Applied to 'mode'.
@@ -19,7 +18,18 @@ export enum FileType {
  * @class
  */
 export default class Stats implements fs.Stats {
+  public static fromBuffer(buffer: Buffer): Stats {
+    let size = buffer.readUInt32LE(0),
+      mode = buffer.readUInt32LE(4),
+      atime = buffer.readDoubleLE(8),
+      mtime = buffer.readDoubleLE(16),
+      ctime = buffer.readDoubleLE(24);
+
+    return new Stats(mode & 0xF000, size, mode & 0xFFF, new Date(atime), new Date(mtime), new Date(ctime));
+  }
+
   public blocks: number;
+  public mode: number;
   /**
    * UNSUPPORTED ATTRIBUTES
    * I assume no one is going to need these details, although we could fake
@@ -43,7 +53,7 @@ export default class Stats implements fs.Stats {
   // time file was created (currently unsupported)
   public birthtime: Date = new Date(0);
   // XXX: Some file systems stash data on stats objects.
-  public file_data: NodeBuffer = null;
+  public fileData: Buffer = null;
 
   /**
    * Provides information about a particular entry in the file system.
@@ -56,14 +66,14 @@ export default class Stats implements fs.Stats {
    * @param [Date?] ctime time of creation
    */
   constructor(
-    item_type: FileType,
+    itemType: FileType,
     public size: number,
-    public mode?: number,
+    mode?: number,
     public atime: Date = new Date(),
     public mtime: Date = new Date(),
     public ctime: Date = new Date()) {
-    if (this.mode == null) {
-      switch(item_type) {
+    if (!mode) {
+      switch (itemType) {
         case FileType.FILE:
           this.mode = 0x1a4;
           break;
@@ -71,34 +81,26 @@ export default class Stats implements fs.Stats {
         default:
           this.mode = 0x1ff;
       }
+    } else {
+      this.mode = mode;
     }
     // number of 512B blocks allocated
     this.blocks = Math.ceil(size / 512);
     // Check if mode also includes top-most bits, which indicate the file's
     // type.
     if (this.mode < 0x1000) {
-      this.mode |= item_type;
+      this.mode |= itemType;
     }
   }
 
   public toBuffer(): Buffer {
-    var buffer = new Buffer(32);
+    let buffer = new Buffer(32);
     buffer.writeUInt32LE(this.size, 0);
     buffer.writeUInt32LE(this.mode, 4);
     buffer.writeDoubleLE(this.atime.getTime(), 8);
     buffer.writeDoubleLE(this.mtime.getTime(), 16);
     buffer.writeDoubleLE(this.ctime.getTime(), 24);
     return buffer;
-  }
-
-  public static fromBuffer(buffer: Buffer): Stats {
-    var size = buffer.readUInt32LE(0),
-      mode = buffer.readUInt32LE(4),
-      atime = buffer.readDoubleLE(8),
-      mtime = buffer.readDoubleLE(16),
-      ctime = buffer.readDoubleLE(24);
-
-    return new Stats(mode & 0xF000, size, mode & 0xFFF, new Date(atime), new Date(mtime), new Date(ctime));
   }
 
   /**

@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-  - "0.12"
+  - "4"
 
 sudo: false
 
@@ -23,4 +23,4 @@ before_script:
   - sh -e /etc/init.d/xvfb start
 
 script:
-  - "grunt test_travis"
+  - "npm test"

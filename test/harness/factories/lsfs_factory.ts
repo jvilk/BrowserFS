@@ -1,8 +1,7 @@
 import LocalStorageFileSystem from '../../../src/backend/LocalStorage';
-import file_system = require('../../../src/core/file_system');
-import BackendFactory = require('../BackendFactory');
+import {FileSystem} from '../../../src/core/file_system';
 
-function LSFSFactory(cb: (name: string, objs: file_system.FileSystem[]) => void) {
+export default function LSFSFactory(cb: (name: string, objs: FileSystem[]) => void) {
   if (LocalStorageFileSystem.isAvailable()) {
     var backend = new LocalStorageFileSystem();
     backend.empty();
@@ -11,7 +10,3 @@ function LSFSFactory(cb: (name: string, objs: file_system.FileSystem[]) => void)
     cb('localStorage', []);
   }
 }
-
-var _: BackendFactory = LSFSFactory;
-
-export = LSFSFactory;

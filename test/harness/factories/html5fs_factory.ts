@@ -1,8 +1,7 @@
 import HTML5FS from '../../../src/backend/HTML5FS';
-import BackendFactory = require('../BackendFactory');
-import file_system = require('../../../src/core/file_system');
+import {FileSystem} from '../../../src/core/file_system';
 
-function HTML5FSFactory(cb: (name: string, obj: file_system.FileSystem[]) => void): void {
+export default function HTML5FSFactory(cb: (name: string, obj: FileSystem[]) => void): void {
   if (HTML5FS.isAvailable()) {
     var fs = new HTML5FS(10, window.TEMPORARY);
     fs.allocate((err?) => {
@@ -22,7 +21,3 @@ function HTML5FSFactory(cb: (name: string, obj: file_system.FileSystem[]) => voi
     cb('HTML5FS', []);
   }
 }
-
-var _: BackendFactory = HTML5FSFactory;
-
-export = HTML5FSFactory;

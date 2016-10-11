@@ -1,8 +1,8 @@
-import file_system = require('../core/file_system');
+import {FileSystem, BaseFileSystem} from '../core/file_system';
 import InMemoryFileSystem from './InMemory';
 import {ApiError, ErrorCode} from '../core/api_error';
-import fs = require('../core/node_fs');
-import path = require('path');
+import fs from '../core/node_fs';
+import * as path from 'path';
 import {mkdirpSync} from '../core/util';
 
 /**
@@ -14,13 +14,17 @@ import {mkdirpSync} from '../core/util';
  * For example, if a file system is mounted at /mnt/blah, and a request came in
  * for /mnt/blah/foo.txt, the file system would see a request for /foo.txt.
  */
-export default class MountableFileSystem extends file_system.BaseFileSystem implements file_system.FileSystem {
-  private mntMap: {[path: string]: file_system.FileSystem};
+export default class MountableFileSystem extends BaseFileSystem implements FileSystem {
+  public static isAvailable(): boolean {
+    return true;
+  }
+
+  private mntMap: {[path: string]: FileSystem};
   // Contains the list of mount points in mntMap, sorted by string length in decreasing order.
   // Ensures that we scan the most specific mount points for a match first, which lets us
   // nest mount points.
   private mountList: string[] = [];
-  private rootFs: file_system.FileSystem;
+  private rootFs: FileSystem;
   constructor() {
     super();
     this.mntMap = {};
@@ -32,7 +36,7 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
   /**
    * Mounts the file system at the given mount point.
    */
-  public mount(mountPoint: string, fs: file_system.FileSystem): void {
+  public mount(mountPoint: string, fs: FileSystem): void {
     if (mountPoint[0] !== '/') {
       mountPoint = `/${mountPoint}`;
     }
@@ -70,7 +74,7 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
   /**
    * Returns the file system that the path points to.
    */
-  public _getFs(path: string): {fs: file_system.FileSystem; path: string} {
+  public _getFs(path: string): {fs: FileSystem; path: string} {
     let mountList = this.mountList, len = mountList.length;
     for (let i = 0; i < len; i++) {
       let mountPoint = mountList[i];
@@ -91,10 +95,6 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
 
   public getName(): string {
     return 'MountableFileSystem';
-  }
-
-  public static isAvailable(): boolean {
-    return true;
   }
 
   public diskSpace(path: string, cb: (total: number, free: number) => void): void {
@@ -123,9 +123,9 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
    * to the MFS root, not to the particular FS's root.
    * Mutates the input error, and returns it.
    */
-  private standardizeError(err: ApiError, path: string, realPath: string): ApiError {
-    var index: number;
-    if (-1 !== (index = err.message.indexOf(path))) {
+  public standardizeError(err: ApiError, path: string, realPath: string): ApiError {
+    let index = err.message.indexOf(path);
+    if (index !== -1) {
       err.message = err.message.substr(0, index) + realPath + err.message.substr(index + path.length);
       err.path = realPath;
     }
@@ -139,12 +139,13 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
 
   public rename(oldPath: string, newPath: string, cb: (e?: ApiError) => void): void {
     // Scenario 1: old and new are on same FS.
-    var fs1_rv = this._getFs(oldPath);
-    var fs2_rv = this._getFs(newPath);
-    if (fs1_rv.fs === fs2_rv.fs) {
-      var _this = this;
-      return fs1_rv.fs.rename(fs1_rv.path, fs2_rv.path, function(e?: ApiError) {
-        if (e) _this.standardizeError(_this.standardizeError(e, fs1_rv.path, oldPath), fs2_rv.path, newPath);
+    let fs1rv = this._getFs(oldPath);
+    let fs2rv = this._getFs(newPath);
+    if (fs1rv.fs === fs2rv.fs) {
+      return fs1rv.fs.rename(fs1rv.path, fs2rv.path, (e?: ApiError) => {
+        if (e) {
+          this.standardizeError(this.standardizeError(e, fs1rv.path, oldPath), fs2rv.path, newPath);
+        }
         cb(e);
       });
     }
@@ -155,7 +156,7 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
       if (err) {
         return cb(err);
       }
-      fs.writeFile(newPath, data, function(err) {
+      fs.writeFile(newPath, data, function(err: ApiError) {
         if (err) {
           return cb(err);
         }
@@ -166,18 +167,18 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
 
   public renameSync(oldPath: string, newPath: string): void {
     // Scenario 1: old and new are on same FS.
-    var fs1_rv = this._getFs(oldPath);
-    var fs2_rv = this._getFs(newPath);
-    if (fs1_rv.fs === fs2_rv.fs) {
+    let fs1rv = this._getFs(oldPath);
+    let fs2rv = this._getFs(newPath);
+    if (fs1rv.fs === fs2rv.fs) {
       try {
-        return fs1_rv.fs.renameSync(fs1_rv.path, fs2_rv.path);
-      } catch(e) {
-        this.standardizeError(this.standardizeError(e, fs1_rv.path, oldPath), fs2_rv.path, newPath);
+        return fs1rv.fs.renameSync(fs1rv.path, fs2rv.path);
+      } catch (e) {
+        this.standardizeError(this.standardizeError(e, fs1rv.path, oldPath), fs2rv.path, newPath);
         throw e;
       }
     }
     // Scenario 2: Different file systems.
-    var data = fs.readFileSync(oldPath);
+    let data = fs.readFileSync(oldPath);
     fs.writeFileSync(newPath, data);
     return fs.unlinkSync(oldPath);
   }
@@ -187,7 +188,7 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
 
     // If null, rootfs did not have the directory
     // (or the target FS is the root fs).
-    let rv = null;
+    let rv: string[] = null;
     // Mount points are all defined in the root FS.
     // Ensure that we list those, too.
     if (fsInfo.fs !== this.rootFs) {
@@ -206,7 +207,7 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
         // Filter out duplicates.
         return rv2.concat(rv.filter((val) => rv2.indexOf(val) === -1));
       }
-    } catch(e) {
+    } catch (e) {
       if (rv === null) {
         throw this.standardizeError(e, fsInfo.path, p);
       } else {
@@ -256,6 +257,17 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
     }
   }
 
+  public rmdir(p: string, cb: (err?: NodeJS.ErrnoException) => any): void {
+    let fsInfo = this._getFs(p);
+    if (this._containsMountPt(p)) {
+      cb(ApiError.ENOTEMPTY(p));
+    } else {
+      fsInfo.fs.rmdir(fsInfo.path, (err?) => {
+        cb(err ? this.standardizeError(err, fsInfo.path, p) : null);
+      });
+    }
+  }
+
   /**
    * Returns true if the given path contains a mount point.
    */
@@ -269,17 +281,6 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
     }
     return false;
   }
-
-  public rmdir(p: string, cb: (err?: NodeJS.ErrnoException) => any): void {
-    let fsInfo = this._getFs(p);
-    if (this._containsMountPt(p)) {
-      cb(ApiError.ENOTEMPTY(p));
-    } else {
-      fsInfo.fs.rmdir(fsInfo.path, (err?) => {
-        cb(err ? this.standardizeError(err, fsInfo.path, p) : null);
-      });
-    }
-  }
 }
 
 /**
@@ -291,39 +292,37 @@ export default class MountableFileSystem extends file_system.BaseFileSystem impl
  */
 function defineFcn(name: string, isSync: boolean, numArgs: number): (...args: any[]) => any {
   if (isSync) {
-    return function(...args: any[]) {
-      let self: MountableFileSystem = this;
-      var path = args[0];
-      var rv = self._getFs(path);
+    return function(this: MountableFileSystem, ...args: any[]) {
+      let path = args[0];
+      let rv = this._getFs(path);
       args[0] = rv.path;
       try {
-        return rv.fs[name].apply(rv.fs, args);
+        return (<any> rv.fs)[name].apply(rv.fs, args);
       } catch (e) {
-        (<any> self).standardizeError(e, rv.path, path);
+        this.standardizeError(e, rv.path, path);
         throw e;
       }
     };
   } else {
-    return function(...args: any[]) {
-      let self: MountableFileSystem = this;
-      var path = args[0];
-      var rv = self._getFs(path);
+    return function(this: MountableFileSystem, ...args: any[]) {
+      let path = args[0];
+      let rv = this._getFs(path);
       args[0] = rv.path;
-      if (typeof args[args.length-1] === 'function') {
-        var cb = args[args.length - 1];
-        args[args.length - 1] = function(...args: any[]) {
+      if (typeof args[args.length - 1] === 'function') {
+        let cb = args[args.length - 1];
+        args[args.length - 1] = (...args: any[]) => {
           if (args.length > 0 && args[0] instanceof ApiError) {
-            (<any> self).standardizeError(args[0], rv.path, path);
+            this.standardizeError(args[0], rv.path, path);
           }
           cb.apply(null, args);
-        }
+        };
       }
-      return rv.fs[name].apply(rv.fs, args);
+      return (<any> rv.fs)[name].apply(rv.fs, args);
     };
   }
 }
 
-var fsCmdMap = [
+const fsCmdMap = [
    // 1 arg functions
    ['exists', 'unlink', 'readlink'],
    // 2 arg functions
@@ -335,10 +334,10 @@ var fsCmdMap = [
    // 5 arg functions
    ['writeFile', 'appendFile']];
 
-for (var i = 0; i < fsCmdMap.length; i++) {
-  var cmds = fsCmdMap[i];
-  for (var j = 0; j < cmds.length; j++) {
-    var fnName = cmds[j];
+for (let i = 0; i < fsCmdMap.length; i++) {
+  const cmds = fsCmdMap[i];
+  for (let j = 0; j < cmds.length; j++) {
+    const fnName = cmds[j];
     (<any> MountableFileSystem.prototype)[fnName] = defineFcn(fnName, false, i + 1);
     (<any> MountableFileSystem.prototype)[fnName + 'Sync'] = defineFcn(fnName + 'Sync', true, i + 1);
   }

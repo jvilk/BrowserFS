@@ -20,10 +20,11 @@ export enum ErrorCode {
   ENOTEMPTY = 39,
   ENOTSUP   = 95,
 }
+/* tslint:disable:variable-name */
 /**
  * Strings associated with each error code.
  */
-export const ErrorStrings: {[code: string]: string; [code: number]: string;} = {};
+export const ErrorStrings: {[code: string]: string; [code: number]: string; } = {};
 ErrorStrings[ErrorCode.EPERM] = 'Operation not permitted.';
 ErrorStrings[ErrorCode.ENOENT] = 'No such file or directory.';
 ErrorStrings[ErrorCode.EIO] = 'Input/output error.';
@@ -39,62 +40,15 @@ ErrorStrings[ErrorCode.ENOSPC] = 'No space left on disk.';
 ErrorStrings[ErrorCode.EROFS] = 'Cannot modify a read-only file system.';
 ErrorStrings[ErrorCode.ENOTEMPTY] = 'Directory is not empty.';
 ErrorStrings[ErrorCode.ENOTSUP] = 'Operation is not supported.';
+/* tslint:enable:variable-name */
 
 /**
  * Represents a BrowserFS error. Passed back to applications after a failed
  * call to the BrowserFS API.
- * errno?: number;
-        code?: string;
-        path?: string;
-        syscall?: string;
-        stack?: string;
  */
 export class ApiError extends Error implements NodeJS.ErrnoException {
-  public errno: ErrorCode;
-  public code: string;
-  public path: string;
-  // Unsupported.
-  public syscall: string = "";
-  public stack: string;
-
-  /**
-   * Represents a BrowserFS error. Passed back to applications after a failed
-   * call to the BrowserFS API.
-   *
-   * Error codes mirror those returned by regular Unix file operations, which is
-   * what Node returns.
-   * @constructor ApiError
-   * @param type The type of the error.
-   * @param [message] A descriptive error message.
-   */
-  constructor(type: ErrorCode, message: string = ErrorStrings[type], path: string = null) {
-    super(message);
-    this.errno = type;
-    this.code = ErrorCode[type];
-    this.path = path;
-    this.stack = (<any>new Error()).stack;
-    this.message = `Error: ${this.code}: ${message}${this.path ? `, '${this.path}'` : ''}`;
-  }
-
-  /**
-   * @return A friendly error message.
-   */
-  public toString(): string {
-    return this.message;
-  }
-
-  public toJSON(): any {
-    return {
-      errno: this.errno,
-      code: this.code,
-      path: this.path,
-      stack: this.stack,
-      message: this.message
-    };
-  }
-
   public static fromJSON(json: any): ApiError {
-    var err = new ApiError(0);
+    let err = new ApiError(0);
     err.errno = json.errno;
     err.code = json.code;
     err.path = json.path;
@@ -104,27 +58,10 @@ export class ApiError extends Error implements NodeJS.ErrnoException {
   }
 
   /**
-   * Writes the API error into a buffer.
-   */
-  public writeToBuffer(buffer: Buffer = new Buffer(this.bufferSize()), i: number = 0): Buffer {
-    var bytesWritten = buffer.write(JSON.stringify(this.toJSON()), i + 4);
-    buffer.writeUInt32LE(bytesWritten, i);
-    return buffer;
-  }
-
-  /**
    * Creates an ApiError object from a buffer.
    */
   public static fromBuffer(buffer: Buffer, i: number = 0): ApiError {
     return ApiError.fromJSON(JSON.parse(buffer.toString('utf8', i + 4, i + 4 + buffer.readUInt32LE(i))));
-  }
-
-  /**
-   * The size of the API error in buffer-form in bytes.
-   */
-  public bufferSize(): number {
-    // 4 bytes for string length.
-    return 4 + Buffer.byteLength(JSON.stringify(this.toJSON()));
   }
 
   public static FileError(code: ErrorCode, p: string): ApiError {
@@ -152,5 +89,65 @@ export class ApiError extends Error implements NodeJS.ErrnoException {
 
   public static ENOTEMPTY(path: string): ApiError {
     return this.FileError(ErrorCode.ENOTEMPTY, path);
+  }
+
+  public errno: ErrorCode;
+  public code: string;
+  public path: string;
+  // Unsupported.
+  public syscall: string = "";
+  public stack: string;
+
+  /**
+   * Represents a BrowserFS error. Passed back to applications after a failed
+   * call to the BrowserFS API.
+   *
+   * Error codes mirror those returned by regular Unix file operations, which is
+   * what Node returns.
+   * @constructor ApiError
+   * @param type The type of the error.
+   * @param [message] A descriptive error message.
+   */
+  constructor(type: ErrorCode, message: string = ErrorStrings[type], path: string = null) {
+    super(message);
+    this.errno = type;
+    this.code = ErrorCode[type];
+    this.path = path;
+    this.stack = new Error().stack;
+    this.message = `Error: ${this.code}: ${message}${this.path ? `, '${this.path}'` : ''}`;
+  }
+
+  /**
+   * @return A friendly error message.
+   */
+  public toString(): string {
+    return this.message;
+  }
+
+  public toJSON(): any {
+    return {
+      errno: this.errno,
+      code: this.code,
+      path: this.path,
+      stack: this.stack,
+      message: this.message
+    };
+  }
+
+  /**
+   * Writes the API error into a buffer.
+   */
+  public writeToBuffer(buffer: Buffer = new Buffer(this.bufferSize()), i: number = 0): Buffer {
+    let bytesWritten = buffer.write(JSON.stringify(this.toJSON()), i + 4);
+    buffer.writeUInt32LE(bytesWritten, i);
+    return buffer;
+  }
+
+  /**
+   * The size of the API error in buffer-form in bytes.
+   */
+  public bufferSize(): number {
+    // 4 bytes for string length.
+    return 4 + Buffer.byteLength(JSON.stringify(this.toJSON()));
   }
 }

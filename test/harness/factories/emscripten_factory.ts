@@ -1,11 +1,10 @@
 import EmscriptenFS from '../../../src/backend/Emscripten';
 import FolderAdapter from '../../../src/backend/FolderAdapter';
-import BackendFactory = require('../BackendFactory');
 import {FileSystem} from '../../../src/core/file_system';
 
 function emptyDir(FS: any, dir: string): void {
-  const files = FS.readdir(dir).filter((file) => file !== '.' && file !== '..').map((file) => `${dir}/${file}`);
-  files.forEach((file) => {
+  const files = FS.readdir(dir).filter((file: string) => file !== '.' && file !== '..').map((file: string) => `${dir}/${file}`);
+  files.forEach((file: string) => {
     const mode = FS.stat(file).mode;
     if (FS.isFile(mode)) {
       FS.unlink(file);
@@ -22,7 +21,7 @@ function createEmscriptenFS(idbfs: boolean, cb: (obj: FileSystem) => void): void
     // Block standard input.
     print: function(text: string) {},
     printErr: function(text: string) {},
-    stdin: function() {
+    stdin: function(): any {
       return null;
     },
     preRun: function() {
@@ -31,9 +30,9 @@ function createEmscriptenFS(idbfs: boolean, cb: (obj: FileSystem) => void): void
       FS.mkdir('/files');
       if (idbfs) {
         FS.mount(IDBFS, {}, '/files');
-        FS.syncfs(true, function (err) {
+        FS.syncfs(true, function (err: any) {
           emptyDir(FS, '/files');
-          FS.syncfs(false, function(err) {
+          FS.syncfs(false, function(err: any) {
             cb(new FolderAdapter('/files', new EmscriptenFS(Module.FS)));
           });
         });
@@ -55,7 +54,7 @@ function createEmscriptenFS(idbfs: boolean, cb: (obj: FileSystem) => void): void
   emscriptenNop(Module);
 }
 
-function EmscriptenFactory(cb: (name: string, obj: FileSystem[]) => void): void {
+export default function EmscriptenFactory(cb: (name: string, obj: FileSystem[]) => void): void {
   if (typeof(Uint8Array) !== 'undefined') {
     createEmscriptenFS(false, (inmemory) => {
       createEmscriptenFS(true, (idbfs) => {
@@ -66,8 +65,3 @@ function EmscriptenFactory(cb: (name: string, obj: FileSystem[]) => void): void 
     cb('Emscripten', []);
   }
 }
-
-// Typecheck;
-var _: BackendFactory = EmscriptenFactory;
-
-export = EmscriptenFactory;

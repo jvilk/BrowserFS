@@ -6,8 +6,8 @@ doc
 *.json
 !tsconfig.json
 test/fixtures
-test/harness/load_fixtures.js
-test/harness/factories/workerfs_worker.js
+test/harness/load_fixtures.ts
+test/harness/factories/workerfs_worker.js*
 !test/fixtures/files
 !test/fixtures/README.md
 tscommand*
@@ -18,11 +18,11 @@ src/.baseDir.ts
 # run.ts is auto-generated
 test/harness/run.ts
 # as is test.js
-test/harness/test.js
-# as is backends.ts
-src/core/backends.ts
+test/harness/test.js*
 .tscache
 generated_node_tsconfig.json
 coverage
-
+/gulptasks.js*
 dist
+.vscode
+.tscache

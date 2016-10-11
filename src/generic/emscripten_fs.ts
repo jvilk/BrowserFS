@@ -9,9 +9,8 @@
  * Adapted from Emscripten's NodeFS:
  * https://raw.github.com/kripken/emscripten/master/src/library_nodefs.js
  */
-import BrowserFS = require('../core/browserfs');
 import FS from '../core/FS';
-import fs = require('../core/node_fs');
+import fs from '../core/node_fs';
 import NodeStats from '../core/node_fs_stats';
 import {uint8Array2Buffer} from '../core/util';
 
@@ -70,12 +69,12 @@ export interface EmscriptenStreamOps {
 }
 
 export interface EmscriptenFS {
+  node_ops: EmscriptenNodeOps;
+  stream_ops: EmscriptenStreamOps;
   mount(mount: {opts: {root: string}}): EmscriptenFSNode;
   createNode(parent: EmscriptenFSNode, name: string, mode: number, dev?: any): EmscriptenFSNode;
   getMode(path: string): number;
   realPath(node: EmscriptenFSNode): string;
-  node_ops: EmscriptenNodeOps;
-  stream_ops: EmscriptenStreamOps;
 }
 
 class BFSEmscriptenStreamOps implements EmscriptenStreamOps {
@@ -92,26 +91,30 @@ class BFSEmscriptenStreamOps implements EmscriptenStreamOps {
   }
 
   public open(stream: EmscriptenStream): void {
-    var path = this.fs.realPath(stream.node),
-      FS = this.FS;
+    let path = this.fs.realPath(stream.node);
+    let FS = this.FS;
     try {
       if (FS.isFile(stream.node.mode)) {
         stream.nfd = this.nodefs.openSync(path, this.fs.flagsToPermissionString(stream.flags));
       }
     } catch (e) {
-      if (!e.code) throw e;
+      if (!e.code) {
+        throw e;
+      }
       throw new FS.ErrnoError(this.ERRNO_CODES[e.code]);
     }
   }
 
   public close(stream: EmscriptenStream): void {
-    var FS = this.FS;
+    let FS = this.FS;
     try {
       if (FS.isFile(stream.node.mode) && stream.nfd) {
         this.nodefs.closeSync(stream.nfd);
       }
     } catch (e) {
-      if (!e.code) throw e;
+      if (!e.code) {
+        throw e;
+      }
       throw new FS.ErrnoError(this.ERRNO_CODES[e.code]);
     }
   }
@@ -135,13 +138,13 @@ class BFSEmscriptenStreamOps implements EmscriptenStreamOps {
   }
 
   public llseek(stream: EmscriptenStream, offset: number, whence: number): number {
-    var position = offset;
+    let position = offset;
     if (whence === 1) {  // SEEK_CUR.
       position += stream.position;
     } else if (whence === 2) {  // SEEK_END.
       if (this.FS.isFile(stream.node.mode)) {
         try {
-          var stat = this.nodefs.fstatSync(stream.nfd);
+          let stat = this.nodefs.fstatSync(stream.nfd);
           position += stat.size;
         } catch (e) {
           throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
@@ -172,12 +175,14 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   }
 
   public getattr(node: EmscriptenFSNode): Stats {
-    var path = this.fs.realPath(node);
-    var stat: NodeStats;
+    let path = this.fs.realPath(node);
+    let stat: NodeStats;
     try {
       stat = this.nodefs.lstatSync(path);
     } catch (e) {
-      if (!e.code) throw e;
+      if (!e.code) {
+        throw e;
+      }
       throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
     }
     return {
@@ -198,7 +203,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   }
 
   public setattr(node: EmscriptenFSNode, attr: Stats): void {
-    var path = this.fs.realPath(node);
+    let path = this.fs.realPath(node);
     try {
       if (attr.mode !== undefined) {
         this.nodefs.chmodSync(path, attr.mode);
@@ -206,11 +211,13 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
         node.mode = attr.mode;
       }
       if (attr.timestamp !== undefined) {
-        var date = new Date(attr.timestamp);
+        let date = new Date(attr.timestamp);
         this.nodefs.utimesSync(path, date, date);
       }
     } catch (e) {
-      if (!e.code) throw e;
+      if (!e.code) {
+        throw e;
+      }
       // Ignore not supported errors. Emscripten does utimesSync when it
       // writes files, but never really requires the value to be set.
       if (e.code !== "ENOTSUP") {
@@ -221,22 +228,24 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
       try {
         this.nodefs.truncateSync(path, attr.size);
       } catch (e) {
-        if (!e.code) throw e;
+        if (!e.code) {
+          throw e;
+        }
         throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
       }
     }
   }
 
   public lookup(parent: EmscriptenFSNode, name: string): EmscriptenFSNode {
-    var path = this.PATH.join2(this.fs.realPath(parent), name);
-    var mode = this.fs.getMode(path);
+    let path = this.PATH.join2(this.fs.realPath(parent), name);
+    let mode = this.fs.getMode(path);
     return this.fs.createNode(parent, name, mode);
   }
 
   public mknod(parent: EmscriptenFSNode, name: string, mode: number, dev: any): EmscriptenFSNode {
-    var node = this.fs.createNode(parent, name, mode, dev);
+    let node = this.fs.createNode(parent, name, mode, dev);
     // create the backing node for this in the fs root as well
-    var path = this.fs.realPath(node);
+    let path = this.fs.realPath(node);
     try {
       if (this.FS.isDir(node.mode)) {
         this.nodefs.mkdirSync(path, node.mode);
@@ -244,127 +253,89 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
         this.nodefs.writeFileSync(path, '', { mode: node.mode });
       }
     } catch (e) {
-      if (!e.code) throw e;
+      if (!e.code) {
+        throw e;
+      }
       throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
     }
     return node;
   }
 
   public rename(oldNode: EmscriptenFSNode, newDir: EmscriptenFSNode, newName: string): void {
-    var oldPath = this.fs.realPath(oldNode);
-    var newPath = this.PATH.join2(this.fs.realPath(newDir), newName);
+    let oldPath = this.fs.realPath(oldNode);
+    let newPath = this.PATH.join2(this.fs.realPath(newDir), newName);
     try {
       this.nodefs.renameSync(oldPath, newPath);
     } catch (e) {
-      if (!e.code) throw e;
+      if (!e.code) {
+        throw e;
+      }
       throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
     }
   }
 
   public unlink(parent: EmscriptenFSNode, name: string): void {
-    var path = this.PATH.join2(this.fs.realPath(parent), name);
+    let path = this.PATH.join2(this.fs.realPath(parent), name);
     try {
       this.nodefs.unlinkSync(path);
     } catch (e) {
-      if (!e.code) throw e;
+      if (!e.code) {
+        throw e;
+      }
       throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
     }
   }
 
   public rmdir(parent: EmscriptenFSNode, name: string) {
-    var path = this.PATH.join2(this.fs.realPath(parent), name);
+    let path = this.PATH.join2(this.fs.realPath(parent), name);
     try {
       this.nodefs.rmdirSync(path);
     } catch (e) {
-      if (!e.code) throw e;
+      if (!e.code) {
+        throw e;
+      }
       throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
     }
   }
 
   public readdir(node: EmscriptenFSNode): string[] {
-    var path = this.fs.realPath(node);
+    let path = this.fs.realPath(node);
     try {
       return this.nodefs.readdirSync(path);
     } catch (e) {
-      if (!e.code) throw e;
+      if (!e.code) {
+        throw e;
+      }
       throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
     }
   }
 
   public symlink(parent: EmscriptenFSNode, newName: string, oldPath: string): void {
-    var newPath = this.PATH.join2(this.fs.realPath(parent), newName);
+    let newPath = this.PATH.join2(this.fs.realPath(parent), newName);
     try {
       this.nodefs.symlinkSync(oldPath, newPath);
     } catch (e) {
-      if (!e.code) throw e;
+      if (!e.code) {
+        throw e;
+      }
       throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
     }
   }
 
   public readlink(node: EmscriptenFSNode): string {
-    var path = this.fs.realPath(node);
+    let path = this.fs.realPath(node);
     try {
       return this.nodefs.readlinkSync(path);
     } catch (e) {
-      if (!e.code) throw e;
+      if (!e.code) {
+        throw e;
+      }
       throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
     }
   }
 }
 
 export default class BFSEmscriptenFS implements EmscriptenFS {
-  private FS: any;
-  private PATH: any;
-  private ERRNO_CODES: any;
-  private nodefs: FS;
-  constructor(_FS = (<any> self)['FS'], _PATH = (<any> self)['PATH'], _ERRNO_CODES = (<any> self)['ERRNO_CODES'], nodefs: FS = fs) {
-    if (typeof BrowserFS === 'undefined') {
-      throw new Error("BrowserFS is not loaded. Please load it before this library.");
-    }
-    this.nodefs = nodefs;
-    this.FS = _FS;
-    this.PATH = _PATH;
-    this.ERRNO_CODES = _ERRNO_CODES;
-    this.node_ops = new BFSEmscriptenNodeOps(this);
-    this.stream_ops = new BFSEmscriptenStreamOps(this);
-  }
-
-  public mount(mount: {opts: {root: string}}): EmscriptenFSNode {
-    return this.createNode(null, '/', this.getMode(mount.opts.root), 0);
-  }
-
-  public createNode(parent: EmscriptenFSNode, name: string, mode: number, dev?: any): EmscriptenFSNode {
-    var FS = this.FS;
-    if (!FS.isDir(mode) && !FS.isFile(mode) && !FS.isLink(mode)) {
-      throw new FS.ErrnoError(this.ERRNO_CODES.EINVAL);
-    }
-    var node = FS.createNode(parent, name, mode);
-    node.node_ops = this.node_ops;
-    node.stream_ops = this.stream_ops;
-    return node;
-  }
-
-  public getMode(path: string): number {
-    var stat: NodeStats;
-    try {
-      stat = this.nodefs.lstatSync(path);
-    } catch (e) {
-      if (!e.code) throw e;
-      throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
-    }
-    return stat.mode;
-  }
-
-  public realPath(node: EmscriptenFSNode): string {
-    var parts: string[] = [];
-    while (node.parent !== node) {
-      parts.push(node.name);
-      node = node.parent;
-    }
-    parts.push(node.mount.opts.root);
-    parts.reverse();
-    return this.PATH.join.apply(null, parts);
-  }
   // This maps the integer permission modes from http://linux.die.net/man/3/open
   // to node.js-specific file open permission strings at http://nodejs.org/api/fs.html#fs_fs_open_path_flags_mode_callback
   public flagsToPermissionStringMap = {
@@ -392,15 +363,71 @@ export default class BFSEmscriptenFS implements EmscriptenFS {
     1218/*O_RDWR|O_CREAT|O_EXCL|O_APPEND*/: 'ax+',
     4096/*O_RDONLY|O_DSYNC*/: 'rs',
     4098/*O_RDWR|O_DSYNC*/: 'rs+'
+  };
+  /* tslint:disable:variable-name */
+  public node_ops: EmscriptenNodeOps;
+  public stream_ops: EmscriptenStreamOps;
+  /* tslint:enable:variable-name */
+
+  private FS: any;
+  private PATH: any;
+  private ERRNO_CODES: any;
+  private nodefs: FS;
+  constructor(_FS = (<any> self)['FS'], _PATH = (<any> self)['PATH'], _ERRNO_CODES = (<any> self)['ERRNO_CODES'], nodefs: FS = fs) {
+    this.nodefs = nodefs;
+    this.FS = _FS;
+    this.PATH = _PATH;
+    this.ERRNO_CODES = _ERRNO_CODES;
+    this.node_ops = new BFSEmscriptenNodeOps(this);
+    this.stream_ops = new BFSEmscriptenStreamOps(this);
   }
 
-  public flagsToPermissionString(flags: string): string {
-    var parsedFlags = (typeof flags === "string") ? parseInt(flags, 10) : <number><any> flags;
+  public mount(m: {opts: {root: string}}): EmscriptenFSNode {
+    return this.createNode(null, '/', this.getMode(m.opts.root), 0);
+  }
+
+  public createNode(parent: EmscriptenFSNode, name: string, mode: number, dev?: any): EmscriptenFSNode {
+    let FS = this.FS;
+    if (!FS.isDir(mode) && !FS.isFile(mode) && !FS.isLink(mode)) {
+      throw new FS.ErrnoError(this.ERRNO_CODES.EINVAL);
+    }
+    let node = FS.createNode(parent, name, mode);
+    node.node_ops = this.node_ops;
+    node.stream_ops = this.stream_ops;
+    return node;
+  }
+
+  public getMode(path: string): number {
+    let stat: NodeStats;
+    try {
+      stat = this.nodefs.lstatSync(path);
+    } catch (e) {
+      if (!e.code) {
+        throw e;
+      }
+      throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
+    }
+    return stat.mode;
+  }
+
+  public realPath(node: EmscriptenFSNode): string {
+    let parts: string[] = [];
+    while (node.parent !== node) {
+      parts.push(node.name);
+      node = node.parent;
+    }
+    parts.push(node.mount.opts.root);
+    parts.reverse();
+    return this.PATH.join.apply(null, parts);
+  }
+
+  public flagsToPermissionString(flags: string | number): string {
+    let parsedFlags = (typeof flags === "string") ? parseInt(flags, 10) : flags;
     parsedFlags &= 0x1FFF;
     if (parsedFlags in this.flagsToPermissionStringMap) {
       return (<any> this.flagsToPermissionStringMap)[parsedFlags];
     } else {
-      return flags;
+      return <string> flags;
     }
   }
 
@@ -419,7 +446,4 @@ export default class BFSEmscriptenFS implements EmscriptenFS {
   public getERRNO_CODES() {
     return this.ERRNO_CODES;
   }
-
-  public node_ops: EmscriptenNodeOps;
-  public stream_ops: EmscriptenStreamOps;
 }

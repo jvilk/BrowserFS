@@ -1,15 +1,10 @@
-import BrowserFS = require('../../src/core/browserfs');
-import file_system = require('../../src/core/file_system');
+import * as BrowserFS from '../../src/core/browserfs';
+import {FileSystem} from '../../src/core/file_system';
+import BackendFactory from './BackendFactory';
+import {eachSeries as asyncEachSeries} from 'async';
 import BFSEmscriptenFS from '../../src/generic/emscripten_fs';
-// !!TYPING ONLY!!
-import __buffer = require('bfs-buffer');
-import buffer = require('buffer');
-import BackendFactory = require('./BackendFactory');
-import async = require('async');
-import assert = require('./wrapped-assert');
-var BFSBuffer = <typeof __buffer.Buffer> (<any> buffer).Buffer;
-
-var loadFixtures: () => void = require('../fixtures/load_fixtures');
+import assert from './wrapped-assert';
+import loadFixtures from '../fixtures/load_fixtures';
 
 declare var __numWaiting: number;
 declare var __karma__: any;
@@ -34,7 +29,7 @@ function waitsFor(test: () => boolean, what: string, timeout: number, done: (e?:
 
 
 // Defines and starts all of our unit tests.
-export = function(tests: {
+export default function(tests: {
     fs: {
       [name: string]: {[name: string]: () => void};
       all: {[name: string]: () => void};
@@ -42,12 +37,52 @@ export = function(tests: {
     general: {[name: string]: () => void};
     emscripten: {[name: string]: (Module: any) => void};
   }, backendFactories: BackendFactory[]) {
-  var fsBackends: { name: string; backends: file_system.FileSystem[]; }[] = [];
+  var fsBackends: { name: string; backends: FileSystem[]; }[] = [];
 
   // Install BFS as a global.
   (<any> window)['BrowserFS'] = BrowserFS;
 
-  var process = BrowserFS.BFSRequire('process');
+  const process = BrowserFS.BFSRequire('process');
+  const fs = BrowserFS.BFSRequire('fs');
+  const path = BrowserFS.BFSRequire('path');
+  fs.wrapCallbacks((cb, numArgs) => {
+    if (typeof cb !== 'function') {
+      throw new Error('Callback must be a function.');
+    }
+    // This is used for unit testing.
+    // We could use `arguments`, but Function.call/apply is expensive. And we only
+    // need to handle 1-3 arguments
+    if (typeof __numWaiting === 'undefined') {
+      (<any> global).__numWaiting = 0;
+    }
+    __numWaiting++;
+
+    switch (numArgs) {
+      case 1:
+        return <any> function(arg1: any) {
+          setImmediate(function() {
+            __numWaiting--;
+            return cb(arg1);
+          });
+        };
+      case 2:
+        return <any> function(arg1: any, arg2: any) {
+          setImmediate(function() {
+            __numWaiting--;
+            return cb(arg1, arg2);
+          });
+        };
+      case 3:
+        return <any> function(arg1: any, arg2: any, arg3: any) {
+          setImmediate(function() {
+            __numWaiting--;
+            return cb(arg1, arg2, arg3);
+          });
+        };
+      default:
+        throw new Error('Invalid invocation of wrapCb.');
+    }
+  });
 
   // Generates a Jasmine unit test from a CommonJS test.
   function generateTest(testName: string, test: () => void, postCb: () => void = () => {}) {
@@ -86,8 +121,6 @@ export = function(tests: {
       it(`[Emscripten] ${testName}`, function(done: (e?: any) => void) {
         let stdout = "";
         let stderr = "";
-        let fs = BrowserFS.BFSRequire('fs');
-        let path = BrowserFS.BFSRequire('path');
         let expectedStdout: string = null;
         let expectedStderr: string = null;
         let testNameNoExt = testName.slice(0, testName.length - path.extname(testName).length);
@@ -101,7 +134,7 @@ export = function(tests: {
         const Module = {
           print: function(text: string) { stdout += text + '\n'; },
           printErr: function(text: string) { stderr += text + '\n'; },
-          onExit: function(code) {
+          onExit: function(code: number) {
             if (code !== 0) {
               done(new Error(`Program exited with code ${code}.\nstdout:\n${stdout}\nstderr:\n${stderr}`));
             } else {
@@ -113,7 +146,7 @@ export = function(tests: {
             }
           },
           // Block standard input. Otherwise, the unit tests inexplicably read from stdin???
-          stdin: function() {
+          stdin: function(): any {
             return null;
           },
           locateFile: function(fname: string): string {
@@ -137,7 +170,7 @@ export = function(tests: {
     }
   }
 
-  function generateBackendTests(name: string, backend: file_system.FileSystem) {
+  function generateBackendTests(name: string, backend: FileSystem) {
     var testName: string;
     generateTest("Load filesystem", function () {
       __numWaiting = 0;
@@ -161,31 +194,23 @@ export = function(tests: {
   }
 
   function generateAllTests() {
-    describe('BrowserFS Tests', function(): void {
+    describe('BrowserFS Tests', function(this: Mocha): void {
       this.timeout(0);
 
       // generate generic non-backend specific tests
       describe('General Tests', (): void => {
         var genericTests = tests.general, testName: string;
         __numWaiting = 0;
-        var pcb = BFSBuffer.getPreferredBufferCore();
-        // Test each available buffer core type!
-        BFSBuffer.getAvailableBufferCores().forEach((bci) => {
-          for (testName in genericTests) {
-            if (genericTests.hasOwnProperty(testName)) {
-              // Capture testName in a closure.
-              ((testName: string) => {
-                generateTest(`${testName} [${bci.bufferType}]`, () => {
-                  BFSBuffer.setPreferredBufferCore(bci);
-                  genericTests[testName]();
-                }, () => {
-                  // Restore the previous preferred core.
-                  BFSBuffer.setPreferredBufferCore(pcb);
-                });
-              })(testName);
-            }
+        for (testName in genericTests) {
+          if (genericTests.hasOwnProperty(testName)) {
+            // Capture testName in a closure.
+            ((testName: string) => {
+              generateTest(testName, () => {
+                genericTests[testName]();
+              });
+            })(testName);
           }
-        });
+        }
       });
 
       describe('Emscripten Tests', (): void => {
@@ -210,11 +235,12 @@ export = function(tests: {
     __karma__.start();
   }
 
-  async.eachSeries(backendFactories, (factory: BackendFactory, cb: (e?: any) => void) => {
+
+  asyncEachSeries(backendFactories, (factory: BackendFactory, cb: (e?: any) => void) => {
     let timeout = setTimeout(() => {
       throw new Error(`Backend ${factory['name']} failed to initialize promptly.`);
-    }, 10000);
-    factory((name: string, backends: file_system.FileSystem[]) => {
+    }, 30000);
+    factory((name: string, backends: FileSystem[]) => {
       clearTimeout(timeout);
       fsBackends.push({name: name, backends: backends});
       cb();

@@ -1,10 +1,10 @@
-import file_system = require('../core/file_system');
+import {SynchronousFileSystem} from '../core/file_system';
 import {default as Stats, FileType} from '../core/node_fs_stats';
-import {FileFlag, ActionType} from '../core/file_flag';
+import {FileFlag} from '../core/file_flag';
 import {BaseFile, File} from '../core/file';
 import {uint8Array2Buffer, buffer2Uint8array} from '../core/util';
 import {ApiError, ErrorCode, ErrorStrings} from '../core/api_error';
-import {Stats as EmscriptenStats, EmscriptenFSNode} from '../generic/emscripten_fs';
+import {EmscriptenFSNode} from '../generic/emscripten_fs';
 
 interface EmscriptenError {
   node: EmscriptenFSNode;
@@ -14,7 +14,7 @@ interface EmscriptenError {
 function convertError(e: EmscriptenError, path: string = ''): ApiError {
   const errno = e.errno;
   let parent = e.node;
-  let paths = [];
+  let paths: string[] = [];
   while (parent) {
     paths.unshift(parent.name);
     if (parent === parent.parent) {
@@ -30,7 +30,6 @@ export class EmscriptenFile extends BaseFile implements File {
     private _fs: EmscriptenFileSystem,
     private _FS: any,
     private _path: string,
-    private _flag: FileFlag,
     private _stream: any) {
     super();
   }
@@ -182,15 +181,15 @@ export class EmscriptenFile extends BaseFile implements File {
 /**
  * A simple in-memory file system backed by an InMemoryStore.
  */
-export default class EmscriptenFileSystem extends file_system.SynchronousFileSystem {
+export default class EmscriptenFileSystem extends SynchronousFileSystem {
+  public static isAvailable(): boolean { return true; }
+
   private _FS: any;
 
   constructor(_FS: any) {
     super();
     this._FS = _FS;
   }
-
-  public static isAvailable(): boolean { return true; }
   public getName(): string { return this._FS.DB_NAME(); }
   public isReadOnly(): boolean { return false; }
   public supportsLinks(): boolean { return true; }
@@ -212,9 +211,9 @@ export default class EmscriptenFileSystem extends file_system.SynchronousFileSys
   public statSync(p: string, isLstat: boolean): Stats {
     try {
       const stats = isLstat ? this._FS.lstat(p) : this._FS.stat(p);
-      const item_type = this.modeToFileType(stats.mode);
+      const itemType = this.modeToFileType(stats.mode);
       return new Stats(
-        item_type,
+        itemType,
         stats.size,
         stats.mode,
         stats.atime,
@@ -226,27 +225,6 @@ export default class EmscriptenFileSystem extends file_system.SynchronousFileSys
     }
   }
 
-  private modeToFileType(mode: number): FileType {
-    if (this._FS.isDir(mode)) {
-      return FileType.DIRECTORY;
-    } else if (this._FS.isFile(mode)) {
-      return FileType.FILE;
-    } else if (this._FS.isLink(mode)) {
-      return FileType.SYMLINK;
-    }
-  }
-
-  /**
-   * Moved to separate function to avoid perf hit.
-   */
-  private _tryStats(p: string): Stats {
-    try {
-      return this.statSync(p, false);
-    } catch (e) {
-      return null;
-    }
-  }
-
   public openSync(p: string, flag: FileFlag, mode: number): EmscriptenFile {
     try {
       const stream = this._FS.open(p, flag.getFlagString(), mode);
@@ -254,7 +232,7 @@ export default class EmscriptenFileSystem extends file_system.SynchronousFileSys
         this._FS.close(stream);
         throw ApiError.EISDIR(p);
       }
-      return new EmscriptenFile(this, this._FS, p, flag, stream);
+      return new EmscriptenFile(this, this._FS, p, stream);
     } catch (e) {
       throw convertError(e, p);
     }
@@ -287,7 +265,7 @@ export default class EmscriptenFileSystem extends file_system.SynchronousFileSys
   public readdirSync(p: string): string[] {
     try {
       // Emscripten returns items for '.' and '..'. Node does not.
-      return this._FS.readdir(p).filter((p) => p !== '.' && p !== '..');
+      return this._FS.readdir(p).filter((p: string) => p !== '.' && p !== '..');
     } catch (e) {
       throw convertError(e, p);
     }
@@ -303,7 +281,7 @@ export default class EmscriptenFileSystem extends file_system.SynchronousFileSys
 
   public readFileSync(p: string, encoding: string, flag: FileFlag): any {
     try {
-      const data: Uint8Array = this._FS.readFile(p, { flags: flag.getFlagString() })
+      const data: Uint8Array = this._FS.readFile(p, { flags: flag.getFlagString() });
       const buff = uint8Array2Buffer(data);
       if (encoding) {
         return buff.toString(encoding);
@@ -365,6 +343,18 @@ export default class EmscriptenFileSystem extends file_system.SynchronousFileSys
       this._FS.utime(p, atime.getTime(), mtime.getTime());
     } catch (e) {
       throw convertError(e, p);
+    }
+  }
+
+  private modeToFileType(mode: number): FileType {
+    if (this._FS.isDir(mode)) {
+      return FileType.DIRECTORY;
+    } else if (this._FS.isFile(mode)) {
+      return FileType.FILE;
+    } else if (this._FS.isLink(mode)) {
+      return FileType.SYMLINK;
+    } else {
+      throw ApiError.EPERM(`Invalid mode: ${mode}`);
     }
   }
 

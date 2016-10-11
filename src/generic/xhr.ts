@@ -3,87 +3,17 @@
  * XmlHttpRequest across browsers.
  */
 
-import util = require('../core/util');
+import {isIE} from '../core/util';
 import {ApiError, ErrorCode} from '../core/api_error';
 
-// See core/polyfills for the VBScript definition of these functions.
-declare var IEBinaryToArray_ByteStr: (vbarr: any) => string;
-declare var IEBinaryToArray_ByteStr_Last: (vbarr: any) => string;
-// Converts 'responseBody' in IE into the equivalent 'responseText' that other
-// browsers would generate.
-function getIEByteArray(IEByteArray: any): number[] {
-  var rawBytes = IEBinaryToArray_ByteStr(IEByteArray);
-  var lastChr = IEBinaryToArray_ByteStr_Last(IEByteArray);
-  var data_str = rawBytes.replace(/[\s\S]/g, function(match) {
-    var v = match.charCodeAt(0)
-    return String.fromCharCode(v&0xff, v>>8)
-  }) + lastChr;
-  var data_array = new Array(data_str.length);
-  for (var i = 0; i < data_str.length; i++) {
-    data_array[i] = data_str.charCodeAt(i);
-  }
-  return data_array;
-}
-
-function downloadFileIE(async: boolean, p: string, type: string, cb: (err: ApiError, data?: any) => void): void {
-  switch(type) {
-    case 'buffer':
-      // Fallthrough
-    case 'json':
-      break;
-    default:
-      return cb(new ApiError(ErrorCode.EINVAL, "Invalid download type: " + type));
-  }
-
-  var req = new XMLHttpRequest();
-  req.open('GET', p, async);
-  req.setRequestHeader("Accept-Charset", "x-user-defined");
-  req.onreadystatechange = function(e) {
-    var data_array;
-    if (req.readyState === 4) {
-      if (req.status === 200) {
-        switch(type) {
-          case 'buffer':
-            data_array = getIEByteArray(req.responseBody);
-            return cb(null, new Buffer(data_array));
-          case 'json':
-            return cb(null, JSON.parse(req.responseText));
-        }
-      } else {
-        return cb(new ApiError(req.status, "XHR error."));
-      }
-    }
-  };
-  req.send();
-}
-
-function asyncDownloadFileIE(p: string, type: 'buffer', cb: (err: ApiError, data?: NodeBuffer) => void): void;
-function asyncDownloadFileIE(p: string, type: 'json', cb: (err: ApiError, data?: any) => void): void;
-function asyncDownloadFileIE(p: string, type: string, cb: (err: ApiError, data?: any) => void): void;
-function asyncDownloadFileIE(p: string, type: string, cb: (err: ApiError, data?: any) => void): void {
-  downloadFileIE(true, p, type, cb);
-}
-
-function syncDownloadFileIE(p: string, type: 'buffer'): NodeBuffer;
-function syncDownloadFileIE(p: string, type: 'json'): any;
-function syncDownloadFileIE(p: string, type: string): any;
-function syncDownloadFileIE(p: string, type: string): any {
-  var rv;
-  downloadFileIE(false, p, type, function(err: ApiError, data?: any) {
-    if (err) throw err;
-    rv = data;
-  });
-  return rv;
-}
-
-function asyncDownloadFileModern(p: string, type: 'buffer', cb: (err: ApiError, data?: NodeBuffer) => void): void;
+function asyncDownloadFileModern(p: string, type: 'buffer', cb: (err: ApiError, data?: Buffer) => void): void;
 function asyncDownloadFileModern(p: string, type: 'json', cb: (err: ApiError, data?: any) => void): void;
 function asyncDownloadFileModern(p: string, type: string, cb: (err: ApiError, data?: any) => void): void;
 function asyncDownloadFileModern(p: string, type: string, cb: (err: ApiError, data?: any) => void): void {
-  var req = new XMLHttpRequest();
+  let req = new XMLHttpRequest();
   req.open('GET', p, true);
-  var jsonSupported = true;
-  switch(type) {
+  let jsonSupported = true;
+  switch (type) {
     case 'buffer':
       req.responseType = 'arraybuffer';
       break;
@@ -104,7 +34,7 @@ function asyncDownloadFileModern(p: string, type: string, cb: (err: ApiError, da
   req.onreadystatechange = function(e) {
     if (req.readyState === 4) {
       if (req.status === 200) {
-        switch(type) {
+        switch (type) {
           case 'buffer':
             // XXX: WebKit-based browsers return *null* when XHRing an empty file.
             return cb(null, new Buffer(req.response ? req.response : 0));
@@ -123,32 +53,32 @@ function asyncDownloadFileModern(p: string, type: string, cb: (err: ApiError, da
   req.send();
 }
 
-function syncDownloadFileModern(p: string, type: 'buffer'): NodeBuffer;
+function syncDownloadFileModern(p: string, type: 'buffer'): Buffer;
 function syncDownloadFileModern(p: string, type: 'json'): any;
 function syncDownloadFileModern(p: string, type: string): any;
 function syncDownloadFileModern(p: string, type: string): any {
-  var req = new XMLHttpRequest();
+  let req = new XMLHttpRequest();
   req.open('GET', p, false);
 
   // On most platforms, we cannot set the responseType of synchronous downloads.
   // @todo Test for this; IE10 allows this, as do older versions of Chrome/FF.
-  var data = null;
-  var err = null;
+  let data: any = null;
+  let err: any = null;
   // Classic hack to download binary data as a string.
   req.overrideMimeType('text/plain; charset=x-user-defined');
   req.onreadystatechange = function(e) {
     if (req.readyState === 4) {
       if (req.status === 200) {
-        switch(type) {
+        switch (type) {
           case 'buffer':
             // Convert the text into a buffer.
-            var text = req.responseText;
+            let text = req.responseText;
             data = new Buffer(text.length);
             // Throw away the upper bits of each character.
-            for (var i = 0; i < text.length; i++) {
+            for (let i = 0; i < text.length; i++) {
               // This will automatically throw away the upper bit of each
               // character for us.
-              (<Buffer> data).writeUInt8(text.charCodeAt(i), i, true);
+              data[i] = text.charCodeAt(i);
             }
             return;
           case 'json':
@@ -172,13 +102,13 @@ function syncDownloadFileModern(p: string, type: string): any {
  * IE10 allows us to perform synchronous binary file downloads.
  * @todo Feature detect this, as older versions of FF/Chrome do too!
  */
-function syncDownloadFileIE10(p: string, type: 'buffer'): NodeBuffer;
+function syncDownloadFileIE10(p: string, type: 'buffer'): Buffer;
 function syncDownloadFileIE10(p: string, type: 'json'): any;
 function syncDownloadFileIE10(p: string, type: string): any;
 function syncDownloadFileIE10(p: string, type: string): any {
-  var req = new XMLHttpRequest();
+  let req = new XMLHttpRequest();
   req.open('GET', p, false);
-  switch(type) {
+  switch (type) {
     case 'buffer':
       req.responseType = 'arraybuffer';
       break;
@@ -188,12 +118,12 @@ function syncDownloadFileIE10(p: string, type: string): any {
     default:
       throw new ApiError(ErrorCode.EINVAL, "Invalid download type: " + type);
   }
-  var data;
-  var err;
+  let data: any;
+  let err: any;
   req.onreadystatechange = function(e) {
     if (req.readyState === 4) {
       if (req.status === 200) {
-        switch(type) {
+        switch (type) {
           case 'buffer':
             data = new Buffer(req.response);
             break;
@@ -214,14 +144,14 @@ function syncDownloadFileIE10(p: string, type: string): any {
 }
 
 function getFileSize(async: boolean, p: string, cb: (err: ApiError, size?: number) => void): void {
-  var req = new XMLHttpRequest();
+  let req = new XMLHttpRequest();
   req.open('HEAD', p, async);
   req.onreadystatechange = function(e) {
     if (req.readyState === 4) {
-      if (req.status == 200) {
+      if (req.status === 200) {
         try {
           return cb(null, parseInt(req.getResponseHeader('Content-Length') || '-1', 10));
-        } catch(e) {
+        } catch (e) {
           // In the event that the header isn't present or there is an error...
           return cb(new ApiError(ErrorCode.EIO, "XHR HEAD error: Could not read content-length."));
         }
@@ -239,11 +169,11 @@ function getFileSize(async: boolean, p: string, cb: (err: ApiError, size?: numbe
  * invalid, but TypeScript requires it when you specialize string arguments to
  * constants.
  */
-export var asyncDownloadFile: {
-  (p: string, type: 'buffer', cb: (err: ApiError, data?: NodeBuffer) => void): void;
+export let asyncDownloadFile: {
+  (p: string, type: 'buffer', cb: (err: ApiError, data?: Buffer) => void): void;
   (p: string, type: 'json', cb: (err: ApiError, data?: any) => void): void;
   (p: string, type: string, cb: (err: ApiError, data?: any) => void): void;
-} = (util.isIE && typeof Blob === 'undefined') ? asyncDownloadFileIE : asyncDownloadFileModern;
+} = asyncDownloadFileModern;
 
 /**
  * Synchronously download a file as a buffer or a JSON object.
@@ -251,17 +181,17 @@ export var asyncDownloadFile: {
  * invalid, but TypeScript requires it when you specialize string arguments to
  * constants.
  */
-export var syncDownloadFile: {
-  (p: string, type: 'buffer'): NodeBuffer;
+export let syncDownloadFile: {
+  (p: string, type: 'buffer'): Buffer;
   (p: string, type: 'json'): any;
   (p: string, type: string): any;
-} = (util.isIE && typeof Blob === 'undefined') ? syncDownloadFileIE : (util.isIE && typeof Blob !== 'undefined') ? syncDownloadFileIE10 : syncDownloadFileModern;
+} = (isIE && typeof Blob !== 'undefined') ? syncDownloadFileIE10 : syncDownloadFileModern;
 
 /**
  * Synchronously retrieves the size of the given file in bytes.
  */
 export function getFileSizeSync(p: string): number {
-  var rv: number;
+  let rv: number;
   getFileSize(false, p, function(err: ApiError, size?: number) {
     if (err) {
       throw err;

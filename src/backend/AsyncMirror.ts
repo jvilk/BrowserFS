@@ -1,21 +1,21 @@
-import file_system = require('../core/file_system');
+import {FileSystem, SynchronousFileSystem} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
-import file_flag = require('../core/file_flag');
-import file = require('../core/file');
+import {FileFlag} from '../core/file_flag';
+import {File} from '../core/file';
 import Stats from '../core/node_fs_stats';
-import preload_file = require('../generic/preload_file');
+import PreloadFile from '../generic/preload_file';
 import * as path from 'path';
 
 interface IAsyncOperation {
-	apiMethod: string;
-	arguments: any[];
+  apiMethod: string;
+  arguments: any[];
 }
 
 /**
  * We define our own file to interpose on syncSync() for mirroring purposes.
  */
-class MirrorFile extends preload_file.PreloadFile<AsyncMirror> implements file.File {
-  constructor(fs: AsyncMirror, path: string, flag: file_flag.FileFlag, stat: Stats, data: Buffer) {
+class MirrorFile extends PreloadFile<AsyncMirror> implements File {
+  constructor(fs: AsyncMirror, path: string, flag: FileFlag, stat: Stats, data: Buffer) {
     super(fs, path, flag, stat, data);
   }
 
@@ -41,17 +41,21 @@ class MirrorFile extends preload_file.PreloadFile<AsyncMirror> implements file.F
  * The two stores will be kept in sync. The most common use-case is to pair a synchronous
  * in-memory filesystem with an asynchronous backing store.
  */
-export default class AsyncMirror extends file_system.SynchronousFileSystem implements file_system.FileSystem {
+export default class AsyncMirror extends SynchronousFileSystem implements FileSystem {
+  public static isAvailable(): boolean {
+    return true;
+  }
+
   /**
    * Queue of pending asynchronous operations.
    */
   private _queue: IAsyncOperation[] = [];
   private _queueRunning: boolean = false;
-  private _sync: file_system.FileSystem;
-  private _async: file_system.FileSystem;
+  private _sync: FileSystem;
+  private _async: FileSystem;
   private _isInitialized: boolean = false;
   private _initializeCallbacks: ((e?: ApiError) => void)[] = [];
-  constructor(sync: file_system.FileSystem, async: file_system.FileSystem) {
+  constructor(sync: FileSystem, async: FileSystem) {
     super();
     this._sync = sync;
     this._async = async;
@@ -61,15 +65,11 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
   }
 
   public getName(): string {
-	 	return "AsyncMirror";
+    return "AsyncMirror";
   }
 
-  public static isAvailable(): boolean {
-    return true;
-  }
-
-  public _syncSync(fd: preload_file.PreloadFile<any>) {
-    this._sync.writeFileSync(fd.getPath(), fd.getBuffer(), null, file_flag.FileFlag.getFileFlag('w'), fd.getStats().mode);
+  public _syncSync(fd: PreloadFile<any>) {
+    this._sync.writeFileSync(fd.getPath(), fd.getBuffer(), null, FileFlag.getFileFlag('w'), fd.getStats().mode);
     this.enqueueOp({
       apiMethod: 'writeFile',
       arguments: [fd.getPath(), fd.getBuffer(), null, fd.getFlag(), fd.getStats().mode]
@@ -96,7 +96,7 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
             this._sync.mkdirSync(p, mode);
           }
           this._async.readdir(p, (err, files) => {
-            var i = 0;
+            let i = 0;
             // NOTE: This function must not be in a lexically nested statement,
             // such as an if or while statement. Safari refuses to run the
             // script since it is undefined behavior.
@@ -117,12 +117,12 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
             }
           });
         }, copyFile = (p: string, mode: number, cb: (err?: ApiError) => void) => {
-          this._async.readFile(p, null, file_flag.FileFlag.getFileFlag('r'), (err, data) => {
+          this._async.readFile(p, null, FileFlag.getFileFlag('r'), (err, data) => {
             if (err) {
               cb(err);
             } else {
               try {
-                this._sync.writeFileSync(p, data, null, file_flag.FileFlag.getFileFlag('w'), mode);
+                this._sync.writeFileSync(p, data, null, FileFlag.getFileFlag('w'), mode);
               } catch (e) {
                 err = e;
               } finally {
@@ -148,37 +148,10 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
     }
   }
 
-  private checkInitialized(): void {
-    if (!this._isInitialized) {
-      throw new ApiError(ErrorCode.EPERM, "AsyncMirrorFS is not initialized. Please initialize AsyncMirrorFS using its initialize() method before using it.");
-    }
-  }
-
   public isReadOnly(): boolean { return false; }
   public supportsSynch(): boolean { return true; }
   public supportsLinks(): boolean { return false; }
   public supportsProps(): boolean { return this._sync.supportsProps() && this._async.supportsProps(); }
-
-  private enqueueOp(op: IAsyncOperation) {
-    this._queue.push(op);
-    if (!this._queueRunning) {
-      this._queueRunning = true;
-      var doNextOp = (err?: ApiError) => {
-        if (err) {
-          console.error(`WARNING: File system has desynchronized. Received following error: ${err}\n$`);
-        }
-        if (this._queue.length > 0) {
-          var op = this._queue.shift(),
-            args = op.arguments;
-          args.push(doNextOp);
-          (<Function> (<any> this._async)[op.apiMethod]).apply(this._async, args);
-        } else {
-          this._queueRunning = false;
-        }
-      };
-      doNextOp();
-    }
-  }
 
   public renameSync(oldPath: string, newPath: string): void {
     this.checkInitialized();
@@ -188,17 +161,20 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
       arguments: [oldPath, newPath]
     });
   }
+
   public statSync(p: string, isLstat: boolean): Stats {
     this.checkInitialized();
     return this._sync.statSync(p, isLstat);
   }
-  public openSync(p: string, flag: file_flag.FileFlag, mode: number): file.File {
+
+  public openSync(p: string, flag: FileFlag, mode: number): File {
     this.checkInitialized();
     // Sanity check: Is this open/close permitted?
-    var fd = this._sync.openSync(p, flag, mode);
+    let fd = this._sync.openSync(p, flag, mode);
     fd.closeSync();
-    return new MirrorFile(this, p, flag, this._sync.statSync(p, false), this._sync.readFileSync(p, null, file_flag.FileFlag.getFileFlag('r')));
+    return new MirrorFile(this, p, flag, this._sync.statSync(p, false), this._sync.readFileSync(p, null, FileFlag.getFileFlag('r')));
   }
+
   public unlinkSync(p: string): void {
     this.checkInitialized();
     this._sync.unlinkSync(p);
@@ -207,6 +183,7 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
       arguments: [p]
     });
   }
+
   public rmdirSync(p: string): void {
     this.checkInitialized();
     this._sync.rmdirSync(p);
@@ -215,6 +192,7 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
       arguments: [p]
     });
   }
+
   public mkdirSync(p: string, mode: number): void {
     this.checkInitialized();
     this._sync.mkdirSync(p, mode);
@@ -223,14 +201,17 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
       arguments: [p, mode]
     });
   }
+
   public readdirSync(p: string): string[] {
     this.checkInitialized();
     return this._sync.readdirSync(p);
   }
+
   public existsSync(p: string): boolean {
     this.checkInitialized();
     return this._sync.existsSync(p);
   }
+
   public chmodSync(p: string, isLchmod: boolean, mode: number): void {
     this.checkInitialized();
     this._sync.chmodSync(p, isLchmod, mode);
@@ -239,6 +220,7 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
       arguments: [p, isLchmod, mode]
     });
   }
+
   public chownSync(p: string, isLchown: boolean, uid: number, gid: number): void {
     this.checkInitialized();
     this._sync.chownSync(p, isLchown, uid, gid);
@@ -247,6 +229,7 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
       arguments: [p, isLchown, uid, gid]
     });
   }
+
   public utimesSync(p: string, atime: Date, mtime: Date): void {
     this.checkInitialized();
     this._sync.utimesSync(p, atime, mtime);
@@ -254,5 +237,32 @@ export default class AsyncMirror extends file_system.SynchronousFileSystem imple
       apiMethod: 'utimes',
       arguments: [p, atime, mtime]
     });
+  }
+
+  private checkInitialized(): void {
+    if (!this._isInitialized) {
+      throw new ApiError(ErrorCode.EPERM, "AsyncMirrorFS is not initialized. Please initialize AsyncMirrorFS using its initialize() method before using it.");
+    }
+  }
+
+  private enqueueOp(op: IAsyncOperation) {
+    this._queue.push(op);
+    if (!this._queueRunning) {
+      this._queueRunning = true;
+      let doNextOp = (err?: ApiError) => {
+        if (err) {
+          console.error(`WARNING: File system has desynchronized. Received following error: ${err}\n$`);
+        }
+        if (this._queue.length > 0) {
+          let op = this._queue.shift(),
+            args = op.arguments;
+          args.push(doNextOp);
+          (<Function> (<any> this._async)[op.apiMethod]).apply(this._async, args);
+        } else {
+          this._queueRunning = false;
+        }
+      };
+      doNextOp();
+    }
   }
 }

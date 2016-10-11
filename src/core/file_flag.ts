@@ -1,8 +1,5 @@
-import api_error = require('./api_error');
+import {ErrorCode, ApiError} from './api_error';
 
-/**
- * @class
- */
 export enum ActionType {
   // Indicates that the code should not do anything.
   NOP = 0,
@@ -31,7 +28,6 @@ export enum ActionType {
  * * `'ax+'` - Like 'a+' but opens the file in exclusive mode.
  *
  * Exclusive mode ensures that the file path is newly created.
- * @class
  */
 export class FileFlag {
   // Contains cached FileMode instances.
@@ -40,10 +36,10 @@ export class FileFlag {
   private static validFlagStrs = ['r', 'r+', 'rs', 'rs+', 'w', 'wx', 'w+', 'wx+', 'a', 'ax', 'a+', 'ax+'];
 
   /**
-   * Get an object representing the given file mode.
-   * @param [String] modeStr The string representing the mode
-   * @return [BrowserFS.FileMode] The FileMode object representing the mode
-   * @throw [BrowserFS.ApiError] when the mode string is invalid
+   * Get an object representing the given file flag.
+   * @param modeStr The string representing the flag
+   * @return The FileFlag object representing the flag
+   * @throw when the flag string is invalid
    */
   public static getFileFlag(flagStr: string): FileFlag {
     // Check cache first.
@@ -56,13 +52,13 @@ export class FileFlag {
   private flagStr: string;
   /**
    * This should never be called directly.
-   * @param [String] modeStr The string representing the mode
-   * @throw [BrowserFS.ApiError] when the mode string is invalid
+   * @param modeStr The string representing the mode
+   * @throw when the mode string is invalid
    */
   constructor(flagStr: string) {
     this.flagStr = flagStr;
     if (FileFlag.validFlagStrs.indexOf(flagStr) < 0) {
-      throw new api_error.ApiError(api_error.ErrorCode.EINVAL, "Invalid flag: " + flagStr);
+      throw new ApiError(ErrorCode.EINVAL, "Invalid flag: " + flagStr);
     }
   }
 
@@ -75,42 +71,36 @@ export class FileFlag {
 
   /**
    * Returns true if the file is readable.
-   * @return [Boolean]
    */
   public isReadable(): boolean {
     return this.flagStr.indexOf('r') !== -1 || this.flagStr.indexOf('+') !== -1;
   }
   /**
    * Returns true if the file is writeable.
-   * @return [Boolean]
    */
   public isWriteable(): boolean {
     return this.flagStr.indexOf('w') !== -1 || this.flagStr.indexOf('a') !== -1 || this.flagStr.indexOf('+') !== -1;
   }
   /**
    * Returns true if the file mode should truncate.
-   * @return [Boolean]
    */
   public isTruncating(): boolean {
     return this.flagStr.indexOf('w') !== -1;
   }
   /**
    * Returns true if the file is appendable.
-   * @return [Boolean]
    */
   public isAppendable(): boolean {
     return this.flagStr.indexOf('a') !== -1;
   }
   /**
    * Returns true if the file is open in synchronous mode.
-   * @return [Boolean]
    */
   public isSynchronous(): boolean {
     return this.flagStr.indexOf('s') !== -1;
   }
   /**
    * Returns true if the file is open in exclusive mode.
-   * @return [Boolean]
    */
   public isExclusive(): boolean {
     return this.flagStr.indexOf('x') !== -1;
@@ -118,7 +108,6 @@ export class FileFlag {
   /**
    * Returns one of the static fields on this object that indicates the
    * appropriate response to the path existing.
-   * @return [Number]
    */
   public pathExistsAction(): ActionType {
     if (this.isExclusive()) {
@@ -132,7 +121,6 @@ export class FileFlag {
   /**
    * Returns one of the static fields on this object that indicates the
    * appropriate response to the path not existing.
-   * @return [Number]
    */
   public pathNotExistsAction(): ActionType {
     if ((this.isWriteable() || this.isAppendable()) && this.flagStr !== 'r+') {

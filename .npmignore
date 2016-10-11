@@ -1,9 +1,7 @@
-Gruntfile.js
 test
-# Includes generated_node_tsconfig.json
-*tsconfig.json
 coverage
 doc
 build
 typings
 .tscache
+.vscode

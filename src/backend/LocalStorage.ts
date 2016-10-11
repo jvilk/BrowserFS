@@ -1,11 +1,11 @@
-import kvfs = require('../generic/key_value_filesystem');
+import {SyncKeyValueStore, SimpleSyncStore, SyncKeyValueFileSystem, SimpleSyncRWTransaction, SyncKeyValueRWTransaction} from '../generic/key_value_filesystem';
 import {ApiError, ErrorCode} from '../core/api_error';
-import global = require('../core/global');
+import global from '../core/global';
 
 // Some versions of FF and all versions of IE do not support the full range of
 // 16-bit numbers encoded as characters, as they enforce UTF-16 restrictions.
 // http://stackoverflow.com/questions/11170716/are-there-any-characters-that-are-not-allowed-in-localstorage/11173673#11173673
-var supportsBinaryString: boolean = false,
+let supportsBinaryString: boolean = false,
   binaryEncoding: string;
 try {
   global.localStorage.setItem("__test__", String.fromCharCode(0xD800));
@@ -24,9 +24,7 @@ if (!Buffer.isEncoding(binaryEncoding)) {
 /**
  * A synchronous key-value store backed by localStorage.
  */
-export class LocalStorageStore implements kvfs.SyncKeyValueStore, kvfs.SimpleSyncStore {
-  constructor() { }
-
+export class LocalStorageStore implements SyncKeyValueStore, SimpleSyncStore {
   public name(): string {
     return 'LocalStorage';
   }
@@ -35,25 +33,25 @@ export class LocalStorageStore implements kvfs.SyncKeyValueStore, kvfs.SimpleSyn
     global.localStorage.clear();
   }
 
-  public beginTransaction(type: string): kvfs.SyncKeyValueRWTransaction {
+  public beginTransaction(type: string): SyncKeyValueRWTransaction {
     // No need to differentiate.
-    return new kvfs.SimpleSyncRWTransaction(this);
+    return new SimpleSyncRWTransaction(this);
   }
 
-  public get(key: string): NodeBuffer {
+  public get(key: string): Buffer {
     try {
-      var data = global.localStorage.getItem(key);
+      let data = global.localStorage.getItem(key);
       if (data !== null) {
         return new Buffer(data, binaryEncoding);
       }
     } catch (e) {
-
+      // Do nothing.
     }
     // Key doesn't exist, or a failure occurred.
     return undefined;
   }
 
-  public put(key: string, data: NodeBuffer, overwrite: boolean): boolean {
+  public put(key: string, data: Buffer, overwrite: boolean): boolean {
     try {
       if (!overwrite && global.localStorage.getItem(key) !== null) {
         // Don't want to overwrite the key!
@@ -79,9 +77,9 @@ export class LocalStorageStore implements kvfs.SyncKeyValueStore, kvfs.SimpleSyn
  * A synchronous file system backed by localStorage. Connects our
  * LocalStorageStore to our SyncKeyValueFileSystem.
  */
-export default class LocalStorageFileSystem extends kvfs.SyncKeyValueFileSystem {
-  constructor() { super({ store: new LocalStorageStore() }); }
+export default class LocalStorageFileSystem extends SyncKeyValueFileSystem {
   public static isAvailable(): boolean {
     return typeof global.localStorage !== 'undefined';
   }
+  constructor() { super({ store: new LocalStorageStore() }); }
 }

@@ -1,8 +1,8 @@
 import {ApiError, ErrorCode} from './api_error';
 import Stats from './node_fs_stats';
-import file = require('./file');
+import {File, BaseFile} from './file';
 import {FileFlag, ActionType} from './file_flag';
-import path = require('path');
+import * as path from 'path';
 
 /**
  * Interface for a filesystem. **All** BrowserFS FileSystems should implement
@@ -149,7 +149,7 @@ export interface FileSystem {
    *   filesystem doesn't support permissions.
    * @param {FileSystem~fileCallback} cb
    */
-  open(p: string, flag:FileFlag, mode: number, cb: (err: ApiError, fd?: file.File) => any): void;
+  open(p: string, flag: FileFlag, mode: number, cb: (err: ApiError, fd?: File) => any): void;
   /**
    * **Core**: Synchronous file open.
    * @see http://www.manpagez.com/man/2/open/
@@ -161,14 +161,14 @@ export interface FileSystem {
    *   filesystem doesn't support permissions.
    * @return {BrowserFS.File}
    */
-  openSync(p: string, flag: FileFlag, mode: number): file.File;
+  openSync(p: string, flag: FileFlag, mode: number): File;
   /**
    * **Core**: Asynchronous `unlink`.
    * @method FileSystem#unlink
    * @param [string] path
    * @param [FileSystem~nodeCallback] cb
    */
-  unlink(p: string, cb: Function): void;
+  unlink(p: string, cb: (e?: ApiError) => void): void;
   /**
    * **Core**: Synchronous `unlink`.
    * @method FileSystem#unlinkSync
@@ -182,7 +182,7 @@ export interface FileSystem {
    * @param {string} path
    * @param {FileSystem~nodeCallback} cb
    */
-  rmdir(p: string, cb: Function): void;
+  rmdir(p: string, cb: (e?: ApiError) => void): void;
   /**
    * **Core**: Synchronous `rmdir`.
    * @method FileSystem#rmdirSync
@@ -197,7 +197,7 @@ export interface FileSystem {
    *   the filesystem doesn't support permissions.
    * @param {FileSystem~nodeCallback} cb
    */
-  mkdir(p: string, mode: number, cb: Function): void;
+  mkdir(p: string, mode: number, cb: (e?: ApiError) => void): void;
   /**
    * **Core**: Synchronous `mkdir`.
    * @method FileSystem#mkdirSync
@@ -275,7 +275,7 @@ export interface FileSystem {
    * @param {number} len
    * @param {FileSystem~nodeCallback} cb
    */
-  truncate(p: string, len: number, cb: Function): void;
+  truncate(p: string, len: number, cb: (e?: ApiError) => void): void;
   /**
    * **Supplemental**: Synchronous `truncate`.
    * @method FileSystem#truncateSync
@@ -294,7 +294,7 @@ export interface FileSystem {
    * @param {FileSystem~readCallback} cb If no encoding is specified, then the
    *   raw buffer is returned.
    */
-  readFile(fname: string, encoding: string, flag: FileFlag, cb: (err: ApiError, data?: any) => void): void;
+  readFile(fname: string, encoding: string | null, flag: FileFlag, cb: (err: ApiError, data?: any) => void): void;
   /**
    * **Supplemental**: Synchronously reads the entire contents of a file.
    * @method FileSystem#readFileSync
@@ -332,7 +332,7 @@ export interface FileSystem {
    * @param {BrowserFS.FileMode} flag
    * @param {number} mode
    */
-  writeFileSync(fname: string, data: any, encoding: string, flag: FileFlag, mode: number): void;
+  writeFileSync(fname: string, data: string | Buffer, encoding: string | null, flag: FileFlag, mode: number): void;
   /**
    * **Supplemental**: Asynchronously append data to a file, creating the file if
    * it not yet exists.
@@ -344,7 +344,7 @@ export interface FileSystem {
    * @param {number} mode
    * @param {FileSystem~nodeCallback} cb
    */
-  appendFile(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cb: (err: ApiError) => void): void;
+  appendFile(fname: string, data: string | Buffer, encoding: string | null, flag: FileFlag, mode: number, cb: (err: ApiError) => void): void;
   /**
    * **Supplemental**: Synchronously append data to a file, creating the file if
    * it not yet exists.
@@ -355,7 +355,7 @@ export interface FileSystem {
    * @param {BrowserFS.FileMode} flag
    * @param {number} mode
    */
-  appendFileSync(fname: string, data: any, encoding: string, flag: FileFlag, mode: number): void;
+  appendFileSync(fname: string, data: string | Buffer, encoding: string | null, flag: FileFlag, mode: number): void;
   // **OPTIONAL INTERFACE METHODS**
   // Property operations
   // This isn't always possible on some filesystem types (e.g. Dropbox).
@@ -368,7 +368,7 @@ export interface FileSystem {
    * @param {number} mode
    * @param {FileSystem~nodeCallback} cb
    */
-  chmod(p: string, isLchmod: boolean, mode: number, cb: Function): void;
+  chmod(p: string, isLchmod: boolean, mode: number, cb: (e?: ApiError) => void): void;
   /**
    * **Optional**: Synchronous `chmod` or `lchmod`.
    * @method FileSystem#chmodSync
@@ -388,7 +388,7 @@ export interface FileSystem {
    * @param {number} gid
    * @param {FileSystem~nodeCallback} cb
    */
-  chown(p: string, isLchown: boolean, uid: number, gid: number, cb: Function): void;
+  chown(p: string, isLchown: boolean, uid: number, gid: number, cb: (e?: ApiError) => void): void;
   /**
    * **Optional**: Synchronous `chown` or `lchown`.
    * @method FileSystem#chownSync
@@ -408,7 +408,7 @@ export interface FileSystem {
    * @param {Date} mtime
    * @param {FileSystem~nodeCallback} cb
    */
-  utimes(p: string, atime: Date, mtime: Date, cb: Function): void;
+  utimes(p: string, atime: Date, mtime: Date, cb: (e?: ApiError) => void): void;
   /**
    * **Optional**: Change file timestamps of the file referenced by the supplied
    * path.
@@ -427,7 +427,7 @@ export interface FileSystem {
    * @param {string} dstpath
    * @param {FileSystem~nodeCallback} cb
    */
-  link(srcpath: string, dstpath: string, cb: Function): void;
+  link(srcpath: string, dstpath: string, cb: (e?: ApiError) => void): void;
   /**
    * **Optional**: Synchronous `link`.
    * @method FileSystem#linkSync
@@ -443,7 +443,7 @@ export interface FileSystem {
    * @param {string} type can be either `'dir'` or `'file'`
    * @param {FileSystem~nodeCallback} cb
    */
-  symlink(srcpath: string, dstpath: string, type: string, cb: Function): void;
+  symlink(srcpath: string, dstpath: string, type: string, cb: (e?: ApiError) => void): void;
   /**
    * **Optional**: Synchronous `symlink`.
    * @method FileSystem#symlinkSync
@@ -458,7 +458,7 @@ export interface FileSystem {
    * @param {string} path
    * @param {FileSystem~pathCallback} callback
    */
-  readlink(p: string, cb: Function): void;
+  readlink(p: string, cb: (e: ApiError, p?: string) => void): void;
   /**
    * **Optional**: Synchronous readlink.
    * @method FileSystem#readlinkSync
@@ -499,18 +499,18 @@ export class BaseFileSystem {
    * @param p The path to open.
    * @param flag The flag to use when opening the file.
    */
-  public openFile(p: string, flag: FileFlag, cb: (e: ApiError, file?: file.File) => void): void {
+  public openFile(p: string, flag: FileFlag, cb: (e: ApiError, file?: File) => void): void {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
   /**
    * Create the file at path p with the given mode. Then, open it with the given
    * flag.
    */
-  public createFile(p: string, flag: FileFlag, mode: number, cb: (e: ApiError, file?: file.File) => void): void {
+  public createFile(p: string, flag: FileFlag, mode: number, cb: (e: ApiError, file?: File) => void): void {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
-  public open(p: string, flag:FileFlag, mode: number, cb: (err: ApiError, fd?: file.BaseFile) => any): void {
-    var must_be_file = (e: ApiError, stats?: Stats): void => {
+  public open(p: string, flag: FileFlag, mode: number, cb: (err: ApiError, fd?: BaseFile) => any): void {
+    let mustBeFile = (e: ApiError, stats?: Stats): void => {
       if (e) {
         // File does not exist.
         switch (flag.pathNotExistsAction()) {
@@ -543,7 +543,7 @@ export class BaseFileSystem {
             // re-created it. However, this created a race condition if another
             // asynchronous request was trying to read the file, as the file
             // would not exist for a small period of time.
-            return this.openFile(p, flag, (e: ApiError, fd?: file.File): void => {
+            return this.openFile(p, flag, (e: ApiError, fd?: File): void => {
               if (e) {
                 cb(e);
               } else {
@@ -561,7 +561,7 @@ export class BaseFileSystem {
         }
       }
     };
-    this.stat(p, false, must_be_file);
+    this.stat(p, false, mustBeFile);
   }
   public rename(oldPath: string, newPath: string, cb: (err?: ApiError) => void): void {
     cb(new ApiError(ErrorCode.ENOTSUP));
@@ -581,19 +581,19 @@ export class BaseFileSystem {
    * @param flag The flag to use when opening the file.
    * @return A File object corresponding to the opened file.
    */
-  public openFileSync(p: string, flag: FileFlag, mode: number): file.File {
+  public openFileSync(p: string, flag: FileFlag, mode: number): File {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
   /**
    * Create the file at path p with the given mode. Then, open it with the given
    * flag.
    */
-  public createFileSync(p: string, flag: FileFlag, mode: number): file.File {
+  public createFileSync(p: string, flag: FileFlag, mode: number): File {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
-  public openSync(p: string, flag: FileFlag, mode: number): file.File {
+  public openSync(p: string, flag: FileFlag, mode: number): File {
     // Check if the path exists, and is a file.
-    var stats: Stats;
+    let stats: Stats;
     try {
       stats = this.statSync(p, false);
     } catch (e) {
@@ -601,7 +601,7 @@ export class BaseFileSystem {
       switch (flag.pathNotExistsAction()) {
         case ActionType.CREATE_FILE:
           // Ensure parent exists.
-          var parentStats = this.statSync(path.dirname(p), false);
+          let parentStats = this.statSync(path.dirname(p), false);
           if (!parentStats.isDirectory()) {
             throw ApiError.ENOTDIR(path.dirname(p));
           }
@@ -660,7 +660,7 @@ export class BaseFileSystem {
   }
   public exists(p: string, cb: (exists: boolean) => void): void {
     this.stat(p, null, function(err) {
-      cb(err == null);
+      cb(!err);
     });
   }
   public existsSync(p: string): boolean {
@@ -675,10 +675,10 @@ export class BaseFileSystem {
     if (this.supportsLinks()) {
       // The path could contain symlinks. Split up the path,
       // resolve any symlinks, return the resolved string.
-      var splitPath = p.split(path.sep);
+      let splitPath = p.split(path.sep);
       // TODO: Simpler to just pass through file, find sep and such.
-      for (var i = 0; i < splitPath.length; i++) {
-        var addPaths = splitPath.slice(0, i + 1);
+      for (let i = 0; i < splitPath.length; i++) {
+        let addPaths = splitPath.slice(0, i + 1);
         splitPath[i] = path.join.apply(null, addPaths);
       }
     } else {
@@ -696,12 +696,13 @@ export class BaseFileSystem {
     if (this.supportsLinks()) {
       // The path could contain symlinks. Split up the path,
       // resolve any symlinks, return the resolved string.
-      var splitPath = p.split(path.sep);
+      let splitPath = p.split(path.sep);
       // TODO: Simpler to just pass through file, find sep and such.
-      for (var i = 0; i < splitPath.length; i++) {
-        var addPaths = splitPath.slice(0, i + 1);
-        splitPath[i] = path.join.apply(null, addPaths);
+      for (let i = 0; i < splitPath.length; i++) {
+        let addPaths = splitPath.slice(0, i + 1);
+        splitPath[i] = path.join.apply(path, addPaths);
       }
+      return splitPath.join(path.sep);
     } else {
       // No symlinks. We just need to verify that it exists.
       if (this.existsSync(p)) {
@@ -712,7 +713,7 @@ export class BaseFileSystem {
     }
   }
   public truncate(p: string, len: number, cb: Function): void {
-    this.open(p, FileFlag.getFileFlag('r+'), 0x1a4, (function(er: ApiError, fd?: file.File) {
+    this.open(p, FileFlag.getFileFlag('r+'), 0x1a4, (function(er: ApiError, fd?: File) {
       if (er) {
         return cb(er);
       }
@@ -724,7 +725,7 @@ export class BaseFileSystem {
     }));
   }
   public truncateSync(p: string, len: number): void {
-    var fd = this.openSync(p, FileFlag.getFileFlag('r+'), 0x1a4);
+    let fd = this.openSync(p, FileFlag.getFileFlag('r+'), 0x1a4);
     // Need to safely close FD, regardless of whether or not truncate succeeds.
     try {
       fd.truncateSync(len);
@@ -736,28 +737,28 @@ export class BaseFileSystem {
   }
   public readFile(fname: string, encoding: string, flag: FileFlag, cb: (err: ApiError, data?: any) => void): void {
     // Wrap cb in file closing code.
-    var oldCb = cb;
+    let oldCb = cb;
     // Get file.
-    this.open(fname, flag, 0x1a4, function(err: ApiError, fd?: file.File) {
+    this.open(fname, flag, 0x1a4, function(err: ApiError, fd?: File) {
       if (err) {
         return cb(err);
       }
-      cb = function(err: ApiError, arg?: file.File) {
+      cb = function(err: ApiError, arg?: File) {
         fd.close(function(err2: any) {
-          if (err == null) {
+          if (!err) {
             err = err2;
           }
           return oldCb(err, arg);
         });
       };
       fd.stat(function(err: ApiError, stat?: Stats) {
-        if (err != null) {
+        if (err) {
           return cb(err);
         }
         // Allocate buffer.
-        var buf = new Buffer(stat.size);
+        let buf = new Buffer(stat.size);
         fd.read(buf, 0, stat.size, 0, function(err) {
-          if (err != null) {
+          if (err) {
             return cb(err);
           } else if (encoding === null) {
             return cb(err, buf);
@@ -773,11 +774,11 @@ export class BaseFileSystem {
   }
   public readFileSync(fname: string, encoding: string, flag: FileFlag): any {
     // Get file.
-    var fd = this.openSync(fname, flag, 0x1a4);
+    let fd = this.openSync(fname, flag, 0x1a4);
     try {
-      var stat = fd.statSync();
+      let stat = fd.statSync();
       // Allocate buffer.
-      var buf = new Buffer(stat.size);
+      let buf = new Buffer(stat.size);
       fd.readSync(buf, 0, stat.size, 0);
       fd.closeSync();
       if (encoding === null) {
@@ -790,15 +791,15 @@ export class BaseFileSystem {
   }
   public writeFile(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cb: (err: ApiError) => void): void {
     // Wrap cb in file closing code.
-    var oldCb = cb;
+    let oldCb = cb;
     // Get file.
-    this.open(fname, flag, 0x1a4, function(err: ApiError, fd?:file.File) {
-      if (err != null) {
+    this.open(fname, flag, 0x1a4, function(err: ApiError, fd?: File) {
+      if (err) {
         return cb(err);
       }
       cb = function(err: ApiError) {
         fd.close(function(err2: any) {
-          oldCb(err != null ? err : err2);
+          oldCb(err ? err : err2);
         });
       };
 
@@ -815,7 +816,7 @@ export class BaseFileSystem {
   }
   public writeFileSync(fname: string, data: any, encoding: string, flag: FileFlag, mode: number): void {
     // Get file.
-    var fd = this.openSync(fname, flag, mode);
+    let fd = this.openSync(fname, flag, mode);
     try {
       if (typeof data === 'string') {
         data = new Buffer(data, encoding);
@@ -828,14 +829,14 @@ export class BaseFileSystem {
   }
   public appendFile(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cb: (err: ApiError) => void): void {
     // Wrap cb in file closing code.
-    var oldCb = cb;
-    this.open(fname, flag, mode, function(err: ApiError, fd?: file.File) {
-      if (err != null) {
+    let oldCb = cb;
+    this.open(fname, flag, mode, function(err: ApiError, fd?: File) {
+      if (err) {
         return cb(err);
       }
       cb = function(err: ApiError) {
         fd.close(function(err2: any) {
-          oldCb(err != null ? err : err2);
+          oldCb(err ? err : err2);
         });
       };
       if (typeof data === 'string') {
@@ -845,7 +846,7 @@ export class BaseFileSystem {
     });
   }
   public appendFileSync(fname: string, data: any, encoding: string, flag: FileFlag, mode: number): void {
-    var fd = this.openSync(fname, flag, mode);
+    let fd = this.openSync(fname, flag, mode);
     try {
       if (typeof data === 'string') {
         data = new Buffer(data, encoding);

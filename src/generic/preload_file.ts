@@ -1,9 +1,9 @@
-import file = require('../core/file');
-import file_system = require('../core/file_system');
+import {BaseFile, File} from '../core/file';
+import {FileSystem} from '../core/file_system';
 import Stats from '../core/node_fs_stats';
 import {FileFlag} from '../core/file_flag';
 import {ApiError, ErrorCode} from '../core/api_error';
-import fs = require('../core/node_fs');
+import fs from '../core/node_fs';
 
 /**
  * An implementation of the File interface that operates on a file that is
@@ -14,35 +14,35 @@ import fs = require('../core/node_fs');
  * extend this class and implement those two methods.
  * @todo 'close' lever that disables functionality once closed.
  */
-export class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile {
+export default class PreloadFile<T extends FileSystem> extends BaseFile {
+  protected _fs: T;
   private _pos: number = 0;
   private _path: string;
-  protected _fs: T;
   private _stat: Stats;
   private _flag: FileFlag;
-  private _buffer: NodeBuffer;
+  private _buffer: Buffer;
   private _dirty: boolean = false;
   /**
    * Creates a file with the given path and, optionally, the given contents. Note
    * that, if contents is specified, it will be mutated by the file!
-   * @param [BrowserFS.FileSystem] _fs The file system that created the file.
-   * @param [String] _path
-   * @param [BrowserFS.FileMode] _mode The mode that the file was opened using.
+   * @param _fs The file system that created the file.
+   * @param _path
+   * @param _mode The mode that the file was opened using.
    *   Dictates permissions and where the file pointer starts.
-   * @param [BrowserFS.node.fs.Stats] _stat The stats object for the given file.
+   * @param _stat The stats object for the given file.
    *   PreloadFile will mutate this object. Note that this object must contain
    *   the appropriate mode that the file was opened as.
-   * @param [BrowserFS.node.Buffer?] contents A buffer containing the entire
+   * @param contents A buffer containing the entire
    *   contents of the file. PreloadFile will mutate this buffer. If not
    *   specified, we assume it is a new file.
    */
-  constructor(_fs: T, _path: string, _flag: FileFlag, _stat: Stats, contents?: NodeBuffer) {
+  constructor(_fs: T, _path: string, _flag: FileFlag, _stat: Stats, contents?: Buffer) {
     super();
     this._fs = _fs;
     this._path = _path;
     this._flag = _flag;
     this._stat = _stat;
-    if (contents != null) {
+    if (contents) {
       this._buffer = contents;
     } else {
       // Empty buffer. It'll expand once we write stuff to it.
@@ -53,25 +53,14 @@ export class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile
     // Note: Only actually matters if file is readable, as writeable modes may
     // truncate/append to file.
     if (this._stat.size !== this._buffer.length && this._flag.isReadable()) {
-      throw new Error("Invalid buffer: Buffer is " + this._buffer.length + " long, yet Stats object specifies that file is " + this._stat.size + " long.");
+      throw new Error(`Invalid buffer: Buffer is ${this._buffer.length} long, yet Stats object specifies that file is ${this._stat.size} long.`);
     }
-  }
-
-  protected isDirty(): boolean {
-    return this._dirty;
-  }
-
-  /**
-   * Resets the dirty bit. Should only be called after a sync has completed successfully.
-   */
-  protected resetDirty() {
-    this._dirty = false;
   }
 
   /**
    * NONSTANDARD: Get the underlying buffer for this file. !!DO NOT MUTATE!! Will mess up dirty tracking.
    */
-  public getBuffer(): NodeBuffer {
+  public getBuffer(): Buffer {
     return this._buffer;
   }
 
@@ -215,7 +204,7 @@ export class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile
     }
     this._stat.mtime = new Date();
     if (len > this._buffer.length) {
-      var buf = new Buffer(len - this._buffer.length);
+      let buf = new Buffer(len - this._buffer.length);
       buf.fill(0);
       // Write will set @_stat.size for us.
       this.writeSync(buf, 0, buf.length, this._buffer.length);
@@ -226,7 +215,7 @@ export class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile
     }
     this._stat.size = len;
     // Truncate buffer to 'len'.
-    var newBuff = new Buffer(len);
+    let newBuff = new Buffer(len);
     this._buffer.copy(newBuff, 0, 0, len);
     this._buffer = newBuff;
     if (this._flag.isSynchronous() && fs.getRootFS().supportsSynch()) {
@@ -248,7 +237,7 @@ export class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile
    * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
    *   cb The number specifies the number of bytes written into the file.
    */
-  public write(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (e: ApiError, len?: number, buff?: NodeBuffer) => void): void {
+  public write(buffer: Buffer, offset: number, length: number, position: number, cb: (e: ApiError, len?: number, buff?: Buffer) => void): void {
     try {
       cb(null, this.writeSync(buffer, offset, length, position), buffer);
     } catch (e) {
@@ -269,25 +258,25 @@ export class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile
    *   the current position.
    * @return [Number]
    */
-  public writeSync(buffer: NodeBuffer, offset: number, length: number, position: number): number {
+  public writeSync(buffer: Buffer, offset: number, length: number, position: number): number {
     this._dirty = true;
-    if (position == null) {
+    if (position === undefined || position === null) {
       position = this.getPos();
     }
     if (!this._flag.isWriteable()) {
       throw new ApiError(ErrorCode.EPERM, 'File not opened with a writeable mode.');
     }
-    var endFp = position + length;
+    let endFp = position + length;
     if (endFp > this._stat.size) {
       this._stat.size = endFp;
       if (endFp > this._buffer.length) {
         // Extend the buffer!
-        var newBuff = new Buffer(endFp);
+        let newBuff = new Buffer(endFp);
         this._buffer.copy(newBuff);
         this._buffer = newBuff;
       }
     }
-    var len = buffer.copy(this._buffer, position, offset, offset + length);
+    let len = buffer.copy(this._buffer, position, offset, offset + length);
     this._stat.mtime = new Date();
     if (this._flag.isSynchronous()) {
       this.syncSync();
@@ -310,7 +299,7 @@ export class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile
    * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)] cb The
    *   number is the number of bytes read
    */
-  public read(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (e: ApiError, len?: number, buff?: NodeBuffer) => void): void {
+  public read(buffer: Buffer, offset: number, length: number, position: number, cb: (e: ApiError, len?: number, buff?: Buffer) => void): void {
     try {
       cb(null, this.readSync(buffer, offset, length, position), buffer);
     } catch (e) {
@@ -330,18 +319,18 @@ export class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile
    *   position.
    * @return [Number]
    */
-  public readSync(buffer: NodeBuffer, offset: number, length: number, position: number): number {
+  public readSync(buffer: Buffer, offset: number, length: number, position: number): number {
     if (!this._flag.isReadable()) {
       throw new ApiError(ErrorCode.EPERM, 'File not opened with a readable mode.');
     }
-    if (position == null) {
+    if (position === undefined || position === null) {
       position = this.getPos();
     }
-    var endRead = position + length;
+    let endRead = position + length;
     if (endRead > this._stat.size) {
       length = this._stat.size - position;
     }
-    var rv = this._buffer.copy(buffer, offset, position, position + length);
+    let rv = this._buffer.copy(buffer, offset, position, position + length);
     this._stat.atime = new Date();
     this._pos = position + length;
     return rv;
@@ -373,14 +362,25 @@ export class PreloadFile<T extends file_system.FileSystem> extends file.BaseFile
     this._stat.chmod(mode);
     this.syncSync();
   }
+
+  protected isDirty(): boolean {
+    return this._dirty;
+  }
+
+  /**
+   * Resets the dirty bit. Should only be called after a sync has completed successfully.
+   */
+  protected resetDirty() {
+    this._dirty = false;
+  }
 }
 
 /**
  * File class for the InMemory and XHR file systems.
  * Doesn't sync to anything, so it works nicely for memory-only files.
  */
-export class NoSyncFile<T extends file_system.FileSystem> extends PreloadFile<T> implements file.File {
-  constructor(_fs: T, _path: string, _flag: FileFlag, _stat: Stats, contents?: NodeBuffer) {
+export class NoSyncFile<T extends FileSystem> extends PreloadFile<T> implements File {
+  constructor(_fs: T, _path: string, _flag: FileFlag, _stat: Stats, contents?: Buffer) {
     super(_fs, _path, _flag, _stat, contents);
   }
   /**
@@ -393,7 +393,9 @@ export class NoSyncFile<T extends file_system.FileSystem> extends PreloadFile<T>
   /**
    * Synchronous sync. Doesn't do anything.
    */
-  public syncSync(): void {}
+  public syncSync(): void {
+    // NOP.
+  }
   /**
    * Asynchronous close. Doesn't do anything, simply calls the cb.
    * @param [Function(BrowserFS.ApiError)] cb
@@ -404,5 +406,7 @@ export class NoSyncFile<T extends file_system.FileSystem> extends PreloadFile<T>
   /**
    * Synchronous close. Doesn't do anything.
    */
-  public closeSync(): void {}
+  public closeSync(): void {
+    // NOP.
+  }
 }
