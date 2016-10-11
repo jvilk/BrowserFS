@@ -26,7 +26,8 @@ export class FileIndex<T> {
       let pwd = next[0];
       let tree = next[1];
       let parent = next[2];
-      for (let node in tree) {
+      let node: string;
+      for (node in tree) {
         if (tree.hasOwnProperty(node)) {
           let children = tree[node];
           let name = `${pwd}/${node}`;
