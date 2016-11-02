@@ -42,6 +42,50 @@ function _toArray(list?: any[]): any[] {
   return Array.prototype.slice.call(list || [], 0);
 }
 
+/**
+ * Converts the given DOMError into an appropriate ApiError.
+ * Full list of values here:
+ * https://developer.mozilla.org/en-US/docs/Web/API/DOMError
+ */
+function convertError(err: DOMError, p: string, expectedDir: boolean): ApiError {
+  switch (err.name) {
+    /* The user agent failed to create a file or directory due to the existence of a file or
+        directory with the same path.  */
+    case "PathExistsError":
+      return ApiError.EEXIST(p);
+    /* The operation failed because it would cause the application to exceed its storage quota.  */
+    case 'QuotaExceededError':
+      return ApiError.FileError(ErrorCode.ENOSPC, p);
+    /*  A required file or directory could not be found at the time an operation was processed.   */
+    case 'NotFoundError':
+      return ApiError.ENOENT(p);
+    /* This is a security error code to be used in situations not covered by any other error codes.
+        - A required file was unsafe for access within a Web application
+        - Too many calls are being made on filesystem resources */
+    case 'SecurityError':
+      return ApiError.FileError(ErrorCode.EACCES, p);
+    /* The modification requested was illegal. Examples of invalid modifications include moving a
+        directory into its own child, moving a file into its parent directory without changing its name,
+        or copying a directory to a path occupied by a file.  */
+    case 'InvalidModificationError':
+      return ApiError.FileError(ErrorCode.EPERM, p);
+    /* The user has attempted to look up a file or directory, but the Entry found is of the wrong type
+        [e.g. is a DirectoryEntry when the user requested a FileEntry].  */
+    case 'TypeMismatchError':
+      return ApiError.FileError(expectedDir ? ErrorCode.ENOTDIR : ErrorCode.EISDIR, p);
+    /* A path or URL supplied to the API was malformed.  */
+    case "EncodingError":
+    /* An operation depended on state cached in an interface object, but that state that has changed
+        since it was read from disk.  */
+    case "InvalidStateError":
+    /* The user attempted to write to a file or directory which could not be modified due to the state
+        of the underlying filesystem.  */
+    case "NoModificationAllowedError":
+    default:
+      return ApiError.FileError(ErrorCode.EINVAL, p);
+  }
+}
+
 // A note about getFile and getDirectory options:
 // These methods are called at numerous places in this file, and are passed
 // some combination of these two options:
@@ -51,41 +95,34 @@ function _toArray(list?: any[]): any[] {
 //                and throw an error if it does.
 
 export class HTML5FSFile extends PreloadFile<HTML5FS> implements IFile {
-  constructor(_fs: HTML5FS, _path: string, _flag: FileFlag, _stat: Stats, contents?: Buffer) {
-    super(_fs, _path, _flag, _stat, contents);
+  private _entry: FileEntry;
+
+  constructor(fs: HTML5FS, entry: FileEntry, path: string, flag: FileFlag, stat: Stats, contents?: Buffer) {
+    super(fs, path, flag, stat, contents);
+    this._entry = entry;
   }
 
   public sync(cb: (e?: ApiError) => void): void {
-    if (this.isDirty()) {
-      // Don't create the file (it should already have been created by `open`)
-      let opts = {
-        create: false
-      };
-      let _fs = this._fs;
-      let success: FileEntryCallback = (entry) => {
-        entry.createWriter((writer) => {
-          let buffer = this.getBuffer();
-          let blob = new Blob([buffer2ArrayBuffer(buffer)]);
-          let length = blob.size;
-          writer.onwriteend = () => {
-            writer.onwriteend = null;
-            writer.truncate(length);
-            this.resetDirty();
-            cb();
-          };
-          writer.onerror = (err: any) => {
-            cb(_fs.convert(err, this.getPath(), false));
-          };
-          writer.write(blob);
-        });
-      };
-      let error = (err: DOMError) => {
-        cb(_fs.convert(err, this.getPath(), false));
-      };
-      _fs.fs.root.getFile(this.getPath(), opts, success, error);
-    } else {
-      cb();
+    if (!this.isDirty()) {
+      return cb();
     }
+
+    this._entry.createWriter((writer) => {
+      let buffer = this.getBuffer();
+      let blob = new Blob([buffer2ArrayBuffer(buffer)]);
+      let length = blob.size;
+      writer.onwriteend = (err?: any) => {
+        writer.onwriteend = null;
+        writer.onerror = null;
+        writer.truncate(length);
+        this.resetDirty();
+        cb();
+      };
+      writer.onerror = (err: any) => {
+        cb(convertError(err, this.getPath(), false));
+      };
+      writer.write(blob);
+    });
   }
 
   public close(cb: (e?: ApiError) => void): void {
@@ -135,50 +172,6 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
   }
 
   /**
-   * Converts the given DOMError into an appropriate ApiError.
-   * Full list of values here:
-   * https://developer.mozilla.org/en-US/docs/Web/API/DOMError
-   */
-  public convert(err: DOMError, p: string, expectedDir: boolean): ApiError {
-    switch (err.name) {
-      /* The user agent failed to create a file or directory due to the existence of a file or
-         directory with the same path.  */
-      case "PathExistsError":
-        return ApiError.EEXIST(p);
-      /* The operation failed because it would cause the application to exceed its storage quota.  */
-      case 'QuotaExceededError':
-        return ApiError.FileError(ErrorCode.ENOSPC, p);
-      /*  A required file or directory could not be found at the time an operation was processed.   */
-      case 'NotFoundError':
-        return ApiError.ENOENT(p);
-      /* This is a security error code to be used in situations not covered by any other error codes.
-         - A required file was unsafe for access within a Web application
-         - Too many calls are being made on filesystem resources */
-      case 'SecurityError':
-        return ApiError.FileError(ErrorCode.EACCES, p);
-      /* The modification requested was illegal. Examples of invalid modifications include moving a
-         directory into its own child, moving a file into its parent directory without changing its name,
-         or copying a directory to a path occupied by a file.  */
-      case 'InvalidModificationError':
-        return ApiError.FileError(ErrorCode.EPERM, p);
-      /* The user has attempted to look up a file or directory, but the Entry found is of the wrong type
-         [e.g. is a DirectoryEntry when the user requested a FileEntry].  */
-      case 'TypeMismatchError':
-        return ApiError.FileError(expectedDir ? ErrorCode.ENOTDIR : ErrorCode.EISDIR, p);
-      /* A path or URL supplied to the API was malformed.  */
-      case "EncodingError":
-      /* An operation depended on state cached in an interface object, but that state that has changed
-         since it was read from disk.  */
-      case "InvalidStateError":
-      /* The user attempted to write to a file or directory which could not be modified due to the state
-         of the underlying filesystem.  */
-      case "NoModificationAllowedError":
-      default:
-        return ApiError.FileError(ErrorCode.EINVAL, p);
-    }
-  }
-
-  /**
    * Nonstandard
    * Requests a storage quota from the browser to back this FS.
    */
@@ -188,7 +181,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
       cb();
     };
     let error = (err: DOMException): void => {
-      cb(this.convert(err, "/", true));
+      cb(convertError(err, "/", true));
     };
     if (this.type === global.PERSISTENT) {
       _requestQuota(this.type, this.size, (granted: number) => {
@@ -227,7 +220,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
             cb();
           };
           let error = (err: DOMException) => {
-            cb(this.convert(err, entry.fullPath, !entry.isDirectory));
+            cb(convertError(err, entry.fullPath, !entry.isDirectory));
           };
           if (isDirectoryEntry(entry)) {
             entry.removeRecursively(succ, error);
@@ -249,7 +242,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
       currentPath: string = oldPath,
       error = (err: DOMException): void => {
         if (--semaphore <= 0) {
-            cb(this.convert(err, currentPath, false));
+            cb(convertError(err, currentPath, false));
         }
       },
       success = (file: Entry): void => {
@@ -319,7 +312,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
     };
     // Called when the path couldn't be opened as a directory or a file.
     let failedToLoad = (err: DOMException): void => {
-      cb(this.convert(err, path, false /* Unknown / irrelevant */));
+      cb(convertError(err, path, false /* Unknown / irrelevant */));
     };
     // Called when the path couldn't be opened as a file, but might still be a
     // directory.
@@ -337,7 +330,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
       if (err.name === 'InvalidModificationError' && flags.isExclusive()) {
         cb(ApiError.EEXIST(p));
       } else {
-        cb(this.convert(err, p, false));
+        cb(convertError(err, p, false));
       }
     };
 
@@ -349,7 +342,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
       entry.file((file: File): void => {
         let reader = new FileReader();
         reader.onloadend = (event: Event): void => {
-          let bfsFile = this._makeFile(p, flags, file, <ArrayBuffer> reader.result);
+          let bfsFile = this._makeFile(p, entry, flags, file, <ArrayBuffer> reader.result);
           cb(null, bfsFile);
         };
         reader.onerror = (ev: Event) => {
@@ -388,7 +381,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
       cb();
     };
     let error = (err: DOMException): void => {
-      cb(this.convert(err, path, true));
+      cb(convertError(err, path, true));
     };
     this.fs.root.getDirectory(path, opts, success, error);
   }
@@ -413,10 +406,10 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
    * Returns a BrowserFS object representing a File, created from the data
    * returned by calls to the Dropbox API.
    */
-  private _makeFile(path: string, flag: FileFlag, stat: File, data: ArrayBuffer = new ArrayBuffer(0)): HTML5FSFile {
+  private _makeFile(path: string, entry: FileEntry, flag: FileFlag, stat: File, data: ArrayBuffer = new ArrayBuffer(0)): HTML5FSFile {
     let stats = new Stats(FileType.FILE, stat.size);
     let buffer = arrayBuffer2Buffer(data);
-    return new HTML5FSFile(this, path, flag, stats, buffer);
+    return new HTML5FSFile(this, entry, path, flag, stats, buffer);
   }
 
   /**
@@ -424,7 +417,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
    */
   private _readdir(path: string, cb: (e: ApiError, entries?: Entry[]) => void): void {
     let error = (err: DOMException): void => {
-      cb(this.convert(err, path, true));
+      cb(convertError(err, path, true));
     };
     // Grab the requested directory.
     this.fs.root.getDirectory(path, { create: false }, (dirEntry: DirectoryEntry) => {
@@ -458,12 +451,12 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
         cb();
       };
       let err = (err: DOMException) => {
-        cb(this.convert(err, path, !isFile));
+        cb(convertError(err, path, !isFile));
       };
       entry.remove(succ, err);
     };
     let error = (err: DOMException): void => {
-      cb(this.convert(err, path, !isFile));
+      cb(convertError(err, path, !isFile));
     };
     // Deleting the entry, so don't create it
     let opts = {
