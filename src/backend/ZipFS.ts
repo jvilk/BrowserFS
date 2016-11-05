@@ -58,7 +58,7 @@ import {FileIndex, DirInode, FileInode, isDirInode, isFileInode} from '../generi
 /**
  * Maps CompressionMethod => function that decompresses.
  */
-const decompressionMethods: {[method: number]: (data: Buffer, compressedSize: number, uncompressedSize: number) => Buffer} = {};
+const decompressionMethods: {[method: number]: (data: Buffer, compressedSize: number, uncompressedSize: number, flags: number) => Buffer} = {};
 
 /**
  * 4.4.2.2: Indicates the compatibiltiy of a file's external attributes.
@@ -236,7 +236,7 @@ export class FileData {
     const compressionMethod: CompressionMethod = this.header.compressionMethod();
     const fcn = decompressionMethods[compressionMethod];
     if (fcn) {
-      return fcn(this.data, this.record.compressedSize(), this.record.uncompressedSize());
+      return fcn(this.data, this.record.compressedSize(), this.record.uncompressedSize(), this.record.flag());
     } else {
       let name: string = CompressionMethod[compressionMethod];
       if (!name) {
@@ -509,7 +509,7 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
 
   public static isAvailable(): boolean { return true; }
 
-  public static RegisterDecompressionMethod(m: CompressionMethod, fcn: (data: Buffer, compressedSize: number, uncompressedSize: number) => Buffer): void {
+  public static RegisterDecompressionMethod(m: CompressionMethod, fcn: (data: Buffer, compressedSize: number, uncompressedSize: number, flags: number) => Buffer): void {
     decompressionMethods[m] = fcn;
   }
 

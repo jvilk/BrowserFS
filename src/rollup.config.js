@@ -25,9 +25,7 @@ export default {
       jsnext: true,
       preferBuiltins: true
     }),
-    sourcemaps({
-      exclude: '**/*'
-    }),
+    sourcemaps(),
     buble()
   ]
 };

@@ -9,6 +9,7 @@ import {FileSystemConstructor, FileSystem} from './file_system';
 import EmscriptenFS from '../generic/emscripten_fs';
 import Backends from './backends';
 import * as BFSUtils from './util';
+import * as Errors from './api_error';
 
 if ((<any> process)['initializeTTYs']) {
   (<any> process)['initializeTTYs']();
@@ -81,4 +82,4 @@ export function initialize(rootfs: FileSystem) {
   return fs.initialize(rootfs);
 }
 
-export {EmscriptenFS, Backends as FileSystem};
+export {EmscriptenFS, Backends as FileSystem, Errors};

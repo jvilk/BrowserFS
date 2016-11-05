@@ -1,4 +1,4 @@
-# BrowserFS v1.0.0
+# BrowserFS v1.1.0
 > BrowserFS is an in-browser file system that emulates the [Node JS file system API](http://nodejs.org/api/fs.html) and supports storing and retrieving files from various backends. BrowserFS also integrates nicely into the Emscripten file system.
 
 [![Build Status](https://travis-ci.org/jvilk/BrowserFS.svg?branch=master)](https://travis-ci.org/jvilk/BrowserFS)
@@ -19,6 +19,8 @@ BrowserFS is highly extensible, and ships with many filesystem backends:
   * Note: You provide this filesystem with an authenticated [DropboxJS client](https://github.com/dropbox/dropbox-js)
 * `InMemory`: Stores files in-memory. Thus, it is a temporary file store that clears when the user navigates away.
 * `ZipFS`: Read-only zip file-backed FS. Lazily decompresses files as you access them.
+  * Supports DEFLATE out-of-the-box.
+  * Have super old zip files? [The `browserfs-zipfs-extras` package](https://github.com/jvilk/browserfs-zipfs-extras) adds support for EXPLODE, UNREDUCE, and UNSHRINK.
 * `WorkerFS`: Lets you mount the BrowserFS file system configured in the main thread in a WebWorker, or the other way around!
 * `MountableFileSystem`: Lets you mount multiple file systems into a single directory hierarchy, as in *nix-based OSes.
 * `OverlayFS`: Mount a read-only file system as read-write by overlaying a writable file system on top of it. Like Docker's overlayfs, it will only write changed files to the writable file system.
