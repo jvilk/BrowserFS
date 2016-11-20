@@ -21,6 +21,8 @@ BrowserFS is highly extensible, and ships with many filesystem backends:
 * `ZipFS`: Read-only zip file-backed FS. Lazily decompresses files as you access them.
   * Supports DEFLATE out-of-the-box.
   * Have super old zip files? [The `browserfs-zipfs-extras` package](https://github.com/jvilk/browserfs-zipfs-extras) adds support for EXPLODE, UNREDUCE, and UNSHRINK.
+* `IsoFS`: Mount an .iso file into the file system.
+  * Supports Microsoft Joliet and Rock Ridge extensions to the ISO9660 standard.
 * `WorkerFS`: Lets you mount the BrowserFS file system configured in the main thread in a WebWorker, or the other way around!
 * `MountableFileSystem`: Lets you mount multiple file systems into a single directory hierarchy, as in *nix-based OSes.
 * `OverlayFS`: Mount a read-only file system as read-write by overlaying a writable file system on top of it. Like Docker's overlayfs, it will only write changed files to the writable file system.
