@@ -151,7 +151,7 @@ You can use BrowserFS with Node. Simply add `browserfs` as an NPM dependency, an
 The object returned from this action is the same `BrowserFS` global described above.
 
 If you need BrowserFS to return Node Buffer objects (instead of objects that implement the same interface),
-simply `require('browserfs/dist/node/main')` instead.
+simply `require('browserfs/dist/node/index')` instead.
 
 ### Using with Emscripten
 
