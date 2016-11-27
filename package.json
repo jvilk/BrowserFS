@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@types/archiver": "^0.15.33",
-    "@types/async": "^2.0.31",
+    "@types/async": "2.0.31",
     "@types/dropboxjs": "0.0.29",
     "@types/filesystem": "0.0.28",
     "@types/mocha": "^2.2.32",
