@@ -1,4 +1,4 @@
-import {FileSystem, BaseFileSystem} from '../core/file_system';
+import {FileSystem, BaseFileSystem, BFSOneArgCallback, BFSCallback} from '../core/file_system';
 import InMemoryFileSystem from './InMemory';
 import {ApiError, ErrorCode} from '../core/api_error';
 import fs from '../core/node_fs';
@@ -137,7 +137,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
   // Note that we go through the Node API to use its robust default argument
   // processing.
 
-  public rename(oldPath: string, newPath: string, cb: (e?: ApiError) => void): void {
+  public rename(oldPath: string, newPath: string, cb: BFSOneArgCallback): void {
     // Scenario 1: old and new are on same FS.
     let fs1rv = this._getFs(oldPath);
     let fs2rv = this._getFs(newPath);
@@ -188,7 +188,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
 
     // If null, rootfs did not have the directory
     // (or the target FS is the root fs).
-    let rv: string[] = null;
+    let rv: string[] | null = null;
     // Mount points are all defined in the root FS.
     // Ensure that we list those, too.
     if (fsInfo.fs !== this.rootFs) {
@@ -217,7 +217,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
     }
   }
 
-  public readdir(p: string, cb: (err: NodeJS.ErrnoException, listing?: string[]) => any): void {
+  public readdir(p: string, cb: BFSCallback<string[]>): void {
     let fsInfo = this._getFs(p);
     fsInfo.fs.readdir(fsInfo.path, (err, files) => {
       if (fsInfo.fs !== this.rootFs) {
@@ -225,7 +225,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
           let rv = this.rootFs.readdirSync(p);
           if (files) {
             // Filter out duplicates.
-            files = files.concat(rv.filter((val) => files.indexOf(val) === -1));
+            files = files.concat(rv.filter((val) => files!.indexOf(val) === -1));
           } else {
             files = rv;
           }
@@ -257,7 +257,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
     }
   }
 
-  public rmdir(p: string, cb: (err?: NodeJS.ErrnoException) => any): void {
+  public rmdir(p: string, cb: BFSOneArgCallback): void {
     let fsInfo = this._getFs(p);
     if (this._containsMountPt(p)) {
       cb(ApiError.ENOTEMPTY(p));

@@ -21,6 +21,13 @@ export interface Arrayish<T> {
 }
 
 /**
+ * Throws an exception. Called on code paths that should be impossible.
+ */
+export function fail() {
+  throw new Error("BFS has reached an impossible code path; please file a bug.");
+}
+
+/**
  * Synchronous recursive makedir.
  */
 export function mkdirpSync(p: string, mode: number, fs: FileSystem): void {

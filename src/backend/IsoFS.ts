@@ -150,7 +150,7 @@ class VolumeDescriptor {
 }
 
 abstract class PrimaryOrSupplementaryVolumeDescriptor extends VolumeDescriptor {
-  private _root: DirectoryRecord = null;
+  private _root: DirectoryRecord | null = null;
   constructor(data: Buffer) {
     super(data);
   }
@@ -304,8 +304,8 @@ abstract class DirectoryRecord {
   protected _data: Buffer;
   // Offset at which system use entries begin. Set to -1 if not enabled.
   protected _rockRidgeOffset: number;
-  protected _suEntries: SystemUseEntry[] = null;
-  private _fileOrDir: Buffer | Directory<DirectoryRecord> = null;
+  protected _suEntries: SystemUseEntry[] | null = null;
+  private _fileOrDir: Buffer | Directory<DirectoryRecord> | null = null;
   constructor(data: Buffer, rockRidgeOffset: number) {
     this._data = data;
     this._rockRidgeOffset = rockRidgeOffset;
@@ -457,12 +457,12 @@ abstract class DirectoryRecord {
     if (!this._suEntries) {
       this._constructSUEntries(isoData);
     }
-    return this._suEntries;
+    return this._suEntries!;
   }
   protected abstract _getString(i: number, len: number): string;
   protected abstract _getGetString(): TGetString;
   protected abstract _constructDirectory(isoData: Buffer): Directory<DirectoryRecord>;
-  protected _rockRidgeFilename(isoData: Buffer): string {
+  protected _rockRidgeFilename(isoData: Buffer): string | null {
     const nmEntries = <NMEntry[]> this.getSUEntries(isoData).filter((e) => e instanceof NMEntry);
     if (nmEntries.length === 0 || nmEntries[0].flags() & (NMFlags.CURRENT | NMFlags.PARENT)) {
       return null;
@@ -588,7 +588,7 @@ class SystemUseEntry {
  * Continuation entry.
  */
 class CEEntry extends SystemUseEntry {
-  private _entries: SystemUseEntry[] = null;
+  private _entries: SystemUseEntry[] | null = null;
   constructor(data: Buffer) {
     super(data);
   }
@@ -865,7 +865,7 @@ class TFEntry extends SystemUseEntry {
   public flags(): number {
     return this._data[4];
   }
-  public creation(): Date {
+  public creation(): Date | null {
     if (this.flags() & TFFlags.CREATION) {
       if (this._longFormDates()) {
         return getDate(this._data, 5);
@@ -876,7 +876,7 @@ class TFEntry extends SystemUseEntry {
       return null;
     }
   }
-  public modify(): Date {
+  public modify(): Date | null {
     if (this.flags() & TFFlags.MODIFY) {
       const previousDates = (this.flags() & TFFlags.CREATION) ? 1 : 0;
       if (this._longFormDates) {
@@ -888,7 +888,7 @@ class TFEntry extends SystemUseEntry {
       return null;
     }
   }
-  public access(): Date {
+  public access(): Date | null {
     if (this.flags() & TFFlags.ACCESS) {
       let previousDates = (this.flags() & TFFlags.CREATION) ? 1 : 0;
       previousDates += (this.flags() & TFFlags.MODIFY) ? 1 : 0;
@@ -901,7 +901,7 @@ class TFEntry extends SystemUseEntry {
       return null;
     }
   }
-  public backup(): Date {
+  public backup(): Date | null {
     if (this.flags() & TFFlags.BACKUP) {
       let previousDates = (this.flags() & TFFlags.CREATION) ? 1 : 0;
       previousDates += (this.flags() & TFFlags.MODIFY) ? 1 : 0;
@@ -915,7 +915,7 @@ class TFEntry extends SystemUseEntry {
       return null;
     }
   }
-  public expiration(): Date {
+  public expiration(): Date | null {
     if (this.flags() & TFFlags.EXPIRATION) {
       let previousDates = (this.flags() & TFFlags.CREATION) ? 1 : 0;
       previousDates += (this.flags() & TFFlags.MODIFY) ? 1 : 0;
@@ -930,7 +930,7 @@ class TFEntry extends SystemUseEntry {
       return null;
     }
   }
-  public effective(): Date {
+  public effective(): Date | null {
     if (this.flags() & TFFlags.EFFECTIVE) {
       let previousDates = (this.flags() & TFFlags.CREATION) ? 1 : 0;
       previousDates += (this.flags() & TFFlags.MODIFY) ? 1 : 0;
@@ -1123,7 +1123,7 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
     if (record === null) {
       throw ApiError.ENOENT(p);
     }
-    return this._getStats(p, record);
+    return this._getStats(p, record)!;
   }
 
   public openSync(p: string, flags: FileFlag, mode: number): File {
@@ -1139,7 +1139,7 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
       return this.openSync(path.resolve(p, record.getSymlinkPath(this._data)), flags, mode);
     } else if (!record.isDirectory(this._data)) {
       let data = record.getFile(this._data);
-      let stats = this._getStats(p, record);
+      let stats = this._getStats(p, record)!;
       switch (flags.pathExistsAction()) {
         case ActionType.THROW_EXCEPTION:
         case ActionType.TRUNCATE_FILE:
@@ -1184,7 +1184,7 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
     }
   }
 
-  private _getDirectoryRecord(path: string): DirectoryRecord {
+  private _getDirectoryRecord(path: string): DirectoryRecord | null {
     // Special case.
     if (path === '/') {
       return this._root;
@@ -1204,10 +1204,14 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
     return dir;
   }
 
-  private _getStats(p: string, record: DirectoryRecord): Stats {
+  private _getStats(p: string, record: DirectoryRecord): Stats | null {
     if (record.isSymlink(this._data)) {
       const newP = path.resolve(p, record.getSymlinkPath(this._data));
-      return this._getStats(newP, this._getDirectoryRecord(newP));
+      const dirRec = this._getDirectoryRecord(newP);
+      if (!dirRec) {
+        return null;
+      }
+      return this._getStats(newP, dirRec);
     } else {
       const len = record.dataLength();
       let mode = 0x16D;
@@ -1224,13 +1228,13 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
           } else if (entry instanceof TFEntry) {
             const flags = entry.flags();
             if (flags & TFFlags.ACCESS) {
-              atime = entry.access();
+              atime = entry.access()!;
             }
             if (flags & TFFlags.MODIFY) {
-              mtime = entry.modify();
+              mtime = entry.modify()!;
             }
             if (flags & TFFlags.CREATION) {
-              ctime = entry.creation();
+              ctime = entry.creation()!;
             }
           }
         }

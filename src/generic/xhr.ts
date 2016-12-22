@@ -5,11 +5,12 @@
 
 import {isIE} from '../core/util';
 import {ApiError, ErrorCode} from '../core/api_error';
+import {BFSCallback} from '../core/file_system';
 
-function asyncDownloadFileModern(p: string, type: 'buffer', cb: (err: ApiError, data?: Buffer) => void): void;
-function asyncDownloadFileModern(p: string, type: 'json', cb: (err: ApiError, data?: any) => void): void;
-function asyncDownloadFileModern(p: string, type: string, cb: (err: ApiError, data?: any) => void): void;
-function asyncDownloadFileModern(p: string, type: string, cb: (err: ApiError, data?: any) => void): void {
+function asyncDownloadFileModern(p: string, type: 'buffer', cb: BFSCallback<Buffer>): void;
+function asyncDownloadFileModern(p: string, type: 'json', cb: BFSCallback<any>): void;
+function asyncDownloadFileModern(p: string, type: string, cb: BFSCallback<any>): void;
+function asyncDownloadFileModern(p: string, type: string, cb: BFSCallback<any>): void {
   let req = new XMLHttpRequest();
   req.open('GET', p, true);
   let jsonSupported = true;
@@ -143,7 +144,7 @@ function syncDownloadFileIE10(p: string, type: string): any {
   return data;
 }
 
-function getFileSize(async: boolean, p: string, cb: (err: ApiError, size?: number) => void): void {
+function getFileSize(async: boolean, p: string, cb: BFSCallback<number>): void {
   let req = new XMLHttpRequest();
   req.open('HEAD', p, async);
   req.onreadystatechange = function(e) {
@@ -170,9 +171,9 @@ function getFileSize(async: boolean, p: string, cb: (err: ApiError, size?: numbe
  * constants.
  */
 export let asyncDownloadFile: {
-  (p: string, type: 'buffer', cb: (err: ApiError, data?: Buffer) => void): void;
-  (p: string, type: 'json', cb: (err: ApiError, data?: any) => void): void;
-  (p: string, type: string, cb: (err: ApiError, data?: any) => void): void;
+  (p: string, type: 'buffer', cb: BFSCallback<Buffer>): void;
+  (p: string, type: 'json', cb: BFSCallback<any>): void;
+  (p: string, type: string, cb: BFSCallback<any>): void;
 } = asyncDownloadFileModern;
 
 /**
@@ -191,12 +192,12 @@ export let syncDownloadFile: {
  * Synchronously retrieves the size of the given file in bytes.
  */
 export function getFileSizeSync(p: string): number {
-  let rv: number;
+  let rv: number = -1;
   getFileSize(false, p, function(err: ApiError, size?: number) {
     if (err) {
       throw err;
     }
-    rv = size;
+    rv = size!;
   });
   return rv;
 }

@@ -1,4 +1,4 @@
-import {FileSystem, SynchronousFileSystem} from '../core/file_system';
+import {FileSystem, SynchronousFileSystem, BFSOneArgCallback} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag} from '../core/file_flag';
 import {File} from '../core/file';
@@ -79,7 +79,7 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
   /**
    * Called once to load up files from async storage into sync storage.
    */
-  public initialize(userCb: (err?: ApiError) => void): void {
+  public initialize(userCb: BFSOneArgCallback): void {
     const callbacks = this._initializeCallbacks;
 
     const end = (e?: ApiError): void => {
@@ -91,7 +91,7 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
     if (!this._isInitialized) {
       // First call triggers initialization, the rest wait.
       if (callbacks.push(userCb) === 1) {
-        const copyDirectory = (p: string, mode: number, cb: (err?: ApiError) => void) => {
+        const copyDirectory = (p: string, mode: number, cb: BFSOneArgCallback) => {
           if (p !== '/') {
             this._sync.mkdirSync(p, mode);
           }
@@ -103,8 +103,8 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
             function copyNextFile(err?: ApiError) {
               if (err) {
                 cb(err);
-              } else if (i < files.length) {
-                copyItem(path.join(p, files[i]), copyNextFile);
+              } else if (i < files!.length) {
+                copyItem(path.join(p, files![i]), copyNextFile);
                 i++;
               } else {
                 cb();
@@ -116,13 +116,13 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
               copyNextFile();
             }
           });
-        }, copyFile = (p: string, mode: number, cb: (err?: ApiError) => void) => {
+        }, copyFile = (p: string, mode: number, cb: BFSOneArgCallback) => {
           this._async.readFile(p, null, FileFlag.getFileFlag('r'), (err, data) => {
             if (err) {
               cb(err);
             } else {
               try {
-                this._sync.writeFileSync(p, data, null, FileFlag.getFileFlag('w'), mode);
+                this._sync.writeFileSync(p, data!, null, FileFlag.getFileFlag('w'), mode);
               } catch (e) {
                 err = e;
               } finally {
@@ -130,14 +130,14 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
               }
             }
           });
-        }, copyItem = (p: string, cb: (err?: ApiError) => void) => {
+        }, copyItem = (p: string, cb: BFSOneArgCallback) => {
           this._async.stat(p, false, (err, stats) => {
             if (err) {
               cb(err);
-            } else if (stats.isDirectory()) {
-              copyDirectory(p, stats.mode, cb);
+            } else if (stats!.isDirectory()) {
+              copyDirectory(p, stats!.mode, cb);
             } else {
-              copyFile(p, stats.mode, cb);
+              copyFile(p, stats!.mode, cb);
             }
           });
         };
@@ -254,7 +254,7 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
           console.error(`WARNING: File system has desynchronized. Received following error: ${err}\n$`);
         }
         if (this._queue.length > 0) {
-          let op = this._queue.shift(),
+          let op = this._queue.shift()!,
             args = op.arguments;
           args.push(doNextOp);
           (<Function> (<any> this._async)[op.apiMethod]).apply(this._async, args);

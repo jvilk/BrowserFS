@@ -53,7 +53,7 @@ export default class Stats implements fs.Stats {
   // time file was created (currently unsupported)
   public birthtime: Date = new Date(0);
   // XXX: Some file systems stash data on stats objects.
-  public fileData: Buffer = null;
+  public fileData: Buffer | null= null;
 
   /**
    * Provides information about a particular entry in the file system.

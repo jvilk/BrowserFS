@@ -14,6 +14,7 @@
     "noImplicitThis": true,
     "noImplicitUseStrict": true,
     "noUnusedLocals": true,
+    "strictNullChecks": true,
     "typeRoots": [
       "../node_modules/@types"
     ]

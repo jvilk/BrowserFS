@@ -50,7 +50,7 @@ if (typeof setImmediate === 'undefined') {
           event.cancelBubble = true;
         }
         if (timeouts.length > 0) {
-          let fn = timeouts.shift();
+          let fn = timeouts.shift()!;
           return fn();
         }
       }
@@ -65,7 +65,7 @@ if (typeof setImmediate === 'undefined') {
     let channel = new gScope.MessageChannel();
     channel.port1.onmessage = (event: any) => {
       if (timeouts.length > 0) {
-        return timeouts.shift()();
+        return timeouts.shift()!();
       }
     };
     gScope.setImmediate = (fn: () => void) => {

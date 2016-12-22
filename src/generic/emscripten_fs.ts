@@ -386,7 +386,7 @@ export default class BFSEmscriptenFS implements EmscriptenFS {
     return this.createNode(null, '/', this.getMode(m.opts.root), 0);
   }
 
-  public createNode(parent: EmscriptenFSNode, name: string, mode: number, dev?: any): EmscriptenFSNode {
+  public createNode(parent: EmscriptenFSNode | null, name: string, mode: number, dev?: any): EmscriptenFSNode {
     let FS = this.FS;
     if (!FS.isDir(mode) && !FS.isFile(mode) && !FS.isLink(mode)) {
       throw new FS.ErrnoError(this.ERRNO_CODES.EINVAL);

@@ -35,19 +35,21 @@
         "variable-declaration": "onespace"
       }
     ],
+    "prefer-for-of": false,
     "curly": true,
     "forin": true,
     "label-position": true,
+    "max-classes-per-file": [
+      false
+    ],
+    "array-type": [false],
     "no-arg": true,
     "no-conditional-assignment": true,
     "no-construct": true,
-    "no-duplicate-key": true,
     "no-empty": true,
-    "no-unreachable": true,
     "no-unsafe-finally": true,
     "no-unused-expression": true,
     "no-unused-new": true,
-    "no-unused-variable": true,
     "no-var-keyword": true,
     "radix": true,
     "triple-equals": true,

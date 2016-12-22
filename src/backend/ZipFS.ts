@@ -590,7 +590,7 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
 
   private _index: FileIndex<CentralDirectory> = new FileIndex<CentralDirectory>();
   private _directoryEntries: CentralDirectory[] = [];
-  private _eocd: EndOfCentralDirectory = null;
+  private _eocd: EndOfCentralDirectory | null = null;
   private data: Buffer;
 
   /**
@@ -626,7 +626,7 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
     if (isFileInode<CentralDirectory>(inode)) {
       return inode.getData();
     } else if (isDirInode<CentralDirectory>(inode)) {
-      return inode.getData();
+      return inode.getData()!;
     } else {
       // Should never occur.
       throw ApiError.EPERM(`Invalid inode: ${inode}`);
@@ -645,7 +645,7 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
     return this._directoryEntries.length;
   }
 
-  public getEndOfCentralDirectory(): EndOfCentralDirectory {
+  public getEndOfCentralDirectory(): EndOfCentralDirectory | null {
     return this._eocd;
   }
 

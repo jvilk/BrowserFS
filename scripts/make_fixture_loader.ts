@@ -44,7 +44,7 @@ function tryAddToDirs(dir: string) {
 // Recursively sort all files into directories / files
 const processDirs = [fixturesPath]
 while (processDirs.length > 0) {
-  const workingDir = processDirs.pop()
+  const workingDir = processDirs.pop()!;
   // Check if we need to make this directory, or any of its parents.
   tryAddToDirs(workingDir);
   const workingList = fs.readdirSync(workingDir);

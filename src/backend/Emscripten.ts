@@ -1,4 +1,4 @@
-import {SynchronousFileSystem} from '../core/file_system';
+import {SynchronousFileSystem, BFSOneArgCallback, BFSCallback, BFSThreeArgCallback} from '../core/file_system';
 import {default as Stats, FileType} from '../core/node_fs_stats';
 import {FileFlag} from '../core/file_flag';
 import {BaseFile, File} from '../core/file';
@@ -33,11 +33,11 @@ export class EmscriptenFile extends BaseFile implements File {
     private _stream: any) {
     super();
   }
-  public getPos(): number {
+  public getPos(): number | undefined {
     return undefined;
   }
-  public close(cb: (err?: ApiError) => void): void {
-    let err: ApiError = null;
+  public close(cb: BFSOneArgCallback): void {
+    let err: ApiError | null = null;
     try {
       this.closeSync();
     } catch (e) {
@@ -53,7 +53,7 @@ export class EmscriptenFile extends BaseFile implements File {
       throw convertError(e, this._path);
     }
   }
-  public stat(cb: (err: ApiError, stats?: Stats) => any): void {
+  public stat(cb: BFSCallback<Stats>): void {
     try {
       cb(null, this.statSync());
     } catch (e) {
@@ -67,8 +67,8 @@ export class EmscriptenFile extends BaseFile implements File {
       throw convertError(e, this._path);
     }
   }
-  public truncate(len: number, cb: (err?: ApiError) => void): void {
-    let err: ApiError = null;
+  public truncate(len: number, cb: BFSOneArgCallback): void {
+    let err: ApiError | null = null;
     try {
       this.truncateSync(len);
     } catch (e) {
@@ -84,53 +84,49 @@ export class EmscriptenFile extends BaseFile implements File {
       throw convertError(e, this._path);
     }
   }
-  public write(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (err: ApiError, written?: number, buffer?: NodeBuffer) => any): void {
+  public write(buffer: NodeBuffer, offset: number, length: number, position: number, cb: BFSThreeArgCallback<number, Buffer>): void {
     try {
       cb(null, this.writeSync(buffer, offset, length, position), buffer);
     } catch (e) {
       cb(e);
     }
   }
-  public writeSync(buffer: NodeBuffer, offset: number, length: number, position: number): number {
+  public writeSync(buffer: NodeBuffer, offset: number, length: number, position: number | null): number {
     try {
       const u8 = buffer2Uint8array(buffer);
       // Emscripten is particular about what position is set to.
-      if (position === null) {
-        position = undefined;
-      }
-      return this._FS.write(this._stream, u8, offset, length, position);
+      let emPosition = position === null ? undefined : position;
+      return this._FS.write(this._stream, u8, offset, length, emPosition);
     } catch (e) {
       throw convertError(e, this._path);
     }
   }
-  public read(buffer: NodeBuffer, offset: number, length: number, position: number, cb: (err: ApiError, bytesRead?: number, buffer?: NodeBuffer) => void): void {
+  public read(buffer: NodeBuffer, offset: number, length: number, position: number, cb: BFSThreeArgCallback<number, Buffer>): void {
     try {
       cb(null, this.readSync(buffer, offset, length, position), buffer);
     } catch (e) {
       cb(e);
     }
   }
-  public readSync(buffer: NodeBuffer, offset: number, length: number, position: number): number {
+  public readSync(buffer: NodeBuffer, offset: number, length: number, position: number | null): number {
     try {
       const u8 = buffer2Uint8array(buffer);
       // Emscripten is particular about what position is set to.
-      if (position === null) {
-        position = undefined;
-      }
-      return this._FS.read(this._stream, u8, offset, length, position);
+      let emPosition = position === null ? undefined : position;
+      return this._FS.read(this._stream, u8, offset, length, emPosition);
     } catch (e) {
       throw convertError(e, this._path);
     }
   }
-  public sync(cb: (e?: ApiError) => void): void {
+  public sync(cb: BFSOneArgCallback): void {
     // NOP.
     cb();
   }
   public syncSync(): void {
     // NOP.
   }
-  public chown(uid: number, gid: number, cb: (e?: ApiError) => void): void {
-    let err: ApiError = null;
+  public chown(uid: number, gid: number, cb: BFSOneArgCallback): void {
+    let err: ApiError | null = null;
     try {
       this.chownSync(uid, gid);
     } catch (e) {
@@ -146,8 +142,8 @@ export class EmscriptenFile extends BaseFile implements File {
       throw convertError(e, this._path);
     }
   }
-  public chmod(mode: number, cb: (e?: ApiError) => void): void {
-    let err: ApiError = null;
+  public chmod(mode: number, cb: BFSOneArgCallback): void {
+    let err: ApiError | null = null;
     try {
       this.chmodSync(mode);
     } catch (e) {
@@ -163,8 +159,8 @@ export class EmscriptenFile extends BaseFile implements File {
       throw convertError(e, this._path);
     }
   }
-  public utimes(atime: Date, mtime: Date, cb: (e?: ApiError) => void): void {
-    let err: ApiError = null;
+  public utimes(atime: Date, mtime: Date, cb: BFSOneArgCallback): void {
+    let err: ApiError | null = null;
     try {
       this.utimesSync(atime, mtime);
     } catch (e) {

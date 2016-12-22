@@ -1,6 +1,6 @@
 import {File} from './file';
 import {ApiError, ErrorCode} from './api_error';
-import {FileSystem} from './file_system';
+import {FileSystem, BFSOneArgCallback, BFSCallback, BFSThreeArgCallback} from './file_system';
 import {FileFlag} from './file_flag';
 import * as path from 'path';
 import Stats from './node_fs_stats';
@@ -15,7 +15,14 @@ let wrapCb = function<T extends Function>(cb: T, numArgs: number): T {
   return cb;
 };
 
-function normalizeMode(mode: number | string, def: number): number {
+function assertRoot(fs?: FileSystem | null): FileSystem {
+  if (fs) {
+    return fs;
+  }
+  throw new ApiError(ErrorCode.EIO, `Initialize BrowserFS with a file system using BrowserFS.initialize(filesystem)`);
+}
+
+function normalizeMode(mode: number | string | null | undefined, def: number): number {
   switch (typeof mode) {
     case 'number':
       // (path, flag, mode, cb?)
@@ -53,25 +60,25 @@ function normalizePath(p: string): string {
   return path.resolve(p);
 }
 
-function normalizeOptions(options: any, defEnc: string, defFlag: string, defMode: number): {encoding: string; flag: string; mode: number} {
+function normalizeOptions(options: any, defEnc: string | null, defFlag: string, defMode: number | null): {encoding: string; flag: string; mode: number} {
   switch (typeof options) {
     case 'object':
       return {
         encoding: typeof options['encoding'] !== 'undefined' ? options['encoding'] : defEnc,
         flag: typeof options['flag'] !== 'undefined' ? options['flag'] : defFlag,
-        mode: normalizeMode(options['mode'], defMode)
+        mode: normalizeMode(options['mode'], defMode!)
       };
     case 'string':
       return {
         encoding: options,
         flag: defFlag,
-        mode: defMode
+        mode: defMode!
       };
     default:
       return {
-        encoding: defEnc,
+        encoding: defEnc!,
         flag: defFlag,
-        mode: defMode
+        mode: defMode!
       };
   }
 }
@@ -106,7 +113,7 @@ export default class FS {
   public W_OK: number = 2;
   public X_OK: number = 1;
 
-  private root: FileSystem = null;
+  private root: FileSystem | null = null;
   private fdMap: {[fd: number]: File} = {};
   private nextFd = 100;
 
@@ -135,7 +142,7 @@ export default class FS {
    * @return [BrowserFS.FileSystem | null] Returns null if the file system has
    *   not been initialized.
    */
-  public getRootFS(): FileSystem {
+  public getRootFS(): FileSystem | null {
     if (this.root) {
       return this.root;
     } else {
@@ -148,14 +155,14 @@ export default class FS {
   /**
    * Asynchronous rename. No arguments other than a possible exception are given
    * to the completion callback.
-   * @param [String] oldPath
-   * @param [String] newPath
-   * @param [Function(BrowserFS.ApiError)] callback
+   * @param oldPath
+   * @param newPath
+   * @param callback
    */
-  public rename(oldPath: string, newPath: string, cb: (err?: ApiError) => void = nopCb): void {
+  public rename(oldPath: string, newPath: string, cb: BFSOneArgCallback = nopCb): void {
     let newCb = wrapCb(cb, 1);
     try {
-      this.root.rename(normalizePath(oldPath), normalizePath(newPath), newCb);
+      assertRoot(this.root).rename(normalizePath(oldPath), normalizePath(newPath), newCb);
     } catch (e) {
       newCb(e);
     }
@@ -163,11 +170,11 @@ export default class FS {
 
   /**
    * Synchronous rename.
-   * @param [String] oldPath
-   * @param [String] newPath
+   * @param oldPath
+   * @param newPath
    */
   public renameSync(oldPath: string, newPath: string): void {
-    this.root.renameSync(normalizePath(oldPath), normalizePath(newPath));
+    assertRoot(this.root).renameSync(normalizePath(oldPath), normalizePath(newPath));
   }
 
   /**
@@ -177,13 +184,13 @@ export default class FS {
    *   fs.exists('/etc/passwd', function (exists) {
    *     util.debug(exists ? "it's there" : "no passwd!");
    *   });
-   * @param [String] path
-   * @param [Function(Boolean)] callback
+   * @param path
+   * @param callback
    */
-  public exists(path: string, cb: (exists: boolean) => void = nopCb): void {
+  public exists(path: string, cb: (exists: boolean) => any = nopCb): void {
     let newCb = wrapCb(cb, 1);
     try {
-      return this.root.exists(normalizePath(path), newCb);
+      return assertRoot(this.root).exists(normalizePath(path), newCb);
     } catch (e) {
       // Doesn't return an error. If something bad happens, we assume it just
       // doesn't exist.
@@ -193,12 +200,12 @@ export default class FS {
 
   /**
    * Test whether or not the given path exists by checking with the file system.
-   * @param [String] path
+   * @param path
    * @return [boolean]
    */
   public existsSync(path: string): boolean {
     try {
-      return this.root.existsSync(normalizePath(path));
+      return assertRoot(this.root).existsSync(normalizePath(path));
     } catch (e) {
       // Doesn't return an error. If something bad happens, we assume it just
       // doesn't exist.
@@ -208,40 +215,40 @@ export default class FS {
 
   /**
    * Asynchronous `stat`.
-   * @param [String] path
-   * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] callback
+   * @param path
+   * @param callback
    */
-  public stat(path: string, cb: (err: ApiError, stats?: Stats) => any = nopCb): void {
+  public stat(path: string, cb: BFSCallback<Stats> = nopCb): void {
     let newCb = wrapCb(cb, 2);
     try {
-      return this.root.stat(normalizePath(path), false, newCb);
+      return assertRoot(this.root).stat(normalizePath(path), false, newCb);
     } catch (e) {
-      return newCb(e, null);
+      return newCb(e);
     }
   }
 
   /**
    * Synchronous `stat`.
-   * @param [String] path
+   * @param path
    * @return [BrowserFS.node.fs.Stats]
    */
   public statSync(path: string): Stats {
-    return this.root.statSync(normalizePath(path), false);
+    return assertRoot(this.root).statSync(normalizePath(path), false);
   }
 
   /**
    * Asynchronous `lstat`.
    * `lstat()` is identical to `stat()`, except that if path is a symbolic link,
    * then the link itself is stat-ed, not the file that it refers to.
-   * @param [String] path
-   * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] callback
+   * @param path
+   * @param callback
    */
-  public lstat(path: string, cb: (err: ApiError, stats?: Stats) => any = nopCb): void {
+  public lstat(path: string, cb: BFSCallback<Stats> = nopCb): void {
     let newCb = wrapCb(cb, 2);
     try {
-      return this.root.stat(normalizePath(path), true, newCb);
+      return assertRoot(this.root).stat(normalizePath(path), true, newCb);
     } catch (e) {
-      return newCb(e, null);
+      return newCb(e);
     }
   }
 
@@ -249,24 +256,24 @@ export default class FS {
    * Synchronous `lstat`.
    * `lstat()` is identical to `stat()`, except that if path is a symbolic link,
    * then the link itself is stat-ed, not the file that it refers to.
-   * @param [String] path
+   * @param path
    * @return [BrowserFS.node.fs.Stats]
    */
   public lstatSync(path: string): Stats {
-    return this.root.statSync(normalizePath(path), true);
+    return assertRoot(this.root).statSync(normalizePath(path), true);
   }
 
   // FILE-ONLY METHODS
 
   /**
    * Asynchronous `truncate`.
-   * @param [String] path
-   * @param [Number] len
-   * @param [Function(BrowserFS.ApiError)] callback
+   * @param path
+   * @param len
+   * @param callback
    */
-  public truncate(path: string, cb?: (err?: ApiError) => void): void;
-  public truncate(path: string, len: number, cb?: (err?: ApiError) => void): void;
-  public truncate(path: string, arg2: any = 0, cb: (err?: ApiError) => void = nopCb): void {
+  public truncate(path: string, cb?: BFSOneArgCallback): void;
+  public truncate(path: string, len: number, cb?: BFSOneArgCallback): void;
+  public truncate(path: string, arg2: any = 0, cb: BFSOneArgCallback = nopCb): void {
     let len = 0;
     if (typeof arg2 === 'function') {
       cb = arg2;
@@ -279,7 +286,7 @@ export default class FS {
       if (len < 0) {
         throw new ApiError(ErrorCode.EINVAL);
       }
-      return this.root.truncate(normalizePath(path), len, newCb);
+      return assertRoot(this.root).truncate(normalizePath(path), len, newCb);
     } catch (e) {
       return newCb(e);
     }
@@ -287,25 +294,25 @@ export default class FS {
 
   /**
    * Synchronous `truncate`.
-   * @param [String] path
-   * @param [Number] len
+   * @param path
+   * @param len
    */
   public truncateSync(path: string, len: number = 0): void {
     if (len < 0) {
       throw new ApiError(ErrorCode.EINVAL);
     }
-    return this.root.truncateSync(normalizePath(path), len);
+    return assertRoot(this.root).truncateSync(normalizePath(path), len);
   }
 
   /**
    * Asynchronous `unlink`.
-   * @param [String] path
-   * @param [Function(BrowserFS.ApiError)] callback
+   * @param path
+   * @param callback
    */
-  public unlink(path: string, cb: (err?: ApiError) => void = nopCb): void {
+  public unlink(path: string, cb: BFSOneArgCallback = nopCb): void {
     let newCb = wrapCb(cb, 1);
     try {
-      return this.root.unlink(normalizePath(path), newCb);
+      return assertRoot(this.root).unlink(normalizePath(path), newCb);
     } catch (e) {
       return newCb(e);
     }
@@ -313,10 +320,10 @@ export default class FS {
 
   /**
    * Synchronous `unlink`.
-   * @param [String] path
+   * @param path
    */
   public unlinkSync(path: string): void {
-    return this.root.unlinkSync(normalizePath(path));
+    return assertRoot(this.root).unlinkSync(normalizePath(path));
   }
 
   /**
@@ -339,19 +346,19 @@ export default class FS {
    * * `'ax+'` - Like 'a+' but opens the file in exclusive mode.
    *
    * @see http://www.manpagez.com/man/2/open/
-   * @param [String] path
-   * @param [String] flags
-   * @param [Number?] mode defaults to `0644`
-   * @param [Function(BrowserFS.ApiError, BrowserFS.File)] callback
+   * @param path
+   * @param flags
+   * @param mode defaults to `0644`
+   * @param callback
    */
-  public open(path: string, flag: string, cb?: (err: ApiError, fd?: number) => any): void;
-  public open(path: string, flag: string, mode: number|string, cb?: (err: ApiError, fd?: number) => any): void;
-  public open(path: string, flag: string, arg2?: any, cb: (err: ApiError, fd?: number) => any = nopCb): void {
+  public open(path: string, flag: string, cb?: BFSCallback<number>): void;
+  public open(path: string, flag: string, mode: number|string, cb?: BFSCallback<number>): void;
+  public open(path: string, flag: string, arg2?: any, cb: BFSCallback<number> = nopCb): void {
     let mode = normalizeMode(arg2, 0x1a4);
     cb = typeof arg2 === 'function' ? arg2 : cb;
     let newCb = wrapCb(cb, 2);
     try {
-      this.root.open(normalizePath(path), FileFlag.getFileFlag(flag), mode, (e: ApiError, file?: File) => {
+      assertRoot(this.root).open(normalizePath(path), FileFlag.getFileFlag(flag), mode, (e: ApiError, file?: File) => {
         if (file) {
           newCb(e, this.getFdForFile(file));
         } else {
@@ -359,21 +366,21 @@ export default class FS {
         }
       });
     } catch (e) {
-      newCb(e, null);
+      newCb(e);
     }
   }
 
   /**
    * Synchronous file open.
    * @see http://www.manpagez.com/man/2/open/
-   * @param [String] path
-   * @param [String] flags
-   * @param [Number?] mode defaults to `0644`
+   * @param path
+   * @param flags
+   * @param mode defaults to `0644`
    * @return [BrowserFS.File]
    */
   public openSync(path: string, flag: string, mode: number|string = 0x1a4): number {
     return this.getFdForFile(
-      this.root.openSync(normalizePath(path), FileFlag.getFileFlag(flag), normalizeMode(mode, 0x1a4)));
+      assertRoot(this.root).openSync(normalizePath(path), FileFlag.getFileFlag(flag), normalizeMode(mode, 0x1a4)));
   }
 
   /**
@@ -383,17 +390,17 @@ export default class FS {
    *     if (err) throw err;
    *     console.log(data);
    *   });
-   * @param [String] filename
-   * @param [Object?] options
+   * @param filename
+   * @param options
    * @option options [String] encoding The string encoding for the file contents. Defaults to `null`.
    * @option options [String] flag Defaults to `'r'`.
-   * @param [Function(BrowserFS.ApiError, String | BrowserFS.node.Buffer)] callback If no encoding is specified, then the raw buffer is returned.
+   * @param callback If no encoding is specified, then the raw buffer is returned.
    */
-  public readFile(filename: string, cb: (err: ApiError, data?: Buffer) => void ): void;
-  public readFile(filename: string, options: { flag?: string; }, callback: (err: ApiError, data: Buffer) => void): void;
-  public readFile(filename: string, options: { encoding: string; flag?: string; }, callback: (err: ApiError, data: string) => void): void;
-  public readFile(filename: string, encoding: string, cb?: (err: ApiError, data?: string) => void ): void;
-  public readFile(filename: string, arg2: any = {}, cb: (err: ApiError, data?: any) => void = nopCb ) {
+  public readFile(filename: string, cb: BFSCallback<Buffer>): void;
+  public readFile(filename: string, options: { flag?: string; }, callback: BFSCallback<Buffer>): void;
+  public readFile(filename: string, options: { encoding: string; flag?: string; }, callback: BFSCallback<string>): void;
+  public readFile(filename: string, encoding: string, cb?: BFSCallback<string>): void;
+  public readFile(filename: string, arg2: any = {}, cb: BFSCallback<Buffer | string> = nopCb ) {
     let options = normalizeOptions(arg2, null, 'r', null);
     cb = typeof arg2 === 'function' ? arg2 : cb;
     let newCb = wrapCb(cb, 2);
@@ -402,16 +409,16 @@ export default class FS {
       if (!flag.isReadable()) {
         return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to readFile must allow for reading.'));
       }
-      return this.root.readFile(normalizePath(filename), options.encoding, flag, newCb);
+      return assertRoot(this.root).readFile(normalizePath(filename), options.encoding, flag, newCb);
     } catch (e) {
-      return newCb(e, null);
+      return newCb(e);
     }
   }
 
   /**
    * Synchronously reads the entire contents of a file.
-   * @param [String] filename
-   * @param [Object?] options
+   * @param filename
+   * @param options
    * @option options [String] encoding The string encoding for the file contents. Defaults to `null`.
    * @option options [String] flag Defaults to `'r'`.
    * @return [String | BrowserFS.node.Buffer]
@@ -425,7 +432,7 @@ export default class FS {
     if (!flag.isReadable()) {
       throw new ApiError(ErrorCode.EINVAL, 'Flag passed to readFile must allow for reading.');
     }
-    return this.root.readFileSync(normalizePath(filename), options.encoding, flag);
+    return assertRoot(this.root).readFileSync(normalizePath(filename), options.encoding, flag);
   }
 
   /**
@@ -439,18 +446,18 @@ export default class FS {
    *     if (err) throw err;
    *     console.log('It\'s saved!');
    *   });
-   * @param [String] filename
-   * @param [String | BrowserFS.node.Buffer] data
-   * @param [Object?] options
+   * @param filename
+   * @param data
+   * @param options
    * @option options [String] encoding Defaults to `'utf8'`.
    * @option options [Number] mode Defaults to `0644`.
    * @option options [String] flag Defaults to `'w'`.
-   * @param [Function(BrowserFS.ApiError)] callback
+   * @param callback
    */
-  public writeFile(filename: string, data: any, cb?: (err?: ApiError) => void): void;
-  public writeFile(filename: string, data: any, encoding?: string, cb?: (err?: ApiError) => void): void;
-  public writeFile(filename: string, data: any, options?: { encoding?: string; mode?: string | number; flag?: string; }, cb?: (err?: ApiError) => void): void;
-  public writeFile(filename: string, data: any, arg3: any = {}, cb: (err?: ApiError) => void = nopCb): void {
+  public writeFile(filename: string, data: any, cb?: BFSOneArgCallback): void;
+  public writeFile(filename: string, data: any, encoding?: string, cb?: BFSOneArgCallback): void;
+  public writeFile(filename: string, data: any, options?: { encoding?: string; mode?: string | number; flag?: string; }, cb?: BFSOneArgCallback): void;
+  public writeFile(filename: string, data: any, arg3: any = {}, cb: BFSOneArgCallback = nopCb): void {
     let options = normalizeOptions(arg3, 'utf8', 'w', 0x1a4);
     cb = typeof arg3 === 'function' ? arg3 : cb;
     let newCb = wrapCb(cb, 1);
@@ -459,7 +466,7 @@ export default class FS {
       if (!flag.isWriteable()) {
         return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to writeFile must allow for writing.'));
       }
-      return this.root.writeFile(normalizePath(filename), data, options.encoding, flag, options.mode, newCb);
+      return assertRoot(this.root).writeFile(normalizePath(filename), data, options.encoding, flag, options.mode, newCb);
     } catch (e) {
       return newCb(e);
     }
@@ -470,9 +477,9 @@ export default class FS {
    * exists.
    *
    * The encoding option is ignored if data is a buffer.
-   * @param [String] filename
-   * @param [String | BrowserFS.node.Buffer] data
-   * @param [Object?] options
+   * @param filename
+   * @param data
+   * @param options
    * @option options [String] encoding Defaults to `'utf8'`.
    * @option options [Number] mode Defaults to `0644`.
    * @option options [String] flag Defaults to `'w'`.
@@ -485,7 +492,7 @@ export default class FS {
     if (!flag.isWriteable()) {
       throw new ApiError(ErrorCode.EINVAL, 'Flag passed to writeFile must allow for writing.');
     }
-    return this.root.writeFileSync(normalizePath(filename), data, options.encoding, flag, options.mode);
+    return assertRoot(this.root).writeFileSync(normalizePath(filename), data, options.encoding, flag, options.mode);
   }
 
   /**
@@ -497,18 +504,18 @@ export default class FS {
    *     if (err) throw err;
    *     console.log('The "data to append" was appended to file!');
    *   });
-   * @param [String] filename
-   * @param [String | BrowserFS.node.Buffer] data
-   * @param [Object?] options
+   * @param filename
+   * @param data
+   * @param options
    * @option options [String] encoding Defaults to `'utf8'`.
    * @option options [Number] mode Defaults to `0644`.
    * @option options [String] flag Defaults to `'a'`.
-   * @param [Function(BrowserFS.ApiError)] callback
+   * @param callback
    */
-  public appendFile(filename: string, data: any, cb?: (err: ApiError) => void): void;
-  public appendFile(filename: string, data: any, options?: { encoding?: string; mode?: number|string; flag?: string; }, cb?: (err: ApiError) => void): void;
-  public appendFile(filename: string, data: any, encoding?: string, cb?: (err: ApiError) => void): void;
-  public appendFile(filename: string, data: any, arg3?: any, cb: (err: ApiError) => void = nopCb): void {
+  public appendFile(filename: string, data: any, cb?: BFSOneArgCallback): void;
+  public appendFile(filename: string, data: any, options?: { encoding?: string; mode?: number|string; flag?: string; }, cb?: BFSOneArgCallback): void;
+  public appendFile(filename: string, data: any, encoding?: string, cb?: BFSOneArgCallback): void;
+  public appendFile(filename: string, data: any, arg3?: any, cb: BFSOneArgCallback = nopCb): void {
     let options = normalizeOptions(arg3, 'utf8', 'a', 0x1a4);
     cb = typeof arg3 === 'function' ? arg3 : cb;
     let newCb = wrapCb(cb, 1);
@@ -517,7 +524,7 @@ export default class FS {
       if (!flag.isAppendable()) {
         return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to appendFile must allow for appending.'));
       }
-      this.root.appendFile(normalizePath(filename), data, options.encoding, flag, options.mode, newCb);
+      assertRoot(this.root).appendFile(normalizePath(filename), data, options.encoding, flag, options.mode, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -532,9 +539,9 @@ export default class FS {
    *     if (err) throw err;
    *     console.log('The "data to append" was appended to file!');
    *   });
-   * @param [String] filename
-   * @param [String | BrowserFS.node.Buffer] data
-   * @param [Object?] options
+   * @param filename
+   * @param data
+   * @param options
    * @option options [String] encoding Defaults to `'utf8'`.
    * @option options [Number] mode Defaults to `0644`.
    * @option options [String] flag Defaults to `'a'`.
@@ -547,7 +554,7 @@ export default class FS {
     if (!flag.isAppendable()) {
       throw new ApiError(ErrorCode.EINVAL, 'Flag passed to appendFile must allow for appending.');
     }
-    return this.root.appendFileSync(normalizePath(filename), data, options.encoding, flag, options.mode);
+    return assertRoot(this.root).appendFileSync(normalizePath(filename), data, options.encoding, flag, options.mode);
   }
 
   // FILE DESCRIPTOR METHODS
@@ -556,10 +563,10 @@ export default class FS {
    * Asynchronous `fstat`.
    * `fstat()` is identical to `stat()`, except that the file to be stat-ed is
    * specified by the file descriptor `fd`.
-   * @param [BrowserFS.File] fd
-   * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] callback
+   * @param fd
+   * @param callback
    */
-  public fstat(fd: number, cb: (err: ApiError, stats?: Stats) => any = nopCb): void {
+  public fstat(fd: number, cb: BFSCallback<Stats> = nopCb): void {
     let newCb = wrapCb(cb, 2);
     try {
       let file = this.fd2file(fd);
@@ -573,7 +580,7 @@ export default class FS {
    * Synchronous `fstat`.
    * `fstat()` is identical to `stat()`, except that the file to be stat-ed is
    * specified by the file descriptor `fd`.
-   * @param [BrowserFS.File] fd
+   * @param fd
    * @return [BrowserFS.node.fs.Stats]
    */
   public fstatSync(fd: number): Stats {
@@ -582,10 +589,10 @@ export default class FS {
 
   /**
    * Asynchronous close.
-   * @param [BrowserFS.File] fd
-   * @param [Function(BrowserFS.ApiError)] callback
+   * @param fd
+   * @param callback
    */
-  public close(fd: number, cb: (e?: ApiError) => void = nopCb): void {
+  public close(fd: number, cb: BFSOneArgCallback = nopCb): void {
     let newCb = wrapCb(cb, 1);
     try {
       this.fd2file(fd).close((e: ApiError) => {
@@ -601,7 +608,7 @@ export default class FS {
 
   /**
    * Synchronous close.
-   * @param [BrowserFS.File] fd
+   * @param fd
    */
   public closeSync(fd: number): void {
     this.fd2file(fd).closeSync();
@@ -610,13 +617,13 @@ export default class FS {
 
   /**
    * Asynchronous ftruncate.
-   * @param [BrowserFS.File] fd
-   * @param [Number] len
-   * @param [Function(BrowserFS.ApiError)] callback
+   * @param fd
+   * @param len
+   * @param callback
    */
-  public ftruncate(fd: number, cb?: (err?: ApiError) => void): void;
-  public ftruncate(fd: number, len?: number, cb?: (err?: ApiError) => void): void;
-  public ftruncate(fd: number, arg2?: any, cb: (err?: ApiError) => void = nopCb): void {
+  public ftruncate(fd: number, cb?: BFSOneArgCallback): void;
+  public ftruncate(fd: number, len?: number, cb?: BFSOneArgCallback): void;
+  public ftruncate(fd: number, arg2?: any, cb: BFSOneArgCallback = nopCb): void {
     let length = typeof arg2 === 'number' ? arg2 : 0;
     cb = typeof arg2 === 'function' ? arg2 : cb;
     let newCb = wrapCb(cb, 1);
@@ -633,8 +640,8 @@ export default class FS {
 
   /**
    * Synchronous ftruncate.
-   * @param [BrowserFS.File] fd
-   * @param [Number] len
+   * @param fd
+   * @param len
    */
   public ftruncateSync(fd: number, len: number = 0): void {
     let file = this.fd2file(fd);
@@ -646,10 +653,10 @@ export default class FS {
 
   /**
    * Asynchronous fsync.
-   * @param [BrowserFS.File] fd
-   * @param [Function(BrowserFS.ApiError)] callback
+   * @param fd
+   * @param callback
    */
-  public fsync(fd: number, cb: (err?: ApiError) => void = nopCb): void {
+  public fsync(fd: number, cb: BFSOneArgCallback = nopCb): void {
     let newCb = wrapCb(cb, 1);
     try {
       this.fd2file(fd).sync(newCb);
@@ -660,7 +667,7 @@ export default class FS {
 
   /**
    * Synchronous fsync.
-   * @param [BrowserFS.File] fd
+   * @param fd
    */
   public fsyncSync(fd: number): void {
     this.fd2file(fd).syncSync();
@@ -668,10 +675,10 @@ export default class FS {
 
   /**
    * Asynchronous fdatasync.
-   * @param [BrowserFS.File] fd
-   * @param [Function(BrowserFS.ApiError)] callback
+   * @param fd
+   * @param callback
    */
-  public fdatasync(fd: number, cb: (err?: ApiError) => void = nopCb): void {
+  public fdatasync(fd: number, cb: BFSOneArgCallback = nopCb): void {
     let newCb = wrapCb(cb, 1);
     try {
       this.fd2file(fd).datasync(newCb);
@@ -682,7 +689,7 @@ export default class FS {
 
   /**
    * Synchronous fdatasync.
-   * @param [BrowserFS.File] fd
+   * @param fd
    */
   public fdatasyncSync(fd: number): void {
     this.fd2file(fd).datasyncSync();
@@ -692,24 +699,23 @@ export default class FS {
    * Write buffer to the file specified by `fd`.
    * Note that it is unsafe to use fs.write multiple times on the same file
    * without waiting for the callback.
-   * @param [BrowserFS.File] fd
-   * @param [BrowserFS.node.Buffer] buffer Buffer containing the data to write to
+   * @param fd
+   * @param buffer Buffer containing the data to write to
    *   the file.
-   * @param [Number] offset Offset in the buffer to start reading data from.
-   * @param [Number] length The amount of bytes to write to the file.
-   * @param [Number] position Offset from the beginning of the file where this
+   * @param offset Offset in the buffer to start reading data from.
+   * @param length The amount of bytes to write to the file.
+   * @param position Offset from the beginning of the file where this
    *   data should be written. If position is null, the data will be written at
    *   the current position.
-   * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
-   *   callback The number specifies the number of bytes written into the file.
+   * @param callback The number specifies the number of bytes written into the file.
    */
-  public write(fd: number, buffer: Buffer, offset: number, length: number, cb?: (err: ApiError, written: number, buffer: Buffer) => void): void;
-  public write(fd: number, buffer: Buffer, offset: number, length: number, position: number, cb?: (err: ApiError, written: number, buffer: Buffer) => void): void;
-  public write(fd: number, data: any, cb?: (err: ApiError, written: number, str: string) => any): void;
-  public write(fd: number, data: any, position: number, cb?: (err: ApiError, written: number, str: string) => any): void;
-  public write(fd: number, data: any, position: number, encoding: string, cb?: (err: ApiError, written: number, str: string) => void): void;
-  public write(fd: number, arg2: any, arg3?: any, arg4?: any, arg5?: any, cb: (err: ApiError, written?: number, buffer?: Buffer) => void = nopCb): void {
-    let buffer: Buffer, offset: number, length: number, position: number = null;
+  public write(fd: number, buffer: Buffer, offset: number, length: number, cb?: BFSThreeArgCallback<number, Buffer>): void;
+  public write(fd: number, buffer: Buffer, offset: number, length: number, position: number | null, cb?: BFSThreeArgCallback<number, Buffer>): void;
+  public write(fd: number, data: any, cb?: BFSThreeArgCallback<number, string>): void;
+  public write(fd: number, data: any, position: number | null, cb?: BFSThreeArgCallback<number, string>): void;
+  public write(fd: number, data: any, position: number | null, encoding: string, cb?: BFSThreeArgCallback<number, string>): void;
+  public write(fd: number, arg2: any, arg3?: any, arg4?: any, arg5?: any, cb: BFSThreeArgCallback<number, Buffer | string> = nopCb): void {
+    let buffer: Buffer, offset: number, length: number, position: number | null = null;
     if (typeof arg2 === 'string') {
       // Signature 1: (fd, string, [position?, [encoding?]], cb?)
       let encoding = 'utf8';
@@ -745,7 +751,7 @@ export default class FS {
     try {
       let file = this.fd2file(fd);
       if (position === undefined || position === null) {
-        position = file.getPos();
+        position = file.getPos()!;
       }
       file.write(buffer, offset, length, position, newCb);
     } catch (e) {
@@ -757,20 +763,19 @@ export default class FS {
    * Write buffer to the file specified by `fd`.
    * Note that it is unsafe to use fs.write multiple times on the same file
    * without waiting for it to return.
-   * @param [BrowserFS.File] fd
-   * @param [BrowserFS.node.Buffer] buffer Buffer containing the data to write to
+   * @param fd
+   * @param buffer Buffer containing the data to write to
    *   the file.
-   * @param [Number] offset Offset in the buffer to start reading data from.
-   * @param [Number] length The amount of bytes to write to the file.
-   * @param [Number] position Offset from the beginning of the file where this
+   * @param offset Offset in the buffer to start reading data from.
+   * @param length The amount of bytes to write to the file.
+   * @param position Offset from the beginning of the file where this
    *   data should be written. If position is null, the data will be written at
    *   the current position.
-   * @return [Number]
    */
-  public writeSync(fd: number, buffer: Buffer, offset: number, length: number, position?: number): number;
-  public writeSync(fd: number, data: string, position?: number, encoding?: string): number;
+  public writeSync(fd: number, buffer: Buffer, offset: number, length: number, position?: number | null): number;
+  public writeSync(fd: number, data: string, position?: number | null, encoding?: string): number;
   public writeSync(fd: number, arg2: any, arg3?: any, arg4?: any, arg5?: any): number {
-    let buffer: Buffer, offset: number = 0, length: number, position: number;
+    let buffer: Buffer, offset: number = 0, length: number, position: number | null;
     if (typeof arg2 === 'string') {
       // Signature 1: (fd, string, [position?, [encoding?]])
       position = typeof arg3 === 'number' ? arg3 : null;
@@ -788,29 +793,27 @@ export default class FS {
 
     let file = this.fd2file(fd);
     if (position === undefined || position === null) {
-      position = file.getPos();
+      position = file.getPos()!;
     }
     return file.writeSync(buffer, offset, length, position);
   }
 
   /**
    * Read data from the file specified by `fd`.
-   * @param [BrowserFS.File] fd
-   * @param [BrowserFS.node.Buffer] buffer The buffer that the data will be
+   * @param buffer The buffer that the data will be
    *   written to.
-   * @param [Number] offset The offset within the buffer where writing will
+   * @param offset The offset within the buffer where writing will
    *   start.
-   * @param [Number] length An integer specifying the number of bytes to read.
-   * @param [Number] position An integer specifying where to begin reading from
+   * @param length An integer specifying the number of bytes to read.
+   * @param position An integer specifying where to begin reading from
    *   in the file. If position is null, data will be read from the current file
    *   position.
-   * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
-   *   callback The number is the number of bytes read
+   * @param callback The number is the number of bytes read
    */
-  public read(fd: number, length: number, position: number, encoding: string, cb?: (err: ApiError, data?: string, bytesRead?: number) => void): void;
-  public read(fd: number, buffer: Buffer, offset: number, length: number, position: number, cb?: (err: ApiError, bytesRead?: number, buffer?: Buffer) => void): void;
-  public read(fd: number, arg2: any, arg3: any, arg4: any, arg5?: any, cb: (err: ApiError, arg2?: any, arg3?: any) => void = nopCb): void {
-    let position: number, offset: number, length: number, buffer: Buffer, newCb: (err: ApiError, bytesRead?: number, buffer?: Buffer) => void;
+  public read(fd: number, length: number, position: number | null, encoding: string, cb?: BFSThreeArgCallback<string, number>): void;
+  public read(fd: number, buffer: Buffer, offset: number, length: number, position: number | null, cb?: BFSThreeArgCallback<number, Buffer>): void;
+  public read(fd: number, arg2: any, arg3: any, arg4: any, arg5?: any, cb: BFSThreeArgCallback<string, number> | BFSThreeArgCallback<number, Buffer> = nopCb): void {
+    let position: number | null, offset: number, length: number, buffer: Buffer, newCb: BFSThreeArgCallback<number, Buffer>;
     if (typeof arg2 === 'number') {
       // legacy interface
       // (fd, length, position, encoding, callback)
@@ -823,24 +826,24 @@ export default class FS {
       // XXX: Inefficient.
       // Wrap the cb so we shelter upper layers of the API from these
       // shenanigans.
-      newCb = wrapCb((function(err: any, bytesRead: number, buf: Buffer) {
+      newCb = wrapCb((err?: ApiError | null, bytesRead?: number, buf?: Buffer) => {
         if (err) {
-          return cb(err);
+          return (<Function> cb)(err);
         }
-        cb(err, buf.toString(encoding), bytesRead);
-      }), 3);
+        (<BFSThreeArgCallback<string, number>> cb)(err, buf!.toString(encoding), bytesRead!);
+      }, 3);
     } else {
       buffer = arg2;
       offset = arg3;
       length = arg4;
       position = arg5;
-      newCb = wrapCb(cb, 3);
+      newCb = wrapCb(<BFSThreeArgCallback<number, Buffer>> cb, 3);
     }
 
     try {
       let file = this.fd2file(fd);
       if (position === undefined || position === null) {
-        position = file.getPos();
+        position = file.getPos()!;
       }
       file.read(buffer, offset, length, position, newCb);
     } catch (e) {
@@ -850,13 +853,13 @@ export default class FS {
 
   /**
    * Read data from the file specified by `fd`.
-   * @param [BrowserFS.File] fd
-   * @param [BrowserFS.node.Buffer] buffer The buffer that the data will be
+   * @param fd
+   * @param buffer The buffer that the data will be
    *   written to.
-   * @param [Number] offset The offset within the buffer where writing will
+   * @param offset The offset within the buffer where writing will
    *   start.
-   * @param [Number] length An integer specifying the number of bytes to read.
-   * @param [Number] position An integer specifying where to begin reading from
+   * @param length An integer specifying the number of bytes to read.
+   * @param position An integer specifying where to begin reading from
    *   in the file. If position is null, data will be read from the current file
    *   position.
    * @return [Number]
@@ -865,7 +868,7 @@ export default class FS {
   public readSync(fd: number, buffer: Buffer, offset: number, length: number, position: number): number;
   public readSync(fd: number, arg2: any, arg3: any, arg4: any, arg5?: any): any {
     let shenanigans = false;
-    let buffer: Buffer, offset: number, length: number, position: number, encoding: string;
+    let buffer: Buffer, offset: number, length: number, position: number, encoding: string = 'utf8';
     if (typeof arg2 === 'number') {
       length = arg2;
       position = arg3;
@@ -881,7 +884,7 @@ export default class FS {
     }
     let file = this.fd2file(fd);
     if (position === undefined || position === null) {
-      position = file.getPos();
+      position = file.getPos()!;
     }
 
     let rv = file.readSync(buffer, offset, length, position);
@@ -894,12 +897,12 @@ export default class FS {
 
   /**
    * Asynchronous `fchown`.
-   * @param [BrowserFS.File] fd
-   * @param [Number] uid
-   * @param [Number] gid
-   * @param [Function(BrowserFS.ApiError)] callback
+   * @param fd
+   * @param uid
+   * @param gid
+   * @param callback
    */
-  public fchown(fd: number, uid: number, gid: number, callback: (e?: ApiError) => void = nopCb): void {
+  public fchown(fd: number, uid: number, gid: number, callback: BFSOneArgCallback = nopCb): void {
     let newCb = wrapCb(callback, 1);
     try {
       this.fd2file(fd).chown(uid, gid, newCb);
@@ -910,9 +913,9 @@ export default class FS {
 
   /**
    * Synchronous `fchown`.
-   * @param [BrowserFS.File] fd
-   * @param [Number] uid
-   * @param [Number] gid
+   * @param fd
+   * @param uid
+   * @param gid
    */
   public fchownSync(fd: number, uid: number, gid: number): void {
     this.fd2file(fd).chownSync(uid, gid);
@@ -920,11 +923,11 @@ export default class FS {
 
   /**
    * Asynchronous `fchmod`.
-   * @param [BrowserFS.File] fd
-   * @param [Number] mode
-   * @param [Function(BrowserFS.ApiError)] callback
+   * @param fd
+   * @param mode
+   * @param callback
    */
-  public fchmod(fd: number, mode: string | number, cb?: (e?: ApiError) => void): void {
+  public fchmod(fd: number, mode: string | number, cb: BFSOneArgCallback): void {
     let newCb = wrapCb(cb, 1);
     try {
       let numMode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
@@ -936,8 +939,8 @@ export default class FS {
 
   /**
    * Synchronous `fchmod`.
-   * @param [BrowserFS.File] fd
-   * @param [Number] mode
+   * @param fd
+   * @param mode
    */
   public fchmodSync(fd: number, mode: number | string): void {
     let numMode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
@@ -947,12 +950,12 @@ export default class FS {
   /**
    * Change the file timestamps of a file referenced by the supplied file
    * descriptor.
-   * @param [BrowserFS.File] fd
-   * @param [Date] atime
-   * @param [Date] mtime
-   * @param [Function(BrowserFS.ApiError)] callback
+   * @param fd
+   * @param atime
+   * @param mtime
+   * @param callback
    */
-  public futimes(fd: number, atime: number | Date, mtime: number | Date, cb: (e?: ApiError) => void = nopCb): void {
+  public futimes(fd: number, atime: number | Date, mtime: number | Date, cb: BFSOneArgCallback = nopCb): void {
     let newCb = wrapCb(cb, 1);
     try {
       let file = this.fd2file(fd);
@@ -971,9 +974,9 @@ export default class FS {
   /**
    * Change the file timestamps of a file referenced by the supplied file
    * descriptor.
-   * @param [BrowserFS.File] fd
-   * @param [Date] atime
-   * @param [Date] mtime
+   * @param fd
+   * @param atime
+   * @param mtime
    */
   public futimesSync(fd: number, atime: number | Date, mtime: number | Date): void {
     this.fd2file(fd).utimesSync(normalizeTime(atime), normalizeTime(mtime));
@@ -983,14 +986,14 @@ export default class FS {
 
   /**
    * Asynchronous `rmdir`.
-   * @param [String] path
-   * @param [Function(BrowserFS.ApiError)] callback
+   * @param path
+   * @param callback
    */
-  public rmdir(path: string, cb: (e?: ApiError) => void = nopCb): void {
+  public rmdir(path: string, cb: BFSOneArgCallback = nopCb): void {
     let newCb = wrapCb(cb, 1);
     try {
       path = normalizePath(path);
-      this.root.rmdir(path, newCb);
+      assertRoot(this.root).rmdir(path, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -998,20 +1001,20 @@ export default class FS {
 
   /**
    * Synchronous `rmdir`.
-   * @param [String] path
+   * @param path
    */
   public rmdirSync(path: string): void {
     path = normalizePath(path);
-    return this.root.rmdirSync(path);
+    return assertRoot(this.root).rmdirSync(path);
   }
 
   /**
    * Asynchronous `mkdir`.
-   * @param [String] path
-   * @param [Number?] mode defaults to `0777`
-   * @param [Function(BrowserFS.ApiError)] callback
+   * @param path
+   * @param mode defaults to `0777`
+   * @param callback
    */
-  public mkdir(path: string, mode?: any, cb: (e?: ApiError) => void = nopCb): void {
+  public mkdir(path: string, mode?: any, cb: BFSOneArgCallback = nopCb): void {
     if (typeof mode === 'function') {
       cb = mode;
       mode = 0x1ff;
@@ -1019,7 +1022,7 @@ export default class FS {
     let newCb = wrapCb(cb, 1);
     try {
       path = normalizePath(path);
-      this.root.mkdir(path, mode, newCb);
+      assertRoot(this.root).mkdir(path, mode, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1027,25 +1030,25 @@ export default class FS {
 
   /**
    * Synchronous `mkdir`.
-   * @param [String] path
-   * @param [Number?] mode defaults to `0777`
+   * @param path
+   * @param mode defaults to `0777`
    */
   public mkdirSync(path: string, mode?: number | string): void {
-    this.root.mkdirSync(normalizePath(path), normalizeMode(mode, 0x1ff));
+    assertRoot(this.root).mkdirSync(normalizePath(path), normalizeMode(mode, 0x1ff));
   }
 
   /**
    * Asynchronous `readdir`. Reads the contents of a directory.
    * The callback gets two arguments `(err, files)` where `files` is an array of
    * the names of the files in the directory excluding `'.'` and `'..'`.
-   * @param [String] path
-   * @param [Function(BrowserFS.ApiError, String[])] callback
+   * @param path
+   * @param callback
    */
-  public readdir(path: string, cb: (err: ApiError, files?: string[]) => void = nopCb): void {
+  public readdir(path: string, cb: BFSCallback<string[]> = nopCb): void {
     let newCb = <(err: ApiError, files?: string[]) => void> wrapCb(cb, 2);
     try {
       path = normalizePath(path);
-      this.root.readdir(path, newCb);
+      assertRoot(this.root).readdir(path, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1053,28 +1056,28 @@ export default class FS {
 
   /**
    * Synchronous `readdir`. Reads the contents of a directory.
-   * @param [String] path
+   * @param path
    * @return [String[]]
    */
   public readdirSync(path: string): string[] {
     path = normalizePath(path);
-    return this.root.readdirSync(path);
+    return assertRoot(this.root).readdirSync(path);
   }
 
   // SYMLINK METHODS
 
   /**
    * Asynchronous `link`.
-   * @param [String] srcpath
-   * @param [String] dstpath
-   * @param [Function(BrowserFS.ApiError)] callback
+   * @param srcpath
+   * @param dstpath
+   * @param callback
    */
-  public link(srcpath: string, dstpath: string, cb: (e?: ApiError) => void = nopCb): void {
+  public link(srcpath: string, dstpath: string, cb: BFSOneArgCallback = nopCb): void {
     let newCb = wrapCb(cb, 1);
     try {
       srcpath = normalizePath(srcpath);
       dstpath = normalizePath(dstpath);
-      this.root.link(srcpath, dstpath, newCb);
+      assertRoot(this.root).link(srcpath, dstpath, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1082,25 +1085,25 @@ export default class FS {
 
   /**
    * Synchronous `link`.
-   * @param [String] srcpath
-   * @param [String] dstpath
+   * @param srcpath
+   * @param dstpath
    */
   public linkSync(srcpath: string, dstpath: string): void {
     srcpath = normalizePath(srcpath);
     dstpath = normalizePath(dstpath);
-    return this.root.linkSync(srcpath, dstpath);
+    return assertRoot(this.root).linkSync(srcpath, dstpath);
   }
 
   /**
    * Asynchronous `symlink`.
-   * @param [String] srcpath
-   * @param [String] dstpath
-   * @param [String?] type can be either `'dir'` or `'file'` (default is `'file'`)
-   * @param [Function(BrowserFS.ApiError)] callback
+   * @param srcpath
+   * @param dstpath
+   * @param type can be either `'dir'` or `'file'` (default is `'file'`)
+   * @param callback
    */
-  public symlink(srcpath: string, dstpath: string, cb?: (e?: ApiError) => void): void;
-  public symlink(srcpath: string, dstpath: string, type?: string, cb?: (e?: ApiError) => void): void;
-  public symlink(srcpath: string, dstpath: string, arg3?: any, cb: (e?: ApiError) => void = nopCb): void {
+  public symlink(srcpath: string, dstpath: string, cb?: BFSOneArgCallback): void;
+  public symlink(srcpath: string, dstpath: string, type?: string, cb?: BFSOneArgCallback): void;
+  public symlink(srcpath: string, dstpath: string, arg3?: any, cb: BFSOneArgCallback = nopCb): void {
     let type = typeof arg3 === 'string' ? arg3 : 'file';
     cb = typeof arg3 === 'function' ? arg3 : cb;
     let newCb = wrapCb(cb, 1);
@@ -1110,7 +1113,7 @@ export default class FS {
       }
       srcpath = normalizePath(srcpath);
       dstpath = normalizePath(dstpath);
-      this.root.symlink(srcpath, dstpath, type, newCb);
+      assertRoot(this.root).symlink(srcpath, dstpath, type, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1118,9 +1121,9 @@ export default class FS {
 
   /**
    * Synchronous `symlink`.
-   * @param [String] srcpath
-   * @param [String] dstpath
-   * @param [String?] type can be either `'dir'` or `'file'` (default is `'file'`)
+   * @param srcpath
+   * @param dstpath
+   * @param type can be either `'dir'` or `'file'` (default is `'file'`)
    */
   public symlinkSync(srcpath: string, dstpath: string, type?: string): void {
     if (!type) {
@@ -1130,19 +1133,19 @@ export default class FS {
     }
     srcpath = normalizePath(srcpath);
     dstpath = normalizePath(dstpath);
-    return this.root.symlinkSync(srcpath, dstpath, type);
+    return assertRoot(this.root).symlinkSync(srcpath, dstpath, type);
   }
 
   /**
    * Asynchronous readlink.
-   * @param [String] path
-   * @param [Function(BrowserFS.ApiError, String)] callback
+   * @param path
+   * @param callback
    */
-  public readlink(path: string, cb: (err: ApiError, linkString?: string) => any = nopCb): void {
+  public readlink(path: string, cb: BFSCallback<string> = nopCb): void {
     let newCb = wrapCb(cb, 2);
     try {
       path = normalizePath(path);
-      this.root.readlink(path, newCb);
+      assertRoot(this.root).readlink(path, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1150,28 +1153,28 @@ export default class FS {
 
   /**
    * Synchronous readlink.
-   * @param [String] path
+   * @param path
    * @return [String]
    */
   public readlinkSync(path: string): string {
     path = normalizePath(path);
-    return this.root.readlinkSync(path);
+    return assertRoot(this.root).readlinkSync(path);
   }
 
   // PROPERTY OPERATIONS
 
   /**
    * Asynchronous `chown`.
-   * @param [String] path
-   * @param [Number] uid
-   * @param [Number] gid
-   * @param [Function(BrowserFS.ApiError)] callback
+   * @param path
+   * @param uid
+   * @param gid
+   * @param callback
    */
-  public chown(path: string, uid: number, gid: number, cb: (e?: ApiError) => void = nopCb): void {
+  public chown(path: string, uid: number, gid: number, cb: BFSOneArgCallback = nopCb): void {
     let newCb = wrapCb(cb, 1);
     try {
       path = normalizePath(path);
-      this.root.chown(path, false, uid, gid, newCb);
+      assertRoot(this.root).chown(path, false, uid, gid, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1179,27 +1182,27 @@ export default class FS {
 
   /**
    * Synchronous `chown`.
-   * @param [String] path
-   * @param [Number] uid
-   * @param [Number] gid
+   * @param path
+   * @param uid
+   * @param gid
    */
   public chownSync(path: string, uid: number, gid: number): void {
     path = normalizePath(path);
-    this.root.chownSync(path, false, uid, gid);
+    assertRoot(this.root).chownSync(path, false, uid, gid);
   }
 
   /**
    * Asynchronous `lchown`.
-   * @param [String] path
-   * @param [Number] uid
-   * @param [Number] gid
-   * @param [Function(BrowserFS.ApiError)] callback
+   * @param path
+   * @param uid
+   * @param gid
+   * @param callback
    */
-  public lchown(path: string, uid: number, gid: number, cb: (e?: ApiError) => void = nopCb): void {
+  public lchown(path: string, uid: number, gid: number, cb: BFSOneArgCallback = nopCb): void {
     let newCb = wrapCb(cb, 1);
     try {
       path = normalizePath(path);
-      this.root.chown(path, true, uid, gid, newCb);
+      assertRoot(this.root).chown(path, true, uid, gid, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1207,29 +1210,29 @@ export default class FS {
 
   /**
    * Synchronous `lchown`.
-   * @param [String] path
-   * @param [Number] uid
-   * @param [Number] gid
+   * @param path
+   * @param uid
+   * @param gid
    */
   public lchownSync(path: string, uid: number, gid: number): void {
     path = normalizePath(path);
-    this.root.chownSync(path, true, uid, gid);
+    assertRoot(this.root).chownSync(path, true, uid, gid);
   }
 
   /**
    * Asynchronous `chmod`.
-   * @param [String] path
-   * @param [Number] mode
-   * @param [Function(BrowserFS.ApiError)] callback
+   * @param path
+   * @param mode
+   * @param callback
    */
-  public chmod(path: string, mode: number | string, cb: (e?: ApiError) => void = nopCb): void {
+  public chmod(path: string, mode: number | string, cb: BFSOneArgCallback = nopCb): void {
     let newCb = wrapCb(cb, 1);
     try {
       let numMode = normalizeMode(mode, -1);
       if (numMode < 0) {
         throw new ApiError(ErrorCode.EINVAL, `Invalid mode.`);
       }
-      this.root.chmod(normalizePath(path), false, numMode, newCb);
+      assertRoot(this.root).chmod(normalizePath(path), false, numMode, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1237,32 +1240,32 @@ export default class FS {
 
   /**
    * Synchronous `chmod`.
-   * @param [String] path
-   * @param [Number] mode
+   * @param path
+   * @param mode
    */
-  public chmodSync(path: string, mode: string|number): void {
+  public chmodSync(path: string, mode: string | number): void {
     let numMode = normalizeMode(mode, -1);
     if (numMode < 0) {
       throw new ApiError(ErrorCode.EINVAL, `Invalid mode.`);
     }
     path = normalizePath(path);
-    this.root.chmodSync(path, false, numMode);
+    assertRoot(this.root).chmodSync(path, false, numMode);
   }
 
   /**
    * Asynchronous `lchmod`.
-   * @param [String] path
-   * @param [Number] mode
-   * @param [Function(BrowserFS.ApiError)] callback
+   * @param path
+   * @param mode
+   * @param callback
    */
-  public lchmod(path: string, mode: number|string, cb: (e?: ApiError) => void = nopCb): void {
+  public lchmod(path: string, mode: number | string, cb: BFSOneArgCallback = nopCb): void {
     let newCb = wrapCb(cb, 1);
     try {
       let numMode = normalizeMode(mode, -1);
       if (numMode < 0) {
         throw new ApiError(ErrorCode.EINVAL, `Invalid mode.`);
       }
-      this.root.chmod(normalizePath(path), true, numMode, newCb);
+      assertRoot(this.root).chmod(normalizePath(path), true, numMode, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1270,28 +1273,28 @@ export default class FS {
 
   /**
    * Synchronous `lchmod`.
-   * @param [String] path
-   * @param [Number] mode
+   * @param path
+   * @param mode
    */
-  public lchmodSync(path: string, mode: number|string): void {
+  public lchmodSync(path: string, mode: number | string): void {
     let numMode = normalizeMode(mode, -1);
     if (numMode < 1) {
       throw new ApiError(ErrorCode.EINVAL, `Invalid mode.`);
     }
-    this.root.chmodSync(normalizePath(path), true, numMode);
+    assertRoot(this.root).chmodSync(normalizePath(path), true, numMode);
   }
 
   /**
    * Change file timestamps of the file referenced by the supplied path.
-   * @param [String] path
-   * @param [Date] atime
-   * @param [Date] mtime
-   * @param [Function(BrowserFS.ApiError)] callback
+   * @param path
+   * @param atime
+   * @param mtime
+   * @param callback
    */
-  public utimes(path: string, atime: number|Date, mtime: number|Date, cb: (e?: ApiError) => void = nopCb): void {
+  public utimes(path: string, atime: number | Date, mtime: number | Date, cb: BFSOneArgCallback = nopCb): void {
     let newCb = wrapCb(cb, 1);
     try {
-      this.root.utimes(normalizePath(path), normalizeTime(atime), normalizeTime(mtime), newCb);
+      assertRoot(this.root).utimes(normalizePath(path), normalizeTime(atime), normalizeTime(mtime), newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1299,12 +1302,12 @@ export default class FS {
 
   /**
    * Change file timestamps of the file referenced by the supplied path.
-   * @param [String] path
-   * @param [Date] atime
-   * @param [Date] mtime
+   * @param path
+   * @param atime
+   * @param mtime
    */
-  public utimesSync(path: string, atime: number|Date, mtime: number|Date): void {
-    this.root.utimesSync(normalizePath(path), normalizeTime(atime), normalizeTime(mtime));
+  public utimesSync(path: string, atime: number | Date, mtime: number | Date): void {
+    assertRoot(this.root).utimesSync(normalizePath(path), normalizeTime(atime), normalizeTime(mtime));
   }
 
   /**
@@ -1318,21 +1321,21 @@ export default class FS {
    *     console.log(resolvedPath);
    *   });
    *
-   * @param [String] path
-   * @param [Object?] cache An object literal of mapped paths that can be used to
+   * @param path
+   * @param cache An object literal of mapped paths that can be used to
    *   force a specific path resolution or avoid additional `fs.stat` calls for
    *   known real paths.
-   * @param [Function(BrowserFS.ApiError, String)] callback
+   * @param callback
    */
-  public realpath(path: string, cb?: (err: ApiError, resolvedPath?: string) => any): void;
-  public realpath(path: string, cache: {[path: string]: string}, cb: (err: ApiError, resolvedPath?: string) => any): void;
-  public realpath(path: string, arg2?: any, cb: (err: ApiError, resolvedPath?: string) => any = nopCb): void {
+  public realpath(path: string, cb?: BFSCallback<string>): void;
+  public realpath(path: string, cache: {[path: string]: string}, cb: BFSCallback<string>): void;
+  public realpath(path: string, arg2?: any, cb: BFSCallback<string> = nopCb): void {
     let cache = typeof(arg2) === 'object' ? arg2 : {};
     cb = typeof(arg2) === 'function' ? arg2 : nopCb;
     let newCb = <(err: ApiError, resolvedPath?: string) => any> wrapCb(cb, 2);
     try {
       path = normalizePath(path);
-      this.root.realpath(path, cache, newCb);
+      assertRoot(this.root).realpath(path, cache, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1340,15 +1343,15 @@ export default class FS {
 
   /**
    * Synchronous `realpath`.
-   * @param [String] path
-   * @param [Object?] cache An object literal of mapped paths that can be used to
+   * @param path
+   * @param cache An object literal of mapped paths that can be used to
    *   force a specific path resolution or avoid additional `fs.stat` calls for
    *   known real paths.
    * @return [String]
    */
   public realpathSync(path: string, cache: {[path: string]: string} = {}): string {
     path = normalizePath(path);
-    return this.root.realpathSync(path, cache);
+    return assertRoot(this.root).realpathSync(path, cache);
   }
 
   public watchFile(filename: string, listener: (curr: Stats, prev: Stats) => void): void;

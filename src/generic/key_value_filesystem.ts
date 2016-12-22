@@ -1,4 +1,4 @@
-import {BaseFileSystem, SynchronousFileSystem} from '../core/file_system';
+import {BaseFileSystem, SynchronousFileSystem, BFSOneArgCallback, BFSCallback, BFSThreeArgCallback} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {default as Stats, FileType} from '../core/node_fs_stats';
 import {File}  from '../core/file';
@@ -23,7 +23,7 @@ function GenerateRandomID(): string {
  * Helper function. Checks if 'e' is defined. If so, it triggers the callback
  * with 'e' and returns false. Otherwise, returns true.
  */
-function noError(e: ApiError, cb: (e: ApiError) => void): boolean {
+function noError(e: ApiError | undefined | null, cb: (e: ApiError) => void): boolean {
   if (e) {
     cb(e);
     return false;
@@ -35,7 +35,7 @@ function noError(e: ApiError, cb: (e: ApiError) => void): boolean {
  * Helper function. Checks if 'e' is defined. If so, it aborts the transaction,
  * triggers the callback with 'e', and returns false. Otherwise, returns true.
  */
-function noErrorTx(e: ApiError, tx: AsyncKeyValueRWTransaction, cb: (e: ApiError) => void): boolean {
+function noErrorTx(e: ApiError | undefined | null, tx: AsyncKeyValueRWTransaction, cb: (e: ApiError) => void): boolean {
   if (e) {
     tx.abort(() => {
       cb(e);
@@ -78,7 +78,7 @@ export interface SyncKeyValueROTransaction {
    * @param key The key to look under for data.
    * @return The data stored under the key, or undefined if not present.
    */
-  get(key: string): Buffer;
+  get(key: string): Buffer | undefined;
 }
 
 /**
@@ -114,7 +114,7 @@ export interface SyncKeyValueRWTransaction extends SyncKeyValueROTransaction {
  * support for transactions and such.
  */
 export interface SimpleSyncStore {
-  get(key: string): Buffer;
+  get(key: string): Buffer | undefined;
   put(key: string, data: Buffer, overwrite: boolean): boolean;
   del(key: string): void;
 }
@@ -127,7 +127,7 @@ export class SimpleSyncRWTransaction implements SyncKeyValueRWTransaction {
    * Stores data in the keys we modify prior to modifying them.
    * Allows us to roll back commits.
    */
-  private originalData: { [key: string]: Buffer } = {};
+  private originalData: { [key: string]: Buffer | undefined } = {};
   /**
    * List of keys modified in this transaction, if any.
    */
@@ -135,7 +135,7 @@ export class SimpleSyncRWTransaction implements SyncKeyValueRWTransaction {
 
   constructor(private store: SimpleSyncStore) { }
 
-  public get(key: string): Buffer {
+  public get(key: string): Buffer | undefined {
     let val = this.store.get(key);
     this.stashOldValue(key, val);
     return val;
@@ -155,11 +155,10 @@ export class SimpleSyncRWTransaction implements SyncKeyValueRWTransaction {
 
   public abort(): void {
     // Rollback old values.
-    let i: number, key: string, value: Buffer;
-    for (i = 0; i < this.modifiedKeys.length; i++) {
-      key = this.modifiedKeys[i];
-      value = this.originalData[key];
-      if (value === null) {
+    for (let i = 0; i < this.modifiedKeys.length; i++) {
+      let key = this.modifiedKeys[i];
+      let value = this.originalData[key];
+      if (!value) {
         // Key didn't exist.
         this.store.del(key);
       } else {
@@ -175,7 +174,7 @@ export class SimpleSyncRWTransaction implements SyncKeyValueRWTransaction {
    * prevent needless `get` requests if the program modifies the data later
    * on during the transaction.
    */
-  private stashOldValue(key: string, value: Buffer) {
+  private stashOldValue(key: string, value: Buffer | undefined) {
     // Keep only the earliest value in the transaction.
     if (!this.originalData.hasOwnProperty(key)) {
       this.originalData[key] = value;
@@ -614,7 +613,7 @@ export interface AsyncKeyValueStore {
   /**
    * Empties the key-value store completely.
    */
-  clear(cb: (e?: ApiError) => void): void;
+  clear(cb: BFSOneArgCallback): void;
   /**
    * Begins a read-write transaction.
    */
@@ -634,7 +633,7 @@ export interface AsyncKeyValueROTransaction {
    * Retrieves the data at the given key.
    * @param key The key to look under for data.
    */
-  get(key: string, cb: (e: ApiError, data?: Buffer) => void): void;
+  get(key: string, cb: BFSCallback<Buffer>): void;
 }
 
 /**
@@ -657,15 +656,15 @@ export interface AsyncKeyValueRWTransaction extends AsyncKeyValueROTransaction {
    * Deletes the data at the given key.
    * @param key The key to delete from the store.
    */
-  del(key: string, cb: (e?: ApiError) => void): void;
+  del(key: string, cb: BFSOneArgCallback): void;
   /**
    * Commits the transaction.
    */
-  commit(cb: (e?: ApiError) => void): void;
+  commit(cb: BFSOneArgCallback): void;
   /**
    * Aborts and rolls back the transaction.
    */
-  abort(cb: (e?: ApiError) => void): void;
+  abort(cb: BFSOneArgCallback): void;
 }
 
 export class AsyncKeyValueFile extends PreloadFile<AsyncKeyValueFileSystem> implements File {
@@ -673,7 +672,7 @@ export class AsyncKeyValueFile extends PreloadFile<AsyncKeyValueFileSystem> impl
     super(_fs, _path, _flag, _stat, contents);
   }
 
-  public sync(cb: (e?: ApiError) => void): void {
+  public sync(cb: BFSOneArgCallback): void {
     if (this.isDirty()) {
       this._fs._sync(this.getPath(), this.getBuffer(), this.getStats(), (e?: ApiError) => {
         if (!e) {
@@ -686,7 +685,7 @@ export class AsyncKeyValueFile extends PreloadFile<AsyncKeyValueFileSystem> impl
     }
   }
 
-  public close(cb: (e?: ApiError) => void): void {
+  public close(cb: BFSOneArgCallback): void {
     this.sync(cb);
   }
 }
@@ -704,7 +703,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
    * Initializes the file system. Typically called by subclasses' async
    * constructors.
    */
-  public init(store: AsyncKeyValueStore, cb: (e?: ApiError) => void) {
+  public init(store: AsyncKeyValueStore, cb: BFSOneArgCallback) {
     this.store = store;
     // INVARIANT: Ensure that the root exists.
     this.makeRootDirectory(cb);
@@ -718,7 +717,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
   /**
    * Delete all contents stored in the file system.
    */
-  public empty(cb: (e?: ApiError) => void): void {
+  public empty(cb: BFSOneArgCallback): void {
     this.store.clear((e?) => {
       if (noError(e, cb)) {
         // INVARIANT: Root always exists.
@@ -727,7 +726,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
     });
   }
 
-  public rename(oldPath: string, newPath: string, cb: (e?: ApiError) => void): void {
+  public rename(oldPath: string, newPath: string, cb: BFSOneArgCallback): void {
     let tx = this.store.beginTransaction('readwrite'),
       oldParent = path.dirname(oldPath), oldName = path.basename(oldPath),
       newParent = path.dirname(newPath), newName = path.basename(newPath),
@@ -792,9 +791,9 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
           // act accordingly.
           this.getINode(tx, newPath, newParentList[newName], (e: ApiError, inode?: Inode) => {
             if (noErrorTx(e, tx, cb)) {
-              if (inode.isFile()) {
+              if (inode!.isFile()) {
                 // Delete the file and continue.
-                tx.del(inode.id, (e?: ApiError) => {
+                tx.del(inode!.id, (e?: ApiError) => {
                   if (noErrorTx(e, tx, cb)) {
                     tx.del(newParentList[newName], (e?: ApiError) => {
                       if (noErrorTx(e, tx, cb)) {
@@ -822,7 +821,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
      * inodes and lists hashes.
      */
     let processInodeAndListings = (p: string): void => {
-      this.findINodeAndDirListing(tx, p, (e: ApiError, node?: Inode, dirList?: {[name: string]: string}): void => {
+      this.findINodeAndDirListing(tx, p, (e?: ApiError | null, node?: Inode, dirList?: {[name: string]: string}): void => {
         if (e) {
           if (!errorOccurred) {
             errorOccurred = true;
@@ -832,8 +831,8 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
           }
           // If error has occurred already, just stop here.
         } else {
-          inodes[p] = node;
-          lists[p] = dirList;
+          inodes[p] = node!;
+          lists[p] = dirList!;
           theOleSwitcharoo();
         }
       });
@@ -845,38 +844,38 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
     }
   }
 
-  public stat(p: string, isLstat: boolean, cb: (err: ApiError, stat?: Stats) => void): void {
+  public stat(p: string, isLstat: boolean, cb: BFSCallback<Stats>): void {
     let tx = this.store.beginTransaction('readonly');
     this.findINode(tx, p, (e: ApiError, inode?: Inode): void => {
       if (noError(e, cb)) {
-        cb(null, inode.toStats());
+        cb(null, inode!.toStats());
       }
     });
   }
 
-  public createFile(p: string, flag: FileFlag, mode: number, cb: (e: ApiError, file?: File) => void): void {
+  public createFile(p: string, flag: FileFlag, mode: number, cb: BFSCallback<File>): void {
     let tx = this.store.beginTransaction('readwrite'),
       data = new Buffer(0);
 
     this.commitNewFile(tx, p, FileType.FILE, mode, data, (e: ApiError, newFile?: Inode): void => {
       if (noError(e, cb)) {
-        cb(null, new AsyncKeyValueFile(this, p, flag, newFile.toStats(), data));
+        cb(null, new AsyncKeyValueFile(this, p, flag, newFile!.toStats(), data));
       }
     });
   }
 
-  public openFile(p: string, flag: FileFlag, cb: (e: ApiError, file?: File) => void): void {
+  public openFile(p: string, flag: FileFlag, cb: BFSCallback<File>): void {
     let tx = this.store.beginTransaction('readonly');
     // Step 1: Grab the file's inode.
     this.findINode(tx, p, (e: ApiError, inode?: Inode) => {
       if (noError(e, cb)) {
         // Step 2: Grab the file's data.
-        tx.get(inode.id, (e: ApiError, data?: Buffer): void => {
+        tx.get(inode!.id, (e: ApiError, data?: Buffer): void => {
           if (noError(e, cb)) {
             if (data === undefined) {
               cb(ApiError.ENOENT(p));
             } else {
-              cb(null, new AsyncKeyValueFile(this, p, flag, inode.toStats(), data));
+              cb(null, new AsyncKeyValueFile(this, p, flag, inode!.toStats(), data));
             }
           }
         });
@@ -884,16 +883,16 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
     });
   }
 
-  public unlink(p: string, cb: (e?: ApiError) => void): void {
+  public unlink(p: string, cb: BFSOneArgCallback): void {
     this.removeEntry(p, false, cb);
   }
 
-  public rmdir(p: string, cb: (e?: ApiError) => void): void {
+  public rmdir(p: string, cb: BFSOneArgCallback): void {
     // Check first if directory is empty.
     this.readdir(p, (err, files?) => {
       if (err) {
         cb(err);
-      } else if (files.length > 0) {
+      } else if (files!.length > 0) {
         cb(ApiError.ENOTEMPTY(p));
       } else {
         this.removeEntry(p, true, cb);
@@ -901,17 +900,17 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
     });
   }
 
-  public mkdir(p: string, mode: number, cb: (e?: ApiError) => void): void {
+  public mkdir(p: string, mode: number, cb: BFSOneArgCallback): void {
     let tx = this.store.beginTransaction('readwrite'),
       data = new Buffer('{}');
     this.commitNewFile(tx, p, FileType.DIRECTORY, mode, data, cb);
   }
 
-  public readdir(p: string, cb: (err: ApiError, files?: string[]) => void): void {
+  public readdir(p: string, cb: BFSCallback<string[]>): void {
     let tx = this.store.beginTransaction('readonly');
     this.findINode(tx, p, (e: ApiError, inode?: Inode) => {
       if (noError(e, cb)) {
-        this.getDirListing(tx, p, inode, (e: ApiError, dirListing?: {[name: string]: string}) => {
+        this.getDirListing(tx, p, inode!, (e: ApiError, dirListing?: {[name: string]: string}) => {
           if (noError(e, cb)) {
             cb(null, Object.keys(dirListing));
           }
@@ -920,7 +919,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
     });
   }
 
-  public _sync(p: string, data: Buffer, stats: Stats, cb: (e?: ApiError) => void): void {
+  public _sync(p: string, data: Buffer, stats: Stats, cb: BFSOneArgCallback): void {
     // @todo Ensure mtime updates properly, and use that to determine if a data
     //       update is required.
     let tx = this.store.beginTransaction('readwrite');
@@ -928,15 +927,15 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
     this._findINode(tx, path.dirname(p), path.basename(p), (e: ApiError, fileInodeId?: string): void => {
       if (noErrorTx(e, tx, cb)) {
         // Step 2: Get the file inode.
-        this.getINode(tx, p, fileInodeId, (e: ApiError, fileInode?: Inode): void => {
+        this.getINode(tx, p, fileInodeId!, (e: ApiError, fileInode?: Inode): void => {
           if (noErrorTx(e, tx, cb)) {
-            let inodeChanged: boolean = fileInode.update(stats);
+            let inodeChanged: boolean = fileInode!.update(stats);
             // Step 3: Sync the data.
-            tx.put(fileInode.id, data, true, (e: ApiError): void => {
+            tx.put(fileInode!.id, data, true, (e: ApiError): void => {
               if (noErrorTx(e, tx, cb)) {
                 // Step 4: Sync the metadata (if it changed)!
                 if (inodeChanged) {
-                  tx.put(fileInodeId, fileInode.toBuffer(), true, (e: ApiError): void => {
+                  tx.put(fileInodeId!, fileInode!.toBuffer(), true, (e: ApiError): void => {
                     if (noErrorTx(e, tx, cb)) {
                       tx.commit(cb);
                     }
@@ -956,7 +955,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
   /**
    * Checks if the root directory exists. Creates it if it doesn't.
    */
-  private makeRootDirectory(cb: (e?: ApiError) => void) {
+  private makeRootDirectory(cb: BFSOneArgCallback) {
     let tx = this.store.beginTransaction('readwrite');
     tx.get(ROOT_NODE_ID, (e: ApiError, data?: Buffer) => {
       if (e || data === undefined) {
@@ -991,12 +990,12 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
    *   the parent.
    * @param cb Passed an error or the ID of the file's inode in the file system.
    */
-  private _findINode(tx: AsyncKeyValueROTransaction, parent: string, filename: string, cb: (e: ApiError, id?: string) => void): void {
-    let handleDirectoryListings = (e: ApiError, inode?: Inode, dirList?: {[name: string]: string}): void => {
+  private _findINode(tx: AsyncKeyValueROTransaction, parent: string, filename: string, cb: BFSCallback<string>): void {
+    let handleDirectoryListings = (e?: ApiError | null, inode?: Inode, dirList?: {[name: string]: string}): void => {
       if (e) {
         cb(e);
-      } else if (dirList[filename]) {
-        cb(null, dirList[filename]);
+      } else if (dirList![filename]) {
+        cb(null, dirList![filename]);
       } else {
         cb(ApiError.ENOENT(path.resolve(parent, filename)));
       }
@@ -1010,7 +1009,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
         // BASE CASE #2: Find the item in the root node.
         this.getINode(tx, parent, ROOT_NODE_ID, (e: ApiError, inode?: Inode): void => {
           if (noError(e, cb)) {
-            this.getDirListing(tx, parent, inode, (e: ApiError, dirList?: {[name: string]: string}): void => {
+            this.getDirListing(tx, parent, inode!, (e: ApiError, dirList?: {[name: string]: string}): void => {
               // handle_directory_listings will handle e for us.
               handleDirectoryListings(e, inode, dirList);
             });
@@ -1030,10 +1029,10 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
    * @param cb Passed an error or the Inode of the path p.
    * @todo memoize/cache
    */
-  private findINode(tx: AsyncKeyValueROTransaction, p: string, cb: (e: ApiError, inode?: Inode) => void): void {
+  private findINode(tx: AsyncKeyValueROTransaction, p: string, cb: BFSCallback<Inode>): void {
     this._findINode(tx, path.dirname(p), path.basename(p), (e: ApiError, id?: string): void => {
       if (noError(e, cb)) {
-        this.getINode(tx, p, id, cb);
+        this.getINode(tx, p, id!, cb);
       }
     });
   }
@@ -1045,7 +1044,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
    * @param id The ID to look up.
    * @param cb Passed an error or the inode under the given id.
    */
-  private getINode(tx: AsyncKeyValueROTransaction, p: string, id: string, cb: (e: ApiError, inode?: Inode) => void): void {
+  private getINode(tx: AsyncKeyValueROTransaction, p: string, id: string, cb: BFSCallback<Inode>): void {
     tx.get(id, (e: ApiError, data?: Buffer): void => {
       if (noError(e, cb)) {
         if (data === undefined) {
@@ -1061,14 +1060,14 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
    * Given the Inode of a directory, retrieves the corresponding directory
    * listing.
    */
-  private getDirListing(tx: AsyncKeyValueROTransaction, p: string, inode: Inode, cb: (e: ApiError, listing?: { [fileName: string]: string }) => void): void {
+  private getDirListing(tx: AsyncKeyValueROTransaction, p: string, inode: Inode, cb: BFSCallback<{ [fileName: string]: string }>): void {
     if (!inode.isDirectory()) {
       cb(ApiError.ENOTDIR(p));
     } else {
       tx.get(inode.id, (e: ApiError, data?: Buffer): void => {
         if (noError(e, cb)) {
           try {
-            cb(null, JSON.parse(data.toString()));
+            cb(null, JSON.parse(data!.toString()));
           } catch (e) {
             // Occurs when data is undefined, or corresponds to something other
             // than a directory listing. The latter should never occur unless
@@ -1084,12 +1083,12 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
    * Given a path to a directory, retrieves the corresponding INode and
    * directory listing.
    */
-  private findINodeAndDirListing(tx: AsyncKeyValueROTransaction, p: string, cb: (e: ApiError, inode?: Inode, listing?: { [fileName: string]: string }) => void): void {
+  private findINodeAndDirListing(tx: AsyncKeyValueROTransaction, p: string, cb: BFSThreeArgCallback<Inode, { [fileName: string]: string }>): void {
     this.findINode(tx, p, (e: ApiError, inode?: Inode): void => {
       if (noError(e, cb)) {
-        this.getDirListing(tx, p, inode, (e, listing?) => {
+        this.getDirListing(tx, p, inode!, (e, listing?) => {
           if (noError(e, cb)) {
-            cb(null, inode, listing);
+            cb(null, inode!, listing!);
           }
         });
       }
@@ -1101,7 +1100,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
    * the exceedingly unlikely chance that we try to reuse a random GUID.
    * @param cb Passed an error or the GUID that the data was stored under.
    */
-  private addNewNode(tx: AsyncKeyValueRWTransaction, data: Buffer, cb: (e: ApiError, guid?: string) => void): void {
+  private addNewNode(tx: AsyncKeyValueRWTransaction, data: Buffer, cb: BFSCallback<string>): void {
     let retries = 0, currId: string,
       reroll = () => {
         if (++retries === 5) {
@@ -1133,7 +1132,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
    * @param data The data to store at the file's data node.
    * @param cb Passed an error or the Inode for the new file.
    */
-  private commitNewFile(tx: AsyncKeyValueRWTransaction, p: string, type: FileType, mode: number, data: Buffer, cb: (e: ApiError, inode?: Inode) => void): void {
+  private commitNewFile(tx: AsyncKeyValueRWTransaction, p: string, type: FileType, mode: number, data: Buffer, cb: BFSCallback<Inode>): void {
     let parentDir = path.dirname(p),
       fname = path.basename(p),
       currTime = (new Date()).getTime();
@@ -1148,9 +1147,9 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
     // Let's build a pyramid of code!
 
     // Step 1: Get the parent directory's inode and directory listing
-    this.findINodeAndDirListing(tx, parentDir, (e: ApiError, parentNode?: Inode, dirListing?: {[name: string]: string}): void => {
+    this.findINodeAndDirListing(tx, parentDir, (e?: ApiError | null, parentNode?: Inode, dirListing?: {[name: string]: string}): void => {
       if (noErrorTx(e, tx, cb)) {
-        if (dirListing[fname]) {
+        if (dirListing![fname]) {
           // File already exists.
           tx.abort(() => {
             cb(ApiError.EEXIST(p));
@@ -1160,12 +1159,12 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
           this.addNewNode(tx, data, (e: ApiError, dataId?: string): void => {
             if (noErrorTx(e, tx, cb)) {
               // Step 3: Commit the file's inode to the store.
-              let fileInode = new Inode(dataId, data.length, mode | type, currTime, currTime, currTime);
+              let fileInode = new Inode(dataId!, data.length, mode | type, currTime, currTime, currTime);
               this.addNewNode(tx, fileInode.toBuffer(), (e: ApiError, fileInodeId?: string): void => {
                 if (noErrorTx(e, tx, cb)) {
                   // Step 4: Update parent directory's listing.
-                  dirListing[fname] = fileInodeId;
-                  tx.put(parentNode.id, new Buffer(JSON.stringify(dirListing)), true, (e: ApiError): void => {
+                  dirListing![fname] = fileInodeId!;
+                  tx.put(parentNode!.id, new Buffer(JSON.stringify(dirListing)), true, (e: ApiError): void => {
                     if (noErrorTx(e, tx, cb)) {
                       // Step 5: Commit and return the new inode.
                       tx.commit((e?: ApiError): void => {
@@ -1190,40 +1189,40 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
    * @param isDir Does the path belong to a directory, or a file?
    * @todo Update mtime.
    */
-  private removeEntry(p: string, isDir: boolean, cb: (e?: ApiError) => void): void {
+  private removeEntry(p: string, isDir: boolean, cb: BFSOneArgCallback): void {
     let tx = this.store.beginTransaction('readwrite'),
       parent: string = path.dirname(p), fileName: string = path.basename(p);
     // Step 1: Get parent directory's node and directory listing.
-    this.findINodeAndDirListing(tx, parent, (e: ApiError, parentNode?: Inode, parentListing?: {[name: string]: string}): void => {
+    this.findINodeAndDirListing(tx, parent, (e?: ApiError | null, parentNode?: Inode, parentListing?: {[name: string]: string}): void => {
       if (noErrorTx(e, tx, cb)) {
-        if (!parentListing[fileName]) {
+        if (!parentListing![fileName]) {
           tx.abort(() => {
             cb(ApiError.ENOENT(p));
           });
         } else {
           // Remove from directory listing of parent.
-          let fileNodeId = parentListing[fileName];
-          delete parentListing[fileName];
+          let fileNodeId = parentListing![fileName];
+          delete parentListing![fileName];
           // Step 2: Get file inode.
           this.getINode(tx, p, fileNodeId, (e: ApiError, fileNode?: Inode): void => {
             if (noErrorTx(e, tx, cb)) {
-              if (!isDir && fileNode.isDirectory()) {
+              if (!isDir && fileNode!.isDirectory()) {
                 tx.abort(() => {
                   cb(ApiError.EISDIR(p));
                 });
-              } else if (isDir && !fileNode.isDirectory()) {
+              } else if (isDir && !fileNode!.isDirectory()) {
                 tx.abort(() => {
                   cb(ApiError.ENOTDIR(p));
                 });
               } else {
                 // Step 3: Delete data.
-                tx.del(fileNode.id, (e?: ApiError): void => {
+                tx.del(fileNode!.id, (e?: ApiError): void => {
                   if (noErrorTx(e, tx, cb)) {
                     // Step 4: Delete node.
                     tx.del(fileNodeId, (e?: ApiError): void => {
                       if (noErrorTx(e, tx, cb)) {
                         // Step 5: Update directory listing.
-                        tx.put(parentNode.id, new Buffer(JSON.stringify(parentListing)), true, (e: ApiError): void => {
+                        tx.put(parentNode!.id, new Buffer(JSON.stringify(parentListing)), true, (e: ApiError): void => {
                           if (noErrorTx(e, tx, cb)) {
                             tx.commit(cb);
                           }

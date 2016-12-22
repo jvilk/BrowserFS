@@ -38,7 +38,7 @@ export class LocalStorageStore implements SyncKeyValueStore, SimpleSyncStore {
     return new SimpleSyncRWTransaction(this);
   }
 
-  public get(key: string): Buffer {
+  public get(key: string): Buffer | undefined {
     try {
       let data = global.localStorage.getItem(key);
       if (data !== null) {

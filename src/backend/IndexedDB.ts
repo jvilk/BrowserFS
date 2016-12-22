@@ -1,3 +1,4 @@
+import {BFSOneArgCallback, BFSCallback} from '../core/file_system';
 import {AsyncKeyValueROTransaction, AsyncKeyValueRWTransaction, AsyncKeyValueStore, AsyncKeyValueFileSystem} from '../generic/key_value_filesystem';
 import {ApiError, ErrorCode} from '../core/api_error';
 import global from '../core/global';
@@ -31,18 +32,18 @@ function convertError(e: {name: string}, message: string = e.toString()): ApiErr
  * handle them generically: Call the user-supplied callback with a translated
  * version of the error, and let the error bubble up.
  */
-function onErrorHandler(cb: (e: ApiError) => void, code: ErrorCode = ErrorCode.EIO, message: string = null): (e?: any) => void {
+function onErrorHandler(cb: (e: ApiError) => void, code: ErrorCode = ErrorCode.EIO, message: string | null = null): (e?: any) => void {
   return function (e?: any): void {
     // Prevent the error from canceling the transaction.
     e.preventDefault();
-    cb(new ApiError(code, message));
+    cb(new ApiError(code, message !== null ? message : undefined));
   };
 }
 
 export class IndexedDBROTransaction implements AsyncKeyValueROTransaction {
   constructor(public tx: IDBTransaction, public store: IDBObjectStore) { }
 
-  public get(key: string, cb: (e: ApiError, data?: Buffer) => void): void {
+  public get(key: string, cb: BFSCallback<Buffer>): void {
     try {
       let r: IDBRequest = this.store.get(key);
       r.onerror = onErrorHandler(cb);
@@ -68,7 +69,7 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements As
     super(tx, store);
   }
 
-  public put(key: string, data: Buffer, overwrite: boolean, cb: (e: ApiError, committed?: boolean) => void): void {
+  public put(key: string, data: Buffer, overwrite: boolean, cb: BFSCallback<boolean>): void {
     try {
       let arraybuffer = buffer2ArrayBuffer(data),
         r: IDBRequest;
@@ -88,7 +89,7 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements As
     }
   }
 
-  public del(key: string, cb: (e?: ApiError) => void): void {
+  public del(key: string, cb: BFSOneArgCallback): void {
     try {
       // NOTE: IE8 has a bug with identifiers named 'delete' unless used as a string
       // like this.
@@ -103,13 +104,13 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements As
     }
   }
 
-  public commit(cb: (e?: ApiError) => void): void {
+  public commit(cb: BFSOneArgCallback): void {
     // Return to the event loop to commit the transaction.
     setTimeout(cb, 0);
   }
 
-  public abort(cb: (e?: ApiError) => void): void {
-    let _e: ApiError;
+  public abort(cb: BFSOneArgCallback): void {
+    let _e: ApiError | null = null;
     try {
       this.tx.abort();
     } catch (e) {
@@ -131,7 +132,7 @@ export class IndexedDBStore implements AsyncKeyValueStore {
    *   multiple IndexedDB file systems operating at once, but each must have
    *   a different name.
    */
-  constructor(cb: (e: ApiError, store?: IndexedDBStore) => void, private storeName: string = 'browserfs') {
+  constructor(cb: BFSCallback<IndexedDBStore>, private storeName: string = 'browserfs') {
     let openReq: IDBOpenDBRequest = indexedDB.open(this.storeName, 1);
 
     openReq.onupgradeneeded = (event) => {
@@ -156,7 +157,7 @@ export class IndexedDBStore implements AsyncKeyValueStore {
     return "IndexedDB - " + this.storeName;
   }
 
-  public clear(cb: (e?: ApiError) => void): void {
+  public clear(cb: BFSOneArgCallback): void {
     try {
       let tx = this.db.transaction(this.storeName, 'readwrite'),
         objectStore = tx.objectStore(this.storeName),
@@ -201,7 +202,7 @@ export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
       return false;
     }
   }
-  constructor(cb: (e: ApiError, fs?: IndexedDBFileSystem) => void, storeName?: string) {
+  constructor(cb: BFSCallback<IndexedDBFileSystem>, storeName?: string) {
     super();
     let store = new IndexedDBStore((e): void => {
       if (e) {

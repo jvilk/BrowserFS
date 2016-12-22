@@ -47,7 +47,7 @@ function translateError(folder: string, e: any): any {
     let p = err.path;
     if (p) {
       p = '/' + path.relative(folder, p);
-      err.message = err.message.replace(err.path, p);
+      err.message = err.message.replace(err.path!, p);
       err.path = p;
     }
   }

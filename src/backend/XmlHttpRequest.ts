@@ -1,4 +1,4 @@
-import {BaseFileSystem, FileSystem} from '../core/file_system';
+import {BaseFileSystem, FileSystem, BFSCallback} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
 import {copyingSlice} from '../core/util';
@@ -13,7 +13,7 @@ import {FileIndex, isFileInode, isDirInode} from '../generic/file_index';
  * Optimization that removes the needed try/catch into a helper function, as
  * this is an uncommon case.
  */
-function tryToString(buff: Buffer, encoding: string, cb: (e: ApiError, rv?: string) => void) {
+function tryToString(buff: Buffer, encoding: string, cb: BFSCallback<string>) {
   try {
     cb(null, buff.toString(encoding));
   } catch (e) {
@@ -49,7 +49,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
     }
     this.prefixUrl = prefixUrl;
 
-    let listing: Object = null;
+    let listing: Object | null = null;
     if (typeof(listingUrlOrObj) === "string") {
       listing = this._requestFileSync(<string> listingUrlOrObj, 'json');
       if (!listing) {
@@ -71,7 +71,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
   /**
    * Only requests the HEAD content, for the file size.
    */
-  public _requestFileSizeAsync(path: string, cb: (err: ApiError, size?: number) => void): void {
+  public _requestFileSizeAsync(path: string, cb: BFSCallback<number>): void {
     getFileSizeAsync(this.getXhrPath(path), cb);
   }
   public _requestFileSizeSync(path: string): number {
@@ -123,7 +123,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
     }
   }
 
-  public stat(path: string, isLstat: boolean, cb: (e: ApiError, stat?: Stats) => void): void {
+  public stat(path: string, isLstat: boolean, cb: BFSCallback<Stats>): void {
     let inode = this._index.getInode(path);
     if (inode === null) {
       return cb(ApiError.ENOENT(path));
@@ -137,7 +137,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
           if (e) {
             return cb(e);
           }
-          stats.size = size;
+          stats.size = size!;
           cb(null, stats.clone());
         });
       } else {
@@ -171,12 +171,12 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
     return stats;
   }
 
-  public open(path: string, flags: FileFlag, mode: number, cb: (e: ApiError, file?: File) => void): void {
+  public open(path: string, flags: FileFlag, mode: number, cb: BFSCallback<File>): void {
     // INVARIANT: You can't write to files on this file system.
     if (flags.isWriteable()) {
       return cb(new ApiError(ErrorCode.EPERM, path));
     }
-    let _this = this;
+    let self = this;
     // Check if the path exists, and is a file.
     let inode = this._index.getInode(path);
     if (inode === null) {
@@ -192,7 +192,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
           // Use existing file contents.
           // XXX: Uh, this maintains the previously-used flag.
           if (stats.fileData) {
-            return cb(null, new NoSyncFile(_this, path, flags, stats.clone(), stats.fileData));
+            return cb(null, new NoSyncFile(self, path, flags, stats.clone(), stats.fileData));
           }
           // @todo be lazier about actually requesting the file
           this._requestFileAsync(path, 'buffer', function(err: ApiError, buffer?: Buffer) {
@@ -200,9 +200,9 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
               return cb(err);
             }
             // we don't initially have file sizes
-            stats.size = buffer.length;
-            stats.fileData = buffer;
-            return cb(null, new NoSyncFile(_this, path, flags, stats.clone(), buffer));
+            stats.size = buffer!.length;
+            stats.fileData = buffer!;
+            return cb(null, new NoSyncFile(self, path, flags, stats.clone(), buffer));
           });
           break;
         default:
@@ -249,7 +249,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
     }
   }
 
-  public readdir(path: string, cb: (e: ApiError, listing?: string[]) => void): void {
+  public readdir(path: string, cb: BFSCallback<string[]>): void {
     try {
       cb(null, this.readdirSync(path));
     } catch (e) {
@@ -272,7 +272,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
   /**
    * We have the entire file as a buffer; optimize readFile.
    */
-  public readFile(fname: string, encoding: string, flag: FileFlag, cb: (err: ApiError, data?: any) => void): void {
+  public readFile(fname: string, encoding: string, flag: FileFlag, cb: BFSCallback<string | Buffer>): void {
     // Wrap cb in file closing code.
     let oldCb = cb;
     // Get file.
@@ -281,7 +281,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
         return cb(err);
       }
       cb = function(err: ApiError, arg?: Buffer) {
-        fd.close(function(err2: any) {
+        fd!.close(function(err2: any) {
           if (!err) {
             err = err2;
           }
@@ -326,10 +326,10 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
   /**
    * Asynchronously download the given file.
    */
-  private _requestFileAsync(p: string, type: 'buffer', cb: (err: ApiError, data?: Buffer) => void): void;
-  private _requestFileAsync(p: string, type: 'json', cb: (err: ApiError, data?: any) => void): void;
-  private _requestFileAsync(p: string, type: string, cb: (err: ApiError, data?: any) => void): void;
-  private _requestFileAsync(p: string, type: string, cb: (err: ApiError, data?: any) => void): void {
+  private _requestFileAsync(p: string, type: 'buffer', cb: BFSCallback<Buffer>): void;
+  private _requestFileAsync(p: string, type: 'json', cb: BFSCallback<any>): void;
+  private _requestFileAsync(p: string, type: string, cb: BFSCallback<any>): void;
+  private _requestFileAsync(p: string, type: string, cb: BFSCallback<any>): void {
     asyncDownloadFile(this.getXhrPath(p), type, cb);
   }
 
