@@ -194,7 +194,7 @@ export default function(tests: {
   }
 
   function generateAllTests() {
-    describe('BrowserFS Tests', function(this: Mocha): void {
+    describe('BrowserFS Tests', function(): void {
       this.timeout(0);
 
       // generate generic non-backend specific tests
