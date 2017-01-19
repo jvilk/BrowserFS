@@ -19,7 +19,7 @@ export enum FileType {
  */
 export default class Stats implements fs.Stats {
   public static fromBuffer(buffer: Buffer): Stats {
-    let size = buffer.readUInt32LE(0),
+    const size = buffer.readUInt32LE(0),
       mode = buffer.readUInt32LE(4),
       atime = buffer.readDoubleLE(8),
       mtime = buffer.readDoubleLE(16),
@@ -94,7 +94,7 @@ export default class Stats implements fs.Stats {
   }
 
   public toBuffer(): Buffer {
-    let buffer = new Buffer(32);
+    const buffer = new Buffer(32);
     buffer.writeUInt32LE(this.size, 0);
     buffer.writeUInt32LE(this.mode, 4);
     buffer.writeDoubleLE(this.atime.getTime(), 8);

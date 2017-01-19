@@ -11,7 +11,7 @@ function asyncDownloadFileModern(p: string, type: 'buffer', cb: BFSCallback<Buff
 function asyncDownloadFileModern(p: string, type: 'json', cb: BFSCallback<any>): void;
 function asyncDownloadFileModern(p: string, type: string, cb: BFSCallback<any>): void;
 function asyncDownloadFileModern(p: string, type: string, cb: BFSCallback<any>): void {
-  let req = new XMLHttpRequest();
+  const req = new XMLHttpRequest();
   req.open('GET', p, true);
   let jsonSupported = true;
   switch (type) {
@@ -58,7 +58,7 @@ function syncDownloadFileModern(p: string, type: 'buffer'): Buffer;
 function syncDownloadFileModern(p: string, type: 'json'): any;
 function syncDownloadFileModern(p: string, type: string): any;
 function syncDownloadFileModern(p: string, type: string): any {
-  let req = new XMLHttpRequest();
+  const req = new XMLHttpRequest();
   req.open('GET', p, false);
 
   // On most platforms, we cannot set the responseType of synchronous downloads.
@@ -73,7 +73,7 @@ function syncDownloadFileModern(p: string, type: string): any {
         switch (type) {
           case 'buffer':
             // Convert the text into a buffer.
-            let text = req.responseText;
+            const text = req.responseText;
             data = new Buffer(text.length);
             // Throw away the upper bits of each character.
             for (let i = 0; i < text.length; i++) {
@@ -107,7 +107,7 @@ function syncDownloadFileIE10(p: string, type: 'buffer'): Buffer;
 function syncDownloadFileIE10(p: string, type: 'json'): any;
 function syncDownloadFileIE10(p: string, type: string): any;
 function syncDownloadFileIE10(p: string, type: string): any {
-  let req = new XMLHttpRequest();
+  const req = new XMLHttpRequest();
   req.open('GET', p, false);
   switch (type) {
     case 'buffer':
@@ -145,7 +145,7 @@ function syncDownloadFileIE10(p: string, type: string): any {
 }
 
 function getFileSize(async: boolean, p: string, cb: BFSCallback<number>): void {
-  let req = new XMLHttpRequest();
+  const req = new XMLHttpRequest();
   req.open('HEAD', p, async);
   req.onreadystatechange = function(e) {
     if (req.readyState === 4) {

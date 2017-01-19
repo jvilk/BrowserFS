@@ -57,7 +57,7 @@ class CallbackArgumentConverter {
   private _nextId: number = 0;
 
   public toRemoteArg(cb: Function): ICallbackArgument {
-    let id = this._nextId++;
+    const id = this._nextId++;
     this._callbacks[id] = cb;
     return {
       type: SpecialArgType.CB,
@@ -66,7 +66,7 @@ class CallbackArgumentConverter {
   }
 
   public toLocalArg(id: number): Function {
-    let cb = this._callbacks[id];
+    const cb = this._callbacks[id];
     delete this._callbacks[id];
     return cb;
   }
@@ -90,9 +90,9 @@ class FileDescriptorArgumentConverter {
   private _nextId: number = 0;
 
   public toRemoteArg(fd: File, p: string, flag: FileFlag, cb: BFSCallback<IFileDescriptorArgument>): void {
-    let id = this._nextId++,
-      data: ArrayBuffer,
-      stat: ArrayBuffer;
+    const id = this._nextId++;
+    let data: ArrayBuffer;
+    let stat: ArrayBuffer;
     this._fileDescriptors[id] = fd;
 
     // Extract needed information asynchronously.
@@ -135,7 +135,7 @@ class FileDescriptorArgumentConverter {
   }
 
   public applyFdAPIRequest(request: IAPIRequest, cb: BFSOneArgCallback): void {
-    let fdArg = <IFileDescriptorArgument> request.args[0];
+    const fdArg = <IFileDescriptorArgument> request.args[0];
     this._applyFdChanges(fdArg, (err, fd?) => {
       if (err) {
         cb(err);
@@ -152,12 +152,12 @@ class FileDescriptorArgumentConverter {
   }
 
   private _applyFdChanges(remoteFd: IFileDescriptorArgument, cb: BFSCallback<File>): void {
-    let fd = this._fileDescriptors[remoteFd.id],
+    const fd = this._fileDescriptors[remoteFd.id],
       data = transferrableObjectToBuffer(remoteFd.data),
       remoteStats = Stats.fromBuffer(transferrableObjectToBuffer(remoteFd.stat));
 
     // Write data if the file is writable.
-    let flag = FileFlag.getFileFlag(remoteFd.flag);
+    const flag = FileFlag.getFileFlag(remoteFd.flag);
     if (flag.isWriteable()) {
       // Appendable: Write to end of file.
       // Writeable: Replace entire contents of file.
@@ -240,7 +240,7 @@ function errorRemote2Local(e: IErrorArgument): Error {
   if (typeof(cnstr) !== 'function') {
     cnstr = Error;
   }
-  let err = new cnstr(e.message);
+  const err = new cnstr(e.message);
   err.stack = e.stack;
   return err;
 }
@@ -397,7 +397,7 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
    * Attaches a listener to the remote worker for file system requests.
    */
   public static attachRemoteListener(worker: Worker) {
-    let fdConverter = new FileDescriptorArgumentConverter();
+    const fdConverter = new FileDescriptorArgumentConverter();
 
     function argLocal2Remote(arg: any, requestArgs: any[], cb: BFSCallback<any>): void {
       switch (typeof arg) {
@@ -432,13 +432,14 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
       switch (typeof arg) {
         case 'object':
           if (typeof arg['type'] === 'number') {
-            let specialArg = <ISpecialArgument> arg;
+            const specialArg = <ISpecialArgument> arg;
             switch (specialArg.type) {
               case SpecialArgType.CB:
-                let cbId = (<ICallbackArgument> arg).id;
+                const cbId = (<ICallbackArgument> arg).id;
                 return function() {
-                  let i: number, fixedArgs = new Array(arguments.length),
-                    message: IAPIResponse,
+                  let i: number;
+                  const fixedArgs = new Array(arguments.length);
+                  let message: IAPIResponse,
                     countdown = arguments.length;
 
                   function abortAndSendError(err: ApiError) {
@@ -515,10 +516,10 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
           case 'sync':
             (() => {
               // File descriptor-relative methods.
-              let remoteCb = <ICallbackArgument> args[1];
+              const remoteCb = <ICallbackArgument> args[1];
               fdConverter.applyFdAPIRequest(request, (err?: ApiError) => {
                 // Send response.
-                let response: IAPIResponse = {
+                const response: IAPIResponse = {
                   browserfsMessage: true,
                   cbId: remoteCb.id,
                   args: err ? [apiErrorLocal2Remote(err)] : []
@@ -529,7 +530,7 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
             break;
           case 'probe':
             (() => {
-              let rootFs = <FileSystem> fs.getRootFS(),
+              const rootFs = <FileSystem> fs.getRootFS(),
                 remoteCb = <ICallbackArgument> args[1],
                 probeResponse: IProbeResponse = {
                   type: SpecialArgType.PROBE,
@@ -575,9 +576,11 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
     super();
     this._worker = worker;
     this._worker.addEventListener('message', (e: MessageEvent) => {
-      let resp: Object = e.data;
+      const resp: Object = e.data;
       if (isAPIResponse(resp)) {
-        let i: number, args = resp.args, fixedArgs = new Array(args.length);
+        let i: number;
+        const args = resp.args;
+        const fixedArgs = new Array(args.length);
         // Dispatch event to correct id.
         for (i = 0; i < fixedArgs.length; i++) {
           fixedArgs[i] = this._argRemote2Local(args[i]);
@@ -627,7 +630,7 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
    */
   public initialize(cb: () => void): void {
     if (!this._isInitialized) {
-      let message: IAPIRequest = {
+      const message: IAPIRequest = {
         browserfsMessage: true,
         method: 'probe',
         args: [this._argLocal2Remote(new Buffer(0)), this._callbackConverter.toRemoteArg((probeResponse: IProbeResponse) => {
@@ -722,12 +725,12 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
     switch (typeof arg) {
       case 'object':
         if (typeof arg['type'] === 'number') {
-          let specialArg = <ISpecialArgument> arg;
+          const specialArg = <ISpecialArgument> arg;
           switch (specialArg.type) {
             case SpecialArgType.API_ERROR:
               return apiErrorRemote2Local(<IAPIErrorArgument> specialArg);
             case SpecialArgType.FD:
-              let fdArg = <IFileDescriptorArgument> specialArg;
+              const fdArg = <IFileDescriptorArgument> specialArg;
               return new WorkerFile(this, fdArg.path, FileFlag.getFileFlag(fdArg.flag), Stats.fromBuffer(transferrableObjectToBuffer(fdArg.stat)), fdArg.id, transferrableObjectToBuffer(fdArg.data));
             case SpecialArgType.STATS:
               return statsRemote2Local(<IStatsArgument> specialArg);
@@ -749,11 +752,11 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
   }
 
   private _rpc(methodName: string, args: IArguments) {
-    let fixedArgs = new Array(args.length);
+    const fixedArgs = new Array(args.length);
     for (let i = 0; i < args.length; i++) {
       fixedArgs[i] = this._argLocal2Remote(args[i]);
     }
-    let message: IAPIRequest = {
+    const message: IAPIRequest = {
       browserfsMessage: true,
       method: methodName,
       args: fixedArgs

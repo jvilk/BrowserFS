@@ -25,12 +25,12 @@ export default class ExtendedASCII {
     '\u00B2', '_', ' ' ];
 
   public static str2byte(str: string, buf: Buffer): number {
-    let length = str.length > buf.length ? buf.length : str.length;
+    const length = str.length > buf.length ? buf.length : str.length;
     for (let i = 0; i < length; i++) {
       let charCode = str.charCodeAt(i);
       if (charCode > 0x7F) {
         // Check if extended ASCII.
-        let charIdx = ExtendedASCII.extendedChars.indexOf(str.charAt(i));
+        const charIdx = ExtendedASCII.extendedChars.indexOf(str.charAt(i));
         if (charIdx > -1) {
           charCode = charIdx + 0x80;
         }
@@ -42,9 +42,9 @@ export default class ExtendedASCII {
   }
 
   public static byte2str(buff: Buffer): string {
-    let chars = new Array(buff.length);
+    const chars = new Array(buff.length);
     for (let i = 0; i < buff.length; i++) {
-      let charCode = buff[i];
+      const charCode = buff[i];
       if (charCode > 0x7F) {
         chars[i] = ExtendedASCII.extendedChars[charCode - 128];
       } else {

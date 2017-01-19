@@ -170,7 +170,7 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
   public openSync(p: string, flag: FileFlag, mode: number): File {
     this.checkInitialized();
     // Sanity check: Is this open/close permitted?
-    let fd = this._sync.openSync(p, flag, mode);
+    const fd = this._sync.openSync(p, flag, mode);
     fd.closeSync();
     return new MirrorFile(this, p, flag, this._sync.statSync(p, false), this._sync.readFileSync(p, null, FileFlag.getFileFlag('r')));
   }
@@ -249,12 +249,12 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
     this._queue.push(op);
     if (!this._queueRunning) {
       this._queueRunning = true;
-      let doNextOp = (err?: ApiError) => {
+      const doNextOp = (err?: ApiError) => {
         if (err) {
           console.error(`WARNING: File system has desynchronized. Received following error: ${err}\n$`);
         }
         if (this._queue.length > 0) {
-          let op = this._queue.shift()!,
+          const op = this._queue.shift()!,
             args = op.arguments;
           args.push(doNextOp);
           (<Function> (<any> this._async)[op.apiMethod]).apply(this._async, args);

@@ -119,7 +119,7 @@ export function copyingSlice(buff: Buffer, start: number = 0, end = buff.length)
     // Avoid s0 corner case in ArrayBuffer case.
     return new Buffer(0);
   } else {
-    let u8 = buffer2Uint8array(buff),
+    const u8 = buffer2Uint8array(buff),
       s0 = buff[0],
       newS0 = (s0 + 1) % 0xFF;
 

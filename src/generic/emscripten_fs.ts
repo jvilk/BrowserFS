@@ -91,8 +91,8 @@ class BFSEmscriptenStreamOps implements EmscriptenStreamOps {
   }
 
   public open(stream: EmscriptenStream): void {
-    let path = this.fs.realPath(stream.node);
-    let FS = this.FS;
+    const path = this.fs.realPath(stream.node);
+    const FS = this.FS;
     try {
       if (FS.isFile(stream.node.mode)) {
         stream.nfd = this.nodefs.openSync(path, this.fs.flagsToPermissionString(stream.flags));
@@ -106,7 +106,7 @@ class BFSEmscriptenStreamOps implements EmscriptenStreamOps {
   }
 
   public close(stream: EmscriptenStream): void {
-    let FS = this.FS;
+    const FS = this.FS;
     try {
       if (FS.isFile(stream.node.mode) && stream.nfd) {
         this.nodefs.closeSync(stream.nfd);
@@ -144,7 +144,7 @@ class BFSEmscriptenStreamOps implements EmscriptenStreamOps {
     } else if (whence === 2) {  // SEEK_END.
       if (this.FS.isFile(stream.node.mode)) {
         try {
-          let stat = this.nodefs.fstatSync(stream.nfd);
+          const stat = this.nodefs.fstatSync(stream.nfd);
           position += stat.size;
         } catch (e) {
           throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
@@ -175,7 +175,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   }
 
   public getattr(node: EmscriptenFSNode): Stats {
-    let path = this.fs.realPath(node);
+    const path = this.fs.realPath(node);
     let stat: NodeStats;
     try {
       stat = this.nodefs.lstatSync(path);
@@ -203,7 +203,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   }
 
   public setattr(node: EmscriptenFSNode, attr: Stats): void {
-    let path = this.fs.realPath(node);
+    const path = this.fs.realPath(node);
     try {
       if (attr.mode !== undefined) {
         this.nodefs.chmodSync(path, attr.mode);
@@ -211,7 +211,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
         node.mode = attr.mode;
       }
       if (attr.timestamp !== undefined) {
-        let date = new Date(attr.timestamp);
+        const date = new Date(attr.timestamp);
         this.nodefs.utimesSync(path, date, date);
       }
     } catch (e) {
@@ -237,15 +237,15 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   }
 
   public lookup(parent: EmscriptenFSNode, name: string): EmscriptenFSNode {
-    let path = this.PATH.join2(this.fs.realPath(parent), name);
-    let mode = this.fs.getMode(path);
+    const path = this.PATH.join2(this.fs.realPath(parent), name);
+    const mode = this.fs.getMode(path);
     return this.fs.createNode(parent, name, mode);
   }
 
   public mknod(parent: EmscriptenFSNode, name: string, mode: number, dev: any): EmscriptenFSNode {
-    let node = this.fs.createNode(parent, name, mode, dev);
+    const node = this.fs.createNode(parent, name, mode, dev);
     // create the backing node for this in the fs root as well
-    let path = this.fs.realPath(node);
+    const path = this.fs.realPath(node);
     try {
       if (this.FS.isDir(node.mode)) {
         this.nodefs.mkdirSync(path, node.mode);
@@ -262,8 +262,8 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   }
 
   public rename(oldNode: EmscriptenFSNode, newDir: EmscriptenFSNode, newName: string): void {
-    let oldPath = this.fs.realPath(oldNode);
-    let newPath = this.PATH.join2(this.fs.realPath(newDir), newName);
+    const oldPath = this.fs.realPath(oldNode);
+    const newPath = this.PATH.join2(this.fs.realPath(newDir), newName);
     try {
       this.nodefs.renameSync(oldPath, newPath);
     } catch (e) {
@@ -275,7 +275,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   }
 
   public unlink(parent: EmscriptenFSNode, name: string): void {
-    let path = this.PATH.join2(this.fs.realPath(parent), name);
+    const path = this.PATH.join2(this.fs.realPath(parent), name);
     try {
       this.nodefs.unlinkSync(path);
     } catch (e) {
@@ -287,7 +287,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   }
 
   public rmdir(parent: EmscriptenFSNode, name: string) {
-    let path = this.PATH.join2(this.fs.realPath(parent), name);
+    const path = this.PATH.join2(this.fs.realPath(parent), name);
     try {
       this.nodefs.rmdirSync(path);
     } catch (e) {
@@ -299,7 +299,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   }
 
   public readdir(node: EmscriptenFSNode): string[] {
-    let path = this.fs.realPath(node);
+    const path = this.fs.realPath(node);
     try {
       // Node does not list . and .. in directory listings,
       // but Emscripten expects it.
@@ -315,7 +315,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   }
 
   public symlink(parent: EmscriptenFSNode, newName: string, oldPath: string): void {
-    let newPath = this.PATH.join2(this.fs.realPath(parent), newName);
+    const newPath = this.PATH.join2(this.fs.realPath(parent), newName);
     try {
       this.nodefs.symlinkSync(oldPath, newPath);
     } catch (e) {
@@ -327,7 +327,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   }
 
   public readlink(node: EmscriptenFSNode): string {
-    let path = this.fs.realPath(node);
+    const path = this.fs.realPath(node);
     try {
       return this.nodefs.readlinkSync(path);
     } catch (e) {
@@ -391,11 +391,11 @@ export default class BFSEmscriptenFS implements EmscriptenFS {
   }
 
   public createNode(parent: EmscriptenFSNode | null, name: string, mode: number, dev?: any): EmscriptenFSNode {
-    let FS = this.FS;
+    const FS = this.FS;
     if (!FS.isDir(mode) && !FS.isFile(mode) && !FS.isLink(mode)) {
       throw new FS.ErrnoError(this.ERRNO_CODES.EINVAL);
     }
-    let node = FS.createNode(parent, name, mode);
+    const node = FS.createNode(parent, name, mode);
     node.node_ops = this.node_ops;
     node.stream_ops = this.stream_ops;
     return node;
@@ -415,7 +415,7 @@ export default class BFSEmscriptenFS implements EmscriptenFS {
   }
 
   public realPath(node: EmscriptenFSNode): string {
-    let parts: string[] = [];
+    const parts: string[] = [];
     while (node.parent !== node) {
       parts.push(node.name);
       node = node.parent;

@@ -21,15 +21,15 @@ if ('ab'.substr(-1) !== 'b') {
 
 // Only IE10 has setImmediate.
 if (typeof setImmediate === 'undefined') {
-  let gScope = global;
-  let timeouts: (() => void)[] = [];
-  let messageName = "zero-timeout-message";
-  let canUsePostMessage = function() {
+  const gScope = global;
+  const timeouts: (() => void)[] = [];
+  const messageName = "zero-timeout-message";
+  const canUsePostMessage = function() {
     if (typeof gScope.importScripts !== 'undefined' || !gScope.postMessage) {
       return false;
     }
     let postMessageIsAsync = true;
-    let oldOnMessage = gScope.onmessage;
+    const oldOnMessage = gScope.onmessage;
     gScope.onmessage = function() {
       postMessageIsAsync = false;
     };
@@ -42,7 +42,7 @@ if (typeof setImmediate === 'undefined') {
       timeouts.push(fn);
       gScope.postMessage(messageName, "*");
     };
-    let handleMessage = function(event: MessageEvent) {
+    const handleMessage = function(event: MessageEvent) {
       if (event.source === self && event.data === messageName) {
         if (event.stopPropagation) {
           event.stopPropagation();
@@ -50,7 +50,7 @@ if (typeof setImmediate === 'undefined') {
           event.cancelBubble = true;
         }
         if (timeouts.length > 0) {
-          let fn = timeouts.shift()!;
+          const fn = timeouts.shift()!;
           return fn();
         }
       }
@@ -62,7 +62,7 @@ if (typeof setImmediate === 'undefined') {
     }
   } else if (gScope.MessageChannel) {
     // WebWorker MessageChannel
-    let channel = new gScope.MessageChannel();
+    const channel = new gScope.MessageChannel();
     channel.port1.onmessage = (event: any) => {
       if (timeouts.length > 0) {
         return timeouts.shift()!();
@@ -84,7 +84,7 @@ if (typeof setImmediate === 'undefined') {
 if (typeof(ArrayBuffer) !== 'undefined' && typeof(Uint8Array) !== 'undefined') {
   if (!Uint8Array.prototype['slice']) {
     Uint8Array.prototype.slice = function(this: Uint8Array, start: number = 0, end: number = this.length): Uint8Array {
-      let self: Uint8Array = this;
+      const self: Uint8Array = this;
       if (start < 0) {
         start = this.length + start;
         if (start < 0) {

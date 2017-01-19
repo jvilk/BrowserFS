@@ -75,9 +75,9 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
    * Returns the file system that the path points to.
    */
   public _getFs(path: string): {fs: FileSystem; path: string} {
-    let mountList = this.mountList, len = mountList.length;
+    const mountList = this.mountList, len = mountList.length;
     for (let i = 0; i < len; i++) {
-      let mountPoint = mountList[i];
+      const mountPoint = mountList[i];
       // We know path is normalized, so it is a substring of the mount point.
       if (mountPoint.length <= path.length && path.indexOf(mountPoint) === 0) {
         path = path.substr(mountPoint.length > 1 ? mountPoint.length : 0);
@@ -124,7 +124,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
    * Mutates the input error, and returns it.
    */
   public standardizeError(err: ApiError, path: string, realPath: string): ApiError {
-    let index = err.message.indexOf(path);
+    const index = err.message.indexOf(path);
     if (index !== -1) {
       err.message = err.message.substr(0, index) + realPath + err.message.substr(index + path.length);
       err.path = realPath;
@@ -139,8 +139,8 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
 
   public rename(oldPath: string, newPath: string, cb: BFSOneArgCallback): void {
     // Scenario 1: old and new are on same FS.
-    let fs1rv = this._getFs(oldPath);
-    let fs2rv = this._getFs(newPath);
+    const fs1rv = this._getFs(oldPath);
+    const fs2rv = this._getFs(newPath);
     if (fs1rv.fs === fs2rv.fs) {
       return fs1rv.fs.rename(fs1rv.path, fs2rv.path, (e?: ApiError) => {
         if (e) {
@@ -167,8 +167,8 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
 
   public renameSync(oldPath: string, newPath: string): void {
     // Scenario 1: old and new are on same FS.
-    let fs1rv = this._getFs(oldPath);
-    let fs2rv = this._getFs(newPath);
+    const fs1rv = this._getFs(oldPath);
+    const fs2rv = this._getFs(newPath);
     if (fs1rv.fs === fs2rv.fs) {
       try {
         return fs1rv.fs.renameSync(fs1rv.path, fs2rv.path);
@@ -178,13 +178,13 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
       }
     }
     // Scenario 2: Different file systems.
-    let data = fs.readFileSync(oldPath);
+    const data = fs.readFileSync(oldPath);
     fs.writeFileSync(newPath, data);
     return fs.unlinkSync(oldPath);
   }
 
   public readdirSync(p: string): string[] {
-    let fsInfo = this._getFs(p);
+    const fsInfo = this._getFs(p);
 
     // If null, rootfs did not have the directory
     // (or the target FS is the root fs).
@@ -200,7 +200,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
     }
 
     try {
-      let rv2 = fsInfo.fs.readdirSync(fsInfo.path);
+      const rv2 = fsInfo.fs.readdirSync(fsInfo.path);
       if (rv === null) {
         return rv2;
       } else {
@@ -218,11 +218,11 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
   }
 
   public readdir(p: string, cb: BFSCallback<string[]>): void {
-    let fsInfo = this._getFs(p);
+    const fsInfo = this._getFs(p);
     fsInfo.fs.readdir(fsInfo.path, (err, files) => {
       if (fsInfo.fs !== this.rootFs) {
         try {
-          let rv = this.rootFs.readdirSync(p);
+          const rv = this.rootFs.readdirSync(p);
           if (files) {
             // Filter out duplicates.
             files = files.concat(rv.filter((val) => files!.indexOf(val) === -1));
@@ -245,7 +245,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
   }
 
   public rmdirSync(p: string): void {
-    let fsInfo = this._getFs(p);
+    const fsInfo = this._getFs(p);
     if (this._containsMountPt(p)) {
       throw ApiError.ENOTEMPTY(p);
     } else {
@@ -258,7 +258,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
   }
 
   public rmdir(p: string, cb: BFSOneArgCallback): void {
-    let fsInfo = this._getFs(p);
+    const fsInfo = this._getFs(p);
     if (this._containsMountPt(p)) {
       cb(ApiError.ENOTEMPTY(p));
     } else {
@@ -272,9 +272,9 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
    * Returns true if the given path contains a mount point.
    */
   private _containsMountPt(p: string): boolean {
-    let mountPoints = this.mountList, len = mountPoints.length;
+    const mountPoints = this.mountList, len = mountPoints.length;
     for (let i = 0; i < len; i++) {
-      let pt = mountPoints[i];
+      const pt = mountPoints[i];
       if (pt.length >= p.length && pt.slice(0, p.length) === p) {
         return true;
       }
@@ -293,8 +293,8 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
 function defineFcn(name: string, isSync: boolean, numArgs: number): (...args: any[]) => any {
   if (isSync) {
     return function(this: MountableFileSystem, ...args: any[]) {
-      let path = args[0];
-      let rv = this._getFs(path);
+      const path = args[0];
+      const rv = this._getFs(path);
       args[0] = rv.path;
       try {
         return (<any> rv.fs)[name].apply(rv.fs, args);
@@ -305,11 +305,11 @@ function defineFcn(name: string, isSync: boolean, numArgs: number): (...args: an
     };
   } else {
     return function(this: MountableFileSystem, ...args: any[]) {
-      let path = args[0];
-      let rv = this._getFs(path);
+      const path = args[0];
+      const rv = this._getFs(path);
       args[0] = rv.path;
       if (typeof args[args.length - 1] === 'function') {
-        let cb = args[args.length - 1];
+        const cb = args[args.length - 1];
         args[args.length - 1] = (...args: any[]) => {
           if (args.length > 0 && args[0] instanceof ApiError) {
             this.standardizeError(args[0], rv.path, path);

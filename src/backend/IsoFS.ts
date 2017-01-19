@@ -360,7 +360,7 @@ abstract class DirectoryRecord {
   }
   public fileName(isoData: Buffer): string {
     if (this.hasRockRidge()) {
-      let fn = this._rockRidgeFilename(isoData);
+      const fn = this._rockRidgeFilename(isoData);
       if (fn !== null) {
         return fn;
       }
@@ -612,7 +612,7 @@ class CEEntry extends SystemUseEntry {
   }
   public getEntries(isoData: Buffer): SystemUseEntry[] {
     if (!this._entries) {
-      let start = this.continuationLba() * 2048 + this.continuationLbaOffset();
+      const start = this.continuationLba() * 2048 + this.continuationLbaOffset();
       this._entries = constructSystemUseEntries(isoData, start, this.continuationLength(), isoData);
     }
     return this._entries;
@@ -993,8 +993,8 @@ abstract class Directory<T extends DirectoryRecord> {
         i++;
         continue;
       }
-      let r = this._constructDirectoryRecord(isoData.slice(i));
-      let fname = r.fileName(isoData);
+      const r = this._constructDirectoryRecord(isoData.slice(i));
+      const fname = r.fileName(isoData);
       // Skip '.' and '..' entries.
       if (fname !== '\u0000' && fname !== '\u0001') {
         // Skip relocated entries.
@@ -1059,7 +1059,7 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
     // Skip first 16 sectors.
     let vdTerminatorFound = false;
     let i = 16 * 2048;
-    let candidateVDs = new Array<PrimaryOrSupplementaryVolumeDescriptor>();
+    const candidateVDs = new Array<PrimaryOrSupplementaryVolumeDescriptor>();
     while (!vdTerminatorFound) {
       const slice = data.slice(i);
       const vd = new VolumeDescriptor(slice);
@@ -1119,7 +1119,7 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
   }
 
   public statSync(p: string, isLstat: boolean): Stats {
-    let record = this._getDirectoryRecord(p);
+    const record = this._getDirectoryRecord(p);
     if (record === null) {
       throw ApiError.ENOENT(p);
     }
@@ -1132,14 +1132,14 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
       throw new ApiError(ErrorCode.EPERM, p);
     }
     // Check if the path exists, and is a file.
-    let record = this._getDirectoryRecord(p);
+    const record = this._getDirectoryRecord(p);
     if (!record) {
       throw ApiError.ENOENT(p);
     } else if (record.isSymlink(this._data)) {
       return this.openSync(path.resolve(p, record.getSymlinkPath(this._data)), flags, mode);
     } else if (!record.isDirectory(this._data)) {
-      let data = record.getFile(this._data);
-      let stats = this._getStats(p, record)!;
+      const data = record.getFile(this._data);
+      const stats = this._getStats(p, record)!;
       switch (flags.pathExistsAction()) {
         case ActionType.THROW_EXCEPTION:
         case ActionType.TRUNCATE_FILE:
@@ -1156,7 +1156,7 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
 
   public readdirSync(path: string): string[] {
     // Check if it exists.
-    let record = this._getDirectoryRecord(path);
+    const record = this._getDirectoryRecord(path);
     if (!record) {
       throw ApiError.ENOENT(path);
     } else if (record.isDirectory(this._data)) {
@@ -1171,10 +1171,10 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
    */
   public readFileSync(fname: string, encoding: string, flag: FileFlag): any {
     // Get file.
-    let fd = this.openSync(fname, flag, 0x1a4);
+    const fd = this.openSync(fname, flag, 0x1a4);
     try {
-      let fdCast = <NoSyncFile<IsoFS>> fd;
-      let fdBuff = <Buffer> fdCast.getBuffer();
+      const fdCast = <NoSyncFile<IsoFS>> fd;
+      const fdBuff = <Buffer> fdCast.getBuffer();
       if (encoding === null) {
         return copyingSlice(fdBuff);
       }
@@ -1215,7 +1215,7 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
     } else {
       const len = record.dataLength();
       let mode = 0x16D;
-      let date = record.recordingDate();
+      const date = record.recordingDate();
       let atime = date;
       let mtime = date;
       let ctime = date;

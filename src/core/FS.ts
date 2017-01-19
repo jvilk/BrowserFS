@@ -29,7 +29,7 @@ function normalizeMode(mode: number | string | null | undefined, def: number): n
       return <number> mode;
     case 'string':
       // (path, flag, modeString, cb?)
-      let trueMode = parseInt(<string> mode, 8);
+      const trueMode = parseInt(<string> mode, 8);
       if (!isNaN(trueMode)) {
         return trueMode;
       }
@@ -160,7 +160,7 @@ export default class FS {
    * @param callback
    */
   public rename(oldPath: string, newPath: string, cb: BFSOneArgCallback = nopCb): void {
-    let newCb = wrapCb(cb, 1);
+    const newCb = wrapCb(cb, 1);
     try {
       assertRoot(this.root).rename(normalizePath(oldPath), normalizePath(newPath), newCb);
     } catch (e) {
@@ -188,7 +188,7 @@ export default class FS {
    * @param callback
    */
   public exists(path: string, cb: (exists: boolean) => any = nopCb): void {
-    let newCb = wrapCb(cb, 1);
+    const newCb = wrapCb(cb, 1);
     try {
       return assertRoot(this.root).exists(normalizePath(path), newCb);
     } catch (e) {
@@ -219,7 +219,7 @@ export default class FS {
    * @param callback
    */
   public stat(path: string, cb: BFSCallback<Stats> = nopCb): void {
-    let newCb = wrapCb(cb, 2);
+    const newCb = wrapCb(cb, 2);
     try {
       return assertRoot(this.root).stat(normalizePath(path), false, newCb);
     } catch (e) {
@@ -244,7 +244,7 @@ export default class FS {
    * @param callback
    */
   public lstat(path: string, cb: BFSCallback<Stats> = nopCb): void {
-    let newCb = wrapCb(cb, 2);
+    const newCb = wrapCb(cb, 2);
     try {
       return assertRoot(this.root).stat(normalizePath(path), true, newCb);
     } catch (e) {
@@ -281,7 +281,7 @@ export default class FS {
       len = arg2;
     }
 
-    let newCb = wrapCb(cb, 1);
+    const newCb = wrapCb(cb, 1);
     try {
       if (len < 0) {
         throw new ApiError(ErrorCode.EINVAL);
@@ -310,7 +310,7 @@ export default class FS {
    * @param callback
    */
   public unlink(path: string, cb: BFSOneArgCallback = nopCb): void {
-    let newCb = wrapCb(cb, 1);
+    const newCb = wrapCb(cb, 1);
     try {
       return assertRoot(this.root).unlink(normalizePath(path), newCb);
     } catch (e) {
@@ -354,9 +354,9 @@ export default class FS {
   public open(path: string, flag: string, cb?: BFSCallback<number>): void;
   public open(path: string, flag: string, mode: number|string, cb?: BFSCallback<number>): void;
   public open(path: string, flag: string, arg2?: any, cb: BFSCallback<number> = nopCb): void {
-    let mode = normalizeMode(arg2, 0x1a4);
+    const mode = normalizeMode(arg2, 0x1a4);
     cb = typeof arg2 === 'function' ? arg2 : cb;
-    let newCb = wrapCb(cb, 2);
+    const newCb = wrapCb(cb, 2);
     try {
       assertRoot(this.root).open(normalizePath(path), FileFlag.getFileFlag(flag), mode, (e: ApiError, file?: File) => {
         if (file) {
@@ -401,11 +401,11 @@ export default class FS {
   public readFile(filename: string, options: { encoding: string; flag?: string; }, callback: BFSCallback<string>): void;
   public readFile(filename: string, encoding: string, cb?: BFSCallback<string>): void;
   public readFile(filename: string, arg2: any = {}, cb: BFSCallback<Buffer | string> = nopCb ) {
-    let options = normalizeOptions(arg2, null, 'r', null);
+    const options = normalizeOptions(arg2, null, 'r', null);
     cb = typeof arg2 === 'function' ? arg2 : cb;
-    let newCb = wrapCb(cb, 2);
+    const newCb = wrapCb(cb, 2);
     try {
-      let flag = FileFlag.getFileFlag(options['flag']);
+      const flag = FileFlag.getFileFlag(options['flag']);
       if (!flag.isReadable()) {
         return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to readFile must allow for reading.'));
       }
@@ -427,8 +427,8 @@ export default class FS {
   public readFileSync(filename: string, options: { encoding: string; flag?: string; }): string;
   public readFileSync(filename: string, encoding: string): string;
   public readFileSync(filename: string, arg2: any = {}): any {
-    let options = normalizeOptions(arg2, null, 'r', null);
-    let flag = FileFlag.getFileFlag(options.flag);
+    const options = normalizeOptions(arg2, null, 'r', null);
+    const flag = FileFlag.getFileFlag(options.flag);
     if (!flag.isReadable()) {
       throw new ApiError(ErrorCode.EINVAL, 'Flag passed to readFile must allow for reading.');
     }
@@ -458,11 +458,11 @@ export default class FS {
   public writeFile(filename: string, data: any, encoding?: string, cb?: BFSOneArgCallback): void;
   public writeFile(filename: string, data: any, options?: { encoding?: string; mode?: string | number; flag?: string; }, cb?: BFSOneArgCallback): void;
   public writeFile(filename: string, data: any, arg3: any = {}, cb: BFSOneArgCallback = nopCb): void {
-    let options = normalizeOptions(arg3, 'utf8', 'w', 0x1a4);
+    const options = normalizeOptions(arg3, 'utf8', 'w', 0x1a4);
     cb = typeof arg3 === 'function' ? arg3 : cb;
-    let newCb = wrapCb(cb, 1);
+    const newCb = wrapCb(cb, 1);
     try {
-      let flag = FileFlag.getFileFlag(options.flag);
+      const flag = FileFlag.getFileFlag(options.flag);
       if (!flag.isWriteable()) {
         return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to writeFile must allow for writing.'));
       }
@@ -487,8 +487,8 @@ export default class FS {
   public writeFileSync(filename: string, data: any, options?: { encoding?: string; mode?: number | string; flag?: string; }): void;
   public writeFileSync(filename: string, data: any, encoding?: string): void;
   public writeFileSync(filename: string, data: any, arg3?: any): void {
-    let options = normalizeOptions(arg3, 'utf8', 'w', 0x1a4);
-    let flag = FileFlag.getFileFlag(options.flag);
+    const options = normalizeOptions(arg3, 'utf8', 'w', 0x1a4);
+    const flag = FileFlag.getFileFlag(options.flag);
     if (!flag.isWriteable()) {
       throw new ApiError(ErrorCode.EINVAL, 'Flag passed to writeFile must allow for writing.');
     }
@@ -516,11 +516,11 @@ export default class FS {
   public appendFile(filename: string, data: any, options?: { encoding?: string; mode?: number|string; flag?: string; }, cb?: BFSOneArgCallback): void;
   public appendFile(filename: string, data: any, encoding?: string, cb?: BFSOneArgCallback): void;
   public appendFile(filename: string, data: any, arg3?: any, cb: BFSOneArgCallback = nopCb): void {
-    let options = normalizeOptions(arg3, 'utf8', 'a', 0x1a4);
+    const options = normalizeOptions(arg3, 'utf8', 'a', 0x1a4);
     cb = typeof arg3 === 'function' ? arg3 : cb;
-    let newCb = wrapCb(cb, 1);
+    const newCb = wrapCb(cb, 1);
     try {
-      let flag = FileFlag.getFileFlag(options.flag);
+      const flag = FileFlag.getFileFlag(options.flag);
       if (!flag.isAppendable()) {
         return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to appendFile must allow for appending.'));
       }
@@ -549,8 +549,8 @@ export default class FS {
   public appendFileSync(filename: string, data: any, options?: { encoding?: string; mode?: number | string; flag?: string; }): void;
   public appendFileSync(filename: string, data: any, encoding?: string): void;
   public appendFileSync(filename: string, data: any, arg3?: any): void {
-    let options = normalizeOptions(arg3, 'utf8', 'a', 0x1a4);
-    let flag = FileFlag.getFileFlag(options.flag);
+    const options = normalizeOptions(arg3, 'utf8', 'a', 0x1a4);
+    const flag = FileFlag.getFileFlag(options.flag);
     if (!flag.isAppendable()) {
       throw new ApiError(ErrorCode.EINVAL, 'Flag passed to appendFile must allow for appending.');
     }
@@ -567,9 +567,9 @@ export default class FS {
    * @param callback
    */
   public fstat(fd: number, cb: BFSCallback<Stats> = nopCb): void {
-    let newCb = wrapCb(cb, 2);
+    const newCb = wrapCb(cb, 2);
     try {
-      let file = this.fd2file(fd);
+      const file = this.fd2file(fd);
       file.stat(newCb);
     } catch (e) {
       newCb(e);
@@ -593,7 +593,7 @@ export default class FS {
    * @param callback
    */
   public close(fd: number, cb: BFSOneArgCallback = nopCb): void {
-    let newCb = wrapCb(cb, 1);
+    const newCb = wrapCb(cb, 1);
     try {
       this.fd2file(fd).close((e: ApiError) => {
         if (!e) {
@@ -624,11 +624,11 @@ export default class FS {
   public ftruncate(fd: number, cb?: BFSOneArgCallback): void;
   public ftruncate(fd: number, len?: number, cb?: BFSOneArgCallback): void;
   public ftruncate(fd: number, arg2?: any, cb: BFSOneArgCallback = nopCb): void {
-    let length = typeof arg2 === 'number' ? arg2 : 0;
+    const length = typeof arg2 === 'number' ? arg2 : 0;
     cb = typeof arg2 === 'function' ? arg2 : cb;
-    let newCb = wrapCb(cb, 1);
+    const newCb = wrapCb(cb, 1);
     try {
-      let file = this.fd2file(fd);
+      const file = this.fd2file(fd);
       if (length < 0) {
         throw new ApiError(ErrorCode.EINVAL);
       }
@@ -644,7 +644,7 @@ export default class FS {
    * @param len
    */
   public ftruncateSync(fd: number, len: number = 0): void {
-    let file = this.fd2file(fd);
+    const file = this.fd2file(fd);
     if (len < 0) {
       throw new ApiError(ErrorCode.EINVAL);
     }
@@ -657,7 +657,7 @@ export default class FS {
    * @param callback
    */
   public fsync(fd: number, cb: BFSOneArgCallback = nopCb): void {
-    let newCb = wrapCb(cb, 1);
+    const newCb = wrapCb(cb, 1);
     try {
       this.fd2file(fd).sync(newCb);
     } catch (e) {
@@ -679,7 +679,7 @@ export default class FS {
    * @param callback
    */
   public fdatasync(fd: number, cb: BFSOneArgCallback = nopCb): void {
-    let newCb = wrapCb(cb, 1);
+    const newCb = wrapCb(cb, 1);
     try {
       this.fd2file(fd).datasync(newCb);
     } catch (e) {
@@ -747,9 +747,9 @@ export default class FS {
       cb = typeof arg5 === 'function' ? arg5 : cb;
     }
 
-    let newCb = wrapCb(cb, 3);
+    const newCb = wrapCb(cb, 3);
     try {
-      let file = this.fd2file(fd);
+      const file = this.fd2file(fd);
       if (position === undefined || position === null) {
         position = file.getPos()!;
       }
@@ -779,7 +779,7 @@ export default class FS {
     if (typeof arg2 === 'string') {
       // Signature 1: (fd, string, [position?, [encoding?]])
       position = typeof arg3 === 'number' ? arg3 : null;
-      let encoding = typeof arg4 === 'string' ? arg4 : 'utf8';
+      const encoding = typeof arg4 === 'string' ? arg4 : 'utf8';
       offset = 0;
       buffer = new Buffer(arg2, encoding);
       length = buffer.length;
@@ -791,7 +791,7 @@ export default class FS {
       position = typeof arg5 === 'number' ? arg5 : null;
     }
 
-    let file = this.fd2file(fd);
+    const file = this.fd2file(fd);
     if (position === undefined || position === null) {
       position = file.getPos()!;
     }
@@ -819,7 +819,7 @@ export default class FS {
       // (fd, length, position, encoding, callback)
       length = arg2;
       position = arg3;
-      let encoding = arg4;
+      const encoding = arg4;
       cb = typeof arg5 === 'function' ? arg5 : cb;
       offset = 0;
       buffer = new Buffer(length);
@@ -841,7 +841,7 @@ export default class FS {
     }
 
     try {
-      let file = this.fd2file(fd);
+      const file = this.fd2file(fd);
       if (position === undefined || position === null) {
         position = file.getPos()!;
       }
@@ -882,12 +882,12 @@ export default class FS {
       length = arg4;
       position = arg5;
     }
-    let file = this.fd2file(fd);
+    const file = this.fd2file(fd);
     if (position === undefined || position === null) {
       position = file.getPos()!;
     }
 
-    let rv = file.readSync(buffer, offset, length, position);
+    const rv = file.readSync(buffer, offset, length, position);
     if (!shenanigans) {
       return rv;
     } else {
@@ -903,7 +903,7 @@ export default class FS {
    * @param callback
    */
   public fchown(fd: number, uid: number, gid: number, callback: BFSOneArgCallback = nopCb): void {
-    let newCb = wrapCb(callback, 1);
+    const newCb = wrapCb(callback, 1);
     try {
       this.fd2file(fd).chown(uid, gid, newCb);
     } catch (e) {
@@ -928,9 +928,9 @@ export default class FS {
    * @param callback
    */
   public fchmod(fd: number, mode: string | number, cb: BFSOneArgCallback): void {
-    let newCb = wrapCb(cb, 1);
+    const newCb = wrapCb(cb, 1);
     try {
-      let numMode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
+      const numMode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
       this.fd2file(fd).chmod(numMode, newCb);
     } catch (e) {
       newCb(e);
@@ -943,7 +943,7 @@ export default class FS {
    * @param mode
    */
   public fchmodSync(fd: number, mode: number | string): void {
-    let numMode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
+    const numMode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
     this.fd2file(fd).chmodSync(numMode);
   }
 
@@ -956,9 +956,9 @@ export default class FS {
    * @param callback
    */
   public futimes(fd: number, atime: number | Date, mtime: number | Date, cb: BFSOneArgCallback = nopCb): void {
-    let newCb = wrapCb(cb, 1);
+    const newCb = wrapCb(cb, 1);
     try {
-      let file = this.fd2file(fd);
+      const file = this.fd2file(fd);
       if (typeof atime === 'number') {
         atime = new Date(atime * 1000);
       }
@@ -990,7 +990,7 @@ export default class FS {
    * @param callback
    */
   public rmdir(path: string, cb: BFSOneArgCallback = nopCb): void {
-    let newCb = wrapCb(cb, 1);
+    const newCb = wrapCb(cb, 1);
     try {
       path = normalizePath(path);
       assertRoot(this.root).rmdir(path, newCb);
@@ -1019,7 +1019,7 @@ export default class FS {
       cb = mode;
       mode = 0x1ff;
     }
-    let newCb = wrapCb(cb, 1);
+    const newCb = wrapCb(cb, 1);
     try {
       path = normalizePath(path);
       assertRoot(this.root).mkdir(path, mode, newCb);
@@ -1045,7 +1045,7 @@ export default class FS {
    * @param callback
    */
   public readdir(path: string, cb: BFSCallback<string[]> = nopCb): void {
-    let newCb = <(err: ApiError, files?: string[]) => void> wrapCb(cb, 2);
+    const newCb = <(err: ApiError, files?: string[]) => void> wrapCb(cb, 2);
     try {
       path = normalizePath(path);
       assertRoot(this.root).readdir(path, newCb);
@@ -1073,7 +1073,7 @@ export default class FS {
    * @param callback
    */
   public link(srcpath: string, dstpath: string, cb: BFSOneArgCallback = nopCb): void {
-    let newCb = wrapCb(cb, 1);
+    const newCb = wrapCb(cb, 1);
     try {
       srcpath = normalizePath(srcpath);
       dstpath = normalizePath(dstpath);
@@ -1104,9 +1104,9 @@ export default class FS {
   public symlink(srcpath: string, dstpath: string, cb?: BFSOneArgCallback): void;
   public symlink(srcpath: string, dstpath: string, type?: string, cb?: BFSOneArgCallback): void;
   public symlink(srcpath: string, dstpath: string, arg3?: any, cb: BFSOneArgCallback = nopCb): void {
-    let type = typeof arg3 === 'string' ? arg3 : 'file';
+    const type = typeof arg3 === 'string' ? arg3 : 'file';
     cb = typeof arg3 === 'function' ? arg3 : cb;
-    let newCb = wrapCb(cb, 1);
+    const newCb = wrapCb(cb, 1);
     try {
       if (type !== 'file' && type !== 'dir') {
         return newCb(new ApiError(ErrorCode.EINVAL, "Invalid type: " + type));
@@ -1142,7 +1142,7 @@ export default class FS {
    * @param callback
    */
   public readlink(path: string, cb: BFSCallback<string> = nopCb): void {
-    let newCb = wrapCb(cb, 2);
+    const newCb = wrapCb(cb, 2);
     try {
       path = normalizePath(path);
       assertRoot(this.root).readlink(path, newCb);
@@ -1171,7 +1171,7 @@ export default class FS {
    * @param callback
    */
   public chown(path: string, uid: number, gid: number, cb: BFSOneArgCallback = nopCb): void {
-    let newCb = wrapCb(cb, 1);
+    const newCb = wrapCb(cb, 1);
     try {
       path = normalizePath(path);
       assertRoot(this.root).chown(path, false, uid, gid, newCb);
@@ -1199,7 +1199,7 @@ export default class FS {
    * @param callback
    */
   public lchown(path: string, uid: number, gid: number, cb: BFSOneArgCallback = nopCb): void {
-    let newCb = wrapCb(cb, 1);
+    const newCb = wrapCb(cb, 1);
     try {
       path = normalizePath(path);
       assertRoot(this.root).chown(path, true, uid, gid, newCb);
@@ -1226,9 +1226,9 @@ export default class FS {
    * @param callback
    */
   public chmod(path: string, mode: number | string, cb: BFSOneArgCallback = nopCb): void {
-    let newCb = wrapCb(cb, 1);
+    const newCb = wrapCb(cb, 1);
     try {
-      let numMode = normalizeMode(mode, -1);
+      const numMode = normalizeMode(mode, -1);
       if (numMode < 0) {
         throw new ApiError(ErrorCode.EINVAL, `Invalid mode.`);
       }
@@ -1244,7 +1244,7 @@ export default class FS {
    * @param mode
    */
   public chmodSync(path: string, mode: string | number): void {
-    let numMode = normalizeMode(mode, -1);
+    const numMode = normalizeMode(mode, -1);
     if (numMode < 0) {
       throw new ApiError(ErrorCode.EINVAL, `Invalid mode.`);
     }
@@ -1259,9 +1259,9 @@ export default class FS {
    * @param callback
    */
   public lchmod(path: string, mode: number | string, cb: BFSOneArgCallback = nopCb): void {
-    let newCb = wrapCb(cb, 1);
+    const newCb = wrapCb(cb, 1);
     try {
-      let numMode = normalizeMode(mode, -1);
+      const numMode = normalizeMode(mode, -1);
       if (numMode < 0) {
         throw new ApiError(ErrorCode.EINVAL, `Invalid mode.`);
       }
@@ -1277,7 +1277,7 @@ export default class FS {
    * @param mode
    */
   public lchmodSync(path: string, mode: number | string): void {
-    let numMode = normalizeMode(mode, -1);
+    const numMode = normalizeMode(mode, -1);
     if (numMode < 1) {
       throw new ApiError(ErrorCode.EINVAL, `Invalid mode.`);
     }
@@ -1292,7 +1292,7 @@ export default class FS {
    * @param callback
    */
   public utimes(path: string, atime: number | Date, mtime: number | Date, cb: BFSOneArgCallback = nopCb): void {
-    let newCb = wrapCb(cb, 1);
+    const newCb = wrapCb(cb, 1);
     try {
       assertRoot(this.root).utimes(normalizePath(path), normalizeTime(atime), normalizeTime(mtime), newCb);
     } catch (e) {
@@ -1330,9 +1330,9 @@ export default class FS {
   public realpath(path: string, cb?: BFSCallback<string>): void;
   public realpath(path: string, cache: {[path: string]: string}, cb: BFSCallback<string>): void;
   public realpath(path: string, arg2?: any, cb: BFSCallback<string> = nopCb): void {
-    let cache = typeof(arg2) === 'object' ? arg2 : {};
+    const cache = typeof(arg2) === 'object' ? arg2 : {};
     cb = typeof(arg2) === 'function' ? arg2 : nopCb;
-    let newCb = <(err: ApiError, resolvedPath?: string) => any> wrapCb(cb, 2);
+    const newCb = <(err: ApiError, resolvedPath?: string) => any> wrapCb(cb, 2);
     try {
       path = normalizePath(path);
       assertRoot(this.root).realpath(path, cache, newCb);
@@ -1407,12 +1407,12 @@ export default class FS {
   }
 
   private getFdForFile(file: File): number {
-    let fd = this.nextFd++;
+    const fd = this.nextFd++;
     this.fdMap[fd] = file;
     return fd;
   }
   private fd2file(fd: number): File {
-    let rv = this.fdMap[fd];
+    const rv = this.fdMap[fd];
     if (rv) {
       return rv;
     } else {

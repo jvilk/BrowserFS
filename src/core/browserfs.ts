@@ -32,10 +32,10 @@ if ((<any> process)['initializeTTYs']) {
 export function install(obj: any) {
   obj.Buffer = Buffer;
   obj.process = process;
-  let oldRequire = obj.require ? obj.require : null;
+  const oldRequire = obj.require ? obj.require : null;
   // Monkey-patch require for Node-style code.
   obj.require = function(arg: string) {
-    let rv = BFSRequire(arg);
+    const rv = BFSRequire(arg);
     if (!rv) {
       return oldRequire.apply(null, Array.prototype.slice.call(arguments, 0));
     } else {

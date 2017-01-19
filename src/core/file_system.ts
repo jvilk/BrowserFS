@@ -7,9 +7,8 @@ import {fail} from './util';
 
 export type BFSOneArgCallback = (e?: ApiError | null) => any;
 export type BFSCallback<T> = (e: ApiError | null | undefined, rv?: T) => any;
-export type BFSThreeArgCallback<T, U> = {
-  (e: ApiError | null | undefined, arg1?: T, arg2?: U): any;
-};
+export type BFSThreeArgCallback<T, U> =
+  (e: ApiError | null | undefined, arg1?: T, arg2?: U) => any;
 
 /**
  * Interface for a filesystem. **All** BrowserFS FileSystems should implement
@@ -369,7 +368,7 @@ export class BaseFileSystem {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
   public open(p: string, flag: FileFlag, mode: number, cb: BFSCallback<File>): void {
-    let mustBeFile = (e: ApiError, stats?: Stats): void => {
+    const mustBeFile = (e: ApiError, stats?: Stats): void => {
       if (e) {
         // File does not exist.
         switch (flag.pathNotExistsAction()) {
@@ -462,7 +461,7 @@ export class BaseFileSystem {
       switch (flag.pathNotExistsAction()) {
         case ActionType.CREATE_FILE:
           // Ensure parent exists.
-          let parentStats = this.statSync(path.dirname(p), false);
+          const parentStats = this.statSync(path.dirname(p), false);
           if (!parentStats.isDirectory()) {
             throw ApiError.ENOTDIR(path.dirname(p));
           }
@@ -536,10 +535,10 @@ export class BaseFileSystem {
     if (this.supportsLinks()) {
       // The path could contain symlinks. Split up the path,
       // resolve any symlinks, return the resolved string.
-      let splitPath = p.split(path.sep);
+      const splitPath = p.split(path.sep);
       // TODO: Simpler to just pass through file, find sep and such.
       for (let i = 0; i < splitPath.length; i++) {
-        let addPaths = splitPath.slice(0, i + 1);
+        const addPaths = splitPath.slice(0, i + 1);
         splitPath[i] = path.join.apply(null, addPaths);
       }
     } else {
@@ -557,10 +556,10 @@ export class BaseFileSystem {
     if (this.supportsLinks()) {
       // The path could contain symlinks. Split up the path,
       // resolve any symlinks, return the resolved string.
-      let splitPath = p.split(path.sep);
+      const splitPath = p.split(path.sep);
       // TODO: Simpler to just pass through file, find sep and such.
       for (let i = 0; i < splitPath.length; i++) {
-        let addPaths = splitPath.slice(0, i + 1);
+        const addPaths = splitPath.slice(0, i + 1);
         splitPath[i] = path.join.apply(path, addPaths);
       }
       return splitPath.join(path.sep);
@@ -586,7 +585,7 @@ export class BaseFileSystem {
     }));
   }
   public truncateSync(p: string, len: number): void {
-    let fd = this.openSync(p, FileFlag.getFileFlag('r+'), 0x1a4);
+    const fd = this.openSync(p, FileFlag.getFileFlag('r+'), 0x1a4);
     // Need to safely close FD, regardless of whether or not truncate succeeds.
     try {
       fd.truncateSync(len);
@@ -598,7 +597,7 @@ export class BaseFileSystem {
   }
   public readFile(fname: string, encoding: string | null, flag: FileFlag, cb: BFSCallback<string | Buffer>): void {
     // Wrap cb in file closing code.
-    let oldCb = cb;
+    const oldCb = cb;
     // Get file.
     this.open(fname, flag, 0x1a4, (err, fd) => {
       if (err) {
@@ -617,7 +616,7 @@ export class BaseFileSystem {
           return cb(err);
         }
         // Allocate buffer.
-        let buf = new Buffer(stat!.size);
+        const buf = new Buffer(stat!.size);
         fd!.read(buf, 0, stat!.size, 0, (err?: ApiError | null) => {
           if (err) {
             return cb(err);
@@ -635,11 +634,11 @@ export class BaseFileSystem {
   }
   public readFileSync(fname: string, encoding: string | null, flag: FileFlag): any {
     // Get file.
-    let fd = this.openSync(fname, flag, 0x1a4);
+    const fd = this.openSync(fname, flag, 0x1a4);
     try {
-      let stat = fd.statSync();
+      const stat = fd.statSync();
       // Allocate buffer.
-      let buf = new Buffer(stat.size);
+      const buf = new Buffer(stat.size);
       fd.readSync(buf, 0, stat.size, 0);
       fd.closeSync();
       if (encoding === null) {
@@ -652,7 +651,7 @@ export class BaseFileSystem {
   }
   public writeFile(fname: string, data: any, encoding: string | null, flag: FileFlag, mode: number, cb: BFSOneArgCallback): void {
     // Wrap cb in file closing code.
-    let oldCb = cb;
+    const oldCb = cb;
     // Get file.
     this.open(fname, flag, 0x1a4, function(err: ApiError, fd?: File) {
       if (err) {
@@ -677,7 +676,7 @@ export class BaseFileSystem {
   }
   public writeFileSync(fname: string, data: any, encoding: string | null, flag: FileFlag, mode: number): void {
     // Get file.
-    let fd = this.openSync(fname, flag, mode);
+    const fd = this.openSync(fname, flag, mode);
     try {
       if (typeof data === 'string') {
         data = new Buffer(data, encoding!);
@@ -690,7 +689,7 @@ export class BaseFileSystem {
   }
   public appendFile(fname: string, data: any, encoding: string | null, flag: FileFlag, mode: number, cb: BFSOneArgCallback): void {
     // Wrap cb in file closing code.
-    let oldCb = cb;
+    const oldCb = cb;
     this.open(fname, flag, mode, function(err: ApiError, fd?: File) {
       if (err) {
         return cb(err);
@@ -707,7 +706,7 @@ export class BaseFileSystem {
     });
   }
   public appendFileSync(fname: string, data: any, encoding: string | null, flag: FileFlag, mode: number): void {
-    let fd = this.openSync(fname, flag, mode);
+    const fd = this.openSync(fname, flag, mode);
     try {
       if (typeof data === 'string') {
         data = new Buffer(data, encoding!);

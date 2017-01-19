@@ -110,12 +110,12 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
    * @param [BrowserFS.Buffer] buffer
    */
   public preloadFile(path: string, buffer: Buffer): void {
-    let inode = this._index.getInode(path);
+    const inode = this._index.getInode(path);
     if (isFileInode<Stats>(inode)) {
       if (inode === null) {
         throw ApiError.ENOENT(path);
       }
-      let stats = inode.getData();
+      const stats = inode.getData();
       stats.size = buffer.length;
       stats.fileData = buffer;
     } else {
@@ -124,7 +124,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
   }
 
   public stat(path: string, isLstat: boolean, cb: BFSCallback<Stats>): void {
-    let inode = this._index.getInode(path);
+    const inode = this._index.getInode(path);
     if (inode === null) {
       return cb(ApiError.ENOENT(path));
     }
@@ -152,7 +152,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
   }
 
   public statSync(path: string, isLstat: boolean): Stats {
-    let inode = this._index.getInode(path);
+    const inode = this._index.getInode(path);
     if (inode === null) {
       throw ApiError.ENOENT(path);
     }
@@ -176,14 +176,14 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
     if (flags.isWriteable()) {
       return cb(new ApiError(ErrorCode.EPERM, path));
     }
-    let self = this;
+    const self = this;
     // Check if the path exists, and is a file.
-    let inode = this._index.getInode(path);
+    const inode = this._index.getInode(path);
     if (inode === null) {
       return cb(ApiError.ENOENT(path));
     }
     if (isFileInode<Stats>(inode)) {
-      let stats = inode.getData();
+      const stats = inode.getData();
       switch (flags.pathExistsAction()) {
         case ActionType.THROW_EXCEPTION:
         case ActionType.TRUNCATE_FILE:
@@ -219,12 +219,12 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
       throw new ApiError(ErrorCode.EPERM, path);
     }
     // Check if the path exists, and is a file.
-    let inode = this._index.getInode(path);
+    const inode = this._index.getInode(path);
     if (inode === null) {
       throw ApiError.ENOENT(path);
     }
     if (isFileInode<Stats>(inode)) {
-      let stats = inode.getData();
+      const stats = inode.getData();
       switch (flags.pathExistsAction()) {
         case ActionType.THROW_EXCEPTION:
         case ActionType.TRUNCATE_FILE:
@@ -236,7 +236,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
             return new NoSyncFile(this, path, flags, stats.clone(), stats.fileData);
           }
           // @todo be lazier about actually requesting the file
-          let buffer = this._requestFileSync(path, 'buffer');
+          const buffer = this._requestFileSync(path, 'buffer');
           // we don't initially have file sizes
           stats.size = buffer.length;
           stats.fileData = buffer;
@@ -259,7 +259,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
 
   public readdirSync(path: string): string[] {
     // Check if it exists.
-    let inode = this._index.getInode(path);
+    const inode = this._index.getInode(path);
     if (inode === null) {
       throw ApiError.ENOENT(path);
     } else if (isDirInode(inode)) {
@@ -274,7 +274,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
    */
   public readFile(fname: string, encoding: string, flag: FileFlag, cb: BFSCallback<string | Buffer>): void {
     // Wrap cb in file closing code.
-    let oldCb = cb;
+    const oldCb = cb;
     // Get file.
     this.open(fname, flag, 0x1a4, function(err: ApiError, fd?: File) {
       if (err) {
@@ -288,8 +288,8 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
           return oldCb(err, arg);
         });
       };
-      let fdCast = <NoSyncFile<XmlHttpRequest>> fd;
-      let fdBuff = <Buffer> fdCast.getBuffer();
+      const fdCast = <NoSyncFile<XmlHttpRequest>> fd;
+      const fdBuff = <Buffer> fdCast.getBuffer();
       if (encoding === null) {
         cb(err, copyingSlice(fdBuff));
       } else {
@@ -303,10 +303,10 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
    */
   public readFileSync(fname: string, encoding: string, flag: FileFlag): any {
     // Get file.
-    let fd = this.openSync(fname, flag, 0x1a4);
+    const fd = this.openSync(fname, flag, 0x1a4);
     try {
-      let fdCast = <NoSyncFile<XmlHttpRequest>> fd;
-      let fdBuff = <Buffer> fdCast.getBuffer();
+      const fdCast = <NoSyncFile<XmlHttpRequest>> fd;
+      const fdBuff = <Buffer> fdCast.getBuffer();
       if (encoding === null) {
         return copyingSlice(fdBuff);
       }

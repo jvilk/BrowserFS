@@ -204,7 +204,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
     }
     this._stat.mtime = new Date();
     if (len > this._buffer.length) {
-      let buf = new Buffer(len - this._buffer.length);
+      const buf = new Buffer(len - this._buffer.length);
       buf.fill(0);
       // Write will set @_stat.size for us.
       this.writeSync(buf, 0, buf.length, this._buffer.length);
@@ -215,7 +215,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
     }
     this._stat.size = len;
     // Truncate buffer to 'len'.
-    let newBuff = new Buffer(len);
+    const newBuff = new Buffer(len);
     this._buffer.copy(newBuff, 0, 0, len);
     this._buffer = newBuff;
     if (this._flag.isSynchronous() && fs.getRootFS()!.supportsSynch()) {
@@ -266,17 +266,17 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
     if (!this._flag.isWriteable()) {
       throw new ApiError(ErrorCode.EPERM, 'File not opened with a writeable mode.');
     }
-    let endFp = position + length;
+    const endFp = position + length;
     if (endFp > this._stat.size) {
       this._stat.size = endFp;
       if (endFp > this._buffer.length) {
         // Extend the buffer!
-        let newBuff = new Buffer(endFp);
+        const newBuff = new Buffer(endFp);
         this._buffer.copy(newBuff);
         this._buffer = newBuff;
       }
     }
-    let len = buffer.copy(this._buffer, position, offset, offset + length);
+    const len = buffer.copy(this._buffer, position, offset, offset + length);
     this._stat.mtime = new Date();
     if (this._flag.isSynchronous()) {
       this.syncSync();
@@ -326,11 +326,11 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
     if (position === undefined || position === null) {
       position = this.getPos();
     }
-    let endRead = position + length;
+    const endRead = position + length;
     if (endRead > this._stat.size) {
       length = this._stat.size - position;
     }
-    let rv = this._buffer.copy(buffer, offset, position, position + length);
+    const rv = this._buffer.copy(buffer, offset, position, position + length);
     this._stat.atime = new Date();
     this._pos = position + length;
     return rv;

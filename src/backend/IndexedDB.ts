@@ -33,7 +33,7 @@ function convertError(e: {name: string}, message: string = e.toString()): ApiErr
  * version of the error, and let the error bubble up.
  */
 function onErrorHandler(cb: (e: ApiError) => void, code: ErrorCode = ErrorCode.EIO, message: string | null = null): (e?: any) => void {
-  return function (e?: any): void {
+  return function(e?: any): void {
     // Prevent the error from canceling the transaction.
     e.preventDefault();
     cb(new ApiError(code, message !== null ? message : undefined));
@@ -45,12 +45,12 @@ export class IndexedDBROTransaction implements AsyncKeyValueROTransaction {
 
   public get(key: string, cb: BFSCallback<Buffer>): void {
     try {
-      let r: IDBRequest = this.store.get(key);
+      const r: IDBRequest = this.store.get(key);
       r.onerror = onErrorHandler(cb);
       r.onsuccess = (event) => {
         // IDB returns the value 'undefined' when you try to get keys that
         // don't exist. The caller expects this behavior.
-        let result: any = (<any> event.target).result;
+        const result: any = (<any> event.target).result;
         if (result === undefined) {
           cb(null, result);
         } else {
@@ -71,8 +71,8 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements As
 
   public put(key: string, data: Buffer, overwrite: boolean, cb: BFSCallback<boolean>): void {
     try {
-      let arraybuffer = buffer2ArrayBuffer(data),
-        r: IDBRequest;
+      const arraybuffer = buffer2ArrayBuffer(data);
+      let r: IDBRequest;
       if (overwrite) {
         r = this.store.put(arraybuffer, key);
       } else {
@@ -94,7 +94,7 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements As
       // NOTE: IE8 has a bug with identifiers named 'delete' unless used as a string
       // like this.
       // http://stackoverflow.com/a/26479152
-      let r: IDBRequest = this.store['delete'](key);
+      const r: IDBRequest = this.store['delete'](key);
       r.onerror = onErrorHandler(cb);
       r.onsuccess = (event) => {
         cb();
@@ -133,10 +133,10 @@ export class IndexedDBStore implements AsyncKeyValueStore {
    *   a different name.
    */
   constructor(cb: BFSCallback<IndexedDBStore>, private storeName: string = 'browserfs') {
-    let openReq: IDBOpenDBRequest = indexedDB.open(this.storeName, 1);
+    const openReq: IDBOpenDBRequest = indexedDB.open(this.storeName, 1);
 
     openReq.onupgradeneeded = (event) => {
-      let db: IDBDatabase = (<any> event.target).result;
+      const db: IDBDatabase = (<any> event.target).result;
       // Huh. This should never happen; we're at version 1. Why does another
       // database exist?
       if (db.objectStoreNames.contains(this.storeName)) {
@@ -159,7 +159,7 @@ export class IndexedDBStore implements AsyncKeyValueStore {
 
   public clear(cb: BFSOneArgCallback): void {
     try {
-      let tx = this.db.transaction(this.storeName, 'readwrite'),
+      const tx = this.db.transaction(this.storeName, 'readwrite'),
         objectStore = tx.objectStore(this.storeName),
         r: IDBRequest = objectStore.clear();
       r.onsuccess = (event) => {
@@ -175,7 +175,7 @@ export class IndexedDBStore implements AsyncKeyValueStore {
   public beginTransaction(type: 'readonly'): AsyncKeyValueROTransaction;
   public beginTransaction(type: 'readwrite'): AsyncKeyValueRWTransaction;
   public beginTransaction(type: string = 'readonly'): AsyncKeyValueROTransaction {
-    let tx = this.db.transaction(this.storeName, type),
+    const tx = this.db.transaction(this.storeName, type),
       objectStore = tx.objectStore(this.storeName);
     if (type === 'readwrite') {
       return new IndexedDBRWTransaction(tx, objectStore);
@@ -204,7 +204,7 @@ export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
   }
   constructor(cb: BFSCallback<IndexedDBFileSystem>, storeName?: string) {
     super();
-    let store = new IndexedDBStore((e): void => {
+    const store = new IndexedDBStore((e): void => {
       if (e) {
         cb(e);
       } else {

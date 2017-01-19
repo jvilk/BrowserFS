@@ -192,13 +192,13 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
         // Need to move *every file/folder* currently stored on
         // readable to its new location on writable.
         function copyDirContents(files: string[]): void {
-          let file = files.shift();
+          const file = files.shift();
           if (!file) {
             return cb();
           }
 
-          let oldFile = path.resolve(oldPath, file);
-          let newFile = path.resolve(newPath, file);
+          const oldFile = path.resolve(oldPath, file);
+          const newFile = path.resolve(newPath, file);
 
           // Recursion! Should work for any nested files / folders.
           self.rename(oldFile, newFile, (err?: ApiError) => {
@@ -288,7 +288,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
       throw ApiError.EPERM('Cannot rename deletion log.');
     }
     // Write newPath using oldPath's contents, delete oldPath.
-    let oldStats = this.statSync(oldPath, false);
+    const oldStats = this.statSync(oldPath, false);
     if (oldStats.isDirectory()) {
       // Optimization: Don't bother moving if old === new.
       if (oldPath === newPath) {
@@ -297,7 +297,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 
       let mode = 0o777;
       if (this.existsSync(newPath)) {
-        let stats = this.statSync(newPath, false);
+        const stats = this.statSync(newPath, false);
         mode = stats.mode;
         if (stats.isDirectory()) {
           if (this.readdirSync(newPath).length > 0) {
@@ -371,7 +371,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
       if (this._deletedFiles[p]) {
         throw ApiError.ENOENT(p);
       }
-      let oldStat = this._readable.statSync(p, isLstat).clone();
+      const oldStat = this._readable.statSync(p, isLstat).clone();
       // Make the oldStat's mode writable. Preserve the topmost part of the
       // mode, which specifies if it is a file or a directory.
       oldStat.mode = makeModeWritable(oldStat.mode);
@@ -409,7 +409,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
                 if (stats!.size === -1) {
                   stats!.size = data.length;
                 }
-                let f = new OverlayFile(this, p, flag, stats!, data);
+                const f = new OverlayFile(this, p, flag, stats!, data);
                 cb(null, f);
               });
             }
@@ -449,8 +449,8 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
             return this._writable.openSync(p, flag, mode);
           } else {
             // Create an OverlayFile.
-            let buf = this._readable.readFileSync(p, null, getFlag('r'));
-            let stats = this._readable.statSync(p, false).clone();
+            const buf = this._readable.readFileSync(p, null, getFlag('r'));
+            const stats = this._readable.statSync(p, false).clone();
             stats.mode = mode;
             return new OverlayFile(this, p, flag, stats, buf);
           }
@@ -523,7 +523,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
       return;
     }
 
-    let rmdirLower = (): void => {
+    const rmdirLower = (): void => {
       this.readdir(p, (err: ApiError, files: string[]): void => {
         if (err) {
           return cb(err);
@@ -644,12 +644,12 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
           }
 
           // Readdir in both, check delete log on read-only file system's files, merge, return.
-          let seenMap: {[name: string]: boolean} = {};
-          let filtered: string[] = wFiles.concat(rFiles.filter((fPath: string) =>
+          const seenMap: {[name: string]: boolean} = {};
+          const filtered: string[] = wFiles.concat(rFiles.filter((fPath: string) =>
             !this._deletedFiles[`${p}/${fPath}`]
           )).filter((fPath: string) => {
             // Remove duplicates.
-            let result = !seenMap[fPath];
+            const result = !seenMap[fPath];
             seenMap[fPath] = true;
             return result;
           });
@@ -661,7 +661,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 
   public readdirSync(p: string): string[] {
     this.checkInitialized();
-    let dirStats = this.statSync(p, false);
+    const dirStats = this.statSync(p, false);
     if (!dirStats.isDirectory()) {
       throw ApiError.ENOTDIR(p);
     }
@@ -680,9 +680,9 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
     } catch (e) {
       // NOP.
     }
-    let seenMap: {[name: string]: boolean} = {};
+    const seenMap: {[name: string]: boolean} = {};
     return contents.filter((fileP: string) => {
-      let result = !seenMap[fileP];
+      const result = !seenMap[fileP];
       seenMap[fileP] = true;
       return result;
     });
@@ -838,8 +838,8 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 
   private createParentDirectoriesAsync(p: string, cb: BFSOneArgCallback): void {
     let parent = path.dirname(p);
-    let toCreate: string[] = [];
-    let self = this;
+    const toCreate: string[] = [];
+    const self = this;
 
     this._writable.stat(parent, false, statDone);
     function statDone(err: ApiError, stat?: Stats): void {
@@ -857,7 +857,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
         return cb();
       }
 
-      let dir = toCreate.pop();
+      const dir = toCreate.pop();
       self._readable.stat(dir!, false, (err: ApiError, stats?: Stats) => {
         // stop if we couldn't read the dir
         if (!stats) {
@@ -930,7 +930,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
    * PRECONDITION: File does not exist on writable storage.
    */
   private copyToWritable(p: string): void {
-    let pStats = this.statSync(p, false);
+    const pStats = this.statSync(p, false);
     if (pStats.isDirectory()) {
       this._writable.mkdirSync(p, pStats.mode);
     } else {

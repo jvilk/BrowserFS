@@ -108,9 +108,9 @@ export class HTML5FSFile extends PreloadFile<HTML5FS> implements IFile {
     }
 
     this._entry.createWriter((writer) => {
-      let buffer = this.getBuffer();
-      let blob = new Blob([buffer2ArrayBuffer(buffer)]);
-      let length = blob.size;
+      const buffer = this.getBuffer();
+      const blob = new Blob([buffer2ArrayBuffer(buffer)]);
+      const length = blob.size;
       writer.onwriteend = (err?: any) => {
         writer.onwriteend = <any> null;
         writer.onerror = <any> null;
@@ -176,11 +176,11 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
    * Requests a storage quota from the browser to back this FS.
    */
   public allocate(cb: BFSOneArgCallback = () => {/*nop*/}): void {
-    let success = (fs: FileSystem): void => {
+    const success = (fs: FileSystem): void => {
       this.fs = fs;
       cb();
     };
-    let error = (err: DOMException): void => {
+    const error = (err: DOMException): void => {
       cb(convertError(err, "/", true));
     };
     if (this.type === global.PERSISTENT) {
@@ -206,7 +206,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
         mainCb(err);
       } else {
         // Called when every entry has been operated on
-        let finished = (er: any): void => {
+        const finished = (er: any): void => {
           if (err) {
             console.error("Failed to empty FS");
             mainCb(err);
@@ -215,11 +215,11 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
           }
         };
         // Removes files and recursively removes directories
-        let deleteEntry = (entry: Entry, cb: (e?: any) => void): void => {
-          let succ = () => {
+        const deleteEntry = (entry: Entry, cb: (e?: any) => void): void => {
+          const succ = () => {
             cb();
           };
-          let error = (err: DOMException) => {
+          const error = (err: DOMException) => {
             cb(convertError(err, entry.fullPath, !entry.isDirectory));
           };
           if (isDirectoryEntry(entry)) {
@@ -236,51 +236,51 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
   }
 
   public rename(oldPath: string, newPath: string, cb: BFSOneArgCallback): void {
-    let semaphore: number = 2,
-      successCount: number = 0,
-      root: DirectoryEntry = this.fs.root,
-      currentPath: string = oldPath,
-      error = (err: DOMException): void => {
-        if (--semaphore <= 0) {
-            cb(convertError(err, currentPath, false));
-        }
-      },
-      success = (file: Entry): void => {
-        if (++successCount === 2) {
-          return cb(new ApiError(ErrorCode.EINVAL, "Something was identified as both a file and a directory. This should never happen."));
-        }
+    let semaphore: number = 2;
+    let successCount: number = 0;
+    const root: DirectoryEntry = this.fs.root;
+    let currentPath: string = oldPath;
+    const error = (err: DOMException): void => {
+      if (--semaphore <= 0) {
+          cb(convertError(err, currentPath, false));
+      }
+    };
+    const success = (file: Entry): void => {
+      if (++successCount === 2) {
+        return cb(new ApiError(ErrorCode.EINVAL, "Something was identified as both a file and a directory. This should never happen."));
+      }
 
-        // SPECIAL CASE: If newPath === oldPath, and the path exists, then
-        // this operation trivially succeeds.
-        if (oldPath === newPath) {
-          return cb();
-        }
+      // SPECIAL CASE: If newPath === oldPath, and the path exists, then
+      // this operation trivially succeeds.
+      if (oldPath === newPath) {
+        return cb();
+      }
 
-        // Get the new parent directory.
-        currentPath = path.dirname(newPath);
-        root.getDirectory(currentPath, {}, (parentDir: DirectoryEntry): void => {
-          currentPath = path.basename(newPath);
-          file.moveTo(parentDir, currentPath, (entry: Entry): void => { cb(); }, (err: DOMException): void => {
-            // SPECIAL CASE: If oldPath is a directory, and newPath is a
-            // file, rename should delete the file and perform the move.
-            if (file.isDirectory) {
-              currentPath = newPath;
-              // Unlink only works on files. Try to delete newPath.
-              this.unlink(newPath, (e?): void => {
-                if (e) {
-                  // newPath is probably a directory.
-                  error(err);
-                } else {
-                  // Recur, now that newPath doesn't exist.
-                  this.rename(oldPath, newPath, cb);
-                }
-              });
-            } else {
-              error(err);
-            }
-          });
-        }, error);
-      };
+      // Get the new parent directory.
+      currentPath = path.dirname(newPath);
+      root.getDirectory(currentPath, {}, (parentDir: DirectoryEntry): void => {
+        currentPath = path.basename(newPath);
+        file.moveTo(parentDir, currentPath, (entry: Entry): void => { cb(); }, (err: DOMException): void => {
+          // SPECIAL CASE: If oldPath is a directory, and newPath is a
+          // file, rename should delete the file and perform the move.
+          if (file.isDirectory) {
+            currentPath = newPath;
+            // Unlink only works on files. Try to delete newPath.
+            this.unlink(newPath, (e?): void => {
+              if (e) {
+                // newPath is probably a directory.
+                error(err);
+              } else {
+                // Recur, now that newPath doesn't exist.
+                this.rename(oldPath, newPath, cb);
+              }
+            });
+          } else {
+            error(err);
+          }
+        });
+      }, error);
+    };
 
     // We don't know if oldPath is a *file* or a *directory*, and there's no
     // way to stat items. So launch both requests, see which one succeeds.
@@ -291,32 +291,32 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
   public stat(path: string, isLstat: boolean, cb: BFSCallback<Stats>): void {
     // Throw an error if the entry doesn't exist, because then there's nothing
     // to stat.
-    let opts = {
+    const opts = {
       create: false
     };
     // Called when the path has been successfully loaded as a file.
-    let loadAsFile = (entry: FileEntry): void => {
-      let fileFromEntry = (file: File): void => {
-        let stat = new Stats(FileType.FILE, file.size);
+    const loadAsFile = (entry: FileEntry): void => {
+      const fileFromEntry = (file: File): void => {
+        const stat = new Stats(FileType.FILE, file.size);
         cb(null, stat);
       };
       entry.file(fileFromEntry, failedToLoad);
     };
     // Called when the path has been successfully loaded as a directory.
-    let loadAsDir = (dir: DirectoryEntry): void => {
+    const loadAsDir = (dir: DirectoryEntry): void => {
       // Directory entry size can't be determined from the HTML5 FS API, and is
       // implementation-dependant anyway, so a dummy value is used.
-      let size = 4096;
-      let stat = new Stats(FileType.DIRECTORY, size);
+      const size = 4096;
+      const stat = new Stats(FileType.DIRECTORY, size);
       cb(null, stat);
     };
     // Called when the path couldn't be opened as a directory or a file.
-    let failedToLoad = (err: DOMException): void => {
+    const failedToLoad = (err: DOMException): void => {
       cb(convertError(err, path, false /* Unknown / irrelevant */));
     };
     // Called when the path couldn't be opened as a file, but might still be a
     // directory.
-    let failedToLoadAsFile = (): void => {
+    const failedToLoadAsFile = (): void => {
       this.fs.root.getDirectory(path, opts, loadAsDir, failedToLoad);
     };
     // No method currently exists to determine whether a path refers to a
@@ -327,7 +327,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
 
   public open(p: string, flags: FileFlag, mode: number, cb: BFSCallback<IFile>): void {
     // XXX: err is a DOMError
-    let error = (err: any): void => {
+    const error = (err: any): void => {
       if (err.name === 'InvalidModificationError' && flags.isExclusive()) {
         cb(ApiError.EEXIST(p));
       } else {
@@ -341,9 +341,9 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
     }, (entry: FileEntry): void => {
       // Try to fetch corresponding file.
       entry.file((file: File): void => {
-        let reader = new FileReader();
+        const reader = new FileReader();
         reader.onloadend = (event: Event): void => {
-          let bfsFile = this._makeFile(p, entry, flags, file, <ArrayBuffer> reader.result);
+          const bfsFile = this._makeFile(p, entry, flags, file, <ArrayBuffer> reader.result);
           cb(null, bfsFile);
         };
         reader.onerror = (ev: Event) => {
@@ -374,14 +374,14 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
   public mkdir(path: string, mode: number, cb: BFSOneArgCallback): void {
     // Create the directory, but throw an error if it already exists, as per
     // mkdir(1)
-    let opts = {
+    const opts = {
       create: true,
       exclusive: true
     };
-    let success = (dir: DirectoryEntry): void => {
+    const success = (dir: DirectoryEntry): void => {
       cb();
     };
-    let error = (err: DOMException): void => {
+    const error = (err: DOMException): void => {
       cb(convertError(err, path, true));
     };
     this.fs.root.getDirectory(path, opts, success, error);
@@ -395,7 +395,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
       if (e) {
         return cb(e);
       }
-      let rv: string[] = [];
+      const rv: string[] = [];
       for (let i = 0; i < entries!.length; i++) {
         rv.push(entries![i].name);
       }
@@ -408,8 +408,8 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
    * returned by calls to the Dropbox API.
    */
   private _makeFile(path: string, entry: FileEntry, flag: FileFlag, stat: File, data: ArrayBuffer = new ArrayBuffer(0)): HTML5FSFile {
-    let stats = new Stats(FileType.FILE, stat.size);
-    let buffer = arrayBuffer2Buffer(data);
+    const stats = new Stats(FileType.FILE, stat.size);
+    const buffer = arrayBuffer2Buffer(data);
     return new HTML5FSFile(this, entry, path, flag, stats, buffer);
   }
 
@@ -417,16 +417,16 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
    * Returns an array of `FileEntry`s. Used internally by empty and readdir.
    */
   private _readdir(path: string, cb: BFSCallback<Entry[]>): void {
-    let error = (err: DOMException): void => {
+    const error = (err: DOMException): void => {
       cb(convertError(err, path, true));
     };
     // Grab the requested directory.
     this.fs.root.getDirectory(path, { create: false }, (dirEntry: DirectoryEntry) => {
-      let reader = dirEntry.createReader();
+      const reader = dirEntry.createReader();
       let entries: Entry[] = [];
 
       // Call the reader.readEntries() until no more results are returned.
-      let readEntries = () => {
+      const readEntries = () => {
         reader.readEntries(((results) => {
           if (results.length) {
             entries = entries.concat(_toArray(results));
@@ -447,20 +447,20 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
    * returned
    */
   private _remove(path: string, cb: BFSOneArgCallback, isFile: boolean): void {
-    let success = (entry: Entry): void => {
-      let succ = () => {
+    const success = (entry: Entry): void => {
+      const succ = () => {
         cb();
       };
-      let err = (err: DOMException) => {
+      const err = (err: DOMException) => {
         cb(convertError(err, path, !isFile));
       };
       entry.remove(succ, err);
     };
-    let error = (err: DOMException): void => {
+    const error = (err: DOMException): void => {
       cb(convertError(err, path, !isFile));
     };
     // Deleting the entry, so don't create it
-    let opts = {
+    const opts = {
       create: false
     };
 

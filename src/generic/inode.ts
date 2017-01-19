@@ -79,19 +79,19 @@ export default class Inode {
       hasChanged = true;
     }
 
-    let atimeMs = stats.atime.getTime();
+    const atimeMs = stats.atime.getTime();
     if (this.atime !== atimeMs) {
       this.atime = atimeMs;
       hasChanged = true;
     }
 
-    let mtimeMs = stats.mtime.getTime();
+    const mtimeMs = stats.mtime.getTime();
     if (this.mtime !== mtimeMs) {
       this.mtime = mtimeMs;
       hasChanged = true;
     }
 
-    let ctimeMs = stats.ctime.getTime();
+    const ctimeMs = stats.ctime.getTime();
     if (this.ctime !== ctimeMs) {
       this.ctime = ctimeMs;
       hasChanged = true;

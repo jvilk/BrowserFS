@@ -21,7 +21,7 @@ export default class Mutex {
       throw new Error('unlock of a non-locked mutex');
     }
 
-    let next = this._waiters.shift();
+    const next = this._waiters.shift();
     // don't unlock - we want to queue up next for the
     // _end_ of the current task execution, but we don't
     // want it to be called inline with whatever the

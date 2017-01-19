@@ -87,7 +87,9 @@
     "switch-default": false,
     "only-arrow-functions": false,
     "object-literal-shorthand": false,
-    "no-use-before-declare": false
+    "no-use-before-declare": false,
+    "no-angle-bracket-type-assertion": false,
+    "unified-signatures": false
   },
   "rulesDirectory": []
 }

@@ -14,7 +14,7 @@ interface EmscriptenError {
 function convertError(e: EmscriptenError, path: string = ''): ApiError {
   const errno = e.errno;
   let parent = e.node;
-  let paths: string[] = [];
+  const paths: string[] = [];
   while (parent) {
     paths.unshift(parent.name);
     if (parent === parent.parent) {
@@ -95,7 +95,7 @@ export class EmscriptenFile extends BaseFile implements File {
     try {
       const u8 = buffer2Uint8array(buffer);
       // Emscripten is particular about what position is set to.
-      let emPosition = position === null ? undefined : position;
+      const emPosition = position === null ? undefined : position;
       return this._FS.write(this._stream, u8, offset, length, emPosition);
     } catch (e) {
       throw convertError(e, this._path);
@@ -112,7 +112,7 @@ export class EmscriptenFile extends BaseFile implements File {
     try {
       const u8 = buffer2Uint8array(buffer);
       // Emscripten is particular about what position is set to.
-      let emPosition = position === null ? undefined : position;
+      const emPosition = position === null ? undefined : position;
       return this._FS.read(this._stream, u8, offset, length, emPosition);
     } catch (e) {
       throw convertError(e, this._path);

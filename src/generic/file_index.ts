@@ -15,22 +15,21 @@ export class FileIndex<T> {
    * @return A new FileIndex object.
    */
   public static fromListing<T>(listing: any): FileIndex<T> {
-    let idx = new FileIndex<T>();
+    const idx = new FileIndex<T>();
     // Add a root DirNode.
-    let rootInode = new DirInode<T>();
+    const rootInode = new DirInode<T>();
     idx._index['/'] = rootInode;
-    let queue = [['', listing, rootInode]];
+    const queue = [['', listing, rootInode]];
     while (queue.length > 0) {
       let inode: Inode;
-      let next = queue.pop();
-      let pwd = next![0];
-      let tree = next![1];
-      let parent = next![2];
-      let node: string;
-      for (node in tree) {
+      const next = queue.pop();
+      const pwd = next![0];
+      const tree = next![1];
+      const parent = next![2];
+      for (const node in tree) {
         if (tree.hasOwnProperty(node)) {
-          let children = tree[node];
-          let name = `${pwd}/${node}`;
+          const children = tree[node];
+          const name = `${pwd}/${node}`;
           if (children) {
             idx._index[name] = inode = new DirInode<T>();
             queue.push([name, children, inode]);
@@ -65,12 +64,12 @@ export class FileIndex<T> {
    * Runs the given function over all files in the index.
    */
   public fileIterator<T>(cb: (file: T | null) => void): void {
-    for (let path in this._index) {
+    for (const path in this._index) {
       if (this._index.hasOwnProperty(path)) {
-        let dir = this._index[path];
-        let files = dir.getListing();
+        const dir = this._index[path];
+        const files = dir.getListing();
         for (let i = 0; i < files.length; i++) {
-          let item = dir.getItem(files[i]);
+          const item = dir.getItem(files[i]);
           if (isFileInode<T>(item)) {
             cb(item.getData());
           }
@@ -104,9 +103,9 @@ export class FileIndex<T> {
       return this._index[path] === inode;
     }
 
-    let splitPath = this._split_path(path);
-    let dirpath = splitPath[0];
-    let itemname = splitPath[1];
+    const splitPath = this._split_path(path);
+    const dirpath = splitPath[0];
+    const itemname = splitPath[1];
     // Try to add to its parent directory first.
     let parent = this._index[dirpath];
     if (parent === undefined && path !== '/') {
@@ -172,23 +171,23 @@ export class FileIndex<T> {
    *   or null if it did not exist.
    */
   public removePath(path: string): Inode | null {
-    let splitPath = this._split_path(path);
-    let dirpath = splitPath[0];
-    let itemname = splitPath[1];
+    const splitPath = this._split_path(path);
+    const dirpath = splitPath[0];
+    const itemname = splitPath[1];
 
     // Try to remove it from its parent directory first.
-    let parent = this._index[dirpath];
+    const parent = this._index[dirpath];
     if (parent === undefined) {
       return null;
     }
     // Remove myself from my parent.
-    let inode = parent.remItem(itemname);
+    const inode = parent.remItem(itemname);
     if (inode === null) {
       return null;
     }
     // If I'm a directory, remove myself from the index, and remove my children.
     if (isDirInode(inode)) {
-      let children = inode.getListing();
+      const children = inode.getListing();
       for (let i = 0; i < children.length; i++) {
         this.removePath(path + '/' + children[i]);
       }
@@ -206,7 +205,7 @@ export class FileIndex<T> {
    * @return An array of files in the given path, or 'null' if it does not exist.
    */
   public ls(path: string): string[] | null {
-    let item = this._index[path];
+    const item = this._index[path];
     if (item === undefined) {
       return null;
     }
@@ -218,11 +217,11 @@ export class FileIndex<T> {
    * @return Returns null if the item does not exist.
    */
   public getInode(path: string): Inode | null {
-    let splitPath = this._split_path(path);
-    let dirpath = splitPath[0];
-    let itemname = splitPath[1];
+    const splitPath = this._split_path(path);
+    const dirpath = splitPath[0];
+    const itemname = splitPath[1];
     // Retrieve from its parent directory.
-    let parent = this._index[dirpath];
+    const parent = this._index[dirpath];
     if (parent === undefined) {
       return null;
     }
@@ -237,8 +236,8 @@ export class FileIndex<T> {
    * Split into a (directory path, item name) pair
    */
   private _split_path(p: string): string[] {
-    let dirpath = path.dirname(p);
-    let itemname = p.substr(dirpath.length + (dirpath === "/" ? 0 : 1));
+    const dirpath = path.dirname(p);
+    const itemname = p.substr(dirpath.length + (dirpath === "/" ? 0 : 1));
     return [dirpath, itemname];
   }
 }
@@ -328,7 +327,7 @@ export class DirInode<T> implements Inode {
    *   removed, or null if the item did not exist.
    */
   public remItem(p: string): Inode | null {
-    let item = this._ls[p];
+    const item = this._ls[p];
     if (item === undefined) {
       return null;
     }
