@@ -10,7 +10,15 @@ const outDirComponents = outDir.split(path.sep);
 for (let i = 1; i < outDirComponents.length; i++) {
   const dir = outDirComponents.slice(0, i + 1).join(path.sep);
   if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir);
+    try {
+      fs.mkdirSync(dir);
+    } catch (e) {
+      // Race condition: A parallel invocation of webpack
+      // may have already created directory. Check.
+      if (!fs.existsSync(dir)) {
+        throw e;
+      }
+    }
   }
 }
 fs.writeFileSync(path.join(outDir, 'BFSBuffer.js'), 'module.exports = require(\'buffer\').Buffer;\n');
