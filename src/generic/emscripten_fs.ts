@@ -301,7 +301,11 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   public readdir(node: EmscriptenFSNode): string[] {
     let path = this.fs.realPath(node);
     try {
-      return this.nodefs.readdirSync(path);
+      // Node does not list . and .. in directory listings,
+      // but Emscripten expects it.
+      const contents = this.nodefs.readdirSync(path);
+      contents.push('.', '..');
+      return contents;
     } catch (e) {
       if (!e.code) {
         throw e;

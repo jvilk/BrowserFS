@@ -17,13 +17,13 @@ function generateRunFile() {
         switch (path.extname(file)) {
         case '.ts':
           let modPath = relPath.slice(0, relPath.length - 3).replace(/\\/g, '/');
-          testImports.push('import ' + name + ' from \'' + modPath + '\';');
-          tests += '\'' + file + '\':' + name + ',';
+          testImports.push(`import ${name} from '${modPath}';`);
+          tests += `'${file}': ${name},`;
           break;
         case '.js':
           let jsModPath = relPath.slice(0, relPath.length - 3).replace(/\\/g, '/');
-          testImports.push('const ' + name + ' = require(\'' + jsModPath + '\');');
-          tests += '\'' + file + '\':' + name + ',';
+          testImports.push(`const ${name}Emscripten = require('${jsModPath}');`);
+          tests += `'${file}': ${name}Emscripten,`;
           break;
         default:
           break;
@@ -46,7 +46,7 @@ function generateRunFile() {
     .map(function(file) {
       var name = file.slice(0, file.length - 11);
       factoryList.push(name);
-      return 'import ' + name + ' from \'./factories/' + file.slice(0, file.length - 3) + '\';';
+      return `import ${name} from './factories/${file.slice(0, file.length - 3)}';`;
     }).concat(testImports).join('\n');
 
   fs.writeFileSync('test/harness/run.ts',

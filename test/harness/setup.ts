@@ -132,6 +132,11 @@ export default function(tests: {
         }
 
         const Module = {
+          // Explicitly override arguments, since newer Emscripten versions
+          // will incorrectly default it to the arguments object passed to
+          // the module we enclose the program in, and then try to coerce
+          // everything into a string (bad)
+          arguments: <string[]> [],
           print: function(text: string) { stdout += text + '\n'; },
           printErr: function(text: string) { stderr += text + '\n'; },
           onExit: function(code: number) {
@@ -156,7 +161,7 @@ export default function(tests: {
             const FS = Module.FS;
             const BFS = new BFSEmscriptenFS(FS, Module.PATH, Module.ERRNO_CODES);
             FS.mkdir('/files');
-            console.log(BrowserFS.BFSRequire('fs').readdirSync('/test/fixtures/files/emscripten'));
+            // console.log(BrowserFS.BFSRequire('fs').readdirSync('/test/fixtures/files/emscripten'));
             FS.mount(BFS, {root: '/test/fixtures/files/emscripten'}, '/files');
             FS.chdir('/files');
           },
