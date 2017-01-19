@@ -63,7 +63,7 @@
     "rollup-watch": "^2.5.0",
     "source-map-loader": "^0.1.5",
     "tslint": "^4.3",
-    "typescript": "^2.1.4",
+    "typescript": "^2.1.5",
     "webpack": "^1.14.0",
     "webpack-dev-server": "^1.16.2"
   },

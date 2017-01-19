@@ -238,8 +238,8 @@ export default function() {
     // assert.equal(actual, expected, message);
   });
   assert.equal(failures.length, 0, failures.join(''));
-  var joinThrowTests = [true, false, 7, null, {}, undefined, [], NaN];
-  joinThrowTests.forEach(function(test) {
+  var joinThrowTests: any[] = [true, false, 7, null, {}, undefined, [], NaN];
+  joinThrowTests.forEach(function(test: any) {
     assert.throws(function() {
       path.join(test);
     }, TypeError);
