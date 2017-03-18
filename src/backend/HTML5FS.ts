@@ -404,8 +404,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
   }
 
   /**
-   * Returns a BrowserFS object representing a File, created from the data
-   * returned by calls to the Dropbox API.
+   * Returns a BrowserFS object representing a File.
    */
   private _makeFile(path: string, entry: FileEntry, flag: FileFlag, stat: File, data: ArrayBuffer = new ArrayBuffer(0)): HTML5FSFile {
     const stats = new Stats(FileType.FILE, stat.size);

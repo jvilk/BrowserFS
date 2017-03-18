@@ -266,6 +266,10 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
     const newPath = this.PATH.join2(this.fs.realPath(newDir), newName);
     try {
       this.nodefs.renameSync(oldPath, newPath);
+      // This logic is missing from the original NodeFS,
+      // causing Emscripten's filesystem to think that the old file still exists.
+      oldNode.name = newName;
+      oldNode.parent = newDir;
     } catch (e) {
       if (!e.code) {
         throw e;
