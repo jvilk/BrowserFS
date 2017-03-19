@@ -11,7 +11,6 @@ cache:
 
 before_install:
   - "node --version"
-  - "yarn --version"
   - "npm --version"
   - "nvm --version"
   - "firefox --version"
