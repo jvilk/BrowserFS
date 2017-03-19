@@ -7,10 +7,17 @@ import * as path from 'path';
 import Inode from '../generic/inode';
 import PreloadFile from '../generic/preload_file';
 import {emptyBuffer} from '../core/util';
+/**
+ * @hidden
+ */
 const ROOT_NODE_ID: string = "/";
+/**
+ * @hidden
+ */
 let emptyDirNode: Buffer | null = null;
 /**
  * Returns an empty directory node.
+ * @hidden
  */
 function getEmptyDirNode(): Buffer {
   if (emptyDirNode) {
@@ -21,6 +28,7 @@ function getEmptyDirNode(): Buffer {
 
 /**
  * Generates a random ID.
+ * @hidden
  */
 function GenerateRandomID(): string {
   // From http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
@@ -34,6 +42,7 @@ function GenerateRandomID(): string {
 /**
  * Helper function. Checks if 'e' is defined. If so, it triggers the callback
  * with 'e' and returns false. Otherwise, returns true.
+ * @hidden
  */
 function noError(e: ApiError | undefined | null, cb: (e: ApiError) => void): boolean {
   if (e) {
@@ -46,6 +55,7 @@ function noError(e: ApiError | undefined | null, cb: (e: ApiError) => void): boo
 /**
  * Helper function. Checks if 'e' is defined. If so, it aborts the transaction,
  * triggers the callback with 'e', and returns false. Otherwise, returns true.
+ * @hidden
  */
 function noErrorTx(e: ApiError | undefined | null, tx: AsyncKeyValueRWTransaction, cb: (e: ApiError) => void): boolean {
   if (e) {

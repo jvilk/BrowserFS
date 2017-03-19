@@ -8,8 +8,14 @@ import {each as asyncEach} from 'async';
 import * as path from 'path';
 import {arrayBuffer2Buffer, buffer2ArrayBuffer, emptyBuffer} from '../core/util';
 
+/**
+ * @hidden
+ */
 let errorCodeLookup: {[dropboxErrorCode: number]: ErrorCode};
-// Lazily construct error code lookup, since DropboxJS might be loaded *after* BrowserFS (or not at all!)
+/**
+ * Lazily construct error code lookup, since DropboxJS might be loaded *after* BrowserFS (or not at all!)
+ * @hidden
+ */
 function constructErrorCodeLookup() {
   if (errorCodeLookup) {
     return;
@@ -42,26 +48,44 @@ function constructErrorCodeLookup() {
   errorCodeLookup[Dropbox.ApiError.OVER_QUOTA] = ErrorCode.ENOSPC;
 }
 
+/**
+ * @hidden
+ */
 interface ICachedPathInfo {
   stat: Dropbox.File.Stat;
 }
 
+/**
+ * @hidden
+ */
 interface ICachedFileInfo extends ICachedPathInfo {
   contents: ArrayBuffer;
 }
 
+/**
+ * @hidden
+ */
 function isFileInfo(cache: ICachedPathInfo): cache is ICachedFileInfo {
   return cache && cache.stat.isFile;
 }
 
+/**
+ * @hidden
+ */
 interface ICachedDirInfo extends ICachedPathInfo {
   contents: string[];
 }
 
+/**
+ * @hidden
+ */
 function isDirInfo(cache: ICachedPathInfo): cache is ICachedDirInfo {
   return cache && cache.stat.isFolder;
 }
 
+/**
+ * @hidden
+ */
 function isArrayBuffer(ab: any): ab is ArrayBuffer {
   // Accept null / undefined, too.
   return ab === null || ab === undefined || (typeof(ab) === 'object' && typeof(ab['byteLength']) === 'number');
@@ -69,6 +93,7 @@ function isArrayBuffer(ab: any): ab is ArrayBuffer {
 
 /**
  * Wraps a Dropbox client and caches operations.
+ * @hidden
  */
 class CachedDropboxClient {
   private _cache: {[path: string]: ICachedPathInfo} = {};
@@ -311,6 +336,13 @@ export class DropboxFile extends PreloadFile<DropboxFileSystem> implements File 
   }
 }
 
+/**
+ * A read/write file system backed by Dropbox cloud storage.
+ *
+ * Uses the Dropbox V1 API.
+ *
+ * NOTE: You must use the v0.10 version of the [Dropbox JavaScript SDK](https://www.npmjs.com/package/dropbox).
+ */
 export default class DropboxFileSystem extends BaseFileSystem implements FileSystem {
   public static isAvailable(): boolean {
     // Checks if the Dropbox library is loaded.
@@ -321,7 +353,9 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
   private _client: CachedDropboxClient;
 
   /**
-   * Arguments: an authenticated Dropbox.js client
+   * Constructs a Dropbox-backed file system using the *authenticated* DropboxJS client.
+   *
+   * Note that you must use the old v0.10 version of the Dropbox JavaScript SDK.
    */
   constructor(client: Dropbox.Client) {
     super();

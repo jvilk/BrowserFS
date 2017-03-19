@@ -7,14 +7,19 @@ import * as path from 'path';
 /**
  * Checks for any IE version, including IE11 which removed MSIE from the
  * userAgent string.
+ * @hidden
  */
 export const isIE: boolean = typeof navigator !== "undefined" && !!(/(msie) ([\w.]+)/.exec(navigator.userAgent.toLowerCase()) || navigator.userAgent.indexOf('Trident') !== -1);
 
 /**
  * Check if we're in a web worker.
+ * @hidden
  */
 export const isWebWorker: boolean = typeof window === "undefined";
 
+/**
+ * @hidden
+ */
 export interface Arrayish<T> {
   [idx: number]: T;
   length: number;
@@ -22,6 +27,7 @@ export interface Arrayish<T> {
 
 /**
  * Throws an exception. Called on code paths that should be impossible.
+ * @hidden
  */
 export function fail() {
   throw new Error("BFS has reached an impossible code path; please file a bug.");
@@ -29,6 +35,7 @@ export function fail() {
 
 /**
  * Synchronous recursive makedir.
+ * @hidden
  */
 export function mkdirpSync(p: string, mode: number, fs: FileSystem): void {
   if (!fs.existsSync(p)) {
@@ -40,6 +47,7 @@ export function mkdirpSync(p: string, mode: number, fs: FileSystem): void {
 /**
  * Converts a buffer into an array buffer. Attempts to do so in a
  * zero-copy manner, e.g. the array references the same memory.
+ * @hidden
  */
 export function buffer2ArrayBuffer(buff: Buffer): ArrayBuffer {
   const u8 = buffer2Uint8array(buff),
@@ -55,6 +63,7 @@ export function buffer2ArrayBuffer(buff: Buffer): ArrayBuffer {
 /**
  * Converts a buffer into a Uint8Array. Attempts to do so in a
  * zero-copy manner, e.g. the array references the same memory.
+ * @hidden
  */
 export function buffer2Uint8array(buff: Buffer): Uint8Array {
   if (buff instanceof Uint8Array) {
@@ -70,6 +79,7 @@ export function buffer2Uint8array(buff: Buffer): Uint8Array {
 /**
  * Converts the given arrayish object into a Buffer. Attempts to
  * be zero-copy.
+ * @hidden
  */
 export function arrayish2Buffer(arr: Arrayish<number>): Buffer {
   if (arr instanceof Buffer) {
@@ -83,6 +93,7 @@ export function arrayish2Buffer(arr: Arrayish<number>): Buffer {
 
 /**
  * Converts the given Uint8Array into a Buffer. Attempts to be zero-copy.
+ * @hidden
  */
 export function uint8Array2Buffer(u8: Uint8Array): Buffer {
   if (u8 instanceof Buffer) {
@@ -97,6 +108,7 @@ export function uint8Array2Buffer(u8: Uint8Array): Buffer {
 /**
  * Converts the given array buffer into a Buffer. Attempts to be
  * zero-copy.
+ * @hidden
  */
 export function arrayBuffer2Buffer(ab: ArrayBuffer): Buffer {
   return Buffer.from(ab);
@@ -104,6 +116,7 @@ export function arrayBuffer2Buffer(ab: ArrayBuffer): Buffer {
 
 /**
  * Copies a slice of the given buffer
+ * @hidden
  */
 export function copyingSlice(buff: Buffer, start: number = 0, end = buff.length): Buffer {
   if (start < 0 || end < 0 || end > buff.length || start > end) {
@@ -130,9 +143,13 @@ export function copyingSlice(buff: Buffer, start: number = 0, end = buff.length)
   }
 }
 
+/**
+ * @hidden
+ */
 let emptyBuff: Buffer | null = null;
 /**
  * Returns an empty buffer.
+ * @hidden
  */
 export function emptyBuffer(): Buffer {
   if (emptyBuff) {

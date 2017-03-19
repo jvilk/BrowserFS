@@ -9,12 +9,21 @@ import global from '../core/global';
 import {each as asyncEach} from 'async';
 import {buffer2ArrayBuffer, arrayBuffer2Buffer} from '../core/util';
 
+/**
+ * @hidden
+ */
 function isDirectoryEntry(entry: Entry): entry is DirectoryEntry {
   return entry.isDirectory;
 }
 
+/**
+ * @hidden
+ */
 const _getFS: (type: number, size: number, successCallback: FileSystemCallback, errorCallback?: ErrorCallback) => void = global.webkitRequestFileSystem || global.requestFileSystem || null;
 
+/**
+ * @hidden
+ */
 function _requestQuota(type: number, size: number, success: (size: number) => void, errorCallback: ErrorCallback) {
   // We cast navigator and window to '<any>' because everything here is
   // nonstandard functionality, despite the fact that Chrome has the only
@@ -38,14 +47,17 @@ function _requestQuota(type: number, size: number, success: (size: number) => vo
   }
 }
 
+/**
+ * @hidden
+ */
 function _toArray(list?: any[]): any[] {
   return Array.prototype.slice.call(list || [], 0);
 }
 
 /**
  * Converts the given DOMError into an appropriate ApiError.
- * Full list of values here:
- * https://developer.mozilla.org/en-US/docs/Web/API/DOMError
+ * @url https://developer.mozilla.org/en-US/docs/Web/API/DOMError
+ * @hidden
  */
 function convertError(err: DOMError, p: string, expectedDir: boolean): ApiError {
   switch (err.name) {
@@ -130,6 +142,12 @@ export class HTML5FSFile extends PreloadFile<HTML5FS> implements IFile {
   }
 }
 
+/**
+ * A read-write filesystem backed by the HTML5 FileSystem API.
+ *
+ * As the HTML5 FileSystem is only implemented in Blink, this interface is
+ * only available in Chrome.
+ */
 export default class HTML5FS extends BaseFileSystem implements IFileSystem {
   public static isAvailable(): boolean {
     return !!_getFS;
@@ -140,9 +158,14 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
   private size: number;
   private type: number;
   /**
-   * Arguments:
-   *   - type: PERSISTENT or TEMPORARY
-   *   - size: storage quota to request, in megabytes. Allocated value may be less.
+   * Creates a new HTML5 FileSystem-backed BrowserFS file system of the given size
+   * and storage type.
+   *
+   * **IMPORTANT**: You must call `allocate` on the resulting object before the file system
+   * can be used.
+   *
+   * @param size storage quota to request, in megabytes. Allocated value may be less.
+   * @param type window.PERSISTENT or window.TEMPORARY. Defaults to PERSISTENT.
    */
   constructor(size: number = 5, type: number = global.PERSISTENT) {
     super();
@@ -172,8 +195,8 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
   }
 
   /**
-   * Nonstandard
    * Requests a storage quota from the browser to back this FS.
+   * Must be called before file system can be used!
    */
   public allocate(cb: BFSOneArgCallback = () => {/*nop*/}): void {
     const success = (fs: FileSystem): void => {
@@ -193,7 +216,6 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
   }
 
   /**
-   * Nonstandard
    * Deletes everything in the FS. Used for testing.
    * Karma clears the storage after you quit it but not between runs of the test
    * suite, and the tests expect an empty FS every time.

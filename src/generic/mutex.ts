@@ -2,6 +2,7 @@ import setImmediate from '../generic/setImmediate';
 
 /**
  * Non-recursive mutex
+ * @hidden
  */
 export default class Mutex {
   private _locked: boolean = false;

@@ -1,5 +1,6 @@
 /**
  * BrowserFS's main module. This is exposed in the browser via the BrowserFS global.
+ * Due to limitations in typedoc, we document these functions in ./typedoc.ts.
  */
 
 import * as buffer from 'buffer';
@@ -17,18 +18,7 @@ if ((<any> process)['initializeTTYs']) {
 }
 
 /**
- * Installs BrowserFS onto the given object.
- * We recommend that you run install with the 'window' object to make things
- * global, as in Node.
- *
- * Properties installed:
- *
- * * Buffer
- * * process
- * * require (we monkey-patch it)
- *
- * This allows you to write code as if you were running inside Node.
- * @param {object} obj - The object to install things onto (e.g. window)
+ * @hidden
  */
 export function install(obj: any) {
   obj.Buffer = Buffer;
@@ -45,10 +35,16 @@ export function install(obj: any) {
   };
 }
 
+/**
+ * @hidden
+ */
 export function registerFileSystem(name: string, fs: FileSystemConstructor) {
   (<any> Backends)[name] = fs;
 }
 
+/**
+ * @hidden
+ */
 export function BFSRequire(module: 'fs'): typeof fs;
 export function BFSRequire(module: 'path'): typeof path;
 export function BFSRequire(module: 'buffer'): typeof buffer;
@@ -74,10 +70,7 @@ export function BFSRequire(module: string): any {
 }
 
 /**
- * You must call this function with a properly-instantiated root file system
- * before using any file system API method.
- * @param {BrowserFS.FileSystem} rootFS - The root filesystem to use for the
- *   entire BrowserFS file system.
+ * @hidden
  */
 export function initialize(rootfs: FileSystem) {
   return fs.initialize(rootfs);

@@ -6,15 +6,22 @@ import {default as Stats} from '../core/node_fs_stats';
 import PreloadFile from '../generic/preload_file';
 import LockedFS from '../generic/locked_fs';
 import * as path from 'path';
+/**
+ * @hidden
+ */
 const deletionLogPath = '/.deletedFiles.log';
 
 /**
  * Given a read-only mode, makes it writable.
+ * @hidden
  */
 function makeModeWritable(mode: number): number {
   return 0o222 | mode;
 }
 
+/**
+ * @hidden
+ */
 function getFlag(f: string): FileFlag {
   return FileFlag.getFileFlag(f);
 }
@@ -56,9 +63,10 @@ class OverlayFile extends PreloadFile<UnlockedOverlayFS> implements File {
 }
 
 /**
- * OverlayFS makes a read-only filesystem writable by storing writes on a second,
- * writable file system. Deletes are persisted via metadata stored on the writable
- * file system.
+ * *INTERNAL, DO NOT USE DIRECTLY!*
+ *
+ * Core OverlayFS class that contains no locking whatsoever. We wrap these objects
+ * in a LockedFS to prevent races.
  */
 export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
   public static isAvailable(): boolean {
@@ -962,11 +970,20 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
   }
 }
 
+/**
+ * OverlayFS makes a read-only filesystem writable by storing writes on a second,
+ * writable file system. Deletes are persisted via metadata stored on the writable
+ * file system.
+ */
 export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
   public static isAvailable(): boolean {
     return UnlockedOverlayFS.isAvailable();
   }
 
+  /**
+   * @param writable The file system to write modified files to.
+   * @param readable The file system that initially populates this file system.
+   */
   constructor(writable: FileSystem, readable: FileSystem) {
     super(new UnlockedOverlayFS(writable, readable));
   }

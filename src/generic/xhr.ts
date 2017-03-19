@@ -7,6 +7,9 @@ import {isIE, emptyBuffer} from '../core/util';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {BFSCallback} from '../core/file_system';
 
+/**
+ * @hidden
+ */
 function asyncDownloadFileModern(p: string, type: 'buffer', cb: BFSCallback<Buffer>): void;
 function asyncDownloadFileModern(p: string, type: 'json', cb: BFSCallback<any>): void;
 function asyncDownloadFileModern(p: string, type: string, cb: BFSCallback<any>): void;
@@ -54,6 +57,9 @@ function asyncDownloadFileModern(p: string, type: string, cb: BFSCallback<any>):
   req.send();
 }
 
+/**
+ * @hidden
+ */
 function syncDownloadFileModern(p: string, type: 'buffer'): Buffer;
 function syncDownloadFileModern(p: string, type: 'json'): any;
 function syncDownloadFileModern(p: string, type: string): any;
@@ -102,6 +108,7 @@ function syncDownloadFileModern(p: string, type: string): any {
 /**
  * IE10 allows us to perform synchronous binary file downloads.
  * @todo Feature detect this, as older versions of FF/Chrome do too!
+ * @hidden
  */
 function syncDownloadFileIE10(p: string, type: 'buffer'): Buffer;
 function syncDownloadFileIE10(p: string, type: 'json'): any;
@@ -144,6 +151,9 @@ function syncDownloadFileIE10(p: string, type: string): any {
   return data;
 }
 
+/**
+ * @hidden
+ */
 function getFileSize(async: boolean, p: string, cb: BFSCallback<number>): void {
   const req = new XMLHttpRequest();
   req.open('HEAD', p, async);
@@ -169,6 +179,7 @@ function getFileSize(async: boolean, p: string, cb: BFSCallback<number>): void {
  * Note that the third function signature with a non-specialized type is
  * invalid, but TypeScript requires it when you specialize string arguments to
  * constants.
+ * @hidden
  */
 export let asyncDownloadFile: {
   (p: string, type: 'buffer', cb: BFSCallback<Buffer>): void;
@@ -181,6 +192,7 @@ export let asyncDownloadFile: {
  * Note that the third function signature with a non-specialized type is
  * invalid, but TypeScript requires it when you specialize string arguments to
  * constants.
+ * @hidden
  */
 export let syncDownloadFile: {
   (p: string, type: 'buffer'): Buffer;
@@ -190,6 +202,7 @@ export let syncDownloadFile: {
 
 /**
  * Synchronously retrieves the size of the given file in bytes.
+ * @hidden
  */
 export function getFileSizeSync(p: string): number {
   let rv: number = -1;
@@ -204,6 +217,7 @@ export function getFileSizeSync(p: string): number {
 
 /**
  * Asynchronously retrieves the size of the given file in bytes.
+ * @hidden
  */
 export function getFileSizeAsync(p: string, cb: (err: ApiError, size?: number) => void): void {
   getFileSize(true, p, cb);

@@ -7,7 +7,13 @@ import {NoSyncFile} from '../generic/preload_file';
 import {copyingSlice} from '../core/util';
 import * as path from 'path';
 
+/**
+ * @hidden
+ */
 const rockRidgeIdentifier = "IEEE_P1282";
+/**
+ * @hidden
+ */
 const enum VolumeDescriptorTypeCode {
   BootRecord = 0,
   PrimaryVolumeDescriptor = 1,
@@ -16,12 +22,21 @@ const enum VolumeDescriptorTypeCode {
   VolumeDescriptorSetTerminator = 255
 }
 
+/**
+ * @hidden
+ */
 type TGetString = (d: Buffer, i: number, len: number) => string;
 
+/**
+ * @hidden
+ */
 function getASCIIString(data: Buffer, startIndex: number, length: number) {
   return data.toString('ascii', startIndex, startIndex + length).trim();
 }
 
+/**
+ * @hidden
+ */
 function getJolietString(data: Buffer, startIndex: number, length: number): string {
   if (length === 1) {
     // Special: Root, parent, current directory are still a single byte.
@@ -38,6 +53,9 @@ function getJolietString(data: Buffer, startIndex: number, length: number): stri
   return chars.join('');
 }
 
+/**
+ * @hidden
+ */
 function getDate(data: Buffer, startIndex: number): Date {
   const year = parseInt(getASCIIString(data, startIndex, 4), 10);
   const mon = parseInt(getASCIIString(data, startIndex + 4, 2), 10);
@@ -50,6 +68,9 @@ function getDate(data: Buffer, startIndex: number): Date {
   return new Date(year, mon, day, hour, min, sec, hundrethsSec * 100);
 }
 
+/**
+ * @hidden
+ */
 function getShortFormDate(data: Buffer, startIndex: number): Date {
   const yearsSince1900 = data[startIndex];
   const month = data[startIndex + 1];
@@ -62,6 +83,9 @@ function getShortFormDate(data: Buffer, startIndex: number): Date {
   return new Date(yearsSince1900, month - 1, day, hour, minute, second);
 }
 
+/**
+ * @hidden
+ */
 function constructSystemUseEntry(bigData: Buffer, i: number): SystemUseEntry {
   const data = bigData.slice(i);
   const sue = new SystemUseEntry(data);
@@ -103,6 +127,9 @@ function constructSystemUseEntry(bigData: Buffer, i: number): SystemUseEntry {
   }
 }
 
+/**
+ * @hidden
+ */
 function constructSystemUseEntries(data: Buffer, i: number, len: number, isoData: Buffer): SystemUseEntry[] {
   // If the remaining allocated space following the last recorded System Use Entry in a System
   // Use field or Continuation Area is less than four bytes long, it cannot contain a System
@@ -130,6 +157,9 @@ function constructSystemUseEntries(data: Buffer, i: number, len: number, isoData
   return entries;
 }
 
+/**
+ * @hidden
+ */
 class VolumeDescriptor {
   protected _data: Buffer;
   constructor(data: Buffer) {
@@ -149,6 +179,9 @@ class VolumeDescriptor {
   }
 }
 
+/**
+ * @hidden
+ */
 abstract class PrimaryOrSupplementaryVolumeDescriptor extends VolumeDescriptor {
   private _root: DirectoryRecord | null = null;
   constructor(data: Buffer) {
@@ -244,6 +277,9 @@ abstract class PrimaryOrSupplementaryVolumeDescriptor extends VolumeDescriptor {
   }
 }
 
+/**
+ * @hidden
+ */
 class PrimaryVolumeDescriptor extends PrimaryOrSupplementaryVolumeDescriptor {
   constructor(data: Buffer) {
     super(data);
@@ -262,6 +298,9 @@ class PrimaryVolumeDescriptor extends PrimaryOrSupplementaryVolumeDescriptor {
   }
 }
 
+/**
+ * @hidden
+ */
 class SupplementaryVolumeDescriptor extends PrimaryOrSupplementaryVolumeDescriptor {
   constructor(data: Buffer) {
     super(data);
@@ -291,6 +330,9 @@ class SupplementaryVolumeDescriptor extends PrimaryOrSupplementaryVolumeDescript
   }
 }
 
+/**
+ * @hidden
+ */
 const enum FileFlags {
   Hidden = 1,
   Directory = 1 << 1,
@@ -300,6 +342,9 @@ const enum FileFlags {
   FinalDirectoryRecordForFile = 1 << 5
 }
 
+/**
+ * @hidden
+ */
 abstract class DirectoryRecord {
   protected _data: Buffer;
   // Offset at which system use entries begin. Set to -1 if not enabled.
@@ -516,6 +561,9 @@ abstract class DirectoryRecord {
   }
 }
 
+/**
+ * @hidden
+ */
 class ISODirectoryRecord extends DirectoryRecord {
   constructor(data: Buffer, rockRidgeOffset: number) {
     super(data, rockRidgeOffset);
@@ -531,6 +579,9 @@ class ISODirectoryRecord extends DirectoryRecord {
   }
 }
 
+/**
+ * @hidden
+ */
 class JolietDirectoryRecord extends DirectoryRecord {
   constructor(data: Buffer, rockRidgeOffset: number) {
     super(data, rockRidgeOffset);
@@ -546,6 +597,9 @@ class JolietDirectoryRecord extends DirectoryRecord {
   }
 }
 
+/**
+ * @hidden
+ */
 const enum SystemUseEntrySignatures {
   CE = 0x4345,
   PD = 0x5044,
@@ -565,6 +619,9 @@ const enum SystemUseEntrySignatures {
   RR = 0x5252
 }
 
+/**
+ * @hidden
+ */
 class SystemUseEntry {
   protected _data: Buffer;
   constructor(data: Buffer) {
@@ -586,6 +643,7 @@ class SystemUseEntry {
 
 /**
  * Continuation entry.
+ * @hidden
  */
 class CEEntry extends SystemUseEntry {
   private _entries: SystemUseEntry[] | null = null;
@@ -621,6 +679,7 @@ class CEEntry extends SystemUseEntry {
 
 /**
  * Padding entry.
+ * @hidden
  */
 class PDEntry extends SystemUseEntry {
   constructor(data: Buffer) {
@@ -630,6 +689,7 @@ class PDEntry extends SystemUseEntry {
 
 /**
  * Identifies that SUSP is in-use.
+ * @hidden
  */
 class SPEntry extends SystemUseEntry {
   constructor(data: Buffer) {
@@ -645,6 +705,7 @@ class SPEntry extends SystemUseEntry {
 
 /**
  * Identifies the end of the SUSP entries.
+ * @hidden
  */
 class STEntry extends SystemUseEntry {
   constructor(data: Buffer) {
@@ -654,6 +715,7 @@ class STEntry extends SystemUseEntry {
 
 /**
  * Specifies system-specific extensions to SUSP.
+ * @hidden
  */
 class EREntry extends SystemUseEntry {
   constructor(data: Buffer) {
@@ -682,6 +744,9 @@ class EREntry extends SystemUseEntry {
   }
 }
 
+/**
+ * @hidden
+ */
 class ESEntry extends SystemUseEntry {
   constructor(data: Buffer) {
     super(data);
@@ -693,6 +758,7 @@ class ESEntry extends SystemUseEntry {
 
 /**
  * RockRidge: Marks that RockRidge is in use [deprecated]
+ * @hidden
  */
 class RREntry extends SystemUseEntry {
   constructor(data: Buffer) {
@@ -702,6 +768,7 @@ class RREntry extends SystemUseEntry {
 
 /**
  * RockRidge: Records POSIX file attributes.
+ * @hidden
  */
 class PXEntry extends SystemUseEntry {
   constructor(data: Buffer) {
@@ -726,6 +793,7 @@ class PXEntry extends SystemUseEntry {
 
 /**
  * RockRidge: Records POSIX device number.
+ * @hidden
  */
 class PNEntry extends SystemUseEntry {
   constructor(data: Buffer) {
@@ -741,6 +809,7 @@ class PNEntry extends SystemUseEntry {
 
 /**
  * RockRidge: Records symbolic link
+ * @hidden
  */
 class SLEntry extends SystemUseEntry {
   constructor(data: Buffer) {
@@ -764,6 +833,9 @@ class SLEntry extends SystemUseEntry {
   }
 }
 
+/**
+ * @hidden
+ */
 const enum SLComponentFlags {
   CONTINUE = 1,
   CURRENT = 1 << 1,
@@ -771,6 +843,9 @@ const enum SLComponentFlags {
   ROOT = 1 << 3
 }
 
+/**
+ * @hidden
+ */
 class SLComponentRecord {
   private _data: Buffer;
   constructor(data: Buffer) {
@@ -790,6 +865,9 @@ class SLComponentRecord {
   }
 }
 
+/**
+ * @hidden
+ */
 const enum NMFlags {
   CONTINUE = 1,
   CURRENT = 1 << 1,
@@ -798,6 +876,7 @@ const enum NMFlags {
 
 /**
  * RockRidge: Records alternate file name
+ * @hidden
  */
 class NMEntry extends SystemUseEntry {
   constructor(data: Buffer) {
@@ -813,6 +892,7 @@ class NMEntry extends SystemUseEntry {
 
 /**
  * RockRidge: Records child link
+ * @hidden
  */
 class CLEntry extends SystemUseEntry {
   constructor(data: Buffer) {
@@ -825,6 +905,7 @@ class CLEntry extends SystemUseEntry {
 
 /**
  * RockRidge: Records parent link.
+ * @hidden
  */
 class PLEntry extends SystemUseEntry {
   constructor(data: Buffer) {
@@ -837,6 +918,7 @@ class PLEntry extends SystemUseEntry {
 
 /**
  * RockRidge: Records relocated directory.
+ * @hidden
  */
 class REEntry extends SystemUseEntry {
   constructor(data: Buffer) {
@@ -844,6 +926,9 @@ class REEntry extends SystemUseEntry {
   }
 }
 
+/**
+ * @hidden
+ */
 const enum TFFlags {
   CREATION = 1,
   MODIFY = 1 << 1,
@@ -857,6 +942,7 @@ const enum TFFlags {
 
 /**
  * RockRidge: Records file timestamps
+ * @hidden
  */
 class TFEntry extends SystemUseEntry {
   constructor(data: Buffer) {
@@ -953,6 +1039,7 @@ class TFEntry extends SystemUseEntry {
 
 /**
  * RockRidge: File data in sparse format.
+ * @hidden
  */
 class SFEntry extends SystemUseEntry {
   constructor(data: Buffer) {
@@ -969,6 +1056,9 @@ class SFEntry extends SystemUseEntry {
   }
 }
 
+/**
+ * @hidden
+ */
 abstract class Directory<T extends DirectoryRecord> {
   protected _record: T;
   private _fileList: string[] = [];
@@ -1025,6 +1115,9 @@ abstract class Directory<T extends DirectoryRecord> {
   protected abstract _constructDirectoryRecord(data: Buffer): T;
 }
 
+/**
+ * @hidden
+ */
 class ISODirectory extends Directory<ISODirectoryRecord> {
   constructor(record: ISODirectoryRecord, isoData: Buffer) {
     super(record, isoData);
@@ -1034,6 +1127,9 @@ class ISODirectory extends Directory<ISODirectoryRecord> {
   }
 }
 
+/**
+ * @hidden
+ */
 class JolietDirectory extends Directory<JolietDirectoryRecord> {
   constructor(record: JolietDirectoryRecord, isoData: Buffer) {
     super(record, isoData);
@@ -1043,6 +1139,13 @@ class JolietDirectory extends Directory<JolietDirectoryRecord> {
   }
 }
 
+/**
+ * Mounts an ISO file as a read-only file system.
+ *
+ * Supports:
+ * * Vanilla ISO9660 ISOs
+ * * Microsoft Joliet and Rock Ridge extensions to the ISO9660 standard
+ */
 export default class IsoFS extends SynchronousFileSystem implements FileSystem {
   public static isAvailable(): boolean {
     return true;
@@ -1053,6 +1156,11 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
   private _root: DirectoryRecord;
   private _name: string;
 
+  /**
+   * Constructs a read-only file system from the given ISO.
+   * @param data The ISO file in a buffer.
+   * @param name The name of the ISO (optional; used for debug messages / identification via getName()).
+   */
   constructor(data: Buffer, name: string = "") {
     super();
     this._data = data;

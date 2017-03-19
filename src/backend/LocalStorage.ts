@@ -2,9 +2,12 @@ import {SyncKeyValueStore, SimpleSyncStore, SyncKeyValueFileSystem, SimpleSyncRW
 import {ApiError, ErrorCode} from '../core/api_error';
 import global from '../core/global';
 
-// Some versions of FF and all versions of IE do not support the full range of
-// 16-bit numbers encoded as characters, as they enforce UTF-16 restrictions.
-// http://stackoverflow.com/questions/11170716/are-there-any-characters-that-are-not-allowed-in-localstorage/11173673#11173673
+/**
+ * Some versions of FF and all versions of IE do not support the full range of
+ * 16-bit numbers encoded as characters, as they enforce UTF-16 restrictions.
+ * @url http://stackoverflow.com/questions/11170716/are-there-any-characters-that-are-not-allowed-in-localstorage/11173673#11173673
+ * @hidden
+ */
 let supportsBinaryString: boolean = false,
   binaryEncoding: string;
 try {
@@ -81,5 +84,8 @@ export default class LocalStorageFileSystem extends SyncKeyValueFileSystem {
   public static isAvailable(): boolean {
     return typeof global.localStorage !== 'undefined';
   }
+  /**
+   * Creates a new LocalStorage file system using the contents of `localStorage`.
+   */
   constructor() { super({ store: new LocalStorageStore() }); }
 }

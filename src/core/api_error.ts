@@ -23,6 +23,7 @@ export enum ErrorCode {
 /* tslint:disable:variable-name */
 /**
  * Strings associated with each error code.
+ * @hidden
  */
 export const ErrorStrings: {[code: string]: string; [code: number]: string; } = {};
 ErrorStrings[ErrorCode.EPERM] = 'Operation not permitted.';

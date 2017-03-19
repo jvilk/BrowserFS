@@ -5,6 +5,7 @@ import global from '../core/global';
 import {arrayBuffer2Buffer, buffer2ArrayBuffer} from '../core/util';
 /**
  * Get the indexedDB constructor for the current browser.
+ * @hidden
  */
 const indexedDB: IDBFactory = global.indexedDB ||
                           (<any> global).mozIndexedDB ||
@@ -14,6 +15,7 @@ const indexedDB: IDBFactory = global.indexedDB ||
 /**
  * Converts a DOMException or a DOMError from an IndexedDB event into a
  * standardized BrowserFS API error.
+ * @hidden
  */
 function convertError(e: {name: string}, message: string = e.toString()): ApiError {
   switch (e.name) {
@@ -31,6 +33,7 @@ function convertError(e: {name: string}, message: string = e.toString()): ApiErr
  * Produces a new onerror handler for IDB. Our errors are always fatal, so we
  * handle them generically: Call the user-supplied callback with a translated
  * version of the error, and let the error bubble up.
+ * @hidden
  */
 function onErrorHandler(cb: (e: ApiError) => void, code: ErrorCode = ErrorCode.EIO, message: string | null = null): (e?: any) => void {
   return function(e?: any): void {
@@ -40,6 +43,9 @@ function onErrorHandler(cb: (e: ApiError) => void, code: ErrorCode = ErrorCode.E
   };
 }
 
+/**
+ * @hidden
+ */
 export class IndexedDBROTransaction implements AsyncKeyValueROTransaction {
   constructor(public tx: IDBTransaction, public store: IDBObjectStore) { }
 
@@ -64,6 +70,9 @@ export class IndexedDBROTransaction implements AsyncKeyValueROTransaction {
   }
 }
 
+/**
+ * @hidden
+ */
 export class IndexedDBRWTransaction extends IndexedDBROTransaction implements AsyncKeyValueRWTransaction, AsyncKeyValueROTransaction {
   constructor(tx: IDBTransaction, store: IDBObjectStore) {
     super(tx, store);
@@ -124,14 +133,6 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements As
 export class IndexedDBStore implements AsyncKeyValueStore {
   private db: IDBDatabase;
 
-  /**
-   * Constructs an IndexedDB file system.
-   * @param cb Called once the database is instantiated and ready for use.
-   *   Passes an error if there was an issue instantiating the database.
-   * @param objectStoreName The name of this file system. You can have
-   *   multiple IndexedDB file systems operating at once, but each must have
-   *   a different name.
-   */
   constructor(cb: BFSCallback<IndexedDBStore>, private storeName: string = 'browserfs') {
     const openReq: IDBOpenDBRequest = indexedDB.open(this.storeName, 1);
 
@@ -202,6 +203,14 @@ export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
       return false;
     }
   }
+  /**
+   * Constructs an IndexedDB file system.
+   * @param cb Called once the database is instantiated and ready for use.
+   *   Passes an error if there was an issue instantiating the database.
+   * @param storeName The name of this file system. You can have
+   *   multiple IndexedDB file systems operating at once, but each must have
+   *   a different name.
+   */
   constructor(cb: BFSCallback<IndexedDBFileSystem>, storeName?: string) {
     super();
     const store = new IndexedDBStore((e): void => {

@@ -32,6 +32,7 @@ export class InMemoryStore implements SyncKeyValueStore, SimpleSyncStore {
 
 /**
  * A simple in-memory file system backed by an InMemoryStore.
+ * Files are not persisted across page loads.
  */
 export default class InMemoryFileSystem extends SyncKeyValueFileSystem {
   constructor() {

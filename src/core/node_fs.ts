@@ -6,9 +6,17 @@ import {default as FS, FSModule} from './FS';
 // let writeFile = fs.writeFile;
 // writeFile(...)
 
+/**
+ * @hidden
+ */
 let fs: any = new FS();
+/**
+ * @hidden
+ */
 const _fsMock: FSModule = <any> {};
-
+/**
+ * @hidden
+ */
 const fsProto = FS.prototype;
 Object.keys(fsProto).forEach((key) => {
   if (typeof fs[key] === 'function') {

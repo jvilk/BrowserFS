@@ -1,45 +1,3 @@
-/**
- * Zip file-backed filesystem
- * Implemented according to the standard:
- * http://www.pkware.com/documents/casestudies/APPNOTE.TXT
- *
- * While there are a few zip libraries for JavaScript (e.g. JSZip and zip.js),
- * they are not a good match for BrowserFS. In particular, these libraries
- * perform a lot of unneeded data copying, and eagerly decompress every file
- * in the zip file upon loading to check the CRC32. They also eagerly decode
- * strings. Furthermore, these libraries duplicate functionality already present
- * in BrowserFS (e.g. UTF-8 decoding and binary data manipulation).
- *
- * This filesystem takes advantage of BrowserFS's Buffer implementation, which
- * efficiently represents the zip file in memory (in both ArrayBuffer-enabled
- * browsers *and* non-ArrayBuffer browsers), and which can neatly be 'sliced'
- * without copying data. Each struct defined in the standard is represented with
- * a buffer slice pointing to an offset in the zip file, and has getters for
- * each field. As we anticipate that this data will not be read often, we choose
- * not to store each struct field in the JavaScript object; instead, to reduce
- * memory consumption, we retrieve it directly from the binary data each time it
- * is requested.
- *
- * When the filesystem is instantiated, we determine the directory structure
- * of the zip file as quickly as possible. We lazily decompress and check the
- * CRC32 of files. We do not cache decompressed files; if this is a desired
- * feature, it is best implemented as a generic file system wrapper that can
- * cache data from arbitrary file systems.
- *
- * For inflation, we use `pako`'s implementation:
- * https://github.com/nodeca/pako
- *
- * Current limitations:
- * * No encryption.
- * * No ZIP64 support.
- * * Read-only.
- *   Write support would require that we:
- *   - Keep track of changed/new files.
- *   - Compress changed files, and generate appropriate metadata for each.
- *   - Update file offsets for other files in the zip file.
- *   - Stream it out to a location.
- *   This isn't that bad, so we might do this at a later date.
- */
 import {ApiError, ErrorCode} from '../core/api_error';
 import {default as Stats, FileType} from '../core/node_fs_stats';
 import {SynchronousFileSystem, FileSystem} from '../core/file_system';
@@ -49,6 +7,9 @@ import {NoSyncFile} from '../generic/preload_file';
 import {Arrayish, arrayish2Buffer, copyingSlice} from '../core/util';
 import ExtendedASCII from '../generic/extended_ascii';
 import setImmediate from '../generic/setImmediate';
+/**
+ * @hidden
+ */
 const inflateRaw:
   (data: Arrayish<number>, options?: {
     chunkSize: number;
@@ -57,6 +18,7 @@ import {FileIndex, DirInode, FileInode, isDirInode, isFileInode} from '../generi
 
 /**
  * Maps CompressionMethod => function that decompresses.
+ * @hidden
  */
 const decompressionMethods: {[method: number]: (data: Buffer, compressedSize: number, uncompressedSize: number, flags: number) => Buffer} = {};
 
@@ -95,6 +57,7 @@ export enum CompressionMethod {
 /**
  * Converts the input time and date in MS-DOS format into a JavaScript Date
  * object.
+ * @hidden
  */
 function msdos2date(time: number, date: number): Date {
   // MS-DOS Date
@@ -117,6 +80,7 @@ function msdos2date(time: number, date: number): Date {
  * Safely returns the string from the buffer, even if it is 0 bytes long.
  * (Normally, calling toString() on a buffer with start === end causes an
  * exception).
+ * @hidden
  */
 function safeToString(buff: Buffer, useUTF8: boolean, start: number, length: number): string {
   if (length === 0) {
@@ -154,23 +118,23 @@ function safeToString(buff: Buffer, useUTF8: boolean, start: number, length: num
       [end of central directory record]
 */
 
-/*
- 4.3.7  Local file header:
-
-      local file header signature     4 bytes  (0x04034b50)
-      version needed to extract       2 bytes
-      general purpose bit flag        2 bytes
-      compression method              2 bytes
-      last mod file time              2 bytes
-      last mod file date              2 bytes
-      crc-32                          4 bytes
-      compressed size                 4 bytes
-      uncompressed size               4 bytes
-      file name length                2 bytes
-      extra field length              2 bytes
-
-      file name (variable size)
-      extra field (variable size)
+/**
+ * 4.3.7  Local file header:
+ *
+ *     local file header signature     4 bytes  (0x04034b50)
+ *     version needed to extract       2 bytes
+ *     general purpose bit flag        2 bytes
+ *     compression method              2 bytes
+ *    last mod file time              2 bytes
+ *    last mod file date              2 bytes
+ *    crc-32                          4 bytes
+ *    compressed size                 4 bytes
+ *    uncompressed size               4 bytes
+ *    file name length                2 bytes
+ *    extra field length              2 bytes
+ *
+ *    file name (variable size)
+ *    extra field (variable size)
  */
 export class FileHeader {
   constructor(private data: Buffer) {
@@ -256,12 +220,12 @@ export class FileData {
   }
 }
 
-/*
- 4.3.9  Data descriptor:
-
-      crc-32                          4 bytes
-      compressed size                 4 bytes
-      uncompressed size               4 bytes
+/**
+ * 4.3.9  Data descriptor:
+ *
+ *    crc-32                          4 bytes
+ *    compressed size                 4 bytes
+ *    uncompressed size               4 bytes
  */
 export class DataDescriptor {
   constructor(private data: Buffer) {}
@@ -280,20 +244,20 @@ export class DataDescriptor {
       When the Central Directory Structure is encrypted, this decryption
       header MUST precede the encrypted data segment.
  */
-/*
-  4.3.11  Archive extra data record:
-
-        archive extra data signature    4 bytes  (0x08064b50)
-        extra field length              4 bytes
-        extra field data                (variable size)
-
-      4.3.11.1 The Archive Extra Data Record is introduced in version 6.2
-      of the ZIP format specification.  This record MAY be used in support
-      of the Central Directory Encryption Feature implemented as part of
-      the Strong Encryption Specification as described in this document.
-      When present, this record MUST immediately precede the central
-      directory data structure.
-*/
+/**
+ * 4.3.11  Archive extra data record:
+ *
+ *      archive extra data signature    4 bytes  (0x08064b50)
+ *      extra field length              4 bytes
+ *      extra field data                (variable size)
+ *
+ *    4.3.11.1 The Archive Extra Data Record is introduced in version 6.2
+ *    of the ZIP format specification.  This record MAY be used in support
+ *    of the Central Directory Encryption Feature implemented as part of
+ *    the Strong Encryption Specification as described in this document.
+ *    When present, this record MUST immediately precede the central
+ *    directory data structure.
+ */
 export class ArchiveExtraDataRecord {
   constructor(private data: Buffer) {
     if (this.data.readUInt32LE(0) !== 0x08064b50) {
@@ -304,23 +268,23 @@ export class ArchiveExtraDataRecord {
   public extraFieldData(): Buffer { return this.data.slice(8, 8 + this.length()); }
 }
 
-/*
-  4.3.13 Digital signature:
-
-        header signature                4 bytes  (0x05054b50)
-        size of data                    2 bytes
-        signature data (variable size)
-
-      With the introduction of the Central Directory Encryption
-      feature in version 6.2 of this specification, the Central
-      Directory Structure MAY be stored both compressed and encrypted.
-      Although not required, it is assumed when encrypting the
-      Central Directory Structure, that it will be compressed
-      for greater storage efficiency.  Information on the
-      Central Directory Encryption feature can be found in the section
-      describing the Strong Encryption Specification. The Digital
-      Signature record will be neither compressed nor encrypted.
-*/
+/**
+ * 4.3.13 Digital signature:
+ *
+ *      header signature                4 bytes  (0x05054b50)
+ *      size of data                    2 bytes
+ *      signature data (variable size)
+ *
+ *    With the introduction of the Central Directory Encryption
+ *    feature in version 6.2 of this specification, the Central
+ *    Directory Structure MAY be stored both compressed and encrypted.
+ *    Although not required, it is assumed when encrypting the
+ *    Central Directory Structure, that it will be compressed
+ *    for greater storage efficiency.  Information on the
+ *    Central Directory Encryption feature can be found in the section
+ *    describing the Strong Encryption Specification. The Digital
+ *    Signature record will be neither compressed nor encrypted.
+ */
 export class DigitalSignature {
   constructor(private data: Buffer) {
     if (this.data.readUInt32LE(0) !== 0x05054b50) {
@@ -331,30 +295,30 @@ export class DigitalSignature {
   public signatureData(): Buffer { return this.data.slice(6, 6 + this.size()); }
 }
 
-/*
-  4.3.12  Central directory structure:
-
-    central file header signature   4 bytes  (0x02014b50)
-    version made by                 2 bytes
-    version needed to extract       2 bytes
-    general purpose bit flag        2 bytes
-    compression method              2 bytes
-    last mod file time              2 bytes
-    last mod file date              2 bytes
-    crc-32                          4 bytes
-    compressed size                 4 bytes
-    uncompressed size               4 bytes
-    file name length                2 bytes
-    extra field length              2 bytes
-    file comment length             2 bytes
-    disk number start               2 bytes
-    internal file attributes        2 bytes
-    external file attributes        4 bytes
-    relative offset of local header 4 bytes
-
-    file name (variable size)
-    extra field (variable size)
-    file comment (variable size)
+/**
+ * 4.3.12  Central directory structure:
+ *
+ *  central file header signature   4 bytes  (0x02014b50)
+ *  version made by                 2 bytes
+ *  version needed to extract       2 bytes
+ *  general purpose bit flag        2 bytes
+ *  compression method              2 bytes
+ *  last mod file time              2 bytes
+ *  last mod file date              2 bytes
+ *  crc-32                          4 bytes
+ *  compressed size                 4 bytes
+ *  uncompressed size               4 bytes
+ *  file name length                2 bytes
+ *  extra field length              2 bytes
+ *  file comment length             2 bytes
+ *  disk number start               2 bytes
+ *  internal file attributes        2 bytes
+ *  external file attributes        4 bytes
+ *  relative offset of local header 4 bytes
+ *
+ *  file name (variable size)
+ *  extra field (variable size)
+ *  file comment (variable size)
  */
 export class CentralDirectory {
   // Optimization: The filename is frequently read, so stash it here.
@@ -458,23 +422,23 @@ export class CentralDirectory {
   }
 }
 
-/*
-  4.3.16: end of central directory record
-    end of central dir signature    4 bytes  (0x06054b50)
-    number of this disk             2 bytes
-    number of the disk with the
-    start of the central directory  2 bytes
-    total number of entries in the
-    central directory on this disk  2 bytes
-    total number of entries in
-    the central directory           2 bytes
-    size of the central directory   4 bytes
-    offset of start of central
-    directory with respect to
-    the starting disk number        4 bytes
-    .ZIP file comment length        2 bytes
-    .ZIP file comment       (variable size)
-*/
+/**
+ * 4.3.16: end of central directory record
+ *  end of central dir signature    4 bytes  (0x06054b50)
+ *  number of this disk             2 bytes
+ *  number of the disk with the
+ *  start of the central directory  2 bytes
+ *  total number of entries in the
+ *  central directory on this disk  2 bytes
+ *  total number of entries in
+ *  the central directory           2 bytes
+ *  size of the central directory   4 bytes
+ *  offset of start of central
+ *  directory with respect to
+ *  the starting disk number        4 bytes
+ *  .ZIP file comment length        2 bytes
+ *  .ZIP file comment       (variable size)
+ */
 export class EndOfCentralDirectory {
   constructor(private data: Buffer) {
     if (this.data.readUInt32LE(0) !== 0x06054b50) {
@@ -497,11 +461,56 @@ export class EndOfCentralDirectory {
   }
 }
 
+/**
+ * Contains the table of contents of a Zip file.
+ */
 export class ZipTOC {
   constructor(public index: FileIndex<CentralDirectory>, public directoryEntries: CentralDirectory[], public eocd: EndOfCentralDirectory, public data: Buffer) {
   }
 }
 
+/**
+ * Zip file-backed filesystem
+ * Implemented according to the standard:
+ * http://www.pkware.com/documents/casestudies/APPNOTE.TXT
+ *
+ * While there are a few zip libraries for JavaScript (e.g. JSZip and zip.js),
+ * they are not a good match for BrowserFS. In particular, these libraries
+ * perform a lot of unneeded data copying, and eagerly decompress every file
+ * in the zip file upon loading to check the CRC32. They also eagerly decode
+ * strings. Furthermore, these libraries duplicate functionality already present
+ * in BrowserFS (e.g. UTF-8 decoding and binary data manipulation).
+ *
+ * This filesystem takes advantage of BrowserFS's Buffer implementation, which
+ * efficiently represents the zip file in memory (in both ArrayBuffer-enabled
+ * browsers *and* non-ArrayBuffer browsers), and which can neatly be 'sliced'
+ * without copying data. Each struct defined in the standard is represented with
+ * a buffer slice pointing to an offset in the zip file, and has getters for
+ * each field. As we anticipate that this data will not be read often, we choose
+ * not to store each struct field in the JavaScript object; instead, to reduce
+ * memory consumption, we retrieve it directly from the binary data each time it
+ * is requested.
+ *
+ * When the filesystem is instantiated, we determine the directory structure
+ * of the zip file as quickly as possible. We lazily decompress and check the
+ * CRC32 of files. We do not cache decompressed files; if this is a desired
+ * feature, it is best implemented as a generic file system wrapper that can
+ * cache data from arbitrary file systems.
+ *
+ * For inflation, we use `pako`'s implementation:
+ * https://github.com/nodeca/pako
+ *
+ * Current limitations:
+ * * No encryption.
+ * * No ZIP64 support.
+ * * Read-only.
+ *   Write support would require that we:
+ *   - Keep track of changed/new files.
+ *   - Compress changed files, and generate appropriate metadata for each.
+ *   - Update file offsets for other files in the zip file.
+ *   - Stream it out to a location.
+ *   This isn't that bad, so we might do this at a later date.
+ */
 export default class ZipFS extends SynchronousFileSystem implements FileSystem {
   /* tslint:disable:variable-name */
   public static readonly CompressionMethod = CompressionMethod;
@@ -597,6 +606,19 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
    * Constructs a ZipFS from the given zip file data. Name is optional, and is
    * used primarily for our unit tests' purposes to differentiate different
    * test zip files in test output.
+   *
+   * To avoid webpage responsiveness issues with large zip files, you can
+   * call the static function `computeIndex` first to construct the zipfile's
+   * table of contents, and then pass that object into the constructor:
+   *
+   * ```javascript
+   * BrowserFS.FileSystem.ZipFS.computeIndex(myLargeZipFile, function(zipTOC) {
+   *   var myZipFs = new BrowserFS.FileSystem.ZipFS(zipTOC);
+   * });
+   * ```
+   *
+   * `computeIndex` will process the zip file in chunks to keep your webpage
+   * responsive.
    */
   constructor(input: Buffer | ZipTOC, private name: string = '') {
     super();

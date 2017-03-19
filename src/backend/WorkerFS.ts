@@ -8,12 +8,21 @@ import PreloadFile from '../generic/preload_file';
 import global from '../core/global';
 import fs from '../core/node_fs';
 
+/**
+ * @hidden
+ */
 declare const importScripts: Function;
 
+/**
+ * @hidden
+ */
 interface IBrowserFSMessage {
   browserfsMessage: boolean;
 }
 
+/**
+ * @hidden
+ */
 enum SpecialArgType {
   // Callback
   CB,
@@ -33,16 +42,25 @@ enum SpecialArgType {
   ERROR
 }
 
+/**
+ * @hidden
+ */
 interface ISpecialArgument {
   type: SpecialArgType;
 }
 
+/**
+ * @hidden
+ */
 interface IProbeResponse extends ISpecialArgument {
   isReadOnly: boolean;
   supportsLinks: boolean;
   supportsProps: boolean;
 }
 
+/**
+ * @hidden
+ */
 interface ICallbackArgument extends ISpecialArgument {
   // The callback ID.
   id: number;
@@ -51,6 +69,7 @@ interface ICallbackArgument extends ISpecialArgument {
 /**
  * Converts callback arguments into ICallbackArgument objects, and back
  * again.
+ * @hidden
  */
 class CallbackArgumentConverter {
   private _callbacks: { [id: number]: Function } = {};
@@ -72,6 +91,9 @@ class CallbackArgumentConverter {
   }
 }
 
+/**
+ * @hidden
+ */
 interface IFileDescriptorArgument extends ISpecialArgument {
   // The file descriptor's id on the remote side.
   id: number;
@@ -85,6 +107,9 @@ interface IFileDescriptorArgument extends ISpecialArgument {
   flag: string;
 }
 
+/**
+ * @hidden
+ */
 class FileDescriptorArgumentConverter {
   private _fileDescriptors: { [id: number]: File } = {};
   private _nextId: number = 0;
@@ -199,11 +224,17 @@ class FileDescriptorArgumentConverter {
   }
 }
 
+/**
+ * @hidden
+ */
 interface IAPIErrorArgument extends ISpecialArgument {
   // The error object, as an array buffer.
   errorData: ArrayBuffer;
 }
 
+/**
+ * @hidden
+ */
 function apiErrorLocal2Remote(e: ApiError): IAPIErrorArgument {
   return {
     type: SpecialArgType.API_ERROR,
@@ -211,10 +242,16 @@ function apiErrorLocal2Remote(e: ApiError): IAPIErrorArgument {
   };
 }
 
+/**
+ * @hidden
+ */
 function apiErrorRemote2Local(e: IAPIErrorArgument): ApiError {
   return ApiError.fromBuffer(transferrableObjectToBuffer(e.errorData));
 }
 
+/**
+ * @hidden
+ */
 interface IErrorArgument extends ISpecialArgument {
   // The name of the error (e.g. 'TypeError').
   name: string;
@@ -224,6 +261,9 @@ interface IErrorArgument extends ISpecialArgument {
   stack: string;
 }
 
+/**
+ * @hidden
+ */
 function errorLocal2Remote(e: Error): IErrorArgument {
   return {
     type: SpecialArgType.ERROR,
@@ -233,6 +273,9 @@ function errorLocal2Remote(e: Error): IErrorArgument {
   };
 }
 
+/**
+ * @hidden
+ */
 function errorRemote2Local(e: IErrorArgument): Error {
   let cnstr: {
     new (msg: string): Error;
@@ -245,11 +288,17 @@ function errorRemote2Local(e: IErrorArgument): Error {
   return err;
 }
 
+/**
+ * @hidden
+ */
 interface IStatsArgument extends ISpecialArgument {
   // The stats object as an array buffer.
   statsData: ArrayBuffer;
 }
 
+/**
+ * @hidden
+ */
 function statsLocal2Remote(stats: Stats): IStatsArgument {
   return {
     type: SpecialArgType.STATS,
@@ -257,14 +306,23 @@ function statsLocal2Remote(stats: Stats): IStatsArgument {
   };
 }
 
+/**
+ * @hidden
+ */
 function statsRemote2Local(stats: IStatsArgument): Stats {
   return Stats.fromBuffer(transferrableObjectToBuffer(stats.statsData));
 }
 
+/**
+ * @hidden
+ */
 interface IFileFlagArgument extends ISpecialArgument {
   flagStr: string;
 }
 
+/**
+ * @hidden
+ */
 function fileFlagLocal2Remote(flag: FileFlag): IFileFlagArgument {
   return {
     type: SpecialArgType.FILEFLAG,
@@ -272,22 +330,37 @@ function fileFlagLocal2Remote(flag: FileFlag): IFileFlagArgument {
   };
 }
 
+/**
+ * @hidden
+ */
 function fileFlagRemote2Local(remoteFlag: IFileFlagArgument): FileFlag {
   return FileFlag.getFileFlag(remoteFlag.flagStr);
 }
 
+/**
+ * @hidden
+ */
 interface IBufferArgument extends ISpecialArgument {
   data: ArrayBuffer;
 }
 
+/**
+ * @hidden
+ */
 function bufferToTransferrableObject(buff: Buffer): ArrayBuffer {
   return buffer2ArrayBuffer(buff);
 }
 
+/**
+ * @hidden
+ */
 function transferrableObjectToBuffer(buff: ArrayBuffer): Buffer {
   return arrayBuffer2Buffer(buff);
 }
 
+/**
+ * @hidden
+ */
 function bufferLocal2Remote(buff: Buffer): IBufferArgument {
   return {
     type: SpecialArgType.BUFFER,
@@ -295,24 +368,39 @@ function bufferLocal2Remote(buff: Buffer): IBufferArgument {
   };
 }
 
+/**
+ * @hidden
+ */
 function bufferRemote2Local(buffArg: IBufferArgument): Buffer {
   return transferrableObjectToBuffer(buffArg.data);
 }
 
+/**
+ * @hidden
+ */
 interface IAPIRequest extends IBrowserFSMessage {
   method: string;
   args: Array<number | string | ISpecialArgument>;
 }
 
+/**
+ * @hidden
+ */
 function isAPIRequest(data: any): data is IAPIRequest {
   return data && typeof data === 'object' && data.hasOwnProperty('browserfsMessage') && data['browserfsMessage'];
 }
 
+/**
+ * @hidden
+ */
 interface IAPIResponse extends IBrowserFSMessage {
   cbId: number;
   args: Array<number | string | ISpecialArgument>;
 }
 
+/**
+ * @hidden
+ */
 function isAPIResponse(data: any): data is IAPIResponse {
   return data && typeof data === 'object' && data.hasOwnProperty('browserfsMessage') && data['browserfsMessage'];
 }
@@ -332,6 +420,9 @@ class WorkerFile extends PreloadFile<WorkerFS> {
     return this._remoteFdId;
   }
 
+  /**
+   * @hidden
+   */
   public toRemoteArg(): IFileDescriptorArgument {
     return <IFileDescriptorArgument> {
       type: SpecialArgType.FD,
@@ -374,13 +465,15 @@ class WorkerFile extends PreloadFile<WorkerFS> {
  * do the following:
  *
  * MAIN BROWSER THREAD:
- * ```
+ *
+ * ```javascript
  *   // Listen for remote file system requests.
  *   BrowserFS.FileSystem.WorkerFS.attachRemoteListener(webWorkerObject);
- * ``
+ * ```
  *
  * WEBWORKER THREAD:
- * ```
+ *
+ * ```javascript
  *   // Set the remote file system as the root file system.
  *   BrowserFS.initialize(new BrowserFS.FileSystem.WorkerFS(self));
  * ```
@@ -595,37 +688,6 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
   }
 
   /**
-   * Converts a local argument into a remote argument. Public so WorkerFile objects can call it.
-   */
-  public _argLocal2Remote(arg: any): any {
-    if (!arg) {
-      return arg;
-    }
-    switch (typeof arg) {
-      case "object":
-        if (arg instanceof Stats) {
-          return statsLocal2Remote(arg);
-        } else if (arg instanceof ApiError) {
-          return apiErrorLocal2Remote(arg);
-        } else if (arg instanceof WorkerFile) {
-          return (<WorkerFile> arg).toRemoteArg();
-        } else if (arg instanceof FileFlag) {
-          return fileFlagLocal2Remote(arg);
-        } else if (arg instanceof Buffer) {
-          return bufferLocal2Remote(arg);
-        } else if (arg instanceof Error) {
-          return errorLocal2Remote(arg);
-        } else {
-          return "Unknown argument";
-        }
-      case "function":
-        return this._callbackConverter.toRemoteArg(arg);
-      default:
-        return arg;
-    }
-  }
-
-  /**
    * Called once both local and remote sides are set up.
    */
   public initialize(cb: () => void): void {
@@ -762,5 +824,36 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
       args: fixedArgs
     };
     this._worker.postMessage(message);
+  }
+
+  /**
+   * Converts a local argument into a remote argument. Public so WorkerFile objects can call it.
+   */
+  private _argLocal2Remote(arg: any): any {
+    if (!arg) {
+      return arg;
+    }
+    switch (typeof arg) {
+      case "object":
+        if (arg instanceof Stats) {
+          return statsLocal2Remote(arg);
+        } else if (arg instanceof ApiError) {
+          return apiErrorLocal2Remote(arg);
+        } else if (arg instanceof WorkerFile) {
+          return (<WorkerFile> arg).toRemoteArg();
+        } else if (arg instanceof FileFlag) {
+          return fileFlagLocal2Remote(arg);
+        } else if (arg instanceof Buffer) {
+          return bufferLocal2Remote(arg);
+        } else if (arg instanceof Error) {
+          return errorLocal2Remote(arg);
+        } else {
+          return "Unknown argument";
+        }
+      case "function":
+        return this._callbackConverter.toRemoteArg(arg);
+      default:
+        return arg;
+    }
   }
 }

@@ -10,11 +10,15 @@ import * as _fs from 'fs';
 
 /**
  * Wraps a callback function. Used for unit testing. Defaults to a NOP.
+ * @hidden
  */
 let wrapCb = function<T extends Function>(cb: T, numArgs: number): T {
   return cb;
 };
 
+/**
+ * @hidden
+ */
 function assertRoot(fs?: FileSystem | null): FileSystem {
   if (fs) {
     return fs;
@@ -22,6 +26,9 @@ function assertRoot(fs?: FileSystem | null): FileSystem {
   throw new ApiError(ErrorCode.EIO, `Initialize BrowserFS with a file system using BrowserFS.initialize(filesystem)`);
 }
 
+/**
+ * @hidden
+ */
 function normalizeMode(mode: number | string | null | undefined, def: number): number {
   switch (typeof mode) {
     case 'number':
@@ -40,6 +47,9 @@ function normalizeMode(mode: number | string | null | undefined, def: number): n
   }
 }
 
+/**
+ * @hidden
+ */
 function normalizeTime(time: number | Date): Date {
   if (time instanceof Date) {
     return time;
@@ -50,6 +60,9 @@ function normalizeTime(time: number | Date): Date {
   }
 }
 
+/**
+ * @hidden
+ */
 function normalizePath(p: string): string {
   // Node doesn't allow null characters in paths.
   if (p.indexOf('\u0000') >= 0) {
@@ -60,6 +73,9 @@ function normalizePath(p: string): string {
   return path.resolve(p);
 }
 
+/**
+ * @hidden
+ */
 function normalizeOptions(options: any, defEnc: string | null, defFlag: string, defMode: number | null): {encoding: string; flag: string; mode: number} {
   switch (typeof options) {
     case 'object':
@@ -83,7 +99,11 @@ function normalizeOptions(options: any, defEnc: string | null, defFlag: string, 
   }
 }
 
-// The default callback is a NOP.
+/**
+ * The default callback is a NOP.
+ * @hidden
+ * @private
+ */
 function nopCb() {
   // NOP.
 }
@@ -100,7 +120,6 @@ function nopCb() {
  *   descriptor, as appropriate.
  * * Handling optional arguments and setting default arguments.
  * @see http://nodejs.org/api/fs.html
- * @class
  */
 export default class FS {
   /* tslint:disable:variable-name */

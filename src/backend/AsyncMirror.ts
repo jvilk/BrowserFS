@@ -6,6 +6,9 @@ import Stats from '../core/node_fs_stats';
 import PreloadFile from '../generic/preload_file';
 import * as path from 'path';
 
+/**
+ * @hidden
+ */
 interface IAsyncOperation {
   apiMethod: string;
   arguments: any[];
@@ -34,12 +37,27 @@ class MirrorFile extends PreloadFile<AsyncMirror> implements File {
 /**
  * AsyncMirrorFS mirrors a synchronous filesystem into an asynchronous filesystem
  * by:
+ *
  * * Performing operations over the in-memory copy, while asynchronously pipelining them
  *   to the backing store.
  * * During application loading, the contents of the async file system can be reloaded into
  *   the synchronous store, if desired.
+ *
  * The two stores will be kept in sync. The most common use-case is to pair a synchronous
  * in-memory filesystem with an asynchronous backing store.
+ *
+ * Example: Mirroring an IndexedDB file system to an in memory file system. Now, you can use
+ * IndexedDB synchronously.
+ *
+ * ```javascript
+ * new BrowserFS.FileSystem.IndexedDB(function (e, idbfs) {
+ *   var inMemory = new BrowserFS.FileSystem.InMemory();
+ *   var mirrored = new BrowserFS.FileSystem.AsyncMirror(inMemory, idbfs);
+ *   mirrored.initialize(function (e) {
+ *     BrowserFS.initialized(mirrored);
+ *   });
+ * });
+ * ```
  */
 export default class AsyncMirror extends SynchronousFileSystem implements FileSystem {
   public static isAvailable(): boolean {
@@ -55,6 +73,14 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
   private _async: FileSystem;
   private _isInitialized: boolean = false;
   private _initializeCallbacks: ((e?: ApiError) => void)[] = [];
+
+  /**
+   * Mirrors the synchronous file system into the asynchronous file system.
+   *
+   * **IMPORTANT**: You must call `initialize` on the file system before it can be used.
+   * @param sync The synchronous file system to mirror the asynchronous file system to.
+   * @param async The asynchronous file system to mirror.
+   */
   constructor(sync: FileSystem, async: FileSystem) {
     super();
     this._sync = sync;

@@ -15,7 +15,6 @@ export enum FileType {
  * Attribute descriptions are from `man 2 stat'
  * @see http://nodejs.org/api/fs.html#fs_class_fs_stats
  * @see http://man7.org/linux/man-pages/man2/stat.2.html
- * @class
  */
 export default class Stats implements fs.Stats {
   public static fromBuffer(buffer: Buffer): Stats {

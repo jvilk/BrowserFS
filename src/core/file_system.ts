@@ -57,7 +57,6 @@ export type BFSThreeArgCallback<T, U> =
  * * **The callback will reset the stack depth.** When your filesystem calls the
  *   callback with the requested information, it will use `setImmediate` to
  *   reset the JavaScript stack depth before calling the user-supplied callback.
- * @class FileSystem
  */
 export interface FileSystem {
   /**

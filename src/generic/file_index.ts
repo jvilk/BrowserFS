@@ -336,10 +336,16 @@ export class DirInode<T> implements Inode {
   }
 }
 
+/**
+ * @hidden
+ */
 export function isFileInode<T>(inode: Inode | null): inode is FileInode<T> {
   return !!inode && inode.isFile();
 }
 
+/**
+ * @hidden
+ */
 export function isDirInode<T>(inode: Inode | null): inode is DirInode<T> {
   return !!inode && inode.isDir();
 }

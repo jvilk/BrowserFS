@@ -12,6 +12,19 @@ export default class FolderAdapter extends BaseFileSystem implements FileSystem 
 
   public _wrapped: FileSystem;
   public _folder: string;
+  /**
+   * Wraps a file system, and uses the given folder as its root.
+   *
+   * Example: Given a file system `foo` with folder `bar` and file `bar/baz`...
+   *
+   * ```javascript
+   * var adapter = new BrowserFS.FileSystem.FolderAdapter('bar', foo);
+   * adapter.readdirSync('/'); // ['baz']
+   * ```
+   *
+   * @param folder The folder to use as the root directory.
+   * @param wrapped The file system to wrap.
+   */
   constructor(folder: string, wrapped: FileSystem) {
     super();
     this._folder = folder;
@@ -41,6 +54,9 @@ export default class FolderAdapter extends BaseFileSystem implements FileSystem 
   public supportsLinks(): boolean { return false; }
 }
 
+/**
+ * @hidden
+ */
 function translateError(folder: string, e: any): any {
   if (e !== null && typeof e === 'object') {
     const err = <ApiError> e;
@@ -54,6 +70,9 @@ function translateError(folder: string, e: any): any {
   return e;
 }
 
+/**
+ * @hidden
+ */
 function wrapCallback(folder: string, cb: any): any {
   if (typeof cb === 'function') {
     return function(err: ApiError) {
@@ -67,6 +86,9 @@ function wrapCallback(folder: string, cb: any): any {
   }
 }
 
+/**
+ * @hidden
+ */
 function wrapFunction(name: string, wrapFirst: boolean, wrapSecond: boolean): Function {
   if (name.slice(name.length - 4) !== 'Sync') {
     // Async function. Translate error in callback.

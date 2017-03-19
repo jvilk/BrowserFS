@@ -13,6 +13,17 @@ import {mkdirpSync} from '../core/util';
  *
  * For example, if a file system is mounted at /mnt/blah, and a request came in
  * for /mnt/blah/foo.txt, the file system would see a request for /foo.txt.
+ *
+ * You can mount file systems like so:
+ * ```javascript
+ * var mfs = new BrowserFS.FileSystem.MountableFileSystem();
+ * mfs.mount('/data', new BrowserFS.FileSystem.XmlHttpRequest());
+ * mfs.mount('/home', new BrowserFS.FileSystem.LocalStorage());
+ * ```
+ *
+ * Since MountableFileSystem simply proxies requests to mounted file systems, it supports all of the operations that the mounted file systems support.
+ *
+ * With no mounted file systems, `MountableFileSystem` acts as a simple `InMemory` filesystem.
  */
 export default class MountableFileSystem extends BaseFileSystem implements FileSystem {
   public static isAvailable(): boolean {
@@ -25,6 +36,10 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
   // nest mount points.
   private mountList: string[] = [];
   private rootFs: FileSystem;
+
+  /**
+   * Creates a new, empty MountableFileSystem.
+   */
   constructor() {
     super();
     this.mntMap = {};
@@ -289,6 +304,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
  * Take advantage of the fact that the *first* argument is always the path, and
  * the *last* is the callback function (if async).
  * @todo Can use numArgs to make proxying more efficient.
+ * @hidden
  */
 function defineFcn(name: string, isSync: boolean, numArgs: number): (...args: any[]) => any {
   if (isSync) {
@@ -322,6 +338,9 @@ function defineFcn(name: string, isSync: boolean, numArgs: number): (...args: an
   }
 }
 
+/**
+ * @hidden
+ */
 const fsCmdMap = [
    // 1 arg functions
    ['exists', 'unlink', 'readlink'],

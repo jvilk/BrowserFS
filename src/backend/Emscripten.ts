@@ -6,11 +6,17 @@ import {uint8Array2Buffer, buffer2Uint8array} from '../core/util';
 import {ApiError, ErrorCode, ErrorStrings} from '../core/api_error';
 import {EmscriptenFSNode} from '../generic/emscripten_fs';
 
+/**
+ * @hidden
+ */
 interface EmscriptenError {
   node: EmscriptenFSNode;
   errno: number;
 }
 
+/**
+ * @hidden
+ */
 function convertError(e: EmscriptenError, path: string = ''): ApiError {
   const errno = e.errno;
   let parent = e.node;
@@ -175,13 +181,17 @@ export class EmscriptenFile extends BaseFile implements File {
 }
 
 /**
- * A simple in-memory file system backed by an InMemoryStore.
+ * Mounts an Emscripten file system into the BrowserFS file system.
  */
 export default class EmscriptenFileSystem extends SynchronousFileSystem {
   public static isAvailable(): boolean { return true; }
 
   private _FS: any;
 
+  /**
+   * Creates a BrowserFS file system for the given Emscripten file system.
+   * @param _FS The Emscripten file system (`FS`).
+   */
   constructor(_FS: any) {
     super();
     this._FS = _FS;
