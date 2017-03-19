@@ -5,18 +5,19 @@ node_js:
 sudo: false
 
 cache:
+  yarn: true
   directories:
     - node_modules
 
 before_install:
   - "node --version"
+  - "yarn --version"
   - "npm --version"
   - "nvm --version"
-  - "npm config set spin false"
   - "firefox --version"
 
 install:
-  - "npm install"
+  - "yarn install"
 
 before_script:
   - export DISPLAY=:99.0

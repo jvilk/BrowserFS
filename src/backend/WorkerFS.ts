@@ -506,7 +506,7 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
     }
 
     worker.addEventListener('message', (e: MessageEvent) => {
-      const request: Object = e.data;
+      const request: object = e.data;
       if (isAPIRequest(request)) {
         const args = request.args,
           fixedArgs = new Array<any>(args.length);
@@ -576,7 +576,7 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
     super();
     this._worker = worker;
     this._worker.addEventListener('message', (e: MessageEvent) => {
-      const resp: Object = e.data;
+      const resp: object = e.data;
       if (isAPIResponse(resp)) {
         let i: number;
         const args = resp.args;

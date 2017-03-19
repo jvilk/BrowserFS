@@ -38,7 +38,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
    *   or absolutely specified.
    * @param prefixUrl The url prefix to use for all web-server requests.
    */
-  constructor(listingUrlOrObj: string | Object, prefixUrl: string = '') {
+  constructor(listingUrlOrObj: string | object, prefixUrl: string = '') {
     super();
     if (!listingUrlOrObj) {
       listingUrlOrObj = 'index.json';
@@ -49,7 +49,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
     }
     this.prefixUrl = prefixUrl;
 
-    let listing: Object | null = null;
+    let listing: object | null = null;
     if (typeof(listingUrlOrObj) === "string") {
       listing = this._requestFileSync(<string> listingUrlOrObj, 'json');
       if (!listing) {

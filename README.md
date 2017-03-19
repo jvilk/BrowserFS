@@ -40,11 +40,7 @@ For more information, see the [wiki](https://github.com/jvilk/BrowserFS/wiki).
 Prerequisites:
 
 * Node and NPM
-* Run `npm install` to install local dependencies
-
-Build:
-
-    npm run dist
+* Run `yarn install` (or `npm install`) to install local dependencies and build BrowserFS
 
 A minified build can be found in `dist/browserfs.min.js`, and the unminified build can be found in `dist/browserfs.js`.
 
