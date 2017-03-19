@@ -137,7 +137,7 @@ export class ApiError extends Error implements NodeJS.ErrnoException {
   /**
    * Writes the API error into a buffer.
    */
-  public writeToBuffer(buffer: Buffer = new Buffer(this.bufferSize()), i: number = 0): Buffer {
+  public writeToBuffer(buffer: Buffer = Buffer.alloc(this.bufferSize()), i: number = 0): Buffer {
     const bytesWritten = buffer.write(JSON.stringify(this.toJSON()), i + 4);
     buffer.writeUInt32LE(bytesWritten, i);
     return buffer;

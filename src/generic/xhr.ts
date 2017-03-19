@@ -3,7 +3,7 @@
  * XmlHttpRequest across browsers.
  */
 
-import {isIE} from '../core/util';
+import {isIE, emptyBuffer} from '../core/util';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {BFSCallback} from '../core/file_system';
 
@@ -38,7 +38,7 @@ function asyncDownloadFileModern(p: string, type: string, cb: BFSCallback<any>):
         switch (type) {
           case 'buffer':
             // XXX: WebKit-based browsers return *null* when XHRing an empty file.
-            return cb(null, new Buffer(req.response ? req.response : 0));
+            return cb(null, req.response ? Buffer.from(req.response) : emptyBuffer());
           case 'json':
             if (jsonSupported) {
               return cb(null, req.response);
@@ -74,7 +74,7 @@ function syncDownloadFileModern(p: string, type: string): any {
           case 'buffer':
             // Convert the text into a buffer.
             const text = req.responseText;
-            data = new Buffer(text.length);
+            data = Buffer.alloc(text.length);
             // Throw away the upper bits of each character.
             for (let i = 0; i < text.length; i++) {
               // This will automatically throw away the upper bit of each
@@ -126,7 +126,7 @@ function syncDownloadFileIE10(p: string, type: string): any {
       if (req.status === 200) {
         switch (type) {
           case 'buffer':
-            data = new Buffer(req.response);
+            data = Buffer.from(req.response);
             break;
           case 'json':
             data = JSON.parse(req.response);

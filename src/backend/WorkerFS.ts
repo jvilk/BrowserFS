@@ -1,7 +1,7 @@
 import {BaseFileSystem, FileSystem, BFSOneArgCallback, BFSCallback} from '../core/file_system';
 import {ApiError} from '../core/api_error';
 import {FileFlag} from '../core/file_flag';
-import {buffer2ArrayBuffer, arrayBuffer2Buffer} from '../core/util';
+import {buffer2ArrayBuffer, arrayBuffer2Buffer, emptyBuffer} from '../core/util';
 import {File, BaseFile} from '../core/file';
 import {default as Stats} from '../core/node_fs_stats';
 import PreloadFile from '../generic/preload_file';
@@ -103,7 +103,7 @@ class FileDescriptorArgumentConverter {
         stat = bufferToTransferrableObject(stats!.toBuffer());
         // If it's a readable flag, we need to grab contents.
         if (flag.isReadable()) {
-          fd.read(new Buffer(stats!.size), 0, stats!.size, 0, (err?: ApiError | null, bytesRead?: number, buff?: Buffer) => {
+          fd.read(Buffer.alloc(stats!.size), 0, stats!.size, 0, (err?: ApiError | null, bytesRead?: number, buff?: Buffer) => {
             if (err) {
               cb(err);
             } else {
@@ -633,7 +633,7 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
       const message: IAPIRequest = {
         browserfsMessage: true,
         method: 'probe',
-        args: [this._argLocal2Remote(new Buffer(0)), this._callbackConverter.toRemoteArg((probeResponse: IProbeResponse) => {
+        args: [this._argLocal2Remote(emptyBuffer()), this._callbackConverter.toRemoteArg((probeResponse: IProbeResponse) => {
           this._isInitialized = true;
           this._isReadOnly = probeResponse.isReadOnly;
           this._supportLinks = probeResponse.supportsLinks;

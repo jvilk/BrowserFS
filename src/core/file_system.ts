@@ -616,7 +616,7 @@ export class BaseFileSystem {
           return cb(err);
         }
         // Allocate buffer.
-        const buf = new Buffer(stat!.size);
+        const buf = Buffer.alloc(stat!.size);
         fd!.read(buf, 0, stat!.size, 0, (err?: ApiError | null) => {
           if (err) {
             return cb(err);
@@ -638,7 +638,7 @@ export class BaseFileSystem {
     try {
       const stat = fd.statSync();
       // Allocate buffer.
-      const buf = new Buffer(stat.size);
+      const buf = Buffer.alloc(stat.size);
       fd.readSync(buf, 0, stat.size, 0);
       fd.closeSync();
       if (encoding === null) {
@@ -665,7 +665,7 @@ export class BaseFileSystem {
 
       try {
         if (typeof data === 'string') {
-          data = new Buffer(data, encoding!);
+          data = Buffer.from(data, encoding!);
         }
       } catch (e) {
         return cb(e);
@@ -679,7 +679,7 @@ export class BaseFileSystem {
     const fd = this.openSync(fname, flag, mode);
     try {
       if (typeof data === 'string') {
-        data = new Buffer(data, encoding!);
+        data = Buffer.from(data, encoding!);
       }
       // Write into file.
       fd.writeSync(data, 0, data.length, 0);
@@ -700,7 +700,7 @@ export class BaseFileSystem {
         });
       };
       if (typeof data === 'string') {
-        data = new Buffer(data, encoding!);
+        data = Buffer.from(data, encoding!);
       }
       fd!.write(data, 0, data.length, null, cb);
     });
@@ -709,7 +709,7 @@ export class BaseFileSystem {
     const fd = this.openSync(fname, flag, mode);
     try {
       if (typeof data === 'string') {
-        data = new Buffer(data, encoding!);
+        data = Buffer.from(data, encoding!);
       }
       fd.writeSync(data, 0, data.length, null);
     } finally {

@@ -77,7 +77,7 @@ export function arrayish2Buffer(arr: Arrayish<number>): Buffer {
   } else if (arr instanceof Uint8Array) {
     return uint8Array2Buffer(arr);
   } else {
-    return new Buffer(<number[]> arr);
+    return Buffer.from(<number[]> arr);
   }
 }
 
@@ -90,7 +90,7 @@ export function uint8Array2Buffer(u8: Uint8Array): Buffer {
   } else if (u8.byteOffset === 0 && u8.byteLength === u8.buffer.byteLength) {
     return arrayBuffer2Buffer(u8.buffer);
   } else {
-    return new Buffer(u8);
+    return Buffer.from(u8.buffer, u8.byteOffset, u8.byteLength);
   }
 }
 
@@ -99,13 +99,7 @@ export function uint8Array2Buffer(u8: Uint8Array): Buffer {
  * zero-copy.
  */
 export function arrayBuffer2Buffer(ab: ArrayBuffer): Buffer {
-  try {
-    // Works in BFS and Node v4.2.
-    return new Buffer(<any> ab);
-  } catch (e) {
-    // I believe this copies, but there's no avoiding it in Node < v4.2
-    return new Buffer(new Uint8Array(ab));
-  }
+  return Buffer.from(ab);
 }
 
 /**
@@ -117,7 +111,7 @@ export function copyingSlice(buff: Buffer, start: number = 0, end = buff.length)
   }
   if (buff.length === 0) {
     // Avoid s0 corner case in ArrayBuffer case.
-    return new Buffer(0);
+    return emptyBuffer();
   } else {
     const u8 = buffer2Uint8array(buff),
       s0 = buff[0],
@@ -134,4 +128,15 @@ export function copyingSlice(buff: Buffer, start: number = 0, end = buff.length)
       return uint8Array2Buffer(u8.subarray(start, end));
     }
   }
+}
+
+let emptyBuff: Buffer | null = null;
+/**
+ * Returns an empty buffer.
+ */
+export function emptyBuffer(): Buffer {
+  if (emptyBuff) {
+    return emptyBuff;
+  }
+  return emptyBuff = Buffer.alloc(0);
 }

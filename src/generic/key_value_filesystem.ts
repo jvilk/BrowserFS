@@ -6,7 +6,18 @@ import {FileFlag} from '../core/file_flag';
 import * as path from 'path';
 import Inode from '../generic/inode';
 import PreloadFile from '../generic/preload_file';
+import {emptyBuffer} from '../core/util';
 const ROOT_NODE_ID: string = "/";
+let emptyDirNode: Buffer | null = null;
+/**
+ * Returns an empty directory node.
+ */
+function getEmptyDirNode(): Buffer {
+  if (emptyDirNode) {
+    return emptyDirNode;
+  }
+  return emptyDirNode = Buffer.from("{}");
+}
 
 /**
  * Generates a random ID.
@@ -323,8 +334,8 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
 
     // Commit the two changed directory listings.
     try {
-      tx.put(oldDirNode.id, new Buffer(JSON.stringify(oldDirList)), true);
-      tx.put(newDirNode.id, new Buffer(JSON.stringify(newDirList)), true);
+      tx.put(oldDirNode.id, Buffer.from(JSON.stringify(oldDirList)), true);
+      tx.put(newDirNode.id, Buffer.from(JSON.stringify(newDirList)), true);
     } catch (e) {
       tx.abort();
       throw e;
@@ -340,7 +351,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
 
   public createFileSync(p: string, flag: FileFlag, mode: number): File {
     const tx = this.store.beginTransaction('readwrite'),
-      data = new Buffer(0),
+      data = emptyBuffer(),
       newFile = this.commitNewFile(tx, p, FileType.FILE, mode, data);
     // Open the file.
     return new SyncKeyValueFile(this, p, flag, newFile.toStats(), data);
@@ -371,7 +382,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
 
   public mkdirSync(p: string, mode: number): void {
     const tx = this.store.beginTransaction('readwrite'),
-      data = new Buffer('{}');
+      data = Buffer.from('{}');
     this.commitNewFile(tx, p, FileType.DIRECTORY, mode, data);
   }
 
@@ -415,7 +426,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
         dirInode = new Inode(GenerateRandomID(), 4096, 511 | FileType.DIRECTORY, currTime, currTime, currTime);
       // If the root doesn't exist, the first random ID shouldn't exist,
       // either.
-      tx.put(dirInode.id, new Buffer("{}"), false);
+      tx.put(dirInode.id, getEmptyDirNode(), false);
       tx.put(ROOT_NODE_ID, dirInode.toBuffer(), false);
       tx.commit();
     }
@@ -550,7 +561,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
       const fileNodeId = this.addNewNode(tx, fileNode.toBuffer());
       // Update and commit parent directory listing.
       dirListing[fname] = fileNodeId;
-      tx.put(parentNode.id, new Buffer(JSON.stringify(dirListing)), true);
+      tx.put(parentNode.id, Buffer.from(JSON.stringify(dirListing)), true);
     } catch (e) {
       tx.abort();
       throw e;
@@ -594,7 +605,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
       // Delete node.
       tx.del(fileNodeId);
       // Update directory listing.
-      tx.put(parentNode.id, new Buffer(JSON.stringify(parentListing)), true);
+      tx.put(parentNode.id, Buffer.from(JSON.stringify(parentListing)), true);
     } catch (e) {
       tx.abort();
       throw e;
@@ -771,14 +782,14 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
         const completeRename = () => {
           newParentList[newName] = fileId;
           // Commit old parent's list.
-          tx.put(oldParentINode.id, new Buffer(JSON.stringify(oldParentList)), true, (e: ApiError) => {
+          tx.put(oldParentINode.id, Buffer.from(JSON.stringify(oldParentList)), true, (e: ApiError) => {
             if (noErrorTx(e, tx, cb)) {
               if (oldParent === newParent) {
                 // DONE!
                 tx.commit(cb);
               } else {
                 // Commit new parent's list.
-                tx.put(newParentINode.id, new Buffer(JSON.stringify(newParentList)), true, (e: ApiError) => {
+                tx.put(newParentINode.id, Buffer.from(JSON.stringify(newParentList)), true, (e: ApiError) => {
                   if (noErrorTx(e, tx, cb)) {
                     tx.commit(cb);
                   }
@@ -857,7 +868,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
 
   public createFile(p: string, flag: FileFlag, mode: number, cb: BFSCallback<File>): void {
     const tx = this.store.beginTransaction('readwrite'),
-      data = new Buffer(0);
+      data = emptyBuffer();
 
     this.commitNewFile(tx, p, FileType.FILE, mode, data, (e: ApiError, newFile?: Inode): void => {
       if (noError(e, cb)) {
@@ -904,7 +915,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
 
   public mkdir(p: string, mode: number, cb: BFSOneArgCallback): void {
     const tx = this.store.beginTransaction('readwrite'),
-      data = new Buffer('{}');
+      data = Buffer.from('{}');
     this.commitNewFile(tx, p, FileType.DIRECTORY, mode, data, cb);
   }
 
@@ -967,7 +978,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
           dirInode = new Inode(GenerateRandomID(), 4096, 511 | FileType.DIRECTORY, currTime, currTime, currTime);
         // If the root doesn't exist, the first random ID shouldn't exist,
         // either.
-        tx.put(dirInode.id, new Buffer("{}"), false, (e?: ApiError) => {
+        tx.put(dirInode.id, getEmptyDirNode(), false, (e?: ApiError) => {
           if (noErrorTx(e, tx, cb)) {
             tx.put(ROOT_NODE_ID, dirInode.toBuffer(), false, (e?: ApiError) => {
               if (e) {
@@ -1166,7 +1177,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
                 if (noErrorTx(e, tx, cb)) {
                   // Step 4: Update parent directory's listing.
                   dirListing![fname] = fileInodeId!;
-                  tx.put(parentNode!.id, new Buffer(JSON.stringify(dirListing)), true, (e: ApiError): void => {
+                  tx.put(parentNode!.id, Buffer.from(JSON.stringify(dirListing)), true, (e: ApiError): void => {
                     if (noErrorTx(e, tx, cb)) {
                       // Step 5: Commit and return the new inode.
                       tx.commit((e?: ApiError): void => {
@@ -1224,7 +1235,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
                     tx.del(fileNodeId, (e?: ApiError): void => {
                       if (noErrorTx(e, tx, cb)) {
                         // Step 5: Update directory listing.
-                        tx.put(parentNode!.id, new Buffer(JSON.stringify(parentListing)), true, (e: ApiError): void => {
+                        tx.put(parentNode!.id, Buffer.from(JSON.stringify(parentListing)), true, (e: ApiError): void => {
                           if (noErrorTx(e, tx, cb)) {
                             tx.commit(cb);
                           }

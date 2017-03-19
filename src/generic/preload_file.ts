@@ -4,6 +4,7 @@ import Stats from '../core/node_fs_stats';
 import {FileFlag} from '../core/file_flag';
 import {ApiError, ErrorCode} from '../core/api_error';
 import fs from '../core/node_fs';
+import {emptyBuffer} from '../core/util';
 
 /**
  * An implementation of the File interface that operates on a file that is
@@ -46,7 +47,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
       this._buffer = contents;
     } else {
       // Empty buffer. It'll expand once we write stuff to it.
-      this._buffer = new Buffer(0);
+      this._buffer = emptyBuffer();
     }
     // Note: This invariant is *not* maintained once the file starts getting
     // modified.
@@ -204,8 +205,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
     }
     this._stat.mtime = new Date();
     if (len > this._buffer.length) {
-      const buf = new Buffer(len - this._buffer.length);
-      buf.fill(0);
+      const buf = Buffer.alloc(len - this._buffer.length, 0);
       // Write will set @_stat.size for us.
       this.writeSync(buf, 0, buf.length, this._buffer.length);
       if (this._flag.isSynchronous() && fs.getRootFS()!.supportsSynch()) {
@@ -215,7 +215,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
     }
     this._stat.size = len;
     // Truncate buffer to 'len'.
-    const newBuff = new Buffer(len);
+    const newBuff = Buffer.alloc(len);
     this._buffer.copy(newBuff, 0, 0, len);
     this._buffer = newBuff;
     if (this._flag.isSynchronous() && fs.getRootFS()!.supportsSynch()) {
@@ -271,7 +271,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
       this._stat.size = endFp;
       if (endFp > this._buffer.length) {
         // Extend the buffer!
-        const newBuff = new Buffer(endFp);
+        const newBuff = Buffer.alloc(endFp);
         this._buffer.copy(newBuff);
         this._buffer = newBuff;
       }

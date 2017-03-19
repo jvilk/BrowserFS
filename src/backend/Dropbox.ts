@@ -6,7 +6,7 @@ import {ApiError, ErrorCode} from '../core/api_error';
 import {File} from '../core/file';
 import {each as asyncEach} from 'async';
 import * as path from 'path';
-import {arrayBuffer2Buffer, buffer2ArrayBuffer} from '../core/util';
+import {arrayBuffer2Buffer, buffer2ArrayBuffer, emptyBuffer} from '../core/util';
 
 let errorCodeLookup: {[dropboxErrorCode: number]: ErrorCode};
 // Lazily construct error code lookup, since DropboxJS might be loaded *after* BrowserFS (or not at all!)
@@ -450,7 +450,7 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
         // Dropbox.js seems to set `content` to `null` rather than to an empty
         // buffer when reading an empty file. Not sure why this is.
         if (content === null) {
-          buffer = new Buffer(0);
+          buffer = emptyBuffer();
         } else {
           buffer = arrayBuffer2Buffer(content!);
         }

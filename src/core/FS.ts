@@ -735,7 +735,7 @@ export default class FS {
           cb = typeof arg4 === 'function' ? arg4 : typeof arg5 === 'function' ? arg5 : cb;
           return cb(new ApiError(ErrorCode.EINVAL, 'Invalid arguments.'));
       }
-      buffer = new Buffer(arg2, encoding);
+      buffer = Buffer.from(arg2, encoding);
       offset = 0;
       length = buffer.length;
     } else {
@@ -781,7 +781,7 @@ export default class FS {
       position = typeof arg3 === 'number' ? arg3 : null;
       const encoding = typeof arg4 === 'string' ? arg4 : 'utf8';
       offset = 0;
-      buffer = new Buffer(arg2, encoding);
+      buffer = Buffer.from(arg2, encoding);
       length = buffer.length;
     } else {
       // Signature 2: (fd, buffer, offset, length, position?)
@@ -822,7 +822,7 @@ export default class FS {
       const encoding = arg4;
       cb = typeof arg5 === 'function' ? arg5 : cb;
       offset = 0;
-      buffer = new Buffer(length);
+      buffer = Buffer.alloc(length);
       // XXX: Inefficient.
       // Wrap the cb so we shelter upper layers of the API from these
       // shenanigans.
@@ -874,7 +874,7 @@ export default class FS {
       position = arg3;
       encoding = arg4;
       offset = 0;
-      buffer = new Buffer(length);
+      buffer = Buffer.alloc(length);
       shenanigans = true;
     } else {
       buffer = arg2;

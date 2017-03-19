@@ -47,7 +47,7 @@ export default class Inode {
   /**
    * Writes the inode into the start of the buffer.
    */
-  public toBuffer(buff: Buffer = new Buffer(this.getSize())): Buffer {
+  public toBuffer(buff: Buffer = Buffer.alloc(this.getSize())): Buffer {
     buff.writeUInt32LE(this.size, 0);
     buff.writeUInt16LE(this.mode, 4);
     buff.writeDoubleLE(this.atime, 6);

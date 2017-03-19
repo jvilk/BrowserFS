@@ -94,7 +94,7 @@ export default class Stats implements fs.Stats {
   }
 
   public toBuffer(): Buffer {
-    const buffer = new Buffer(32);
+    const buffer = Buffer.alloc(32);
     buffer.writeUInt32LE(this.size, 0);
     buffer.writeUInt32LE(this.mode, 4);
     buffer.writeDoubleLE(this.atime.getTime(), 8);
