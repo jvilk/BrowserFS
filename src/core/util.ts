@@ -10,7 +10,7 @@ import * as path from 'path';
  */
 export const isIE: boolean = typeof navigator !== "undefined" && !!(/(msie) ([\w.]+)/.exec(navigator.userAgent.toLowerCase()) || navigator.userAgent.indexOf('Trident') !== -1);
 
-/**å
+/**
  * Check if we're in a web worker.
  */
 export const isWebWorker: boolean = typeof window === "undefined";

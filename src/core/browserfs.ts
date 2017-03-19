@@ -10,6 +10,7 @@ import EmscriptenFS from '../generic/emscripten_fs';
 import Backends from './backends';
 import * as BFSUtils from './util';
 import * as Errors from './api_error';
+import setImmediate from '../generic/setImmediate';
 
 if ((<any> process)['initializeTTYs']) {
   (<any> process)['initializeTTYs']();
@@ -82,4 +83,4 @@ export function initialize(rootfs: FileSystem) {
   return fs.initialize(rootfs);
 }
 
-export {EmscriptenFS, Backends as FileSystem, Errors};
+export {EmscriptenFS, Backends as FileSystem, Errors, setImmediate};

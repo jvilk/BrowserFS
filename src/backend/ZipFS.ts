@@ -48,6 +48,7 @@ import {FileFlag, ActionType} from '../core/file_flag';
 import {NoSyncFile} from '../generic/preload_file';
 import {Arrayish, arrayish2Buffer, copyingSlice} from '../core/util';
 import ExtendedASCII from '../generic/extended_ascii';
+import setImmediate from '../generic/setImmediate';
 const inflateRaw:
   (data: Arrayish<number>, options?: {
     chunkSize: number;

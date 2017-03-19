@@ -1,4 +1,4 @@
-declare var setImmediate: (cb: Function) => void;
+import setImmediate from '../generic/setImmediate';
 
 /**
  * Non-recursive mutex

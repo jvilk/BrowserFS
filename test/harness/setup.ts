@@ -5,6 +5,7 @@ import {eachSeries as asyncEachSeries} from 'async';
 import BFSEmscriptenFS from '../../src/generic/emscripten_fs';
 import assert from './wrapped-assert';
 import loadFixtures from '../fixtures/load_fixtures';
+import setImmediate from '../../src/generic/setImmediate';
 
 declare var __numWaiting: number;
 declare var __karma__: any;
