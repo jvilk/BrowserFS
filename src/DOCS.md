@@ -32,28 +32,28 @@ Note that any asynchronous file system can be accessed synchronously using the [
   </tr>
   <tr>
     <th>Backend Name</th>
-    <th>Read-only?</th>
+    <th>Writable?</th>
     <th>Synchronous</th>
     <th>Properties</th>
     <th>Links</th>
   </tr>
   <tr>
     <td><a href="classes/asyncmirror.html">AsyncMirror</a></td>
-    <td>✗</td>
+    <td>✓</td>
     <td>✓</td>
     <td>✗</td>
     <td>✗</td>
   </tr>
   <tr>
     <td><a href="classes/dropboxfilesystem.html">Dropbox</a></td>
-    <td>✗</td>
+    <td>✓</td>
     <td>✗</td>
     <td>✗</td>
     <td>✗</td>
   </tr>
   <tr>
     <td><a href="classes/emscriptenfilesystem.html">Emscripten</a></td>
-    <td>✗</td>
+    <td>✓</td>
     <td>✓</td>
     <td>✓</td>
     <td>✓</td>
@@ -67,35 +67,35 @@ Note that any asynchronous file system can be accessed synchronously using the [
   </tr>
   <tr>
     <td><a href="classes/html5fs.html">HTML5FS</a></td>
-    <td>✗</td>
+    <td>✓</td>
     <td>✗</td>
     <td>✗</td>
     <td>✗</td>
   </tr>
   <tr>
     <td><a href="classes/indexeddbfilesystem.html">IndexedDB</a></td>
-    <td>✗</td>
+    <td>✓</td>
     <td>✗</td>
     <td>✗</td>
     <td>✗</td>
   </tr>
   <tr>
     <td><a href="classes/inmemoryfilesystem.html">InMemory</a></td>
-    <td>✗</td>
+    <td>✓</td>
     <td>✓</td>
     <td>✗</td>
     <td>✗</td>
   </tr>
   <tr>
     <td><a href="classes/isofs.html">IsoFS</a></td>
-    <td>✓</td>
+    <td>✗</td>
     <td>✓</td>
     <td>✗</td>
     <td>✗</td>
   </tr>
   <tr>
     <td><a href="classes/localstoragefilesystem.html">LocalStorage</a></td>
-    <td>✗</td>
+    <td>✓</td>
     <td>✓</td>
     <td>✗</td>
     <td>✗</td>
@@ -109,14 +109,14 @@ Note that any asynchronous file system can be accessed synchronously using the [
   </tr>
   <tr>
     <td><a href="classes/overlayfs.html">OverlayFS</a></td>
-    <td>✗</td>
+    <td>✓</td>
     <td>?</td>
     <td>?</td>
     <td>✗</td>
   </tr>
   <tr>
     <td><a href="classes/xmlhttprequest.html">XmlHttpRequest</a></td>
-    <td>✓</td>
+    <td>✗</td>
     <td>✓</td>
     <td>✗</td>
     <td>✗</td>
@@ -130,7 +130,7 @@ Note that any asynchronous file system can be accessed synchronously using the [
   </tr>
   <tr>
     <td><a href="classes/zipfs.html">ZipFS</a></td>
-    <td>✓</td>
+    <td>✗</td>
     <td>✓</td>
     <td>✗</td>
     <td>✗</td>
