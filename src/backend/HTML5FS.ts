@@ -224,13 +224,11 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
     // Get a list of all entries in the root directory to delete them
     this._readdir('/', (err: ApiError, entries?: Entry[]): void => {
       if (err) {
-        console.error('Failed to empty FS');
         mainCb(err);
       } else {
         // Called when every entry has been operated on
         const finished = (er: any): void => {
           if (err) {
-            console.error("Failed to empty FS");
             mainCb(err);
           } else {
             mainCb();

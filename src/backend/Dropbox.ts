@@ -342,10 +342,9 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
     this._client.filesDownload(downloadArg).then((res) => {
       const b: Blob = (<any> res).fileBlob;
       const fr = new FileReader();
-      const fs = this;
-      fr.onload = function() {
-        const ab: ArrayBuffer = this.result;
-        cb(null, new DropboxFile(fs, path, flags, new Stats(FileType.FILE, ab.byteLength), arrayBuffer2Buffer(ab)));
+      fr.onload = () => {
+        const ab: ArrayBuffer = fr.result;
+        cb(null, new DropboxFile(this, path, flags, new Stats(FileType.FILE, ab.byteLength), arrayBuffer2Buffer(ab)));
       };
       fr.readAsArrayBuffer(b);
     }).catch((e: DropboxTypes.Error<DropboxTypes.files.DownloadError>) => {
@@ -375,7 +374,7 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
     }).catch((e: DropboxTypes.Error<DropboxTypes.files.UploadError>) => {
       const err = ExtractTheFuckingError(e);
       // HACK: Casting to 'any' since tag can be 'too_many_write_operations'.
-      switch(<string> err['.tag']) {
+      switch (<string> err['.tag']) {
         case 'path':
           const upError = <DropboxTypes.files.UploadErrorPath> err;
           cb(WriteErrorToError(upError.path.reason, p, GetErrorMessage(e)));

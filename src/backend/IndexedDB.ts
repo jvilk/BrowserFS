@@ -82,12 +82,8 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements As
     try {
       const arraybuffer = buffer2ArrayBuffer(data);
       let r: IDBRequest;
-      if (overwrite) {
-        r = this.store.put(arraybuffer, key);
-      } else {
-        // 'add' will never overwrite an existing key.
-        r = this.store.add(arraybuffer, key);
-      }
+      // Note: 'add' will never overwrite an existing key.
+      r = overwrite ? this.store.put(arraybuffer, key) : this.store.add(arraybuffer, key);
       // XXX: NEED TO RETURN FALSE WHEN ADD HAS A KEY CONFLICT. NO ERROR.
       r.onerror = onErrorHandler(cb);
       r.onsuccess = (event) => {

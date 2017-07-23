@@ -424,7 +424,7 @@ class WorkerFile extends PreloadFile<WorkerFS> {
    * @hidden
    */
   public toRemoteArg(): IFileDescriptorArgument {
-    return <IFileDescriptorArgument> {
+    return {
       type: SpecialArgType.FD,
       id: this._remoteFdId,
       data: bufferToTransferrableObject(this.getBuffer()),
@@ -773,7 +773,7 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
   }
 
   public syncClose(method: string, fd: File, cb: BFSOneArgCallback): void {
-    this._worker.postMessage(<IAPIRequest> {
+    this._worker.postMessage({
       browserfsMessage: true,
       method: method,
       args: [(<WorkerFile> fd).toRemoteArg(), this._callbackConverter.toRemoteArg(cb)]

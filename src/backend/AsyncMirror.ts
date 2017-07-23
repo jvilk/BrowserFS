@@ -277,7 +277,7 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
       this._queueRunning = true;
       const doNextOp = (err?: ApiError) => {
         if (err) {
-          console.error(`WARNING: File system has desynchronized. Received following error: ${err}\n$`);
+          throw new Error(`WARNING: File system has desynchronized. Received following error: ${err}\n$`);
         }
         if (this._queue.length > 0) {
           const op = this._queue.shift()!,

@@ -103,10 +103,12 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
 
     let listing: object | null = null;
     if (typeof(listingUrlOrObj) === "string") {
+      // tslint:disable-next-line:no-console
       console.warn(`Providing a directory listings URL to the XmlHttpRequest constructor is deprecated and may cause your webpage to freeze up. Please use the asynchronous 'FromURL' version instead, or provide the listings object directly. This API usage will be removed in the next major revision.`);
+      // tslint:enable-next-line:no-console
       listing = this._requestFileSync(<string> listingUrlOrObj, 'json');
       if (!listing) {
-        throw new Error("Unable to find listing at URL: ${listingUrlOrObj}");
+        throw new Error(`Unable to find listing at URL: ${listingUrlOrObj}`);
       }
     } else {
       listing = listingUrlOrObj;
