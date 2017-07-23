@@ -18,7 +18,8 @@ export default {
   ],
   plugins: [
     alias({
-      async: require.resolve('async-es')
+      async: require.resolve('async-es'),
+      dropbox_bridge: join(outBase, 'ts', 'src', 'generic', 'dropbox_bridge_actual.js')
     }),
     nodeResolve({
       main: true,

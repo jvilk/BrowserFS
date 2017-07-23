@@ -19,6 +19,6 @@
     ]
   },
   "include": [
-    "**/*"
+    "**/*", "../src/**/*.d.ts", "../src/generic/dropbox_bridge*.ts"
   ]
 }

@@ -1,6 +1,33 @@
 // Appended before Emscripten output.
 module.exports = function(Module) {
 
+if (!Module) {
+  Module = {};
+}
+
+Object.defineProperties(Module, {
+  'FS': {
+    get: function() {
+      return FS;
+    }
+  },
+  'IDBFS': {
+    get: function() {
+      return IDBFS;
+    }
+  },
+  'PATH': {
+    get: function() {
+      return PATH;
+    }
+  },
+  'ERRNO_CODES': {
+    get: function() {
+      return ERRNO_CODES;
+    }
+  }
+});
+
 // The Module object: Our interface to the outside world. We import
 // and export values on it, and do the work to get that through
 // closure compiler if necessary. There are various ways Module can be used:
@@ -6064,7 +6091,7 @@ function __Z4testv() {
   }
   $24 = ($seen$sroa$0$04|0)==(0);
   if ($24) {
-   $25 = (_strcmp($18,5389)|0);
+   $25 = (_strcmp($18,5383)|0);
    $26 = ($25|0)==(0);
    if ($26) {
     $27 = ((($15)) + 10|0);
@@ -6157,8 +6184,7 @@ function __Z4testv() {
   // unreachable;
  }
  else if ((label|0) == 31) {
-  (_puts(1256)|0);
-  ___assert_fail((956|0),(687|0),99,(767|0));
+  ___assert_fail((956|0),(687|0),98,(767|0));
   // unreachable;
  }
  else if ((label|0) == 33) {
@@ -6170,13 +6196,13 @@ function __Z4testv() {
    $vararg_ptr11 = ((($vararg_buffer8)) + 4|0);
    HEAP32[$vararg_ptr11>>2] = $49;
    (_printf(976,$vararg_buffer8)|0);
-   ___assert_fail((1001|0),(687|0),103,(767|0));
+   ___assert_fail((1001|0),(687|0),102,(767|0));
    // unreachable;
   }
   _rewinddir($13);
   $50 = (_readdir($13)|0);
   $51 = ((($50)) + 11|0);
-  $52 = (_strcmp($51,5389)|0);
+  $52 = (_strcmp($51,5383)|0);
   $53 = ($52|0)==(0);
   if (!($53)) {
    $54 = (_strcmp($51,923)|0);
@@ -6185,7 +6211,7 @@ function __Z4testv() {
     $56 = (_strcmp($51,926)|0);
     $57 = ($56|0)==(0);
     if (!($57)) {
-     ___assert_fail((1006|0),(687|0),108,(767|0));
+     ___assert_fail((1006|0),(687|0),107,(767|0));
      // unreachable;
     }
    }
@@ -6193,7 +6219,7 @@ function __Z4testv() {
   _rewinddir($13);
   $58 = (_readdir($13)|0);
   $59 = ((($58)) + 11|0);
-  $60 = (_strcmp($59,5389)|0);
+  $60 = (_strcmp($59,5383)|0);
   $61 = ($60|0)==(0);
   if (!($61)) {
    $62 = (_strcmp($59,923)|0);
@@ -6202,7 +6228,7 @@ function __Z4testv() {
     $64 = (_strcmp($59,926)|0);
     $65 = ($64|0)==(0);
     if (!($65)) {
-     ___assert_fail((1006|0),(687|0),113,(767|0));
+     ___assert_fail((1006|0),(687|0),112,(767|0));
      // unreachable;
     }
    }
@@ -6211,12 +6237,12 @@ function __Z4testv() {
   $66 = (_telldir($13)|0);
   $67 = ($66|0)>(-1);
   if (!($67)) {
-   ___assert_fail((1098|0),(687|0),118,(767|0));
+   ___assert_fail((1098|0),(687|0),117,(767|0));
    // unreachable;
   }
   $68 = (_readdir($13)|0);
   $69 = ((($68)) + 11|0);
-  $70 = (_strcmp($69,5389)|0);
+  $70 = (_strcmp($69,5383)|0);
   $71 = ($70|0)==(0);
   if (!($71)) {
    $72 = (_strcmp($69,923)|0);
@@ -6225,14 +6251,14 @@ function __Z4testv() {
     $74 = (_strcmp($69,926)|0);
     $75 = ($74|0)==(0);
     if (!($75)) {
-     ___assert_fail((1006|0),(687|0),120,(767|0));
+     ___assert_fail((1006|0),(687|0),119,(767|0));
      // unreachable;
     }
    }
   }
   $76 = (_readdir($13)|0);
   $77 = ((($76)) + 11|0);
-  $78 = (_strcmp($77,5389)|0);
+  $78 = (_strcmp($77,5383)|0);
   $79 = ($78|0)==(0);
   if (!($79)) {
    $80 = (_strcmp($77,923)|0);
@@ -6241,7 +6267,7 @@ function __Z4testv() {
     $82 = (_strcmp($77,926)|0);
     $83 = ($82|0)==(0);
     if (!($83)) {
-     ___assert_fail((1006|0),(687|0),122,(767|0));
+     ___assert_fail((1006|0),(687|0),121,(767|0));
      // unreachable;
     }
    }
@@ -6250,30 +6276,30 @@ function __Z4testv() {
   $84 = (_readdir($13)|0);
   $85 = ($84|0)==(0|0);
   if ($85) {
-   ___assert_fail((845|0),(687|0),125,(767|0));
+   ___assert_fail((845|0),(687|0),124,(767|0));
    // unreachable;
   }
   $86 = ((($84)) + 11|0);
   $87 = (_strcmp($86,$vararg_buffer2)|0);
   $88 = ($87|0)==(0);
   if (!($88)) {
-   ___assert_fail((1107|0),(687|0),127,(767|0));
+   ___assert_fail((1107|0),(687|0),126,(767|0));
    // unreachable;
   }
   _rewinddir($13);
   $89 = (_readdir_r($13,$ent_r,$result)|0);
   $90 = ($89|0)==(0);
   if (!($90)) {
-   ___assert_fail((682|0),(687|0),134,(767|0));
+   ___assert_fail((682|0),(687|0),133,(767|0));
    // unreachable;
   }
   $91 = HEAP32[$result>>2]|0;
   $92 = ($ent_r|0)==($91|0);
   if (!($92)) {
-   ___assert_fail((1135|0),(687|0),135,(767|0));
+   ___assert_fail((1135|0),(687|0),134,(767|0));
    // unreachable;
   }
-  $93 = (_strcmp($86,5389)|0);
+  $93 = (_strcmp($86,5383)|0);
   $94 = ($93|0)==(0);
   do {
    if (!($94)) {
@@ -6287,23 +6313,23 @@ function __Z4testv() {
     if ($98) {
      break;
     }
-    ___assert_fail((1006|0),(687|0),136,(767|0));
+    ___assert_fail((1006|0),(687|0),135,(767|0));
     // unreachable;
    }
   } while(0);
   $99 = (_readdir_r($13,$ent_r,$result)|0);
   $100 = ($99|0)==(0);
   if (!($100)) {
-   ___assert_fail((682|0),(687|0),138,(767|0));
+   ___assert_fail((682|0),(687|0),137,(767|0));
    // unreachable;
   }
   $101 = HEAP32[$result>>2]|0;
   $102 = ($ent_r|0)==($101|0);
   if (!($102)) {
-   ___assert_fail((1135|0),(687|0),139,(767|0));
+   ___assert_fail((1135|0),(687|0),138,(767|0));
    // unreachable;
   }
-  $103 = (_strcmp($86,5389)|0);
+  $103 = (_strcmp($86,5383)|0);
   $104 = ($103|0)==(0);
   do {
    if (!($104)) {
@@ -6317,23 +6343,23 @@ function __Z4testv() {
     if ($108) {
      break;
     }
-    ___assert_fail((1006|0),(687|0),140,(767|0));
+    ___assert_fail((1006|0),(687|0),139,(767|0));
     // unreachable;
    }
   } while(0);
   $109 = (_readdir_r($13,$ent_r,$result)|0);
   $110 = ($109|0)==(0);
   if (!($110)) {
-   ___assert_fail((682|0),(687|0),142,(767|0));
+   ___assert_fail((682|0),(687|0),141,(767|0));
    // unreachable;
   }
   $111 = HEAP32[$result>>2]|0;
   $112 = ($ent_r|0)==($111|0);
   if (!($112)) {
-   ___assert_fail((1135|0),(687|0),143,(767|0));
+   ___assert_fail((1135|0),(687|0),142,(767|0));
    // unreachable;
   }
-  $113 = (_strcmp($86,5389)|0);
+  $113 = (_strcmp($86,5383)|0);
   $114 = ($113|0)==(0);
   do {
    if (!($114)) {
@@ -6347,20 +6373,20 @@ function __Z4testv() {
     if ($118) {
      break;
     }
-    ___assert_fail((1006|0),(687|0),144,(767|0));
+    ___assert_fail((1006|0),(687|0),143,(767|0));
     // unreachable;
    }
   } while(0);
   $119 = (_readdir_r($13,$ent_r,$result)|0);
   $120 = ($119|0)==(0);
   if (!($120)) {
-   ___assert_fail((682|0),(687|0),146,(767|0));
+   ___assert_fail((682|0),(687|0),145,(767|0));
    // unreachable;
   }
   $121 = HEAP32[$result>>2]|0;
   $122 = ($121|0)==(0|0);
   if (!($122)) {
-   ___assert_fail((1152|0),(687|0),147,(767|0));
+   ___assert_fail((1152|0),(687|0),146,(767|0));
    // unreachable;
   }
   $123 = (_closedir($13)|0);
@@ -6369,7 +6395,7 @@ function __Z4testv() {
    (_puts(1160)|0);
    STACKTOP = sp;return;
   } else {
-   ___assert_fail((682|0),(687|0),150,(767|0));
+   ___assert_fail((682|0),(687|0),149,(767|0));
    // unreachable;
   }
  }
@@ -6381,7 +6407,7 @@ function __Z12test_scandirv() {
  $vararg_buffer1 = sp + 8|0;
  $vararg_buffer = sp;
  $namelist = sp + 12|0;
- $0 = (_scandir(5389,$namelist,0,1)|0);
+ $0 = (_scandir(5383,$namelist,0,1)|0);
  HEAP32[$vararg_buffer>>2] = $0;
  (_printf(1168,$vararg_buffer)|0);
  $1 = ($0|0)<(0);
@@ -6757,7 +6783,7 @@ function _strerror($e) {
  sp = STACKTOP;
  $i$03 = 0;
  while(1) {
-  $1 = (1262 + ($i$03)|0);
+  $1 = (1256 + ($i$03)|0);
   $2 = HEAP8[$1>>0]|0;
   $3 = $2&255;
   $4 = ($3|0)==($e|0);
@@ -6769,7 +6795,7 @@ function _strerror($e) {
   $5 = (($i$03) + 1)|0;
   $6 = ($5|0)==(87);
   if ($6) {
-   $i$12 = 87;$s$01 = 1350;
+   $i$12 = 87;$s$01 = 1344;
    label = 5;
    break;
   } else {
@@ -6779,9 +6805,9 @@ function _strerror($e) {
  if ((label|0) == 2) {
   $0 = ($i$03$lcssa|0)==(0);
   if ($0) {
-   $s$0$lcssa = 1350;
+   $s$0$lcssa = 1344;
   } else {
-   $i$12 = $i$03$lcssa;$s$01 = 1350;
+   $i$12 = $i$03$lcssa;$s$01 = 1344;
    label = 5;
   }
  }
@@ -8384,9 +8410,9 @@ function _strsignal($signum) {
  $2 = ($signum|0)==(0);
  $3 = $1 | $2;
  if ($3) {
-  $s$0$lcssa = 3154;
+  $s$0$lcssa = 3148;
  } else {
-  $$in = $signum;$s$01 = 3154;
+  $$in = $signum;$s$01 = 3148;
   while(1) {
    $s$1 = $s$01;
    while(1) {
@@ -8981,7 +9007,7 @@ function _printf_core($f,$fmt,$ap,$nl_arg,$nl_type) {
     break L1;
    }
    $146 = ((($fmt44)) + 1|0);
-   $147 = ((4857 + (($st$0*58)|0)|0) + ($144)|0);
+   $147 = ((4851 + (($st$0*58)|0)|0) + ($144)|0);
    $148 = HEAP8[$147>>0]|0;
    $149 = $148&255;
    $150 = (($149) + -1)|0;
@@ -9179,7 +9205,7 @@ function _printf_core($f,$fmt,$ap,$nl_arg,$nl_type) {
     $263 = $fl$1$ & 8;
     $264 = ($263|0)==(0);
     if ($264) {
-     $a$0 = $$0$lcssa$i;$fl$4 = $fl$1$;$p$2 = $p$0;$pl$1 = 0;$prefix$1 = 5337;
+     $a$0 = $$0$lcssa$i;$fl$4 = $fl$1$;$p$2 = $p$0;$pl$1 = 0;$prefix$1 = 5331;
      label = 77;
     } else {
      $265 = $$0$lcssa$i;
@@ -9187,7 +9213,7 @@ function _printf_core($f,$fmt,$ap,$nl_arg,$nl_type) {
      $267 = (($266) + 1)|0;
      $268 = ($p$0|0)<($267|0);
      $$p$0 = $268 ? $267 : $p$0;
-     $a$0 = $$0$lcssa$i;$fl$4 = $fl$1$;$p$2 = $$p$0;$pl$1 = 0;$prefix$1 = 5337;
+     $a$0 = $$0$lcssa$i;$fl$4 = $fl$1$;$p$2 = $$p$0;$pl$1 = 0;$prefix$1 = 5331;
      label = 77;
     }
     break;
@@ -9209,7 +9235,7 @@ function _printf_core($f,$fmt,$ap,$nl_arg,$nl_type) {
      $280 = (($278) + 4)|0;
      $281 = $280;
      HEAP32[$281>>2] = $277;
-     $286 = $276;$287 = $277;$pl$0 = 1;$prefix$0 = 5337;
+     $286 = $276;$287 = $277;$pl$0 = 1;$prefix$0 = 5331;
      label = 76;
      break L75;
     }
@@ -9218,11 +9244,11 @@ function _printf_core($f,$fmt,$ap,$nl_arg,$nl_type) {
     if ($283) {
      $284 = $fl$1$ & 1;
      $285 = ($284|0)==(0);
-     $$ = $285 ? 5337 : (5339);
+     $$ = $285 ? 5331 : (5333);
      $286 = $271;$287 = $274;$pl$0 = $284;$prefix$0 = $$;
      label = 76;
     } else {
-     $286 = $271;$287 = $274;$pl$0 = 1;$prefix$0 = (5338);
+     $286 = $271;$287 = $274;$pl$0 = 1;$prefix$0 = (5332);
      label = 76;
     }
     break;
@@ -9234,7 +9260,7 @@ function _printf_core($f,$fmt,$ap,$nl_arg,$nl_type) {
     $179 = (($176) + 4)|0;
     $180 = $179;
     $181 = HEAP32[$180>>2]|0;
-    $286 = $178;$287 = $181;$pl$0 = 0;$prefix$0 = 5337;
+    $286 = $178;$287 = $181;$pl$0 = 0;$prefix$0 = 5331;
     label = 76;
     break;
    }
@@ -9247,7 +9273,7 @@ function _printf_core($f,$fmt,$ap,$nl_arg,$nl_type) {
     $312 = HEAP32[$311>>2]|0;
     $313 = $309&255;
     HEAP8[$3>>0] = $313;
-    $a$2 = $3;$fl$6 = $175;$p$5 = 1;$pl$2 = 0;$prefix$2 = 5337;$z$2 = $1;
+    $a$2 = $3;$fl$6 = $175;$p$5 = 1;$pl$2 = 0;$prefix$2 = 5331;$z$2 = $1;
     break;
    }
    case 109:  {
@@ -9261,7 +9287,7 @@ function _printf_core($f,$fmt,$ap,$nl_arg,$nl_type) {
    case 115:  {
     $317 = HEAP32[$arg>>2]|0;
     $318 = ($317|0)!=(0|0);
-    $319 = $318 ? $317 : 5347;
+    $319 = $318 ? $317 : 5341;
     $a$1 = $319;
     label = 82;
     break;
@@ -9300,17 +9326,17 @@ function _printf_core($f,$fmt,$ap,$nl_arg,$nl_type) {
     $362 = ($361|0)<(0);
     if ($362) {
      $363 = -$359;
-     $$07$i = $363;$pl$0$i = 1;$prefix$0$i = 5354;
+     $$07$i = $363;$pl$0$i = 1;$prefix$0$i = 5348;
     } else {
      $364 = $fl$1$ & 2048;
      $365 = ($364|0)==(0);
      if ($365) {
       $366 = $fl$1$ & 1;
       $367 = ($366|0)==(0);
-      $$$i = $367 ? (5355) : (5360);
+      $$$i = $367 ? (5349) : (5354);
       $$07$i = $359;$pl$0$i = $366;$prefix$0$i = $$$i;
      } else {
-      $$07$i = $359;$pl$0$i = 1;$prefix$0$i = (5357);
+      $$07$i = $359;$pl$0$i = 1;$prefix$0$i = (5351);
      }
     }
     HEAPF64[tempDoublePtr>>3] = $$07$i;$368 = HEAP32[tempDoublePtr>>2]|0;
@@ -9406,7 +9432,7 @@ function _printf_core($f,$fmt,$ap,$nl_arg,$nl_type) {
        $$2$i = $$1$i;$s$0$i = $buf$i;
        while(1) {
         $435 = (~~(($$2$i)));
-        $436 = (5321 + ($435)|0);
+        $436 = (5315 + ($435)|0);
         $437 = HEAP8[$436>>0]|0;
         $438 = $437&255;
         $439 = $438 | $398;
@@ -10099,7 +10125,7 @@ function _printf_core($f,$fmt,$ap,$nl_arg,$nl_type) {
           if (!($711)) {
            break;
           }
-          (___fwritex(5389,1,$f)|0);
+          (___fwritex(5383,1,$f)|0);
          }
         } while(0);
         $712 = ($$lcssa339>>>0)<($z$6$i$lcssa>>>0);
@@ -10192,7 +10218,7 @@ function _printf_core($f,$fmt,$ap,$nl_arg,$nl_type) {
              $s9$2$i = $741;
              break;
             }
-            (___fwritex(5389,1,$f)|0);
+            (___fwritex(5383,1,$f)|0);
             $s9$2$i = $741;
            } else {
             $738 = ($s9$0$i>>>0)>($buf$i>>>0);
@@ -10261,9 +10287,9 @@ function _printf_core($f,$fmt,$ap,$nl_arg,$nl_type) {
      } else {
       $376 = $t$0 & 32;
       $377 = ($376|0)!=(0);
-      $378 = $377 ? 5373 : 5377;
+      $378 = $377 ? 5367 : 5371;
       $379 = ($$07$i != $$07$i) | (0.0 != 0.0);
-      $380 = $377 ? 5381 : 5385;
+      $380 = $377 ? 5375 : 5379;
       $pl$1$i = $379 ? 0 : $pl$0$i;
       $s1$0$i = $379 ? $380 : $378;
       $381 = (($pl$1$i) + 3)|0;
@@ -10295,7 +10321,7 @@ function _printf_core($f,$fmt,$ap,$nl_arg,$nl_type) {
     break;
    }
    default: {
-    $a$2 = $fmt41;$fl$6 = $fl$1$;$p$5 = $p$0;$pl$2 = 0;$prefix$2 = 5337;$z$2 = $1;
+    $a$2 = $fmt41;$fl$6 = $fl$1$;$p$5 = $p$0;$pl$2 = 0;$prefix$2 = 5331;$z$2 = $1;
    }
    }
   } while(0);
@@ -10313,13 +10339,13 @@ function _printf_core($f,$fmt,$ap,$nl_arg,$nl_type) {
     $214 = ($211|0)==(0);
     $215 = $213 & $214;
     if ($215) {
-     $a$0 = $1;$fl$4 = $fl$3;$p$2 = $p$1;$pl$1 = 0;$prefix$1 = 5337;
+     $a$0 = $1;$fl$4 = $fl$3;$p$2 = $p$1;$pl$1 = 0;$prefix$1 = 5331;
      label = 77;
     } else {
      $$012$i = $1;$217 = $208;$224 = $211;
      while(1) {
       $216 = $217 & 15;
-      $218 = (5321 + ($216)|0);
+      $218 = (5315 + ($216)|0);
       $219 = HEAP8[$218>>0]|0;
       $220 = $219&255;
       $221 = $220 | $212;
@@ -10351,11 +10377,11 @@ function _printf_core($f,$fmt,$ap,$nl_arg,$nl_type) {
      $240 = ($239|0)==(0);
      $or$cond17 = $240 | $238;
      if ($or$cond17) {
-      $a$0 = $$lcssa344;$fl$4 = $fl$3;$p$2 = $p$1;$pl$1 = 0;$prefix$1 = 5337;
+      $a$0 = $$lcssa344;$fl$4 = $fl$3;$p$2 = $p$1;$pl$1 = 0;$prefix$1 = 5331;
       label = 77;
      } else {
       $241 = $t$1 >> 4;
-      $242 = (5337 + ($241)|0);
+      $242 = (5331 + ($241)|0);
       $a$0 = $$lcssa344;$fl$4 = $fl$3;$p$2 = $p$1;$pl$1 = 2;$prefix$1 = $242;
       label = 77;
      }
@@ -10377,7 +10403,7 @@ function _printf_core($f,$fmt,$ap,$nl_arg,$nl_type) {
     $325 = (($a$1) + ($p$0)|0);
     $z$1 = $321 ? $325 : $320;
     $p$3 = $321 ? $p$0 : $324;
-    $a$2 = $a$1;$fl$6 = $175;$p$5 = $p$3;$pl$2 = 0;$prefix$2 = 5337;$z$2 = $z$1;
+    $a$2 = $a$1;$fl$6 = $175;$p$5 = $p$3;$pl$2 = 0;$prefix$2 = 5331;$z$2 = $z$1;
    }
    else if ((label|0) == 86) {
     label = 0;
@@ -16634,9 +16660,5 @@ run();
 
 
 // Appended to end of Emscripten output.
-Module['FS'] = FS;
-Module['IDBFS'] = IDBFS;
-Module['PATH'] = PATH;
-Module['ERRNO_CODES'] = ERRNO_CODES;
 };
 

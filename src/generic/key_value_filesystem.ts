@@ -673,8 +673,7 @@ export interface AsyncKeyValueRWTransaction extends AsyncKeyValueROTransaction {
    * @param cb Triggered with an error and whether or not the value was
    *   committed.
    */
-  put(key: string, data: Buffer, overwrite: boolean, cb: (e: ApiError,
-    committed?: boolean) => void): void;
+  put(key: string, data: Buffer, overwrite: boolean, cb: BFSCallback<boolean>): void;
   /**
    * Deletes the data at the given key.
    * @param key The key to delete from the store.

@@ -98,9 +98,9 @@ interface IFileDescriptorArgument extends ISpecialArgument {
   // The file descriptor's id on the remote side.
   id: number;
   // The entire file's data, as an array buffer.
-  data: ArrayBuffer;
+  data: ArrayBuffer | SharedArrayBuffer;
   // The file's stat object, as an array buffer.
-  stat: ArrayBuffer;
+  stat: ArrayBuffer | SharedArrayBuffer;
   // The path to the file.
   path: string;
   // The flag of the open file descriptor.
@@ -116,8 +116,8 @@ class FileDescriptorArgumentConverter {
 
   public toRemoteArg(fd: File, p: string, flag: FileFlag, cb: BFSCallback<IFileDescriptorArgument>): void {
     const id = this._nextId++;
-    let data: ArrayBuffer;
-    let stat: ArrayBuffer;
+    let data: ArrayBuffer | SharedArrayBuffer;
+    let stat: ArrayBuffer | SharedArrayBuffer;
     this._fileDescriptors[id] = fd;
 
     // Extract needed information asynchronously.
@@ -229,7 +229,7 @@ class FileDescriptorArgumentConverter {
  */
 interface IAPIErrorArgument extends ISpecialArgument {
   // The error object, as an array buffer.
-  errorData: ArrayBuffer;
+  errorData: ArrayBuffer | SharedArrayBuffer;
 }
 
 /**
@@ -293,7 +293,7 @@ function errorRemote2Local(e: IErrorArgument): Error {
  */
 interface IStatsArgument extends ISpecialArgument {
   // The stats object as an array buffer.
-  statsData: ArrayBuffer;
+  statsData: ArrayBuffer | SharedArrayBuffer;
 }
 
 /**
@@ -341,20 +341,20 @@ function fileFlagRemote2Local(remoteFlag: IFileFlagArgument): FileFlag {
  * @hidden
  */
 interface IBufferArgument extends ISpecialArgument {
-  data: ArrayBuffer;
+  data: ArrayBuffer | SharedArrayBuffer;
 }
 
 /**
  * @hidden
  */
-function bufferToTransferrableObject(buff: Buffer): ArrayBuffer {
+function bufferToTransferrableObject(buff: Buffer): ArrayBuffer | SharedArrayBuffer {
   return buffer2ArrayBuffer(buff);
 }
 
 /**
  * @hidden
  */
-function transferrableObjectToBuffer(buff: ArrayBuffer): Buffer {
+function transferrableObjectToBuffer(buff: ArrayBuffer | SharedArrayBuffer): Buffer {
   return arrayBuffer2Buffer(buff);
 }
 

@@ -33,7 +33,7 @@ module.exports = {
     library: 'BrowserFS'
   },
   resolve: {
-    extensions: ['', '.js', '.json'],
+    extensions: ['.js', '.json'],
     // Use our versions of Node modules.
     alias: {
       'buffer': path.posix.resolve(__dirname, '..', 'node_modules', 'buffer', 'index.js'),
@@ -52,15 +52,13 @@ module.exports = {
   },
   target: 'web',
   module: {
-    // Load source maps for any relevant files.
-    preLoaders: [
+    rules: [
+      // Load source maps for any relevant files.
       {
         test: /(\.js$|\.ts$)/,
+        enforce: 'pre',
         loader: 'source-map-loader'
       }
     ]
-  },
-  resolveLoader: {
-    root: path.resolve(__dirname, '..', 'node_modules')
   }
 };

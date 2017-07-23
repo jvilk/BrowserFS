@@ -12,7 +12,7 @@ import * as _fs from 'fs';
  * Wraps a callback function. Used for unit testing. Defaults to a NOP.
  * @hidden
  */
-let wrapCb = function<T extends Function>(cb: T, numArgs: number): T {
+let wrapCb = function<T>(cb: T, numArgs: number): T {
   return cb;
 };
 
@@ -416,10 +416,10 @@ export default class FS {
    * @param callback If no encoding is specified, then the raw buffer is returned.
    */
   public readFile(filename: string, cb: BFSCallback<Buffer>): void;
-  public readFile(filename: string, options: { flag?: string; }, callback: BFSCallback<Buffer>): void;
-  public readFile(filename: string, options: { encoding: string; flag?: string; }, callback: BFSCallback<string>): void;
-  public readFile(filename: string, encoding: string, cb?: BFSCallback<string>): void;
-  public readFile(filename: string, arg2: any = {}, cb: BFSCallback<Buffer | string> = nopCb ) {
+  public readFile(filename: string, options: { flag?: string; }, callback?: BFSCallback<Buffer>): void;
+  public readFile(filename: string, options: { encoding: string; flag?: string; }, callback?: BFSCallback<string>): void;
+  public readFile(filename: string, encoding: string, cb: BFSCallback<string>): void;
+  public readFile(filename: string, arg2: any = {}, cb: BFSCallback<any> = nopCb ) {
     const options = normalizeOptions(arg2, null, 'r', null);
     cb = typeof arg2 === 'function' ? arg2 : cb;
     const newCb = wrapCb(cb, 2);
@@ -733,7 +733,7 @@ export default class FS {
   public write(fd: number, data: any, cb?: BFSThreeArgCallback<number, string>): void;
   public write(fd: number, data: any, position: number | null, cb?: BFSThreeArgCallback<number, string>): void;
   public write(fd: number, data: any, position: number | null, encoding: string, cb?: BFSThreeArgCallback<number, string>): void;
-  public write(fd: number, arg2: any, arg3?: any, arg4?: any, arg5?: any, cb: BFSThreeArgCallback<number, Buffer | string> = nopCb): void {
+  public write(fd: number, arg2: any, arg3?: any, arg4?: any, arg5?: any, cb: BFSThreeArgCallback<number, any> = nopCb): void {
     let buffer: Buffer, offset: number, length: number, position: number | null = null;
     if (typeof arg2 === 'string') {
       // Signature 1: (fd, string, [position?, [encoding?]], cb?)
@@ -1422,7 +1422,7 @@ export default class FS {
    * For unit testing. Passes all incoming callbacks to cbWrapper for wrapping.
    */
   public wrapCallbacks(cbWrapper: (cb: Function, args: number) => Function) {
-    wrapCb = cbWrapper;
+    wrapCb = <any> cbWrapper;
   }
 
   private getFdForFile(file: File): number {
