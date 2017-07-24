@@ -45,7 +45,7 @@ export default class InMemoryFileSystem extends SyncKeyValueFileSystem {
     const normalizedCb: BFSCallback<InMemoryFileSystem> = cb ? cb : options;
     normalizedCb(null, new InMemoryFileSystem());
   }
-  constructor() {
+  private constructor() {
     super({ store: new InMemoryStore() });
   }
 }

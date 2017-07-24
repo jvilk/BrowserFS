@@ -115,8 +115,8 @@ export default function(tests: {
   function generateEmscriptenTest(testName: string, test: (module: any) => void) {
     // Only applicable to typed array-compatible browsers.
     if (typeof(Uint8Array) !== 'undefined') {
-      it(`[Emscripten] Initialize FileSystem`, () => {
-        BrowserFS.initialize(new BrowserFS.FileSystem.InMemory());
+      it(`[Emscripten] Initialize FileSystem`, (done) => {
+        BrowserFS.configure({ fs: 'InMemory' }, done);
       });
       generateTest(`[Emscripten] Load fixtures (${testName})`, loadFixtures);
       it(`[Emscripten] ${testName}`, function(done: (e?: any) => void) {

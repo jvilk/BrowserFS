@@ -4,7 +4,7 @@ import {SynchronousFileSystem, FileSystem, BFSCallback} from '../core/file_syste
 import {File} from '../core/file';
 import {FileFlag, ActionType} from '../core/file_flag';
 import {NoSyncFile} from '../generic/preload_file';
-import {copyingSlice, deprecationMessage} from '../core/util';
+import {copyingSlice} from '../core/util';
 import * as path from 'path';
 
 /**
@@ -1161,14 +1161,10 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
    * Creates an IsoFS instance with the given options.
    */
   public static Create(opts: IsoFSOptions, cb: BFSCallback<IsoFS>): void {
-    let fs: IsoFS | undefined;
-    let e: ApiError | undefined;
     try {
-      fs = new IsoFS(opts.data, opts.name, false);
+      cb(null, new IsoFS(opts.data, opts.name));
     } catch (e) {
-      e = e;
-    } finally {
-      cb(e, fs);
+      cb(e);
     }
   }
   public static isAvailable(): boolean {
@@ -1187,10 +1183,9 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
    * @param data The ISO file in a buffer.
    * @param name The name of the ISO (optional; used for debug messages / identification via getName()).
    */
-  constructor(data: Buffer, name: string = "", deprecateMsg = true) {
+  private constructor(data: Buffer, name: string = "") {
     super();
     this._data = data;
-    deprecationMessage(deprecateMsg, "IsoFS", {data: "ISO data as a Buffer", name: name});
     // Skip first 16 sectors.
     let vdTerminatorFound = false;
     let i = 16 * 2048;

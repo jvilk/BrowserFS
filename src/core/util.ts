@@ -6,7 +6,9 @@ import * as path from 'path';
 
 export function deprecationMessage(print: boolean, fsName: string, opts: any): void {
   if (print) {
+    // tslint:disable-next-line:no-console
     console.warn(`[${fsName}] Direct file system constructor usage is deprecated for this file system, and will be removed in the next major version. Please use the '${fsName}.Create(${JSON.stringify(opts)}, callback)' method instead. See https://github.com/jvilk/BrowserFS/issues/176 for more details.`);
+    // tslint:enable-next-line:no-console
   }
 }
 

@@ -164,19 +164,19 @@ export class DropboxFile extends PreloadFile<DropboxFileSystem> implements File 
  * Options for the Dropbox file system.
  */
 export interface DropboxFileSystemOptions {
-  // An *authenticated* Dropbox client. Must be from the 0.10 JS SDK.
+  // An *authenticated* Dropbox client from the 2.x JS SDK.
   client: DropboxTypes.Dropbox;
 }
 
 /**
  * A read/write file system backed by Dropbox cloud storage.
  *
- * Uses the Dropbox V2 API.
+ * Uses the Dropbox V2 API, and the 2.x JS SDK.
  */
 export default class DropboxFileSystem extends BaseFileSystem implements FileSystem {
   /**
    * Creates a new DropboxFileSystem instance with the given options.
-   * Must be given an *authenticated* DropboxJS client from the old v0.10 version of the Dropbox JS SDK.
+   * Must be given an *authenticated* Dropbox client from 2.x JS SDK.
    */
   public static Create(opts: DropboxFileSystemOptions, cb: BFSCallback<DropboxFileSystem>): void {
     cb(null, new DropboxFileSystem(opts.client));
@@ -189,14 +189,7 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
 
   private _client: DropboxTypes.Dropbox;
 
-  /**
-   * **Deprecated. Please use Dropbox.Create() method instead.**
-   *
-   * Constructs a Dropbox-backed file system using the *authenticated* DropboxJS client.
-   *
-   * Note that you must use the old v0.10 version of the Dropbox JavaScript SDK.
-   */
-  constructor(client: DropboxTypes.Dropbox) {
+  private constructor(client: DropboxTypes.Dropbox) {
     super();
     this._client = client;
   }

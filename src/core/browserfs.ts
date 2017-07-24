@@ -115,7 +115,7 @@ export function configure(config: FileSystemConfiguration, cb: BFSOneArgCallback
  */
 export interface FileSystemConfiguration {
   fs: string;
-  options: any;
+  options?: any;
 }
 
 /**
@@ -145,10 +145,11 @@ export function getFileSystem(config: FileSystemConfiguration, cb: BFSCallback<F
   if (options !== null && typeof(options) === "object") {
     const props = Object.keys(options).filter((k) => k !== 'fs');
 
+    let finishedIterating = false;
     // Check recursively if other fields have 'fs' properties.
     props.forEach((p) => {
       const d = options[p];
-      if (d['fs']) {
+      if (d !== null && typeof(d) === "object" && d['fs']) {
         waitCount++;
         getFileSystem(d, function(e, fs?) {
           waitCount--;
@@ -160,13 +161,14 @@ export function getFileSystem(config: FileSystemConfiguration, cb: BFSCallback<F
             cb(e);
           } else {
             options[p] = fs;
-            if (waitCount === 0) {
+            if (waitCount === 0 && finishedIterating) {
               finish();
             }
           }
         });
       }
     });
+    finishedIterating = true;
   }
   if (waitCount === 0) {
     finish();

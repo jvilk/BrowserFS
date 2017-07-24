@@ -1,10 +1,9 @@
 import {FileSystem, SynchronousFileSystem, BFSOneArgCallback, BFSCallback} from '../core/file_system';
-import {ApiError, ErrorCode} from '../core/api_error';
+import {ApiError} from '../core/api_error';
 import {FileFlag} from '../core/file_flag';
 import {File} from '../core/file';
 import Stats from '../core/node_fs_stats';
 import PreloadFile from '../generic/preload_file';
-import {deprecationMessage} from '../core/util';
 import * as path from 'path';
 
 /**
@@ -92,14 +91,14 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
    */
   public static Create(opts: AsyncMirrorOptions, cb: BFSCallback<AsyncMirror>): void {
     try {
-      const fs = new AsyncMirror(opts.sync, opts.async, false);
-      fs.initialize((e?) => {
+      const fs = new AsyncMirror(opts.sync, opts.async);
+      fs._initialize((e?) => {
         if (e) {
           cb(e);
         } else {
           cb(null, fs);
         }
-      }, false);
+      });
     } catch (e) {
       cb(e);
     }
@@ -128,14 +127,13 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
    * @param sync The synchronous file system to mirror the asynchronous file system to.
    * @param async The asynchronous file system to mirror.
    */
-  constructor(sync: FileSystem, async: FileSystem, deprecateMsg = true) {
+  constructor(sync: FileSystem, async: FileSystem) {
     super();
     this._sync = sync;
     this._async = async;
     if (!sync.supportsSynch()) {
       throw new Error("The first argument to AsyncMirror needs to be a synchronous file system.");
     }
-    deprecationMessage(deprecateMsg, "AsyncMirror", { sync: "sync file system instance", async: "async file system instance"});
   }
 
   public getName(): string {
@@ -150,13 +148,90 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
     });
   }
 
+  public isReadOnly(): boolean { return false; }
+  public supportsSynch(): boolean { return true; }
+  public supportsLinks(): boolean { return false; }
+  public supportsProps(): boolean { return this._sync.supportsProps() && this._async.supportsProps(); }
+
+  public renameSync(oldPath: string, newPath: string): void {
+    this._sync.renameSync(oldPath, newPath);
+    this.enqueueOp({
+      apiMethod: 'rename',
+      arguments: [oldPath, newPath]
+    });
+  }
+
+  public statSync(p: string, isLstat: boolean): Stats {
+    return this._sync.statSync(p, isLstat);
+  }
+
+  public openSync(p: string, flag: FileFlag, mode: number): File {
+    // Sanity check: Is this open/close permitted?
+    const fd = this._sync.openSync(p, flag, mode);
+    fd.closeSync();
+    return new MirrorFile(this, p, flag, this._sync.statSync(p, false), this._sync.readFileSync(p, null, FileFlag.getFileFlag('r')));
+  }
+
+  public unlinkSync(p: string): void {
+    this._sync.unlinkSync(p);
+    this.enqueueOp({
+      apiMethod: 'unlink',
+      arguments: [p]
+    });
+  }
+
+  public rmdirSync(p: string): void {
+    this._sync.rmdirSync(p);
+    this.enqueueOp({
+      apiMethod: 'rmdir',
+      arguments: [p]
+    });
+  }
+
+  public mkdirSync(p: string, mode: number): void {
+    this._sync.mkdirSync(p, mode);
+    this.enqueueOp({
+      apiMethod: 'mkdir',
+      arguments: [p, mode]
+    });
+  }
+
+  public readdirSync(p: string): string[] {
+    return this._sync.readdirSync(p);
+  }
+
+  public existsSync(p: string): boolean {
+    return this._sync.existsSync(p);
+  }
+
+  public chmodSync(p: string, isLchmod: boolean, mode: number): void {
+    this._sync.chmodSync(p, isLchmod, mode);
+    this.enqueueOp({
+      apiMethod: 'chmod',
+      arguments: [p, isLchmod, mode]
+    });
+  }
+
+  public chownSync(p: string, isLchown: boolean, uid: number, gid: number): void {
+    this._sync.chownSync(p, isLchown, uid, gid);
+    this.enqueueOp({
+      apiMethod: 'chown',
+      arguments: [p, isLchown, uid, gid]
+    });
+  }
+
+  public utimesSync(p: string, atime: Date, mtime: Date): void {
+    this._sync.utimesSync(p, atime, mtime);
+    this.enqueueOp({
+      apiMethod: 'utimes',
+      arguments: [p, atime, mtime]
+    });
+  }
+
   /**
    * Called once to load up files from async storage into sync storage.
    */
-  public initialize(userCb: BFSOneArgCallback, deprecateMsg = true): void {
-    if (deprecateMsg) {
-      console.warn(`[AsyncMirror] AsyncMirror.initialize() is deprecated and will be removed in the next major version. Please use 'AsyncMirror.Create({ sync: (sync file system instance), async: (async file system instance)}, cb)' to create and initialize AsyncMirror instances.`);
-    }
+  private _initialize(userCb: BFSOneArgCallback): void {
     const callbacks = this._initializeCallbacks;
 
     const end = (e?: ApiError): void => {
@@ -222,103 +297,6 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
       }
     } else {
       userCb();
-    }
-  }
-
-  public isReadOnly(): boolean { return false; }
-  public supportsSynch(): boolean { return true; }
-  public supportsLinks(): boolean { return false; }
-  public supportsProps(): boolean { return this._sync.supportsProps() && this._async.supportsProps(); }
-
-  public renameSync(oldPath: string, newPath: string): void {
-    this.checkInitialized();
-    this._sync.renameSync(oldPath, newPath);
-    this.enqueueOp({
-      apiMethod: 'rename',
-      arguments: [oldPath, newPath]
-    });
-  }
-
-  public statSync(p: string, isLstat: boolean): Stats {
-    this.checkInitialized();
-    return this._sync.statSync(p, isLstat);
-  }
-
-  public openSync(p: string, flag: FileFlag, mode: number): File {
-    this.checkInitialized();
-    // Sanity check: Is this open/close permitted?
-    const fd = this._sync.openSync(p, flag, mode);
-    fd.closeSync();
-    return new MirrorFile(this, p, flag, this._sync.statSync(p, false), this._sync.readFileSync(p, null, FileFlag.getFileFlag('r')));
-  }
-
-  public unlinkSync(p: string): void {
-    this.checkInitialized();
-    this._sync.unlinkSync(p);
-    this.enqueueOp({
-      apiMethod: 'unlink',
-      arguments: [p]
-    });
-  }
-
-  public rmdirSync(p: string): void {
-    this.checkInitialized();
-    this._sync.rmdirSync(p);
-    this.enqueueOp({
-      apiMethod: 'rmdir',
-      arguments: [p]
-    });
-  }
-
-  public mkdirSync(p: string, mode: number): void {
-    this.checkInitialized();
-    this._sync.mkdirSync(p, mode);
-    this.enqueueOp({
-      apiMethod: 'mkdir',
-      arguments: [p, mode]
-    });
-  }
-
-  public readdirSync(p: string): string[] {
-    this.checkInitialized();
-    return this._sync.readdirSync(p);
-  }
-
-  public existsSync(p: string): boolean {
-    this.checkInitialized();
-    return this._sync.existsSync(p);
-  }
-
-  public chmodSync(p: string, isLchmod: boolean, mode: number): void {
-    this.checkInitialized();
-    this._sync.chmodSync(p, isLchmod, mode);
-    this.enqueueOp({
-      apiMethod: 'chmod',
-      arguments: [p, isLchmod, mode]
-    });
-  }
-
-  public chownSync(p: string, isLchown: boolean, uid: number, gid: number): void {
-    this.checkInitialized();
-    this._sync.chownSync(p, isLchown, uid, gid);
-    this.enqueueOp({
-      apiMethod: 'chown',
-      arguments: [p, isLchown, uid, gid]
-    });
-  }
-
-  public utimesSync(p: string, atime: Date, mtime: Date): void {
-    this.checkInitialized();
-    this._sync.utimesSync(p, atime, mtime);
-    this.enqueueOp({
-      apiMethod: 'utimes',
-      arguments: [p, atime, mtime]
-    });
-  }
-
-  private checkInitialized(): void {
-    if (!this._isInitialized) {
-      throw new ApiError(ErrorCode.EPERM, "AsyncMirrorFS is not initialized. Please initialize AsyncMirrorFS using its initialize() method before using it.");
     }
   }
 

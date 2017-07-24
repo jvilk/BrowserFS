@@ -202,11 +202,7 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
 
   private _FS: any;
 
-  /**
-   * Creates a BrowserFS file system for the given Emscripten file system.
-   * @param _FS The Emscripten file system (`FS`).
-   */
-  constructor(_FS: any) {
+  private constructor(_FS: any) {
     super();
     this._FS = _FS;
   }

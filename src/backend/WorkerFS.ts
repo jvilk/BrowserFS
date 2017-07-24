@@ -1,7 +1,7 @@
 import {BaseFileSystem, FileSystem, BFSOneArgCallback, BFSCallback} from '../core/file_system';
 import {ApiError} from '../core/api_error';
 import {FileFlag} from '../core/file_flag';
-import {buffer2ArrayBuffer, arrayBuffer2Buffer, emptyBuffer, deprecationMessage} from '../core/util';
+import {buffer2ArrayBuffer, arrayBuffer2Buffer, emptyBuffer} from '../core/util';
 import {File, BaseFile} from '../core/file';
 import {default as Stats} from '../core/node_fs_stats';
 import PreloadFile from '../generic/preload_file';
@@ -490,8 +490,8 @@ export interface WorkerFSOptions {
  */
 export default class WorkerFS extends BaseFileSystem implements FileSystem {
   public static Create(opts: WorkerFSOptions, cb: BFSCallback<WorkerFS>): void {
-    const fs = new WorkerFS(opts.worker, false);
-    fs.initialize(() => {
+    const fs = new WorkerFS(opts.worker);
+    fs._initialize(() => {
       cb(null, fs);
     });
   }
@@ -675,15 +675,12 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
   private _supportProps: boolean = false;
 
   /**
-   * **Deprecated. Please use WorkerFS.Create() method instead.**
-   *
    * Constructs a new WorkerFS instance that connects with BrowserFS running on
    * the specified worker.
    */
-  constructor(worker: Worker, deprecateMsg = true) {
+  private constructor(worker: Worker) {
     super();
     this._worker = worker;
-    deprecationMessage(deprecateMsg, "WorkerFS", {worker: "Web Worker instance"});
     this._worker.addEventListener('message', (e: MessageEvent) => {
       const resp: object = e.data;
       if (isAPIResponse(resp)) {
@@ -701,30 +698,6 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
 
   public getName(): string {
     return 'WorkerFS';
-  }
-
-  /**
-   * **Deprecated. Please use WorkerFS.Create() method to construct and initialize WorkerFS instances.**
-   *
-   * Called once both local and remote sides are set up.
-   */
-  public initialize(cb: () => void): void {
-    if (!this._isInitialized) {
-      const message: IAPIRequest = {
-        browserfsMessage: true,
-        method: 'probe',
-        args: [this._argLocal2Remote(emptyBuffer()), this._callbackConverter.toRemoteArg((probeResponse: IProbeResponse) => {
-          this._isInitialized = true;
-          this._isReadOnly = probeResponse.isReadOnly;
-          this._supportLinks = probeResponse.supportsLinks;
-          this._supportProps = probeResponse.supportsProps;
-          cb();
-        })]
-      };
-      this._worker.postMessage(message);
-    } else {
-      cb();
-    }
   }
 
   public isReadOnly(): boolean { return this._isReadOnly; }
@@ -796,6 +769,28 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
       method: method,
       args: [(<WorkerFile> fd).toRemoteArg(), this._callbackConverter.toRemoteArg(cb)]
     });
+  }
+
+  /**
+   * Called once both local and remote sides are set up.
+   */
+  private _initialize(cb: () => void): void {
+    if (!this._isInitialized) {
+      const message: IAPIRequest = {
+        browserfsMessage: true,
+        method: 'probe',
+        args: [this._argLocal2Remote(emptyBuffer()), this._callbackConverter.toRemoteArg((probeResponse: IProbeResponse) => {
+          this._isInitialized = true;
+          this._isReadOnly = probeResponse.isReadOnly;
+          this._supportLinks = probeResponse.supportsLinks;
+          this._supportProps = probeResponse.supportsProps;
+          cb();
+        })]
+      };
+      this._worker.postMessage(message);
+    } else {
+      cb();
+    }
   }
 
   private _argRemote2Local(arg: any): any {

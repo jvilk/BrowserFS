@@ -20,23 +20,19 @@ export default function ZipFSFactory(cb: (name: string, objs: FileSystem[]) => v
       function fetchZip(zipFilename: string): void {
         fs.readFile(zipFilename, (e, data?) => {
           if (e) throw e;
-          if (countdown === 1) {
-            ZipFS.Create({
-              zipData: data,
-              name: zipFilename
-            }, (e, fs?) => {
-              if (e) {
-                throw e;
-              }
-              countdown--;
-              rv.push(fs);
-              cb('ZipFS', rv);
-            });
-          } else {
+          ZipFS.Create({
+            zipData: data,
+            name: zipFilename
+          }, (e, fs?) => {
+            if (e) {
+              throw e;
+            }
             countdown--;
-            // Remove when constructor is deprecated.
-            rv.push(new ZipFS(data, zipFilename));
-          }
+            rv.push(fs);
+            if (countdown === 0) {
+              cb('ZipFS', rv);
+            }
+          });
         });
       }
       for (i = 0; i < zipFiles.length; i++) {

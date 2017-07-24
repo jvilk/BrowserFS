@@ -35,7 +35,14 @@ export default class FolderAdapter extends BaseFileSystem implements FileSystem 
    * Creates a FolderAdapter instance with the given options.
    */
   public static Create(opts: FolderAdapterOptions, cb: BFSCallback<FolderAdapter>): void {
-    cb(null, new FolderAdapter(opts.folder, opts.wrapped));
+    const fa = new FolderAdapter(opts.folder, opts.wrapped);
+    fa._initialize(function(e?) {
+      if (e) {
+        cb(e);
+      } else {
+        cb(null, fa);
+      }
+    });
   }
   public static isAvailable(): boolean {
     return true;
@@ -43,25 +50,24 @@ export default class FolderAdapter extends BaseFileSystem implements FileSystem 
 
   public _wrapped: FileSystem;
   public _folder: string;
-  /**
-   * Wraps a file system, and uses the given folder as its root.
-   *
-   *
-   *
-   * @param folder The folder to use as the root directory.
-   * @param wrapped The file system to wrap.
-   */
-  constructor(folder: string, wrapped: FileSystem) {
+
+  private constructor(folder: string, wrapped: FileSystem) {
     super();
     this._folder = folder;
     this._wrapped = wrapped;
   }
 
+  public getName(): string { return this._wrapped.getName(); }
+  public isReadOnly(): boolean { return this._wrapped.isReadOnly(); }
+  public supportsProps(): boolean { return this._wrapped.supportsProps(); }
+  public supportsSynch(): boolean { return this._wrapped.supportsSynch(); }
+  public supportsLinks(): boolean { return false; }
+
   /**
    * Initialize the file system. Ensures that the wrapped file system
    * has the given folder.
    */
-  public initialize(cb: (e?: ApiError) => void) {
+  private _initialize(cb: (e?: ApiError) => void) {
     this._wrapped.exists(this._folder, (exists: boolean) => {
       if (exists) {
         cb();
@@ -72,12 +78,6 @@ export default class FolderAdapter extends BaseFileSystem implements FileSystem 
       }
     });
   }
-
-  public getName(): string { return this._wrapped.getName(); }
-  public isReadOnly(): boolean { return this._wrapped.isReadOnly(); }
-  public supportsProps(): boolean { return this._wrapped.supportsProps(); }
-  public supportsSynch(): boolean { return this._wrapped.supportsSynch(); }
-  public supportsLinks(): boolean { return false; }
 }
 
 /**
