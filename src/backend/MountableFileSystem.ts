@@ -5,6 +5,11 @@ import fs from '../core/node_fs';
 import * as path from 'path';
 import {mkdirpSync} from '../core/util';
 
+export interface MountableFileSystemOptions {
+  // Locations of mount points. Can be empty.
+  [mountPoint: string]: FileSystem;
+}
+
 /**
  * The MountableFileSystem allows you to mount multiple backend types or
  * multiple instantiations of the same backend into a single file system tree.
@@ -26,6 +31,13 @@ import {mkdirpSync} from '../core/util';
  * With no mounted file systems, `MountableFileSystem` acts as a simple `InMemory` filesystem.
  */
 export default class MountableFileSystem extends BaseFileSystem implements FileSystem {
+  public static Create(opts: MountableFileSystemOptions, cb: BFSCallback<MountableFileSystem>): void {
+    const fs = new MountableFileSystem();
+    Object.keys(opts).forEach((mountPoint) => {
+      fs.mount(mountPoint, opts[mountPoint]);
+    });
+    cb(null, fs);
+  }
   public static isAvailable(): boolean {
     return true;
   }

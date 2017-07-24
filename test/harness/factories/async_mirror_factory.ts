@@ -6,12 +6,14 @@ import IDBFSFactory from './idbfs_factory';
 export default function AsyncMirrorFactory(cb: (name: string, objs: FileSystem[]) => void) {
   IDBFSFactory((name: string, obj: FileSystem[]) => {
 	 if (obj.length > 0) {
-		 var amfs = new AsyncMirrorFS(new InMemoryFileSystem(), obj[0]);
-     amfs.initialize((err?) => {
-       if (err) {
-         throw err;
+     AsyncMirrorFS.Create({
+       sync: new InMemoryFileSystem(),
+       async: obj[0]
+     }, (e, rv?) => {
+       if (e) {
+         throw e;
        } else {
-         cb('AsyncMirror', [amfs]);
+         cb('AsyncMirror', [rv]);
        }
      });
 	 } else {

@@ -331,6 +331,11 @@ export interface FileSystem {
  */
 export interface FileSystemConstructor {
   /**
+   * **Core**: Creates a file system of this given type with the given
+   * options.
+   */
+  Create(options: object, cb: BFSCallback<FileSystem>): void;
+  /**
    * **Core**: Returns 'true' if this filesystem is available in the current
    * environment. For example, a `localStorage`-backed filesystem will return
    * 'false' if the browser does not support that API.

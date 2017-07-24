@@ -1,10 +1,10 @@
 import {ApiError, ErrorCode} from '../core/api_error';
 import {default as Stats, FileType} from '../core/node_fs_stats';
-import {SynchronousFileSystem, FileSystem} from '../core/file_system';
+import {SynchronousFileSystem, FileSystem, BFSCallback} from '../core/file_system';
 import {File} from '../core/file';
 import {FileFlag, ActionType} from '../core/file_flag';
 import {NoSyncFile} from '../generic/preload_file';
-import {copyingSlice} from '../core/util';
+import {copyingSlice, deprecationMessage} from '../core/util';
 import * as path from 'path';
 
 /**
@@ -1139,6 +1139,13 @@ class JolietDirectory extends Directory<JolietDirectoryRecord> {
   }
 }
 
+export interface IsoFSOptions {
+  // The ISO file in a buffer.
+  data: Buffer;
+  // The name of the ISO (optional; used for debug messages / identification via getName()).
+  name?: string;
+}
+
 /**
  * Mounts an ISO file as a read-only file system.
  *
@@ -1147,6 +1154,17 @@ class JolietDirectory extends Directory<JolietDirectoryRecord> {
  * * Microsoft Joliet and Rock Ridge extensions to the ISO9660 standard
  */
 export default class IsoFS extends SynchronousFileSystem implements FileSystem {
+  public static Create(opts: IsoFSOptions, cb: BFSCallback<IsoFS>): void {
+    let fs: IsoFS | undefined;
+    let e: ApiError | undefined;
+    try {
+      fs = new IsoFS(opts.data, opts.name, false);
+    } catch (e) {
+      e = e;
+    } finally {
+      cb(e, fs);
+    }
+  }
   public static isAvailable(): boolean {
     return true;
   }
@@ -1161,9 +1179,10 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
    * @param data The ISO file in a buffer.
    * @param name The name of the ISO (optional; used for debug messages / identification via getName()).
    */
-  constructor(data: Buffer, name: string = "") {
+  constructor(data: Buffer, name: string = "", deprecateMsg = true) {
     super();
     this._data = data;
+    deprecationMessage(deprecateMsg, "IsoFS", {data: "ISO data as a Buffer", name: name});
     // Skip first 16 sectors.
     let vdTerminatorFound = false;
     let i = 16 * 2048;
@@ -1198,8 +1217,8 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
   }
 
   public getName(): string {
-    let name = `IsoFS${this._name}-${this._pvd.name()}`;
-    if (this._root.hasRockRidge()) {
+    let name = `IsoFS${this._name}${this._pvd ? `-${this._pvd.name()}` : ''}`;
+    if (this._root && this._root.hasRockRidge()) {
       name += `-RockRidge`;
     }
     return name;

@@ -18,9 +18,20 @@ export default function DBFSFactory(cb: (name: string, obj: FileSystem[]) => voi
           console.debug("Successfully connected to " + info.name + "'s Dropbox");
         });
 
-        var fs = new DropboxFileSystem(authed_client);
-        fs.empty(() => {
-          cb('Dropbox', [fs]);
+        DropboxFileSystem.Create({
+          client: authed_client
+        }, (e, fs) => {
+          if (e) {
+            throw e;
+          } else {
+            fs.empty((e) => {
+              if (e) {
+                throw e;
+              } else {
+                cb('Dropbox', [fs]);
+              }
+            });
+          }
         });
       });
     };

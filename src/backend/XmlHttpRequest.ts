@@ -1,7 +1,7 @@
 import {BaseFileSystem, FileSystem, BFSCallback} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
-import {copyingSlice} from '../core/util';
+import {copyingSlice, deprecationMessage} from '../core/util';
 import {File} from '../core/file';
 import Stats from '../core/node_fs_stats';
 import {NoSyncFile} from '../generic/preload_file';
@@ -22,10 +22,25 @@ function tryToString(buff: Buffer, encoding: string, cb: BFSCallback<string>) {
   }
 }
 
+export interface XmlHttpRequestOptions {
+  // URL to a file index or a file index object, generated with the make_xhrfs_index script
+  index: string | object;
+  // Used as the URL prefix for fetched files.
+  // Default: Fetch files relative to `url`.
+  baseUrl?: string;
+}
+
 /**
  * A simple filesystem backed by XMLHttpRequests.
  */
 export default class XmlHttpRequest extends BaseFileSystem implements FileSystem {
+  public static Create(opts: XmlHttpRequestOptions, cb: BFSCallback<XmlHttpRequest>): void {
+    if (typeof(opts.index) === "string") {
+      XmlHttpRequest.FromURL(opts.index, cb, opts.baseUrl, false);
+    } else {
+      cb(null, new XmlHttpRequest(opts.index, opts.baseUrl, false));
+    }
+  }
   public static isAvailable(): boolean {
     return typeof(XMLHttpRequest) !== "undefined" && XMLHttpRequest !== null;
   }
@@ -34,12 +49,15 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
    * Uses the base URL as the URL prefix for fetched files.
    * @param cb Called when the file system has been instantiated, or if an error occurs.
    */
-  public static FromURL(url: string, cb: (e: Error | null, fs?: XmlHttpRequest) => void, baseUrl = url.slice(0, url.lastIndexOf('/') + 1)): void {
+  public static FromURL(url: string, cb: BFSCallback<XmlHttpRequest>, baseUrl = url.slice(0, url.lastIndexOf('/') + 1), deprecateMsg = true): void {
+    if (deprecateMsg) {
+      console.warn(`[XmlHttpRequest] XmlHttpRequest.FromURL() is deprecated and will be removed in the next major release. Please use 'XmlHttpRequest.Create({ index: "${url}", baseUrl: "${baseUrl}" }, cb)' instead.`);
+    }
     asyncDownloadFile(url, "json", (e, data?) => {
       if (e) {
         cb(e);
       } else {
-        cb(null, new XmlHttpRequest(data, baseUrl));
+        cb(null, new XmlHttpRequest(data, baseUrl, false));
       }
     });
   }
@@ -90,7 +108,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
    * the file system will fetch file `data/foo.txt`. The browser will access the file relative to the currrent webpage
    * URL.
    */
-  constructor(listingUrlOrObj: string | object, prefixUrl: string = '') {
+  constructor(listingUrlOrObj: string | object, prefixUrl: string = '', deprecateMsg = true) {
     super();
     if (!listingUrlOrObj) {
       listingUrlOrObj = 'index.json';
@@ -103,7 +121,6 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
 
     let listing: object | null = null;
     if (typeof(listingUrlOrObj) === "string") {
-      console.warn(`Providing a directory listings URL to the XmlHttpRequest constructor is deprecated and may cause your webpage to freeze up. Please use the asynchronous 'FromURL' version instead, or provide the listings object directly. This API usage will be removed in the next major revision.`);
       listing = this._requestFileSync(<string> listingUrlOrObj, 'json');
       if (!listing) {
         throw new Error("Unable to find listing at URL: ${listingUrlOrObj}");
@@ -111,6 +128,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
     } else {
       listing = listingUrlOrObj;
     }
+    deprecationMessage(deprecateMsg, "XmlHttpRequest", { index: typeof(listingUrlOrObj) === "string" ? listingUrlOrObj : "file index as an object", baseUrl: prefixUrl});
 
     this._index = FileIndex.fromListing(listing);
   }

@@ -16,20 +16,31 @@ export default function ZipFSFactory(cb: (name: string, objs: FileSystem[]) => v
         rv: FileSystem[] = [], fs: typeof _fs = BrowserFS.BFSRequire('fs');
       // Leverage the XHRFS to download the fixtures for this FS.
       BrowserFS.initialize(xhrfs[0]);
+      let countdown = zipFiles.length;
+      function fetchZip(zipFilename: string): void {
+        fs.readFile(zipFilename, (e, data?) => {
+          if (e) throw e;
+          if (countdown === 1) {
+            ZipFS.Create({
+              zipData: data,
+              name: zipFilename
+            }, (e, fs?) => {
+              if (e) {
+                throw e;
+              }
+              countdown--;
+              rv.push(fs);
+              cb('ZipFS', rv);
+            });
+          } else {
+            countdown--;
+            // Remove when constructor is deprecated.
+            rv.push(new ZipFS(data, zipFilename));
+          }
+        });
+      }
       for (i = 0; i < zipFiles.length; i++) {
-        ((zipFilename: string, isLast: boolean) => {
-          fs.readFile(zipFilename, (e, data?) => {
-            if (e) throw e;
-            if (isLast) {
-              ZipFS.computeIndex(data, (index) => {
-                rv.push(new ZipFS(index, zipFilename));
-                cb('zipfs', rv);
-              });
-            } else {
-              rv.push(new ZipFS(data, zipFilename));
-            }
-          });
-        })('/test/fixtures/zipfs/zipfs_fixtures_l' + zipFiles[i] + '.zip', i == zipFiles.length - 1);
+        fetchZip(`/test/fixtures/zipfs/zipfs_fixtures_l${zipFiles[i]}.zip`);
       }
     });
   } else {

@@ -6,7 +6,7 @@ import {ApiError, ErrorCode} from '../core/api_error';
 import {File} from '../core/file';
 import {each as asyncEach} from 'async';
 import * as path from 'path';
-import {arrayBuffer2Buffer, buffer2ArrayBuffer, emptyBuffer} from '../core/util';
+import {arrayBuffer2Buffer, buffer2ArrayBuffer, emptyBuffer, deprecationMessage} from '../core/util';
 
 /**
  * @hidden
@@ -336,6 +336,10 @@ export class DropboxFile extends PreloadFile<DropboxFileSystem> implements File 
   }
 }
 
+export interface DropboxFileSystemOptions {
+  client: Dropbox.Client;
+}
+
 /**
  * A read/write file system backed by Dropbox cloud storage.
  *
@@ -344,6 +348,10 @@ export class DropboxFile extends PreloadFile<DropboxFileSystem> implements File 
  * NOTE: You must use the v0.10 version of the [Dropbox JavaScript SDK](https://www.npmjs.com/package/dropbox).
  */
 export default class DropboxFileSystem extends BaseFileSystem implements FileSystem {
+  public static Create(opts: DropboxFileSystemOptions, cb: BFSCallback<DropboxFileSystem>): void {
+    cb(null, new DropboxFileSystem(opts.client, false));
+  }
+
   public static isAvailable(): boolean {
     // Checks if the Dropbox library is loaded.
     return typeof Dropbox !== 'undefined';
@@ -357,9 +365,10 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
    *
    * Note that you must use the old v0.10 version of the Dropbox JavaScript SDK.
    */
-  constructor(client: Dropbox.Client) {
+  constructor(client: Dropbox.Client, deprecateMsg = true) {
     super();
     this._client = new CachedDropboxClient(client);
+    deprecationMessage(deprecateMsg, "Dropbox", { client: "authenticated dropbox client instance" });
     constructErrorCodeLookup();
   }
 

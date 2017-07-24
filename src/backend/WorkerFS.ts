@@ -1,7 +1,7 @@
 import {BaseFileSystem, FileSystem, BFSOneArgCallback, BFSCallback} from '../core/file_system';
 import {ApiError} from '../core/api_error';
 import {FileFlag} from '../core/file_flag';
-import {buffer2ArrayBuffer, arrayBuffer2Buffer, emptyBuffer} from '../core/util';
+import {buffer2ArrayBuffer, arrayBuffer2Buffer, emptyBuffer, deprecationMessage} from '../core/util';
 import {File, BaseFile} from '../core/file';
 import {default as Stats} from '../core/node_fs_stats';
 import PreloadFile from '../generic/preload_file';
@@ -456,6 +456,11 @@ class WorkerFile extends PreloadFile<WorkerFS> {
   }
 }
 
+export interface WorkerFSOptions {
+  // The target worker hosting a file system that you want to connect to.
+  worker: Worker;
+}
+
 /**
  * WorkerFS lets you access a BrowserFS instance that is running in a different
  * JavaScript context (e.g. access BrowserFS in one of your WebWorkers, or
@@ -482,6 +487,12 @@ class WorkerFile extends PreloadFile<WorkerFS> {
  * of the configuration option of the remote FS.
  */
 export default class WorkerFS extends BaseFileSystem implements FileSystem {
+  public static Create(opts: WorkerFSOptions, cb: BFSCallback<WorkerFS>): void {
+    const fs = new WorkerFS(opts.worker, false);
+    fs.initialize(() => {
+      cb(null, fs);
+    });
+  }
   public static isAvailable(): boolean {
     return typeof(importScripts) !== 'undefined' || typeof(Worker) !== 'undefined';
   }
@@ -665,9 +676,10 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
    * Constructs a new WorkerFS instance that connects with BrowserFS running on
    * the specified worker.
    */
-  constructor(worker: Worker) {
+  constructor(worker: Worker, deprecateMsg = true) {
     super();
     this._worker = worker;
+    deprecationMessage(deprecateMsg, "WorkerFS", {worker: "Web Worker instance"});
     this._worker.addEventListener('message', (e: MessageEvent) => {
       const resp: object = e.data;
       if (isAPIResponse(resp)) {

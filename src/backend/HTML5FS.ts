@@ -7,7 +7,7 @@ import {File as IFile} from '../core/file';
 import * as path from 'path';
 import global from '../core/global';
 import {each as asyncEach} from 'async';
-import {buffer2ArrayBuffer, arrayBuffer2Buffer} from '../core/util';
+import {buffer2ArrayBuffer, arrayBuffer2Buffer, deprecationMessage} from '../core/util';
 
 /**
  * @hidden
@@ -142,6 +142,13 @@ export class HTML5FSFile extends PreloadFile<HTML5FS> implements IFile {
   }
 }
 
+export interface HTML5FSOptions {
+  // storage quota to request, in megabytes. Allocated value may be less.
+  size?: number;
+  // window.PERSISTENT or window.TEMPORARY. Defaults to PERSISTENT.
+  type?: number;
+}
+
 /**
  * A read-write filesystem backed by the HTML5 FileSystem API.
  *
@@ -149,6 +156,10 @@ export class HTML5FSFile extends PreloadFile<HTML5FS> implements IFile {
  * only available in Chrome.
  */
 export default class HTML5FS extends BaseFileSystem implements IFileSystem {
+  public static Create(opts: HTML5FSOptions, cb: BFSCallback<HTML5FS>): void {
+    const fs = new HTML5FS(opts.size, opts.type, false);
+    fs.allocate((e) => e ? cb(e) : cb(null, fs), false);
+  }
   public static isAvailable(): boolean {
     return !!_getFS;
   }
@@ -167,11 +178,12 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
    * @param size storage quota to request, in megabytes. Allocated value may be less.
    * @param type window.PERSISTENT or window.TEMPORARY. Defaults to PERSISTENT.
    */
-  constructor(size: number = 5, type: number = global.PERSISTENT) {
+  constructor(size: number = 5, type: number = global.PERSISTENT, deprecateMsg = true) {
     super();
     // Convert MB to bytes.
     this.size = 1024 * 1024 * size;
     this.type = type;
+    deprecationMessage(deprecateMsg, "HTML5FS", {size: size, type: type});
   }
 
   public getName(): string {
@@ -198,7 +210,10 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
    * Requests a storage quota from the browser to back this FS.
    * Must be called before file system can be used!
    */
-  public allocate(cb: BFSOneArgCallback = () => {/*nop*/}): void {
+  public allocate(cb: BFSOneArgCallback = () => {/*nop*/}, deprecateMsg = true): void {
+    if (deprecateMsg) {
+      console.warn(`[HTML5FS] HTML5FS.allocate() is deprecated and will be removed in the next major release. Please use 'HTML5FS.Create({type: ${this.type}, size: ${this.size}}, cb)' to create and allocate HTML5FS instances.`);
+    }
     const success = (fs: FileSystem): void => {
       this.fs = fs;
       cb();

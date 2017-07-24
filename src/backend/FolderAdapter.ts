@@ -1,11 +1,21 @@
-import {BaseFileSystem, FileSystem} from '../core/file_system';
+import {BaseFileSystem, FileSystem, BFSCallback} from '../core/file_system';
 import * as path from 'path';
 import {ApiError} from '../core/api_error';
+
+export interface FolderAdapterOptions {
+  // The folder to use as the root directory.
+  folder: string;
+  // The file system to wrap.
+  wrapped: FileSystem;
+}
 
 /**
  * The FolderAdapter file system wraps a file system, and scopes all interactions to a subfolder of that file system.
  */
 export default class FolderAdapter extends BaseFileSystem implements FileSystem {
+  public static Create(opts: FolderAdapterOptions, cb: BFSCallback<FolderAdapter>): void {
+    cb(null, new FolderAdapter(opts.folder, opts.wrapped));
+  }
   public static isAvailable(): boolean {
     return true;
   }

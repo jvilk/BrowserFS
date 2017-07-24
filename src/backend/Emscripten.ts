@@ -180,10 +180,18 @@ export class EmscriptenFile extends BaseFile implements File {
   }
 }
 
+export interface EmscriptenFileSystemOptions {
+  // The Emscripten file system (`FS`)
+  FS: any;
+}
+
 /**
  * Mounts an Emscripten file system into the BrowserFS file system.
  */
 export default class EmscriptenFileSystem extends SynchronousFileSystem {
+  public static Create(opts: EmscriptenFileSystemOptions, cb: BFSCallback<EmscriptenFileSystem>): void {
+    cb(null, new EmscriptenFileSystem(opts.FS));
+  }
   public static isAvailable(): boolean { return true; }
 
   private _FS: any;

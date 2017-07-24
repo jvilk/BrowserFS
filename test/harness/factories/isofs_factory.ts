@@ -18,16 +18,27 @@ export default function IsoFSFactory(cb: (name: string, objs: FileSystem[]) => v
       // Add three Zip FS variants for different zip files.
       let isoFiles = fs.readdirSync(isodir);
       let rv: FileSystem[] = [];
-      for (let i = 0; i < isoFiles.length; i++) {
-        ((isoFilename: string, isLast: boolean) => {
-          fs.readFile(isoFilename, (e, data?) => {
-            if (e) throw e;
-            rv.push(new IsoFS(data, isoFilename));
-            if (isLast) {
+      let countdown = isoFiles.length;
+      function fetchIso(isoFilename: string): void {
+        fs.readFile(isoFilename, (e, data?) => {
+          if (e) throw e;
+          IsoFS.Create({
+            data: data,
+            name: isoFilename
+          }, (e, fs?) => {
+            if (e) {
+              throw e;
+            }
+            rv.push(fs);
+            countdown--;
+            if (countdown === 0) {
               cb('IsoFS', rv);
             }
           });
-        })(`${isodir}/${isoFiles[i]}`, i == isoFiles.length - 1);
+        });
+      }
+      for (let i = 0; i < isoFiles.length; i++) {
+        fetchIso(`${isodir}/${isoFiles[i]}`);
       }
     });
   } else {
