@@ -43,9 +43,11 @@ export default function() {
   function next() {
     __numWaiting--;
     // Re-mount OverlayFS.
-    rootFS = <any> new OverlayFS(writable, readable);
-    rootFS.initialize(function(e) {
+    OverlayFS.Create({
+      writable, readable
+    }, (e, overlayFs?) => {
       assert(!e, 'Received initialization error.');
+      rootFS = <any> overlayFs;
       fs.initialize(rootFS);
       rootFS = (<OverlayFS> <any> rootFS).unwrap();
       assert(fs.existsSync('/test/fixtures/files/node/a.js'), 'a.js\'s restoration was not persisted.');

@@ -3,19 +3,19 @@ import {FileSystem} from '../../../src/core/file_system';
 
 export default function IDBFSFactory(cb: (name: string, obj: FileSystem[]) => void): void {
   if (IndexedDBFileSystem.isAvailable()) {
-    new IndexedDBFileSystem((e, idbfs?) => {
+    IndexedDBFileSystem.Create({
+      storeName: `test-${Math.random()}`
+    }, (e, fs?) => {
       if (e) {
         throw e;
-      } else {
-        idbfs.empty((e?) => {
-          if (e) {
-            throw e;
-          } else {
-            cb('IndexedDB', [idbfs]);
-          }
-        });
       }
-    }, 'test' + Math.random());
+      fs.empty((e?) => {
+        if (e) {
+          throw e;
+        }
+        cb('IndexedDB', [fs]);
+      });
+    });
   } else {
     cb('IndexedDB', []);
   }

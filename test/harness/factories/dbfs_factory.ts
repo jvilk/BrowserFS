@@ -24,12 +24,17 @@ export default function DBFSFactory(cb: (name: string, obj: FileSystem[]) => voi
       client.usersGetCurrentAccount(undefined).then((res) => {
         return new Promise<DropboxFileSystem>((resolve, reject) => {
           console.debug(`Successfully connected to ${res.name.display_name}'s Dropbox.`);
-          const fs = new DropboxFileSystem(client);
-          fs.empty((e) => {
-            if (e) {
-              reject(e);
+          DropboxFileSystem.Create({ client }, (e, fs?) => {
+            if (fs) {
+              fs.empty((e) => {
+                if (e) {
+                  reject(e);
+                } else {
+                  resolve(fs);
+                }
+              });
             } else {
-              resolve(fs);
+              reject(e);
             }
           });
         });

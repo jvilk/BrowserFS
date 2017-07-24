@@ -1,7 +1,7 @@
 import {BaseFileSystem, FileSystem, BFSCallback} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
-import {copyingSlice} from '../core/util';
+import {copyingSlice, deprecationMessage} from '../core/util';
 import {File} from '../core/file';
 import Stats from '../core/node_fs_stats';
 import {NoSyncFile} from '../generic/preload_file';
@@ -23,23 +23,74 @@ function tryToString(buff: Buffer, encoding: string, cb: BFSCallback<string>) {
 }
 
 /**
- * A simple filesystem backed by XMLHttpRequests.
+ * Configuration options for an XmlHttpRequest file system.
+ */
+export interface XmlHttpRequestOptions {
+  // URL to a file index as a JSON file or the file index object itself, generated with the make_xhrfs_index script
+  index: string | object;
+  // Used as the URL prefix for fetched files.
+  // Default: Fetch files relative to `url`.
+  baseUrl?: string;
+}
+
+/**
+ * A simple filesystem backed by XMLHttpRequests. You must create a directory listing using the
+ * `make_xhrfs_index` tool provided by BrowserFS.
+ *
+ * If you install BrowserFS globally with `npm i -g browserfs`, you can generate a listing by
+ * running `make_xhrfs_index` in your terminal in the directory you would like to index:
+ *
+ * ```
+ * make_xhrfs_index > index.json
+ * ```
+ *
+ * Listings objects look like the following:
+ *
+ * ```json
+ * {
+ *   "home": {
+ *     "jvilk": {
+ *       "someFile.txt": null,
+ *       "someDir": {
+ *         // Empty directory
+ *       }
+ *     }
+ *   }
+ * }
+ * ```
+ *
+ * *This example has the folder `/home/jvilk` with subfile `someFile.txt` and subfolder `someDir`.*
  */
 export default class XmlHttpRequest extends BaseFileSystem implements FileSystem {
+  /**
+   * Construct an XmlHttpRequest file system backend with the given options.
+   */
+  public static Create(opts: XmlHttpRequestOptions, cb: BFSCallback<XmlHttpRequest>): void {
+    if (typeof(opts.index) === "string") {
+      XmlHttpRequest.FromURL(opts.index, cb, opts.baseUrl, false);
+    } else {
+      cb(null, new XmlHttpRequest(opts.index, opts.baseUrl, false));
+    }
+  }
   public static isAvailable(): boolean {
     return typeof(XMLHttpRequest) !== "undefined" && XMLHttpRequest !== null;
   }
   /**
+   * **Deprecated. Please use XmlHttpRequest.Create() method instead to construct XmlHttpRequest objects.**
+   *
    * Constructs an XmlHttpRequest object using the directory listing at the given URL.
    * Uses the base URL as the URL prefix for fetched files.
    * @param cb Called when the file system has been instantiated, or if an error occurs.
    */
-  public static FromURL(url: string, cb: (e: Error | null, fs?: XmlHttpRequest) => void, baseUrl = url.slice(0, url.lastIndexOf('/') + 1)): void {
+  public static FromURL(url: string, cb: BFSCallback<XmlHttpRequest>, baseUrl = url.slice(0, url.lastIndexOf('/') + 1), deprecateMsg = true): void {
+    if (deprecateMsg) {
+      console.warn(`[XmlHttpRequest] XmlHttpRequest.FromURL() is deprecated and will be removed in the next major release. Please use 'XmlHttpRequest.Create({ index: "${url}", baseUrl: "${baseUrl}" }, cb)' instead.`);
+    }
     asyncDownloadFile(url, "json", (e, data?) => {
       if (e) {
         cb(e);
       } else {
-        cb(null, new XmlHttpRequest(data, baseUrl));
+        cb(null, new XmlHttpRequest(data, baseUrl, false));
       }
     });
   }
@@ -47,38 +98,10 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
   public readonly prefixUrl: string;
   private _index: FileIndex<{}>;
   /**
+   * **Deprecated. Please use XmlHttpRequest.Create() method instead to construct XmlHttpRequest objects.**
+   *
    * Constructs the file system. You must provide the directory listing as a JSON object
    * produced by the `make_xhrfs_index` script.
-   *
-   * If you install BrowserFS globally with `npm i -g browserfs`, you can generate a listing by
-   * running `make_xhrfs_index` in your terminal in the directory you would like to index:
-   *
-   * ```
-   * make_xhrfs_index > index.json
-   * ```
-   *
-   * Listings objects look like the following:
-   *
-   * ```json
-   * {
-   *   "home": {
-   *     "jvilk": {
-   *       "someFile.txt": null,
-   *       "someDir": {
-   *         // Empty directory
-   *       }
-   *     }
-   *   }
-   * }
-   * ```
-   *
-   * *This example has the folder `/home/jvilk` with subfile `someFile.txt` and subfolder `someDir`.*
-   *
-   * Alternatively, you can construct an XmlHttpRequest object by calling the static `FromURL` function:
-   *
-   * ```javascript
-   * BrowserFS.FileSystem.XmlHttpRequest.FromURL('http://example.com/files/index.json');
-   * ```
    *
    * **DEPRECATED:** You may pass a URL to the file index to the constructor, which will fetch the file index
    * *synchronously* and may freeze up the web page. This behavior will be removed in the next major version
@@ -90,7 +113,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
    * the file system will fetch file `data/foo.txt`. The browser will access the file relative to the currrent webpage
    * URL.
    */
-  constructor(listingUrlOrObj: string | object, prefixUrl: string = '') {
+  constructor(listingUrlOrObj: string | object, prefixUrl: string = '', deprecateMsg = true) {
     super();
     if (!listingUrlOrObj) {
       listingUrlOrObj = 'index.json';
@@ -103,9 +126,6 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
 
     let listing: object | null = null;
     if (typeof(listingUrlOrObj) === "string") {
-      // tslint:disable-next-line:no-console
-      console.warn(`Providing a directory listings URL to the XmlHttpRequest constructor is deprecated and may cause your webpage to freeze up. Please use the asynchronous 'FromURL' version instead, or provide the listings object directly. This API usage will be removed in the next major revision.`);
-      // tslint:enable-next-line:no-console
       listing = this._requestFileSync(<string> listingUrlOrObj, 'json');
       if (!listing) {
         throw new Error(`Unable to find listing at URL: ${listingUrlOrObj}`);
@@ -113,6 +133,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
     } else {
       listing = listingUrlOrObj;
     }
+    deprecationMessage(deprecateMsg, "XmlHttpRequest", { index: typeof(listingUrlOrObj) === "string" ? listingUrlOrObj : "file index as an object", baseUrl: prefixUrl});
 
     this._index = FileIndex.fromListing(listing);
   }

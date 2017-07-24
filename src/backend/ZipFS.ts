@@ -1,10 +1,10 @@
 import {ApiError, ErrorCode} from '../core/api_error';
 import {default as Stats, FileType} from '../core/node_fs_stats';
-import {SynchronousFileSystem, FileSystem} from '../core/file_system';
+import {SynchronousFileSystem, FileSystem, BFSCallback} from '../core/file_system';
 import {File} from '../core/file';
 import {FileFlag, ActionType} from '../core/file_flag';
 import {NoSyncFile} from '../generic/preload_file';
-import {Arrayish, arrayish2Buffer, copyingSlice} from '../core/util';
+import {Arrayish, arrayish2Buffer, copyingSlice, deprecationMessage} from '../core/util';
 import ExtendedASCII from '../generic/extended_ascii';
 import setImmediate from '../generic/setImmediate';
 /**
@@ -470,6 +470,16 @@ export class ZipTOC {
 }
 
 /**
+ * Configuration options for a ZipFS file system.
+ */
+export interface ZipFSOptions {
+  // The zip file as a binary buffer.
+  zipData: Buffer;
+  // The name of the zip file (optional).
+  name?: string;
+}
+
+/**
  * Zip file-backed filesystem
  * Implemented according to the standard:
  * http://www.pkware.com/documents/casestudies/APPNOTE.TXT
@@ -516,13 +526,34 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
   public static readonly CompressionMethod = CompressionMethod;
   /* tslint:enable:variable-name */
 
+  /**
+   * Constructs a ZipFS instance with the given options.
+   */
+  public static Create(opts: ZipFSOptions, cb: BFSCallback<ZipFS>): void {
+    try {
+      ZipFS.computeIndex(opts.zipData, (zipTOC) => {
+        const fs = new ZipFS(zipTOC, opts.name, false);
+        cb(null, fs);
+      }, false);
+    } catch (e) {
+      cb(e);
+    }
+  }
+
   public static isAvailable(): boolean { return true; }
 
   public static RegisterDecompressionMethod(m: CompressionMethod, fcn: (data: Buffer, compressedSize: number, uncompressedSize: number, flags: number) => Buffer): void {
     decompressionMethods[m] = fcn;
   }
 
-  public static computeIndex(data: Buffer, cb: (zipTOC: ZipTOC) => void) {
+  /**
+   * **Deprecated. Please use ZipFS.Create() method instead.**
+   */
+  public static computeIndex(data: Buffer, cb: (zipTOC: ZipTOC) => void, deprecateMsg = true) {
+    // TODO: Refactor to plumb errors through. Right now, they throw.
+    if (deprecateMsg) {
+      console.warn(`[ZipFS] ZipFS.computeIndex is now deprecated, and will be removed in the next major release. Please update your code to use 'ZipFS.Create({ zipData: zip file as a Buffer}, cb)' instead.`);
+    }
     const index: FileIndex<CentralDirectory> = new FileIndex<CentralDirectory>();
     const eocd: EndOfCentralDirectory = ZipFS.getEOCD(data);
     if (eocd.diskNumber() !== eocd.cdDiskNumber()) {
@@ -603,25 +634,11 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
   private data: Buffer;
 
   /**
-   * Constructs a ZipFS from the given zip file data. Name is optional, and is
-   * used primarily for our unit tests' purposes to differentiate different
-   * test zip files in test output.
-   *
-   * To avoid webpage responsiveness issues with large zip files, you can
-   * call the static function `computeIndex` first to construct the zipfile's
-   * table of contents, and then pass that object into the constructor:
-   *
-   * ```javascript
-   * BrowserFS.FileSystem.ZipFS.computeIndex(myLargeZipFile, function(zipTOC) {
-   *   var myZipFs = new BrowserFS.FileSystem.ZipFS(zipTOC);
-   * });
-   * ```
-   *
-   * `computeIndex` will process the zip file in chunks to keep your webpage
-   * responsive.
+   * **Deprecated. Please use ZipFS.Create() method to construct ZipFS objects.**
    */
-  constructor(input: Buffer | ZipTOC, private name: string = '') {
+  constructor(input: Buffer | ZipTOC, private name: string = '', deprecateMsg = true) {
     super();
+    deprecationMessage(deprecateMsg, "ZipFS", {zipData: "zip data as a Buffer", name: name});
     if (input instanceof ZipTOC) {
       this._index = input.index;
       this._directoryEntries = input.directoryEntries;

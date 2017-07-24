@@ -2,6 +2,7 @@ import {FileSystem, BaseFileSystem, BFSOneArgCallback, BFSCallback} from '../cor
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
 import {File} from '../core/file';
+import {deprecationMessage} from '../core/util';
 import {default as Stats} from '../core/node_fs_stats';
 import PreloadFile from '../generic/preload_file';
 import LockedFS from '../generic/locked_fs';
@@ -971,24 +972,55 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 }
 
 /**
+ * Configuration options for OverlayFS instances.
+ */
+export interface OverlayFSOptions {
+  // The file system to write modified files to.
+  writable: FileSystem;
+  // The file system that initially populates this file system.
+  readable: FileSystem;
+}
+
+/**
  * OverlayFS makes a read-only filesystem writable by storing writes on a second,
  * writable file system. Deletes are persisted via metadata stored on the writable
  * file system.
  */
 export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
+  /**
+   * Constructs and initializes an OverlayFS instance with the given options.
+   */
+  public static Create(opts: OverlayFSOptions, cb: BFSCallback<OverlayFS>): void {
+    try {
+      const fs = new OverlayFS(opts.writable, opts.readable, false);
+      fs.initialize((e?) => {
+        cb(e, fs);
+      }, false);
+    } catch (e) {
+      cb(e);
+    }
+  }
   public static isAvailable(): boolean {
     return UnlockedOverlayFS.isAvailable();
   }
 
   /**
+   * **Deprecated. Please use OverlayFS.Create() method instead.**
    * @param writable The file system to write modified files to.
    * @param readable The file system that initially populates this file system.
    */
-  constructor(writable: FileSystem, readable: FileSystem) {
+  constructor(writable: FileSystem, readable: FileSystem, deprecateMsg = true) {
     super(new UnlockedOverlayFS(writable, readable));
+    deprecationMessage(deprecateMsg, "OverlayFS", {readable: "readable file system", writable: "writable file system"});
   }
 
-  public initialize(cb: BFSOneArgCallback): void {
+  /**
+   * **Deprecated. Please use OverlayFS.Create() to construct and initialize OverlayFS instances.**
+   */
+  public initialize(cb: BFSOneArgCallback, deprecateMsg = true): void {
+    if (deprecateMsg) {
+      console.warn(`[OverlayFS] OverlayFS.initialize() is deprecated and will be removed in the next major release. Please use 'OverlayFS.Create({readable: readable file system instance, writable: writable file system instance}, cb)' to create and initialize OverlayFS instances.`);
+    }
     super.initialize(cb);
   }
 

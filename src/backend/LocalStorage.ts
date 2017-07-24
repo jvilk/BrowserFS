@@ -1,3 +1,4 @@
+import {BFSCallback} from '../core/file_system';
 import {SyncKeyValueStore, SimpleSyncStore, SyncKeyValueFileSystem, SimpleSyncRWTransaction, SyncKeyValueRWTransaction} from '../generic/key_value_filesystem';
 import {ApiError, ErrorCode} from '../core/api_error';
 import global from '../core/global';
@@ -81,6 +82,15 @@ export class LocalStorageStore implements SyncKeyValueStore, SimpleSyncStore {
  * LocalStorageStore to our SyncKeyValueFileSystem.
  */
 export default class LocalStorageFileSystem extends SyncKeyValueFileSystem {
+  /**
+   * Creates a LocalStorageFileSystem instance.
+   */
+  public static Create(cb: BFSCallback<LocalStorageFileSystem>): void;
+  public static Create(options: any, cb: BFSCallback<LocalStorageFileSystem>): void;
+  public static Create(options: any, cb?: any): void {
+    const normalizedCb: BFSCallback<LocalStorageFileSystem> = cb ? cb : options;
+    normalizedCb(null, new LocalStorageFileSystem());
+  }
   public static isAvailable(): boolean {
     return typeof global.localStorage !== 'undefined';
   }

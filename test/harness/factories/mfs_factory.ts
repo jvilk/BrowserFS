@@ -4,12 +4,15 @@ import InMemoryFileSystem from '../../../src/backend/InMemory';
 
 export default function MFSFactory(cb: (name: string, objs: FileSystem[]) => void) {
   if (MountableFileSystem.isAvailable()) {
-    // Add mountable filesystem
-    var im2 = new InMemoryFileSystem(), im3 = new InMemoryFileSystem(),
-      mfsObj = new MountableFileSystem();
-    mfsObj.mount('/test', im2);
-    mfsObj.mount('/tmp', im3);
-    cb('MountableFileSystem', [mfsObj]);
+    MountableFileSystem.Create({
+      '/test': new InMemoryFileSystem(),
+      '/tmp': new InMemoryFileSystem()
+    }, (e, fs?) => {
+      if (e) {
+        throw e;
+      }
+      cb('MountableFileSystem', [fs]);
+    });
   } else {
     cb('MountableFileSystem', []);
   }

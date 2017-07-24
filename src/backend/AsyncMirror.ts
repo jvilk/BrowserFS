@@ -1,9 +1,10 @@
-import {FileSystem, SynchronousFileSystem, BFSOneArgCallback} from '../core/file_system';
+import {FileSystem, SynchronousFileSystem, BFSOneArgCallback, BFSCallback} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag} from '../core/file_flag';
 import {File} from '../core/file';
 import Stats from '../core/node_fs_stats';
 import PreloadFile from '../generic/preload_file';
+import {deprecationMessage} from '../core/util';
 import * as path from 'path';
 
 /**
@@ -35,6 +36,16 @@ class MirrorFile extends PreloadFile<AsyncMirror> implements File {
 }
 
 /**
+ * Configuration options for the AsyncMirror file system.
+ */
+export interface AsyncMirrorOptions {
+  // The synchronous file system to mirror the asynchronous file system to.
+  sync: FileSystem;
+  // The asynchronous file system to mirror.
+  async: FileSystem;
+}
+
+/**
  * AsyncMirrorFS mirrors a synchronous filesystem into an asynchronous filesystem
  * by:
  *
@@ -50,16 +61,50 @@ class MirrorFile extends PreloadFile<AsyncMirror> implements File {
  * IndexedDB synchronously.
  *
  * ```javascript
- * new BrowserFS.FileSystem.IndexedDB(function (e, idbfs) {
- *   var inMemory = new BrowserFS.FileSystem.InMemory();
- *   var mirrored = new BrowserFS.FileSystem.AsyncMirror(inMemory, idbfs);
- *   mirrored.initialize(function (e) {
- *     BrowserFS.initialized(mirrored);
+ * BrowserFS.configure({
+ *   fs: "AsyncMirror",
+ *   options: {
+ *     sync: { fs: "InMemory" },
+ *     async: { fs: "IndexedDB" }
+ *   }
+ * }, function(e) {
+ *   // BrowserFS is initialized and ready-to-use!
+ * });
+ * ```
+ *
+ * Or, alternatively:
+ *
+ * ```javascript
+ * BrowserFS.FileSystem.IndexedDB.Create(function(e, idbfs) {
+ *   BrowserFS.FileSystem.InMemory.Create(function(e, inMemory) {
+ *     BrowserFS.FileSystem.AsyncMirror({
+ *       sync: inMemory, async: idbfs
+ *     }, function(e, mirrored) {
+ *       BrowserFS.initialize(mirrored);
+ *     });
  *   });
  * });
  * ```
  */
 export default class AsyncMirror extends SynchronousFileSystem implements FileSystem {
+  /**
+   * Constructs and initializes an AsyncMirror file system with the given options.
+   */
+  public static Create(opts: AsyncMirrorOptions, cb: BFSCallback<AsyncMirror>): void {
+    try {
+      const fs = new AsyncMirror(opts.sync, opts.async, false);
+      fs.initialize((e?) => {
+        if (e) {
+          cb(e);
+        } else {
+          cb(null, fs);
+        }
+      }, false);
+    } catch (e) {
+      cb(e);
+    }
+  }
+
   public static isAvailable(): boolean {
     return true;
   }
@@ -75,19 +120,22 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
   private _initializeCallbacks: ((e?: ApiError) => void)[] = [];
 
   /**
+   * **Deprecated; use AsyncMirror.Create() method instead.**
+   *
    * Mirrors the synchronous file system into the asynchronous file system.
    *
    * **IMPORTANT**: You must call `initialize` on the file system before it can be used.
    * @param sync The synchronous file system to mirror the asynchronous file system to.
    * @param async The asynchronous file system to mirror.
    */
-  constructor(sync: FileSystem, async: FileSystem) {
+  constructor(sync: FileSystem, async: FileSystem, deprecateMsg = true) {
     super();
     this._sync = sync;
     this._async = async;
     if (!sync.supportsSynch()) {
       throw new Error("The first argument to AsyncMirror needs to be a synchronous file system.");
     }
+    deprecationMessage(deprecateMsg, "AsyncMirror", { sync: "sync file system instance", async: "async file system instance"});
   }
 
   public getName(): string {
@@ -105,7 +153,10 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
   /**
    * Called once to load up files from async storage into sync storage.
    */
-  public initialize(userCb: BFSOneArgCallback): void {
+  public initialize(userCb: BFSOneArgCallback, deprecateMsg = true): void {
+    if (deprecateMsg) {
+      console.warn(`[AsyncMirror] AsyncMirror.initialize() is deprecated and will be removed in the next major version. Please use 'AsyncMirror.Create({ sync: (sync file system instance), async: (async file system instance)}, cb)' to create and initialize AsyncMirror instances.`);
+    }
     const callbacks = this._initializeCallbacks;
 
     const end = (e?: ApiError): void => {

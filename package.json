@@ -1,6 +1,6 @@
 {
   "name": "browserfs",
-  "version": "1.3.0",
+  "version": "1.4.1",
   "description": "A filesystem in your browser!",
   "main": "dist/browserfs.js",
   "typings": "dist/browserfs",
@@ -67,7 +67,7 @@
     "tslint": "^5.5.0",
     "typescript": "^2.4.2",
     "webpack": "^3.3.0",
-    "webpack-dev-server": "^2.6.0"
+    "webpack-dev-server": "^2.6.1"
   },
   "scripts": {
     "lint": "tslint -c src/tslint.json --project src/tsconfig.json",
@@ -105,7 +105,7 @@
     "test": "npm-run-all test:prepare test:karma",
     "watch-test": "npm-run-all test:prepare --parallel watch:scripts test:watch test:karma",
     "prepublish": "npm run dist",
-    "docs": "typedoc --mode file --out doc --excludePrivate --readme src/DOCS.md --name BrowserFS src"
+    "docs": "typedoc --mode modules --out doc --excludePrivate --readme src/DOCS.md --name BrowserFS --module umd src"
   },
   "dependencies": {
     "async": "^2.5.0",

@@ -2,7 +2,7 @@ import {BFSOneArgCallback, BFSCallback} from '../core/file_system';
 import {AsyncKeyValueROTransaction, AsyncKeyValueRWTransaction, AsyncKeyValueStore, AsyncKeyValueFileSystem} from '../generic/key_value_filesystem';
 import {ApiError, ErrorCode} from '../core/api_error';
 import global from '../core/global';
-import {arrayBuffer2Buffer, buffer2ArrayBuffer} from '../core/util';
+import {arrayBuffer2Buffer, buffer2ArrayBuffer, deprecationMessage} from '../core/util';
 /**
  * Get the indexedDB constructor for the current browser.
  * @hidden
@@ -185,9 +185,29 @@ export class IndexedDBStore implements AsyncKeyValueStore {
 }
 
 /**
+ * Configuration options for the IndexedDB file system.
+ */
+export interface IndexedDBFileSystemOptions {
+  // The name of this file system. You can have multiple IndexedDB file systems operating
+  // at once, but each must have a different name.
+  storeName?: string;
+}
+
+/**
  * A file system that uses the IndexedDB key value file system.
  */
 export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
+  /**
+   * Constructs an IndexedDB file system with the given options.
+   */
+  public static Create(cb: BFSCallback<IndexedDBFileSystem>): void;
+  public static Create(opts: IndexedDBFileSystemOptions, cb: BFSCallback<IndexedDBFileSystem>): void;
+  public static Create(opts: any, cb?: any): void {
+    const normalizedCb = cb ? cb : opts;
+    // tslint:disable-next-line:no-unused-new
+    new IndexedDBFileSystem(normalizedCb, cb && opts ? opts['storeName'] : undefined, false);
+    // tslint:enable-next-line:no-unused-new
+  }
   public static isAvailable(): boolean {
     // In Safari's private browsing mode, indexedDB.open returns NULL.
     // In Firefox, it throws an exception.
@@ -200,6 +220,8 @@ export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
     }
   }
   /**
+   * **Deprecated. Use IndexedDB.Create() method instead.**
+   *
    * Constructs an IndexedDB file system.
    * @param cb Called once the database is instantiated and ready for use.
    *   Passes an error if there was an issue instantiating the database.
@@ -207,16 +229,17 @@ export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
    *   multiple IndexedDB file systems operating at once, but each must have
    *   a different name.
    */
-  constructor(cb: BFSCallback<IndexedDBFileSystem>, storeName?: string) {
+  constructor(cb: BFSCallback<IndexedDBFileSystem>, storeName?: string, deprecateMsg: boolean = true) {
     super();
-    const store = new IndexedDBStore((e): void => {
+    this.store = new IndexedDBStore((e): void => {
       if (e) {
         cb(e);
       } else {
-        this.init(store, (e?) => {
+        this.init(this.store, (e?) => {
           cb(e, this);
         });
       }
     }, storeName);
+    deprecationMessage(deprecateMsg, "IndexedDB", {storeName: storeName});
   }
 }

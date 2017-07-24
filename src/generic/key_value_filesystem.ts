@@ -719,7 +719,7 @@ export class AsyncKeyValueFile extends PreloadFile<AsyncKeyValueFileSystem> impl
 export class AsyncKeyValueFileSystem extends BaseFileSystem {
   public static isAvailable(): boolean { return true; }
 
-  private store: AsyncKeyValueStore;
+  protected store: AsyncKeyValueStore;
 
   /**
    * Initializes the file system. Typically called by subclasses' async

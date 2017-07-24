@@ -29,18 +29,20 @@ export default function() {
   assert(fs.existsSync('/test/fixtures/files/node') === false, 'Directory must be deleted');
   assert(fs.readdirSync('/test/fixtures/files').indexOf('node') === -1, 'Directory must be empty.');
 
-  var newCombined = new OverlayFS(writable, readable);
-  newCombined.initialize(function() {
-    assert(newCombined.existsSync('/test/fixtures/files/node') === false, 'Directory must still be deleted.');
-    assert(newCombined.readdirSync('/test/fixtures/files').indexOf('node') === -1, "Directory must still be empty.");
+  OverlayFS.Create({readable, writable}, (e, newCombined) => {
+    newCombined.initialize(function() {
+      assert(newCombined.existsSync('/test/fixtures/files/node') === false, 'Directory must still be deleted.');
+      assert(newCombined.readdirSync('/test/fixtures/files').indexOf('node') === -1, "Directory must still be empty.");
 
-    var newFs = new OverlayFS(new InMemory(), readable);
-    newFs.initialize(function() {
-      fs.initialize(newFs);
-      assert(fs.existsSync('/test/fixtures/files/node') === true, "Directory must be back");
-      assert(fs.readdirSync('/test/fixtures/files').indexOf('node') > -1, "Directory must be back.");
-      // XXX: Remake the tmpdir.
-      fs.mkdirSync(common.tmpDir);
+      OverlayFS.Create({ writable: new InMemory(), readable}, (e, newFs) => {
+        newFs.initialize(function() {
+          fs.initialize(newFs);
+          assert(fs.existsSync('/test/fixtures/files/node') === true, "Directory must be back");
+          assert(fs.readdirSync('/test/fixtures/files').indexOf('node') > -1, "Directory must be back.");
+          // XXX: Remake the tmpdir.
+          fs.mkdirSync(common.tmpDir);
+        });
+      });
     });
   });
 };
