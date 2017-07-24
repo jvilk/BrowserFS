@@ -82,6 +82,9 @@ export class LocalStorageStore implements SyncKeyValueStore, SimpleSyncStore {
  * LocalStorageStore to our SyncKeyValueFileSystem.
  */
 export default class LocalStorageFileSystem extends SyncKeyValueFileSystem {
+  /**
+   * Creates a LocalStorageFileSystem instance.
+   */
   public static Create(cb: BFSCallback<LocalStorageFileSystem>): void;
   public static Create(options: any, cb: BFSCallback<LocalStorageFileSystem>): void;
   public static Create(options: any, cb?: any): void {

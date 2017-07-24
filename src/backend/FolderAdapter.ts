@@ -2,6 +2,9 @@ import {BaseFileSystem, FileSystem, BFSCallback} from '../core/file_system';
 import * as path from 'path';
 import {ApiError} from '../core/api_error';
 
+/**
+ * Configuration options for a FolderAdapter file system.
+ */
 export interface FolderAdapterOptions {
   // The folder to use as the root directory.
   folder: string;
@@ -11,8 +14,26 @@ export interface FolderAdapterOptions {
 
 /**
  * The FolderAdapter file system wraps a file system, and scopes all interactions to a subfolder of that file system.
+ *
+ * Example: Given a file system `foo` with folder `bar` and file `bar/baz`...
+ *
+ * ```javascript
+ * BrowserFS.configure({
+ *   fs: "FolderAdapter",
+ *   options: {
+ *     folder: "bar",
+ *     wrapped: foo
+ *   }
+ * }, function(e) {
+ *   var fs = BrowserFS.BFSRequire('fs');
+ *   fs.readdirSync('/'); // ['baz']
+ * });
+ * ```
  */
 export default class FolderAdapter extends BaseFileSystem implements FileSystem {
+  /**
+   * Creates a FolderAdapter instance with the given options.
+   */
   public static Create(opts: FolderAdapterOptions, cb: BFSCallback<FolderAdapter>): void {
     cb(null, new FolderAdapter(opts.folder, opts.wrapped));
   }
@@ -25,12 +46,7 @@ export default class FolderAdapter extends BaseFileSystem implements FileSystem 
   /**
    * Wraps a file system, and uses the given folder as its root.
    *
-   * Example: Given a file system `foo` with folder `bar` and file `bar/baz`...
    *
-   * ```javascript
-   * var adapter = new BrowserFS.FileSystem.FolderAdapter('bar', foo);
-   * adapter.readdirSync('/'); // ['baz']
-   * ```
    *
    * @param folder The folder to use as the root directory.
    * @param wrapped The file system to wrap.

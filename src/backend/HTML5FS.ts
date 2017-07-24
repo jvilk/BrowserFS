@@ -156,6 +156,9 @@ export interface HTML5FSOptions {
  * only available in Chrome.
  */
 export default class HTML5FS extends BaseFileSystem implements IFileSystem {
+  /**
+   * Creates an HTML5FS instance with the given options.
+   */
   public static Create(opts: HTML5FSOptions, cb: BFSCallback<HTML5FS>): void {
     const fs = new HTML5FS(opts.size, opts.type, false);
     fs.allocate((e) => e ? cb(e) : cb(null, fs), false);
@@ -169,6 +172,8 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
   private size: number;
   private type: number;
   /**
+   * **Deprecated. Please use HTML5FS.Create() method instead.**
+   *
    * Creates a new HTML5 FileSystem-backed BrowserFS file system of the given size
    * and storage type.
    *
@@ -207,6 +212,8 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
   }
 
   /**
+   * **Deprecated. Please use Create() method instead to create and allocate an HTML5FS.**
+   *
    * Requests a storage quota from the browser to back this FS.
    * Must be called before file system can be used!
    */

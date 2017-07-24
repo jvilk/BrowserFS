@@ -18,7 +18,8 @@ if ((<any> process)['initializeTTYs']) {
 }
 
 /**
- * @hidden
+ * Installs BFSRequire as global `require`, a Node Buffer polyfill as the global `Buffer` variable,
+ * and a Node process polyfill as the global `process` variable.
  */
 export function install(obj: any) {
   obj.Buffer = Buffer;
@@ -43,7 +44,7 @@ export function registerFileSystem(name: string, fs: FileSystemConstructor) {
 }
 
 /**
- * @hidden
+ * Polyfill for CommonJS `require()`. For example, can call `BFSRequire('fs')` to get a 'fs' module polyfill.
  */
 export function BFSRequire(module: 'fs'): typeof fs;
 export function BFSRequire(module: 'path'): typeof path;
@@ -70,15 +71,15 @@ export function BFSRequire(module: string): any {
 }
 
 /**
- * @hidden
+ * Initializes BrowserFS with the given root file system.
  */
 export function initialize(rootfs: FileSystem) {
   return fs.initialize(rootfs);
 }
 
 /**
- * Configure BrowserFS with an object containing file system names and configurations.
- * @hidden
+ * Creates a file system with the given configuration, and initializes BrowserFS with it.
+ * See the FileSystemConfiguration type for more info on the configuration object.
  */
 export function configure(config: FileSystemConfiguration, cb: BFSOneArgCallback): void {
   getFileSystem(config, (e, fs?) => {
@@ -91,11 +92,37 @@ export function configure(config: FileSystemConfiguration, cb: BFSOneArgCallback
   });
 }
 
+/**
+ * Specifies a file system backend type and its options.
+ *
+ * Individual options can recursively contain FileSystemConfiguration objects for
+ * option values that require file systems.
+ *
+ * For example, to mirror Dropbox to LocalStorage with AsyncMirror, use the following
+ * object:
+ *
+ * ```javascript
+ * var config = {
+ *   fs: "AsyncMirror",
+ *   options: {
+ *     sync: {fs: "LocalStorage"},
+ *     async: {fs: "Dropbox", options: {client: anAuthenticatedDropboxSDKClient }}
+ *   }
+ * };
+ * ```
+ *
+ * The option object for each file system corresponds to that file system's option object passed to its `Create()` method.
+ */
 export interface FileSystemConfiguration {
   fs: string;
   options: any;
 }
 
+/**
+ * Retrieve a file system with the given configuration.
+ * @param config A FileSystemConfiguration object. See FileSystemConfiguration for details.
+ * @param cb Called when the file system is constructed, or when an error occurs.
+ */
 export function getFileSystem(config: FileSystemConfiguration, cb: BFSCallback<FileSystem>): void {
   const fsName = config['fs'];
   if (!fsName) {

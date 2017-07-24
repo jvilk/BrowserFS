@@ -971,6 +971,9 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
   }
 }
 
+/**
+ * Configuration options for OverlayFS instances.
+ */
 export interface OverlayFSOptions {
   // The file system to write modified files to.
   writable: FileSystem;
@@ -984,6 +987,9 @@ export interface OverlayFSOptions {
  * file system.
  */
 export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
+  /**
+   * Constructs and initializes an OverlayFS instance with the given options.
+   */
   public static Create(opts: OverlayFSOptions, cb: BFSCallback<OverlayFS>): void {
     try {
       const fs = new OverlayFS(opts.writable, opts.readable, false);
@@ -999,6 +1005,7 @@ export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
   }
 
   /**
+   * **Deprecated. Please use OverlayFS.Create() method instead.**
    * @param writable The file system to write modified files to.
    * @param readable The file system that initially populates this file system.
    */
@@ -1007,6 +1014,9 @@ export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
     deprecationMessage(deprecateMsg, "OverlayFS", {readable: "readable file system", writable: "writable file system"});
   }
 
+  /**
+   * **Deprecated. Please use OverlayFS.Create() to construct and initialize OverlayFS instances.**
+   */
   public initialize(cb: BFSOneArgCallback, deprecateMsg = true): void {
     if (deprecateMsg) {
       console.warn(`[OverlayFS] OverlayFS.initialize() is deprecated and will be removed in the next major release. Please use 'OverlayFS.Create({readable: readable file system instance, writable: writable file system instance}, cb)' to create and initialize OverlayFS instances.`);

@@ -103,7 +103,7 @@
     "test": "npm-run-all test:prepare test:karma",
     "watch-test": "npm-run-all test:prepare --parallel watch:scripts test:watch test:karma",
     "prepublish": "npm run dist",
-    "docs": "typedoc --mode file --out doc --excludePrivate --readme src/DOCS.md --name BrowserFS src"
+    "docs": "typedoc --mode modules --out doc --excludePrivate --readme src/DOCS.md --name BrowserFS --module umd src"
   },
   "dependencies": {
     "async": "^2.1.4",

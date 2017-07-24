@@ -26,12 +26,12 @@ BrowserFS is highly extensible, and ships with many filesystem backends:
 * `WorkerFS`: Lets you mount the BrowserFS file system configured in the main thread in a WebWorker, or the other way around!
 * `MountableFileSystem`: Lets you mount multiple file systems into a single directory hierarchy, as in *nix-based OSes.
 * `OverlayFS`: Mount a read-only file system as read-write by overlaying a writable file system on top of it. Like Docker's overlayfs, it will only write changed files to the writable file system.
-* `AsyncMirrorFS`: Use an asynchronous backend synchronously. Invaluable for Emscripten; let your Emscripten applications write to larger file stores with no additional effort!
+* `AsyncMirror`: Use an asynchronous backend synchronously. Invaluable for Emscripten; let your Emscripten applications write to larger file stores with no additional effort!
   * Note: Loads the entire contents of the file system into a synchronous backend during construction. Performs synchronous operations in-memory, and enqueues them to be mirrored onto the asynchronous backend.
 * `FolderAdapter`: Wraps a file system, and scopes all interactions to a subfolder of that file system.
 * `Emscripten`: Lets you mount Emscripten file systems inside BrowserFS.
 
-More backends can be defined by separate libraries, so long as they extend the `BaseFileSystem`. Multiple backends can be active at once at different locations in the directory hierarchy.
+More backends can be defined by separate libraries, so long as they extend the `BaseFileSystem` class. Multiple backends can be active at once at different locations in the directory hierarchy.
 
 For more information, see the [API documentation for BrowserFS](https://jvilk.com/browserfs/1.3.0/index.html).
 
@@ -52,6 +52,8 @@ and re-build.
 
 ### Using
 
+Using `BrowserFS.configure()`, you can easily configure BrowserFS to use a variety of file system types.
+
 Here's a simple usage example using the LocalStorage-backed file system:
 
 ```html
@@ -64,10 +66,16 @@ Here's a simple usage example using the LocalStorage-backed file system:
   // You can pass in an arbitrary object if you do not wish to pollute
   // the global namespace.
   BrowserFS.install(window);
-  // Constructs an instance of the LocalStorage-backed file system.
-  var lsfs = new BrowserFS.FileSystem.LocalStorage();
-  // Initialize it as the root file system.
-  BrowserFS.initialize(lsfs);
+  // Configures BrowserFS to use the LocalStorage file system.
+  BrowserFS.configure({
+    fs: "LocalStorage"
+  }, function(e) {
+    if (e) {
+      // An error happened!
+      throw e;
+    }
+    // Otherwise, BrowserFS is ready-to-use!
+  });
 </script>
 ```
 
@@ -78,6 +86,38 @@ var fs = require('fs');
 fs.writeFile('/test.txt', 'Cool, I can do this in the browser!', function(err) {
   fs.readFile('/test.txt', function(err, contents) {
     console.log(contents.toString());
+  });
+});
+```
+
+The following code mounts a zip file to `/zip`, in-memory storage to `/tmp`, and IndexedDB browser-local storage to `/home`:
+
+```js
+// Note: This is the new fetch API in the browser. You can use XHR too.
+fetch('mydata.zip').then(function(response) {
+  return response.arraybuffer();
+}).then(function(zipData) {
+  var Buffer = BrowserFS.BFSRequire('buffer').Buffer;
+
+  BrowserFS.configure({
+    fs: "MountableFileSystem",
+    options: {
+      "/zip": {
+        fs: "ZipFS",
+        options: {
+          // Wrap as Buffer object.
+          zipData: Buffer.from(zipData)
+        }
+      },
+      "/tmp": { fs: "InMemory" },
+      "/home": { fs: "IndexedDB" }
+    }
+  }, function(e) {
+    if (e) {
+      // An error occurred.
+      throw e;
+    }
+    // Otherwise, BrowserFS is ready to use!
   });
 });
 ```
@@ -154,17 +194,13 @@ simply `require('browserfs/dist/node/index')` instead.
 You can use any *synchronous* BrowserFS file systems with Emscripten!
 Persist particular folders in the Emscripten file system to `localStorage`, or enable Emscripten to synchronously download files from another folder as they are requested.
 
-Include `browserfs.min.js` into the page, and add code similar to the following to your `Module`'s `preRun` array:
+Include `browserfs.min.js` into the page, and configure BrowserFS prior to running your Emscripten code. Then, add code similar to the following to your `Module`'s `preRun` array:
 
 ```javascript
 /**
  * Mounts a localStorage-backed file system into the /data folder of Emscripten's file system.
  */
 function setupBFS() {
-  // Constructs an instance of the LocalStorage-backed file system.
-  var lsfs = new BrowserFS.FileSystem.LocalStorage();
-  // Initialize it as the root file system.
-  BrowserFS.initialize(lsfs);
   // Grab the BrowserFS Emscripten FS plugin.
   var BFS = new BrowserFS.EmscriptenFS();
   // Create the folder that we'll turn into a mount point.
@@ -184,20 +220,24 @@ If you wish to use an asynchronous BrowserFS backend with Emscripten (e.g. Dropb
  * @param dropboxClient An authenticated DropboxJS client.
  */
 function asyncSetup(dropboxClient, cb) {
-  var dbfs = new BrowserFS.FileSystem.Dropbox(dropboxClient);
-  // Wrap in AsyncMirrorFS.
-  var asyncMirror = new BrowserFS.FileSystem.AsyncMirror(
-    new BrowserFS.FileSystem.InMemory(), dbfs);
-
-  // Downloads the entire contents of the Dropbox backend into memory.
-  // You'll probably want to use an app folder, and check that you
-  // aren't pulling in a huge amount of data here.
-  asyncMirror.initialize(function(err) {
-    // Initialize it as the root file system.
-    BrowserFS.initialize(asyncMirror);
-    // BFS is ready for Emscripten!
-    cb();
-  });
+  // This wraps Dropbox in the AsyncMirror file system.
+  // BrowserFS will download all of Dropbox into an
+  // InMemory file system, and mirror operations to
+  // the two to keep them in sync.
+  BrowserFS.configure({
+    fs: "AsyncMirror",
+    options: {
+      sync: {
+        fs: "InMemory"
+      },
+      async: {
+        fs: "Dropbox",
+        options: {
+          client: dropboxClient
+        }
+      }
+    }
+  }, cb);
 }
 function setupBFS() {
   // Grab the BrowserFS Emscripten FS plugin.

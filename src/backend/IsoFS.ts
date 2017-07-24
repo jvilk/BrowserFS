@@ -1139,6 +1139,9 @@ class JolietDirectory extends Directory<JolietDirectoryRecord> {
   }
 }
 
+/**
+ * Options for IsoFS file system instances.
+ */
 export interface IsoFSOptions {
   // The ISO file in a buffer.
   data: Buffer;
@@ -1154,6 +1157,9 @@ export interface IsoFSOptions {
  * * Microsoft Joliet and Rock Ridge extensions to the ISO9660 standard
  */
 export default class IsoFS extends SynchronousFileSystem implements FileSystem {
+  /**
+   * Creates an IsoFS instance with the given options.
+   */
   public static Create(opts: IsoFSOptions, cb: BFSCallback<IsoFS>): void {
     let fs: IsoFS | undefined;
     let e: ApiError | undefined;
@@ -1175,6 +1181,8 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
   private _name: string;
 
   /**
+   * **Deprecated. Please use IsoFS.Create() method instead.**
+   *
    * Constructs a read-only file system from the given ISO.
    * @param data The ISO file in a buffer.
    * @param name The name of the ISO (optional; used for debug messages / identification via getName()).

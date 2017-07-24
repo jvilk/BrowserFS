@@ -188,6 +188,9 @@ export class IndexedDBStore implements AsyncKeyValueStore {
   }
 }
 
+/**
+ * Configuration options for the IndexedDB file system.
+ */
 export interface IndexedDBFileSystemOptions {
   // The name of this file system. You can have multiple IndexedDB file systems operating
   // at once, but each must have a different name.
@@ -198,9 +201,15 @@ export interface IndexedDBFileSystemOptions {
  * A file system that uses the IndexedDB key value file system.
  */
 export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
-  public static Create(opts: IndexedDBFileSystemOptions, cb: BFSCallback<IndexedDBFileSystem>): void {
+  /**
+   * Constructs an IndexedDB file system with the given options.
+   */
+  public static Create(cb: BFSCallback<IndexedDBFileSystem>): void;
+  public static Create(opts: IndexedDBFileSystemOptions, cb: BFSCallback<IndexedDBFileSystem>): void;
+  public static Create(opts: any, cb?: any): void {
+    const normalizedCb = cb ? cb : opts;
     // tslint:disable-next-line:no-unused-new
-    new IndexedDBFileSystem(cb, opts.storeName, false);
+    new IndexedDBFileSystem(normalizedCb, cb && opts ? opts['storeName'] : undefined, false);
     // tslint:enable-next-line:no-unused-new
   }
   public static isAvailable(): boolean {
@@ -215,6 +224,8 @@ export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
     }
   }
   /**
+   * **Deprecated. Use IndexedDB.Create() method instead.**
+   *
    * Constructs an IndexedDB file system.
    * @param cb Called once the database is instantiated and ready for use.
    *   Passes an error if there was an issue instantiating the database.

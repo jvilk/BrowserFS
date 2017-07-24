@@ -35,6 +35,9 @@ class MirrorFile extends PreloadFile<AsyncMirror> implements File {
   }
 }
 
+/**
+ * Configuration options for the AsyncMirror file system.
+ */
 export interface AsyncMirrorOptions {
   // The synchronous file system to mirror the asynchronous file system to.
   sync: FileSystem;
@@ -58,16 +61,35 @@ export interface AsyncMirrorOptions {
  * IndexedDB synchronously.
  *
  * ```javascript
- * new BrowserFS.FileSystem.IndexedDB(function (e, idbfs) {
- *   var inMemory = new BrowserFS.FileSystem.InMemory();
- *   var mirrored = new BrowserFS.FileSystem.AsyncMirror(inMemory, idbfs);
- *   mirrored.initialize(function (e) {
- *     BrowserFS.initialized(mirrored);
+ * BrowserFS.configure({
+ *   fs: "AsyncMirror",
+ *   options: {
+ *     sync: { fs: "InMemory" },
+ *     async: { fs: "IndexedDB" }
+ *   }
+ * }, function(e) {
+ *   // BrowserFS is initialized and ready-to-use!
+ * });
+ * ```
+ *
+ * Or, alternatively:
+ *
+ * ```javascript
+ * BrowserFS.FileSystem.IndexedDB.Create(function(e, idbfs) {
+ *   BrowserFS.FileSystem.InMemory.Create(function(e, inMemory) {
+ *     BrowserFS.FileSystem.AsyncMirror({
+ *       sync: inMemory, async: idbfs
+ *     }, function(e, mirrored) {
+ *       BrowserFS.initialize(mirrored);
+ *     });
  *   });
  * });
  * ```
  */
 export default class AsyncMirror extends SynchronousFileSystem implements FileSystem {
+  /**
+   * Constructs and initializes an AsyncMirror file system with the given options.
+   */
   public static Create(opts: AsyncMirrorOptions, cb: BFSCallback<AsyncMirror>): void {
     try {
       const fs = new AsyncMirror(opts.sync, opts.async, false);
@@ -98,6 +120,8 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
   private _initializeCallbacks: ((e?: ApiError) => void)[] = [];
 
   /**
+   * **Deprecated; use AsyncMirror.Create() method instead.**
+   *
    * Mirrors the synchronous file system into the asynchronous file system.
    *
    * **IMPORTANT**: You must call `initialize` on the file system before it can be used.

@@ -36,6 +36,9 @@ export class InMemoryStore implements SyncKeyValueStore, SimpleSyncStore {
  * Files are not persisted across page loads.
  */
 export default class InMemoryFileSystem extends SyncKeyValueFileSystem {
+  /**
+   * Creates an InMemoryFileSystem instance.
+   */
   public static Create(cb: BFSCallback<InMemoryFileSystem>): void;
   public static Create(options: any, cb: BFSCallback<InMemoryFileSystem>): void;
   public static Create(options: any, cb?: any): void {

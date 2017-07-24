@@ -22,8 +22,11 @@ function tryToString(buff: Buffer, encoding: string, cb: BFSCallback<string>) {
   }
 }
 
+/**
+ * Configuration options for an XmlHttpRequest file system.
+ */
 export interface XmlHttpRequestOptions {
-  // URL to a file index or a file index object, generated with the make_xhrfs_index script
+  // URL to a file index as a JSON file or the file index object itself, generated with the make_xhrfs_index script
   index: string | object;
   // Used as the URL prefix for fetched files.
   // Default: Fetch files relative to `url`.
@@ -31,9 +34,37 @@ export interface XmlHttpRequestOptions {
 }
 
 /**
- * A simple filesystem backed by XMLHttpRequests.
+ * A simple filesystem backed by XMLHttpRequests. You must create a directory listing using the
+ * `make_xhrfs_index` tool provided by BrowserFS.
+ *
+ * If you install BrowserFS globally with `npm i -g browserfs`, you can generate a listing by
+ * running `make_xhrfs_index` in your terminal in the directory you would like to index:
+ *
+ * ```
+ * make_xhrfs_index > index.json
+ * ```
+ *
+ * Listings objects look like the following:
+ *
+ * ```json
+ * {
+ *   "home": {
+ *     "jvilk": {
+ *       "someFile.txt": null,
+ *       "someDir": {
+ *         // Empty directory
+ *       }
+ *     }
+ *   }
+ * }
+ * ```
+ *
+ * *This example has the folder `/home/jvilk` with subfile `someFile.txt` and subfolder `someDir`.*
  */
 export default class XmlHttpRequest extends BaseFileSystem implements FileSystem {
+  /**
+   * Construct an XmlHttpRequest file system backend with the given options.
+   */
   public static Create(opts: XmlHttpRequestOptions, cb: BFSCallback<XmlHttpRequest>): void {
     if (typeof(opts.index) === "string") {
       XmlHttpRequest.FromURL(opts.index, cb, opts.baseUrl, false);
@@ -45,6 +76,8 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
     return typeof(XMLHttpRequest) !== "undefined" && XMLHttpRequest !== null;
   }
   /**
+   * **Deprecated. Please use XmlHttpRequest.Create() method instead to construct XmlHttpRequest objects.**
+   *
    * Constructs an XmlHttpRequest object using the directory listing at the given URL.
    * Uses the base URL as the URL prefix for fetched files.
    * @param cb Called when the file system has been instantiated, or if an error occurs.
@@ -65,38 +98,10 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
   public readonly prefixUrl: string;
   private _index: FileIndex<{}>;
   /**
+   * **Deprecated. Please use XmlHttpRequest.Create() method instead to construct XmlHttpRequest objects.**
+   *
    * Constructs the file system. You must provide the directory listing as a JSON object
    * produced by the `make_xhrfs_index` script.
-   *
-   * If you install BrowserFS globally with `npm i -g browserfs`, you can generate a listing by
-   * running `make_xhrfs_index` in your terminal in the directory you would like to index:
-   *
-   * ```
-   * make_xhrfs_index > index.json
-   * ```
-   *
-   * Listings objects look like the following:
-   *
-   * ```json
-   * {
-   *   "home": {
-   *     "jvilk": {
-   *       "someFile.txt": null,
-   *       "someDir": {
-   *         // Empty directory
-   *       }
-   *     }
-   *   }
-   * }
-   * ```
-   *
-   * *This example has the folder `/home/jvilk` with subfile `someFile.txt` and subfolder `someDir`.*
-   *
-   * Alternatively, you can construct an XmlHttpRequest object by calling the static `FromURL` function:
-   *
-   * ```javascript
-   * BrowserFS.FileSystem.XmlHttpRequest.FromURL('http://example.com/files/index.json');
-   * ```
    *
    * **DEPRECATED:** You may pass a URL to the file index to the constructor, which will fetch the file index
    * *synchronously* and may freeze up the web page. This behavior will be removed in the next major version

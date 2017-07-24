@@ -469,6 +469,9 @@ export class ZipTOC {
   }
 }
 
+/**
+ * Configuration options for a ZipFS file system.
+ */
 export interface ZipFSOptions {
   // The zip file as a binary buffer.
   zipData: Buffer;
@@ -523,6 +526,9 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
   public static readonly CompressionMethod = CompressionMethod;
   /* tslint:enable:variable-name */
 
+  /**
+   * Constructs a ZipFS instance with the given options.
+   */
   public static Create(opts: ZipFSOptions, cb: BFSCallback<ZipFS>): void {
     try {
       ZipFS.computeIndex(opts.zipData, (zipTOC) => {
@@ -540,6 +546,9 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
     decompressionMethods[m] = fcn;
   }
 
+  /**
+   * **Deprecated. Please use ZipFS.Create() method instead.**
+   */
   public static computeIndex(data: Buffer, cb: (zipTOC: ZipTOC) => void, deprecateMsg = true) {
     // TODO: Refactor to plumb errors through. Right now, they throw.
     if (deprecateMsg) {
@@ -625,22 +634,7 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
   private data: Buffer;
 
   /**
-   * Constructs a ZipFS from the given zip file data. Name is optional, and is
-   * used primarily for our unit tests' purposes to differentiate different
-   * test zip files in test output.
-   *
-   * To avoid webpage responsiveness issues with large zip files, you can
-   * call the static function `computeIndex` first to construct the zipfile's
-   * table of contents, and then pass that object into the constructor:
-   *
-   * ```javascript
-   * BrowserFS.FileSystem.ZipFS.computeIndex(myLargeZipFile, function(zipTOC) {
-   *   var myZipFs = new BrowserFS.FileSystem.ZipFS(zipTOC);
-   * });
-   * ```
-   *
-   * `computeIndex` will process the zip file in chunks to keep your webpage
-   * responsive.
+   * **Deprecated. Please use ZipFS.Create() method to construct ZipFS objects.**
    */
   constructor(input: Buffer | ZipTOC, private name: string = '', deprecateMsg = true) {
     super();

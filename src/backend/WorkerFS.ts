@@ -457,7 +457,7 @@ class WorkerFile extends PreloadFile<WorkerFS> {
 }
 
 export interface WorkerFSOptions {
-  // The target worker hosting a file system that you want to connect to.
+  // The target worker that you want to connect to, or the current worker if in a worker context.
   worker: Worker;
 }
 
@@ -480,7 +480,9 @@ export interface WorkerFSOptions {
  *
  * ```javascript
  *   // Set the remote file system as the root file system.
- *   BrowserFS.initialize(new BrowserFS.FileSystem.WorkerFS(self));
+ *   BrowserFS.configure({ fs: "WorkerFS", options: { worker: self }}, function(e) {
+ *     // Ready!
+ *   });
  * ```
  *
  * Note that synchronous operations are not permitted on the WorkerFS, regardless
@@ -673,6 +675,8 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
   private _supportProps: boolean = false;
 
   /**
+   * **Deprecated. Please use WorkerFS.Create() method instead.**
+   *
    * Constructs a new WorkerFS instance that connects with BrowserFS running on
    * the specified worker.
    */
@@ -700,6 +704,8 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
   }
 
   /**
+   * **Deprecated. Please use WorkerFS.Create() method to construct and initialize WorkerFS instances.**
+   *
    * Called once both local and remote sides are set up.
    */
   public initialize(cb: () => void): void {

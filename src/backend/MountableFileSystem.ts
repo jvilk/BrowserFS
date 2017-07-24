@@ -5,6 +5,9 @@ import fs from '../core/node_fs';
 import * as path from 'path';
 import {mkdirpSync} from '../core/util';
 
+/**
+ * Configuration options for the MountableFileSystem backend.
+ */
 export interface MountableFileSystemOptions {
   // Locations of mount points. Can be empty.
   [mountPoint: string]: FileSystem;
@@ -19,11 +22,35 @@ export interface MountableFileSystemOptions {
  * For example, if a file system is mounted at /mnt/blah, and a request came in
  * for /mnt/blah/foo.txt, the file system would see a request for /foo.txt.
  *
- * You can mount file systems like so:
+ * You can mount file systems when you configure the file system:
  * ```javascript
- * var mfs = new BrowserFS.FileSystem.MountableFileSystem();
- * mfs.mount('/data', new BrowserFS.FileSystem.XmlHttpRequest());
- * mfs.mount('/home', new BrowserFS.FileSystem.LocalStorage());
+ * BrowserFS.configure({
+ *   fs: "MountableFileSystem",
+ *   options: {
+ *     '/data': { fs: 'XmlHttpRequest', options: { index: "http://mysite.com/files/index.json" } },
+ *     '/home': { fs: 'LocalStorage' }
+ *   }
+ * }, function(e) {
+ *
+ * });
+ * ```
+ *
+ * For advanced users, you can also mount file systems *after* MFS is constructed:
+ * ```javascript
+ * BrowserFS.FileSystem.XmlHttpRequest.Create({
+ *   index: "http://mysite.com/files/index.json"
+ * }, function(e, xhrfs) {
+ *   BrowserFS.FileSystem.MountableFileSystem.Create({
+ *     '/data': xhrfs
+ *   }, function(e, mfs) {
+ *     BrowserFS.initialize(mfs);
+ *
+ *     // Added after-the-fact...
+ *     BrowserFS.FileSystem.LocalStorage.Create(function(e, lsfs) {
+ *       mfs.mount('/home', lsfs);
+ *     });
+ *   });
+ * });
  * ```
  *
  * Since MountableFileSystem simply proxies requests to mounted file systems, it supports all of the operations that the mounted file systems support.
@@ -31,6 +58,9 @@ export interface MountableFileSystemOptions {
  * With no mounted file systems, `MountableFileSystem` acts as a simple `InMemory` filesystem.
  */
 export default class MountableFileSystem extends BaseFileSystem implements FileSystem {
+  /**
+   * Creates a MountableFileSystem instance with the given options.
+   */
   public static Create(opts: MountableFileSystemOptions, cb: BFSCallback<MountableFileSystem>): void {
     const fs = new MountableFileSystem();
     Object.keys(opts).forEach((mountPoint) => {
