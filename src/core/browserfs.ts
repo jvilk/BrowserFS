@@ -142,13 +142,15 @@ export function getFileSystem(config: FileSystemConfiguration, cb: BFSCallback<F
       }
     }
   }
+
   if (options !== null && typeof(options) === "object") {
+    let finishedIterating = false;
     const props = Object.keys(options).filter((k) => k !== 'fs');
 
     // Check recursively if other fields have 'fs' properties.
     props.forEach((p) => {
       const d = options[p];
-      if (d['fs']) {
+      if (d !== null && typeof(d) === "object" && d['fs']) {
         waitCount++;
         getFileSystem(d, function(e, fs?) {
           waitCount--;
@@ -160,13 +162,14 @@ export function getFileSystem(config: FileSystemConfiguration, cb: BFSCallback<F
             cb(e);
           } else {
             options[p] = fs;
-            if (waitCount === 0) {
+            if (waitCount === 0 && finishedIterating) {
               finish();
             }
           }
         });
       }
     });
+    finishedIterating = true;
   }
   if (waitCount === 0) {
     finish();
