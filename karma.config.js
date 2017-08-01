@@ -5,7 +5,8 @@ const seenBrowsers = {};
 const isTravis = process.env.TRAVIS;
 // Browser detection does not work properly on Travis.
 const installedBrowsers = isTravis ? ['Firefox'] : detectBrowsers.getInstalledBrowsers()
-  .map(function(browser) { return browser.name; })
+  // XXX: Browsers with spaces in their name (e.g. Chrome Canary) need to have the space removed
+  .map(function(browser) { return browser.name.replace(/ /, ''); })
   .filter(function(browser) {
     if (seenBrowsers[browser]) {
       return false;
