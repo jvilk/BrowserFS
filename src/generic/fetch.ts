@@ -5,6 +5,8 @@
 import {ApiError, ErrorCode} from '../core/api_error';
 import {BFSCallback} from '../core/file_system';
 
+export const fetchIsAvailable = (typeof(fetch) !== "undefined" && fetch !== null);
+
 /**
  * Asynchronously download a file as a buffer or a JSON object.
  * Note that the third function signature with a non-specialized type is

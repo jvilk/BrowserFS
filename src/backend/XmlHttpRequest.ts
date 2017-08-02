@@ -4,10 +4,9 @@ import {FileFlag, ActionType} from '../core/file_flag';
 import {copyingSlice, deprecationMessage} from '../core/util';
 import {File} from '../core/file';
 import Stats from '../core/node_fs_stats';
-import global from '../core/global';
 import {NoSyncFile} from '../generic/preload_file';
-import {asyncDownloadFile, syncDownloadFile, getFileSizeAsync, getFileSizeSync} from '../generic/xhr';
-import {fetchFileAsync, fetchFileSizeAsync} from '../generic/fetch';
+import {xhrIsAvailable, asyncDownloadFile, syncDownloadFile, getFileSizeAsync, getFileSizeSync} from '../generic/xhr';
+import {fetchIsAvailable, fetchFileAsync, fetchFileSizeAsync} from '../generic/fetch';
 import {FileIndex, isFileInode, isDirInode} from '../generic/file_index';
 
 /**
@@ -91,8 +90,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
   }
 
   public static isAvailable(): boolean {
-    return (typeof(fetch) !== "undefined" && fetch !== null) ||
-           (typeof(XMLHttpRequest) !== "undefined" && XMLHttpRequest !== null);
+    return xhrIsAvailable || fetchIsAvailable;
   }
 
   /**
@@ -166,13 +164,13 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
 
     this._index = FileIndex.fromListing(listing);
 
-    this._requestFileAsync = (preferXHR || !('fetch' in global))
-      ? (p: string, type: string, cb: BFSCallback<any>) => asyncDownloadFile(this.getXhrPath(p), type, cb)
-      : (p: string, type: string, cb: BFSCallback<any>) => fetchFileAsync(this.getXhrPath(p), type, cb);
+    this._requestFileAsync = (fetchIsAvailable && !preferXHR || !xhrIsAvailable)
+      ? (p: string, type: string, cb: BFSCallback<any>) => fetchFileAsync(this.getXhrPath(p), type, cb)
+      : (p: string, type: string, cb: BFSCallback<any>) => asyncDownloadFile(this.getXhrPath(p), type, cb);
 
-    this._requestFileSizeAsync = (preferXHR || !('fetch' in global))
-      ? (p: string, cb: BFSCallback<any>) => getFileSizeAsync(this.getXhrPath(p), cb)
-      : (p: string, cb: BFSCallback<any>) => fetchFileSizeAsync(this.getXhrPath(p), cb);
+    this._requestFileSizeAsync = (fetchIsAvailable && !preferXHR || !xhrIsAvailable)
+      ? (p: string, cb: BFSCallback<any>) => fetchFileSizeAsync(this.getXhrPath(p), cb)
+      : (p: string, cb: BFSCallback<any>) => getFileSizeAsync(this.getXhrPath(p), cb);
   }
 
   public empty(): void {
@@ -204,7 +202,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
   }
 
   public supportsSynch(): boolean {
-    return (typeof(XMLHttpRequest) !== "undefined" && XMLHttpRequest !== null);
+    return xhrIsAvailable;
   }
 
   /**
