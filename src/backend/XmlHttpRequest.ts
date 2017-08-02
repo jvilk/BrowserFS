@@ -80,7 +80,13 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
     if (typeof(opts.index) === "string") {
       XmlHttpRequest.FromURL(opts.index, cb, opts.baseUrl, false);
     } else {
-      cb(null, new XmlHttpRequest(opts.index, opts.baseUrl, false, opts.preferXHR));
+      let xfs;
+      try {
+        xfs = new XmlHttpRequest(opts.index, opts.baseUrl, false, opts.preferXHR);
+      } catch (e) {
+        return cb(e);
+      }
+      return cb(null, xfs);
     }
   }
 
@@ -102,9 +108,15 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
     }
     asyncDownloadFile(url, "json", (e, data?) => {
       if (e) {
-        cb(e);
+        return cb(e);
       } else {
-        cb(null, new XmlHttpRequest(data, baseUrl, false));
+        let xfs;
+        try {
+          xfs = new XmlHttpRequest(data, baseUrl, false);
+        } catch (e) {
+          return cb(e);
+        }
+        return cb(null, xfs);
       }
     });
   }
