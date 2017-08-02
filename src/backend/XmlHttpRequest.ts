@@ -33,10 +33,15 @@ export interface XmlHttpRequestOptions {
   // Used as the URL prefix for fetched files.
   // Default: Fetch files relative to `url`.
   baseUrl?: string;
-  // Whether to use Fetch or XmlHttpRequest.
-  // Can be 'xhr', 'fetch', or 'auto'.
-  // Default: 'auto' which uses fetch if its available, and XHR as a fallback
-  use?: string;
+  // Whether to prefer XmlHttpRequest or fetch for async operations if both are available.
+  // Default: false
+  preferXHR?: boolean;
+}
+
+interface DownloadFileMethod {
+  (p: string, type: 'buffer', cb: BFSCallback<Buffer>): void;
+  (p: string, type: 'json', cb: BFSCallback<any>): void;
+  (p: string, type: string, cb: BFSCallback<any>): void;
 }
 
 /**
@@ -75,13 +80,15 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
     if (typeof(opts.index) === "string") {
       XmlHttpRequest.FromURL(opts.index, cb, opts.baseUrl, false);
     } else {
-      cb(null, new XmlHttpRequest(opts.index, opts.baseUrl, false, opts.use));
+      cb(null, new XmlHttpRequest(opts.index, opts.baseUrl, false, opts.preferXHR));
     }
   }
+
   public static isAvailable(): boolean {
     return (typeof(fetch) !== "undefined" && fetch !== null) ||
            (typeof(XMLHttpRequest) !== "undefined" && XMLHttpRequest !== null);
   }
+
   /**
    * **Deprecated. Please use XmlHttpRequest.Create() method instead to construct XmlHttpRequest objects.**
    *
@@ -104,7 +111,9 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
 
   public readonly prefixUrl: string;
   private _index: FileIndex<{}>;
-  private _useFetch: boolean;
+  private _requestFileAsync: DownloadFileMethod;
+  private _requestFileSizeAsync: (path: string, cb: BFSCallback<number>) => void;
+
   /**
    * **Deprecated. Please use XmlHttpRequest.Create() method instead to construct XmlHttpRequest objects.**
    *
@@ -121,7 +130,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
    * the file system will fetch file `data/foo.txt`. The browser will access the file relative to the currrent webpage
    * URL.
    */
-  constructor(listingUrlOrObj: string | object, prefixUrl: string = '', deprecateMsg = true, use = 'auto') {
+  constructor(listingUrlOrObj: string | object, prefixUrl: string = '', deprecateMsg = true, preferXHR = false) {
     super();
     if (!listingUrlOrObj) {
       listingUrlOrObj = 'index.json';
@@ -145,15 +154,13 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
 
     this._index = FileIndex.fromListing(listing);
 
-    if (use === 'auto') {
-      this._useFetch = 'fetch' in global;
-    } else if (use === 'fetch') {
-      this._useFetch = true;
-    } else if (use === 'xhr') {
-      this._useFetch = false;
-    } else {
-      throw new Error("Invalid value \"${use}\" for 'use' argument. Valid values are 'auto', 'fetch', and 'xhr'");
-    }
+    this._requestFileAsync = (preferXHR || !('fetch' in global))
+      ? (p: string, type: string, cb: BFSCallback<any>) => asyncDownloadFile(this.getXhrPath(p), type, cb)
+      : (p: string, type: string, cb: BFSCallback<any>) => fetchFileAsync(this.getXhrPath(p), type, cb);
+
+    this._requestFileSizeAsync = (preferXHR || !('fetch' in global))
+      ? (p: string, cb: BFSCallback<any>) => getFileSizeAsync(this.getXhrPath(p), cb)
+      : (p: string, cb: BFSCallback<any>) => fetchFileSizeAsync(this.getXhrPath(p), cb);
   }
 
   public empty(): void {
@@ -185,7 +192,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
   }
 
   public supportsSynch(): boolean {
-    return true;
+    return (typeof(XMLHttpRequest) !== "undefined" && XMLHttpRequest !== null);
   }
 
   /**
@@ -408,20 +415,6 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
   }
 
   /**
-   * Asynchronously download the given file.
-   */
-  private _requestFileAsync(p: string, type: 'buffer', cb: BFSCallback<Buffer>): void;
-  private _requestFileAsync(p: string, type: 'json', cb: BFSCallback<any>): void;
-  private _requestFileAsync(p: string, type: string, cb: BFSCallback<any>): void;
-  private _requestFileAsync(p: string, type: string, cb: BFSCallback<any>): void {
-    if (this._useFetch) {
-      fetchFileAsync(this.getXhrPath(p), type, cb);
-    } else {
-      asyncDownloadFile(this.getXhrPath(p), type, cb);
-    }
-  }
-
-  /**
    * Synchronously download the given file.
    */
   private _requestFileSync(p: string, type: 'buffer'): Buffer;
@@ -434,13 +427,6 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
   /**
    * Only requests the HEAD content, for the file size.
    */
-  private _requestFileSizeAsync(path: string, cb: BFSCallback<number>): void {
-    if (this._useFetch) {
-      fetchFileSizeAsync(this.getXhrPath(path), cb);
-    } else {
-      getFileSizeAsync(this.getXhrPath(path), cb);
-    }
-  }
   private _requestFileSizeSync(path: string): number {
     return getFileSizeSync(this.getXhrPath(path));
   }

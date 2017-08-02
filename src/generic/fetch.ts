@@ -16,28 +16,35 @@ export function fetchFileAsync(p: string, type: 'buffer', cb: BFSCallback<Buffer
 export function fetchFileAsync(p: string, type: 'json', cb: BFSCallback<any>): void;
 export function fetchFileAsync(p: string, type: string, cb: BFSCallback<any>): void;
 export function fetchFileAsync(p: string, type: string, cb: BFSCallback<any>): void {
-  fetch(p)
-    .then((res) => {
-      if (!res.ok) {
-        return cb(new ApiError(res.status, "fetch error."));
-      } else {
-        switch (type) {
-          case 'buffer':
-            res.arrayBuffer()
-              .then((buf) => cb(null, Buffer.from(buf)))
-              .catch((err) => cb(new ApiError(0, err.message)));
-            break;
-          case 'json':
-            res.json()
-              .then((json) => cb(null, json))
-              .catch((err) => cb(new ApiError(0, err.message)));
-            break;
-          default:
-            throw new ApiError(ErrorCode.EINVAL, "Invalid download type: " + type);
-        }
+  let request;
+  try {
+    request = fetch(p);
+  } catch (e) {
+    // XXX: fetch will throw a TypeError if the URL has credentials in it
+    return cb(new ApiError(ErrorCode.EINVAL, e.message));
+  }
+  request
+  .then((res) => {
+    if (!res.ok) {
+      return cb(new ApiError(ErrorCode.EIO, `fetch error: response returned code ${res.status}`));
+    } else {
+      switch (type) {
+        case 'buffer':
+          res.arrayBuffer()
+            .then((buf) => cb(null, Buffer.from(buf)))
+            .catch((err) => cb(new ApiError(ErrorCode.EIO, err.message)));
+          break;
+        case 'json':
+          res.json()
+            .then((json) => cb(null, json))
+            .catch((err) => cb(new ApiError(ErrorCode.EIO, err.message)));
+          break;
+        default:
+          cb(new ApiError(ErrorCode.EINVAL, "Invalid download type: " + type));
       }
-    })
-    .catch((err) => cb(new ApiError(0, err.message)));
+    }
+  })
+  .catch((err) => cb(new ApiError(ErrorCode.EIO, err.message)));
 }
 
 /**
@@ -48,10 +55,10 @@ export function fetchFileSizeAsync(p: string, cb: BFSCallback<number>): void {
   fetch(p, { method: 'HEAD' })
     .then((res) => {
       if (!res.ok) {
-        return cb(new ApiError(res.status, "fetch HEAD error."));
+        return cb(new ApiError(ErrorCode.EIO, `fetch HEAD error: response returned code ${res.status}`));
       } else {
         return cb(null, parseInt(res.headers.get('Content-Length') || '-1', 10));
       }
     })
-    .catch((err) => cb(new ApiError(0, err.message)));
+    .catch((err) => cb(new ApiError(ErrorCode.EIO, err.message)));
 }
