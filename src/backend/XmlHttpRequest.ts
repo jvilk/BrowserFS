@@ -121,9 +121,11 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
 
   public readonly prefixUrl: string;
   private _index: FileIndex<{}>;
+  private _getXhrPath: (filePath: string) => string;
   private _requestFileAsync: DownloadFileMethod;
   private _requestFileSizeAsync: (path: string, cb: BFSCallback<number>) => void;
-
+  private _requestFileSync: (p: string, type: string) => any;
+  private _requestFileSizeSync: (p: string) => any;
   /**
    * **Deprecated. Please use XmlHttpRequest.Create() method instead to construct XmlHttpRequest objects.**
    *
@@ -151,6 +153,29 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
     }
     this.prefixUrl = prefixUrl;
 
+    this._getXhrPath = function(this: XmlHttpRequest, filePath: string): string {
+      if (filePath.charAt(0) === '/') {
+        filePath = filePath.slice(1);
+      }
+      return this.prefixUrl + filePath;
+    };
+
+    this._requestFileAsync = (fetchIsAvailable && !preferXHR || !xhrIsAvailable)
+      ? function(this: XmlHttpRequest, p: string, type: string, cb: BFSCallback<any>) { fetchFileAsync(this._getXhrPath(p), type, cb); }
+      : function(this: XmlHttpRequest, p: string, type: string, cb: BFSCallback<any>) { asyncDownloadFile(this._getXhrPath(p), type, cb); };
+
+    this._requestFileSizeAsync = (fetchIsAvailable && !preferXHR || !xhrIsAvailable)
+      ? function(this: XmlHttpRequest, p: string, cb: BFSCallback<any>) { fetchFileSizeAsync(this._getXhrPath(p), cb); }
+      : function(this: XmlHttpRequest, p: string, cb: BFSCallback<any>) { getFileSizeAsync(this._getXhrPath(p), cb); };
+
+    this._requestFileSync = xhrIsAvailable
+      ? function(this: XmlHttpRequest, p: string, type: string) { return syncDownloadFile(this._getXhrPath(p), type); }
+      : function(this: XmlHttpRequest, p: string, type: string) { throw new ApiError(ErrorCode.ENOTSUP); };
+
+    this._requestFileSizeSync = xhrIsAvailable
+      ? function(this: XmlHttpRequest, path: string) { return getFileSizeSync(this._getXhrPath(path)); }
+      : function(this: XmlHttpRequest, path: string) { return new ApiError(ErrorCode.ENOTSUP); };
+
     let listing: object | null = null;
     if (typeof(listingUrlOrObj) === "string") {
       listing = this._requestFileSync(<string> listingUrlOrObj, 'json');
@@ -163,14 +188,6 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
     deprecationMessage(deprecateMsg, "XmlHttpRequest", { index: typeof(listingUrlOrObj) === "string" ? listingUrlOrObj : "file index as an object", baseUrl: prefixUrl});
 
     this._index = FileIndex.fromListing(listing);
-
-    this._requestFileAsync = (fetchIsAvailable && !preferXHR || !xhrIsAvailable)
-      ? (p: string, type: string, cb: BFSCallback<any>) => fetchFileAsync(this.getXhrPath(p), type, cb)
-      : (p: string, type: string, cb: BFSCallback<any>) => asyncDownloadFile(this.getXhrPath(p), type, cb);
-
-    this._requestFileSizeAsync = (fetchIsAvailable && !preferXHR || !xhrIsAvailable)
-      ? (p: string, cb: BFSCallback<any>) => fetchFileSizeAsync(this.getXhrPath(p), cb)
-      : (p: string, cb: BFSCallback<any>) => getFileSizeAsync(this.getXhrPath(p), cb);
   }
 
   public empty(): void {
@@ -415,29 +432,5 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
     } finally {
       fd.closeSync();
     }
-  }
-
-  private getXhrPath(filePath: string): string {
-    if (filePath.charAt(0) === '/') {
-      filePath = filePath.slice(1);
-    }
-    return this.prefixUrl + filePath;
-  }
-
-  /**
-   * Synchronously download the given file.
-   */
-  private _requestFileSync(p: string, type: 'buffer'): Buffer;
-  private _requestFileSync(p: string, type: 'json'): any;
-  private _requestFileSync(p: string, type: string): any;
-  private _requestFileSync(p: string, type: string): any {
-    return syncDownloadFile(this.getXhrPath(p), type);
-  }
-
-  /**
-   * Only requests the HEAD content, for the file size.
-   */
-  private _requestFileSizeSync(path: string): number {
-    return getFileSizeSync(this.getXhrPath(path));
   }
 }
