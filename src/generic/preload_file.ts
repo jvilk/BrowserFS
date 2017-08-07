@@ -43,12 +43,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
     this._path = _path;
     this._flag = _flag;
     this._stat = _stat;
-    if (contents) {
-      this._buffer = contents;
-    } else {
-      // Empty buffer. It'll expand once we write stuff to it.
-      this._buffer = emptyBuffer();
-    }
+    this._buffer = contents ? contents : emptyBuffer();
     // Note: This invariant is *not* maintained once the file starts getting
     // modified.
     // Note: Only actually matters if file is readable, as writeable modes may

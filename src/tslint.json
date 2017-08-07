@@ -36,6 +36,7 @@
       }
     ],
     "prefer-for-of": true,
+    "prefer-conditional-expression": false,
     "curly": true,
     "forin": true,
     "label-position": true,
@@ -49,7 +50,7 @@
     "no-empty": true,
     "no-unsafe-finally": true,
     "no-unused-expression": true,
-    "no-unused-new": true,
+    "no-this-assignment": false,
     "no-var-keyword": true,
     "radix": true,
     "triple-equals": true,
@@ -73,7 +74,7 @@
     "one-line": [true, "check-catch", "check-finally", "check-else", "check-open-brace", "check-whitespace"],
     "semicolon": [true, "always"],
     "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore", "allow-pascal-case"],
-    "whitespace": [true, "check-branch", "check-decl", "check-operator", "check-module", "check-separator", "check-typecast"],
+    "whitespace": [true, "check-branch", "check-decl", "check-operator", "check-separator", "check-typecast"],
     "max-line-length": [
       false
     ],

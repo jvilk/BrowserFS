@@ -14,7 +14,7 @@ declare var __karma__: any;
 __karma__.loaded = function() {};
 
 // Test timeout duration in milliseconds. Increase if needed.
-var timeout: number = 60000;
+var timeout: number = 180000;
 
 function waitsFor(test: () => boolean, what: string, timeout: number, done: (e?: Error) => void) {
   var interval = setInterval(() => {
@@ -115,8 +115,8 @@ export default function(tests: {
   function generateEmscriptenTest(testName: string, test: (module: any) => void) {
     // Only applicable to typed array-compatible browsers.
     if (typeof(Uint8Array) !== 'undefined') {
-      it(`[Emscripten] Initialize FileSystem`, () => {
-        BrowserFS.initialize(new BrowserFS.FileSystem.InMemory());
+      it(`[Emscripten] Initialize FileSystem`, (done) => {
+        BrowserFS.configure({ fs: 'InMemory' }, done);
       });
       generateTest(`[Emscripten] Load fixtures (${testName})`, loadFixtures);
       it(`[Emscripten] ${testName}`, function(done: (e?: any) => void) {
@@ -245,7 +245,7 @@ export default function(tests: {
   asyncEachSeries(backendFactories, (factory: BackendFactory, cb: (e?: any) => void) => {
     let timeout = setTimeout(() => {
       throw new Error(`Backend ${factory['name']} failed to initialize promptly.`);
-    }, 30000);
+    }, 3000000);
     factory((name: string, backends: FileSystem[]) => {
       clearTimeout(timeout);
       fsBackends.push({name: name, backends: backends});

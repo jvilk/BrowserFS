@@ -46,7 +46,7 @@ export default class InMemoryFileSystem extends SyncKeyValueFileSystem {
   public static Create(options: any, cb: BFSCallback<InMemoryFileSystem>): void {
     cb(null, new InMemoryFileSystem());
   }
-  constructor() {
+  private constructor() {
     super({ store: new InMemoryStore() });
   }
 }

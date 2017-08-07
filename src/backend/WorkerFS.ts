@@ -1,7 +1,7 @@
 import {BaseFileSystem, FileSystem, BFSOneArgCallback, BFSCallback, FileSystemOptions} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag} from '../core/file_flag';
-import {buffer2ArrayBuffer, arrayBuffer2Buffer, emptyBuffer, deprecationMessage} from '../core/util';
+import {buffer2ArrayBuffer, arrayBuffer2Buffer, emptyBuffer} from '../core/util';
 import {File, BaseFile} from '../core/file';
 import {default as Stats} from '../core/node_fs_stats';
 import PreloadFile from '../generic/preload_file';
@@ -98,9 +98,9 @@ interface IFileDescriptorArgument extends ISpecialArgument {
   // The file descriptor's id on the remote side.
   id: number;
   // The entire file's data, as an array buffer.
-  data: ArrayBuffer;
+  data: ArrayBuffer | SharedArrayBuffer;
   // The file's stat object, as an array buffer.
-  stat: ArrayBuffer;
+  stat: ArrayBuffer | SharedArrayBuffer;
   // The path to the file.
   path: string;
   // The flag of the open file descriptor.
@@ -116,8 +116,8 @@ class FileDescriptorArgumentConverter {
 
   public toRemoteArg(fd: File, p: string, flag: FileFlag, cb: BFSCallback<IFileDescriptorArgument>): void {
     const id = this._nextId++;
-    let data: ArrayBuffer;
-    let stat: ArrayBuffer;
+    let data: ArrayBuffer | SharedArrayBuffer;
+    let stat: ArrayBuffer | SharedArrayBuffer;
     this._fileDescriptors[id] = fd;
 
     // Extract needed information asynchronously.
@@ -229,7 +229,7 @@ class FileDescriptorArgumentConverter {
  */
 interface IAPIErrorArgument extends ISpecialArgument {
   // The error object, as an array buffer.
-  errorData: ArrayBuffer;
+  errorData: ArrayBuffer | SharedArrayBuffer;
 }
 
 /**
@@ -293,7 +293,7 @@ function errorRemote2Local(e: IErrorArgument): Error {
  */
 interface IStatsArgument extends ISpecialArgument {
   // The stats object as an array buffer.
-  statsData: ArrayBuffer;
+  statsData: ArrayBuffer | SharedArrayBuffer;
 }
 
 /**
@@ -341,20 +341,20 @@ function fileFlagRemote2Local(remoteFlag: IFileFlagArgument): FileFlag {
  * @hidden
  */
 interface IBufferArgument extends ISpecialArgument {
-  data: ArrayBuffer;
+  data: ArrayBuffer | SharedArrayBuffer;
 }
 
 /**
  * @hidden
  */
-function bufferToTransferrableObject(buff: Buffer): ArrayBuffer {
+function bufferToTransferrableObject(buff: Buffer): ArrayBuffer | SharedArrayBuffer {
   return buffer2ArrayBuffer(buff);
 }
 
 /**
  * @hidden
  */
-function transferrableObjectToBuffer(buff: ArrayBuffer): Buffer {
+function transferrableObjectToBuffer(buff: ArrayBuffer | SharedArrayBuffer): Buffer {
   return arrayBuffer2Buffer(buff);
 }
 
@@ -424,7 +424,7 @@ class WorkerFile extends PreloadFile<WorkerFS> {
    * @hidden
    */
   public toRemoteArg(): IFileDescriptorArgument {
-    return <IFileDescriptorArgument> {
+    return {
       type: SpecialArgType.FD,
       id: this._remoteFdId,
       data: bufferToTransferrableObject(this.getBuffer()),
@@ -507,8 +507,8 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
   };
 
   public static Create(opts: WorkerFSOptions, cb: BFSCallback<WorkerFS>): void {
-    const fs = new WorkerFS(opts.worker, false);
-    fs.initialize(() => {
+    const fs = new WorkerFS(opts.worker);
+    fs._initialize(() => {
       cb(null, fs);
     });
   }
@@ -692,15 +692,12 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
   private _supportProps: boolean = false;
 
   /**
-   * **Deprecated. Please use WorkerFS.Create() method instead.**
-   *
    * Constructs a new WorkerFS instance that connects with BrowserFS running on
    * the specified worker.
    */
-  constructor(worker: Worker, deprecateMsg = true) {
+  private constructor(worker: Worker) {
     super();
     this._worker = worker;
-    deprecationMessage(deprecateMsg, WorkerFS.Name, {worker: "Web Worker instance"});
     this._worker.addEventListener('message', (e: MessageEvent) => {
       const resp: object = e.data;
       if (isAPIResponse(resp)) {
@@ -718,30 +715,6 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
 
   public getName(): string {
     return WorkerFS.Name;
-  }
-
-  /**
-   * **Deprecated. Please use WorkerFS.Create() method to construct and initialize WorkerFS instances.**
-   *
-   * Called once both local and remote sides are set up.
-   */
-  public initialize(cb: () => void): void {
-    if (!this._isInitialized) {
-      const message: IAPIRequest = {
-        browserfsMessage: true,
-        method: 'probe',
-        args: [this._argLocal2Remote(emptyBuffer()), this._callbackConverter.toRemoteArg((probeResponse: IProbeResponse) => {
-          this._isInitialized = true;
-          this._isReadOnly = probeResponse.isReadOnly;
-          this._supportLinks = probeResponse.supportsLinks;
-          this._supportProps = probeResponse.supportsProps;
-          cb();
-        })]
-      };
-      this._worker.postMessage(message);
-    } else {
-      cb();
-    }
   }
 
   public isReadOnly(): boolean { return this._isReadOnly; }
@@ -808,11 +781,33 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
   }
 
   public syncClose(method: string, fd: File, cb: BFSOneArgCallback): void {
-    this._worker.postMessage(<IAPIRequest> {
+    this._worker.postMessage({
       browserfsMessage: true,
       method: method,
       args: [(<WorkerFile> fd).toRemoteArg(), this._callbackConverter.toRemoteArg(cb)]
     });
+  }
+
+  /**
+   * Called once both local and remote sides are set up.
+   */
+  private _initialize(cb: () => void): void {
+    if (!this._isInitialized) {
+      const message: IAPIRequest = {
+        browserfsMessage: true,
+        method: 'probe',
+        args: [this._argLocal2Remote(emptyBuffer()), this._callbackConverter.toRemoteArg((probeResponse: IProbeResponse) => {
+          this._isInitialized = true;
+          this._isReadOnly = probeResponse.isReadOnly;
+          this._supportLinks = probeResponse.supportsLinks;
+          this._supportProps = probeResponse.supportsProps;
+          cb();
+        })]
+      };
+      this._worker.postMessage(message);
+    } else {
+      cb();
+    }
   }
 
   private _argRemote2Local(arg: any): any {

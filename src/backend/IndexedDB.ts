@@ -2,7 +2,7 @@ import {BFSOneArgCallback, BFSCallback, FileSystemOptions} from '../core/file_sy
 import {AsyncKeyValueROTransaction, AsyncKeyValueRWTransaction, AsyncKeyValueStore, AsyncKeyValueFileSystem} from '../generic/key_value_filesystem';
 import {ApiError, ErrorCode} from '../core/api_error';
 import global from '../core/global';
-import {arrayBuffer2Buffer, buffer2ArrayBuffer, deprecationMessage} from '../core/util';
+import {arrayBuffer2Buffer, buffer2ArrayBuffer} from '../core/util';
 /**
  * Get the indexedDB constructor for the current browser.
  * @hidden
@@ -82,12 +82,8 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements As
     try {
       const arraybuffer = buffer2ArrayBuffer(data);
       let r: IDBRequest;
-      if (overwrite) {
-        r = this.store.put(arraybuffer, key);
-      } else {
-        // 'add' will never overwrite an existing key.
-        r = this.store.add(arraybuffer, key);
-      }
+      // Note: 'add' will never overwrite an existing key.
+      r = overwrite ? this.store.put(arraybuffer, key) : this.store.add(arraybuffer, key);
       // XXX: NEED TO RETURN FALSE WHEN ADD HAS A KEY CONFLICT. NO ERROR.
       r.onerror = onErrorHandler(cb);
       r.onsuccess = (event) => {
@@ -131,27 +127,28 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements As
 }
 
 export class IndexedDBStore implements AsyncKeyValueStore {
-  private db: IDBDatabase;
-
-  constructor(cb: BFSCallback<IndexedDBStore>, private storeName: string = 'browserfs') {
-    const openReq: IDBOpenDBRequest = indexedDB.open(this.storeName, 1);
+  public static Create(storeName: string, cb: BFSCallback<IndexedDBStore>): void {
+    const openReq: IDBOpenDBRequest = indexedDB.open(storeName, 1);
 
     openReq.onupgradeneeded = (event) => {
       const db: IDBDatabase = (<any> event.target).result;
       // Huh. This should never happen; we're at version 1. Why does another
       // database exist?
-      if (db.objectStoreNames.contains(this.storeName)) {
-        db.deleteObjectStore(this.storeName);
+      if (db.objectStoreNames.contains(storeName)) {
+        db.deleteObjectStore(storeName);
       }
-      db.createObjectStore(this.storeName);
+      db.createObjectStore(storeName);
     };
 
     openReq.onsuccess = (event) => {
-      this.db = (<any> event.target).result;
-      cb(null, this);
+      cb(null, new IndexedDBStore((<any> event.target).result, storeName));
     };
 
     openReq.onerror = onErrorHandler(cb, ErrorCode.EACCES);
+  }
+
+  constructor(private db: IDBDatabase, private storeName: string) {
+
   }
 
   public name(): string {
@@ -175,7 +172,7 @@ export class IndexedDBStore implements AsyncKeyValueStore {
 
   public beginTransaction(type: 'readonly'): AsyncKeyValueROTransaction;
   public beginTransaction(type: 'readwrite'): AsyncKeyValueRWTransaction;
-  public beginTransaction(type: string = 'readonly'): AsyncKeyValueROTransaction {
+  public beginTransaction(type: 'readonly' | 'readwrite' = 'readonly'): AsyncKeyValueROTransaction {
     const tx = this.db.transaction(this.storeName, type),
       objectStore = tx.objectStore(this.storeName);
     if (type === 'readwrite') {
@@ -215,9 +212,13 @@ export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
    * Constructs an IndexedDB file system with the given options.
    */
   public static Create(opts: IndexedDBFileSystemOptions, cb: BFSCallback<IndexedDBFileSystem>): void {
-    // tslint:disable-next-line:no-unused-new
-    new IndexedDBFileSystem(cb, opts.storeName, false);
-    // tslint:enable-next-line:no-unused-new
+    IndexedDBStore.Create(opts.storeName ? opts.storeName : 'browserfs', (e, store?) => {
+      if (store) {
+        cb(null, new IndexedDBFileSystem(store));
+      } else {
+        cb(e);
+      }
+    });
   }
   public static isAvailable(): boolean {
     // In Safari's private browsing mode, indexedDB.open returns NULL.
@@ -230,27 +231,8 @@ export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
       return false;
     }
   }
-  /**
-   * **Deprecated. Use IndexedDB.Create() method instead.**
-   *
-   * Constructs an IndexedDB file system.
-   * @param cb Called once the database is instantiated and ready for use.
-   *   Passes an error if there was an issue instantiating the database.
-   * @param storeName The name of this file system. You can have
-   *   multiple IndexedDB file systems operating at once, but each must have
-   *   a different name.
-   */
-  constructor(cb: BFSCallback<IndexedDBFileSystem>, storeName?: string, deprecateMsg: boolean = true) {
+  private constructor(store: IndexedDBStore) {
     super();
-    this.store = new IndexedDBStore((e): void => {
-      if (e) {
-        cb(e);
-      } else {
-        this.init(this.store, (e?) => {
-          cb(e, this);
-        });
-      }
-    }, storeName);
-    deprecationMessage(deprecateMsg, IndexedDBFileSystem.Name, {storeName: storeName});
+    this.store = store;
   }
 }

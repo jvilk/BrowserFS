@@ -10,8 +10,7 @@ export default function XHRFSFactory(cb: (name: string, objs: FileSystem[]) => v
       if (e) {
         cb('XmlHttpRequest', []);
       } else {
-        // Remove when synchronous option is removed.
-        cb('XmlHttpRequest', [fs, new XmlHttpRequestFS('test/fixtures/xhrfs/listings.json', '../')]);
+        cb('XmlHttpRequest', [fs]);
       }
     });
   } else {

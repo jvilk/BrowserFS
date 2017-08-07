@@ -26,37 +26,40 @@ export default function() {
     }
   }
 
-  let newXFS = new BrowserFS.FileSystem.XmlHttpRequest(listing, "/");
-  BrowserFS.initialize(newXFS);
+  BrowserFS.FileSystem.XmlHttpRequest.Create({
+    index: listing,
+    baseUrl: "/"
+  }, (e, newXFS) => {
+    BrowserFS.initialize(newXFS);
 
-  let t1text = 'Invariant fail: Can query folder that contains items and a mount point.';
-  let expectedTestListing = ['README.md', 'src', 'test'];
-  let testListing = fs.readdirSync('/').sort();
-  assert.deepEqual(testListing, expectedTestListing, t1text);
+    let t1text = 'Invariant fail: Can query folder that contains items and a mount point.';
+    let expectedTestListing = ['README.md', 'src', 'test'];
+    let testListing = fs.readdirSync('/').sort();
+    assert.deepEqual(testListing, expectedTestListing, t1text);
 
-  fs.readdir('/', function(err, files) {
-    assert(!err, t1text);
-    assert.deepEqual(files.sort(), expectedTestListing, t1text);
-    fs.stat("/test/fixtures/static/49chars.txt", function(err, stats) {
-      assert(!err, "Can stat an existing file");
-      assert(stats.isFile(), "File should be interpreted as a file");
-      assert(!stats.isDirectory(), "File should be interpreted as a directory");
-      // NOTE: Size is 50 in Windows due to line endings.
-      assert(stats.size == 49 || stats.size == 50, "file size should match");
+    fs.readdir('/', function(err, files) {
+      assert(!err, t1text);
+      assert.deepEqual(files.sort(), expectedTestListing, t1text);
+      fs.stat("/test/fixtures/static/49chars.txt", function(err, stats) {
+        assert(!err, "Can stat an existing file");
+        assert(stats.isFile(), "File should be interpreted as a file");
+        assert(!stats.isDirectory(), "File should be interpreted as a directory");
+        // NOTE: Size is 50 in Windows due to line endings.
+        assert(stats.size == 49 || stats.size == 50, "file size should match");
+      });
+
+      fs.stat("/src/backend", function(err, stats) {
+        assert(!err, "Can stat an existing directory");
+        assert(stats.isDirectory(), "directory should be interpreted as a directory");
+        assert(!stats.isFile(), "directory should be interpreted as a file");
+      });
+
+      fs.stat("/src/not-existing-name", function(err, stats) {
+        assert(!!err, "Non existing file should return an error");
+      });
+
     });
-
-    fs.stat("/src/backend", function(err, stats) {
-      assert(!err, "Can stat an existing directory");
-      assert(stats.isDirectory(), "directory should be interpreted as a directory");
-      assert(!stats.isFile(), "directory should be interpreted as a file");
-    });
-
-    fs.stat("/src/not-existing-name", function(err, stats) {
-      assert(!!err, "Non existing file should return an error");
-    });
-
   });
-
 
   // Restore test FS on test end.
   process.on('exit', function() {

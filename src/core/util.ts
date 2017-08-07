@@ -8,7 +8,9 @@ import * as path from 'path';
 
 export function deprecationMessage(print: boolean, fsName: string, opts: any): void {
   if (print) {
+    // tslint:disable-next-line:no-console
     console.warn(`[${fsName}] Direct file system constructor usage is deprecated for this file system, and will be removed in the next major version. Please use the '${fsName}.Create(${JSON.stringify(opts)}, callback)' method instead. See https://github.com/jvilk/BrowserFS/issues/176 for more details.`);
+    // tslint:enable-next-line:no-console
   }
 }
 
@@ -57,7 +59,7 @@ export function mkdirpSync(p: string, mode: number, fs: FileSystem): void {
  * zero-copy manner, e.g. the array references the same memory.
  * @hidden
  */
-export function buffer2ArrayBuffer(buff: Buffer): ArrayBuffer {
+export function buffer2ArrayBuffer(buff: Buffer): ArrayBuffer | SharedArrayBuffer {
   const u8 = buffer2Uint8array(buff),
     u8offset = u8.byteOffset,
     u8Len = u8.byteLength;
@@ -109,7 +111,7 @@ export function uint8Array2Buffer(u8: Uint8Array): Buffer {
   } else if (u8.byteOffset === 0 && u8.byteLength === u8.buffer.byteLength) {
     return arrayBuffer2Buffer(u8.buffer);
   } else {
-    return Buffer.from(u8.buffer, u8.byteOffset, u8.byteLength);
+    return Buffer.from(<ArrayBuffer> u8.buffer, u8.byteOffset, u8.byteLength);
   }
 }
 
@@ -118,8 +120,8 @@ export function uint8Array2Buffer(u8: Uint8Array): Buffer {
  * zero-copy.
  * @hidden
  */
-export function arrayBuffer2Buffer(ab: ArrayBuffer): Buffer {
-  return Buffer.from(ab);
+export function arrayBuffer2Buffer(ab: ArrayBuffer | SharedArrayBuffer): Buffer {
+  return Buffer.from(<ArrayBuffer> ab);
 }
 
 /**

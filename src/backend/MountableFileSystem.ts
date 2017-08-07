@@ -66,11 +66,21 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
    * Creates a MountableFileSystem instance with the given options.
    */
   public static Create(opts: MountableFileSystemOptions, cb: BFSCallback<MountableFileSystem>): void {
-    const fs = new MountableFileSystem();
-    Object.keys(opts).forEach((mountPoint) => {
-      fs.mount(mountPoint, opts[mountPoint]);
+    InMemoryFileSystem.Create({}, (e, imfs?) => {
+      if (imfs) {
+        const fs = new MountableFileSystem(imfs);
+        try {
+          Object.keys(opts).forEach((mountPoint) => {
+            fs.mount(mountPoint, opts[mountPoint]);
+          });
+        } catch (e) {
+          return cb(e);
+        }
+        cb(null, fs);
+      } else {
+        cb(e);
+      }
     });
-    cb(null, fs);
   }
   public static isAvailable(): boolean {
     return true;
@@ -86,12 +96,10 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
   /**
    * Creates a new, empty MountableFileSystem.
    */
-  constructor() {
+  private constructor(rootFs: FileSystem) {
     super();
     this.mntMap = {};
-    // The InMemory file system serves purely to provide directory listings for
-    // mounted file systems.
-    this.rootFs = new InMemoryFileSystem();
+    this.rootFs = rootFs;
   }
 
   /**

@@ -98,5 +98,5 @@ export default class LocalStorageFileSystem extends SyncKeyValueFileSystem {
   /**
    * Creates a new LocalStorage file system using the contents of `localStorage`.
    */
-  constructor() { super({ store: new LocalStorageStore() }); }
+  private constructor() { super({ store: new LocalStorageStore() }); }
 }

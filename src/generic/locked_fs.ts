@@ -31,11 +31,6 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
     return this._fs;
   }
 
-  public initialize(cb: BFSOneArgCallback): void {
-    // FIXME: check to see if FS supports initialization
-    (<any> this._fs).initialize(cb);
-  }
-
   public diskSpace(p: string, cb: (total: number, free: number) => any): void {
     // FIXME: should this lock?
     this._fs.diskSpace(p, cb);

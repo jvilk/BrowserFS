@@ -1,10 +1,14 @@
 import {FileSystem} from '../../../src/core/file_system';
-import InMemoryFileSystem from '../../../src/backend/InMemory';
-import FolderAdapter from '../../../src/backend/FolderAdapter';
+import {getFileSystem} from '../../../src/core/browserfs';
 
 export default function FolderAdapterFactory(cb: (name: string, obj: FileSystem[]) => void): void {
-  let fa = new FolderAdapter('/home', new InMemoryFileSystem());
-  fa.initialize((err) => {
+  getFileSystem({
+    fs: "FolderAdapter",
+    options: {
+      folder: "/home",
+      wrapped: { fs: "InMemory" }
+    }
+  }, (err, fa) => {
     if (!err) {
       cb('FolderAdapter', [fa]);
     } else {
