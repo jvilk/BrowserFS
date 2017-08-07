@@ -1,4 +1,4 @@
-import {BFSOneArgCallback, BFSCallback} from '../core/file_system';
+import {BFSOneArgCallback, BFSCallback, FileSystemOptions} from '../core/file_system';
 import {AsyncKeyValueROTransaction, AsyncKeyValueRWTransaction, AsyncKeyValueStore, AsyncKeyValueFileSystem} from '../generic/key_value_filesystem';
 import {ApiError, ErrorCode} from '../core/api_error';
 import global from '../core/global';
@@ -155,7 +155,7 @@ export class IndexedDBStore implements AsyncKeyValueStore {
   }
 
   public name(): string {
-    return "IndexedDB - " + this.storeName;
+    return IndexedDBFileSystem.Name + " - " + this.storeName;
   }
 
   public clear(cb: BFSOneArgCallback): void {
@@ -201,15 +201,22 @@ export interface IndexedDBFileSystemOptions {
  * A file system that uses the IndexedDB key value file system.
  */
 export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
+  public static readonly Name = "IndexedDB";
+
+  public static readonly Options: FileSystemOptions = {
+    storeName: {
+      type: "string",
+      optional: true,
+      description: "The name of this file system. You can have multiple IndexedDB file systems operating at once, but each must have a different name."
+    }
+  };
+
   /**
    * Constructs an IndexedDB file system with the given options.
    */
-  public static Create(cb: BFSCallback<IndexedDBFileSystem>): void;
-  public static Create(opts: IndexedDBFileSystemOptions, cb: BFSCallback<IndexedDBFileSystem>): void;
-  public static Create(opts: any, cb?: any): void {
-    const normalizedCb = cb ? cb : opts;
+  public static Create(opts: IndexedDBFileSystemOptions, cb: BFSCallback<IndexedDBFileSystem>): void {
     // tslint:disable-next-line:no-unused-new
-    new IndexedDBFileSystem(normalizedCb, cb && opts ? opts['storeName'] : undefined, false);
+    new IndexedDBFileSystem(cb, opts.storeName, false);
     // tslint:enable-next-line:no-unused-new
   }
   public static isAvailable(): boolean {
@@ -244,6 +251,6 @@ export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
         });
       }
     }, storeName);
-    deprecationMessage(deprecateMsg, "IndexedDB", {storeName: storeName});
+    deprecationMessage(deprecateMsg, IndexedDBFileSystem.Name, {storeName: storeName});
   }
 }

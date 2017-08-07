@@ -177,8 +177,7 @@ export class SimpleSyncRWTransaction implements SyncKeyValueRWTransaction {
 
   public abort(): void {
     // Rollback old values.
-    for (let i = 0; i < this.modifiedKeys.length; i++) {
-      const key = this.modifiedKeys[i];
+    for (const key of this.modifiedKeys) {
       const value = this.originalData[key];
       if (!value) {
         // Key didn't exist.

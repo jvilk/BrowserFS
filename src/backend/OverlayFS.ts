@@ -1,4 +1,4 @@
-import {FileSystem, BaseFileSystem, BFSOneArgCallback, BFSCallback} from '../core/file_system';
+import {FileSystem, BaseFileSystem, BFSOneArgCallback, BFSCallback, FileSystemOptions} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
 import {File} from '../core/file';
@@ -119,7 +119,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
   }
 
   public getName() {
-    return "OverlayFS";
+    return OverlayFS.Name;
   }
 
   /**
@@ -987,6 +987,19 @@ export interface OverlayFSOptions {
  * file system.
  */
 export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
+  public static readonly Name = "OverlayFS";
+
+  public static readonly Options: FileSystemOptions = {
+    writable: {
+      type: "object",
+      description: "The file system to write modified files to."
+    },
+    readable: {
+      type: "object",
+      description: "The file system that initially populates this file system."
+    }
+  };
+
   /**
    * Constructs and initializes an OverlayFS instance with the given options.
    */
@@ -1011,7 +1024,7 @@ export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
    */
   constructor(writable: FileSystem, readable: FileSystem, deprecateMsg = true) {
     super(new UnlockedOverlayFS(writable, readable));
-    deprecationMessage(deprecateMsg, "OverlayFS", {readable: "readable file system", writable: "writable file system"});
+    deprecationMessage(deprecateMsg, OverlayFS.Name, {readable: "readable file system", writable: "writable file system"});
   }
 
   /**

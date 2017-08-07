@@ -1,4 +1,4 @@
-import {FileSystem, BaseFileSystem, BFSOneArgCallback, BFSCallback} from '../core/file_system';
+import {FileSystem, BaseFileSystem, BFSOneArgCallback, BFSCallback, FileSystemOptions} from '../core/file_system';
 import InMemoryFileSystem from './InMemory';
 import {ApiError, ErrorCode} from '../core/api_error';
 import fs from '../core/node_fs';
@@ -58,6 +58,10 @@ export interface MountableFileSystemOptions {
  * With no mounted file systems, `MountableFileSystem` acts as a simple `InMemory` filesystem.
  */
 export default class MountableFileSystem extends BaseFileSystem implements FileSystem {
+  public static readonly Name = "MountableFileSystem";
+
+  public static readonly Options: FileSystemOptions = {};
+
   /**
    * Creates a MountableFileSystem instance with the given options.
    */
@@ -151,7 +155,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
   // Global information methods
 
   public getName(): string {
-    return 'MountableFileSystem';
+    return MountableFileSystem.Name;
   }
 
   public diskSpace(path: string, cb: (total: number, free: number) => void): void {
@@ -397,8 +401,7 @@ const fsCmdMap = [
 
 for (let i = 0; i < fsCmdMap.length; i++) {
   const cmds = fsCmdMap[i];
-  for (let j = 0; j < cmds.length; j++) {
-    const fnName = cmds[j];
+  for (const fnName of cmds) {
     (<any> MountableFileSystem.prototype)[fnName] = defineFcn(fnName, false, i + 1);
     (<any> MountableFileSystem.prototype)[fnName + 'Sync'] = defineFcn(fnName + 'Sync', true, i + 1);
   }

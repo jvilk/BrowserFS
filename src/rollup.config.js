@@ -26,6 +26,11 @@ export default {
       preferBuiltins: true
     }),
     sourcemaps(),
-    buble()
+    buble({
+      transforms: {
+        // Assumes all `for of` statements are on arrays or array-like items.
+        dangerousForOf: true
+      }
+    })
   ]
 };

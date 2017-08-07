@@ -1,10 +1,10 @@
 import {ApiError, ErrorCode} from '../core/api_error';
 import {default as Stats, FileType} from '../core/node_fs_stats';
-import {SynchronousFileSystem, FileSystem, BFSCallback} from '../core/file_system';
+import {SynchronousFileSystem, FileSystem, BFSCallback, FileSystemOptions} from '../core/file_system';
 import {File} from '../core/file';
 import {FileFlag, ActionType} from '../core/file_flag';
 import {NoSyncFile} from '../generic/preload_file';
-import {Arrayish, arrayish2Buffer, copyingSlice, deprecationMessage} from '../core/util';
+import {Arrayish, arrayish2Buffer, copyingSlice, deprecationMessage, bufferValidator} from '../core/util';
 import ExtendedASCII from '../generic/extended_ascii';
 import setImmediate from '../generic/setImmediate';
 /**
@@ -522,9 +522,22 @@ export interface ZipFSOptions {
  *   This isn't that bad, so we might do this at a later date.
  */
 export default class ZipFS extends SynchronousFileSystem implements FileSystem {
-  /* tslint:disable:variable-name */
+  public static readonly Name = "ZipFS";
+
+  public static readonly Options: FileSystemOptions = {
+    zipData: {
+      type: "object",
+      description: "The zip file as a Buffer object.",
+      validator: bufferValidator
+    },
+    name: {
+      type: "string",
+      optional: true,
+      description: "The name of the zip file (optional)."
+    }
+  };
+
   public static readonly CompressionMethod = CompressionMethod;
-  /* tslint:enable:variable-name */
 
   /**
    * Constructs a ZipFS instance with the given options.
@@ -638,7 +651,7 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
    */
   constructor(input: Buffer | ZipTOC, private name: string = '', deprecateMsg = true) {
     super();
-    deprecationMessage(deprecateMsg, "ZipFS", {zipData: "zip data as a Buffer", name: name});
+    deprecationMessage(deprecateMsg, ZipFS.Name, {zipData: "zip data as a Buffer", name: name});
     if (input instanceof ZipTOC) {
       this._index = input.index;
       this._directoryEntries = input.directoryEntries;
@@ -651,7 +664,7 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
   }
 
   public getName(): string {
-    return 'ZipFS' + (this.name !== '' ? ' ' + this.name : '');
+    return ZipFS.Name + (this.name !== '' ? ` ${this.name}` : '');
   }
 
   /**

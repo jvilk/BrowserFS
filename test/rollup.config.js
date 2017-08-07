@@ -28,6 +28,10 @@ export default {
     sourcemaps({
       exclude: '**/*'
     }),
-    buble()
+    buble({
+      transforms: {
+        dangerousForOf: true
+      }
+    })
   ]
 };

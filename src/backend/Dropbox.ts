@@ -1,5 +1,5 @@
 import PreloadFile from '../generic/preload_file';
-import {BaseFileSystem, FileSystem, BFSOneArgCallback, BFSCallback} from '../core/file_system';
+import {BaseFileSystem, FileSystem, BFSOneArgCallback, BFSCallback, FileSystemOptions} from '../core/file_system';
 import {FileFlag} from '../core/file_flag';
 import {default as Stats, FileType} from '../core/node_fs_stats';
 import {ApiError, ErrorCode} from '../core/api_error';
@@ -352,6 +352,22 @@ export interface DropboxFileSystemOptions {
  * NOTE: You must use the v0.10 version of the [Dropbox JavaScript SDK](https://www.npmjs.com/package/dropbox).
  */
 export default class DropboxFileSystem extends BaseFileSystem implements FileSystem {
+  public static readonly Name = "Dropbox";
+
+  public static readonly Options: FileSystemOptions = {
+    client: {
+      type: "object",
+      description: "An *authenticated* Dropbox client. Must be from the 0.10 JS SDK.",
+      validator: (opt: Dropbox.Client, cb: BFSOneArgCallback): void => {
+        if (opt.isAuthenticated && opt.isAuthenticated()) {
+          cb();
+        } else {
+          cb(new ApiError(ErrorCode.EINVAL, `'client' option must be an authenticated Dropbox client from the v0.10 JS SDK.`));
+        }
+      }
+    }
+  };
+
   /**
    * Creates a new DropboxFileSystem instance with the given options.
    * Must be given an *authenticated* DropboxJS client from the old v0.10 version of the Dropbox JS SDK.
@@ -378,12 +394,12 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
   constructor(client: Dropbox.Client, deprecateMsg = true) {
     super();
     this._client = new CachedDropboxClient(client);
-    deprecationMessage(deprecateMsg, "Dropbox", { client: "authenticated dropbox client instance" });
+    deprecationMessage(deprecateMsg, DropboxFileSystem.Name, { client: "authenticated dropbox client instance" });
     constructErrorCodeLookup();
   }
 
   public getName(): string {
-    return 'Dropbox';
+    return DropboxFileSystem.Name;
   }
 
   public isReadOnly(): boolean {

@@ -68,8 +68,8 @@ export class FileIndex<T> {
       if (this._index.hasOwnProperty(path)) {
         const dir = this._index[path];
         const files = dir.getListing();
-        for (let i = 0; i < files.length; i++) {
-          const item = dir.getItem(files[i]);
+        for (const file of files) {
+          const item = dir.getItem(file);
           if (isFileInode<T>(item)) {
             cb(item.getData());
           }
@@ -188,8 +188,8 @@ export class FileIndex<T> {
     // If I'm a directory, remove myself from the index, and remove my children.
     if (isDirInode(inode)) {
       const children = inode.getListing();
-      for (let i = 0; i < children.length; i++) {
-        this.removePath(path + '/' + children[i]);
+      for (const child of children) {
+        this.removePath(path + '/' + child);
       }
 
       // Remove the directory from the index, unless it's the root.

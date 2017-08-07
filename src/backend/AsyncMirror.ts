@@ -1,4 +1,4 @@
-import {FileSystem, SynchronousFileSystem, BFSOneArgCallback, BFSCallback} from '../core/file_system';
+import {FileSystem, SynchronousFileSystem, BFSOneArgCallback, BFSCallback, FileSystemOptions} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag} from '../core/file_flag';
 import {File} from '../core/file';
@@ -87,6 +87,19 @@ export interface AsyncMirrorOptions {
  * ```
  */
 export default class AsyncMirror extends SynchronousFileSystem implements FileSystem {
+  public static readonly Name = "AsyncMirror";
+
+  public static readonly Options: FileSystemOptions = {
+    sync: {
+      type: "object",
+      description: "The synchronous file system to mirror the asynchronous file system to."
+    },
+    async: {
+      type: "object",
+      description: "The asynchronous file system to mirror."
+    }
+  };
+
   /**
    * Constructs and initializes an AsyncMirror file system with the given options.
    */
@@ -135,11 +148,11 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
     if (!sync.supportsSynch()) {
       throw new Error("The first argument to AsyncMirror needs to be a synchronous file system.");
     }
-    deprecationMessage(deprecateMsg, "AsyncMirror", { sync: "sync file system instance", async: "async file system instance"});
+    deprecationMessage(deprecateMsg, AsyncMirror.Name, { sync: "sync file system instance", async: "async file system instance"});
   }
 
   public getName(): string {
-    return "AsyncMirror";
+    return AsyncMirror.Name;
   }
 
   public _syncSync(fd: PreloadFile<any>) {

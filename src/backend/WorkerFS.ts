@@ -1,5 +1,5 @@
-import {BaseFileSystem, FileSystem, BFSOneArgCallback, BFSCallback} from '../core/file_system';
-import {ApiError} from '../core/api_error';
+import {BaseFileSystem, FileSystem, BFSOneArgCallback, BFSCallback, FileSystemOptions} from '../core/file_system';
+import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag} from '../core/file_flag';
 import {buffer2ArrayBuffer, arrayBuffer2Buffer, emptyBuffer, deprecationMessage} from '../core/util';
 import {File, BaseFile} from '../core/file';
@@ -489,6 +489,23 @@ export interface WorkerFSOptions {
  * of the configuration option of the remote FS.
  */
 export default class WorkerFS extends BaseFileSystem implements FileSystem {
+  public static readonly Name = "WorkerFS";
+
+  public static readonly Options: FileSystemOptions = {
+    worker: {
+      type: "object",
+      description: "The target worker that you want to connect to, or the current worker if in a worker context.",
+      validator: function(v: object, cb: BFSOneArgCallback): void {
+        // Check for a `postMessage` function.
+        if ((<any> v)['postMessage']) {
+          cb();
+        } else {
+          cb(new ApiError(ErrorCode.EINVAL, `option must be a Web Worker instance.`));
+        }
+      }
+    }
+  };
+
   public static Create(opts: WorkerFSOptions, cb: BFSCallback<WorkerFS>): void {
     const fs = new WorkerFS(opts.worker, false);
     fs.initialize(() => {
@@ -683,7 +700,7 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
   constructor(worker: Worker, deprecateMsg = true) {
     super();
     this._worker = worker;
-    deprecationMessage(deprecateMsg, "WorkerFS", {worker: "Web Worker instance"});
+    deprecationMessage(deprecateMsg, WorkerFS.Name, {worker: "Web Worker instance"});
     this._worker.addEventListener('message', (e: MessageEvent) => {
       const resp: object = e.data;
       if (isAPIResponse(resp)) {
@@ -700,7 +717,7 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
   }
 
   public getName(): string {
-    return 'WorkerFS';
+    return WorkerFS.Name;
   }
 
   /**

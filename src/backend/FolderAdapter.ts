@@ -1,4 +1,4 @@
-import {BaseFileSystem, FileSystem, BFSCallback} from '../core/file_system';
+import {BaseFileSystem, FileSystem, BFSCallback, FileSystemOptions} from '../core/file_system';
 import * as path from 'path';
 import {ApiError} from '../core/api_error';
 
@@ -31,6 +31,19 @@ export interface FolderAdapterOptions {
  * ```
  */
 export default class FolderAdapter extends BaseFileSystem implements FileSystem {
+  public static readonly Name = "FolderAdapter";
+
+  public static readonly Options: FileSystemOptions = {
+    folder: {
+      type: "string",
+      description: "The folder to use as the root directory"
+    },
+    wrapped: {
+      type: "object",
+      description: "The file system to wrap"
+    }
+  };
+
   /**
    * Creates a FolderAdapter instance with the given options.
    */
@@ -45,8 +58,6 @@ export default class FolderAdapter extends BaseFileSystem implements FileSystem 
   public _folder: string;
   /**
    * Wraps a file system, and uses the given folder as its root.
-   *
-   *
    *
    * @param folder The folder to use as the root directory.
    * @param wrapped The file system to wrap.

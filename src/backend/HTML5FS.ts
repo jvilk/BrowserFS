@@ -1,5 +1,5 @@
 import PreloadFile from '../generic/preload_file';
-import {BaseFileSystem, FileSystem as IFileSystem, BFSOneArgCallback, BFSCallback} from '../core/file_system';
+import {BaseFileSystem, FileSystem as IFileSystem, BFSOneArgCallback, BFSCallback, FileSystemOptions} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
 import {default as Stats, FileType} from '../core/node_fs_stats';
@@ -156,6 +156,21 @@ export interface HTML5FSOptions {
  * only available in Chrome.
  */
 export default class HTML5FS extends BaseFileSystem implements IFileSystem {
+  public static readonly Name = "HTML5FS";
+
+  public static readonly Options: FileSystemOptions = {
+    size: {
+      type: "number",
+      optional: true,
+      description: "Storage quota to request, in megabytes. Allocated value may be less. Defaults to 5."
+    },
+    type: {
+      type: "number",
+      optional: true,
+      description: "window.PERSISTENT or window.TEMPORARY. Defaults to PERSISTENT."
+    }
+  };
+
   /**
    * Creates an HTML5FS instance with the given options.
    */
@@ -188,11 +203,11 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
     // Convert MB to bytes.
     this.size = 1024 * 1024 * size;
     this.type = type;
-    deprecationMessage(deprecateMsg, "HTML5FS", {size: size, type: type});
+    deprecationMessage(deprecateMsg, HTML5FS.Name, {size: size, type: type});
   }
 
   public getName(): string {
-    return 'HTML5 FileSystem';
+    return HTML5FS.Name;
   }
 
   public isReadOnly(): boolean {
@@ -436,14 +451,15 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
    */
   public readdir(path: string, cb: BFSCallback<string[]>): void {
     this._readdir(path, (e: ApiError, entries?: Entry[]): void => {
-      if (e) {
+      if (entries) {
+        const rv: string[] = [];
+        for (const entry of entries) {
+          rv.push(entry.name);
+        }
+        cb(null, rv);
+      } else {
         return cb(e);
       }
-      const rv: string[] = [];
-      for (let i = 0; i < entries!.length; i++) {
-        rv.push(entries![i].name);
-      }
-      cb(null, rv);
     });
   }
 

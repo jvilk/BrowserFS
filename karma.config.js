@@ -23,7 +23,10 @@ let karmaFiles = [
   // Main module and fixtures loader
   'test/harness/test.js',
   // WebWorker script.
-  { pattern: 'test/harness/factories/workerfs_worker.js', included: false, watched: true }
+  { pattern: 'test/harness/factories/workerfs_worker.js', included: false, watched: true },
+  // Source map support
+  { pattern: 'src/**/*', included: false, watched: false },
+  { pattern: 'test/**/*', included: false, watched: false }
 ];
 
 // The presence of the Dropbox library dynamically toggles the tests.

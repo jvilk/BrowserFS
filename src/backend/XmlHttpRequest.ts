@@ -1,4 +1,4 @@
-import {BaseFileSystem, FileSystem, BFSCallback} from '../core/file_system';
+import {BaseFileSystem, FileSystem, BFSCallback, FileSystemOptions} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
 import {copyingSlice, deprecationMessage} from '../core/util';
@@ -26,10 +26,11 @@ function tryToString(buff: Buffer, encoding: string, cb: BFSCallback<string>) {
  * Configuration options for an XmlHttpRequest file system.
  */
 export interface XmlHttpRequestOptions {
-  // URL to a file index as a JSON file or the file index object itself, generated with the make_xhrfs_index script
-  index: string | object;
+  // URL to a file index as a JSON file or the file index object itself, generated with the make_xhrfs_index script.
+  // Defaults to `index.json`.
+  index?: string | object;
   // Used as the URL prefix for fetched files.
-  // Default: Fetch files relative to `url`.
+  // Default: Fetch files relative to the index.
   baseUrl?: string;
 }
 
@@ -62,10 +63,28 @@ export interface XmlHttpRequestOptions {
  * *This example has the folder `/home/jvilk` with subfile `someFile.txt` and subfolder `someDir`.*
  */
 export default class XmlHttpRequest extends BaseFileSystem implements FileSystem {
+  public static readonly Name = "XmlHttpRequest";
+
+  public static readonly Options: FileSystemOptions = {
+    index: {
+      type: ["string", "object"],
+      optional: true,
+      description: "URL to a file index as a JSON file or the file index object itself, generated with the make_xhrfs_index script. Defaults to `index.json`."
+    },
+    baseUrl: {
+      type: "string",
+      optional: true,
+      description: "Used as the URL prefix for fetched files. Default: Fetch files relative to the index."
+    }
+  };
+
   /**
    * Construct an XmlHttpRequest file system backend with the given options.
    */
   public static Create(opts: XmlHttpRequestOptions, cb: BFSCallback<XmlHttpRequest>): void {
+    if (opts.index === undefined) {
+      opts.index = `index.json`;
+    }
     if (typeof(opts.index) === "string") {
       XmlHttpRequest.FromURL(opts.index, cb, opts.baseUrl, false);
     } else {
@@ -133,7 +152,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
     } else {
       listing = listingUrlOrObj;
     }
-    deprecationMessage(deprecateMsg, "XmlHttpRequest", { index: typeof(listingUrlOrObj) === "string" ? listingUrlOrObj : "file index as an object", baseUrl: prefixUrl});
+    deprecationMessage(deprecateMsg, XmlHttpRequest.Name, { index: typeof(listingUrlOrObj) === "string" ? listingUrlOrObj : "file index as an object", baseUrl: prefixUrl});
 
     this._index = FileIndex.fromListing(listing);
   }
@@ -145,7 +164,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
   }
 
   public getName(): string {
-    return 'XmlHttpRequest';
+    return XmlHttpRequest.Name;
   }
 
   public diskSpace(path: string, cb: (total: number, free: number) => void): void {
