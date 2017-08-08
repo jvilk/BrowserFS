@@ -63,6 +63,10 @@
   version "9.1.9"
   resolved "https://registry.yarnpkg.com/@types/highlight.js/-/highlight.js-9.1.9.tgz#ed6336955eaf233b75eb7923b9b1f373d045ef01"
 
+"@types/isomorphic-fetch@^0.0.34":
+  version "0.0.34"
+  resolved "https://registry.yarnpkg.com/@types/isomorphic-fetch/-/isomorphic-fetch-0.0.34.tgz#3c3483e606c041378438e951464f00e4e60706d6"
+
 "@types/lodash@^4.14.37":
   version "4.14.71"
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.71.tgz#0dc383f78981216ac76e2f2c3afd998e0450e4c1"

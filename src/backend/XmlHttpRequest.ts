@@ -5,7 +5,8 @@ import {copyingSlice} from '../core/util';
 import {File} from '../core/file';
 import Stats from '../core/node_fs_stats';
 import {NoSyncFile} from '../generic/preload_file';
-import {asyncDownloadFile, syncDownloadFile, getFileSizeAsync, getFileSizeSync} from '../generic/xhr';
+import {xhrIsAvailable, asyncDownloadFile, syncDownloadFile, getFileSizeAsync, getFileSizeSync} from '../generic/xhr';
+import {fetchIsAvailable, fetchFileAsync, fetchFileSizeAsync} from '../generic/fetch';
 import {FileIndex, isFileInode, isDirInode} from '../generic/file_index';
 
 /**
@@ -26,23 +27,42 @@ function tryToString(buff: Buffer, encoding: string, cb: BFSCallback<string>) {
  * Configuration options for an XmlHttpRequest file system.
  */
 export interface XmlHttpRequestOptions {
-  // URL to a file index as a JSON file or the file index object itself, generated with the make_xhrfs_index script.
+  // URL to a file index as a JSON file or the file index object itself, generated with the make_http_index script.
   // Defaults to `index.json`.
   index?: string | object;
   // Used as the URL prefix for fetched files.
   // Default: Fetch files relative to the index.
   baseUrl?: string;
+  // Whether to prefer XmlHttpRequest or fetch for async operations if both are available.
+  // Default: false
+  preferXHR?: boolean;
+}
+
+interface AsyncDownloadFileMethod {
+  (p: string, type: 'buffer', cb: BFSCallback<Buffer>): void;
+  (p: string, type: 'json', cb: BFSCallback<any>): void;
+  (p: string, type: string, cb: BFSCallback<any>): void;
+}
+
+interface SyncDownloadFileMethod {
+  (p: string, type: 'buffer'): Buffer;
+  (p: string, type: 'json'): any;
+  (p: string, type: string): any;
+}
+
+function syncNotAvailableError(): never {
+  throw new ApiError(ErrorCode.ENOTSUP, `Synchronous HTTP download methods are not available in this environment.`);
 }
 
 /**
- * A simple filesystem backed by XMLHttpRequests. You must create a directory listing using the
- * `make_xhrfs_index` tool provided by BrowserFS.
+ * A simple filesystem backed by HTTP downloads. You must create a directory listing using the
+ * `make_http_index` tool provided by BrowserFS.
  *
  * If you install BrowserFS globally with `npm i -g browserfs`, you can generate a listing by
- * running `make_xhrfs_index` in your terminal in the directory you would like to index:
+ * running `make_http_index` in your terminal in the directory you would like to index:
  *
  * ```
- * make_xhrfs_index > index.json
+ * make_http_index > index.json
  * ```
  *
  * Listings objects look like the following:
@@ -69,12 +89,17 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
     index: {
       type: ["string", "object"],
       optional: true,
-      description: "URL to a file index as a JSON file or the file index object itself, generated with the make_xhrfs_index script. Defaults to `index.json`."
+      description: "URL to a file index as a JSON file or the file index object itself, generated with the make_http_index script. Defaults to `index.json`."
     },
     baseUrl: {
       type: "string",
       optional: true,
       description: "Used as the URL prefix for fetched files. Default: Fetch files relative to the index."
+    },
+    preferXHR: {
+      type: "boolean",
+      optional: true,
+      description: "Whether to prefer XmlHttpRequest or fetch for async operations if both are available. Default: false"
     }
   };
 
@@ -97,14 +122,19 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
       cb(null, new XmlHttpRequest(opts.index, opts.baseUrl));
     }
   }
+
   public static isAvailable(): boolean {
-    return typeof(XMLHttpRequest) !== "undefined" && XMLHttpRequest !== null;
+    return xhrIsAvailable || fetchIsAvailable;
   }
 
   public readonly prefixUrl: string;
   private _index: FileIndex<{}>;
+  private _requestFileAsyncInternal: AsyncDownloadFileMethod;
+  private _requestFileSizeAsyncInternal: (p: string, cb: BFSCallback<number>) => void;
+  private _requestFileSyncInternal: SyncDownloadFileMethod;
+  private _requestFileSizeSyncInternal: (p: string) => number;
 
-  private constructor(index: object, prefixUrl: string = '') {
+  private constructor(index: object, prefixUrl: string = '', preferXHR: boolean = false) {
     super();
     // prefix_url must end in a directory separator.
     if (prefixUrl.length > 0 && prefixUrl.charAt(prefixUrl.length - 1) !== '/') {
@@ -112,6 +142,22 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
     }
     this.prefixUrl = prefixUrl;
     this._index = FileIndex.fromListing(index);
+
+    if (fetchIsAvailable && (!preferXHR || !xhrIsAvailable)) {
+      this._requestFileAsyncInternal = fetchFileAsync;
+      this._requestFileSizeAsyncInternal = fetchFileSizeAsync;
+    } else {
+      this._requestFileAsyncInternal = asyncDownloadFile;
+      this._requestFileSizeAsyncInternal = getFileSizeAsync;
+    }
+
+    if (xhrIsAvailable) {
+      this._requestFileSyncInternal = syncDownloadFile;
+      this._requestFileSizeSyncInternal = getFileSizeSync;
+    } else {
+      this._requestFileSyncInternal = syncNotAvailableError;
+      this._requestFileSizeSyncInternal = syncNotAvailableError;
+    }
   }
 
   public empty(): void {
@@ -143,11 +189,12 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
   }
 
   public supportsSynch(): boolean {
-    return true;
+    // Synchronous operations are only available via the XHR interface for now.
+    return xhrIsAvailable;
   }
 
   /**
-   * Special XHR function: Preload the given file into the index.
+   * Special HTTPFS function: Preload the given file into the index.
    * @param [String] path
    * @param [BrowserFS.Buffer] buffer
    */
@@ -358,7 +405,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
     }
   }
 
-  private getXhrPath(filePath: string): string {
+  private _getHTTPPath(filePath: string): string {
     if (filePath.charAt(0) === '/') {
       filePath = filePath.slice(1);
     }
@@ -372,7 +419,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
   private _requestFileAsync(p: string, type: 'json', cb: BFSCallback<any>): void;
   private _requestFileAsync(p: string, type: string, cb: BFSCallback<any>): void;
   private _requestFileAsync(p: string, type: string, cb: BFSCallback<any>): void {
-    asyncDownloadFile(this.getXhrPath(p), type, cb);
+    this._requestFileAsyncInternal(this._getHTTPPath(p), type, cb);
   }
 
   /**
@@ -382,16 +429,17 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
   private _requestFileSync(p: string, type: 'json'): any;
   private _requestFileSync(p: string, type: string): any;
   private _requestFileSync(p: string, type: string): any {
-    return syncDownloadFile(this.getXhrPath(p), type);
+    return this._requestFileSyncInternal(this._getHTTPPath(p), type);
   }
 
   /**
    * Only requests the HEAD content, for the file size.
    */
   private _requestFileSizeAsync(path: string, cb: BFSCallback<number>): void {
-    getFileSizeAsync(this.getXhrPath(path), cb);
+    this._requestFileSizeAsyncInternal(this._getHTTPPath(path), cb);
   }
+
   private _requestFileSizeSync(path: string): number {
-    return getFileSizeSync(this.getXhrPath(path));
+    return this._requestFileSizeSyncInternal(this._getHTTPPath(path));
   }
 }

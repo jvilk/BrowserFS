@@ -7,6 +7,8 @@ import {isIE, emptyBuffer} from '../core/util';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {BFSCallback} from '../core/file_system';
 
+export const xhrIsAvailable = (typeof(XMLHttpRequest) !== "undefined" && XMLHttpRequest !== null);
+
 /**
  * @hidden
  */
@@ -50,7 +52,7 @@ function asyncDownloadFileModern(p: string, type: string, cb: BFSCallback<any>):
             }
         }
       } else {
-        return cb(new ApiError(req.status, "XHR error."));
+        return cb(new ApiError(ErrorCode.EIO, `XHR error: response returned code ${req.status}`));
       }
     }
   };
@@ -93,7 +95,7 @@ function syncDownloadFileModern(p: string, type: string): any {
             return;
         }
       } else {
-        err = new ApiError(req.status, "XHR error.");
+        err = new ApiError(ErrorCode.EIO, `XHR error: response returned code ${req.status}`);
         return;
       }
     }
@@ -140,7 +142,7 @@ function syncDownloadFileIE10(p: string, type: string): any {
             break;
         }
       } else {
-        err = new ApiError(req.status, "XHR error.");
+        err = new ApiError(ErrorCode.EIO, `XHR error: response returned code ${req.status}`);
       }
     }
   };
@@ -167,7 +169,7 @@ function getFileSize(async: boolean, p: string, cb: BFSCallback<number>): void {
           return cb(new ApiError(ErrorCode.EIO, "XHR HEAD error: Could not read content-length."));
         }
       } else {
-        return cb(new ApiError(req.status, "XHR HEAD error."));
+        return cb(new ApiError(ErrorCode.EIO, `XHR HEAD error: response returned code ${req.status}`));
       }
     }
   };

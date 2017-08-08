@@ -5,13 +5,20 @@ export default function XHRFSFactory(cb: (name: string, objs: FileSystem[]) => v
   if (XmlHttpRequestFS.isAvailable()) {
     XmlHttpRequestFS.Create({
       index: 'test/fixtures/xhrfs/listings.json',
-      baseUrl: '../'
-    }, (e, fs) => {
-      if (e) {
-        cb('XmlHttpRequest', []);
-      } else {
-        cb('XmlHttpRequest', [fs]);
-      }
+      baseUrl: '../',
+      preferXHR: true
+    }, (e1, xhrFS) => {
+      XmlHttpRequestFS.Create({
+        index: 'test/fixtures/xhrfs/listings.json',
+        baseUrl: '../',
+        preferXHR: false
+      }, (e2, fetchFS) => {
+        if (e1 || e2) {
+          throw e1 || e2;
+        } else {
+          cb('XmlHttpRequest', [xhrFS, fetchFS]);
+        }
+      });
     });
   } else {
     cb('XmlHttpRequest', []);

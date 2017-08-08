@@ -23,7 +23,7 @@
     "node": ">= 0.10"
   },
   "bin": {
-    "make_xhrfs_index": "./dist/scripts/make_xhrfs_index.js"
+    "make_http_index": "./dist/scripts/make_http_index.js"
   },
   "devDependencies": {
     "@types/archiver": "^2.0.0",
@@ -32,6 +32,7 @@
     "@types/express": "^4.0.36",
     "@types/filesystem": "0.0.28",
     "@types/mocha": "^2.2.41",
+    "@types/isomorphic-fetch": "^0.0.34",
     "@types/node": "~7.0",
     "@types/rimraf": "~0.0.28",
     "archiver": "^2.0.0",
@@ -100,9 +101,9 @@
     "script:make_fixture_loader": "node build/scripts/make_fixture_loader.js",
     "script:make_test_launcher": "node build/scripts/make_test_launcher.js",
     "script:make_zip_fixtures": "node build/scripts/make_zip_fixtures",
-    "script:make_xhrfs_index": "node build/scripts/make_xhrfs_index.js test/fixtures/xhrfs/listings.json",
+    "script:make_http_index": "node build/scripts/make_http_index.js test/fixtures/xhrfs/listings.json",
     "test:karma": "karma start karma.config.js",
-    "test:prepare": "npm-run-all build:scripts script:make_fixture_loader script:make_test_launcher test:build script:make_zip_fixtures script:make_xhrfs_index",
+    "test:prepare": "npm-run-all build:scripts script:make_fixture_loader script:make_test_launcher test:build script:make_zip_fixtures script:make_http_index",
     "test": "npm-run-all test:prepare test:karma",
     "watch-test": "npm-run-all test:prepare --parallel watch:scripts test:watch test:karma",
     "prepublish": "npm run dist",
