@@ -217,7 +217,7 @@ Note that any asynchronous file system can be accessed synchronously using the [
     <td>✗</td>
   </tr>
   <tr>
-    <td><a href="classes/_backend_xmlhttprequest_.xmlhttprequest.html">XmlHttpRequest</a></td>
+    <td><a href="classes/_backend_httprequest_.httprequest.html">HTTPRequest</a></td>
     <td>✗</td>
     <td>✓</td>
     <td>✗</td>

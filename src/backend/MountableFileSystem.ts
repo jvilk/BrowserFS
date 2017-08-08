@@ -27,7 +27,7 @@ export interface MountableFileSystemOptions {
  * BrowserFS.configure({
  *   fs: "MountableFileSystem",
  *   options: {
- *     '/data': { fs: 'XmlHttpRequest', options: { index: "http://mysite.com/files/index.json" } },
+ *     '/data': { fs: 'HTTPRequest', options: { index: "http://mysite.com/files/index.json" } },
  *     '/home': { fs: 'LocalStorage' }
  *   }
  * }, function(e) {
@@ -37,7 +37,7 @@ export interface MountableFileSystemOptions {
  *
  * For advanced users, you can also mount file systems *after* MFS is constructed:
  * ```javascript
- * BrowserFS.FileSystem.XmlHttpRequest.Create({
+ * BrowserFS.FileSystem.HTTPRequest.Create({
  *   index: "http://mysite.com/files/index.json"
  * }, function(e, xhrfs) {
  *   BrowserFS.FileSystem.MountableFileSystem.Create({

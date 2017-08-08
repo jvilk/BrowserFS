@@ -11,12 +11,12 @@
 
 BrowserFS is highly extensible, and ships with many filesystem backends:
 
-* `XmlHttpRequest`: Downloads files on-demand from a webserver via `XMLHttpRequest`
+* `HTTPRequest`: Downloads files on-demand from a webserver via `XMLHttpRequest` or `fetch`.
 * `LocalStorage`: Stores files in the browser's `localStorage`.
-* `HTML5FS`: Stores files into the HTML5 `FileSystem` API
+* `HTML5FS`: Stores files into the HTML5 `FileSystem` API.
 * `IndexedDB`: Stores files into the browser's `IndexedDB` object database.
 * `Dropbox`: Stores files into the user's Dropbox account.
-  * Note: You provide this filesystem with an authenticated [DropboxJS client](https://github.com/dropbox/dropbox-js)
+  * Note: You provide this filesystem with an authenticated [DropboxJS V2 JS SDK client](https://github.com/dropbox/dropbox-sdk-js).
 * `InMemory`: Stores files in-memory. Thus, it is a temporary file store that clears when the user navigates away.
 * `ZipFS`: Read-only zip file-backed FS. Lazily decompresses files as you access them.
   * Supports DEFLATE out-of-the-box.

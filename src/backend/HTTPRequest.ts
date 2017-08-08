@@ -24,9 +24,9 @@ function tryToString(buff: Buffer, encoding: string, cb: BFSCallback<string>) {
 }
 
 /**
- * Configuration options for an XmlHttpRequest file system.
+ * Configuration options for a HTTPRequest file system.
  */
-export interface XmlHttpRequestOptions {
+export interface HTTPRequestOptions {
   // URL to a file index as a JSON file or the file index object itself, generated with the make_http_index script.
   // Defaults to `index.json`.
   index?: string | object;
@@ -82,8 +82,8 @@ function syncNotAvailableError(): never {
  *
  * *This example has the folder `/home/jvilk` with subfile `someFile.txt` and subfolder `someDir`.*
  */
-export default class XmlHttpRequest extends BaseFileSystem implements FileSystem {
-  public static readonly Name = "XmlHttpRequest";
+export default class HTTPRequest extends BaseFileSystem implements FileSystem {
+  public static readonly Name = "HTTPRequest";
 
   public static readonly Options: FileSystemOptions = {
     index: {
@@ -104,9 +104,9 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
   };
 
   /**
-   * Construct an XmlHttpRequest file system backend with the given options.
+   * Construct an HTTPRequest file system backend with the given options.
    */
-  public static Create(opts: XmlHttpRequestOptions, cb: BFSCallback<XmlHttpRequest>): void {
+  public static Create(opts: HTTPRequestOptions, cb: BFSCallback<HTTPRequest>): void {
     if (opts.index === undefined) {
       opts.index = `index.json`;
     }
@@ -115,11 +115,11 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
         if (e) {
           cb(e);
         } else {
-          cb(null, new XmlHttpRequest(data, opts.baseUrl));
+          cb(null, new HTTPRequest(data, opts.baseUrl));
         }
       });
     } else {
-      cb(null, new XmlHttpRequest(opts.index, opts.baseUrl));
+      cb(null, new HTTPRequest(opts.index, opts.baseUrl));
     }
   }
 
@@ -167,7 +167,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
   }
 
   public getName(): string {
-    return XmlHttpRequest.Name;
+    return HTTPRequest.Name;
   }
 
   public diskSpace(path: string, cb: (total: number, free: number) => void): void {
@@ -377,7 +377,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
           return oldCb(err, arg);
         });
       };
-      const fdCast = <NoSyncFile<XmlHttpRequest>> fd;
+      const fdCast = <NoSyncFile<HTTPRequest>> fd;
       const fdBuff = <Buffer> fdCast.getBuffer();
       if (encoding === null) {
         cb(err, copyingSlice(fdBuff));
@@ -394,7 +394,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
     // Get file.
     const fd = this.openSync(fname, flag, 0x1a4);
     try {
-      const fdCast = <NoSyncFile<XmlHttpRequest>> fd;
+      const fdCast = <NoSyncFile<HTTPRequest>> fd;
       const fdBuff = <Buffer> fdCast.getBuffer();
       if (encoding === null) {
         return copyingSlice(fdBuff);

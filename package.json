@@ -101,7 +101,7 @@
     "script:make_fixture_loader": "node build/scripts/make_fixture_loader.js",
     "script:make_test_launcher": "node build/scripts/make_test_launcher.js",
     "script:make_zip_fixtures": "node build/scripts/make_zip_fixtures",
-    "script:make_http_index": "node build/scripts/make_http_index.js test/fixtures/xhrfs/listings.json",
+    "script:make_http_index": "node build/scripts/make_http_index.js test/fixtures/httpdownloadfs/listings.json",
     "test:karma": "karma start karma.config.js",
     "test:prepare": "npm-run-all build:scripts script:make_fixture_loader script:make_test_launcher test:build script:make_zip_fixtures script:make_http_index",
     "test": "npm-run-all test:prepare test:karma",

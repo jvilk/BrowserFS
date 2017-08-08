@@ -1,4 +1,4 @@
-import XHRFSFactory from './xhrfs_factory';
+import HTTPDownloadFSFactory from './httpdownloadfs_factory';
 import {FileSystem} from '../../../src/core/file_system';
 import IsoFS from '../../../src/backend/IsoFS';
 import * as BrowserFS from '../../../src/core/browserfs';
@@ -6,13 +6,13 @@ import * as BrowserFS from '../../../src/core/browserfs';
 const isodir = "/test/fixtures/isofs";
 export default function IsoFSFactory(cb: (name: string, objs: FileSystem[]) => void): void {
   if (IsoFS.isAvailable()) {
-    XHRFSFactory((_, xhrfs) => {
-      if (xhrfs.length === 0) {
-        return cb('IsoFS', xhrfs);
+    HTTPDownloadFSFactory((_, httpdownloadfs) => {
+      if (httpdownloadfs.length === 0) {
+        return cb('IsoFS', httpdownloadfs);
       }
 
-      // Leverage the XHRFS to download the fixtures for this FS.
-      BrowserFS.initialize(xhrfs[0]);
+      // Leverage the HTTPFS to download the fixtures for this FS.
+      BrowserFS.initialize(httpdownloadfs[0]);
       let fs = BrowserFS.BFSRequire('fs');
 
       // Add three Zip FS variants for different zip files.

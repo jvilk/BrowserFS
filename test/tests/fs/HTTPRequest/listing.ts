@@ -1,5 +1,5 @@
 /**
- * Unit tests for XHRFS
+ * Unit tests for HTTPDownloadFS
  */
 import fs from '../../../../src/core/node_fs';
 import assert from '../../../harness/wrapped-assert';
@@ -60,6 +60,8 @@ export default function() {
 
     });
   });
+
+  assert(BrowserFS.FileSystem.XmlHttpRequest === BrowserFS.FileSystem.HTTPRequest, `Maintains XHR file system for backwards compatibility.`);
 
   // Restore test FS on test end.
   process.on('exit', function() {
