@@ -38,7 +38,7 @@ export as namespace BrowserFS;
 `);
 
   // Scripts & library files
-  [path.join('scripts', 'make_xhrfs_index'), 'browserfs', 'browserfs.min'].forEach((file) => {
+  [path.join('scripts', 'make_http_index'), 'browserfs', 'browserfs.min'].forEach((file) => {
     ['.js', '.js.map'].forEach((ext) => {
       copyToDist(`${file}${ext}`);
     });
