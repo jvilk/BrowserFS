@@ -1,3 +1,4 @@
+dist: precise
 language: node_js
 node_js:
   - "4"

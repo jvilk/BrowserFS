@@ -81,14 +81,20 @@ export function initialize(rootfs: FileSystem) {
  * Creates a file system with the given configuration, and initializes BrowserFS with it.
  * See the FileSystemConfiguration type for more info on the configuration object.
  */
-export function configure(config: FileSystemConfiguration, cb: BFSOneArgCallback): void {
-  getFileSystem(config, (e, fs?) => {
-    if (fs) {
+export function configure(config: FileSystemConfiguration, cb: BFSOneArgCallback): void;
+export function configure(config: FileSystemConfiguration): Promise<FileSystem>;
+export function configure(config: FileSystemConfiguration, cb?: BFSOneArgCallback): any {
+  if (cb) {
+    return configure(config).then(() => cb()).catch(cb);
+  }
+  return new Promise(function(resolve, reject) {
+    getFileSystem(config, (e, fs?) => {
+      if (e || fs === undefined) {
+        return reject(e);
+      }
       initialize(fs);
-      cb();
-    } else {
-      cb(e);
-    }
+      resolve(fs);
+    });
   });
 }
 
