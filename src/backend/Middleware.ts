@@ -19,11 +19,10 @@ export interface MiddlewareOptions {
   writeTransformer?: Function; // (this, fname, enc, etc) => you implement
 }
 
-function noop(args: any, cb?: BFSOneArgCallback) {
+function noop(args: any, cb?: BFSOneArgCallback): void {
   if (cb) {
-    return cb(null);
+    cb(null);
   }
-  return true;
 }
 
 /**
