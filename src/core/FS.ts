@@ -419,7 +419,7 @@ export default class FS {
   public readFile(filename: string, options: { flag?: string; }, callback?: BFSCallback<Buffer>): void;
   public readFile(filename: string, options: { encoding: string; flag?: string; }, callback?: BFSCallback<string>): void;
   public readFile(filename: string, encoding: string, cb: BFSCallback<string>): void;
-  public readFile(filename: string, arg2: any = {}, cb: BFSCallback<any> = nopCb ) {
+  public readFile(filename: string, arg2: any = {}, cb: BFSCallback<any> = nopCb) {
     const options = normalizeOptions(arg2, null, 'r', null);
     cb = typeof arg2 === 'function' ? arg2 : cb;
     const newCb = wrapCb(cb, 2);
