@@ -1,7 +1,7 @@
 import CacheStorageFileSystem from '../../../src/backend/CacheStorage';
 import {FileSystem} from '../../../src/core/file_system';
 
-export default function CacheStorageFSFactory(cb: (name: string, obj: FileSystem[]) => void): void {
+export default function CacheStorageFactory(cb: (name: string, obj: FileSystem[]) => void): void {
   if (CacheStorageFileSystem.isAvailable()) {
     CacheStorageFileSystem.Create({
       storeName: `test-${Math.random()}`
@@ -13,10 +13,10 @@ export default function CacheStorageFSFactory(cb: (name: string, obj: FileSystem
         if (e) {
           throw e;
         }
-        cb('CacheStorageFS', [fs]);
+        cb('CacheStorage', [fs]);
       });
     });
   } else {
-    cb('CacheStorageFS', []);
+    cb('CacheStorage', []);
   }
 }
