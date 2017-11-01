@@ -29,13 +29,13 @@ export class CacheStorageROTransaction implements AsyncKeyValueROTransaction {
 
   public get(key: string, cb: BFSCallback<Buffer>): void {
     this.store.match(key)
-    .then((res : any) => {
+    .then((res: any) => {
       if (res === undefined) {
         setTimeout(() => cb(null, res), 0);
       } else {
         res.arrayBuffer()
-        .then((buffer : ArrayBuffer) => cb(null, arrayBuffer2Buffer(buffer)))
-        .catch((err : any) => cb(convertError(err)));
+        .then((buffer: ArrayBuffer) => cb(null, arrayBuffer2Buffer(buffer)))
+        .catch((err: any) => cb(convertError(err)));
       }
     })
     .catch((err) => cb(convertError(err)));
@@ -173,7 +173,14 @@ export default class CacheStorageFileSystem extends AsyncKeyValueFileSystem {
   public static Create(opts: CacheStorageFileSystemOptions, cb: BFSCallback<CacheStorageFileSystem>): void {
     CacheStore.Create(opts.storeName ? opts.storeName : 'browserfs', (e, store?) => {
       if (store) {
-        cb(null, new CacheStorageFileSystem(store));
+        const csfs = new CacheStorageFileSystem();
+        csfs.init(store, (e) => {
+          if (e) {
+            cb(e);
+          } else {
+            cb(null, csfs);
+          }
+        });
       } else {
         cb(e);
       }
@@ -182,9 +189,8 @@ export default class CacheStorageFileSystem extends AsyncKeyValueFileSystem {
   public static isAvailable(): boolean {
     return global.caches !== undefined;
   }
-  private constructor(store: CacheStore) {
+  private constructor() {
     super();
-    this.store = store;
   }
 
   public supportsSynch(): boolean {
