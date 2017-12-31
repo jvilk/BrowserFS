@@ -79,6 +79,13 @@ function normalizePath(p: string): string {
 function normalizeOptions(options: any, defEnc: string | null, defFlag: string, defMode: number | null): {encoding: string; flag: string; mode: number} {
   switch (typeof options) {
     case 'object':
+      if (options === null) {
+        return {
+          encoding: defEnc!,
+          flag: defFlag,
+          mode: defMode!
+        };
+      }
       return {
         encoding: typeof options['encoding'] !== 'undefined' ? options['encoding'] : defEnc,
         flag: typeof options['flag'] !== 'undefined' ? options['flag'] : defFlag,
