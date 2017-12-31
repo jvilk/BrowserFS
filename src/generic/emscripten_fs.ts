@@ -307,7 +307,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
     try {
       // Node does not list . and .. in directory listings,
       // but Emscripten expects it.
-      const contents = this.nodefs.readdirSync(path);
+      const contents = <string[]> this.nodefs.readdirSync(path);
       contents.push('.', '..');
       return contents;
     } catch (e) {

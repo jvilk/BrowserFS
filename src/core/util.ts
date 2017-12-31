@@ -254,3 +254,14 @@ export function checkOptions(fsType: FileSystemConstructor, opts: any, cb: BFSOn
     cb();
   }
 }
+
+export function encodeStrings(strings: string[], encoding: string): string[] | Buffer[] {
+  switch (encoding) {
+    case 'utf8':
+      return strings;
+    case 'buffer':
+      return strings.map((filename) => Buffer.from(filename));
+    default:
+      return strings.map((filename) => Buffer.from(filename).toString(encoding));
+  }
+}
