@@ -1,4 +1,4 @@
-# BrowserFS v2.0.0
+# BrowserFS v2.0.0-beta
 > BrowserFS is an in-browser file system that emulates the [Node JS file system API](http://nodejs.org/api/fs.html) and supports storing and retrieving files from various backends. BrowserFS also integrates nicely into the Emscripten file system.
 
 [![Build Status](https://travis-ci.org/jvilk/BrowserFS.svg?branch=master)](https://travis-ci.org/jvilk/BrowserFS)
@@ -31,7 +31,7 @@ BrowserFS is highly extensible, and ships with many filesystem backends:
 
 More backends can be defined by separate libraries, so long as they extend the `BaseFileSystem` class. Multiple backends can be active at once at different locations in the directory hierarchy.
 
-For more information, see the [API documentation for BrowserFS](https://jvilk.com/browserfs/1.4.1/index.html).
+For more information, see the [API documentation for BrowserFS](https://jvilk.com/browserfs/2.0.0-beta/index.html).
 
 ### Building
 

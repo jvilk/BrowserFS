@@ -933,7 +933,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
       if (noError(e, cb)) {
         this.getDirListing(tx, p, inode!, (e: ApiError, dirListing?: {[name: string]: string}) => {
           if (noError(e, cb)) {
-            cb(null, Object.keys(dirListing));
+            cb(null, Object.keys(dirListing!));
           }
         });
       }
