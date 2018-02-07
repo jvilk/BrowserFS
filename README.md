@@ -4,8 +4,6 @@
 [![Build Status](https://travis-ci.org/jvilk/BrowserFS.svg?branch=master)](https://travis-ci.org/jvilk/BrowserFS)
 [![Build Status](https://ci.appveyor.com/api/projects/status/bammh2x1bud8h7a5/branch/master?svg=true)](https://ci.appveyor.com/project/jvilk/browserfs/branch/master)
 [![NPM version](https://badge.fury.io/js/browserfs.svg)](http://badge.fury.io/js/browserfs)
-[![david-dm-status-badge](https://david-dm.org/jvilk/BrowserFS.svg)](https://david-dm.org/jvilk/browserfs#info=dependencies&view=table)
-[![david-dm-status-badge](https://david-dm.org/jvilk/BrowserFS/dev-status.svg)](https://david-dm.org/jvilk/BrowserFS#info=devDependencies&view=table)
 
 ### Backends
 
@@ -144,6 +142,11 @@ module.exports = {
       'bufferGlobal': 'browserfs/dist/shims/bufferGlobal.js',
       'bfsGlobal': require.resolve('browserfs')
     }
+  },
+  // REQUIRED to avoid issue "Uncaught TypeError: BrowserFS.BFSRequire is not a function"
+  // See: https://github.com/jvilk/BrowserFS/issues/201
+  module: {
+    noParse: /browserfs\.js/
   },
   plugins: [
     // Expose BrowserFS, process, and Buffer globals.
