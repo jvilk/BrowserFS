@@ -97,7 +97,9 @@
         ["Number", "Avoid using the `Number` type. Did you mean `number`?"],
         ["String", "Avoid using the `String` type. Did you mean `string`?"],
         ["Symbol", "Avoid using the `Symbol` type. Did you mean `symbol`?"]
-      ]
+    ],
+    "no-submodule-imports": false,
+    "no-implicit-dependencies": false
   },
   "rulesDirectory": []
 }
