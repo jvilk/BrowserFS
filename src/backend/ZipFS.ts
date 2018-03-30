@@ -629,7 +629,7 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
     let err: ApiError | null = null;
     let zipTOC: ZipTOC | undefined;
     try {
-      let callbackWrapper: BFSCallback<ZipTOC> = (_err: ApiError, _zipTOC: ZipTOC)=> {
+      const callbackWrapper: BFSCallback<ZipTOC> = (_err: ApiError, _zipTOC: ZipTOC) => {
         err = _err;
         zipTOC = _zipTOC;
       };
