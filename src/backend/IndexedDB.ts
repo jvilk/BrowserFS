@@ -115,13 +115,13 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements As
   }
 
   public abort(cb: BFSOneArgCallback): void {
-    let _e: ApiError | null = null;
+    let err: ApiError | null = null;
     try {
       this.tx.abort();
     } catch (e) {
-      _e = convertError(e);
+      err = convertError(e);
     } finally {
-      cb(_e);
+      cb(err);
     }
   }
 }

@@ -16,10 +16,14 @@ import {FileIndex, isFileInode, isDirInode} from '../generic/file_index';
  * @hidden
  */
 function tryToString(buff: Buffer, encoding: string, cb: BFSCallback<string>) {
+  let string: string | null = null;
+  let err: ApiError | null = null;
   try {
-    cb(null, buff.toString(encoding));
+    string = buff.toString(encoding);
   } catch (e) {
-    cb(e);
+    err = e;
+  } finally {
+    cb(err, string);
   }
 }
 
@@ -339,10 +343,14 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
   }
 
   public readdir(path: string, cb: BFSCallback<string[]>): void {
+    let res;
+    let err: ApiError | null = null;
     try {
-      cb(null, this.readdirSync(path));
+      res = this.readdirSync(path);
     } catch (e) {
-      cb(e);
+      err = e;
+    } finally {
+      cb(err, res);
     }
   }
 

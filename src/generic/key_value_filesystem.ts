@@ -1087,14 +1087,17 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
     } else {
       tx.get(inode.id, (e: ApiError, data?: Buffer): void => {
         if (noError(e, cb)) {
+          let err: ApiError | null;
+          let res;
           try {
-            cb(null, JSON.parse(data!.toString()));
+            res = JSON.parse(data!.toString());
           } catch (e) {
             // Occurs when data is undefined, or corresponds to something other
             // than a directory listing. The latter should never occur unless
             // the file system is corrupted.
-            cb(ApiError.ENOENT(p));
+            err = ApiError.ENOENT(p);
           }
+          cb(err, res);
         }
       });
     }

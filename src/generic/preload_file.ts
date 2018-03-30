@@ -119,10 +119,10 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
   public sync(cb: BFSOneArgCallback): void {
     try {
       this.syncSync();
-      cb();
     } catch (e) {
-      cb(e);
+      return cb(e);
     }
+    cb();
   }
 
   /**
@@ -140,10 +140,10 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
   public close(cb: BFSOneArgCallback): void {
     try {
       this.closeSync();
-      cb();
     } catch (e) {
-      cb(e);
+      return cb(e);
     }
+    cb();
   }
 
   /**
@@ -158,11 +158,13 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
    * @param [Function(BrowserFS.ApiError, BrowserFS.node.fs.Stats)] cb
    */
   public stat(cb: BFSCallback<Stats>): void {
+    let res: Stats;
     try {
-      cb(null, Stats.clone(this._stat));
+      res = Stats.clone(this._stat);
     } catch (e) {
-      cb(e);
+      return cb(e);
     }
+    cb(null, res);
   }
 
   /**
@@ -183,10 +185,10 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
       if (this._flag.isSynchronous() && !fs.getRootFS()!.supportsSynch()) {
         this.sync(cb);
       }
-      cb();
     } catch (e) {
       return cb(e);
     }
+    cb();
   }
 
   /**
@@ -233,11 +235,13 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
    *   cb The number specifies the number of bytes written into the file.
    */
   public write(buffer: Buffer, offset: number, length: number, position: number, cb: BFSThreeArgCallback<number, Buffer>): void {
+    let res: number;
     try {
-      cb(null, this.writeSync(buffer, offset, length, position), buffer);
+      res = this.writeSync(buffer, offset, length, position);
     } catch (e) {
-      cb(e);
+      return cb(e);
     }
+    cb(null, res, buffer);
   }
 
   /**
@@ -295,11 +299,13 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
    *   number is the number of bytes read
    */
   public read(buffer: Buffer, offset: number, length: number, position: number, cb: BFSThreeArgCallback<number, Buffer>): void {
+    let res: number;
     try {
-      cb(null, this.readSync(buffer, offset, length, position), buffer);
+      res = this.readSync(buffer, offset, length, position);
     } catch (e) {
-      cb(e);
+      return cb(e);
     }
+    cb(null, res, buffer);
   }
 
   /**
@@ -339,10 +345,10 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
   public chmod(mode: number, cb: BFSOneArgCallback): void {
     try {
       this.chmodSync(mode);
-      cb();
     } catch (e) {
-      cb(e);
+      return cb(e);
     }
+    cb();
   }
 
   /**

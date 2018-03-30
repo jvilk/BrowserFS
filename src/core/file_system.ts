@@ -660,10 +660,14 @@ export class BaseFileSystem {
           } else if (encoding === null) {
             return cb(err, buf);
           }
+          // TODO: Share tryToString helper with HTTPRequest.ts
+          let string: string;
           try {
-            cb(null, buf.toString(encoding));
+            string = buf.toString(encoding);
           } catch (e) {
-            cb(e);
+            err = e;
+          } finally {
+            cb(err, string);
           }
         });
       });
@@ -803,113 +807,121 @@ export class SynchronousFileSystem extends BaseFileSystem {
   public rename(oldPath: string, newPath: string, cb: BFSOneArgCallback): void {
     try {
       this.renameSync(oldPath, newPath);
-      cb();
     } catch (e) {
-      cb(e);
+      return cb(e);
     }
+    cb();
   }
 
   public stat(p: string, isLstat: boolean | null, cb: BFSCallback<Stats>): void {
+    let res: Stats | null;
     try {
-      cb(null, this.statSync(p, isLstat));
+      res = this.statSync(p, isLstat);
     } catch (e) {
-      cb(e);
+      return cb(e);
     }
+    cb(null, res);
   }
 
   public open(p: string, flags: FileFlag, mode: number, cb: BFSCallback<File>): void {
+    let res: File | null;
     try {
-      cb(null, this.openSync(p, flags, mode));
+      res = this.openSync(p, flags, mode);
     } catch (e) {
-      cb(e);
+      return cb(e);
     }
+    cb(null, res);
   }
 
   public unlink(p: string, cb: BFSOneArgCallback): void {
     try {
       this.unlinkSync(p);
-      cb();
     } catch (e) {
-      cb(e);
+      return cb(e);
     }
+    cb();
   }
 
   public rmdir(p: string, cb: BFSOneArgCallback): void {
     try {
       this.rmdirSync(p);
-      cb();
     } catch (e) {
-      cb(e);
+      return cb(e);
     }
+    cb();
   }
 
   public mkdir(p: string, mode: number, cb: BFSOneArgCallback): void {
     try {
       this.mkdirSync(p, mode);
-      cb();
     } catch (e) {
-      cb(e);
+      return cb(e);
     }
+    cb();
   }
 
   public readdir(p: string, cb: BFSCallback<string[]>): void {
+    let res: string[] | null;
     try {
-      cb(null, this.readdirSync(p));
+      res = this.readdirSync(p);
     } catch (e) {
-      cb(e);
+      return cb(e);
     }
+    cb(null, res);
   }
 
   public chmod(p: string, isLchmod: boolean, mode: number, cb: BFSOneArgCallback): void {
     try {
       this.chmodSync(p, isLchmod, mode);
-      cb();
     } catch (e) {
-      cb(e);
+      return cb(e);
     }
+    cb();
   }
 
   public chown(p: string, isLchown: boolean, uid: number, gid: number, cb: BFSOneArgCallback): void {
     try {
       this.chownSync(p, isLchown, uid, gid);
-      cb();
     } catch (e) {
-      cb(e);
+      return cb(e);
     }
+    cb();
   }
 
   public utimes(p: string, atime: Date, mtime: Date, cb: BFSOneArgCallback): void {
     try {
       this.utimesSync(p, atime, mtime);
-      cb();
     } catch (e) {
-      cb(e);
+      return cb(e);
     }
+    cb();
   }
 
   public link(srcpath: string, dstpath: string, cb: BFSOneArgCallback): void {
     try {
       this.linkSync(srcpath, dstpath);
-      cb();
     } catch (e) {
-      cb(e);
+      return cb(e);
     }
+    cb();
   }
 
   public symlink(srcpath: string, dstpath: string, type: string, cb: BFSOneArgCallback): void {
     try {
       this.symlinkSync(srcpath, dstpath, type);
-      cb();
     } catch (e) {
-      cb(e);
+      return cb(e);
     }
+    cb();
   }
 
   public readlink(p: string, cb: BFSCallback<string>): void {
+    let res: string | null;
     try {
-      cb(null, this.readlinkSync(p));
+      res = this.readlinkSync(p);
     } catch (e) {
-      cb(e);
+      return cb(e);
     }
+    cb(null, res);
   }
 }
