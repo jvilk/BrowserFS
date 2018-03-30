@@ -1087,7 +1087,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
     } else {
       tx.get(inode.id, (e: ApiError, data?: Buffer): void => {
         if (noError(e, cb)) {
-          let err: ApiError | null;
+          let err: ApiError | null = null;
           let res;
           try {
             res = JSON.parse(data!.toString());

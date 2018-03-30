@@ -627,12 +627,13 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
 
   private static _computeIndexResponsiveTrampoline(data: Buffer, index: FileIndex<CentralDirectory>, cdPtr: number, cdEnd: number, cb: BFSCallback<ZipTOC>, cdEntries: CentralDirectory[], eocd: EndOfCentralDirectory) {
     let err: ApiError | null = null;
-    let zipTOC: ZipTOC | null = null;
+    let zipTOC: ZipTOC | undefined;
     try {
-      ZipFS._computeIndexResponsive(data, index, cdPtr, cdEnd, (_err: ApiError | null, _zipTOC: ZipTOC | null)=> {
+      let callbackWrapper: BFSCallback<ZipTOC> = (_err: ApiError, _zipTOC: ZipTOC)=> {
         err = _err;
         zipTOC = _zipTOC;
-      }, cdEntries, eocd);
+      };
+      ZipFS._computeIndexResponsive(data, index, cdPtr, cdEnd, callbackWrapper, cdEntries, eocd);
     } catch (e) {
       return cb(e);
     }

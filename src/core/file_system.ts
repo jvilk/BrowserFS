@@ -661,13 +661,13 @@ export class BaseFileSystem {
             return cb(err, buf);
           }
           // TODO: Share tryToString helper with HTTPRequest.ts
-          let string: string;
+          let res: string | undefined;
           try {
-            string = buf.toString(encoding);
+            res = buf.toString(encoding);
           } catch (e) {
             err = e;
           } finally {
-            cb(err, string);
+            cb(err, res);
           }
         });
       });

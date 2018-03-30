@@ -16,14 +16,14 @@ import {FileIndex, isFileInode, isDirInode} from '../generic/file_index';
  * @hidden
  */
 function tryToString(buff: Buffer, encoding: string, cb: BFSCallback<string>) {
-  let string: string | null = null;
+  let res: string | undefined;
   let err: ApiError | null = null;
   try {
-    string = buff.toString(encoding);
+    res = buff.toString(encoding);
   } catch (e) {
     err = e;
   } finally {
-    cb(err, string);
+    cb(err, res);
   }
 }
 
