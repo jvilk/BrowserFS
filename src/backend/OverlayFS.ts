@@ -854,9 +854,13 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
     this._writable.stat(parent, false, statDone);
     function statDone(err: ApiError, stat?: Stats): void {
       if (err) {
-        toCreate.push(parent);
-        parent = path.dirname(parent);
-        self._writable.stat(parent, false, statDone);
+        if (parent === "/") {
+          cb(new ApiError(ErrorCode.EBUSY, "Invariant failed: root does not exist!"));
+        } else {
+          toCreate.push(parent);
+          parent = path.dirname(parent);
+          self._writable.stat(parent, false, statDone);
+        }
       } else {
         createParents();
       }
