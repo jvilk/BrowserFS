@@ -214,7 +214,14 @@ export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
   public static Create(opts: IndexedDBFileSystemOptions, cb: BFSCallback<IndexedDBFileSystem>): void {
     IndexedDBStore.Create(opts.storeName ? opts.storeName : 'browserfs', (e, store?) => {
       if (store) {
-        cb(null, new IndexedDBFileSystem(store));
+        const idbfs = new IndexedDBFileSystem(store);
+        idbfs.init(idbfs.store, (e) => {
+          debugger;
+          if (e) {
+            return cb(e);
+          }
+          cb(null, idbfs);
+        });
       } else {
         cb(e);
       }
