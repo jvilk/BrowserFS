@@ -22,3 +22,6 @@ install:
 
 script:
   - yarn test
+
+git:
+  depth: 5
