@@ -21,3 +21,5 @@ build: off
 cache:
   - node_modules
   - "%LOCALAPPDATA%/Yarn"
+
+clone_depth: 5
