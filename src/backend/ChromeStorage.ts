@@ -5,7 +5,7 @@ import global from '../core/global';
 import {deprecationMessage} from '../core/util';
 
 /**
- * Get the indexedDB constructor for the current browser.
+ * Get the chrome global.
  * @hidden
  */
 const chrome = global.chrome;
@@ -161,9 +161,9 @@ export default class ChromeStorageFileSystem extends AsyncKeyValueFileSystem {
    * Constructs a ChromeStorage file system with the given options.
    */
   public static Create(opts: ChromeStorageFileSystemOptions, cb: BFSCallback<ChromeStorageFileSystem>): void {
-    // tslint:disable-next-line:no-unused-new
+    // tslint:disable-next-line:no-unused-new no-unused-expression
     new ChromeStorageFileSystem(cb, opts.storeType, false);
-    // tslint:enable-next-line:no-unused-new
+    // tslint:enable-next-line:no-unused-new no-unused-expression
   }
 
   /**
