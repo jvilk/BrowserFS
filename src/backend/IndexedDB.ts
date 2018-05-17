@@ -1,3 +1,4 @@
+import setImmediate from '../generic/setImmediate';
 import {BFSOneArgCallback, BFSCallback, FileSystemOptions} from '../core/file_system';
 import {AsyncKeyValueROTransaction, AsyncKeyValueRWTransaction, AsyncKeyValueStore, AsyncKeyValueFileSystem} from '../generic/key_value_filesystem';
 import {ApiError, ErrorCode} from '../core/api_error';
@@ -111,7 +112,7 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements As
 
   public commit(cb: BFSOneArgCallback): void {
     // Return to the event loop to commit the transaction.
-    setTimeout(cb, 0);
+    setImmediate(cb);
   }
 
   public abort(cb: BFSOneArgCallback): void {
@@ -161,8 +162,8 @@ export class IndexedDBStore implements AsyncKeyValueStore {
         objectStore = tx.objectStore(this.storeName),
         r: IDBRequest = objectStore.clear();
       r.onsuccess = (event) => {
-        // Use setTimeout to commit transaction.
-        setTimeout(cb, 0);
+        // Use setImmediate to commit transaction.
+        setImmediate(cb);
       };
       r.onerror = onErrorHandler(cb);
     } catch (e) {

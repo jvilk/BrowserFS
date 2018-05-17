@@ -60,7 +60,7 @@ if (typeof(setImmediate) !== "undefined") {
     };
   } else {
     bfsSetImmediate = function(fn: () => void) {
-      return setTimeout(fn, 0);
+      return Promise.resolve().then(fn);
     };
   }
 }
