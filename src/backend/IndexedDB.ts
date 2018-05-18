@@ -216,7 +216,6 @@ export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
       if (store) {
         const idbfs = new IndexedDBFileSystem(store);
         idbfs.init(idbfs.store, (e) => {
-          debugger;
           if (e) {
             return cb(e);
           }
