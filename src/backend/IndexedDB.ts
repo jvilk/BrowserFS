@@ -110,8 +110,7 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements As
   }
 
   public commit(cb: BFSOneArgCallback): void {
-    // Return to the event loop to commit the transaction.
-    setTimeout(cb, 0);
+    cb();
   }
 
   public abort(cb: BFSOneArgCallback): void {
@@ -161,8 +160,7 @@ export class IndexedDBStore implements AsyncKeyValueStore {
         objectStore = tx.objectStore(this.storeName),
         r: IDBRequest = objectStore.clear();
       r.onsuccess = (event) => {
-        // Use setTimeout to commit transaction.
-        setTimeout(cb, 0);
+        cb();
       };
       r.onerror = onErrorHandler(cb);
     } catch (e) {
