@@ -2,7 +2,6 @@ import {BFSOneArgCallback, BFSCallback, FileSystemOptions} from '../core/file_sy
 import {AsyncKeyValueROTransaction, AsyncKeyValueRWTransaction, AsyncKeyValueStore, AsyncKeyValueFileSystem} from '../generic/key_value_filesystem';
 import {ApiError, ErrorCode} from '../core/api_error';
 import global from '../core/global';
-import {deprecationMessage} from '../core/util';
 
 /**
  * Get the chrome global.
@@ -141,6 +140,8 @@ export class ChromeStore implements AsyncKeyValueStore {
 export interface ChromeStorageFileSystemOptions {
   // The storage type, options are 'local' or 'sync'
   storeType?: string;
+  // The size of the inode cache. Defaults to 100. A size of 0 or below disables caching.
+  cacheSize?: number;
 }
 
 /**
@@ -154,6 +155,11 @@ export default class ChromeStorageFileSystem extends AsyncKeyValueFileSystem {
       type: "string",
       optional: true,
       description: "The storage type, options are 'local' or 'sync'."
+    },
+    cacheSize: {
+      type: "number",
+      optional: true,
+      description: "The size of the inode cache. Defaults to 100. A size of 0 or below disables caching."
     }
   };
 
@@ -161,29 +167,19 @@ export default class ChromeStorageFileSystem extends AsyncKeyValueFileSystem {
    * Constructs a ChromeStorage file system with the given options.
    */
   public static Create(opts: ChromeStorageFileSystemOptions, cb: BFSCallback<ChromeStorageFileSystem>): void {
-    // tslint:disable-next-line:no-unused-new no-unused-expression
-    new ChromeStorageFileSystem(cb, opts.storeType, false);
-    // tslint:enable-next-line:no-unused-new no-unused-expression
-  }
-
-  /**
-   * **Deprecated. Use ChromeStorage.Create() method instead.**
-   *
-   * Constructs an ChromeStorage file system.
-   * @param cb Called once the database is instantiated and ready for use.
-   *   Passes an error if there was an issue instantiating the database.
-   */
-  constructor(cb: BFSCallback<ChromeStorageFileSystem>, storeType?: string, deprecateMsg: boolean = true) {
-    super();
-    this.store = new ChromeStore((e): void => {
+    const store = new ChromeStore((e): void => {
       if (e) {
         cb(e);
       } else {
-        this.init(this.store, (e?) => {
-          cb(e, this);
+        const cfs = new ChromeStorageFileSystem(typeof(opts.cacheSize) === 'number' ? opts.cacheSize : 100);
+        cfs.init(store, (e?) => {
+          cb(e, cfs);
         });
       }
-    }, storeType);
-    deprecationMessage(deprecateMsg, ChromeStorageFileSystem.Name, {storeType: storeType});
+    }, opts.storeType);
+  }
+
+  private constructor(cacheSize: number) {
+    super(cacheSize);
   }
 }
