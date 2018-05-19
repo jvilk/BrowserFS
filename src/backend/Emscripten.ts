@@ -60,10 +60,14 @@ export class EmscriptenFile extends BaseFile implements File {
     }
   }
   public stat(cb: BFSCallback<Stats>): void {
+    let res;
+    let err: ApiError | null = null;
     try {
-      cb(null, this.statSync());
+      res = this.statSync();
     } catch (e) {
-      cb(e);
+      err = e;
+    } finally {
+      cb(err, res);
     }
   }
   public statSync(): Stats {
@@ -91,10 +95,14 @@ export class EmscriptenFile extends BaseFile implements File {
     }
   }
   public write(buffer: NodeBuffer, offset: number, length: number, position: number, cb: BFSThreeArgCallback<number, Buffer>): void {
+    let res;
+    let err: ApiError | null = null;
     try {
-      cb(null, this.writeSync(buffer, offset, length, position), buffer);
+      res = this.writeSync(buffer, offset, length, position);
     } catch (e) {
-      cb(e);
+      err = e;
+    } finally {
+      cb(err, res, buffer);
     }
   }
   public writeSync(buffer: NodeBuffer, offset: number, length: number, position: number | null): number {
@@ -108,10 +116,14 @@ export class EmscriptenFile extends BaseFile implements File {
     }
   }
   public read(buffer: NodeBuffer, offset: number, length: number, position: number, cb: BFSThreeArgCallback<number, Buffer>): void {
+    let res;
+    let err: ApiError | null = null;
     try {
-      cb(null, this.readSync(buffer, offset, length, position), buffer);
+      res = this.readSync(buffer, offset, length, position);
     } catch (e) {
-      cb(e);
+      err = e;
+    } finally {
+      cb(err, res, buffer);
     }
   }
   public readSync(buffer: NodeBuffer, offset: number, length: number, position: number | null): number {
