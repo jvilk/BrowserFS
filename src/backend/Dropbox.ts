@@ -397,7 +397,7 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
       switch (<string> err['.tag']) {
         case 'path':
           const upError = <DropboxTypes.files.UploadErrorPath> err;
-          cb(WriteErrorToError(upError.path.reason, p, GetErrorMessage(e)));
+          cb(WriteErrorToError(upError.reason, p, GetErrorMessage(e)));
           break;
         case 'too_many_write_operations':
           // Retry in (500, 800) ms.
@@ -507,7 +507,7 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
       switch (<string> err['.tag']) {
         case 'path':
           const upError = <DropboxTypes.files.UploadErrorPath> err;
-          cb(WriteErrorToError(upError.path.reason, p, GetErrorMessage(e)));
+          cb(WriteErrorToError(upError.reason, p, GetErrorMessage(e)));
           break;
         case 'too_many_write_operations':
           setTimeout(() => this._syncFile(p, d, cb), 500 + (300 * (Math.random())));
