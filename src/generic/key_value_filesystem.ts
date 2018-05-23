@@ -144,7 +144,7 @@ export interface SimpleSyncStore {
 class LRUNode {
   public prev: LRUNode | null = null;
   public next: LRUNode | null = null;
-  constructor(public key: string, public value: string | Inode) {}
+  constructor(public key: string, public value: string | Inode | { [fileName: string]: string }) {}
 }
 
 // Adapted from https://chrisrng.svbtle.com/lru-cache-in-javascript
@@ -159,7 +159,7 @@ class LRUCache {
    * Change or add a new value in the cache
    * We overwrite the entry if it already exists
    */
-  public set(key: string, value: string | Inode): void {
+  public set(key: string, value: string | Inode | { [fileName: string]: string }): void {
     const node = new LRUNode(key, value);
     if (this.map[key]) {
       this.map[key].value = node.value;
@@ -176,7 +176,7 @@ class LRUCache {
   }
 
   /* Retrieve a single entry from the cache */
-  public get(key: string): string | Inode | null {
+  public get(key: string): string | Inode | { [fileName: string]: string } | null {
     if (this.map[key]) {
       const value = this.map[key].value;
       const node = new LRUNode(key, value);
@@ -1223,10 +1223,20 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
     if (!inode.isDirectory()) {
       cb(ApiError.ENOTDIR(p));
     } else {
+      if (this._cache) {
+        const dirlist = this._cache.get(`dir-${inode.id}`);
+        if (dirlist && !(dirlist instanceof Inode) && !(typeof(dirlist) === 'string')) {
+          return cb(null, dirlist);
+        }
+      }
       tx.get(inode.id, (e: ApiError, data?: Buffer): void => {
         if (noError(e, cb)) {
           try {
-            cb(null, JSON.parse(data!.toString()));
+            const dirlist = JSON.parse(data!.toString());
+            if (this._cache) {
+              this._cache.set(`dir-${inode.id}`, dirlist);
+            }
+            cb(null, dirlist);
           } catch (e) {
             // Occurs when data is undefined, or corresponds to something other
             // than a directory listing. The latter should never occur unless
