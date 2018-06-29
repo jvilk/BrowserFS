@@ -43,12 +43,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
     this._path = _path;
     this._flag = _flag;
     this._stat = _stat;
-    if (contents) {
-      this._buffer = contents;
-    } else {
-      // Empty buffer. It'll expand once we write stuff to it.
-      this._buffer = emptyBuffer();
-    }
+    this._buffer = contents ? contents : emptyBuffer();
     // Note: This invariant is *not* maintained once the file starts getting
     // modified.
     // Note: Only actually matters if file is readable, as writeable modes may
@@ -164,7 +159,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
    */
   public stat(cb: BFSCallback<Stats>): void {
     try {
-      cb(null, this._stat.clone());
+      cb(null, Stats.clone(this._stat));
     } catch (e) {
       cb(e);
     }
@@ -174,7 +169,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
    * Synchronous `stat`.
    */
   public statSync(): Stats {
-    return this._stat.clone();
+    return Stats.clone(this._stat);
   }
 
   /**

@@ -3,6 +3,8 @@ const express = require('express');
 const detectBrowsers = require('detect-browsers');
 const seenBrowsers = {};
 const isTravis = process.env.TRAVIS;
+const execSync = require('child_process').execSync;
+const path = require('path');
 // Browser detection does not work properly on Travis.
 const installedBrowsers = isTravis ? ['Firefox'] : detectBrowsers.getInstalledBrowsers()
   // XXX: Browsers with spaces in their name (e.g. Chrome Canary) need to have the space removed
@@ -23,12 +25,19 @@ let karmaFiles = [
   // Main module and fixtures loader
   'test/harness/test.js',
   // WebWorker script.
-  { pattern: 'test/harness/factories/workerfs_worker.js', included: false, watched: true }
+  { pattern: 'test/harness/factories/workerfs_worker.js', included: false, watched: true },
+  // Source map support
+  { pattern: 'src/**/*', included: false, watched: false },
+  { pattern: 'test/**/*', included: false, watched: false }
 ];
 
 // The presence of the Dropbox library dynamically toggles the tests.
 if (dropbox) {
-  karmaFiles.unshift('node_modules/dropbox/lib/dropbox.js');
+  karmaFiles.unshift('node_modules/dropbox/dist/Dropbox-sdk.min.js');
+  // Generate token.
+  execSync(`node ${path.resolve(__dirname, './build/scripts/get_db_credentials.js')} ${path.resolve(__dirname, './test/fixtures/dropbox/token.json')}`, {
+    stdio: 'inherit'
+  });
 }
 
 module.exports = function(configSetter) {
@@ -48,7 +57,7 @@ module.exports = function(configSetter) {
     singleRun: !continuous,
     urlRoot: '/',
     // Dropbox tests are slow.
-    browserNoActivityTimeout: 30000,
+    browserNoActivityTimeout: 60000,
     browserDisconnectTimeout: 10000,
     browserDisconnectTolerance: 3,
     preprocessors: {},

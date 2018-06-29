@@ -1,4 +1,4 @@
-import {BFSCallback} from '../core/file_system';
+import {BFSCallback, FileSystemOptions} from '../core/file_system';
 import {SyncKeyValueStore, SimpleSyncStore, SimpleSyncRWTransaction, SyncKeyValueRWTransaction, SyncKeyValueFileSystem} from '../generic/key_value_filesystem';
 
 /**
@@ -7,7 +7,7 @@ import {SyncKeyValueStore, SimpleSyncStore, SimpleSyncRWTransaction, SyncKeyValu
 export class InMemoryStore implements SyncKeyValueStore, SimpleSyncStore {
   private store: { [key: string]: Buffer } = {};
 
-  public name() { return 'In-memory'; }
+  public name() { return InMemoryFileSystem.Name; }
   public clear() { this.store = {}; }
 
   public beginTransaction(type: string): SyncKeyValueRWTransaction {
@@ -36,16 +36,17 @@ export class InMemoryStore implements SyncKeyValueStore, SimpleSyncStore {
  * Files are not persisted across page loads.
  */
 export default class InMemoryFileSystem extends SyncKeyValueFileSystem {
+  public static readonly Name = "InMemory";
+
+  public static readonly Options: FileSystemOptions = {};
+
   /**
    * Creates an InMemoryFileSystem instance.
    */
-  public static Create(cb: BFSCallback<InMemoryFileSystem>): void;
-  public static Create(options: any, cb: BFSCallback<InMemoryFileSystem>): void;
-  public static Create(options: any, cb?: any): void {
-    const normalizedCb: BFSCallback<InMemoryFileSystem> = cb ? cb : options;
-    normalizedCb(null, new InMemoryFileSystem());
+  public static Create(options: any, cb: BFSCallback<InMemoryFileSystem>): void {
+    cb(null, new InMemoryFileSystem());
   }
-  constructor() {
+  private constructor() {
     super({ store: new InMemoryStore() });
   }
 }

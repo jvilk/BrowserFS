@@ -1,11 +1,12 @@
-import {BaseFileSystem, FileSystem, BFSCallback} from '../core/file_system';
+import {BaseFileSystem, FileSystem, BFSCallback, FileSystemOptions} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
-import {copyingSlice, deprecationMessage} from '../core/util';
+import {copyingSlice} from '../core/util';
 import {File} from '../core/file';
 import Stats from '../core/node_fs_stats';
 import {NoSyncFile} from '../generic/preload_file';
-import {asyncDownloadFile, syncDownloadFile, getFileSizeAsync, getFileSizeSync} from '../generic/xhr';
+import {xhrIsAvailable, asyncDownloadFile, syncDownloadFile, getFileSizeAsync, getFileSizeSync} from '../generic/xhr';
+import {fetchIsAvailable, fetchFileAsync, fetchFileSizeAsync} from '../generic/fetch';
 import {FileIndex, isFileInode, isDirInode} from '../generic/file_index';
 
 /**
@@ -23,25 +24,45 @@ function tryToString(buff: Buffer, encoding: string, cb: BFSCallback<string>) {
 }
 
 /**
- * Configuration options for an XmlHttpRequest file system.
+ * Configuration options for a HTTPRequest file system.
  */
-export interface XmlHttpRequestOptions {
-  // URL to a file index as a JSON file or the file index object itself, generated with the make_xhrfs_index script
-  index: string | object;
+export interface HTTPRequestOptions {
+  // URL to a file index as a JSON file or the file index object itself, generated with the make_http_index script.
+  // Defaults to `index.json`.
+  index?: string | object;
   // Used as the URL prefix for fetched files.
-  // Default: Fetch files relative to `url`.
+  // Default: Fetch files relative to the index.
   baseUrl?: string;
+  // Whether to prefer XmlHttpRequest or fetch for async operations if both are available.
+  // Default: false
+  preferXHR?: boolean;
+}
+
+interface AsyncDownloadFileMethod {
+  (p: string, type: 'buffer', cb: BFSCallback<Buffer>): void;
+  (p: string, type: 'json', cb: BFSCallback<any>): void;
+  (p: string, type: string, cb: BFSCallback<any>): void;
+}
+
+interface SyncDownloadFileMethod {
+  (p: string, type: 'buffer'): Buffer;
+  (p: string, type: 'json'): any;
+  (p: string, type: string): any;
+}
+
+function syncNotAvailableError(): never {
+  throw new ApiError(ErrorCode.ENOTSUP, `Synchronous HTTP download methods are not available in this environment.`);
 }
 
 /**
- * A simple filesystem backed by XMLHttpRequests. You must create a directory listing using the
- * `make_xhrfs_index` tool provided by BrowserFS.
+ * A simple filesystem backed by HTTP downloads. You must create a directory listing using the
+ * `make_http_index` tool provided by BrowserFS.
  *
  * If you install BrowserFS globally with `npm i -g browserfs`, you can generate a listing by
- * running `make_xhrfs_index` in your terminal in the directory you would like to index:
+ * running `make_http_index` in your terminal in the directory you would like to index:
  *
  * ```
- * make_xhrfs_index > index.json
+ * make_http_index > index.json
  * ```
  *
  * Listings objects look like the following:
@@ -61,81 +82,82 @@ export interface XmlHttpRequestOptions {
  *
  * *This example has the folder `/home/jvilk` with subfile `someFile.txt` and subfolder `someDir`.*
  */
-export default class XmlHttpRequest extends BaseFileSystem implements FileSystem {
+export default class HTTPRequest extends BaseFileSystem implements FileSystem {
+  public static readonly Name = "HTTPRequest";
+
+  public static readonly Options: FileSystemOptions = {
+    index: {
+      type: ["string", "object"],
+      optional: true,
+      description: "URL to a file index as a JSON file or the file index object itself, generated with the make_http_index script. Defaults to `index.json`."
+    },
+    baseUrl: {
+      type: "string",
+      optional: true,
+      description: "Used as the URL prefix for fetched files. Default: Fetch files relative to the index."
+    },
+    preferXHR: {
+      type: "boolean",
+      optional: true,
+      description: "Whether to prefer XmlHttpRequest or fetch for async operations if both are available. Default: false"
+    }
+  };
+
   /**
-   * Construct an XmlHttpRequest file system backend with the given options.
+   * Construct an HTTPRequest file system backend with the given options.
    */
-  public static Create(opts: XmlHttpRequestOptions, cb: BFSCallback<XmlHttpRequest>): void {
+  public static Create(opts: HTTPRequestOptions, cb: BFSCallback<HTTPRequest>): void {
+    if (opts.index === undefined) {
+      opts.index = `index.json`;
+    }
     if (typeof(opts.index) === "string") {
-      XmlHttpRequest.FromURL(opts.index, cb, opts.baseUrl, false);
+      asyncDownloadFile(opts.index, "json", (e, data?) => {
+        if (e) {
+          cb(e);
+        } else {
+          cb(null, new HTTPRequest(data, opts.baseUrl));
+        }
+      });
     } else {
-      cb(null, new XmlHttpRequest(opts.index, opts.baseUrl, false));
+      cb(null, new HTTPRequest(opts.index, opts.baseUrl));
     }
   }
+
   public static isAvailable(): boolean {
-    return typeof(XMLHttpRequest) !== "undefined" && XMLHttpRequest !== null;
-  }
-  /**
-   * **Deprecated. Please use XmlHttpRequest.Create() method instead to construct XmlHttpRequest objects.**
-   *
-   * Constructs an XmlHttpRequest object using the directory listing at the given URL.
-   * Uses the base URL as the URL prefix for fetched files.
-   * @param cb Called when the file system has been instantiated, or if an error occurs.
-   */
-  public static FromURL(url: string, cb: BFSCallback<XmlHttpRequest>, baseUrl = url.slice(0, url.lastIndexOf('/') + 1), deprecateMsg = true): void {
-    if (deprecateMsg) {
-      console.warn(`[XmlHttpRequest] XmlHttpRequest.FromURL() is deprecated and will be removed in the next major release. Please use 'XmlHttpRequest.Create({ index: "${url}", baseUrl: "${baseUrl}" }, cb)' instead.`);
-    }
-    asyncDownloadFile(url, "json", (e, data?) => {
-      if (e) {
-        cb(e);
-      } else {
-        cb(null, new XmlHttpRequest(data, baseUrl, false));
-      }
-    });
+    return xhrIsAvailable || fetchIsAvailable;
   }
 
   public readonly prefixUrl: string;
   private _index: FileIndex<{}>;
-  /**
-   * **Deprecated. Please use XmlHttpRequest.Create() method instead to construct XmlHttpRequest objects.**
-   *
-   * Constructs the file system. You must provide the directory listing as a JSON object
-   * produced by the `make_xhrfs_index` script.
-   *
-   * **DEPRECATED:** You may pass a URL to the file index to the constructor, which will fetch the file index
-   * *synchronously* and may freeze up the web page. This behavior will be removed in the next major version
-   * of BrowserFS.
-   *
-   * @param listingUrlOrObj index object or the path to the JSON file index generated by
-   *   `make_xhrfs_index`.
-   * @param prefixUrl URL that is prepended to any file locations in the file index. e.g. if `prefixUrl = 'data/`, and the user wants to open the file `/foo.txt`,
-   * the file system will fetch file `data/foo.txt`. The browser will access the file relative to the currrent webpage
-   * URL.
-   */
-  constructor(listingUrlOrObj: string | object, prefixUrl: string = '', deprecateMsg = true) {
+  private _requestFileAsyncInternal: AsyncDownloadFileMethod;
+  private _requestFileSizeAsyncInternal: (p: string, cb: BFSCallback<number>) => void;
+  private _requestFileSyncInternal: SyncDownloadFileMethod;
+  private _requestFileSizeSyncInternal: (p: string) => number;
+
+  private constructor(index: object, prefixUrl: string = '', preferXHR: boolean = false) {
     super();
-    if (!listingUrlOrObj) {
-      listingUrlOrObj = 'index.json';
-    }
     // prefix_url must end in a directory separator.
     if (prefixUrl.length > 0 && prefixUrl.charAt(prefixUrl.length - 1) !== '/') {
       prefixUrl = prefixUrl + '/';
     }
     this.prefixUrl = prefixUrl;
+    this._index = FileIndex.fromListing(index);
 
-    let listing: object | null = null;
-    if (typeof(listingUrlOrObj) === "string") {
-      listing = this._requestFileSync(<string> listingUrlOrObj, 'json');
-      if (!listing) {
-        throw new Error("Unable to find listing at URL: ${listingUrlOrObj}");
-      }
+    if (fetchIsAvailable && (!preferXHR || !xhrIsAvailable)) {
+      this._requestFileAsyncInternal = fetchFileAsync;
+      this._requestFileSizeAsyncInternal = fetchFileSizeAsync;
     } else {
-      listing = listingUrlOrObj;
+      this._requestFileAsyncInternal = asyncDownloadFile;
+      this._requestFileSizeAsyncInternal = getFileSizeAsync;
     }
-    deprecationMessage(deprecateMsg, "XmlHttpRequest", { index: typeof(listingUrlOrObj) === "string" ? listingUrlOrObj : "file index as an object", baseUrl: prefixUrl});
 
-    this._index = FileIndex.fromListing(listing);
+    if (xhrIsAvailable) {
+      this._requestFileSyncInternal = syncDownloadFile;
+      this._requestFileSizeSyncInternal = getFileSizeSync;
+    } else {
+      this._requestFileSyncInternal = syncNotAvailableError;
+      this._requestFileSizeSyncInternal = syncNotAvailableError;
+    }
   }
 
   public empty(): void {
@@ -145,7 +167,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
   }
 
   public getName(): string {
-    return 'XmlHttpRequest';
+    return HTTPRequest.Name;
   }
 
   public diskSpace(path: string, cb: (total: number, free: number) => void): void {
@@ -167,11 +189,12 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
   }
 
   public supportsSynch(): boolean {
-    return true;
+    // Synchronous operations are only available via the XHR interface for now.
+    return xhrIsAvailable;
   }
 
   /**
-   * Special XHR function: Preload the given file into the index.
+   * Special HTTPFS function: Preload the given file into the index.
    * @param [String] path
    * @param [BrowserFS.Buffer] buffer
    */
@@ -204,10 +227,10 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
             return cb(e);
           }
           stats.size = size!;
-          cb(null, stats.clone());
+          cb(null, Stats.clone(stats));
         });
       } else {
-        cb(null, stats.clone());
+        cb(null, Stats.clone(stats));
       }
     } else if (isDirInode(inode)) {
       stats = inode.getStats();
@@ -258,7 +281,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
           // Use existing file contents.
           // XXX: Uh, this maintains the previously-used flag.
           if (stats.fileData) {
-            return cb(null, new NoSyncFile(self, path, flags, stats.clone(), stats.fileData));
+            return cb(null, new NoSyncFile(self, path, flags, Stats.clone(stats), stats.fileData));
           }
           // @todo be lazier about actually requesting the file
           this._requestFileAsync(path, 'buffer', function(err: ApiError, buffer?: Buffer) {
@@ -268,7 +291,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
             // we don't initially have file sizes
             stats.size = buffer!.length;
             stats.fileData = buffer!;
-            return cb(null, new NoSyncFile(self, path, flags, stats.clone(), buffer));
+            return cb(null, new NoSyncFile(self, path, flags, Stats.clone(stats), buffer));
           });
           break;
         default:
@@ -299,14 +322,14 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
           // Use existing file contents.
           // XXX: Uh, this maintains the previously-used flag.
           if (stats.fileData) {
-            return new NoSyncFile(this, path, flags, stats.clone(), stats.fileData);
+            return new NoSyncFile(this, path, flags, Stats.clone(stats), stats.fileData);
           }
           // @todo be lazier about actually requesting the file
           const buffer = this._requestFileSync(path, 'buffer');
           // we don't initially have file sizes
           stats.size = buffer.length;
           stats.fileData = buffer;
-          return new NoSyncFile(this, path, flags, stats.clone(), buffer);
+          return new NoSyncFile(this, path, flags, Stats.clone(stats), buffer);
         default:
           throw new ApiError(ErrorCode.EINVAL, 'Invalid FileMode object.');
       }
@@ -354,7 +377,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
           return oldCb(err, arg);
         });
       };
-      const fdCast = <NoSyncFile<XmlHttpRequest>> fd;
+      const fdCast = <NoSyncFile<HTTPRequest>> fd;
       const fdBuff = <Buffer> fdCast.getBuffer();
       if (encoding === null) {
         cb(err, copyingSlice(fdBuff));
@@ -371,7 +394,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
     // Get file.
     const fd = this.openSync(fname, flag, 0x1a4);
     try {
-      const fdCast = <NoSyncFile<XmlHttpRequest>> fd;
+      const fdCast = <NoSyncFile<HTTPRequest>> fd;
       const fdBuff = <Buffer> fdCast.getBuffer();
       if (encoding === null) {
         return copyingSlice(fdBuff);
@@ -382,7 +405,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
     }
   }
 
-  private getXhrPath(filePath: string): string {
+  private _getHTTPPath(filePath: string): string {
     if (filePath.charAt(0) === '/') {
       filePath = filePath.slice(1);
     }
@@ -396,7 +419,7 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
   private _requestFileAsync(p: string, type: 'json', cb: BFSCallback<any>): void;
   private _requestFileAsync(p: string, type: string, cb: BFSCallback<any>): void;
   private _requestFileAsync(p: string, type: string, cb: BFSCallback<any>): void {
-    asyncDownloadFile(this.getXhrPath(p), type, cb);
+    this._requestFileAsyncInternal(this._getHTTPPath(p), type, cb);
   }
 
   /**
@@ -406,16 +429,17 @@ export default class XmlHttpRequest extends BaseFileSystem implements FileSystem
   private _requestFileSync(p: string, type: 'json'): any;
   private _requestFileSync(p: string, type: string): any;
   private _requestFileSync(p: string, type: string): any {
-    return syncDownloadFile(this.getXhrPath(p), type);
+    return this._requestFileSyncInternal(this._getHTTPPath(p), type);
   }
 
   /**
    * Only requests the HEAD content, for the file size.
    */
   private _requestFileSizeAsync(path: string, cb: BFSCallback<number>): void {
-    getFileSizeAsync(this.getXhrPath(path), cb);
+    this._requestFileSizeAsyncInternal(this._getHTTPPath(path), cb);
   }
+
   private _requestFileSizeSync(path: string): number {
-    return getFileSizeSync(this.getXhrPath(path));
+    return this._requestFileSizeSyncInternal(this._getHTTPPath(path));
   }
 }

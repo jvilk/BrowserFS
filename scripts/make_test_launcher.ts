@@ -50,11 +50,11 @@ function generateRunFile() {
     }).concat(testImports).join('\n');
 
   fs.writeFileSync('test/harness/run.ts',
-    fs.readFileSync('test/harness/run.tstemplate')
+    Buffer.from(fs.readFileSync('test/harness/run.tstemplate')
       .toString()
       .replace(/\/\*IMPORTS\*\//g, importsStringified)
       .replace(/\/\*FACTORIES\*\//g, factoryList.join(', '))
-      .replace(/\/\*TESTS\*\//g, tests), 'utf8');
+      .replace(/\/\*TESTS\*\//g, tests), 'utf8'));
 }
 
 generateRunFile();

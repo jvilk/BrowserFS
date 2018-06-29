@@ -1,4 +1,4 @@
-import {FileSystem, BaseFileSystem, BFSOneArgCallback, BFSCallback} from '../core/file_system';
+import {FileSystem, BaseFileSystem, BFSOneArgCallback, BFSCallback, FileSystemOptions} from '../core/file_system';
 import InMemoryFileSystem from './InMemory';
 import {ApiError, ErrorCode} from '../core/api_error';
 import fs from '../core/node_fs';
@@ -27,7 +27,7 @@ export interface MountableFileSystemOptions {
  * BrowserFS.configure({
  *   fs: "MountableFileSystem",
  *   options: {
- *     '/data': { fs: 'XmlHttpRequest', options: { index: "http://mysite.com/files/index.json" } },
+ *     '/data': { fs: 'HTTPRequest', options: { index: "http://mysite.com/files/index.json" } },
  *     '/home': { fs: 'LocalStorage' }
  *   }
  * }, function(e) {
@@ -37,7 +37,7 @@ export interface MountableFileSystemOptions {
  *
  * For advanced users, you can also mount file systems *after* MFS is constructed:
  * ```javascript
- * BrowserFS.FileSystem.XmlHttpRequest.Create({
+ * BrowserFS.FileSystem.HTTPRequest.Create({
  *   index: "http://mysite.com/files/index.json"
  * }, function(e, xhrfs) {
  *   BrowserFS.FileSystem.MountableFileSystem.Create({
@@ -58,15 +58,29 @@ export interface MountableFileSystemOptions {
  * With no mounted file systems, `MountableFileSystem` acts as a simple `InMemory` filesystem.
  */
 export default class MountableFileSystem extends BaseFileSystem implements FileSystem {
+  public static readonly Name = "MountableFileSystem";
+
+  public static readonly Options: FileSystemOptions = {};
+
   /**
    * Creates a MountableFileSystem instance with the given options.
    */
   public static Create(opts: MountableFileSystemOptions, cb: BFSCallback<MountableFileSystem>): void {
-    const fs = new MountableFileSystem();
-    Object.keys(opts).forEach((mountPoint) => {
-      fs.mount(mountPoint, opts[mountPoint]);
+    InMemoryFileSystem.Create({}, (e, imfs?) => {
+      if (imfs) {
+        const fs = new MountableFileSystem(imfs);
+        try {
+          Object.keys(opts).forEach((mountPoint) => {
+            fs.mount(mountPoint, opts[mountPoint]);
+          });
+        } catch (e) {
+          return cb(e);
+        }
+        cb(null, fs);
+      } else {
+        cb(e);
+      }
     });
-    cb(null, fs);
   }
   public static isAvailable(): boolean {
     return true;
@@ -82,12 +96,10 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
   /**
    * Creates a new, empty MountableFileSystem.
    */
-  constructor() {
+  private constructor(rootFs: FileSystem) {
     super();
     this.mntMap = {};
-    // The InMemory file system serves purely to provide directory listings for
-    // mounted file systems.
-    this.rootFs = new InMemoryFileSystem();
+    this.rootFs = rootFs;
   }
 
   /**
@@ -151,7 +163,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
   // Global information methods
 
   public getName(): string {
-    return 'MountableFileSystem';
+    return MountableFileSystem.Name;
   }
 
   public diskSpace(path: string, cb: (total: number, free: number) => void): void {
@@ -397,8 +409,7 @@ const fsCmdMap = [
 
 for (let i = 0; i < fsCmdMap.length; i++) {
   const cmds = fsCmdMap[i];
-  for (let j = 0; j < cmds.length; j++) {
-    const fnName = cmds[j];
+  for (const fnName of cmds) {
     (<any> MountableFileSystem.prototype)[fnName] = defineFcn(fnName, false, i + 1);
     (<any> MountableFileSystem.prototype)[fnName + 'Sync'] = defineFcn(fnName + 'Sync', true, i + 1);
   }

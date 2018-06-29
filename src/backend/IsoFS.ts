@@ -1,10 +1,10 @@
 import {ApiError, ErrorCode} from '../core/api_error';
 import {default as Stats, FileType} from '../core/node_fs_stats';
-import {SynchronousFileSystem, FileSystem, BFSCallback} from '../core/file_system';
+import {SynchronousFileSystem, FileSystem, BFSCallback, FileSystemOptions} from '../core/file_system';
 import {File} from '../core/file';
 import {FileFlag, ActionType} from '../core/file_flag';
 import {NoSyncFile} from '../generic/preload_file';
-import {copyingSlice, deprecationMessage} from '../core/util';
+import {copyingSlice, bufferValidator} from '../core/util';
 import * as path from 'path';
 
 /**
@@ -447,12 +447,10 @@ abstract class DirectoryRecord {
     let p = "";
     const entries = this.getSUEntries(isoData);
     const getStr = this._getGetString();
-    for (let i = 0; i < entries.length; i++) {
-      const entry = entries[i];
+    for (const entry of entries) {
       if (entry instanceof SLEntry) {
         const components = entry.componentRecords();
-        for (let j = 0; j < components.length; j++) {
-          const component = components[j];
+        for (const component of components) {
           const flags = component.flags();
           if (flags & SLComponentFlags.CURRENT) {
             p += "./";
@@ -514,8 +512,7 @@ abstract class DirectoryRecord {
     }
     let str = '';
     const getString = this._getGetString();
-    for (let i = 0; i < nmEntries.length; i++) {
-      const e = nmEntries[i];
+    for (const e of nmEntries) {
       str += e.name(getString);
       if (!(e.flags() & NMFlags.CONTINUE)) {
         break;
@@ -1157,18 +1154,24 @@ export interface IsoFSOptions {
  * * Microsoft Joliet and Rock Ridge extensions to the ISO9660 standard
  */
 export default class IsoFS extends SynchronousFileSystem implements FileSystem {
+  public static readonly Name = "IsoFS";
+
+  public static readonly Options: FileSystemOptions = {
+    data: {
+      type: "object",
+      description: "The ISO file in a buffer",
+      validator: bufferValidator
+    }
+  };
+
   /**
    * Creates an IsoFS instance with the given options.
    */
   public static Create(opts: IsoFSOptions, cb: BFSCallback<IsoFS>): void {
-    let fs: IsoFS | undefined;
-    let e: ApiError | undefined;
     try {
-      fs = new IsoFS(opts.data, opts.name, false);
+      cb(null, new IsoFS(opts.data, opts.name));
     } catch (e) {
-      e = e;
-    } finally {
-      cb(e, fs);
+      cb(e);
     }
   }
   public static isAvailable(): boolean {
@@ -1187,10 +1190,9 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
    * @param data The ISO file in a buffer.
    * @param name The name of the ISO (optional; used for debug messages / identification via getName()).
    */
-  constructor(data: Buffer, name: string = "", deprecateMsg = true) {
+  private constructor(data: Buffer, name: string = "") {
     super();
     this._data = data;
-    deprecationMessage(deprecateMsg, "IsoFS", {data: "ISO data as a Buffer", name: name});
     // Skip first 16 sectors.
     let vdTerminatorFound = false;
     let i = 16 * 2048;
@@ -1326,9 +1328,9 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
     }
     const components = path.split('/').slice(1);
     let dir = this._root;
-    for (let i = 0; i < components.length; i++) {
+    for (const component of components) {
       if (dir.isDirectory(this._data)) {
-        dir = dir.getDirectory(this._data).getRecord(components[i]);
+        dir = dir.getDirectory(this._data).getRecord(component);
         if (!dir) {
           return null;
         }
@@ -1356,8 +1358,7 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
       let ctime = date;
       if (record.hasRockRidge()) {
         const entries = record.getSUEntries(this._data);
-        for (let i = 0; i < entries.length; i++) {
-          const entry = entries[i];
+        for (const entry of entries) {
           if (entry instanceof PXEntry) {
             mode = entry.mode();
           } else if (entry instanceof TFEntry) {

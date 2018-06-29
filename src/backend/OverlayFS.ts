@@ -1,8 +1,7 @@
-import {FileSystem, BaseFileSystem, BFSOneArgCallback, BFSCallback} from '../core/file_system';
+import {FileSystem, BaseFileSystem, BFSOneArgCallback, BFSCallback, FileSystemOptions} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
 import {File} from '../core/file';
-import {deprecationMessage} from '../core/util';
 import {default as Stats} from '../core/node_fs_stats';
 import PreloadFile from '../generic/preload_file';
 import LockedFS from '../generic/locked_fs';
@@ -119,13 +118,15 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
   }
 
   public getName() {
-    return "OverlayFS";
+    return OverlayFS.Name;
   }
 
   /**
+   * **INTERNAL METHOD**
+   *
    * Called once to load up metadata stored on the writable file system.
    */
-  public initialize(cb: BFSOneArgCallback): void {
+  public _initialize(cb: BFSOneArgCallback): void {
     const callbackArray = this._initializeCallbacks;
 
     const end = (e?: ApiError): void => {
@@ -361,7 +362,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
             // Make the oldStat's mode writable. Preserve the topmost
             // part of the mode, which specifies if it is a file or a
             // directory.
-            stat = stat.clone();
+            stat = Stats.clone(stat);
             stat.mode = makeModeWritable(stat.mode);
           }
           cb(err, stat);
@@ -380,7 +381,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
       if (this._deletedFiles[p]) {
         throw ApiError.ENOENT(p);
       }
-      const oldStat = this._readable.statSync(p, isLstat).clone();
+      const oldStat = Stats.clone(this._readable.statSync(p, isLstat));
       // Make the oldStat's mode writable. Preserve the topmost part of the
       // mode, which specifies if it is a file or a directory.
       oldStat.mode = makeModeWritable(oldStat.mode);
@@ -409,7 +410,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
             } else {
               // at this point we know the stats object we got is from
               // the readable FS.
-              stats = stats!.clone();
+              stats = Stats.clone(stats!);
               stats.mode = mode;
               this._readable.readFile(p, null, getFlag('r'), (readFileErr: ApiError, data?: any) => {
                 if (readFileErr) {
@@ -459,7 +460,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
           } else {
             // Create an OverlayFile.
             const buf = this._readable.readFileSync(p, null, getFlag('r'));
-            const stats = this._readable.statSync(p, false).clone();
+            const stats = Stats.clone(this._readable.statSync(p, false));
             stats.mode = mode;
             return new OverlayFile(this, p, flag, stats, buf);
           }
@@ -853,9 +854,13 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
     this._writable.stat(parent, false, statDone);
     function statDone(err: ApiError, stat?: Stats): void {
       if (err) {
-        toCreate.push(parent);
-        parent = path.dirname(parent);
-        self._writable.stat(parent, false, statDone);
+        if (parent === "/") {
+          cb(new ApiError(ErrorCode.EBUSY, "Invariant failed: root does not exist!"));
+        } else {
+          toCreate.push(parent);
+          parent = path.dirname(parent);
+          self._writable.stat(parent, false, statDone);
+        }
       } else {
         createParents();
       }
@@ -987,15 +992,28 @@ export interface OverlayFSOptions {
  * file system.
  */
 export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
+  public static readonly Name = "OverlayFS";
+
+  public static readonly Options: FileSystemOptions = {
+    writable: {
+      type: "object",
+      description: "The file system to write modified files to."
+    },
+    readable: {
+      type: "object",
+      description: "The file system that initially populates this file system."
+    }
+  };
+
   /**
    * Constructs and initializes an OverlayFS instance with the given options.
    */
   public static Create(opts: OverlayFSOptions, cb: BFSCallback<OverlayFS>): void {
     try {
-      const fs = new OverlayFS(opts.writable, opts.readable, false);
-      fs.initialize((e?) => {
+      const fs = new OverlayFS(opts.writable, opts.readable);
+      fs._initialize((e?) => {
         cb(e, fs);
-      }, false);
+      });
     } catch (e) {
       cb(e);
     }
@@ -1005,23 +1023,11 @@ export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
   }
 
   /**
-   * **Deprecated. Please use OverlayFS.Create() method instead.**
    * @param writable The file system to write modified files to.
    * @param readable The file system that initially populates this file system.
    */
-  constructor(writable: FileSystem, readable: FileSystem, deprecateMsg = true) {
+  constructor(writable: FileSystem, readable: FileSystem) {
     super(new UnlockedOverlayFS(writable, readable));
-    deprecationMessage(deprecateMsg, "OverlayFS", {readable: "readable file system", writable: "writable file system"});
-  }
-
-  /**
-   * **Deprecated. Please use OverlayFS.Create() to construct and initialize OverlayFS instances.**
-   */
-  public initialize(cb: BFSOneArgCallback, deprecateMsg = true): void {
-    if (deprecateMsg) {
-      console.warn(`[OverlayFS] OverlayFS.initialize() is deprecated and will be removed in the next major release. Please use 'OverlayFS.Create({readable: readable file system instance, writable: writable file system instance}, cb)' to create and initialize OverlayFS instances.`);
-    }
-    super.initialize(cb);
   }
 
   public getOverlayedFileSystems(): { readable: FileSystem; writable: FileSystem; } {
@@ -1030,5 +1036,9 @@ export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
 
   public unwrap(): UnlockedOverlayFS {
     return super.getFSUnlocked();
+  }
+
+  private _initialize(cb: BFSOneArgCallback): void {
+    super.getFSUnlocked()._initialize(cb);
   }
 }

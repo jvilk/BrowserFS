@@ -27,6 +27,13 @@ export default class Stats implements fs.Stats {
     return new Stats(mode & 0xF000, size, mode & 0xFFF, new Date(atime), new Date(mtime), new Date(ctime));
   }
 
+  /**
+   * Clones the stats object.
+   */
+  public static clone(s: Stats): Stats {
+    return new Stats(s.mode & 0xF000, s.size, s.mode & 0xFFF, s.atime, s.mtime, s.ctime);
+  }
+
   public blocks: number;
   public mode: number;
   /**
@@ -52,7 +59,7 @@ export default class Stats implements fs.Stats {
   // time file was created (currently unsupported)
   public birthtime: Date = new Date(0);
   // XXX: Some file systems stash data on stats objects.
-  public fileData: Buffer | null= null;
+  public fileData: Buffer | null = null;
 
   /**
    * Provides information about a particular entry in the file system.
@@ -100,14 +107,6 @@ export default class Stats implements fs.Stats {
     buffer.writeDoubleLE(this.mtime.getTime(), 16);
     buffer.writeDoubleLE(this.ctime.getTime(), 24);
     return buffer;
-  }
-
-  /**
-   * **Nonstandard**: Clone the stats object.
-   * @return [BrowserFS.node.fs.Stats]
-   */
-  public clone(): Stats {
-    return new Stats(this.mode & 0xF000, this.size, this.mode & 0xFFF, this.atime, this.mtime, this.ctime);
   }
 
   /**

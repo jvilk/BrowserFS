@@ -1,10 +1,10 @@
 import {ApiError, ErrorCode} from '../core/api_error';
 import {default as Stats, FileType} from '../core/node_fs_stats';
-import {SynchronousFileSystem, FileSystem, BFSCallback} from '../core/file_system';
+import {SynchronousFileSystem, FileSystem, BFSCallback, FileSystemOptions} from '../core/file_system';
 import {File} from '../core/file';
 import {FileFlag, ActionType} from '../core/file_flag';
 import {NoSyncFile} from '../generic/preload_file';
-import {Arrayish, arrayish2Buffer, copyingSlice, deprecationMessage} from '../core/util';
+import {Arrayish, arrayish2Buffer, copyingSlice, bufferValidator} from '../core/util';
 import ExtendedASCII from '../generic/extended_ascii';
 import setImmediate from '../generic/setImmediate';
 /**
@@ -522,19 +522,36 @@ export interface ZipFSOptions {
  *   This isn't that bad, so we might do this at a later date.
  */
 export default class ZipFS extends SynchronousFileSystem implements FileSystem {
-  /* tslint:disable:variable-name */
+  public static readonly Name = "ZipFS";
+
+  public static readonly Options: FileSystemOptions = {
+    zipData: {
+      type: "object",
+      description: "The zip file as a Buffer object.",
+      validator: bufferValidator
+    },
+    name: {
+      type: "string",
+      optional: true,
+      description: "The name of the zip file (optional)."
+    }
+  };
+
   public static readonly CompressionMethod = CompressionMethod;
-  /* tslint:enable:variable-name */
 
   /**
    * Constructs a ZipFS instance with the given options.
    */
   public static Create(opts: ZipFSOptions, cb: BFSCallback<ZipFS>): void {
     try {
-      ZipFS.computeIndex(opts.zipData, (zipTOC) => {
-        const fs = new ZipFS(zipTOC, opts.name, false);
-        cb(null, fs);
-      }, false);
+      ZipFS._computeIndex(opts.zipData, (e, zipTOC?) => {
+        if (zipTOC) {
+          const fs = new ZipFS(zipTOC, opts.name);
+          cb(null, fs);
+        } else {
+          cb(e);
+        }
+      });
     } catch (e) {
       cb(e);
     }
@@ -547,32 +564,10 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
   }
 
   /**
-   * **Deprecated. Please use ZipFS.Create() method instead.**
-   */
-  public static computeIndex(data: Buffer, cb: (zipTOC: ZipTOC) => void, deprecateMsg = true) {
-    // TODO: Refactor to plumb errors through. Right now, they throw.
-    if (deprecateMsg) {
-      console.warn(`[ZipFS] ZipFS.computeIndex is now deprecated, and will be removed in the next major release. Please update your code to use 'ZipFS.Create({ zipData: zip file as a Buffer}, cb)' instead.`);
-    }
-    const index: FileIndex<CentralDirectory> = new FileIndex<CentralDirectory>();
-    const eocd: EndOfCentralDirectory = ZipFS.getEOCD(data);
-    if (eocd.diskNumber() !== eocd.cdDiskNumber()) {
-      throw new ApiError(ErrorCode.EINVAL, "ZipFS does not support spanned zip files.");
-    }
-
-    const cdPtr = eocd.cdOffset();
-    if (cdPtr === 0xFFFFFFFF) {
-      throw new ApiError(ErrorCode.EINVAL, "ZipFS does not support Zip64.");
-    }
-    const cdEnd = cdPtr + eocd.cdSize();
-    ZipFS.computeIndexResponsive(data, index, cdPtr, cdEnd, cb, [], eocd);
-  }
-
-  /**
    * Locates the end of central directory record at the end of the file.
    * Throws an exception if it cannot be found.
    */
-  private static getEOCD(data: Buffer): EndOfCentralDirectory {
+  private static _getEOCD(data: Buffer): EndOfCentralDirectory {
     // Unfortunately, the comment is variable size and up to 64K in size.
     // We assume that the magic signature does not appear in the comment, and
     // in the bytes between the comment and the signature. Other ZIP
@@ -592,12 +587,12 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
     throw new ApiError(ErrorCode.EINVAL, "Invalid ZIP file: Could not locate End of Central Directory signature.");
   }
 
-  private static addToIndex(cd: CentralDirectory, index: FileIndex<CentralDirectory>) {
+  private static _addToIndex(cd: CentralDirectory, index: FileIndex<CentralDirectory>) {
     // Paths must be absolute, yet zip file paths are always relative to the
     // zip root. So we append '/' and call it a day.
     let filename = cd.fileName();
     if (filename.charAt(0) === '/') {
-      throw new Error("WHY IS THIS ABSOLUTE");
+      throw new ApiError(ErrorCode.EPERM, `Unexpectedly encountered an absolute path in a zip file. Please file a bug.`);
     }
     // XXX: For the file index, strip the trailing '/'.
     if (filename.charAt(filename.length - 1) === '/') {
@@ -611,20 +606,47 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
     }
   }
 
-  private static computeIndexResponsive(data: Buffer, index: FileIndex<CentralDirectory>, cdPtr: number, cdEnd: number, cb: (zipTOC: ZipTOC) => void, cdEntries: CentralDirectory[], eocd: EndOfCentralDirectory) {
+  private static _computeIndex(data: Buffer, cb: BFSCallback<ZipTOC>) {
+    try {
+      const index: FileIndex<CentralDirectory> = new FileIndex<CentralDirectory>();
+      const eocd: EndOfCentralDirectory = ZipFS._getEOCD(data);
+      if (eocd.diskNumber() !== eocd.cdDiskNumber()) {
+        return cb(new ApiError(ErrorCode.EINVAL, "ZipFS does not support spanned zip files."));
+      }
+
+      const cdPtr = eocd.cdOffset();
+      if (cdPtr === 0xFFFFFFFF) {
+        return cb(new ApiError(ErrorCode.EINVAL, "ZipFS does not support Zip64."));
+      }
+      const cdEnd = cdPtr + eocd.cdSize();
+      ZipFS._computeIndexResponsive(data, index, cdPtr, cdEnd, cb, [], eocd);
+    } catch (e) {
+      cb(e);
+    }
+  }
+
+  private static _computeIndexResponsiveTrampoline(data: Buffer, index: FileIndex<CentralDirectory>, cdPtr: number, cdEnd: number, cb: BFSCallback<ZipTOC>, cdEntries: CentralDirectory[], eocd: EndOfCentralDirectory) {
+    try {
+      ZipFS._computeIndexResponsive(data, index, cdPtr, cdEnd, cb, cdEntries, eocd);
+    } catch (e) {
+      cb(e);
+    }
+  }
+
+  private static _computeIndexResponsive(data: Buffer, index: FileIndex<CentralDirectory>, cdPtr: number, cdEnd: number, cb: BFSCallback<ZipTOC>, cdEntries: CentralDirectory[], eocd: EndOfCentralDirectory) {
     if (cdPtr < cdEnd) {
       let count = 0;
       while (count++ < 200 && cdPtr < cdEnd) {
         const cd: CentralDirectory = new CentralDirectory(data, data.slice(cdPtr));
-        ZipFS.addToIndex(cd, index);
+        ZipFS._addToIndex(cd, index);
         cdPtr += cd.totalSize();
         cdEntries.push(cd);
       }
       setImmediate(() => {
-        ZipFS.computeIndexResponsive(data, index, cdPtr, cdEnd, cb, cdEntries, eocd);
+        ZipFS._computeIndexResponsiveTrampoline(data, index, cdPtr, cdEnd, cb, cdEntries, eocd);
       });
     } else {
-      cb(new ZipTOC(index, cdEntries, eocd, data));
+      cb(null, new ZipTOC(index, cdEntries, eocd, data));
     }
   }
 
@@ -633,25 +655,16 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
   private _eocd: EndOfCentralDirectory | null = null;
   private data: Buffer;
 
-  /**
-   * **Deprecated. Please use ZipFS.Create() method to construct ZipFS objects.**
-   */
-  constructor(input: Buffer | ZipTOC, private name: string = '', deprecateMsg = true) {
+  private constructor(input: ZipTOC, private name: string = '') {
     super();
-    deprecationMessage(deprecateMsg, "ZipFS", {zipData: "zip data as a Buffer", name: name});
-    if (input instanceof ZipTOC) {
-      this._index = input.index;
-      this._directoryEntries = input.directoryEntries;
-      this._eocd = input.eocd;
-      this.data = input.data;
-    } else {
-      this.data = input as Buffer;
-      this.populateIndex();
-    }
+    this._index = input.index;
+    this._directoryEntries = input.directoryEntries;
+    this._eocd = input.eocd;
+    this.data = input.data;
   }
 
   public getName(): string {
-    return 'ZipFS' + (this.name !== '' ? ' ' + this.name : '');
+    return ZipFS.Name + (this.name !== '' ? ` ${this.name}` : '');
   }
 
   /**
@@ -778,25 +791,6 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
       return fdBuff.toString(encoding);
     } finally {
       fd.closeSync();
-    }
-  }
-
-  private populateIndex() {
-    const eocd: EndOfCentralDirectory = this._eocd = ZipFS.getEOCD(this.data);
-    if (eocd.diskNumber() !== eocd.cdDiskNumber()) {
-      throw new ApiError(ErrorCode.EINVAL, "ZipFS does not support spanned zip files.");
-    }
-
-    let cdPtr = eocd.cdOffset();
-    if (cdPtr === 0xFFFFFFFF) {
-      throw new ApiError(ErrorCode.EINVAL, "ZipFS does not support Zip64.");
-    }
-    const cdEnd = cdPtr + eocd.cdSize();
-    while (cdPtr < cdEnd) {
-      const cd: CentralDirectory = new CentralDirectory(this.data, this.data.slice(cdPtr));
-      cdPtr += cd.totalSize();
-      ZipFS.addToIndex(cd, this._index);
-      this._directoryEntries.push(cd);
     }
   }
 }

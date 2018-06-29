@@ -18,7 +18,8 @@ export default {
   ],
   plugins: [
     alias({
-      async: require.resolve('async-es')
+      async: require.resolve('async-es'),
+      dropbox_bridge: join(outBase, 'ts', 'generic', 'dropbox_bridge_actual.js')
     }),
     nodeResolve({
       main: true,
@@ -26,6 +27,11 @@ export default {
       preferBuiltins: true
     }),
     sourcemaps(),
-    buble()
+    buble({
+      transforms: {
+        // Assumes all `for of` statements are on arrays or array-like items.
+        dangerousForOf: true
+      }
+    })
   ]
 };

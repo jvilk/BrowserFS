@@ -3,7 +3,9 @@ import {FileSystem} from '../../../src/core/file_system';
 
 function InMemoryFSFactory(cb: (name: string, objs: FileSystem[]) => void): void {
   if (InMemoryFileSystem.isAvailable()) {
-    cb('InMemory', [new InMemoryFileSystem()]);
+    InMemoryFileSystem.Create({}, (e, imfs?) => {
+      cb('InMemory', [imfs]);
+    });
   } else {
     cb('InMemory', []);
   }

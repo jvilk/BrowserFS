@@ -327,9 +327,42 @@ export interface FileSystem {
 }
 
 /**
+ * Describes a file system option.
+ */
+export interface FileSystemOption<T> {
+  // The basic JavaScript type(s) for this option.
+  type: string | string[];
+  // Whether or not the option is optional (e.g., can be set to null or undefined).
+  // Defaults to `false`.
+  optional?: boolean;
+  // Description of the option. Used in error messages and documentation.
+  description: string;
+  // A custom validation function to check if the option is valid.
+  // Calls the callback with an error object on an error.
+  // (Can call callback synchronously.)
+  // Defaults to `(opt, cb) => cb()`.
+  validator?(opt: T, cb: BFSOneArgCallback): void;
+}
+
+/**
+ * Describes all of the options available in a file system.
+ */
+export interface FileSystemOptions {
+  [name: string]: FileSystemOption<any>;
+}
+
+/**
  * Contains typings for static functions on the file system constructor.
  */
 export interface FileSystemConstructor {
+  /**
+   * **Core**: Name to identify this particular file system.
+   */
+  Name: string;
+  /**
+   * **Core**: Describes all of the options available for this file system.
+   */
+  Options: FileSystemOptions;
   /**
    * **Core**: Creates a file system of this given type with the given
    * options.

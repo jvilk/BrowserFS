@@ -1,6 +1,33 @@
 // Appended before Emscripten output.
 module.exports = function(Module) {
 
+if (!Module) {
+  Module = {};
+}
+
+Object.defineProperties(Module, {
+  'FS': {
+    get: function() {
+      return FS;
+    }
+  },
+  'IDBFS': {
+    get: function() {
+      return IDBFS;
+    }
+  },
+  'PATH': {
+    get: function() {
+      return PATH;
+    }
+  },
+  'ERRNO_CODES': {
+    get: function() {
+      return ERRNO_CODES;
+    }
+  }
+});
+
 // The Module object: Our interface to the outside world. We import
 // and export values on it, and do the work to get that through
 // closure compiler if necessary. There are various ways Module can be used:
@@ -13783,9 +13810,5 @@ run();
 
 
 // Appended to end of Emscripten output.
-Module['FS'] = FS;
-Module['IDBFS'] = IDBFS;
-Module['PATH'] = PATH;
-Module['ERRNO_CODES'] = ERRNO_CODES;
 };
 

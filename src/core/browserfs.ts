@@ -115,7 +115,7 @@ export function configure(config: FileSystemConfiguration, cb: BFSOneArgCallback
  */
 export interface FileSystemConfiguration {
   fs: string;
-  options: any;
+  options?: any;
 }
 
 /**
@@ -146,7 +146,6 @@ export function getFileSystem(config: FileSystemConfiguration, cb: BFSCallback<F
   if (options !== null && typeof(options) === "object") {
     let finishedIterating = false;
     const props = Object.keys(options).filter((k) => k !== 'fs');
-
     // Check recursively if other fields have 'fs' properties.
     props.forEach((p) => {
       const d = options[p];

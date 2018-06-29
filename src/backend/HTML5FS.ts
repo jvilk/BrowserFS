@@ -1,5 +1,5 @@
 import PreloadFile from '../generic/preload_file';
-import {BaseFileSystem, FileSystem as IFileSystem, BFSOneArgCallback, BFSCallback} from '../core/file_system';
+import {BaseFileSystem, FileSystem as IFileSystem, BFSOneArgCallback, BFSCallback, FileSystemOptions} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
 import {FileFlag, ActionType} from '../core/file_flag';
 import {default as Stats, FileType} from '../core/node_fs_stats';
@@ -7,7 +7,7 @@ import {File as IFile} from '../core/file';
 import * as path from 'path';
 import global from '../core/global';
 import {each as asyncEach} from 'async';
-import {buffer2ArrayBuffer, arrayBuffer2Buffer, deprecationMessage} from '../core/util';
+import {buffer2ArrayBuffer, arrayBuffer2Buffer} from '../core/util';
 
 /**
  * @hidden
@@ -156,12 +156,27 @@ export interface HTML5FSOptions {
  * only available in Chrome.
  */
 export default class HTML5FS extends BaseFileSystem implements IFileSystem {
+  public static readonly Name = "HTML5FS";
+
+  public static readonly Options: FileSystemOptions = {
+    size: {
+      type: "number",
+      optional: true,
+      description: "Storage quota to request, in megabytes. Allocated value may be less. Defaults to 5."
+    },
+    type: {
+      type: "number",
+      optional: true,
+      description: "window.PERSISTENT or window.TEMPORARY. Defaults to PERSISTENT."
+    }
+  };
+
   /**
    * Creates an HTML5FS instance with the given options.
    */
   public static Create(opts: HTML5FSOptions, cb: BFSCallback<HTML5FS>): void {
-    const fs = new HTML5FS(opts.size, opts.type, false);
-    fs.allocate((e) => e ? cb(e) : cb(null, fs), false);
+    const fs = new HTML5FS(opts.size, opts.type);
+    fs._allocate((e) => e ? cb(e) : cb(null, fs));
   }
   public static isAvailable(): boolean {
     return !!_getFS;
@@ -172,27 +187,18 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
   private size: number;
   private type: number;
   /**
-   * **Deprecated. Please use HTML5FS.Create() method instead.**
-   *
-   * Creates a new HTML5 FileSystem-backed BrowserFS file system of the given size
-   * and storage type.
-   *
-   * **IMPORTANT**: You must call `allocate` on the resulting object before the file system
-   * can be used.
-   *
    * @param size storage quota to request, in megabytes. Allocated value may be less.
    * @param type window.PERSISTENT or window.TEMPORARY. Defaults to PERSISTENT.
    */
-  constructor(size: number = 5, type: number = global.PERSISTENT, deprecateMsg = true) {
+  private constructor(size: number = 5, type: number = global.PERSISTENT) {
     super();
     // Convert MB to bytes.
     this.size = 1024 * 1024 * size;
     this.type = type;
-    deprecationMessage(deprecateMsg, "HTML5FS", {size: size, type: type});
   }
 
   public getName(): string {
-    return 'HTML5 FileSystem';
+    return HTML5FS.Name;
   }
 
   public isReadOnly(): boolean {
@@ -212,32 +218,6 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
   }
 
   /**
-   * **Deprecated. Please use Create() method instead to create and allocate an HTML5FS.**
-   *
-   * Requests a storage quota from the browser to back this FS.
-   * Must be called before file system can be used!
-   */
-  public allocate(cb: BFSOneArgCallback = () => {/*nop*/}, deprecateMsg = true): void {
-    if (deprecateMsg) {
-      console.warn(`[HTML5FS] HTML5FS.allocate() is deprecated and will be removed in the next major release. Please use 'HTML5FS.Create({type: ${this.type}, size: ${this.size}}, cb)' to create and allocate HTML5FS instances.`);
-    }
-    const success = (fs: FileSystem): void => {
-      this.fs = fs;
-      cb();
-    };
-    const error = (err: DOMException): void => {
-      cb(convertError(err, "/", true));
-    };
-    if (this.type === global.PERSISTENT) {
-      _requestQuota(this.type, this.size, (granted: number) => {
-        _getFS(this.type, granted, success, error);
-      }, error);
-    } else {
-      _getFS(this.type, this.size, success, error);
-    }
-  }
-
-  /**
    * Deletes everything in the FS. Used for testing.
    * Karma clears the storage after you quit it but not between runs of the test
    * suite, and the tests expect an empty FS every time.
@@ -246,13 +226,11 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
     // Get a list of all entries in the root directory to delete them
     this._readdir('/', (err: ApiError, entries?: Entry[]): void => {
       if (err) {
-        console.error('Failed to empty FS');
         mainCb(err);
       } else {
         // Called when every entry has been operated on
         const finished = (er: any): void => {
           if (err) {
-            console.error("Failed to empty FS");
             mainCb(err);
           } else {
             mainCb();
@@ -436,14 +414,15 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
    */
   public readdir(path: string, cb: BFSCallback<string[]>): void {
     this._readdir(path, (e: ApiError, entries?: Entry[]): void => {
-      if (e) {
+      if (entries) {
+        const rv: string[] = [];
+        for (const entry of entries) {
+          rv.push(entry.name);
+        }
+        cb(null, rv);
+      } else {
         return cb(e);
       }
-      const rv: string[] = [];
-      for (let i = 0; i < entries!.length; i++) {
-        rv.push(entries![i].name);
-      }
-      cb(null, rv);
     });
   }
 
@@ -481,6 +460,26 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
       };
       readEntries();
     }, error);
+  }
+
+  /**
+   * Requests a storage quota from the browser to back this FS.
+   */
+  private _allocate(cb: BFSOneArgCallback): void {
+    const success = (fs: FileSystem): void => {
+      this.fs = fs;
+      cb();
+    };
+    const error = (err: DOMException): void => {
+      cb(convertError(err, "/", true));
+    };
+    if (this.type === global.PERSISTENT) {
+      _requestQuota(this.type, this.size, (granted: number) => {
+        _getFS(this.type, granted, success, error);
+      }, error);
+    } else {
+      _getFS(this.type, this.size, success, error);
+    }
   }
 
   /**

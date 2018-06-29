@@ -1,22 +1,20 @@
-# BrowserFS v1.4.2
+# BrowserFS v2.0.0-beta
 > BrowserFS is an in-browser file system that emulates the [Node JS file system API](http://nodejs.org/api/fs.html) and supports storing and retrieving files from various backends. BrowserFS also integrates nicely into the Emscripten file system.
 
 [![Build Status](https://travis-ci.org/jvilk/BrowserFS.svg?branch=master)](https://travis-ci.org/jvilk/BrowserFS)
 [![Build Status](https://ci.appveyor.com/api/projects/status/bammh2x1bud8h7a5/branch/master?svg=true)](https://ci.appveyor.com/project/jvilk/browserfs/branch/master)
 [![NPM version](https://badge.fury.io/js/browserfs.svg)](http://badge.fury.io/js/browserfs)
-[![david-dm-status-badge](https://david-dm.org/jvilk/BrowserFS.svg)](https://david-dm.org/jvilk/browserfs#info=dependencies&view=table)
-[![david-dm-status-badge](https://david-dm.org/jvilk/BrowserFS/dev-status.svg)](https://david-dm.org/jvilk/BrowserFS#info=devDependencies&view=table)
 
 ### Backends
 
 BrowserFS is highly extensible, and ships with many filesystem backends:
 
-* `XmlHttpRequest`: Downloads files on-demand from a webserver via `XMLHttpRequest`
+* `HTTPRequest`: Downloads files on-demand from a webserver via `XMLHttpRequest` or `fetch`.
 * `LocalStorage`: Stores files in the browser's `localStorage`.
-* `HTML5FS`: Stores files into the HTML5 `FileSystem` API
+* `HTML5FS`: Stores files into the HTML5 `FileSystem` API.
 * `IndexedDB`: Stores files into the browser's `IndexedDB` object database.
 * `Dropbox`: Stores files into the user's Dropbox account.
-  * Note: You provide this filesystem with an authenticated [DropboxJS client](https://github.com/dropbox/dropbox-js)
+  * Note: You provide this filesystem with an authenticated [DropboxJS V2 JS SDK client](https://github.com/dropbox/dropbox-sdk-js).
 * `InMemory`: Stores files in-memory. Thus, it is a temporary file store that clears when the user navigates away.
 * `ZipFS`: Read-only zip file-backed FS. Lazily decompresses files as you access them.
   * Supports DEFLATE out-of-the-box.
@@ -33,7 +31,7 @@ BrowserFS is highly extensible, and ships with many filesystem backends:
 
 More backends can be defined by separate libraries, so long as they extend the `BaseFileSystem` class. Multiple backends can be active at once at different locations in the directory hierarchy.
 
-For more information, see the [API documentation for BrowserFS](https://jvilk.com/browserfs/1.4.1/index.html).
+For more information, see the [API documentation for BrowserFS](https://jvilk.com/browserfs/2.0.0-beta/index.html).
 
 ### Building
 
@@ -144,6 +142,11 @@ module.exports = {
       'bufferGlobal': 'browserfs/dist/shims/bufferGlobal.js',
       'bfsGlobal': require.resolve('browserfs')
     }
+  },
+  // REQUIRED to avoid issue "Uncaught TypeError: BrowserFS.BFSRequire is not a function"
+  // See: https://github.com/jvilk/BrowserFS/issues/201
+  module: {
+    noParse: /browserfs\.js/
   },
   plugins: [
     // Expose BrowserFS, process, and Buffer globals.
