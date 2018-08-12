@@ -7,12 +7,14 @@ import {join} from 'path';
 const outBase = join(__dirname, '..', 'build', 'temp', 'library');
 
 export default {
-  entry: join(outBase, 'ts', 'index.js'),
-  dest: join(outBase, 'rollup', 'browserfs.rollup.js'),
-  sourceMap: true,
-  format: 'cjs',
-  exports: 'named',
-  useStrict: true,
+  input: join(outBase, 'ts', 'index.js'),
+  output: {
+    file: join(outBase, 'rollup', 'browserfs.rollup.js'),
+    sourceMap: true,
+    strict: true,
+    format: 'cjs',
+    exports: 'named'
+  },
   external: [
     'buffer', 'path'
   ],

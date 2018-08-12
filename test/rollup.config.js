@@ -7,12 +7,14 @@ import {join} from 'path';
 const outBase = join(__dirname, '..', 'build', 'temp', 'tests');
 
 export default {
-  entry: join(outBase, 'ts', 'test', 'harness', 'run.js'),
-  dest: join(outBase, 'rollup', 'test.rollup.js'),
-  sourceMap: true,
-  format: 'cjs',
-  exports: 'named',
-  useStrict: true,
+  input: join(outBase, 'ts', 'test', 'harness', 'run.js'),
+  output: {
+    file: join(outBase, 'rollup', 'test.rollup.js'),
+    sourceMap: true,
+    format: 'cjs',
+    exports: 'named',
+    strict: true
+  },
   external: [
     'buffer', 'path', 'assert'
   ],
