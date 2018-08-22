@@ -30,7 +30,10 @@ module.exports = {
     path: __dirname,
     filename: '..' + path.sep + 'build' + path.sep + 'browserfs.' + (release ? 'min.js' : 'js'),
     libraryTarget: 'umd',
-    library: 'BrowserFS'
+    library: 'BrowserFS',
+    // Work around https://github.com/webpack/webpack/issues/6642 until
+    // https://github.com/webpack/webpack/issues/6525 lands.
+    globalObject: 'this',
   },
   resolve: {
     extensions: ['.js', '.json'],
