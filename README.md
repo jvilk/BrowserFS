@@ -256,6 +256,29 @@ function setupBFS() {
 
 To run unit tests, simply run `npm test`.
 
+### Citing
+
+BrowserFS is a component of the [Doppio research project](http://doppiojvm.org/) from the PLASMA lab at the University of Massachusetts Amherst. If you decide to use BrowserFS in a project that leads to a publication, please cite [the academic paper on Doppio](https://dl.acm.org/citation.cfm?doid=2594291.2594293):
+
+> Vilk, John, and Berger, Emery D. Doppio: Breaking the Browser Language Barrier. In
+*Proceedings of the 35th ACM SIGPLAN Conference on Programming Language Design and Implementation*
+(2014), pp. 508–518.
+
+```bibtex
+@inproceedings{VilkDoppio,
+  author    = {John Vilk and
+               Emery D. Berger},
+  title     = {{Doppio: Breaking the Browser Language Barrier}},
+  booktitle = {Proceedings of the 35th {ACM} {SIGPLAN} Conference on Programming Language Design and Implementation},
+  pages     = {508--518},
+  year      = {2014},
+  url       = {http://doi.acm.org/10.1145/2594291.2594293},
+  doi       = {10.1145/2594291.2594293}
+}
+```
+
+
+
 ### License
 
 BrowserFS is licensed under the MIT License. See `LICENSE` for details.
