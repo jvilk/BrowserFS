@@ -260,7 +260,7 @@ To run unit tests, simply run `npm test`.
 
 BrowserFS is a component of the [Doppio](http://doppiojvm.org/) and [Browsix](https://browsix.org/) research projects from the PLASMA lab at the University of Massachusetts Amherst. If you decide to use BrowserFS in a project that leads to a publication, please cite the academic papers on [Doppio](https://dl.acm.org/citation.cfm?doid=2594291.2594293) and [Browsix](https://dl.acm.org/citation.cfm?id=3037727):
 
-> Vilk, John, and Berger, Emery D. Doppio: Breaking the Browser Language Barrier. In
+> John Vilk and Emery D. Berger. Doppio: Breaking the Browser Language Barrier. In
 *Proceedings of the 35th ACM SIGPLAN Conference on Programming Language Design and Implementation*
 (2014), pp. 508–518.
 
@@ -277,7 +277,7 @@ BrowserFS is a component of the [Doppio](http://doppiojvm.org/) and [Browsix](ht
 }
 ```
 
-> Powers, Bobby, Vilk, John, and Berger, Emery D. Browsix: Bridging the Gap Between Unix and the Browser. In *Proceedings of the Twenty-Second International Conference on Architectural Support for Programming Languages and Operating Systems* (2017), pp. 253–266.
+> Bobby Powers, John Vilk, and Emery D. Berger. Browsix: Bridging the Gap Between Unix and the Browser. In *Proceedings of the Twenty-Second International Conference on Architectural Support for Programming Languages and Operating Systems* (2017), pp. 253–266.
 
 ```bibtex
 @inproceedings{PowersBrowsix,
