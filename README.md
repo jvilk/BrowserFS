@@ -93,7 +93,7 @@ The following code mounts a zip file to `/zip`, in-memory storage to `/tmp`, and
 ```js
 // Note: This is the new fetch API in the browser. You can use XHR too.
 fetch('mydata.zip').then(function(response) {
-  return response.arraybuffer();
+  return response.arrayBuffer();
 }).then(function(zipData) {
   var Buffer = BrowserFS.BFSRequire('buffer').Buffer;
 
