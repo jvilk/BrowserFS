@@ -237,7 +237,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   }
 
   public lookup(parent: EmscriptenFSNode, name: string): EmscriptenFSNode {
-    const path = this.PATH.join2(this.fs.realPath(parent), name);
+    const path = this.PATH.join(this.fs.realPath(parent), name);
     const mode = this.fs.getMode(path);
     return this.fs.createNode(parent, name, mode);
   }
@@ -263,7 +263,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
 
   public rename(oldNode: EmscriptenFSNode, newDir: EmscriptenFSNode, newName: string): void {
     const oldPath = this.fs.realPath(oldNode);
-    const newPath = this.PATH.join2(this.fs.realPath(newDir), newName);
+    const newPath = this.PATH.join(this.fs.realPath(newDir), newName);
     try {
       this.nodefs.renameSync(oldPath, newPath);
       // This logic is missing from the original NodeFS,
@@ -279,7 +279,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   }
 
   public unlink(parent: EmscriptenFSNode, name: string): void {
-    const path = this.PATH.join2(this.fs.realPath(parent), name);
+    const path = this.PATH.join(this.fs.realPath(parent), name);
     try {
       this.nodefs.unlinkSync(path);
     } catch (e) {
@@ -291,7 +291,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   }
 
   public rmdir(parent: EmscriptenFSNode, name: string) {
-    const path = this.PATH.join2(this.fs.realPath(parent), name);
+    const path = this.PATH.join(this.fs.realPath(parent), name);
     try {
       this.nodefs.rmdirSync(path);
     } catch (e) {
@@ -319,7 +319,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
   }
 
   public symlink(parent: EmscriptenFSNode, newName: string, oldPath: string): void {
-    const newPath = this.PATH.join2(this.fs.realPath(parent), newName);
+    const newPath = this.PATH.join(this.fs.realPath(parent), newName);
     try {
       this.nodefs.symlinkSync(oldPath, newPath);
     } catch (e) {
