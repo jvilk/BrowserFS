@@ -7,10 +7,17 @@ import {arrayBuffer2Buffer, buffer2ArrayBuffer} from '../core/util';
  * Get the indexedDB constructor for the current browser.
  * @hidden
  */
-const indexedDB: IDBFactory = global.indexedDB ||
-                          (<any> global).mozIndexedDB ||
-                          (<any> global).webkitIndexedDB ||
-                          global.msIndexedDB;
+const indexedDB: IDBFactory =
+    (() =>  {
+        try {
+            return global.indexedDB ||
+                (<any> global).mozIndexedDB ||
+                (<any> global).webkitIndexedDB ||
+                global.msIndexedDB;
+        } catch {
+            return null;
+        }
+    })();
 
 /**
  * Converts a DOMException or a DOMError from an IndexedDB event into a
