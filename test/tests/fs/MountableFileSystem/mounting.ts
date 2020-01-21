@@ -58,10 +58,10 @@ export default function() {
 
       var t1text = 'Invariant fail: Can query folder that contains items and a mount point.';
       var expectedHomeListing = ['anotherFolder', 'secondRoot'];
-      var homeListing = fs.readdirSync('/root/home').sort();
+      var homeListing = (<string[]> fs.readdirSync('/root/home')).sort();
       assert.deepEqual(homeListing, expectedHomeListing, t1text);
 
-      fs.readdir('/root/home', function(err, files) {
+      fs.readdir('/root/home', function(err, files: string[]) {
         assert(!err, t1text);
         assert.deepEqual(files.sort(), expectedHomeListing, t1text);
 
@@ -92,7 +92,7 @@ export default function() {
             fs.rmdir('/root/home', function(err) {
               assert(err, t5text);
 
-              assert.deepEqual(fs.readdirSync('/root').sort(), ['anotherRoot', 'home'], "Invariant fail: Directory listings do not contain duplicate items when folder contains mount points w/ same names as existing files/folders.");
+              assert.deepEqual((<string[]> fs.readdirSync('/root')).sort(), ['anotherRoot', 'home'], "Invariant fail: Directory listings do not contain duplicate items when folder contains mount points w/ same names as existing files/folders.");
 
               BrowserFS.FileSystem.InMemory.Create({}, (e, newRoot?) => {
                 if (!newRoot) {

@@ -6,7 +6,7 @@ export default function() {
   let p = root;
   let dirs = fs.readdirSync(p);
   for (let i = 1; i < 9; i++) {
-    assert(dirs.indexOf(i.toString()) !== -1, `ISO is missing directory ${i}`);
+    assert((<string[]> dirs).indexOf(i.toString()) !== -1, `ISO is missing directory ${i}`);
     p = `${p}/${i}`;
     dirs = fs.readdirSync(p);
   }

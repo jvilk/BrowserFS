@@ -34,10 +34,10 @@ export default function() {
 
     let t1text = 'Invariant fail: Can query folder that contains items and a mount point.';
     let expectedTestListing = ['README.md', 'src', 'test'];
-    let testListing = fs.readdirSync('/').sort();
+    let testListing = (<string[]> fs.readdirSync('/')).sort();
     assert.deepEqual(testListing, expectedTestListing, t1text);
 
-    fs.readdir('/', function(err, files) {
+    fs.readdir('/', function(err, files: string[]) {
       assert(!err, t1text);
       assert.deepEqual(files.sort(), expectedTestListing, t1text);
       fs.stat("/test/fixtures/static/49chars.txt", function(err, stats) {

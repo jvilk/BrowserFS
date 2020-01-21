@@ -8,6 +8,7 @@ import setImmediate from '../generic/setImmediate';
 
 // Typing info only.
 import * as _fs from 'fs';
+import {encodeStrings} from "./util";
 
 /** Used for unit testing. Defaults to a NOP. */
 let wrapCbHook = function<T>(cb: T, numArgs: number): T {
@@ -115,6 +116,13 @@ function normalizeOptions(options: any, defEnc: string | null, defFlag: string, 
   // typeof null === 'object' so special-case handing is needed.
   switch (options === null ? 'null' : typeof options) {
     case 'object':
+      if (options === null) {
+        return {
+          encoding: defEnc!,
+          flag: defFlag,
+          mode: defMode!
+        };
+      }
       return {
         encoding: typeof options['encoding'] !== 'undefined' ? options['encoding'] : defEnc,
         flag: typeof options['flag'] !== 'undefined' ? options['flag'] : defFlag,
@@ -1101,13 +1109,22 @@ export default class FS {
    * The callback gets two arguments `(err, files)` where `files` is an array of
    * the names of the files in the directory excluding `'.'` and `'..'`.
    * @param path
+   * @param options
    * @param callback
    */
-  public readdir(path: string, cb: BFSCallback<string[]> = nopCb): void {
-    const newCb = <(err: ApiError, files?: string[]) => void> wrapCb(cb, 2);
+  public readdir(path: string, cb: BFSCallback<string[] | Buffer[]>): void;
+  public readdir(path: string, options: { encoding: string }, cb: BFSCallback<string[] | Buffer[]>): void;
+  public readdir(path: string, encoding: string, cb: BFSCallback<string[] | Buffer[]>): void;
+  public readdir(path: string, arg2: any = {}, cb: BFSCallback<string[] | Buffer[]> = nopCb): void {
+    const options = normalizeOptions(arg2, 'utf8', 'r', null);
+    cb = typeof arg2 === 'function' ? arg2 : cb;
+    const newCb = <(err: ApiError, files?: string[] | Buffer[]) => void> wrapCb(cb, 2);
     try {
       path = normalizePath(path);
-      assertRoot(this.root).readdir(path, newCb);
+      assertRoot(this.root).readdir(path, (err: ApiError, files?: string[]) => {
+        const encodedFiles = files && encodeStrings(files, options.encoding);
+        newCb(err, encodedFiles);
+      });
     } catch (e) {
       newCb(e);
     }
@@ -1116,11 +1133,15 @@ export default class FS {
   /**
    * Synchronous `readdir`. Reads the contents of a directory.
    * @param path
+   * @param options
    * @return [String[]]
    */
-  public readdirSync(path: string): string[] {
+  public readdirSync(path: string, options?: { encoding: string }): string[] | Buffer[];
+  public readdirSync(path: string, encoding: string): string[] | Buffer[];
+  public readdirSync(path: string, arg2: any = {}): string[] | Buffer[] {
+    const options = normalizeOptions(arg2, 'utf8', 'r', null);
     path = normalizePath(path);
-    return assertRoot(this.root).readdirSync(path);
+    return encodeStrings(assertRoot(this.root).readdirSync(path), options.encoding);
   }
 
   // SYMLINK METHODS
