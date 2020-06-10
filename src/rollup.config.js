@@ -2,8 +2,6 @@ import sourcemaps from 'rollup-plugin-sourcemaps';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import alias from '@rollup/plugin-alias';
 import buble from '@rollup/plugin-buble';
-import babel from '@rollup/plugin-babel';
-import commonjs from '@rollup/plugin-commonjs';
 import {join} from 'path';
 
 const outBase = join(__dirname, '..', 'build', 'temp', 'library');
@@ -33,7 +31,6 @@ export default {
       preferBuiltins: true
     }),
     sourcemaps(),
-    // commonjs(),
     buble({
       transforms: {
         // Assumes all `for of` statements are on arrays or array-like items.
