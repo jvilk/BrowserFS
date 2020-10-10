@@ -40,6 +40,8 @@ if (dropbox) {
   });
 }
 
+require("./build/scripts/http_sync_backend");
+
 module.exports = function(configSetter) {
   let config = {
     basePath: __dirname,
