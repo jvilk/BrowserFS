@@ -17,12 +17,12 @@ import {emptyBuffer} from '../core/util';
  */
 export default class PreloadFile<T extends FileSystem> extends BaseFile {
   protected _fs: T;
-  private _pos: number = 0;
-  private _path: string;
-  private _stat: Stats;
-  private _flag: FileFlag;
-  private _buffer: Buffer;
-  private _dirty: boolean = false;
+  protected _pos: number = 0;
+  protected _path: string;
+  protected _stat: Stats;
+  protected _flag: FileFlag;
+  protected _buffer: Buffer;
+  protected _dirty: boolean = false;
   /**
    * Creates a file with the given path and, optionally, the given contents. Note
    * that, if contents is specified, it will be mutated by the file!
