@@ -45,7 +45,7 @@
     "dropbox": "~4.0.9",
     "express": "~4.16.3",
     "isomorphic-fetch": "~2.2.1",
-    "karma": "^5.2.3",
+    "karma": "^4.4.1",
     "karma-chrome-launcher": "^2.2.0",
     "karma-coverage": "~1.1.2",
     "karma-firefox-launcher": "^2.1.0",
