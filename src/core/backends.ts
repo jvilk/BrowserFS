@@ -13,12 +13,12 @@ import MountableFileSystem from '../backend/MountableFileSystem';
 import OverlayFS from '../backend/OverlayFS';
 import WorkerFS from '../backend/WorkerFS';
 import HTTPRequest from '../backend/HTTPRequest';
-import HTTPSync from '../backend/HTTPSync';
+import WebDav from '../backend/WebDav';
 import ZipFS from '../backend/ZipFS';
 import IsoFS from '../backend/IsoFS';
 
 // Monkey-patch `Create` functions to check options before file system initialization.
-[AsyncMirror, Dropbox, Emscripten, FolderAdapter, HTML5FS, InMemory, IndexedDB, IsoFS, LocalStorage, MountableFileSystem, OverlayFS, WorkerFS, HTTPRequest, HTTPSync, ZipFS].forEach((fsType: FileSystemConstructor) => {
+[AsyncMirror, Dropbox, Emscripten, FolderAdapter, HTML5FS, InMemory, IndexedDB, IsoFS, LocalStorage, MountableFileSystem, OverlayFS, WorkerFS, HTTPRequest, WebDav, ZipFS].forEach((fsType: FileSystemConstructor) => {
   const create = fsType.Create;
   fsType.Create = function(opts?: any, cb?: BFSCallback<FileSystem>): void {
     const oneArg = typeof (opts) === "function";
@@ -55,7 +55,7 @@ const Backends = {
   WorkerFS,
   HTTPRequest,
   XmlHttpRequest: HTTPRequest,
-  HTTPSync,
+  WebDav,
   ZipFS
 };
 // Make sure all backends cast to FileSystemConstructor (for type checking)
