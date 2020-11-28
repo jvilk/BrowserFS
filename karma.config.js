@@ -1,6 +1,5 @@
 'use strict';
-process.env.NO_PROXY = 'localhost, 0.0.0.0/4201, 0.0.0.0/9876';
-process.env.no_proxy = 'localhost, 0.0.0.0/4201, 0.0.0.0/9876';
+
 const express = require('express');
 const detectBrowsers = require('detect-browsers');
 const seenBrowsers = {};
@@ -16,7 +15,7 @@ const installedBrowsers = isTravis ? ['Firefox'] : detectBrowsers.getInstalledBr
       return false;
     } else {
       seenBrowsers[browser] = true;
-      return browser !== "IE";
+      return true;
     }
   });
 
