@@ -15,7 +15,7 @@ const installedBrowsers = isTravis ? ['Firefox'] : detectBrowsers.getInstalledBr
       return false;
     } else {
       seenBrowsers[browser] = true;
-      return true;
+      return browser !== "IE";
     }
   });
 
