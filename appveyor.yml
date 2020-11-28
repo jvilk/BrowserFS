@@ -10,6 +10,7 @@ install:
 # Post-install test scripts.
 test_script:
   # Output useful info for debugging.
+  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
   - node --version
   - yarn --version
   - npm --version
