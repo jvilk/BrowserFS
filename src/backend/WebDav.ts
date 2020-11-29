@@ -3,7 +3,7 @@ import {xhrIsAvailable} from "../generic/xhr";
 import {fetchIsAvailable} from "../generic/fetch";
 import Stats, {FileType} from "../core/node_fs_stats";
 import {ApiError, ErrorCode} from "../core/api_error";
-import {FileFlag} from "../core/file_flag";
+import {ActionType, FileFlag} from "../core/file_flag";
 import PreloadFile from "../generic/preload_file";
 import {File} from '../core/file';
 
@@ -48,7 +48,7 @@ export default class WebDav extends BaseFileSystem implements FileSystem {
     this.prefixUrl = prefixUrl;
     this._open = new Map();
     this.client = webdav.createClient(
-      "http://localhost/fs",
+      this.prefixUrl,
     );
 
   }
@@ -101,8 +101,12 @@ export default class WebDav extends BaseFileSystem implements FileSystem {
           );
           cb(null, stats);
         }, (error: { response: { status: number } }) => {
-          if (error.response.status === 404) {
-            cb(ApiError.ENOENT(path));
+          switch (error.response.status) {
+            case 404:
+              cb(ApiError.ENOENT(path));
+              break;
+            default:
+              cb(new ApiError(ErrorCode.EIO));
           }
         }
       );
@@ -120,27 +124,52 @@ export default class WebDav extends BaseFileSystem implements FileSystem {
     }, (error: { response: { status: number } }) => {
       if (error.response.status === 404) {
         cb(ApiError.ENOENT(oldPath));
+      } else {
+        cb(new ApiError(ErrorCode.EIO, oldPath));
       }
     });
   }
 
   public open(p: string, flag: FileFlag, mode: number, cb: BFSCallback<File>): void {
-    this.stat(p, false, (err, stats: Stats | undefined) => {
+    this.stat(p, false, (err: ApiError, stats: Stats) => {
       if (err) {
-        return cb(err);
+        if (err.errno == ErrorCode.ENOENT) {
+          if (flag.pathNotExistsAction() == ActionType.CREATE_FILE) {
+            let file = new WebDavFile(this, p, flag, new Stats(FileType.FILE, 0));
+            this._open.set(p, file);
+            return cb(null, file);
+          } else {
+            return cb(err);
+          }
+        } else {
+          cb(err);
+        }
+      } else {
+        this.client.getFileContents(p).then((content: Uint8Array) => {
+          let file = new WebDavFile(this, p, flag, stats, Buffer.from(content));
+          this._open.set(p, file);
+          return cb(null, file);
+        });
       }
-      if (!stats) {
-        return cb(new ApiError(ErrorCode.EIO));
-      }
-      this.client.getFileContents(p).then((arr: ArrayBuffer) => {
-        const file = new WebDavFile(this, p, flag, stats, Buffer.from(arr));
-        this._open.set(p, file);
-        cb(null, file);
-      }, (err: Error) => {
-        // TODO more cases for error handling
-        cb(new ApiError(ErrorCode.EIO, err.message));
-      });
     });
+  }
+
+  public unlink(p: string, cb: (e?: (ApiError | null)) => any): void {
+    this.client.deleteFile(p).then(() => {
+      cb();
+    }, (error: { response: { status: number } }) => {
+      switch (error.response.status) {
+        case 404:
+          cb(ApiError.ENOENT(p));
+          break;
+        default:
+          cb(new ApiError(ErrorCode.EIO, "Failed Unlink with unknown status code" + error.response.status))
+      }
+    })
+  }
+
+  public rmdir(p: string, cb: (e?: (ApiError | null)) => any): void {
+    this.unlink(p, cb);
   }
 
   public _closeFile(file: WebDavFile) {
@@ -170,9 +199,18 @@ export default class WebDav extends BaseFileSystem implements FileSystem {
 
   public mkdir(p: string, mode: number, cb: (e?: (ApiError | null)) => any): void {
     this.client.createDirectory(p).then(() => {
-      cb();
-    }, (err: Error) => {
-      cb(new ApiError(ErrorCode.EIO, err.message));
+      cb(null);
+    }, (err: { message: string, response: { status: number } }) => {
+      switch (err.response.status) {
+        case 405:
+          cb(new ApiError(ErrorCode.EEXIST, err.message));
+          break;
+        case 409:
+          cb(ApiError.ENOENT(p));
+          break;
+        default:
+          cb(new ApiError(ErrorCode.EIO, err.message));
+      }
     });
   }
 
@@ -210,6 +248,8 @@ class WebDavFile extends PreloadFile<WebDav> implements File {
       }, (err: ApiError) => {
         cb(new ApiError(ErrorCode.EIO, err.message));
       });
+    } else {
+      cb(null);
     }
   }
 
