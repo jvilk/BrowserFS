@@ -3,7 +3,7 @@ const express = require('express');
 const server = new webdav.WebDAVServer({
   rootFileSystem: new webdav.PhysicalFileSystem('C:\\Users\\nexus\\WebDav')
 });
-var app = express();
+const app = express();
 
 
 app.use(function (req: any, res: any, next: () => void) {

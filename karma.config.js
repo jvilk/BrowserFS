@@ -47,7 +47,7 @@ module.exports = function(configSetter) {
     frameworks: ['mocha'],
     files: karmaFiles,
     exclude: [],
-    reporters: ['progress'],
+    reporters: ['spec'],
     port: 9876,
     colors: true,
     logLevel: 'INFO',

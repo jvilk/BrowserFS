@@ -9,6 +9,12 @@ export default function WebDavFactory(cb: (name: string, obj: FileSystem[]) => v
       if (e) {
         throw e;
       }
+      fs.readdir("/", (err, contents) => {
+        function deleteDir() {
+          fs.rmdirR(contents.shift(), deleteDir);
+        }
+        deleteDir();
+      });
       cb('WebDav', [fs]);
     });
   } else {

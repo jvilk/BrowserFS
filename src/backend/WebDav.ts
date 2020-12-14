@@ -113,21 +113,31 @@ export default class WebDav extends BaseFileSystem implements FileSystem {
   }
 
   public rename(oldPath: string, newPath: string, cb: BFSOneArgCallback): void {
-    this.client.moveFile(oldPath, newPath).then(() => {
-      const file = this._open.get(oldPath);
-      if (file) {
-        this._open.delete(oldPath);
-        this._open.set(newPath, file);
-        file.setPath(newPath);
-      }
-      cb(null);
-    }, (error: { response: { status: number } }) => {
-      if (error.response.status === 404) {
-        cb(ApiError.ENOENT(oldPath));
+    if (oldPath == newPath) {
+      return cb();
+    }
+    this.stat(newPath, false, (err, stats) => {
+      if (err && err.errno == ErrorCode.ENOENT || stats && stats.isFile()) {
+        this.client.moveFile(oldPath, newPath, {headers: {Overwrite: "T"}}).then(() => {
+          const file = this._open.get(oldPath);
+          if (file) {
+            this._open.delete(oldPath);
+            this._open.set(newPath, file);
+            file.setPath(newPath);
+          }
+          cb(null);
+        }, (error: { response: { status: number } }) => {
+          if (error.response.status === 404) {
+            cb(ApiError.ENOENT(oldPath));
+          } else {
+            cb(new ApiError(ErrorCode.EIO, oldPath));
+          }
+        });
       } else {
-        cb(new ApiError(ErrorCode.EIO, oldPath));
+        cb(ApiError.EISDIR(newPath));
       }
     });
+
   }
 
   public open(p: string, flag: FileFlag, mode: number, cb: BFSCallback<File>): void {
@@ -142,14 +152,41 @@ export default class WebDav extends BaseFileSystem implements FileSystem {
             return cb(err);
           }
         } else {
-          cb(err);
+          return cb(err);
         }
       } else {
-        this.client.getFileContents(p).then((content: Uint8Array) => {
-          let file = new WebDavFile(this, p, flag, stats, Buffer.from(content));
-          this._open.set(p, file);
-          return cb(null, file);
-        });
+        if (stats.isDirectory()) {
+          return cb(ApiError.EISDIR(p));
+        }
+        switch (flag.pathExistsAction()) {
+          case ActionType.NOP:
+            this.client.getFileContents(p).then((content: Uint8Array) => {
+              let file = new WebDavFile(this, p, flag, stats, Buffer.from(content));
+              this._open.set(p, file);
+              return cb(null, file);
+            }, (error: { response: { status: number } }) => {
+              switch (error.response.status) {
+                case 404:
+                  cb(ApiError.ENOENT(p));
+                  break;
+                case 405:
+                  cb(ApiError.EISDIR(p));
+                  break;
+                default:
+                  cb(new ApiError(ErrorCode.EIO));
+              }
+            });
+            return;
+          case ActionType.THROW_EXCEPTION:
+            return cb(ApiError.EEXIST(p));
+          case ActionType.TRUNCATE_FILE:
+            let file = new WebDavFile(this, p, flag, stats, Buffer.from([]));
+            stats.size = 0;
+            stats.blksize = 1;
+            this._open.set(p, file);
+            return cb(null, file);
+        }
+
       }
     });
   }
@@ -169,7 +206,46 @@ export default class WebDav extends BaseFileSystem implements FileSystem {
   }
 
   public rmdir(p: string, cb: (e?: (ApiError | null)) => any): void {
-    this.unlink(p, cb);
+    this.readdir(p, (err, contents) => {
+      if (err) {
+        return cb(err);
+      }
+      if (contents && contents.length == 0) {
+        this.client.deleteFile(p).then(() => {
+          cb();
+        }, (error: { response: { status: number } }) => {
+          switch (error.response.status) {
+            case 200:
+              return cb(null)
+            case 404:
+              return cb(ApiError.ENOENT(p));
+            default:
+              return cb(new ApiError(ErrorCode.EIO, p));
+          }
+        });
+      } else {
+        cb(ApiError.ENOTEMPTY(p))
+      }
+    })
+  }
+
+  /**
+   * WebDav by default deletes in a recursive manner, why not take advantage of that
+   * @param p
+   * @param cb
+   */
+  public rmdirR(p: string, cb: (e?: (ApiError | null)) => any): void {
+    this.client.deleteFile(p).then(() => {
+      cb();
+    }, (error: { response: { status: number } }) => {
+      switch (error.response.status) {
+        case 404:
+          cb(ApiError.ENOENT(p));
+          break;
+        default:
+          cb(new ApiError(ErrorCode.EIO, "Failed Unlink with unknown status code" + error.response.status))
+      }
+    })
   }
 
   public _closeFile(file: WebDavFile) {
@@ -187,13 +263,25 @@ export default class WebDav extends BaseFileSystem implements FileSystem {
       type: "file" | "directory";
     }
 
-    // TODO implement no error handling
+    //getDirectoryContents can be called on a file and the result looks like a normal dir with a single file
     this.client.getDirectoryContents(p).then((listing: Array<Listing>) => {
+
+      if (listing.length === 1 && listing[0].filename == p) { // we are looking at a file
+        return cb(ApiError.ENOTDIR(p));
+      }
+
       const contents = [];
       for (const i of listing) {
         contents.push(i.basename);
       }
       cb(null, contents);
+    }, (err: { message: string, response: { status: number } }) => {
+      switch (err.response.status) {
+        case 404:
+          return cb(ApiError.ENOENT(p));
+        default:
+          cb(new ApiError(ErrorCode.EIO, err.message));
+      }
     });
   }
 
@@ -203,7 +291,7 @@ export default class WebDav extends BaseFileSystem implements FileSystem {
     }, (err: { message: string, response: { status: number } }) => {
       switch (err.response.status) {
         case 405:
-          cb(new ApiError(ErrorCode.EEXIST, err.message));
+          cb(ApiError.EEXIST(p));
           break;
         case 409:
           cb(ApiError.ENOENT(p));
