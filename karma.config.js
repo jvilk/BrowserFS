@@ -6,6 +6,8 @@ const seenBrowsers = {};
 const isTravis = process.env.TRAVIS;
 const execSync = require('child_process').execSync;
 const path = require('path');
+const { exec } = require('child_process');
+let webdav_server;
 // Browser detection does not work properly on Travis.
 const installedBrowsers = isTravis ? ['Firefox'] : detectBrowsers.getInstalledBrowsers()
   // XXX: Browsers with spaces in their name (e.g. Chrome Canary) need to have the space removed
@@ -44,7 +46,7 @@ if (dropbox) {
 module.exports = function(configSetter) {
   let config = {
     basePath: __dirname,
-    frameworks: ['mocha'],
+    frameworks: ['mocha','events'],
     files: karmaFiles,
     exclude: [],
     reporters: ['spec'],
@@ -79,7 +81,21 @@ module.exports = function(configSetter) {
           return express.static(__dirname);
         }]
       }
-    ]
+    ],
+    events: {
+      events: {
+        run_start: function (browsers, logger) {
+          logger.info(`starting webdav server`);
+          if(!webdav_server){
+            webdav_server = exec("node ./build/scripts/webdav_server.js");
+          }
+        },
+        run_complete: function (browsers, results, logger) {
+          logger.info(`run_complete: Stopping server.`);
+          webdav_server.kill();
+        }
+      }
+    }
   };
   if (coverage) {
     config.reporters.push('coverage');
