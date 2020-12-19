@@ -6,13 +6,15 @@ const seenBrowsers = {};
 const isTravis = process.env.TRAVIS;
 const execSync = require('child_process').execSync;
 const path = require('path');
-const { exec } = require('child_process');
+const {exec} = require('child_process');
 let webdav_server;
 // Browser detection does not work properly on Travis.
 const installedBrowsers = isTravis ? ['Firefox'] : detectBrowsers.getInstalledBrowsers()
   // XXX: Browsers with spaces in their name (e.g. Chrome Canary) need to have the space removed
-  .map(function(browser) { return browser.name.replace(/ /, ''); })
-  .filter(function(browser) {
+  .map(function (browser) {
+    return browser.name.replace(/ /, '');
+  })
+  .filter(function (browser) {
     if (seenBrowsers[browser]) {
       return false;
     } else {
@@ -28,10 +30,10 @@ let karmaFiles = [
   // Main module and fixtures loader
   'test/harness/test.js',
   // WebWorker script.
-  { pattern: 'test/harness/factories/workerfs_worker.js', included: false, watched: true },
+  {pattern: 'test/harness/factories/workerfs_worker.js', included: false, watched: true},
   // Source map support
-  { pattern: 'src/**/*', included: false, watched: false },
-  { pattern: 'test/**/*', included: false, watched: false }
+  {pattern: 'src/**/*', included: false, watched: false},
+  {pattern: 'test/**/*', included: false, watched: false}
 ];
 
 // The presence of the Dropbox library dynamically toggles the tests.
@@ -43,10 +45,10 @@ if (dropbox) {
   });
 }
 
-module.exports = function(configSetter) {
+module.exports = function (configSetter) {
   let config = {
     basePath: __dirname,
-    frameworks: ['mocha','events'],
+    frameworks: ['mocha', 'events'],
     files: karmaFiles,
     exclude: [],
     reporters: ['spec'],
@@ -77,7 +79,7 @@ module.exports = function(configSetter) {
     plugins: [
       'karma-*',
       {
-        'middleware:static': ['factory', function() {
+        'middleware:static': ['factory', function () {
           return express.static(__dirname);
         }]
       }
@@ -86,8 +88,14 @@ module.exports = function(configSetter) {
       events: {
         run_start: function (browsers, logger) {
           logger.info(`starting webdav server`);
-          if(!webdav_server){
+          if (!webdav_server) {
             webdav_server = exec("node ./build/scripts/webdav_server.js");
+            webdav_server.stdout.on("data", (data) => {
+              console.log(data)
+            })
+            webdav_server.stderr.on("data", (data) => {
+              console.log(data)
+            })
           }
         },
         run_complete: function (browsers, results, logger) {
@@ -102,7 +110,7 @@ module.exports = function(configSetter) {
     config.preprocessors = {
       './test/harness/**/*.js': ['coverage']
     };
-    config.coverageReporter = { type: 'json', dir: 'coverage/' };
+    config.coverageReporter = {type: 'json', dir: 'coverage/'};
   }
   configSetter.set(config);
 };
