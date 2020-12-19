@@ -72,7 +72,7 @@
     "typedoc": "^0.19.1",
     "typescript": "~3.0.1",
     "webdav": "^3.6.1",
-    "webdav-server": "^2.6.2",
+    "webdav-server": "github:NexusNull/npm-WebDAV-Server",
     "webpack": "^4.44.2",
     "webpack-cli": "^3.3.12",
     "webpack-dev-server": "^3.11.0"
