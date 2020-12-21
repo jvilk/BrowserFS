@@ -6,7 +6,7 @@ const seenBrowsers = {};
 const isTravis = process.env.TRAVIS;
 const execSync = require('child_process').execSync;
 const path = require('path');
-const {exec} = require('child_process');
+const {fork} = require('child_process');
 let webdav_server;
 // Browser detection does not work properly on Travis.
 const installedBrowsers = isTravis ? ['Firefox'] : detectBrowsers.getInstalledBrowsers()
@@ -89,13 +89,9 @@ module.exports = function (configSetter) {
         run_start: function (browsers, logger) {
           logger.info(`starting webdav server`);
           if (!webdav_server) {
-            webdav_server = exec("node ./build/scripts/webdav_server.js");
-            webdav_server.stdout.on("data", (data) => {
-              console.log(data)
-            })
-            webdav_server.stderr.on("data", (data) => {
-              console.log(data)
-            })
+            webdav_server = fork("./build/scripts/webdav_server.js", [], {
+              stdio: [0, 1, 2, 'ipc'],
+            });
           }
         },
         run_complete: function (browsers, results, logger) {
