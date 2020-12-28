@@ -12,21 +12,35 @@ const webdav = require("webdav");
 export interface WebDavOptions {
   // Used as the URL prefix for fetched files.
   // Default: Fetch files relative to the index.
-  baseUrl?: string;
+  prefixUrl?: string;
+  authOptions?: {
+    username?: string,
+    password?: string,
+    token?: {
+      token_type: string,
+      access_token: string
+    }
+    digest?: boolean
+  };
 }
 
 export default class WebDav extends BaseFileSystem implements FileSystem {
   public static readonly Name = "WebDav";
   public static readonly Options: FileSystemOptions = {
-    baseUrl: {
+    prefixUrl: {
       type: "string",
       optional: true,
       description: "Used as the URL prefix for fetched files. Default: Fetch files relative to the index."
+    },
+    authOptions: {
+      type: "object",
+      optional: true,
+      description: "used to pass auth information to the underlying webdav-client."
     }
   };
 
   public static Create(opts: WebDavOptions, cb: BFSCallback<WebDav>): void {
-    cb(null, new WebDav(opts.baseUrl));
+    cb(null, new WebDav(opts.prefixUrl, opts.authOptions));
 
   }
 
@@ -39,7 +53,7 @@ export default class WebDav extends BaseFileSystem implements FileSystem {
 
   private _open: Map<string, WebDavFile>;
 
-  private constructor(prefixUrl: string = '') {
+  private constructor(prefixUrl: string = '', authOptions?: { username?: string, password?: string, token?: { token_type: string, access_token: string } }) {
     super();
     // prefix_url must end in a directory separator.
     if (prefixUrl.length > 0 && prefixUrl.charAt(prefixUrl.length - 1) !== '/') {
@@ -49,6 +63,7 @@ export default class WebDav extends BaseFileSystem implements FileSystem {
     this._open = new Map();
     this.client = webdav.createClient(
       this.prefixUrl,
+      authOptions
     );
 
   }
