@@ -1,27 +1,11 @@
 'use strict';
 
 const express = require('express');
-const detectBrowsers = require('detect-browsers');
-const seenBrowsers = {};
-const isTravis = process.env.TRAVIS;
 const execSync = require('child_process').execSync;
 const path = require('path');
 const {fork} = require('child_process');
 let webdav_server;
 // Browser detection does not work properly on Travis.
-const installedBrowsers = isTravis ? ['Firefox'] : detectBrowsers.getInstalledBrowsers()
-  // XXX: Browsers with spaces in their name (e.g. Chrome Canary) need to have the space removed
-  .map(function (browser) {
-    return browser.name.replace(/ /, '');
-  })
-  .filter(function (browser) {
-    if (seenBrowsers[browser]) {
-      return false;
-    } else {
-      seenBrowsers[browser] = true;
-      return browser !== "IE";
-    }
-  });
 
 let dropbox = false;
 let continuous = false;
@@ -48,7 +32,11 @@ if (dropbox) {
 module.exports = function (configSetter) {
   let config = {
     basePath: __dirname,
-    frameworks: ['mocha', 'events'],
+    frameworks: ['mocha', 'events', 'detectBrowsers'],
+    detectBrowsers: {
+      usePhantomJS: false,
+      preferHeadless: true,
+    },
     files: karmaFiles,
     exclude: [],
     reporters: ['spec'],
@@ -57,7 +45,6 @@ module.exports = function (configSetter) {
     logLevel: 'INFO',
     autoWatch: true,
     concurrency: 1,
-    browsers: installedBrowsers,
     captureTimeout: 60000,
     singleRun: !continuous,
     urlRoot: '/',
