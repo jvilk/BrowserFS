@@ -53,7 +53,7 @@ export default class WebDav extends BaseFileSystem implements FileSystem {
 
   private _open: Map<string, WebDavFile>;
 
-  private constructor(prefixUrl: string = '', authOptions?: { username?: string, password?: string, token?: { token_type: string, access_token: string } }) {
+  private constructor(prefixUrl: string = '', authOptions?: WebDavOptions["authOptions"]) {
     super();
     // prefix_url must end in a directory separator.
     if (prefixUrl.length > 0 && prefixUrl.charAt(prefixUrl.length - 1) !== '/') {
