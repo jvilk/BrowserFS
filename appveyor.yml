@@ -5,7 +5,7 @@ install:
   # Get the latest stable version of Node.js or io.js
   - ps: Install-Product node $env:nodejs_version
   # install modules
-  - yarn install
+  - npm install
 
 # Post-install test scripts.
 test_script:
@@ -18,7 +18,7 @@ test_script:
   - npm test
 
 # Don't actually build.
-build: off
+build: false
 
 cache:
   - node_modules

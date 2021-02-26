@@ -19,10 +19,10 @@ before_script:
   - sh -e /etc/init.d/xvfb start
 
 install:
-  - yarn install
+  - npm install
 
 script:
-  - yarn test
+  - npm test
 
 git:
   depth: 5
