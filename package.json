@@ -71,7 +71,7 @@
     "tslint": "~5.11.0",
     "typedoc": "^0.19.1",
     "typescript": "~3.0.1",
-    "webdav": "^4.1.0",
+    "webdav": "^4.2.1",
     "webdav-server": "github:NexusNull/npm-WebDAV-Server",
     "webpack": "^4.44.2",
     "webpack-cli": "^3.3.12",
