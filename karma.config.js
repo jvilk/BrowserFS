@@ -36,6 +36,16 @@ module.exports = function (configSetter) {
     detectBrowsers: {
       usePhantomJS: false,
       preferHeadless: true,
+      postDetection: (availableBrowsers) => {
+        console.log("Available Browsers:" + availableBrowsers);
+        const blockedBrowsers = ["IE"];// the tests don't even run on IE
+        for (let browser of blockedBrowsers) {
+          const index = availableBrowsers.indexOf(browser)
+          if (index !== -1)
+            availableBrowsers.splice(index, 1);
+        }
+        return availableBrowsers;
+      }
     },
     files: karmaFiles,
     exclude: [],
