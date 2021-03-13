@@ -7,6 +7,10 @@ import {ActionType, FileFlag} from "../core/file_flag";
 import PreloadFile from "../generic/preload_file";
 import {File} from '../core/file';
 
+interface WebDAVClientError extends Error {
+  status?: number;
+}
+
 const webdav = require("webdav");
 
 export interface WebDavOptions {
@@ -115,8 +119,9 @@ export default class WebDav extends BaseFileSystem implements FileSystem {
             lastModTime
           );
           cb(null, stats);
-        }, (error: { response: { status: number } }) => {
-          switch (error.response.status) {
+
+        }, (error: WebDAVClientError) => {
+          switch (error.status) {
             case 404:
               cb(ApiError.ENOENT(path));
               break;
@@ -141,8 +146,8 @@ export default class WebDav extends BaseFileSystem implements FileSystem {
             file.setPath(newPath);
           }
           cb(null);
-        }, (error: { response: { status: number } }) => {
-          if (error.response.status === 404) {
+        }, (error: WebDAVClientError) => {
+          if (error.status === 404) {
             cb(ApiError.ENOENT(oldPath));
           } else {
             cb(new ApiError(ErrorCode.EIO, oldPath));
@@ -179,8 +184,8 @@ export default class WebDav extends BaseFileSystem implements FileSystem {
               const file = new WebDavFile(this, p, flag, stats, Buffer.from(content));
               this._open.set(p, file);
               return cb(null, file);
-            }, (error: { response: { status: number } }) => {
-              switch (error.response.status) {
+            }, (error: WebDAVClientError) => {
+              switch (error.status) {
                 case 404:
                   cb(ApiError.ENOENT(p));
                   break;
@@ -209,13 +214,13 @@ export default class WebDav extends BaseFileSystem implements FileSystem {
   public unlink(p: string, cb: (e?: (ApiError | null)) => any): void {
     this.client.deleteFile(p).then(() => {
       cb();
-    }, (error: { response: { status: number } }) => {
-      switch (error.response.status) {
+    }, (error: WebDAVClientError) => {
+      switch (error.status) {
         case 404:
           cb(ApiError.ENOENT(p));
           break;
         default:
-          cb(new ApiError(ErrorCode.EIO, "Failed Unlink with unknown status code" + error.response.status));
+          cb(new ApiError(ErrorCode.EIO, "Failed Unlink with unknown status code" + error.status));
       }
     });
   }
@@ -228,8 +233,8 @@ export default class WebDav extends BaseFileSystem implements FileSystem {
       if (contents && contents.length === 0) {
         this.client.deleteFile(p).then(() => {
           cb();
-        }, (error: { response: { status: number } }) => {
-          switch (error.response.status) {
+        }, (error: WebDAVClientError) => {
+          switch (error.status) {
             case 200:
               return cb(null);
             case 404:
@@ -252,13 +257,13 @@ export default class WebDav extends BaseFileSystem implements FileSystem {
   public rmdirR(p: string, cb: (e?: (ApiError | null)) => any): void {
     this.client.deleteFile(p).then(() => {
       cb();
-    }, (error: { response: { status: number } }) => {
-      switch (error.response.status) {
+    }, (error: WebDAVClientError) => {
+      switch (error.status) {
         case 404:
           cb(ApiError.ENOENT(p));
           break;
         default:
-          cb(new ApiError(ErrorCode.EIO, "Failed Unlink with unknown status code" + error.response.status));
+          cb(new ApiError(ErrorCode.EIO, "Failed Unlink with unknown status code" + error.status));
       }
     });
   }
@@ -290,8 +295,8 @@ export default class WebDav extends BaseFileSystem implements FileSystem {
         contents.push(i.basename);
       }
       cb(null, contents);
-    }, (err: { message: string, response: { status: number } }) => {
-      switch (err.response.status) {
+    }, (err: WebDAVClientError) => {
+      switch (err.status) {
         case 404:
           return cb(ApiError.ENOENT(p));
         default:
@@ -303,8 +308,8 @@ export default class WebDav extends BaseFileSystem implements FileSystem {
   public mkdir(p: string, mode: number, cb: (e?: (ApiError | null)) => any): void {
     this.client.createDirectory(p).then(() => {
       cb(null);
-    }, (err: { message: string, response: { status: number } }) => {
-      switch (err.response.status) {
+    }, (err: WebDAVClientError) => {
+      switch (err.status) {
         case 405:
           cb(ApiError.EEXIST(p));
           break;
