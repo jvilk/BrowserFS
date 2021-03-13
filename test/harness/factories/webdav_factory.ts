@@ -11,7 +11,8 @@ export default function WebDavFactory(cb: (name: string, obj: FileSystem[]) => v
       }
       fs.readdir("/", (err, contents) => {
         function deleteDir() {
-          fs.rmdirR(contents.shift(), deleteDir);
+          if (contents.length > 0)
+            fs.rmdirR(contents.shift(), deleteDir);
         }
 
         deleteDir();
