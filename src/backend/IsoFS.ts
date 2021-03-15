@@ -1274,8 +1274,8 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
       throw ApiError.ENOENT(p);
     } else if (record.isSymlink(this._data)) {
       return this.openSync(path.resolve(p, record.getSymlinkPath(this._data)), flags, mode);
-    } else if (!record.isDirectory(this._data)) {
-      const data = record.getFile(this._data);
+    } else {
+      const data = !record.isDirectory(this._data) ? record.getFile(this._data) : undefined;
       const stats = this._getStats(p, record)!;
       switch (flags.pathExistsAction()) {
         case ActionType.THROW_EXCEPTION:
@@ -1286,8 +1286,6 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
         default:
           throw new ApiError(ErrorCode.EINVAL, 'Invalid FileMode object.');
       }
-    } else {
-      throw ApiError.EISDIR(p);
     }
   }
 
