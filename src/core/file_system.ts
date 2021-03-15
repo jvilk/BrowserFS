@@ -427,9 +427,6 @@ export class BaseFileSystem {
         }
       } else {
         // File exists.
-        if (stats && stats.isDirectory()) {
-          return cb(ApiError.EISDIR(p));
-        }
         switch (flag.pathExistsAction()) {
           case ActionType.THROW_EXCEPTION:
             return cb(ApiError.EEXIST(p));
@@ -511,9 +508,6 @@ export class BaseFileSystem {
     }
 
     // File exists.
-    if (stats.isDirectory()) {
-      throw ApiError.EISDIR(p);
-    }
     switch (flag.pathExistsAction()) {
       case ActionType.THROW_EXCEPTION:
         throw ApiError.EEXIST(p);

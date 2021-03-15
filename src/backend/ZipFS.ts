@@ -747,20 +747,20 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
     const inode = this._index.getInode(path);
     if (!inode) {
       throw ApiError.ENOENT(path);
-    } else if (isFileInode<CentralDirectory>(inode)) {
-      const cdRecord = inode.getData();
-      const stats = cdRecord.getStats();
+    } else if (isFileInode<CentralDirectory>(inode) || isDirInode<CentralDirectory>(inode)) {
+      const stats = !isDirInode<CentralDirectory>(inode) ? inode.getData().getStats() : inode.getStats();
+      const data = !isDirInode<CentralDirectory>(inode) ? inode.getData().getData() : inode.getStats().fileData;
       switch (flags.pathExistsAction()) {
         case ActionType.THROW_EXCEPTION:
         case ActionType.TRUNCATE_FILE:
           throw ApiError.EEXIST(path);
         case ActionType.NOP:
-          return new NoSyncFile(this, path, flags, stats, cdRecord.getData());
+          return new NoSyncFile(this, path, flags, stats, data || undefined);
         default:
           throw new ApiError(ErrorCode.EINVAL, 'Invalid FileMode object.');
       }
     } else {
-      throw ApiError.EISDIR(path);
+      throw ApiError.EPERM(path);
     }
   }
 
