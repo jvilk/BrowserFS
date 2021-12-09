@@ -94,7 +94,7 @@ export default class FileSystemAccessFileSystem
               .then(continueWalk)
               .catch(handleError(cb, walkingPath));
           } else if (error.message === "Name is not allowed.") {
-            cb(new ApiError(ErrorCode.ENOTSUP, error.message, walkingPath));
+            cb(new ApiError(ErrorCode.EACCES, error.message, walkingPath));
           } else {
             handleError(cb, walkingPath)(error);
           }
