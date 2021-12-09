@@ -44,7 +44,7 @@ const keysToArray = (
     directoryKeys
       .next()
       .then(({ done, value }) => {
-        if (done) return cb(null, keys);
+        if (done) { return cb(null, keys); }
 
         keys.push(value);
         iterateKeys();
@@ -57,57 +57,10 @@ const keysToArray = (
 
 export default class FileSystemAccessFileSystem
   extends BaseFileSystem
-  implements FileSystem
-{
+  implements FileSystem {
   public static readonly Name = "FileSystemAccess";
 
   public static readonly Options: FileSystemOptions = {};
-
-  private _handles: { [path: string]: FileSystemHandle };
-
-  private getHandle(path: string, cb: BFSCallback<FileSystemHandle>): void {
-    if (path === "/") return cb(null, this._handles["/"]);
-
-    let walkedPath = "/";
-    const [, ...pathParts] = path.split("/");
-    const getHandleParts = ([pathPart, ...remainingPathParts]: string[]) => {
-      const walkingPath = join(walkedPath, pathPart);
-      const continueWalk = (handle: FileSystemHandle) => {
-        walkedPath = walkingPath;
-        this._handles[walkedPath] = handle;
-
-        if (remainingPathParts.length === 0) {
-          return cb(null, this._handles[path]);
-        }
-
-        getHandleParts(remainingPathParts);
-      };
-      const handle = this._handles[walkedPath] as FileSystemDirectoryHandle;
-
-      handle
-        .getDirectoryHandle(pathPart)
-        .then(continueWalk)
-        .catch((error: Error) => {
-          if (error.name === "TypeMismatchError") {
-            handle
-              .getFileHandle(pathPart)
-              .then(continueWalk)
-              .catch(handleError(cb, walkingPath));
-          } else if (error.message === "Name is not allowed.") {
-            cb(new ApiError(ErrorCode.EACCES, error.message, walkingPath));
-          } else {
-            handleError(cb, walkingPath)(error);
-          }
-        });
-    };
-
-    getHandleParts(pathParts);
-  }
-
-  private constructor(handle: FileSystemDirectoryHandle) {
-    super();
-    this._handles = { "/": handle };
-  }
 
   public static Create(
     { handle }: FileSystemAccessFileSystemOptions,
@@ -118,6 +71,13 @@ export default class FileSystemAccessFileSystem
 
   public static isAvailable(): boolean {
     return typeof FileSystemHandle === "function";
+  }
+
+  private _handles: { [path: string]: FileSystemHandle };
+
+  private constructor(handle: FileSystemDirectoryHandle) {
+    super();
+    this._handles = { "/": handle };
   }
 
   public getName(): string {
@@ -142,12 +102,12 @@ export default class FileSystemAccessFileSystem
 
   public rename(oldPath: string, newPath: string, cb: BFSOneArgCallback): void {
     this.getHandle(oldPath, (sourceError, handle) => {
-      if (sourceError) return cb(sourceError);
+      if (sourceError) { return cb(sourceError); }
       if (handle instanceof FileSystemDirectoryHandle) {
         this.readdir(oldPath, (readDirError, files = []) => {
-          if (readDirError) return cb(readDirError);
+          if (readDirError) { return cb(readDirError); }
           this.mkdir(newPath, "wx", (mkdirError) => {
-            if (mkdirError) return cb(mkdirError);
+            if (mkdirError) { return cb(mkdirError); }
             if (files.length === 0) {
               this.unlink(oldPath, cb);
             } else {
@@ -165,7 +125,7 @@ export default class FileSystemAccessFileSystem
           .getFile()
           .then((oldFile: GlobalFile) =>
             this.getHandle(dirname(newPath), (destError, destFolder) => {
-              if (destError) return cb(destError);
+              if (destError) { return cb(destError); }
               if (destFolder instanceof FileSystemDirectoryHandle) {
                 destFolder
                   .getFileHandle(basename(newPath), { create: true })
@@ -206,7 +166,7 @@ export default class FileSystemAccessFileSystem
     cb: BFSOneArgCallback
   ): void {
     this.getHandle(dirname(fname), (error, handle) => {
-      if (error) return cb(error);
+      if (error) { return cb(error); }
       if (handle instanceof FileSystemDirectoryHandle) {
         handle
           .getFileHandle(basename(fname), { create: true })
@@ -231,7 +191,7 @@ export default class FileSystemAccessFileSystem
 
   public stat(path: string, isLstat: boolean, cb: BFSCallback<Stats>): void {
     this.getHandle(path, (error, handle) => {
-      if (error || !handle) return cb(error);
+      if (error || !handle) { return cb(error); }
       if (handle instanceof FileSystemDirectoryHandle) {
         return cb(null, new Stats(FileType.DIRECTORY, 4096));
       }
@@ -255,7 +215,7 @@ export default class FileSystemAccessFileSystem
 
   public openFile(path: string, flags: FileFlag, cb: BFSCallback<File>): void {
     this.getHandle(path, (error, handle) => {
-      if (error) return cb(error);
+      if (error) { return cb(error); }
       if (handle instanceof FileSystemFileHandle) {
         handle
           .getFile()
@@ -289,7 +249,7 @@ export default class FileSystemAccessFileSystem
 
   public unlink(path: string, cb: BFSOneArgCallback): void {
     this.getHandle(dirname(path), (error, handle) => {
-      if (error) return cb(error);
+      if (error) { return cb(error); }
       if (handle instanceof FileSystemDirectoryHandle) {
         handle
           .removeEntry(basename(path), { recursive: true })
@@ -308,10 +268,10 @@ export default class FileSystemAccessFileSystem
       mode && mode.flag && mode.flag.includes("w") && !mode.flag.includes("x");
 
     this.getHandle(p, (_existingError, existingHandle) => {
-      if (existingHandle && !overwrite) return cb(ApiError.EEXIST(p));
+      if (existingHandle && !overwrite) { return cb(ApiError.EEXIST(p)); }
 
       this.getHandle(dirname(p), (error, handle) => {
-        if (error) return cb(error);
+        if (error) { return cb(error); }
         if (handle instanceof FileSystemDirectoryHandle) {
           handle
             .getDirectoryHandle(basename(p), { create: true })
@@ -324,10 +284,49 @@ export default class FileSystemAccessFileSystem
 
   public readdir(path: string, cb: BFSCallback<string[]>): void {
     this.getHandle(path, (readError, handle) => {
-      if (readError) return cb(readError);
+      if (readError) { return cb(readError); }
       if (handle instanceof FileSystemDirectoryHandle) {
         keysToArray(handle.keys() as FileSystemKeysIterator, cb, path);
       }
     });
+  }
+
+  private getHandle(path: string, cb: BFSCallback<FileSystemHandle>): void {
+    if (path === "/") { return cb(null, this._handles["/"]); }
+
+    let walkedPath = "/";
+    const [, ...pathParts] = path.split("/");
+    const getHandleParts = ([pathPart, ...remainingPathParts]: string[]) => {
+      const walkingPath = join(walkedPath, pathPart);
+      const continueWalk = (handle: FileSystemHandle) => {
+        walkedPath = walkingPath;
+        this._handles[walkedPath] = handle;
+
+        if (remainingPathParts.length === 0) {
+          return cb(null, this._handles[path]);
+        }
+
+        getHandleParts(remainingPathParts);
+      };
+      const handle = this._handles[walkedPath] as FileSystemDirectoryHandle;
+
+      handle
+        .getDirectoryHandle(pathPart)
+        .then(continueWalk)
+        .catch((error: Error) => {
+          if (error.name === "TypeMismatchError") {
+            handle
+              .getFileHandle(pathPart)
+              .then(continueWalk)
+              .catch(handleError(cb, walkingPath));
+          } else if (error.message === "Name is not allowed.") {
+            cb(new ApiError(ErrorCode.EACCES, error.message, walkingPath));
+          } else {
+            handleError(cb, walkingPath)(error);
+          }
+        });
+    };
+
+    getHandleParts(pathParts);
   }
 }
