@@ -124,6 +124,13 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
     }
   }
 
+/**
+   * Asynchronously constructs and initializes an AsyncMirror file system with the given options.
+   */
+ public static CreateAsync(opts: AsyncMirrorOptions): Promise {
+	return new Promise(resolve => this.Create(opts, resolve));
+  }
+
   public static isAvailable(): boolean {
     return true;
   }

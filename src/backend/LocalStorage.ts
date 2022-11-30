@@ -92,6 +92,11 @@ export default class LocalStorageFileSystem extends SyncKeyValueFileSystem {
   public static Create(options: any, cb: BFSCallback<LocalStorageFileSystem>): void {
     cb(null, new LocalStorageFileSystem());
   }
+
+  public static CreateAsync(opts: any): Promise {
+	return new Promise(resolve => this.Create(opts, resolve));
+  }
+
   public static isAvailable(): boolean {
     return typeof global.localStorage !== 'undefined';
   }

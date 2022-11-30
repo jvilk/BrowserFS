@@ -190,6 +190,14 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
     cb(null, new DropboxFileSystem(opts.client));
   }
 
+  /**
+   * Asynchronously creates a new DropboxFileSystem instance with the given options.
+   * Must be given an *authenticated* Dropbox client from 2.x JS SDK.
+   */
+   public static CreateAsync(opts: DropboxFileSystemOptions): Promise {
+    return new Promise(resolve => this.Create(opts, resolve));
+  }
+
   public static isAvailable(): boolean {
     // Checks if the Dropbox library is loaded.
     return typeof Dropbox !== 'undefined';

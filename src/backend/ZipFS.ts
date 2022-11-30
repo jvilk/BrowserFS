@@ -557,6 +557,10 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
     }
   }
 
+  public static CreateAsync(opts: ZipFSOptions): Promise {
+	return new Promise(resolve => this.Create(opts, resolve));
+  }
+
   public static isAvailable(): boolean { return true; }
 
   public static RegisterDecompressionMethod(m: CompressionMethod, fcn: (data: Buffer, compressedSize: number, uncompressedSize: number, flags: number) => Buffer): void {

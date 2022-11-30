@@ -207,6 +207,11 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
   public static Create(opts: EmscriptenFileSystemOptions, cb: BFSCallback<EmscriptenFileSystem>): void {
     cb(null, new EmscriptenFileSystem(opts.FS));
   }
+
+  public static CreateAsync(opts: EmscriptenFileSystemOptions): Promise {
+    return new Promise(resolve => this.Create(opts, resolve));
+  }
+
   public static isAvailable(): boolean { return true; }
 
   private _FS: any;
