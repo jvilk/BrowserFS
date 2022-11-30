@@ -179,7 +179,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
     fs._allocate((e) => e ? cb(e) : cb(null, fs));
   }
 
-  public static CreateAsync(opts: HTML5FSOptions): Promise {
+  public static CreateAsync(opts: HTML5FSOptions): Promise<HTML5FS> {
 	return new Promise(resolve => this.Create(opts, resolve));
   }
 

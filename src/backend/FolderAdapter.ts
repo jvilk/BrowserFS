@@ -58,7 +58,7 @@ export default class FolderAdapter extends BaseFileSystem implements FileSystem 
     });
   }
 
-  public static CreateAsync(opts: FolderAdapterOptions): Promise{
+  public static CreateAsync(opts: FolderAdapterOptions): Promise<FolderAdapter>{
 	return new Promise(resolve => this.Create(opts, resolve));
   }
 

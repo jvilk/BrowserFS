@@ -242,7 +242,7 @@ export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
     });
   }
 
-  public static CreateAsync(opts: IndexedDBFileSystemOptions): Promise {
+  public static CreateAsync(opts: IndexedDBFileSystemOptions): Promise<IndexedDBFileSystem> {
 	return new Promise(resolve => this.Create(opts, resolve));
   }
 

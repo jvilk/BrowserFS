@@ -123,7 +123,7 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
     }
   }
 
-  public static CreateAsync(opts: HTTPRequestOptions): Promise {
+  public static CreateAsync(opts: HTTPRequestOptions): Promise<HTTPRequest> {
 	return new Promise(resolve => this.Create(opts, resolve));
   }
 
