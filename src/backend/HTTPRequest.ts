@@ -124,7 +124,7 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
   }
 
   public static CreateAsync(opts: HTTPRequestOptions): Promise<HTTPRequest | ApiError | null> {
-	return new Promise(resolve => this.Create(opts, resolve));
+    return new Promise(resolve => this.Create(opts, resolve));
   }
 
   public static isAvailable(): boolean {

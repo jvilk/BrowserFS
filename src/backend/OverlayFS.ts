@@ -1020,7 +1020,7 @@ export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
   }
 
   public static CreateAsync(opts: OverlayFSOptions): Promise<OverlayFS | ApiError | null> {
-	return new Promise(resolve => this.Create(opts, resolve));
+    return new Promise(resolve => this.Create(opts, resolve));
   }
 
   public static isAvailable(): boolean {

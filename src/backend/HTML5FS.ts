@@ -180,7 +180,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
   }
 
   public static CreateAsync(opts: HTML5FSOptions): Promise<HTML5FS | ApiError | null> {
-	return new Promise(resolve => this.Create(opts, resolve));
+    return new Promise(resolve => this.Create(opts, resolve));
   }
 
   public static isAvailable(): boolean {

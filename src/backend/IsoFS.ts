@@ -1176,7 +1176,7 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
   }
 
   public static CreateAsync(opts: IsoFSOptions): Promise<IsoFS | ApiError | null> {
-	return new Promise(resolve => this.Create(opts, resolve));
+    return new Promise(resolve => this.Create(opts, resolve));
   }
 
   public static isAvailable(): boolean {
