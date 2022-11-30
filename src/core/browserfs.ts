@@ -96,7 +96,7 @@ export function configure(config: FileSystemConfiguration, cb: BFSOneArgCallback
  * Asynchronously creates a file system with the given configuration, and initializes BrowserFS with it.
  * See the FileSystemConfiguration type for more info on the configuration object.
  */
-export function configureAsync(config: FileSystemConfiguration): Promise {
+export function configureAsync(config: FileSystemConfiguration): Promise<ApiError | null> {
   return new Promise(resolve => configure(config, resolve));
 }
 
