@@ -1,4 +1,5 @@
 import {BFSCallback, FileSystemOptions} from '../core/file_system';
+import {ApiError} from '../core/api_error';
 import {SyncKeyValueStore, SimpleSyncStore, SimpleSyncRWTransaction, SyncKeyValueRWTransaction, SyncKeyValueFileSystem} from '../generic/key_value_filesystem';
 
 /**
@@ -47,7 +48,7 @@ export default class InMemoryFileSystem extends SyncKeyValueFileSystem {
     cb(null, new InMemoryFileSystem());
   }
 
-  public static CreateAsync(opts: any): Promise<InMemoryFileSystem | null> {
+  public static CreateAsync(opts: any): Promise<InMemoryFileSystem | ApiError | null> {
     return new Promise(resolve => this.Create(opts, resolve));
   }
 
