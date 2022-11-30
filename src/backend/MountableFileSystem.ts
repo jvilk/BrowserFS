@@ -83,7 +83,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
     });
   }
 
-  public static CreateAsync(opts: MountableFileSystemOptions): Promise<MountableFileSystem> {
+  public static CreateAsync(opts: MountableFileSystemOptions): Promise<MountableFileSystem | ApiError | null> {
 	return new Promise(resolve => this.Create(opts, resolve));
   }
 

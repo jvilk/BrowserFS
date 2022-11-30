@@ -93,7 +93,7 @@ export default class LocalStorageFileSystem extends SyncKeyValueFileSystem {
     cb(null, new LocalStorageFileSystem());
   }
 
-  public static CreateAsync(opts: any): Promise<LocalStorageFileSystem> {
+  public static CreateAsync(opts: any): Promise<LocalStorageFileSystem | ApiError | null> {
 	return new Promise(resolve => this.Create(opts, resolve));
   }
 

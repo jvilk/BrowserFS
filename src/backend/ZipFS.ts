@@ -557,7 +557,7 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
     }
   }
 
-  public static CreateAsync(opts: ZipFSOptions): Promise<ZipFS> {
+  public static CreateAsync(opts: ZipFSOptions): Promise<ZipFS | ApiError | null> {
 	return new Promise(resolve => this.Create(opts, resolve));
   }
 

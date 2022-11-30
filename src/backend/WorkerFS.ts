@@ -513,7 +513,7 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
     });
   }
 
-  public static CreateAsync(opts: WorkerFSOptions): Promise<WorkerFS> {
+  public static CreateAsync(opts: WorkerFSOptions): Promise<WorkerFS | ApiError | null> {
 	return new Promise(resolve => this.Create(opts, resolve));
   }
 
