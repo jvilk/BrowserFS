@@ -97,7 +97,7 @@ export function configure(config: FileSystemConfiguration, cb: BFSOneArgCallback
  * See the FileSystemConfiguration type for more info on the configuration object.
  * Note: unlike configure, the .then is provided with the file system
  */
-export function configureAsync(config: FileSystemConfiguration): Promise<Errors.ApiError | null> {
+export function configureAsync(config: FileSystemConfiguration): Promise<FileSystem | Errors.ApiError | null> {
   return new Promise((resolve, reject) => {
     getFileSystem(config, (e, fs?) => {
       if (fs) {
