@@ -319,11 +319,11 @@ export interface SyncKeyValueFileSystemOptions {
    *
    * Defaults to *false*.
    */
-  // supportProps?: boolean;
+  supportProps?: boolean;
   /**
    * Should the file system support links?
    */
-  // supportLinks?: boolean;
+  supportLinks?: boolean;
 }
 
 export class SyncKeyValueFile extends PreloadFile<SyncKeyValueFileSystem> implements File {
@@ -367,7 +367,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
   public getName(): string { return this.store.name(); }
   public isReadOnly(): boolean { return false; }
   public supportsSymlinks(): boolean { return false; }
-  public supportsProps(): boolean { return false; }
+  public supportsProps(): boolean { return true; }
   public supportsSynch(): boolean { return true; }
 
   /**
@@ -488,6 +488,18 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
   public readdirSync(p: string): string[] {
     const tx = this.store.beginTransaction('readonly');
     return Object.keys(this.getDirListing(tx, p, this.findINode(tx, p)));
+  }
+
+  public chmodSync(p: string, isLchmod: boolean, mode: number): void {
+    const path = isLchmod ? p : this.realpathSync(p);
+    const fd = this.openFileSync(path, FileFlag.getFileFlag('r+'));
+    fd.chmodSync(mode);
+  }
+
+  public chownSync(p: string, isLchown: boolean, uid: number, gid: number): void {
+    const path = isLchown ? p : this.realpathSync(p);
+    const fd = this.openFileSync(path, FileFlag.getFileFlag('r+'));
+    fd.chownSync(uid, gid);
   }
 
   public _syncSync(p: string, data: Buffer, stats: Stats): void {

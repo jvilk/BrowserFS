@@ -25,7 +25,9 @@ export default class Inode {
               public mode: number,
               public atime: number,
               public mtime: number,
-              public ctime: number) { }
+              public ctime: number,
+              public uid: number,
+              public gid: number) { }
 
   /**
    * Handy function that converts the Inode to a Node Stats object.
@@ -33,7 +35,7 @@ export default class Inode {
   public toStats(): Stats {
     return new Stats(
       (this.mode & 0xF000) === FileType.DIRECTORY ? FileType.DIRECTORY : FileType.FILE,
-      this.size, this.mode, this.atime, this.mtime, this.ctime);
+      this.size, this.mode, this.atime, this.mtime, this.ctime, this.uid, this.gid);
   }
 
   /**
@@ -53,6 +55,8 @@ export default class Inode {
     buff.writeDoubleLE(this.atime, 6);
     buff.writeDoubleLE(this.mtime, 14);
     buff.writeDoubleLE(this.ctime, 22);
+    buff.writeUInt32LE(this.uid, 30);
+    buff.writeUInt32LE(this.gid, 34);
     buff.write(this.id, 30, this.id.length, 'ascii');
     return buff;
   }
@@ -94,6 +98,16 @@ export default class Inode {
     const ctimeMs = stats.ctime.getTime();
     if (this.ctime !== ctimeMs) {
       this.ctime = ctimeMs;
+      hasChanged = true;
+    }
+
+    if(this.uid !== stats.uid) {
+      this.uid = stats.uid;
+      hasChanged = true;
+    }
+
+    if(this.uid !== stats.uid) {
+      this.uid = stats.uid;
       hasChanged = true;
     }
 
