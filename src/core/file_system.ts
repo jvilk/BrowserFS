@@ -380,7 +380,7 @@ export interface FileSystemConstructor {
    * **Core**: Creates a file system of this given type with the given
    * options, and returns the result in a promise.
    */
-  CreatAsync(options: object): Promise<FileSystem>;
+  CreateAsync(options: object): Promise<FileSystem>;
   /**
    * **Core**: Returns 'true' if this filesystem is available in the current
    * environment. For example, a `localStorage`-backed filesystem will return
@@ -512,7 +512,7 @@ export class BaseFileSystem {
     // Check if the path exists, and is a file.
     let stats: Stats;
     try {
-      stats = this.statSync(p, uid, gid, false);
+      stats = this.statSync(p, false, uid, gid);
     } catch (e) {
       // File does not exist.
       switch (flag.pathNotExistsAction()) {

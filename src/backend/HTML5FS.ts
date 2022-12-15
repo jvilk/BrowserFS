@@ -266,7 +266,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
     });
   }
 
-  public rename(oldPath: string, newPath: string, cb: BFSOneArgCallback): void {
+  public rename(oldPath: string, newPath: string, uid: number, gid: number, cb: BFSOneArgCallback): void {
     let semaphore: number = 2;
     let successCount: number = 0;
     const root: DirectoryEntry = this.fs.root;
@@ -303,7 +303,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
                 error(err);
               } else {
                 // Recur, now that newPath doesn't exist.
-                this.rename(oldPath, newPath, cb);
+                this.rename(oldPath, newPath, uid, gid, cb);
               }
             });
           } else {
@@ -319,7 +319,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
     root.getDirectory(oldPath, {}, success, error);
   }
 
-  public stat(path: string, isLstat: boolean, cb: BFSCallback<Stats>): void {
+  public stat(path: string, isLstat: boolean, uid: number, gid: number, cb: BFSCallback<Stats>): void {
     // Throw an error if the entry doesn't exist, because then there's nothing
     // to stat.
     const opts = {
@@ -356,7 +356,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
     this.fs.root.getFile(path, opts, loadAsFile, failedToLoadAsFile);
   }
 
-  public open(p: string, flags: FileFlag, mode: number, cb: BFSCallback<IFile>): void {
+  public open(p: string, flags: FileFlag, mode: number, uid: number, gid: number, cb: BFSCallback<IFile>): void {
     // XXX: err is a DOMError
     const error = (err: any): void => {
       if (err.name === 'InvalidModificationError' && flags.isExclusive()) {
@@ -385,13 +385,13 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
     }, error);
   }
 
-  public unlink(path: string, cb: BFSOneArgCallback): void {
+  public unlink(path: string, uid: number, gid: number, cb: BFSOneArgCallback): void {
     this._remove(path, cb, true);
   }
 
-  public rmdir(path: string, cb: BFSOneArgCallback): void {
+  public rmdir(path: string, uid: number, gid: number, cb: BFSOneArgCallback): void {
     // Check if directory is non-empty, first.
-    this.readdir(path, (e, files?) => {
+    this.readdir(path, uid, gid, (e, files?) => {
       if (e) {
         cb(e);
       } else if (files!.length > 0) {
@@ -402,7 +402,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
     });
   }
 
-  public mkdir(path: string, mode: number, cb: BFSOneArgCallback): void {
+  public mkdir(path: string, mode: number, uid: number, gid: number, cb: BFSOneArgCallback): void {
     // Create the directory, but throw an error if it already exists, as per
     // mkdir(1)
     const opts = {
@@ -421,7 +421,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
   /**
    * Map _readdir's list of `FileEntry`s to their names and return that.
    */
-  public readdir(path: string, cb: BFSCallback<string[]>): void {
+  public readdir(path: string, uid: number, gid: number, cb: BFSCallback<string[]>): void {
     this._readdir(path, (e: ApiError, entries?: Entry[]): void => {
       if (entries) {
         const rv: string[] = [];

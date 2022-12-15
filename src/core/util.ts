@@ -47,10 +47,10 @@ export function fail() {
  * Synchronous recursive makedir.
  * @hidden
  */
-export function mkdirpSync(p: string, mode: number, fs: FileSystem): void {
-  if (!fs.existsSync(p)) {
-    mkdirpSync(path.dirname(p), mode, fs);
-    fs.mkdirSync(p, mode);
+export function mkdirpSync(p: string, mode: number, uid: number, gid: number, fs: FileSystem): void {
+  if (!fs.existsSync(p, uid, gid)) {
+    mkdirpSync(path.dirname(p), mode, uid, gid, fs);
+    fs.mkdirSync(p, mode, uid, gid);
   }
 }
 

@@ -114,7 +114,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
   /**
    * Mounts the file system at the given mount point.
    */
-  public mount(mountPoint: string, fs: FileSystem): void {
+  public mount(mountPoint: string, fs: FileSystem, uid: number, gid: number): void {
     if (mountPoint[0] !== '/') {
       mountPoint = `/${mountPoint}`;
     }
@@ -122,7 +122,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
     if (this.mntMap[mountPoint]) {
       throw new ApiError(ErrorCode.EINVAL, "Mount point " + mountPoint + " is already taken.");
     }
-    mkdirpSync(mountPoint, 0x1ff, this.rootFs);
+    mkdirpSync(mountPoint, 0x1ff, uid, gid, this.rootFs);
     this.mntMap[mountPoint] = fs;
     this.mountList.push(mountPoint);
     this.mountList = this.mountList.sort((a, b) => b.length - a.length);
@@ -140,8 +140,8 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
     this.mountList.splice(this.mountList.indexOf(mountPoint), 1);
 
     while (mountPoint !== '/') {
-      if (this.rootFs.readdirSync(mountPoint).length === 0) {
-        this.rootFs.rmdirSync(mountPoint);
+      if (this.rootFs.readdirSync(mountPoint, uid, gid).length === 0) {
+        this.rootFs.rmdirSync(mountPoint, uid, gid);
         mountPoint = path.dirname(mountPoint);
       } else {
         break;
@@ -215,12 +215,12 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
   // Note that we go through the Node API to use its robust default argument
   // processing.
 
-  public rename(oldPath: string, newPath: string, cb: BFSOneArgCallback): void {
+  public rename(oldPath: string, newPath: string, uid: number, gid: number, cb: BFSOneArgCallback): void {
     // Scenario 1: old and new are on same FS.
     const fs1rv = this._getFs(oldPath);
     const fs2rv = this._getFs(newPath);
     if (fs1rv.fs === fs2rv.fs) {
-      return fs1rv.fs.rename(fs1rv.path, fs2rv.path, (e?: ApiError) => {
+      return fs1rv.fs.rename(fs1rv.path, fs2rv.path, uid, gid, (e?: ApiError) => {
         if (e) {
           this.standardizeError(this.standardizeError(e, fs1rv.path, oldPath), fs2rv.path, newPath);
         }
@@ -243,13 +243,13 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
     });
   }
 
-  public renameSync(oldPath: string, newPath: string): void {
+  public renameSync(oldPath: string, newPath: string, uid: number, gid: number): void {
     // Scenario 1: old and new are on same FS.
     const fs1rv = this._getFs(oldPath);
     const fs2rv = this._getFs(newPath);
     if (fs1rv.fs === fs2rv.fs) {
       try {
-        return fs1rv.fs.renameSync(fs1rv.path, fs2rv.path);
+        return fs1rv.fs.renameSync(fs1rv.path, fs2rv.path, uid, gid);
       } catch (e) {
         this.standardizeError(this.standardizeError(e, fs1rv.path, oldPath), fs2rv.path, newPath);
         throw e;
@@ -261,7 +261,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
     return fs.unlinkSync(oldPath);
   }
 
-  public readdirSync(p: string): string[] {
+  public readdirSync(p: string, uid: number, gid: number): string[] {
     const fsInfo = this._getFs(p);
 
     // If null, rootfs did not have the directory
@@ -271,14 +271,14 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
     // Ensure that we list those, too.
     if (fsInfo.fs !== this.rootFs) {
       try {
-        rv = this.rootFs.readdirSync(p);
+        rv = this.rootFs.readdirSync(p, uid, gid);
       } catch (e) {
         // Ignore.
       }
     }
 
     try {
-      const rv2 = fsInfo.fs.readdirSync(fsInfo.path);
+      const rv2 = fsInfo.fs.readdirSync(fsInfo.path, uid, gid);
       if (rv === null) {
         return rv2;
       } else {
@@ -295,12 +295,12 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
     }
   }
 
-  public readdir(p: string, cb: BFSCallback<string[]>): void {
+  public readdir(p: string, uid: number, gid: number, cb: BFSCallback<string[]>): void {
     const fsInfo = this._getFs(p);
-    fsInfo.fs.readdir(fsInfo.path, (err, files) => {
+    fsInfo.fs.readdir(fsInfo.path, uid, gid, (err, files) => {
       if (fsInfo.fs !== this.rootFs) {
         try {
-          const rv = this.rootFs.readdirSync(p);
+          const rv = this.rootFs.readdirSync(p, uid, gid);
           if (files) {
             // Filter out duplicates.
             files = files.concat(rv.filter((val) => files!.indexOf(val) === -1));
@@ -322,11 +322,11 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
     });
   }
 
-  public realpathSync(p: string, cache: {[path: string]: string}): string {
+  public realpathSync(p: string, cache: {[path: string]: string}, uid: number, gid: number): string {
     const fsInfo = this._getFs(p);
 
     try {
-      const mountedPath = fsInfo.fs.realpathSync(fsInfo.path, {});
+      const mountedPath = fsInfo.fs.realpathSync(fsInfo.path, {}, uid, gid);
       // resolve is there to remove any trailing slash that may be present
       return path.resolve(path.join(fsInfo.mountPoint, mountedPath));
     } catch (e) {
@@ -334,10 +334,10 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
     }
   }
 
-  public realpath(p: string, cache: {[path: string]: string}, cb: BFSCallback<string>): void {
+  public realpath(p: string, cache: {[path: string]: string}, uid: number, gid: number, cb: BFSCallback<string>): void {
     const fsInfo = this._getFs(p);
 
-    fsInfo.fs.realpath(fsInfo.path, {}, (err, rv) => {
+    fsInfo.fs.realpath(fsInfo.path, {}, uid, gid, (err, rv) => {
       if (err) {
         cb(this.standardizeError(err, fsInfo.path, p));
       } else {
@@ -347,25 +347,25 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
     });
   }
 
-  public rmdirSync(p: string): void {
+  public rmdirSync(p: string, uid: number, gid: number): void {
     const fsInfo = this._getFs(p);
     if (this._containsMountPt(p)) {
       throw ApiError.ENOTEMPTY(p);
     } else {
       try {
-        fsInfo.fs.rmdirSync(fsInfo.path);
+        fsInfo.fs.rmdirSync(fsInfo.path, uid, gid);
       } catch (e) {
         throw this.standardizeError(e, fsInfo.path, p);
       }
     }
   }
 
-  public rmdir(p: string, cb: BFSOneArgCallback): void {
+  public rmdir(p: string, uid: number, gid: number, cb: BFSOneArgCallback): void {
     const fsInfo = this._getFs(p);
     if (this._containsMountPt(p)) {
       cb(ApiError.ENOTEMPTY(p));
     } else {
-      fsInfo.fs.rmdir(fsInfo.path, (err?) => {
+      fsInfo.fs.rmdir(fsInfo.path, uid, gid, (err?) => {
         cb(err ? this.standardizeError(err, fsInfo.path, p) : null);
       });
     }

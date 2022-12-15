@@ -90,13 +90,13 @@ export default class FolderAdapter extends BaseFileSystem implements FileSystem 
    * has the given folder.
    */
   private _initialize(cb: (e?: ApiError) => void) {
-    this._wrapped.exists(this._folder, (exists: boolean) => {
+    this._wrapped.exists(this._folder, uid, gid, (exists: boolean) => {
       if (exists) {
         cb();
       } else if (this._wrapped.isReadOnly()) {
         cb(ApiError.ENOENT(this._folder));
       } else {
-        this._wrapped.mkdir(this._folder, 0x1ff, cb);
+        this._wrapped.mkdir(this._folder, 0x1ff, uid, gid, cb);
       }
     });
   }

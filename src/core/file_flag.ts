@@ -76,9 +76,9 @@ export class FileFlag {
   public getMode(): number {
     let mode = 0;
     mode <<= 1;
-    mode += this.isReadable();
+    mode += +this.isReadable();
     mode <<= 1;
-    mode += this.isWriteable();
+    mode += +this.isWriteable();
     mode <<= 1;
     return mode;
   }

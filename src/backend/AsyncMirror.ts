@@ -169,10 +169,11 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
   }
 
   public _syncSync(fd: PreloadFile<any>) {
-    this._sync.writeFileSync(fd.getPath(), fd.getBuffer(), null, FileFlag.getFileFlag('w'), fd.getStats().mode);
+	const stats = fs.getStats()
+    this._sync.writeFileSync(fd.getPath(), fd.getBuffer(), null, FileFlag.getFileFlag('w'), stats.mode, stats.uid, stats,gid);
     this.enqueueOp({
       apiMethod: 'writeFile',
-      arguments: [fd.getPath(), fd.getBuffer(), null, fd.getFlag(), fd.getStats().mode]
+      arguments: [fd.getPath(), fd.getBuffer(), null, fd.getFlag(), stats.mode, stats.uid, stats.gid]
     });
   }
 
@@ -181,78 +182,78 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
   public supportsLinks(): boolean { return false; }
   public supportsProps(): boolean { return this._sync.supportsProps() && this._async.supportsProps(); }
 
-  public renameSync(oldPath: string, newPath: string): void {
-    this._sync.renameSync(oldPath, newPath);
+  public renameSync(oldPath: string, newPath: string, uid: number, gid: number): void {
+    this._sync.renameSync(oldPath, newPath, uid, gid);
     this.enqueueOp({
       apiMethod: 'rename',
-      arguments: [oldPath, newPath]
+      arguments: [oldPath, newPath, uid, gid]
     });
   }
 
-  public statSync(p: string, isLstat: boolean): Stats {
-    return this._sync.statSync(p, isLstat);
+  public statSync(p: string, isLstat: boolean, uid: number, gid: number): Stats {
+    return this._sync.statSync(p, isLstat, uid, gid);
   }
 
-  public openSync(p: string, flag: FileFlag, mode: number): File {
+  public openSync(p: string, flag: FileFlag, mode: number, uid: number, gid: number): File {
     // Sanity check: Is this open/close permitted?
-    const fd = this._sync.openSync(p, flag, mode);
+    const fd = this._sync.openSync(p, flag, mode, uid, gid);
     fd.closeSync();
-    return new MirrorFile(this, p, flag, this._sync.statSync(p, false), this._sync.readFileSync(p, null, FileFlag.getFileFlag('r')));
+    return new MirrorFile(this, p, flag, this._sync.statSync(p, false, uid, gid), this._sync.readFileSync(p, null, FileFlag.getFileFlag('r'), uid, gid));
   }
 
-  public unlinkSync(p: string): void {
-    this._sync.unlinkSync(p);
+  public unlinkSync(p: string, uid: number, gid: number): void {
+    this._sync.unlinkSync(p, uid, gid);
     this.enqueueOp({
       apiMethod: 'unlink',
-      arguments: [p]
+      arguments: [p, uid, gid]
     });
   }
 
-  public rmdirSync(p: string): void {
-    this._sync.rmdirSync(p);
+  public rmdirSync(p: string, uid: number, gid: number): void {
+    this._sync.rmdirSync(p, uid, gid);
     this.enqueueOp({
       apiMethod: 'rmdir',
-      arguments: [p]
+      arguments: [p, uid, gid]
     });
   }
 
-  public mkdirSync(p: string, mode: number): void {
-    this._sync.mkdirSync(p, mode);
+  public mkdirSync(p: string, mode: number, uid: number, gid: number): void {
+    this._sync.mkdirSync(p, mode, uid, gid);
     this.enqueueOp({
       apiMethod: 'mkdir',
-      arguments: [p, mode]
+      arguments: [p, mode, uid, gid]
     });
   }
 
-  public readdirSync(p: string): string[] {
-    return this._sync.readdirSync(p);
+  public readdirSync(p: string, uid: number, gid: number): string[] {
+    return this._sync.readdirSync(p, uid, gid);
   }
 
-  public existsSync(p: string): boolean {
-    return this._sync.existsSync(p);
+  public existsSync(p: string, uid: number, gid: number): boolean {
+    return this._sync.existsSync(p, uid, gid);
   }
 
-  public chmodSync(p: string, isLchmod: boolean, mode: number): void {
-    this._sync.chmodSync(p, isLchmod, mode);
+  public chmodSync(p: string, isLchmod: boolean, mode: number, uid: number, gid: number): void {
+    this._sync.chmodSync(p, isLchmod, mode, uid, gid);
     this.enqueueOp({
       apiMethod: 'chmod',
-      arguments: [p, isLchmod, mode]
+      arguments: [p, isLchmod, mode, uid, gid]
     });
   }
 
-  public chownSync(p: string, isLchown: boolean, uid: number, gid: number): void {
-    this._sync.chownSync(p, isLchown, uid, gid);
+  public chownSync(p: string, isLchown: boolean, new_uid: number, new_gid: number, uid: number, gid: number): void {
+    this._sync.chownSync(p, isLchown, new_uid, new_gid, uid, gid);
     this.enqueueOp({
       apiMethod: 'chown',
-      arguments: [p, isLchown, uid, gid]
+      arguments: [p, isLchown, new_uid, new_gid, uid, gid]
     });
   }
 
-  public utimesSync(p: string, atime: Date, mtime: Date): void {
-    this._sync.utimesSync(p, atime, mtime);
+  public utimesSync(p: string, atime: Date, mtime: Date, uid: number, gid: number): void {
+    this._sync.utimesSync(p, atime, mtime, uid, gid);
     this.enqueueOp({
       apiMethod: 'utimes',
-      arguments: [p, atime, mtime]
+      arguments: [p, atime, mtime, uid, gid]
     });
   }
 
@@ -273,9 +274,9 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
       if (callbacks.push(userCb) === 1) {
         const copyDirectory = (p: string, mode: number, cb: BFSOneArgCallback) => {
           if (p !== '/') {
-            this._sync.mkdirSync(p, mode);
+            this._sync.mkdirSync(p, mode, uid, gid);
           }
-          this._async.readdir(p, (err, files) => {
+          this._async.readdir(p, uid, gid, (err, files) => {
             let i = 0;
             // NOTE: This function must not be in a lexically nested statement,
             // such as an if or while statement. Safari refuses to run the
@@ -297,12 +298,12 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
             }
           });
         }, copyFile = (p: string, mode: number, cb: BFSOneArgCallback) => {
-          this._async.readFile(p, null, FileFlag.getFileFlag('r'), (err, data) => {
+          this._async.readFile(p, null, FileFlag.getFileFlag('r'), uid, gid, (err, data) => {
             if (err) {
               cb(err);
             } else {
               try {
-                this._sync.writeFileSync(p, data!, null, FileFlag.getFileFlag('w'), mode);
+                this._sync.writeFileSync(p, data!, null, FileFlag.getFileFlag('w'), mode, uid, gid);
               } catch (e) {
                 err = e;
               } finally {

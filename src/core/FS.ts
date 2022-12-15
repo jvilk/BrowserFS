@@ -3,7 +3,7 @@ import {ApiError, ErrorCode} from './api_error';
 import {FileSystem, BFSOneArgCallback, BFSCallback, BFSThreeArgCallback} from './file_system';
 import {FileFlag} from './file_flag';
 import * as path from 'path';
-import { Default as Stats, FilePerm } from './node_fs_stats';
+import { default as Stats, FilePerm } from './node_fs_stats';
 import setImmediate from '../generic/setImmediate';
 
 // Typing info only.
@@ -185,7 +185,7 @@ export default class FS {
    * @param gid the GID to user for interacting with the FS
    * @returns 
    */
-  public initialize(rootFS: FileSystem, uid:? number = 0, gid:? number = 0): FileSystem {
+  public initialize(rootFS: FileSystem, uid?: number = 0, gid?: number = 0): FileSystem {
     if (!(<any> rootFS).constructor.isAvailable()) {
       throw new ApiError(ErrorCode.EINVAL, 'Tried to instantiate BrowserFS with an unavailable file system.');
     }
@@ -1450,7 +1450,7 @@ export default class FS {
   public access(path: string, mode: number, callback: (err: ApiError) => void): void;
   public access(path: string, arg2: any, callback: (e: ApiError) => void = nopCb): void {
     const mode = typeof(arg2) === 'number' ? arg2 : FilePerm.READ;
-    cb = typeof(arg2) === 'function' ? arg2 : nopCb;
+    callback = typeof(arg2) === 'function' ? arg2 : nopCb;
     const newCb = <(err: ApiError, resolvedPath?: string) => any> wrapCb(cb, 2);
     try {
       path = normalizePath(path);
