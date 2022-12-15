@@ -900,12 +900,12 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
   public access(p: string, mode: number, uid: number, gid: number, cb: BFSOneArgCallback): void {
     const tx = this.store.beginTransaction('readonly');
     this.findINode(tx, p, inode => {
-      if(inode instanceof ApiError){
-        cb(inode);
-      }else{
+      if(inode instanceof Inode){
         if(!inode!.toStats().hasAccess(mode, uid, gid)){
           cb(ApiError.EACCES(p));
         }
+      } else {
+        cb(inode);
       }
     });
   }
