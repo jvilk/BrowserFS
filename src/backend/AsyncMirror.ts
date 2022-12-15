@@ -131,7 +131,7 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
     return new Promise((resolve, reject) => {
       this.Create(opts, (error, fs) => {
         error ? reject(error) : resolve(fs);
-	  });
+      });
     });
   }
 

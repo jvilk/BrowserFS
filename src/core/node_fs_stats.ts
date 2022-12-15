@@ -10,6 +10,15 @@ export enum FileType {
 }
 
 /**
+ * Indicates the different permssions on the file.
+ */
+export enum FilePerm {
+  READ = 0b100,
+  WRITE = 0b10,
+  EXECUTE = 0b1
+}
+
+/**
  * Emulation of Node's `fs.Stats` object.
  *
  * Attribute descriptions are from `man 2 stat'
@@ -194,6 +203,38 @@ export default class Stats implements fs.Stats {
   }
 
   /**
+   * Checks if a given user/group has access to this item
+   * @param mode The request access as 4 bits (unused, read, write, execute)
+   * @param uid The requesting UID
+   * @param gid The requesting GID
+   * @returns [Boolean] True if the request has access, false if the request does not
+   */
+  public hasAccess(mode: number, uid: number, gid: number): boolean {
+    if(uid === 0 || gid === 0){ //Running as root
+      return true;
+    }
+    const perms = this.mode & 0xFFF;
+    let uMode = 0xF, gMode = 0xF, wMode = 0xF;
+    
+    if(uid == this.uid){
+        const uPerms = (0xF00 & perms) >> 8;
+        uMode = (mode ^ uPerms) & mode;
+    }
+    if(gid == this.gid){
+        const gPerms = (0xF0 & perms) >> 4;
+        gMode = (mode ^ gPerms) & mode;
+    }
+    const wPerms = 0xF & perms;
+    wMode = (mode ^ wPerms) & mode;
+    /*
+        Result = 0b0xxx (read, write, execute)
+        If any bits are set that means the request does not have that permission.
+    */
+    const result = uMode & gMode & wMode;
+    return !result
+  }
+
+  /**
    * Change the mode of the file. We use this helper function to prevent messing
    * up the type of the file, which is encoded in mode.
    */
@@ -206,10 +247,10 @@ export default class Stats implements fs.Stats {
    * This function makes sure it is a valid UID/GID (that is, a 32 unsigned int)
    */
   public chown(uid: number, gid: number): void {
-    if(!isNaN(+uid) && 0 <= +uid < 2 ** 32){
+    if(!isNaN(+uid) && 0 <= +uid && +uid < 2 ** 32){
       this.uid = uid;
     }
-    if(!isNaN(+gid) && 0 <= +gid < 2 ** 32){
+    if(!isNaN(+gid) && 0 <= +gid && +gid < 2 ** 32){
       this.gid = gid;
     }
   }

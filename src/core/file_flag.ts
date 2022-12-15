@@ -70,6 +70,20 @@ export class FileFlag {
   }
 
   /**
+   * Get the equivalent mode (0b0xxx: read, write, execute)
+   * Note: Execute will always be 0
+   */
+  public getMode(): number {
+    let mode = 0;
+    mode <<= 1;
+    mode += this.isReadable();
+    mode <<= 1;
+    mode += this.isWriteable();
+    mode <<= 1;
+    return mode;
+  }
+
+  /**
    * Returns true if the file is readable.
    */
   public isReadable(): boolean {
