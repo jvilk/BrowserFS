@@ -444,7 +444,7 @@ class WorkerFile extends PreloadFile<WorkerFS> {
 
   private _syncClose(type: string, cb: BFSOneArgCallback): void {
     if (this.isDirty()) {
-      (<WorkerFS> this._fs).syncClose(type, this, (e?: ApiError) => {
+      (<WorkerFS> this._fs).syncClose(type, this, 0, 0, (e?: ApiError) => {
         if (!e) {
           this.resetDirty();
         }
@@ -513,7 +513,7 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
     });
   }
 
-  public static CreateAsync(opts: WorkerFSOptions): Promise<WorkerFS | ApiError | null> {
+  public static CreateAsync(opts: WorkerFSOptions): Promise<WorkerFS> {
     return new Promise((resolve, reject) => {
       this.Create(opts, (error, fs) => {
         error ? reject(error) : resolve(fs);

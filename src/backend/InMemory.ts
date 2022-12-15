@@ -48,7 +48,7 @@ export default class InMemoryFileSystem extends SyncKeyValueFileSystem {
     cb(null, new InMemoryFileSystem());
   }
 
-  public static CreateAsync(opts: any): Promise<InMemoryFileSystem | ApiError | null> {
+  public static CreateAsync(opts: any): Promise<InMemoryFileSystem> {
     return new Promise((resolve, reject) => {
       this.Create(opts, (error, fs) => {
         error ? reject(error) : resolve(fs);

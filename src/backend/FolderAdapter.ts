@@ -58,7 +58,7 @@ export default class FolderAdapter extends BaseFileSystem implements FileSystem 
     });
   }
 
-  public static CreateAsync(opts: FolderAdapterOptions): Promise<FolderAdapter | ApiError | null> {
+  public static CreateAsync(opts: FolderAdapterOptions): Promise<FolderAdapter> {
     return new Promise((resolve, reject) => {
       this.Create(opts, (error, fs) => {
         error ? reject(error) : resolve(fs);
@@ -90,13 +90,13 @@ export default class FolderAdapter extends BaseFileSystem implements FileSystem 
    * has the given folder.
    */
   private _initialize(cb: (e?: ApiError) => void) {
-    this._wrapped.exists(this._folder, uid, gid, (exists: boolean) => {
+    this._wrapped.exists(this._folder, 0, 0, (exists: boolean) => {
       if (exists) {
         cb();
       } else if (this._wrapped.isReadOnly()) {
         cb(ApiError.ENOENT(this._folder));
       } else {
-        this._wrapped.mkdir(this._folder, 0x1ff, uid, gid, cb);
+        this._wrapped.mkdir(this._folder, 0x1ff, 0, 0, cb);
       }
     });
   }

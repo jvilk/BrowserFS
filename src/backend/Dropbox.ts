@@ -194,7 +194,7 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
    * Asynchronously creates a new DropboxFileSystem instance with the given options.
    * Must be given an *authenticated* Dropbox client from 2.x JS SDK.
    */
-  public static CreateAsync(opts: DropboxFileSystemOptions): Promise<DropboxFileSystem | ApiError | null> {
+  public static CreateAsync(opts: DropboxFileSystemOptions): Promise<DropboxFileSystem> {
     return new Promise((resolve, reject) => {
       this.Create(opts, (error, fs) => {
         error ? reject(error) : resolve(fs);
@@ -242,7 +242,7 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
    * @param mainCb Called when operation completes.
    */
   public empty(mainCb: BFSOneArgCallback): void {
-    this.readdir('/', (e, paths?) => {
+    this.readdir('/', 0, 0, (e, paths?) => {
       if (paths) {
         const next = (e?: ApiError) => {
           if (paths.length === 0) {

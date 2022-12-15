@@ -68,7 +68,7 @@ export class EmscriptenFile extends BaseFile implements File {
   }
   public statSync(): Stats {
     try {
-      return this._fs.statSync(this._path, false);
+      return this._fs.statSync(this._path, false, 0, 0);
     } catch (e) {
       throw convertError(e, this._path);
     }
@@ -176,7 +176,7 @@ export class EmscriptenFile extends BaseFile implements File {
     }
   }
   public utimesSync(atime: Date, mtime: Date): void {
-    this._fs.utimesSync(this._path, atime, mtime);
+    this._fs.utimesSync(this._path, atime, mtime, 0, 0);
   }
 }
 
@@ -208,7 +208,7 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
     cb(null, new EmscriptenFileSystem(opts.FS));
   }
 
-  public static CreateAsync(opts: EmscriptenFileSystemOptions): Promise<EmscriptenFileSystem | ApiError | null> {
+  public static CreateAsync(opts: EmscriptenFileSystemOptions): Promise<EmscriptenFileSystem> {
     return new Promise((resolve, reject) => {
       this.Create(opts, (error, fs) => {
         error ? reject(error) : resolve(fs);

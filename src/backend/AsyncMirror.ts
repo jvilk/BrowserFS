@@ -112,7 +112,7 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
   public static Create(opts: AsyncMirrorOptions, cb: BFSCallback<AsyncMirror>): void {
     try {
       const fs = new AsyncMirror(opts.sync, opts.async);
-      fs._initialize((e?) => {
+      fs._initialize(uid, gid, (e?) => {
         if (e) {
           cb(e);
         } else {
@@ -127,7 +127,7 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
 /**
  * Asynchronously constructs and initializes an AsyncMirror file system with the given options.
  */
-  public static CreateAsync(opts: AsyncMirrorOptions): Promise<AsyncMirror | ApiError | null> {
+  public static CreateAsync(opts: AsyncMirrorOptions): Promise<AsyncMirror> {
     return new Promise((resolve, reject) => {
       this.Create(opts, (error, fs) => {
         error ? reject(error) : resolve(fs);
@@ -169,8 +169,8 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
   }
 
   public _syncSync(fd: PreloadFile<any>) {
-	const stats = fs.getStats()
-    this._sync.writeFileSync(fd.getPath(), fd.getBuffer(), null, FileFlag.getFileFlag('w'), stats.mode, stats.uid, stats,gid);
+    const stats = fd.getStats();
+    this._sync.writeFileSync(fd.getPath(), fd.getBuffer(), null, FileFlag.getFileFlag('w'), stats.mode, stats.uid, stats.gid);
     this.enqueueOp({
       apiMethod: 'writeFile',
       arguments: [fd.getPath(), fd.getBuffer(), null, fd.getFlag(), stats.mode, stats.uid, stats.gid]
@@ -274,9 +274,10 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
       if (callbacks.push(userCb) === 1) {
         const copyDirectory = (p: string, mode: number, cb: BFSOneArgCallback) => {
           if (p !== '/') {
-            this._sync.mkdirSync(p, mode, uid, gid);
+            const stats = this._sync.statSync(p, true, 0, 0);
+            this._sync.mkdirSync(p, stats.mode, stats.uid, stats.gid);
           }
-          this._async.readdir(p, uid, gid, (err, files) => {
+          this._async.readdir(p, 0, 0, (err, files) => {
             let i = 0;
             // NOTE: This function must not be in a lexically nested statement,
             // such as an if or while statement. Safari refuses to run the
@@ -298,12 +299,12 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
             }
           });
         }, copyFile = (p: string, mode: number, cb: BFSOneArgCallback) => {
-          this._async.readFile(p, null, FileFlag.getFileFlag('r'), uid, gid, (err, data) => {
+          this._async.readFile(p, null, FileFlag.getFileFlag('r'), 0, 0, (err, data) => {
             if (err) {
               cb(err);
             } else {
               try {
-                this._sync.writeFileSync(p, data!, null, FileFlag.getFileFlag('w'), mode, uid, gid);
+                this._sync.writeFileSync(p, data!, null, FileFlag.getFileFlag('w'), mode, 0, 0);
               } catch (e) {
                 err = e;
               } finally {
@@ -312,7 +313,7 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
             }
           });
         }, copyItem = (p: string, cb: BFSOneArgCallback) => {
-          this._async.stat(p, false, (err, stats) => {
+          this._async.stat(p, false, 0, 0, (err, stats) => {
             if (err) {
               cb(err);
             } else if (stats!.isDirectory()) {

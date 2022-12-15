@@ -901,9 +901,9 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
     const tx = this.store.beginTransaction('readonly');
     this.findINode(tx, p, inode => {
       if(!inode!.toStats().hasAccess(mode, uid, gid)){
-        throw ApiError.EACCES(p);
+        cb(ApiError.EACCES(p));
       }
-	});
+    });
   }
 
   public rename(oldPath: string, newPath: string, uid: number, gid: number, cb: BFSOneArgCallback): void {
@@ -1047,7 +1047,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
     const tx = this.store.beginTransaction('readonly');
     this.findINode(tx, p, (e: ApiError, inode?: Inode): void => {
       if (noError(e, cb)) {
-		const stats = inode!.toStats();
+        const stats = inode!.toStats();
         if(!stats.hasAccess(FilePerm.READ, uid, gid)){
           cb(ApiError.EACCES(p));
         }
@@ -1072,7 +1072,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
     // Step 1: Grab the file's inode.
     this.findINode(tx, p, (e: ApiError, inode?: Inode) => {
       if (noError(e, cb)) {
-		const stats = inode!.toStats();
+        const stats = inode!.toStats();
         if(!stats.hasAccess(flag.getMode(), uid, gid)){
           cb(ApiError.EACCES(p));
         }
@@ -1172,7 +1172,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
         // Create new inode.
         const currTime = (new Date()).getTime(),
           // Mode 0666, owned by root:root
-          dirInode = new Inode(GenerateRandomID(), 4096, 511 | FileType.DIRECTORY, currTime, currTime, currTime, uid, gid);
+          dirInode = new Inode(GenerateRandomID(), 4096, 511 | FileType.DIRECTORY, currTime, currTime, currTime, 0, 0);
         // If the root doesn't exist, the first random ID shouldn't exist,
         // either.
         tx.put(dirInode.id, getEmptyDirNode(), false, (e?: ApiError) => {

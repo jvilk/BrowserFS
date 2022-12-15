@@ -84,6 +84,22 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
     return this._fs.statSync(p, isLstat, uid, gid);
   }
 
+  public access(p: string, mode: number, uid: number, gid: number, cb: BFSCallback<Stats>): void {
+    this._mu.lock(() => {
+      this._fs.access(p, mode, uid, gid, (err?: ApiError) => {
+        this._mu.unlock();
+        cb(err);
+      });
+    });
+  }
+
+  public accessSync(p: string, mode: number, uid: number, gid: number): Stats {
+    if (this._mu.isLocked()) {
+      throw new Error('invalid sync call');
+    }
+    return this._fs.accessSync(p, mode, uid, gid);
+  }
+
   public open(p: string, flag: FileFlag, mode: number, uid: number, gid: number, cb: BFSCallback<File>): void {
     this._mu.lock(() => {
       this._fs.open(p, flag, mode, uid, gid, (err?: ApiError, fd?: File) => {

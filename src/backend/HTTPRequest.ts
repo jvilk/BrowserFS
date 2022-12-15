@@ -123,7 +123,7 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
     }
   }
 
-  public static CreateAsync(opts: HTTPRequestOptions): Promise<HTTPRequest | ApiError | null> {
+  public static CreateAsync(opts: HTTPRequestOptions): Promise<HTTPRequest> {
     return new Promise((resolve, reject) => {
       this.Create(opts, (error, fs) => {
         error ? reject(error) : resolve(fs);
@@ -225,10 +225,10 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
     if (inode === null) {
       return cb(ApiError.ENOENT(path));
     }
-    if(!inode.toStats().hasAccess(FilePerm.READ, uid, gid)){
-      return cb(ApiError.EACCES(path));
-    }
-    let stats: Stats;
+    let stats: Stats = inode.getData();
+    if(!stats.hasAccess(FilePerm.READ, uid, gid)){
+        return cb(ApiError.EACCES(path));
+      }
     if (isFileInode<Stats>(inode)) {
       stats = inode.getData();
       // At this point, a non-opened file will still have default stats from the listing.

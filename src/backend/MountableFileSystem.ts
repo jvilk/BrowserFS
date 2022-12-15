@@ -83,7 +83,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
     });
   }
 
-  public static CreateAsync(opts: MountableFileSystemOptions): Promise<MountableFileSystem | ApiError | null> {
+  public static CreateAsync(opts: MountableFileSystemOptions): Promise<MountableFileSystem> {
     return new Promise((resolve, reject) => {
       this.Create(opts, (error, fs) => {
         error ? reject(error) : resolve(fs);
@@ -114,7 +114,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
   /**
    * Mounts the file system at the given mount point.
    */
-  public mount(mountPoint: string, fs: FileSystem, uid: number, gid: number): void {
+  public mount(mountPoint: string, fs: FileSystem, uid: number = 0, gid: number = 0): void {
     if (mountPoint[0] !== '/') {
       mountPoint = `/${mountPoint}`;
     }
@@ -128,7 +128,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
     this.mountList = this.mountList.sort((a, b) => b.length - a.length);
   }
 
-  public umount(mountPoint: string): void {
+  public umount(mountPoint: string, uid: number = 0, gid: number = 0): void {
     if (mountPoint[0] !== '/') {
       mountPoint = `/${mountPoint}`;
     }

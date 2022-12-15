@@ -185,7 +185,7 @@ export default class FS {
    * @param gid the GID to user for interacting with the FS
    * @returns 
    */
-  public initialize(rootFS: FileSystem, uid?: number = 0, gid?: number = 0): FileSystem {
+  public initialize(rootFS: FileSystem, uid: number = 0, gid: number = 0): FileSystem {
     if (!(<any> rootFS).constructor.isAvailable()) {
       throw new ApiError(ErrorCode.EINVAL, 'Tried to instantiate BrowserFS with an unavailable file system.');
     }
@@ -1451,7 +1451,7 @@ export default class FS {
   public access(path: string, arg2: any, callback: (e: ApiError) => void = nopCb): void {
     const mode = typeof(arg2) === 'number' ? arg2 : FilePerm.READ;
     callback = typeof(arg2) === 'function' ? arg2 : nopCb;
-    const newCb = <(err: ApiError, resolvedPath?: string) => any> wrapCb(cb, 2);
+    const newCb = <(err: ApiError, resolvedPath?: string) => any> wrapCb(callback, 2);
     try {
       path = normalizePath(path);
       assertRoot(this.root).access(path, mode, this.uid, this.gid, newCb);
@@ -1465,7 +1465,7 @@ export default class FS {
    * @param path 
    * @param mode 
    */
-  public accessSync(path: string, mode?: number): void {
+  public accessSync(path: string, mode: number = 0o600): void {
     path = normalizePath(path);
     return assertRoot(this.root).accessSync(path, mode, this.uid, this.gid);
   }

@@ -40,7 +40,7 @@ class OverlayFile extends PreloadFile<UnlockedOverlayFS> implements File {
       return;
     }
 
-    this._fs._syncAsync(this, (err: ApiError) => {
+    this._fs._syncAsync(this, 0, 0,(err: ApiError) => {
       this.resetDirty();
       cb(err);
     });
@@ -108,13 +108,13 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
       if (err) {
         return cb(err);
       }
-      this._writable.writeFile(file.getPath(), file.getBuffer(), null, getFlag('w'), file.getStats().mode, cb);
+      this._writable.writeFile(file.getPath(), file.getBuffer(), null, getFlag('w'), file.getStats().mode, uid, gid, cb);
     });
   }
 
-  public _syncSync(file: PreloadFile<UnlockedOverlayFS>): void {
+  public _syncSync(file: PreloadFile<UnlockedOverlayFS>, uid: number, gid: number): void {
     this.createParentDirectories(file.getPath(), uid, gid);
-    this._writable.writeFileSync(file.getPath(), file.getBuffer(), null, getFlag('w'), file.getStats().mode);
+    this._writable.writeFileSync(file.getPath(), file.getBuffer(), null, getFlag('w'), file.getStats().mode, uid, gid);
   }
 
   public getName() {
@@ -126,7 +126,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
    *
    * Called once to load up metadata stored on the writable file system.
    */
-  public _initialize(cb: BFSOneArgCallback): void {
+  public _initialize(uid: number, gid: number, cb: BFSOneArgCallback): void {
     const callbackArray = this._initializeCallbacks;
 
     const end = (e?: ApiError): void => {
@@ -147,7 +147,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
     }
 
     // Read deletion log, process into metadata.
-    this._writable.readFile(deletionLogPath, 'utf8', getFlag('r'), (err: ApiError, data?: string) => {
+    this._writable.readFile(deletionLogPath, 'utf8', getFlag('r'), uid, gid, (err: ApiError, data?: string) => {
       if (err) {
         // ENOENT === Newly-instantiated file system, and thus empty log.
         if (err.errno !== ErrorCode.ENOENT) {
@@ -170,7 +170,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
     return this._deleteLog;
   }
 
-  public restoreDeletionLog(log: string): void {
+  public restoreDeletionLog(log: string, uid: number, gid: number): void {
     this._deleteLog = log;
     this._reparseDeletionLog();
     this.updateLog('', uid, gid);
@@ -211,7 +211,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
           const newFile = path.resolve(newPath, file);
 
           // Recursion! Should work for any nested files / folders.
-          self.rename(oldFile, newFile, (err?: ApiError) => {
+          self.rename(oldFile, newFile, uid, gid, (err?: ApiError) => {
             if (err) {
               return cb(err);
             }
@@ -261,7 +261,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
               return cb(ApiError.ENOTEMPTY(newPath));
             }
 
-            this._readable.readdir(oldPath, (err: ApiError, files?: string[]) => {
+            this._readable.readdir(oldPath, uid, gid, (err: ApiError, files?: string[]) => {
               if (err) {
                 return cb();
               }
@@ -340,7 +340,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
       }
 
       this.writeFileSync(newPath,
-        this.readFileSync(oldPath, null, getFlag('r')), null, getFlag('w'), oldStats.mode, uid, gid);
+        this.readFileSync(oldPath, null, getFlag('r'), uid, gid), null, getFlag('w'), oldStats.mode, uid, gid);
     }
 
     if (oldPath !== newPath && this.existsSync(oldPath, uid, gid)) {
@@ -878,7 +878,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
           return cb();
         }
 
-        self._writable.mkdir(dir!, stats.mode, (err?: ApiError) => {
+        self._writable.mkdir(dir!, stats.mode, uid, gid, (err?: ApiError) => {
           if (err) {
             return cb(err);
           }
@@ -933,7 +933,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
         if (existsWritable) {
           cb();
         } else {
-          return this.copyToWritableAsync(p, cb, uid, gid);
+          return this.copyToWritableAsync(p, uid, gid, cb);
         }
       });
     });
@@ -950,18 +950,18 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
     } else {
       this.writeFileSync(p,
         this._readable.readFileSync(p, null, getFlag('r'), uid, gid), null,
-        getFlag('w'), this.statSync(p, false).mode, uid, gid);
+        getFlag('w'), this.statSync(p, false, uid, gid).mode, uid, gid);
     }
   }
 
   private copyToWritableAsync(p: string, uid: number, gid: number, cb: BFSOneArgCallback): void {
-    this.stat(p, false, (err: ApiError, pStats?: Stats) => {
+    this.stat(p, false, uid, gid, (err: ApiError, pStats?: Stats) => {
       if (err) {
         return cb(err);
       }
 
       if (pStats!.isDirectory()) {
-        return this._writable.mkdir(p, pStats!.mode, cb, uid, gid);
+        return this._writable.mkdir(p, pStats!.mode, uid, gid, cb);
       }
 
       // need to copy file.
@@ -1019,7 +1019,7 @@ export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
     }
   }
 
-  public static CreateAsync(opts: OverlayFSOptions): Promise<OverlayFS | ApiError | null> {
+  public static CreateAsync(opts: OverlayFSOptions): Promise<OverlayFS> {
     return new Promise((resolve, reject) => {
       this.Create(opts, (error, fs) => {
         error ? reject(error) : resolve(fs);
