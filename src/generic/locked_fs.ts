@@ -84,7 +84,7 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
     return this._fs.statSync(p, isLstat, uid, gid);
   }
 
-  public access(p: string, mode: number, uid: number, gid: number, cb: BFSCallback<Stats>): void {
+  public access(p: string, mode: number, uid: number, gid: number, cb: BFSOneArgCallback): void {
     this._mu.lock(() => {
       this._fs.access(p, mode, uid, gid, (err?: ApiError) => {
         this._mu.unlock();
@@ -93,7 +93,7 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
     });
   }
 
-  public accessSync(p: string, mode: number, uid: number, gid: number): Stats {
+  public accessSync(p: string, mode: number, uid: number, gid: number): void {
     if (this._mu.isLocked()) {
       throw new Error('invalid sync call');
     }

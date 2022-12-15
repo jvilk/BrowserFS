@@ -225,8 +225,8 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
     if (inode === null) {
       return cb(ApiError.ENOENT(path));
     }
-    let stats: Stats = inode.getData();
-    if(!stats.hasAccess(FilePerm.READ, uid, gid)){
+    let stats: Stats;
+    if(!inode!.toStats().hasAccess(FilePerm.READ, uid, gid)){
         return cb(ApiError.EACCES(path));
       }
     if (isFileInode<Stats>(inode)) {
@@ -329,7 +329,7 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
     if (inode === null) {
       throw ApiError.ENOENT(path);
     }
-    if(!inode.toStats().hasAccess(flag.getMode(), uid, gid)){
+    if(!inode.toStats().hasAccess(flags.getMode(), uid, gid)){
       throw ApiError.EACCES(path);
     }
     if (isFileInode<Stats>(inode)) {
@@ -371,7 +371,7 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
     const inode = this._index.getInode(path);
     if (inode === null) {
       throw ApiError.ENOENT(path);
-    } else if(!inode.toStats().hasAccess(mode, uid, gid)){
+    } else if(!inode.toStats().hasAccess(FilePerm.READ, uid, gid)){
       throw ApiError.EACCES(path);
     } else if (isDirInode(inode)) {
       return inode.getListing();

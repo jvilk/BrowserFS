@@ -112,7 +112,7 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
   public static Create(opts: AsyncMirrorOptions, cb: BFSCallback<AsyncMirror>): void {
     try {
       const fs = new AsyncMirror(opts.sync, opts.async);
-      fs._initialize(uid, gid, (e?) => {
+      fs._initialize((e?) => {
         if (e) {
           cb(e);
         } else {

@@ -40,7 +40,7 @@ class OverlayFile extends PreloadFile<UnlockedOverlayFS> implements File {
       return;
     }
 
-    this._fs._syncAsync(this, 0, 0,(err: ApiError) => {
+    this._fs._syncAsync(this, 0, 0, (err: ApiError) => {
       this.resetDirty();
       cb(err);
     });
@@ -104,17 +104,19 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
   }
 
   public _syncAsync(file: PreloadFile<UnlockedOverlayFS>, uid: number, gid: number, cb: BFSOneArgCallback): void {
-    this.createParentDirectoriesAsync(file.getPath(), uid, gid, (err?: ApiError) => {
+    const stats = file.getStats();
+    this.createParentDirectoriesAsync(file.getPath(), stats.uid, stats.gid, (err?: ApiError) => {
       if (err) {
         return cb(err);
       }
-      this._writable.writeFile(file.getPath(), file.getBuffer(), null, getFlag('w'), file.getStats().mode, uid, gid, cb);
+      this._writable.writeFile(file.getPath(), file.getBuffer(), null, getFlag('w'), stats.mode, stats.uid, stats.gid, cb);
     });
   }
 
-  public _syncSync(file: PreloadFile<UnlockedOverlayFS>, uid: number, gid: number): void {
-    this.createParentDirectories(file.getPath(), uid, gid);
-    this._writable.writeFileSync(file.getPath(), file.getBuffer(), null, getFlag('w'), file.getStats().mode, uid, gid);
+  public _syncSync(file: PreloadFile<UnlockedOverlayFS>): void {
+    const stats = file.getStats();
+    this.createParentDirectories(file.getPath(), stats.uid, stats.gid);
+    this._writable.writeFileSync(file.getPath(), file.getBuffer(), null, getFlag('w'), stats.mode, stats.uid, stats.gid);
   }
 
   public getName() {
@@ -126,7 +128,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
    *
    * Called once to load up metadata stored on the writable file system.
    */
-  public _initialize(uid: number, gid: number, cb: BFSOneArgCallback): void {
+  public _initialize(cb: BFSOneArgCallback): void {
     const callbackArray = this._initializeCallbacks;
 
     const end = (e?: ApiError): void => {
@@ -147,7 +149,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
     }
 
     // Read deletion log, process into metadata.
-    this._writable.readFile(deletionLogPath, 'utf8', getFlag('r'), uid, gid, (err: ApiError, data?: string) => {
+    this._writable.readFile(deletionLogPath, 'utf8', getFlag('r'), 0, 0, (err: ApiError, data?: string) => {
       if (err) {
         // ENOENT === Newly-instantiated file system, and thus empty log.
         if (err.errno !== ErrorCode.ENOENT) {
