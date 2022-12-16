@@ -64,6 +64,7 @@ export function BFSRequire(module: string): any {
     case 'process':
       return process;
     case 'bfs_utils':
+	case 'bfs-utils':
       return BFSUtils;
     default:
       return (<any> Backends)[module];
@@ -73,8 +74,8 @@ export function BFSRequire(module: string): any {
 /**
  * Initializes BrowserFS with the given root file system.
  */
-export function initialize(rootfs: FileSystem) {
-  return fs.initialize(rootfs);
+export function initialize(rootfs: FileSystem, uid?: number, gid?: number) {
+  return fs.initialize(rootfs, uid, gid);
 }
 
 /**
