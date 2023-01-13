@@ -10,7 +10,8 @@ import {
   FileSystemOptions,
 } from "../core/file_system";
 import { default as Stats, FileType } from "../core/node_fs_stats";
-import { NoSyncFile } from "../generic/preload_file";
+import { emptyBuffer } from "../core/util";
+import PreloadFile from "../generic/preload_file";
 
 interface FileSystemAccessFileSystemOptions {
   handle: FileSystemDirectoryHandle;
@@ -55,6 +56,29 @@ const keysToArray = (
   iterateKeys();
 };
 
+export class FileSystemAccessFile extends PreloadFile<FileSystemAccessFileSystem> implements File {
+  constructor(_fs: FileSystemAccessFileSystem, _path: string, _flag: FileFlag, _stat: Stats, contents?: Buffer) {
+    super(_fs, _path, _flag, _stat, contents);
+  }
+
+  public sync(cb: BFSOneArgCallback): void {
+    if (this.isDirty()) {
+      this._fs._sync(this.getPath(), this.getBuffer(), this.getStats(), (e?: ApiError) => {
+        if (!e) {
+          this.resetDirty();
+        }
+        cb(e);
+      });
+    } else {
+      cb();
+    }
+  }
+
+  public close(cb: BFSOneArgCallback): void {
+    this.sync(cb);
+  }
+}
+
 export default class FileSystemAccessFileSystem
   extends BaseFileSystem
   implements FileSystem {
@@ -98,6 +122,16 @@ export default class FileSystemAccessFileSystem
 
   public supportsSynch(): boolean {
     return false;
+  }
+
+  public _sync(p: string, data: Buffer, stats: Stats, cb: BFSOneArgCallback): void {
+    this.stat(p, false, (err, currentStats) => {
+      if (stats.mtime !== currentStats!.mtime) {
+        this.writeFile(p, data, null, FileFlag.getFileFlag('w'), currentStats!.mode, cb);
+      } else {
+        cb(err);
+      }
+    });
   }
 
   public rename(oldPath: string, newPath: string, cb: BFSOneArgCallback): void {
@@ -163,7 +197,8 @@ export default class FileSystemAccessFileSystem
     encoding: string | null,
     flag: FileFlag,
     mode: number,
-    cb: BFSOneArgCallback
+    cb: BFSCallback<File | undefined>,
+    createFile?: boolean
   ): void {
     this.getHandle(dirname(fname), (error, handle) => {
       if (error) { return cb(error); }
@@ -177,8 +212,10 @@ export default class FileSystemAccessFileSystem
                 writable
                   .write(data)
                   .then(() => {
-                    writable.close();
-                    cb(null);
+                    writable
+                      .close()
+                      .catch(handleError(cb, fname));
+                    cb(null, createFile ? this.newFile(fname, flag, data) : undefined);
                   })
                   .catch(handleError(cb, fname))
               )
@@ -189,9 +226,16 @@ export default class FileSystemAccessFileSystem
     });
   }
 
+  public createFile(p: string, flag: FileFlag, mode: number, cb: BFSCallback<File>): void {
+    this.writeFile(p, emptyBuffer(), null, flag, mode, cb, true);
+  }
+
   public stat(path: string, isLstat: boolean, cb: BFSCallback<Stats>): void {
     this.getHandle(path, (error, handle) => {
-      if (error || !handle) { return cb(error); }
+      if (error) { return cb(error); }
+      if (!handle) {
+        return cb(ApiError.FileError(ErrorCode.EINVAL, path));
+      }
       if (handle instanceof FileSystemDirectoryHandle) {
         return cb(null, new Stats(FileType.DIRECTORY, 4096));
       }
@@ -225,19 +269,7 @@ export default class FileSystemAccessFileSystem
               .then((buffer) =>
                 cb(
                   null,
-                  new NoSyncFile(
-                    this,
-                    path,
-                    flags,
-                    new Stats(
-                      FileType.FILE,
-                      file.size,
-                      undefined,
-                      undefined,
-                      file.lastModified
-                    ),
-                    Buffer.from(buffer)
-                  )
+                  this.newFile(path, flags, buffer, file.size, file.lastModified)
                 )
               )
               .catch(handleError(cb, path))
@@ -291,6 +323,22 @@ export default class FileSystemAccessFileSystem
     });
   }
 
+  private newFile(path: string, flag: FileFlag, data: ArrayBuffer, size?: number, lastModified?: number): File {
+    return new FileSystemAccessFile(
+      this,
+      path,
+      flag,
+      new Stats(
+        FileType.FILE,
+        size || 0,
+        undefined,
+        undefined,
+        lastModified || (new Date()).getTime()
+      ),
+      Buffer.from(data)
+    );
+  }
+
   private getHandle(path: string, cb: BFSCallback<FileSystemHandle>): void {
     if (path === "/") { return cb(null, this._handles["/"]); }
 
@@ -320,7 +368,7 @@ export default class FileSystemAccessFileSystem
               .then(continueWalk)
               .catch(handleError(cb, walkingPath));
           } else if (error.message === "Name is not allowed.") {
-            cb(new ApiError(ErrorCode.EACCES, error.message, walkingPath));
+            cb(new ApiError(ErrorCode.ENOENT, error.message, walkingPath));
           } else {
             handleError(cb, walkingPath)(error);
           }
