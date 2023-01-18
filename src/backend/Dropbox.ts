@@ -197,7 +197,11 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
   public static CreateAsync(opts: DropboxFileSystemOptions): Promise<DropboxFileSystem> {
     return new Promise((resolve, reject) => {
       this.Create(opts, (error, fs) => {
-        error ? reject(error) : resolve(fs);
+		if(error || !fs){
+			reject(error);
+		}else{
+			resolve(fs);
+		}
       });
     });
   }

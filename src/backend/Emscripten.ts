@@ -211,7 +211,11 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
   public static CreateAsync(opts: EmscriptenFileSystemOptions): Promise<EmscriptenFileSystem> {
     return new Promise((resolve, reject) => {
       this.Create(opts, (error, fs) => {
-        error ? reject(error) : resolve(fs);
+		if(error || !fs){
+			reject(error);
+		}else{
+			resolve(fs);
+		}
       });
     });
   }
