@@ -3543,7 +3543,7 @@ function copyTempDouble(ptr) {
           throw new FS.ErrnoError(ERRNO_CODES.EBADF);
         }
         FS.chmod(stream.node, mode);
-      },chown:function (path, uid, gid, dontFollow) {
+      },chown:function (path, cred, dontFollow) {
         var node;
         if (typeof path === 'string') {
           var lookup = FS.lookupPath(path, { follow: !dontFollow });
@@ -3558,14 +3558,14 @@ function copyTempDouble(ptr) {
           timestamp: Date.now()
           // we ignore the uid / gid for now
         });
-      },lchown:function (path, uid, gid) {
-        FS.chown(path, uid, gid, true);
-      },fchown:function (fd, uid, gid) {
+      },lchown:function (path, cred) {
+        FS.chown(path, cred, true);
+      },fchown:function (fd, cred) {
         var stream = FS.getStream(fd);
         if (!stream) {
           throw new FS.ErrnoError(ERRNO_CODES.EBADF);
         }
-        FS.chown(stream.node, uid, gid);
+        FS.chown(stream.node, cred);
       },truncate:function (path, len) {
         if (len < 0) {
           throw new FS.ErrnoError(ERRNO_CODES.EINVAL);

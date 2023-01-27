@@ -7,6 +7,7 @@ import * as path from 'path';
 import Inode from '../generic/inode';
 import PreloadFile from '../generic/preload_file';
 import {emptyBuffer} from '../core/util';
+import Cred from '../core/cred';
 /**
  * @hidden
  */
@@ -379,15 +380,15 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
     this.makeRootDirectory();
   }
   
-  public accessSync(p: string, mode: number, uid: number, gid: number): void {
+  public accessSync(p: string, mode: number, cred: Cred): void {
     const tx = this.store.beginTransaction('readonly'),
     node = this.findINode(tx, p);
-    if(!node.toStats().hasAccess(mode, uid, gid)){
+    if(!node.toStats().hasAccess(mode, cred)){
       throw ApiError.EACCES(p);
     }
   }
 
-  public renameSync(oldPath: string, newPath: string, uid: number, gid: number): void {
+  public renameSync(oldPath: string, newPath: string, cred: Cred): void {
     const tx = this.store.beginTransaction('readwrite'),
       oldParent = path.dirname(oldPath), oldName = path.basename(oldPath),
       newParent = path.dirname(newPath), newName = path.basename(newPath),
@@ -395,7 +396,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
       oldDirNode = this.findINode(tx, oldParent),
       oldDirList = this.getDirListing(tx, oldParent, oldDirNode);
 
-    if(!oldDirNode.toStats().hasAccess(FilePerm.WRITE, uid, gid)){
+    if(!oldDirNode.toStats().hasAccess(FilePerm.WRITE, cred)){
       throw ApiError.EACCES(oldPath);
     }
 
@@ -455,28 +456,28 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
     tx.commit();
   }
 
-  public statSync(p: string, isLstat: boolean, uid: number, gid: number): Stats {
+  public statSync(p: string, isLstat: boolean, cred: Cred): Stats {
     // Get the inode to the item, convert it into a Stats object.
     const stats = this.findINode(this.store.beginTransaction('readonly'), p).toStats();
-    if(!stats.hasAccess(FilePerm.READ, uid, gid)){
+    if(!stats.hasAccess(FilePerm.READ, cred)){
       throw ApiError.EACCES(p);
     }
     return stats;
   }
 
-  public createFileSync(p: string, flag: FileFlag, mode: number, uid: number, gid: number): File {
+  public createFileSync(p: string, flag: FileFlag, mode: number, cred: Cred): File {
     const tx = this.store.beginTransaction('readwrite'),
       data = emptyBuffer(),
-      newFile = this.commitNewFile(tx, p, FileType.FILE, mode, uid, gid, data);
+      newFile = this.commitNewFile(tx, p, FileType.FILE, mode, cred, data);
     // Open the file.
     return new SyncKeyValueFile(this, p, flag, newFile.toStats(), data);
   }
 
-  public openFileSync(p: string, flag: FileFlag, uid: number, gid: number): File {
+  public openFileSync(p: string, flag: FileFlag, cred: Cred): File {
     const tx = this.store.beginTransaction('readonly'),
       node = this.findINode(tx, p),
       data = tx.get(node.id);
-    if(!node.toStats().hasAccess(flag.getMode(), uid, gid)){
+    if(!node.toStats().hasAccess(flag.getMode(), cred)){
       throw ApiError.EACCES(p);
     }
     if (data === undefined) {
@@ -485,44 +486,44 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
     return new SyncKeyValueFile(this, p, flag, node.toStats(), data);
   }
 
-  public unlinkSync(p: string, uid: number, gid: number): void {
-    this.removeEntry(p, false, uid, gid);
+  public unlinkSync(p: string, cred: Cred): void {
+    this.removeEntry(p, false, cred);
   }
 
-  public rmdirSync(p: string, uid: number, gid: number): void {
+  public rmdirSync(p: string, cred: Cred): void {
     // Check first if directory is empty.
-    if (this.readdirSync(p, uid, gid).length > 0) {
+    if (this.readdirSync(p, cred).length > 0) {
       throw ApiError.ENOTEMPTY(p);
     } else {
-      this.removeEntry(p, true, uid, gid);
+      this.removeEntry(p, true, cred);
     }
   }
 
-  public mkdirSync(p: string, mode: number, uid: number, gid: number): void {
+  public mkdirSync(p: string, mode: number, cred: Cred): void {
     const tx = this.store.beginTransaction('readwrite'),
       data = Buffer.from('{}');
-    this.commitNewFile(tx, p, FileType.DIRECTORY, mode, uid, gid, data);
+    this.commitNewFile(tx, p, FileType.DIRECTORY, mode, cred, data);
   }
 
-  public readdirSync(p: string, uid: number, gid: number): string[] {
+  public readdirSync(p: string, cred: Cred): string[] {
     const tx = this.store.beginTransaction('readonly');
     const node = this.findINode(tx, p);
-    if(!node.toStats().hasAccess(FilePerm.READ, uid, gid)){
+    if(!node.toStats().hasAccess(FilePerm.READ, cred)){
       throw ApiError.EACCES(p);
     }
     return Object.keys(this.getDirListing(tx, p, node));
   }
 
-  public chmodSync(p: string, isLchmod: boolean, mode: number, uid: number, gid: number): void {
-    const path = isLchmod ? p : this.realpathSync(p, {}, uid, gid);
-    const fd = this.openFileSync(path, FileFlag.getFileFlag('r+'), uid, gid);
+  public chmodSync(p: string, isLchmod: boolean, mode: number, cred: Cred): void {
+    const path = isLchmod ? p : this.realpathSync(p, {}, cred);
+    const fd = this.openFileSync(path, FileFlag.getFileFlag('r+'), cred);
     fd.chmodSync(mode);
   }
 
-  public chownSync(p: string, isLchown: boolean, new_uid: number, new_gid: number, uid: number, gid: number): void {
-    const path = isLchown ? p : this.realpathSync(p, {}, uid, gid);
-    const fd = this.openFileSync(path, FileFlag.getFileFlag('r+'), uid, gid);
-    fd.chownSync(uid, gid);
+  public chownSync(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): void {
+    const path = isLchown ? p : this.realpathSync(p, {}, cred);
+    const fd = this.openFileSync(path, FileFlag.getFileFlag('r+'), cred);
+    fd.chownSync(cred.euid, cred.egid);
   }
 
   public _syncSync(p: string, data: Buffer, stats: Stats): void {
@@ -667,7 +668,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
    * @param data The data to store at the file's data node.
    * @return The Inode for the new file.
    */
-  private commitNewFile(tx: SyncKeyValueRWTransaction, p: string, type: FileType, mode: number, uid: number, gid: number, data: Buffer): Inode {
+  private commitNewFile(tx: SyncKeyValueRWTransaction, p: string, type: FileType, mode: number, cred: Cred, data: Buffer): Inode {
     const parentDir = path.dirname(p),
       fname = path.basename(p),
       parentNode = this.findINode(tx, parentDir),
@@ -675,7 +676,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
       currTime = (new Date()).getTime();
 
       //Check that the creater has correct access
-    if(!parentNode.toStats().hasAccess(0b0100 /* Write */, uid, gid)){
+    if(!parentNode.toStats().hasAccess(0b0100 /* Write */, cred)){
       throw ApiError.EACCES(p);
     }
 
@@ -695,7 +696,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
     try {
       // Commit data.
       const dataId = this.addNewNode(tx, data);
-      fileNode = new Inode(dataId, data.length, mode | type, currTime, currTime, currTime, uid, gid);
+      fileNode = new Inode(dataId, data.length, mode | type, currTime, currTime, currTime, cred.uid, cred.gid);
       // Commit file node.
       const fileNodeId = this.addNewNode(tx, fileNode.toBuffer());
       // Update and commit parent directory listing.
@@ -715,7 +716,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
    * @param isDir Does the path belong to a directory, or a file?
    * @todo Update mtime.
    */
-  private removeEntry(p: string, isDir: boolean, uid: number, gid: number): void {
+  private removeEntry(p: string, isDir: boolean, cred: Cred): void {
     const tx = this.store.beginTransaction('readwrite'),
       parent: string = path.dirname(p),
       parentNode = this.findINode(tx, parent),
@@ -732,7 +733,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
     // Get file inode.
     const fileNode = this.getINode(tx, p, fileNodeId);
 
-    if(fileNode.toStats().hasAccess(0b0100 /* Write */, uid, gid)){
+    if(fileNode.toStats().hasAccess(0b0100 /* Write */, cred)){
       throw ApiError.EACCES(p);
     }
 
@@ -897,11 +898,11 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
     });
   }
 
-  public access(p: string, mode: number, uid: number, gid: number, cb: BFSOneArgCallback): void {
+  public access(p: string, mode: number, cred: Cred, cb: BFSOneArgCallback): void {
     const tx = this.store.beginTransaction('readonly');
     this.findINode(tx, p, inode => {
       if(inode instanceof Inode){
-        if(!inode!.toStats().hasAccess(mode, uid, gid)){
+        if(!inode!.toStats().hasAccess(mode, cred)){
           cb(ApiError.EACCES(p));
         }
       } else {
@@ -910,7 +911,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
     });
   }
 
-  public rename(oldPath: string, newPath: string, uid: number, gid: number, cb: BFSOneArgCallback): void {
+  public rename(oldPath: string, newPath: string, cred: Cred, cb: BFSOneArgCallback): void {
     // TODO: Make rename compatible with the cache.
     if (this._cache) {
       // Clear and disable cache during renaming process.
@@ -1022,7 +1023,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
      */
     const processInodeAndListings = (p: string): void => {
       this.findINodeAndDirListing(tx, p, (e?: ApiError | null, node?: Inode, dirList?: {[name: string]: string}): void => {
-        if(!node!.toStats().hasAccess(FilePerm.WRITE, uid, gid)){
+        if(!node!.toStats().hasAccess(FilePerm.WRITE, cred)){
           throw ApiError.EACCES(p);
         }
         if (e) {
@@ -1047,12 +1048,12 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
     }
   }
 
-  public stat(p: string, isLstat: boolean, uid: number, gid: number, cb: BFSCallback<Stats>): void {
+  public stat(p: string, isLstat: boolean, cred: Cred, cb: BFSCallback<Stats>): void {
     const tx = this.store.beginTransaction('readonly');
     this.findINode(tx, p, (e: ApiError, inode?: Inode): void => {
       if (noError(e, cb)) {
         const stats = inode!.toStats();
-        if(!stats.hasAccess(FilePerm.READ, uid, gid)){
+        if(!stats.hasAccess(FilePerm.READ, cred)){
           cb(ApiError.EACCES(p));
         }
         cb(null, stats);
@@ -1060,24 +1061,24 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
     });
   }
 
-  public createFile(p: string, flag: FileFlag, mode: number, uid: number, gid: number, cb: BFSCallback<File>): void {
+  public createFile(p: string, flag: FileFlag, mode: number, cred: Cred, cb: BFSCallback<File>): void {
     const tx = this.store.beginTransaction('readwrite'),
       data = emptyBuffer();
 
-    this.commitNewFile(tx, p, FileType.FILE, mode, uid, gid, data, (e: ApiError, newFile?: Inode): void => {
+    this.commitNewFile(tx, p, FileType.FILE, mode, cred, data, (e: ApiError, newFile?: Inode): void => {
       if (noError(e, cb)) {
         cb(null, new AsyncKeyValueFile(this, p, flag, newFile!.toStats(), data));
       }
     });
   }
 
-  public openFile(p: string, flag: FileFlag, uid: number, gid: number, cb: BFSCallback<File>): void {
+  public openFile(p: string, flag: FileFlag, cred: Cred, cb: BFSCallback<File>): void {
     const tx = this.store.beginTransaction('readonly');
     // Step 1: Grab the file's inode.
     this.findINode(tx, p, (e: ApiError, inode?: Inode) => {
       if (noError(e, cb)) {
         const stats = inode!.toStats();
-        if(!stats.hasAccess(flag.getMode(), uid, gid)){
+        if(!stats.hasAccess(flag.getMode(), cred)){
           cb(ApiError.EACCES(p));
         }
         // Step 2: Grab the file's data.
@@ -1094,34 +1095,34 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
     });
   }
 
-  public unlink(p: string, uid: number, gid: number, cb: BFSOneArgCallback): void {
-    this.removeEntry(p, false, uid, gid, cb);
+  public unlink(p: string, cred: Cred, cb: BFSOneArgCallback): void {
+    this.removeEntry(p, false, cred, cb);
   }
 
-  public rmdir(p: string, uid: number, gid: number, cb: BFSOneArgCallback): void {
+  public rmdir(p: string, cred: Cred, cb: BFSOneArgCallback): void {
     // Check first if directory is empty.
-    this.readdir(p, uid, gid, (err, files?) => {
+    this.readdir(p, cred, (err, files?) => {
       if (err) {
         cb(err);
       } else if (files!.length > 0) {
         cb(ApiError.ENOTEMPTY(p));
       } else {
-        this.removeEntry(p, true, uid, gid, cb);
+        this.removeEntry(p, true, cred, cb);
       }
     });
   }
 
-  public mkdir(p: string, mode: number, uid: number, gid: number, cb: BFSOneArgCallback): void {
+  public mkdir(p: string, mode: number, cred: Cred, cb: BFSOneArgCallback): void {
     const tx = this.store.beginTransaction('readwrite'),
       data = Buffer.from('{}');
-    this.commitNewFile(tx, p, FileType.DIRECTORY, mode, uid, gid, data, cb);
+    this.commitNewFile(tx, p, FileType.DIRECTORY, mode, cred, data, cb);
   }
 
-  public readdir(p: string, uid: number, gid: number, cb: BFSCallback<string[]>): void {
+  public readdir(p: string, cred: Cred, cb: BFSCallback<string[]>): void {
     const tx = this.store.beginTransaction('readonly');
     this.findINode(tx, p, (e: ApiError, inode?: Inode) => {
       if (noError(e, cb)) {
-        if(!inode!.toStats().hasAccess(FilePerm.READ, uid, gid)){
+        if(!inode!.toStats().hasAccess(FilePerm.READ, cred)){
           cb(ApiError.EACCES(p));
         }
         this.getDirListing(tx, p, inode!, (e: ApiError, dirListing?: {[name: string]: string}) => {
@@ -1361,7 +1362,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
    * @param data The data to store at the file's data node.
    * @param cb Passed an error or the Inode for the new file.
    */
-  private commitNewFile(tx: AsyncKeyValueRWTransaction, p: string, type: FileType, mode: number, uid: number, gid: number, data: Buffer, cb: BFSCallback<Inode>): void {
+  private commitNewFile(tx: AsyncKeyValueRWTransaction, p: string, type: FileType, mode: number, cred: Cred, data: Buffer, cb: BFSCallback<Inode>): void {
     const parentDir = path.dirname(p),
       fname = path.basename(p),
       currTime = (new Date()).getTime();
@@ -1377,7 +1378,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
 
     // Step 1: Get the parent directory's inode and directory listing
     this.findINodeAndDirListing(tx, parentDir, (e?: ApiError | null, parentNode?: Inode, dirListing?: {[name: string]: string}): void => {
-      if(!parentNode!.toStats().hasAccess(FilePerm.WRITE, uid, gid)){
+      if(!parentNode!.toStats().hasAccess(FilePerm.WRITE, cred)){
         cb(ApiError.EACCES(p));
       }
       if (noErrorTx(e, tx, cb)) {
@@ -1391,7 +1392,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
           this.addNewNode(tx, data, (e: ApiError, dataId?: string): void => {
             if (noErrorTx(e, tx, cb)) {
               // Step 3: Commit the file's inode to the store.
-              const fileInode = new Inode(dataId!, data.length, mode | type, currTime, currTime, currTime, uid, gid);
+              const fileInode = new Inode(dataId!, data.length, mode | type, currTime, currTime, currTime, cred.euid, cred.egid);
               this.addNewNode(tx, fileInode.toBuffer(), (e: ApiError, fileInodeId?: string): void => {
                 if (noErrorTx(e, tx, cb)) {
                   // Step 4: Update parent directory's listing.
@@ -1421,7 +1422,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
    * @param isDir Does the path belong to a directory, or a file?
    * @todo Update mtime.
    */
-  private removeEntry(p: string, isDir: boolean, uid: number, gid: number, cb: BFSOneArgCallback): void {
+  private removeEntry(p: string, isDir: boolean, cred: Cred, cb: BFSOneArgCallback): void {
     // Eagerly delete from cache (harmless even if removal fails)
     if (this._cache) {
       this._cache.remove(p);
@@ -1430,7 +1431,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
       parent: string = path.dirname(p), fileName: string = path.basename(p);
     // Step 1: Get parent directory's node and directory listing.
     this.findINodeAndDirListing(tx, parent, (e?: ApiError | null, parentNode?: Inode, parentListing?: {[name: string]: string}): void => {
-      if(!parentNode!.toStats().hasAccess(FilePerm.WRITE, uid, gid)){
+      if(!parentNode!.toStats().hasAccess(FilePerm.WRITE, cred)){
         cb(ApiError.EACCES(p));
       }
       if (noErrorTx(e, tx, cb)) {

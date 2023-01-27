@@ -1,6 +1,7 @@
 import {BaseFileSystem, FileSystem, BFSCallback, FileSystemOptions} from '../core/file_system';
 import * as path from 'path';
 import {ApiError} from '../core/api_error';
+import Cred from '../core/cred';
 
 /**
  * Configuration options for a FolderAdapter file system.
@@ -94,13 +95,13 @@ export default class FolderAdapter extends BaseFileSystem implements FileSystem 
    * has the given folder.
    */
   private _initialize(cb: (e?: ApiError) => void) {
-    this._wrapped.exists(this._folder, 0, 0, (exists: boolean) => {
+    this._wrapped.exists(this._folder, Cred.Root, (exists: boolean) => {
       if (exists) {
         cb();
       } else if (this._wrapped.isReadOnly()) {
         cb(ApiError.ENOENT(this._folder));
       } else {
-        this._wrapped.mkdir(this._folder, 0x1ff, 0, 0, cb);
+        this._wrapped.mkdir(this._folder, 0x1ff, Cred.Root, cb);
       }
     });
   }

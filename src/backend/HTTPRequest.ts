@@ -8,6 +8,7 @@ import {NoSyncFile} from '../generic/preload_file';
 import {xhrIsAvailable, asyncDownloadFile, syncDownloadFile, getFileSizeAsync, getFileSizeSync} from '../generic/xhr';
 import {fetchIsAvailable, fetchFileAsync, fetchFileSizeAsync} from '../generic/fetch';
 import {FileIndex, isFileInode, isDirInode} from '../generic/file_index';
+import Cred from '../core/cred';
 
 /**
  * Try to convert the given buffer into a string, and pass it to the callback.
@@ -224,13 +225,13 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
     }
   }
 
-  public stat(path: string, isLstat: boolean, uid: number, gid: number, cb: BFSCallback<Stats>): void {
+  public stat(path: string, isLstat: boolean, cred: Cred, cb: BFSCallback<Stats>): void {
     const inode = this._index.getInode(path);
     if (inode === null) {
       return cb(ApiError.ENOENT(path));
     }
     let stats: Stats;
-    if(!inode!.toStats().hasAccess(FilePerm.READ, uid, gid)){
+    if(!inode!.toStats().hasAccess(FilePerm.READ, cred)){
         return cb(ApiError.EACCES(path));
       }
     if (isFileInode<Stats>(inode)) {
@@ -255,12 +256,12 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
     }
   }
 
-  public statSync(path: string, isLstat: boolean, uid: number, gid: number): Stats {
+  public statSync(path: string, isLstat: boolean, cred: Cred): Stats {
     const inode = this._index.getInode(path);
     if (inode === null) {
       throw ApiError.ENOENT(path);
     }
-    if(!inode.toStats().hasAccess(FilePerm.READ, uid, gid)){
+    if(!inode.toStats().hasAccess(FilePerm.READ, cred)){
       throw ApiError.EACCES(path);
     }
     let stats: Stats;
@@ -278,7 +279,7 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
     return stats;
   }
 
-  public open(path: string, flags: FileFlag, mode: number, uid: number, gid: number, cb: BFSCallback<File>): void {
+  public open(path: string, flags: FileFlag, mode: number, cred: Cred, cb: BFSCallback<File>): void {
     // INVARIANT: You can't write to files on this file system.
     if (flags.isWriteable()) {
       return cb(new ApiError(ErrorCode.EPERM, path));
@@ -289,7 +290,7 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
     if (inode === null) {
       return cb(ApiError.ENOENT(path));
     }
-    if(!inode.toStats().hasAccess(flags.getMode(), uid, gid)){
+    if(!inode.toStats().hasAccess(flags.getMode(), cred)){
       return cb(ApiError.EACCES(path));
     }
     if (isFileInode<Stats>(inode)) {
@@ -323,7 +324,7 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
     }
   }
 
-  public openSync(path: string, flags: FileFlag, mode: number, uid: number, gid: number): File {
+  public openSync(path: string, flags: FileFlag, mode: number, cred: Cred): File {
     // INVARIANT: You can't write to files on this file system.
     if (flags.isWriteable()) {
       throw new ApiError(ErrorCode.EPERM, path);
@@ -333,7 +334,7 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
     if (inode === null) {
       throw ApiError.ENOENT(path);
     }
-    if(!inode.toStats().hasAccess(flags.getMode(), uid, gid)){
+    if(!inode.toStats().hasAccess(flags.getMode(), cred)){
       throw ApiError.EACCES(path);
     }
     if (isFileInode<Stats>(inode)) {
@@ -362,20 +363,20 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
     }
   }
 
-  public readdir(path: string, uid: number, gid: number, cb: BFSCallback<string[]>): void {
+  public readdir(path: string, cred: Cred, cb: BFSCallback<string[]>): void {
     try {
-      cb(null, this.readdirSync(path, uid, gid));
+      cb(null, this.readdirSync(path, cred));
     } catch (e) {
       cb(e);
     }
   }
 
-  public readdirSync(path: string, uid: number, gid: number): string[] {
+  public readdirSync(path: string, cred: Cred): string[] {
     // Check if it exists.
     const inode = this._index.getInode(path);
     if (inode === null) {
       throw ApiError.ENOENT(path);
-    } else if(!inode.toStats().hasAccess(FilePerm.READ, uid, gid)){
+    } else if(!inode.toStats().hasAccess(FilePerm.READ, cred)){
       throw ApiError.EACCES(path);
     } else if (isDirInode(inode)) {
       return inode.getListing();
@@ -387,11 +388,11 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
   /**
    * We have the entire file as a buffer; optimize readFile.
    */
-  public readFile(fname: string, encoding: string, flag: FileFlag, uid: number, gid: number, cb: BFSCallback<string | Buffer>): void {
+  public readFile(fname: string, encoding: string, flag: FileFlag, cred: Cred, cb: BFSCallback<string | Buffer>): void {
     // Wrap cb in file closing code.
     const oldCb = cb;
     // Get file.
-    this.open(fname, flag, 0x1a4, uid, gid, function(err: ApiError, fd?: File) {
+    this.open(fname, flag, 0x1a4, cred, function(err: ApiError, fd?: File) {
       if (err) {
         return cb(err);
       }
@@ -416,9 +417,9 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
   /**
    * Specially-optimized readfile.
    */
-  public readFileSync(fname: string, encoding: string, flag: FileFlag, uid: number, gid: number): any {
+  public readFileSync(fname: string, encoding: string, flag: FileFlag, cred: Cred): any {
     // Get file.
-    const fd = this.openSync(fname, flag, 0x1a4, uid, gid);
+    const fd = this.openSync(fname, flag, 0x1a4, cred);
     try {
       const fdCast = <NoSyncFile<HTTPRequest>> fd;
       const fdBuff = <Buffer> fdCast.getBuffer();

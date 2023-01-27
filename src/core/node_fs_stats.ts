@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import Cred from './cred';
 
 /**
  * Indicates the type of the given file. Applied to 'mode'.
@@ -209,18 +210,18 @@ export default class Stats implements fs.Stats {
    * @param gid The requesting GID
    * @returns [Boolean] True if the request has access, false if the request does not
    */
-  public hasAccess(mode: number, uid: number, gid: number): boolean {
-    if(uid === 0 || gid === 0){ //Running as root
+  public hasAccess(mode: number, cred: Cred): boolean {
+    if(cred.euid === 0 || cred.egid === 0){ //Running as root
       return true;
     }
     const perms = this.mode & 0xFFF;
     let uMode = 0xF, gMode = 0xF, wMode = 0xF;
     
-    if(uid == this.uid){
+    if(cred.euid == this.uid){
         const uPerms = (0xF00 & perms) >> 8;
         uMode = (mode ^ uPerms) & mode;
     }
-    if(gid == this.gid){
+    if(cred.egid == this.gid){
         const gPerms = (0xF0 & perms) >> 4;
         gMode = (mode ^ gPerms) & mode;
     }
@@ -232,6 +233,13 @@ export default class Stats implements fs.Stats {
     */
     const result = uMode & gMode & wMode;
     return !result
+  }
+
+  /**
+   * Convert the current stats object into a cred object
+   */
+  public getCred(uid: number, gid: number): Cred {
+	return new Cred(uid, gid, this.uid, this.gid, uid, gid);
   }
 
   /**

@@ -12,6 +12,7 @@ import Backends from './backends';
 import * as BFSUtils from './util';
 import * as Errors from './api_error';
 import setImmediate from '../generic/setImmediate';
+import Cred from './cred';
 
 if ((<any> process)['initializeTTYs']) {
   (<any> process)['initializeTTYs']();
@@ -74,8 +75,9 @@ export function BFSRequire(module: string): any {
 /**
  * Initializes BrowserFS with the given root file system.
  */
-export function initialize(rootfs: FileSystem, uid?: number, gid?: number) {
-  return fs.initialize(rootfs, uid, gid);
+export function initialize(rootfs: FileSystem, uid: number = 0, gid: number = 0) {
+  const cred = new Cred(uid, gid, uid, gid, uid, gid);
+  return fs.initialize(rootfs, cred);
 }
 
 /**

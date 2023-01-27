@@ -5,6 +5,7 @@ import {FileSystem, BFSOneArgCallback, FileSystemConstructor} from './file_syste
 import {ErrorCode, ApiError} from './api_error';
 import levenshtein from './levenshtein';
 import * as path from 'path';
+import Cred from './cred';
 
 export function deprecationMessage(print: boolean, fsName: string, opts: any): void {
   if (print) {
@@ -47,10 +48,10 @@ export function fail() {
  * Synchronous recursive makedir.
  * @hidden
  */
-export function mkdirpSync(p: string, mode: number, uid: number, gid: number, fs: FileSystem): void {
-  if (!fs.existsSync(p, uid, gid)) {
-    mkdirpSync(path.dirname(p), mode, uid, gid, fs);
-    fs.mkdirSync(p, mode, uid, gid);
+export function mkdirpSync(p: string, mode: number, cred: Cred, fs: FileSystem): void {
+  if (!fs.existsSync(p, cred)) {
+    mkdirpSync(path.dirname(p), mode, cred, fs);
+    fs.mkdirSync(p, mode, cred);
   }
 }
 

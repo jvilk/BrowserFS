@@ -7,6 +7,7 @@ import {default as Stats} from '../core/node_fs_stats';
 import PreloadFile from '../generic/preload_file';
 import global from '../core/global';
 import fs from '../core/node_fs';
+import Cred from '../core/cred';
 
 /**
  * @hidden
@@ -444,7 +445,7 @@ class WorkerFile extends PreloadFile<WorkerFS> {
 
   private _syncClose(type: string, cb: BFSOneArgCallback): void {
     if (this.isDirty()) {
-      (<WorkerFS> this._fs).syncClose(type, this, 0, 0, (e?: ApiError) => {
+      (<WorkerFS> this._fs).syncClose(type, this, (e?: ApiError) => {
         if (!e) {
           this.resetDirty();
         }
@@ -735,65 +736,65 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
   public supportsLinks(): boolean { return this._supportLinks; }
   public supportsProps(): boolean { return this._supportProps; }
 
-  public rename(oldPath: string, newPath: string, uid: number, gid: number, cb: BFSOneArgCallback): void {
+  public rename(oldPath: string, newPath: string, cred: Cred, cb: BFSOneArgCallback): void {
     this._rpc('rename', arguments);
   }
-  public stat(p: string, isLstat: boolean, uid: number, gid: number, cb: BFSCallback<Stats>): void {
+  public stat(p: string, isLstat: boolean, cred: Cred, cb: BFSCallback<Stats>): void {
     this._rpc('stat', arguments);
   }
-  public open(p: string, flag: FileFlag, mode: number, uid: number, gid: number, cb: BFSCallback<File>): void {
+  public open(p: string, flag: FileFlag, mode: number, cred: Cred, cb: BFSCallback<File>): void {
     this._rpc('open', arguments);
   }
-  public unlink(p: string, uid: number, gid: number, cb: Function): void {
+  public unlink(p: string, cred: Cred, cb: Function): void {
     this._rpc('unlink', arguments);
   }
-  public rmdir(p: string, uid: number, gid: number, cb: Function): void {
+  public rmdir(p: string, cred: Cred, cb: Function): void {
     this._rpc('rmdir', arguments);
   }
-  public mkdir(p: string, mode: number, uid: number, gid: number, cb: Function): void {
+  public mkdir(p: string, mode: number, cred: Cred, cb: Function): void {
     this._rpc('mkdir', arguments);
   }
-  public readdir(p: string, uid: number, gid: number, cb: BFSCallback<string[]>): void {
+  public readdir(p: string, cred: Cred, cb: BFSCallback<string[]>): void {
     this._rpc('readdir', arguments);
   }
-  public exists(p: string, uid: number, gid: number, cb: (exists: boolean) => void): void {
+  public exists(p: string, cred: Cred, cb: (exists: boolean) => void): void {
     this._rpc('exists', arguments);
   }
-  public realpath(p: string, cache: { [path: string]: string }, uid: number, gid: number, cb: BFSCallback<string>): void {
+  public realpath(p: string, cache: { [path: string]: string }, cred: Cred, cb: BFSCallback<string>): void {
     this._rpc('realpath', arguments);
   }
-  public truncate(p: string, len: number, uid: number, gid: number, cb: Function): void {
+  public truncate(p: string, len: number, cred: Cred, cb: Function): void {
     this._rpc('truncate', arguments);
   }
-  public readFile(fname: string, encoding: string, flag: FileFlag, uid: number, gid: number, cb: BFSCallback<any>): void {
+  public readFile(fname: string, encoding: string, flag: FileFlag, cred: Cred, cb: BFSCallback<any>): void {
     this._rpc('readFile', arguments);
   }
-  public writeFile(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, uid: number, gid: number, cb: BFSOneArgCallback): void {
+  public writeFile(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cred: Cred, cb: BFSOneArgCallback): void {
     this._rpc('writeFile', arguments);
   }
-  public appendFile(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, uid: number, gid: number, cb: BFSOneArgCallback): void {
+  public appendFile(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cred: Cred, cb: BFSOneArgCallback): void {
     this._rpc('appendFile', arguments);
   }
-  public chmod(p: string, isLchmod: boolean, mode: number, uid: number, gid: number, cb: Function): void {
+  public chmod(p: string, isLchmod: boolean, mode: number, cred: Cred, cb: Function): void {
     this._rpc('chmod', arguments);
   }
-  public chown(p: string, isLchown: boolean, new_uid: number, new_gid: number, uid: number, gid: number, cb: Function): void {
+  public chown(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred, cb: Function): void {
     this._rpc('chown', arguments);
   }
-  public utimes(p: string, atime: Date, mtime: Date, uid: number, gid: number, cb: Function): void {
+  public utimes(p: string, atime: Date, mtime: Date, cred: Cred, cb: Function): void {
     this._rpc('utimes', arguments);
   }
-  public link(srcpath: string, dstpath: string, uid: number, gid: number, cb: Function): void {
+  public link(srcpath: string, dstpath: string, cred: Cred, cb: Function): void {
     this._rpc('link', arguments);
   }
-  public symlink(srcpath: string, dstpath: string, type: string, uid: number, gid: number, cb: Function): void {
+  public symlink(srcpath: string, dstpath: string, type: string, cred: Cred, cb: Function): void {
     this._rpc('symlink', arguments);
   }
-  public readlink(p: string, uid: number, gid: number, cb: Function): void {
+  public readlink(p: string, cred: Cred, cb: Function): void {
     this._rpc('readlink', arguments);
   }
 
-  public syncClose(method: string, fd: File, uid: number, gid: number, cb: BFSOneArgCallback): void {
+  public syncClose(method: string, fd: File, cb: BFSOneArgCallback): void {
     this._worker.postMessage({
       browserfsMessage: true,
       method: method,
