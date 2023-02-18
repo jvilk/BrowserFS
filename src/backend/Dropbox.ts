@@ -8,6 +8,7 @@ import {arrayBuffer2Buffer, buffer2ArrayBuffer} from '../core/util';
 import {Dropbox} from 'dropbox_bridge';
 import setImmediate from '../generic/setImmediate';
 import {dirname} from 'path';
+import Cred from '../core/cred';
 type DropboxClient = DropboxTypes.Dropbox;
 
 /**
@@ -190,6 +191,22 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
     cb(null, new DropboxFileSystem(opts.client));
   }
 
+  /**
+   * Asynchronously creates a new DropboxFileSystem instance with the given options.
+   * Must be given an *authenticated* Dropbox client from 2.x JS SDK.
+   */
+  public static CreateAsync(opts: DropboxFileSystemOptions): Promise<DropboxFileSystem> {
+    return new Promise((resolve, reject) => {
+      this.Create(opts, (error, fs) => {
+		if(error || !fs){
+			reject(error);
+		}else{
+			resolve(fs);
+		}
+      });
+    });
+  }
+
   public static isAvailable(): boolean {
     // Checks if the Dropbox library is loaded.
     return typeof Dropbox !== 'undefined';
@@ -230,7 +247,7 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
    * @param mainCb Called when operation completes.
    */
   public empty(mainCb: BFSOneArgCallback): void {
-    this.readdir('/', (e, paths?) => {
+    this.readdir('/', Cred.Root, (e, paths?) => {
       if (paths) {
         const next = (e?: ApiError) => {
           if (paths.length === 0) {
@@ -246,10 +263,10 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
     });
   }
 
-  public rename(oldPath: string, newPath: string, cb: BFSOneArgCallback): void {
+  public rename(oldPath: string, newPath: string, cred: Cred, cb: BFSOneArgCallback): void {
     // Dropbox doesn't let you rename things over existing things, but POSIX does.
     // So, we need to see if newPath exists...
-    this.stat(newPath, false, (e, stats?) => {
+    this.stat(newPath, false, cred, (e, stats?) => {
       const rename = () => {
         const relocationArg: DropboxTypes.files.RelocationArg = {
           from_path: FixPath(oldPath),
@@ -302,7 +319,7 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
         cb(ApiError.EISDIR(newPath));
       } else {
         // Exists, is a file, and differs from oldPath. Delete and rename.
-        this.unlink(newPath, (e) => {
+        this.unlink(newPath, cred, (e) => {
           if (e) {
             cb(e);
           } else {
@@ -313,7 +330,7 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
     });
   }
 
-  public stat(path: string, isLstat: boolean, cb: BFSCallback<Stats>): void {
+  public stat(path: string, isLstat: boolean, cred: Cred, cb: BFSCallback<Stats>): void {
     if (path === '/') {
       // Dropbox doesn't support querying the root directory.
       setImmediate(function() {
@@ -354,7 +371,7 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
     });
   }
 
-  public openFile(path: string, flags: FileFlag, cb: BFSCallback<File>): void {
+  public openFile(path: string, flags: FileFlag, cred: Cred, cb: BFSCallback<File>): void {
     const downloadArg: DropboxTypes.files.DownloadArg = {
       path: FixPath(path)
     };
@@ -381,7 +398,7 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
     });
   }
 
-  public createFile(p: string, flags: FileFlag, mode: number, cb: BFSCallback<File>): void {
+  public createFile(p: string, flags: FileFlag, mode: number, cred: Cred, cb: BFSCallback<File>): void {
     const fileData = Buffer.alloc(0);
     const blob = new Blob([buffer2ArrayBuffer(fileData) as ArrayBuffer], {type: "octet/stream"});
     const commitInfo: DropboxTypes.files.CommitInfo = {
@@ -400,7 +417,7 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
           break;
         case 'too_many_write_operations':
           // Retry in (500, 800) ms.
-          setTimeout(() => this.createFile(p, flags, mode, cb), 500 + (300 * (Math.random())));
+          setTimeout(() => this.createFile(p, flags, mode, cred, cb), 500 + (300 * (Math.random())));
           break;
         case 'other':
         default:
@@ -413,9 +430,9 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
   /**
    * Delete a file
    */
-  public unlink(path: string, cb: BFSOneArgCallback): void {
+  public unlink(path: string, cred: Cred, cb: BFSOneArgCallback): void {
     // Must be a file. Check first.
-    this.stat(path, false, (e, stat) => {
+    this.stat(path, false, cred, (e, stat) => {
       if (stat) {
         if (stat.isDirectory()) {
           cb(ApiError.EISDIR(path));
@@ -431,8 +448,8 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
   /**
    * Delete a directory
    */
-  public rmdir(path: string, cb: BFSOneArgCallback): void {
-    this.readdir(path, (e, paths) => {
+  public rmdir(path: string, cred: Cred, cb: BFSOneArgCallback): void {
+    this.readdir(path, cred, (e, paths) => {
       if (paths) {
         if (paths.length > 0) {
           cb(ApiError.ENOTEMPTY(path));
@@ -448,10 +465,10 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
   /**
    * Create a directory
    */
-  public mkdir(p: string, mode: number, cb: BFSOneArgCallback): void {
+  public mkdir(p: string, mode: number, cred: Cred, cb: BFSOneArgCallback): void {
     // Dropbox's create_folder is recursive. Check if parent exists.
     const parent = dirname(p);
-    this.stat(parent, false, (e, stats?) => {
+    this.stat(parent, false, cred, (e, stats?) => {
       if (e) {
         cb(e);
       } else if (stats && !stats.isDirectory()) {
@@ -464,7 +481,7 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
           const err = ExtractTheFuckingError(e);
           if ((<string> err['.tag']) === "too_many_write_operations") {
             // Retry in a bit.
-            setTimeout(() => this.mkdir(p, mode, cb), 500 + (300 * (Math.random())));
+            setTimeout(() => this.mkdir(p, mode, cred, cb), 500 + (300 * (Math.random())));
           } else {
             cb(WriteErrorToError(ExtractTheFuckingError(e).path, p, GetErrorMessage(e)));
           }
@@ -476,7 +493,7 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
   /**
    * Get the names of the files in a directory
    */
-  public readdir(path: string, cb: BFSCallback<string[]>): void {
+  public readdir(path: string, cred: Cred, cb: BFSCallback<string[]>): void {
     const arg: DropboxTypes.files.ListFolderArg = {
       path: FixPath(path)
     };

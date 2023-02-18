@@ -12,6 +12,7 @@ import Backends from './backends';
 import * as BFSUtils from './util';
 import * as Errors from './api_error';
 import setImmediate from '../generic/setImmediate';
+import Cred from './cred';
 
 if ((<any> process)['initializeTTYs']) {
   (<any> process)['initializeTTYs']();
@@ -64,6 +65,7 @@ export function BFSRequire(module: string): any {
     case 'process':
       return process;
     case 'bfs_utils':
+	case 'bfs-utils':
       return BFSUtils;
     default:
       return (<any> Backends)[module];
@@ -73,8 +75,9 @@ export function BFSRequire(module: string): any {
 /**
  * Initializes BrowserFS with the given root file system.
  */
-export function initialize(rootfs: FileSystem) {
-  return fs.initialize(rootfs);
+export function initialize(rootfs: FileSystem, uid: number = 0, gid: number = 0) {
+  const cred = new Cred(uid, gid, uid, gid, uid, gid);
+  return fs.initialize(rootfs, cred);
 }
 
 /**
@@ -89,6 +92,24 @@ export function configure(config: FileSystemConfiguration, cb: BFSOneArgCallback
     } else {
       cb(e);
     }
+  });
+}
+
+/**
+ * Asynchronously creates a file system with the given configuration, and initializes BrowserFS with it.
+ * See the FileSystemConfiguration type for more info on the configuration object.
+ * Note: unlike configure, the .then is provided with the file system
+ */
+export function configureAsync(config: FileSystemConfiguration): Promise<FileSystem | Errors.ApiError | null> {
+  return new Promise((resolve, reject) => {
+    getFileSystem(config, (e, fs?) => {
+      if (fs) {
+        initialize(fs);
+        resolve(fs);
+      } else {
+        reject(e);
+      }
+    });
   });
 }
 

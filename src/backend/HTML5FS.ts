@@ -8,7 +8,7 @@ import * as path from 'path';
 import global from '../core/global';
 import {each as asyncEach} from 'async';
 import {buffer2ArrayBuffer, arrayBuffer2Buffer} from '../core/util';
-
+import Cred from '../core/cred';
 /**
  * @hidden
  */
@@ -178,6 +178,19 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
     const fs = new HTML5FS(opts.size, opts.type);
     fs._allocate((e) => e ? cb(e) : cb(null, fs));
   }
+
+  public static CreateAsync(opts: HTML5FSOptions): Promise<HTML5FS> {
+    return new Promise((resolve, reject) => {
+      this.Create(opts, (error, fs) => {
+		if(error || !fs){
+			reject(error);
+		}else{
+			resolve(fs);
+		}
+      });
+    });
+  }
+
   public static isAvailable(): boolean {
     return !!_getFS;
   }
@@ -257,7 +270,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
     });
   }
 
-  public rename(oldPath: string, newPath: string, cb: BFSOneArgCallback): void {
+  public rename(oldPath: string, newPath: string, cred: Cred, cb: BFSOneArgCallback): void {
     let semaphore: number = 2;
     let successCount: number = 0;
     const root: DirectoryEntry = this.fs.root;
@@ -288,13 +301,13 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
           if (file.isDirectory) {
             currentPath = newPath;
             // Unlink only works on files. Try to delete newPath.
-            this.unlink(newPath, (e?): void => {
+            this.unlink(newPath, cred, (e?): void => {
               if (e) {
                 // newPath is probably a directory.
                 error(err);
               } else {
                 // Recur, now that newPath doesn't exist.
-                this.rename(oldPath, newPath, cb);
+                this.rename(oldPath, newPath, cred, cb);
               }
             });
           } else {
@@ -310,7 +323,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
     root.getDirectory(oldPath, {}, success, error);
   }
 
-  public stat(path: string, isLstat: boolean, cb: BFSCallback<Stats>): void {
+  public stat(path: string, isLstat: boolean, cred: Cred, cb: BFSCallback<Stats>): void {
     // Throw an error if the entry doesn't exist, because then there's nothing
     // to stat.
     const opts = {
@@ -347,7 +360,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
     this.fs.root.getFile(path, opts, loadAsFile, failedToLoadAsFile);
   }
 
-  public open(p: string, flags: FileFlag, mode: number, cb: BFSCallback<IFile>): void {
+  public open(p: string, flags: FileFlag, mode: number, cred: Cred, cb: BFSCallback<IFile>): void {
     // XXX: err is a DOMError
     const error = (err: any): void => {
       if (err.name === 'InvalidModificationError' && flags.isExclusive()) {
@@ -376,13 +389,13 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
     }, error);
   }
 
-  public unlink(path: string, cb: BFSOneArgCallback): void {
+  public unlink(path: string, cred: Cred, cb: BFSOneArgCallback): void {
     this._remove(path, cb, true);
   }
 
-  public rmdir(path: string, cb: BFSOneArgCallback): void {
+  public rmdir(path: string, cred: Cred, cb: BFSOneArgCallback): void {
     // Check if directory is non-empty, first.
-    this.readdir(path, (e, files?) => {
+    this.readdir(path, cred, (e, files?) => {
       if (e) {
         cb(e);
       } else if (files!.length > 0) {
@@ -393,7 +406,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
     });
   }
 
-  public mkdir(path: string, mode: number, cb: BFSOneArgCallback): void {
+  public mkdir(path: string, mode: number, cred: Cred, cb: BFSOneArgCallback): void {
     // Create the directory, but throw an error if it already exists, as per
     // mkdir(1)
     const opts = {
@@ -412,7 +425,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
   /**
    * Map _readdir's list of `FileEntry`s to their names and return that.
    */
-  public readdir(path: string, cb: BFSCallback<string[]>): void {
+  public readdir(path: string, cred: Cred, cb: BFSCallback<string[]>): void {
     this._readdir(path, (e: ApiError, entries?: Entry[]): void => {
       if (entries) {
         const rv: string[] = [];

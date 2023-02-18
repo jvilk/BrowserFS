@@ -346,7 +346,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
   }
 
   /**
-   * Asynchronous `fchmod`.
+   * Synchronous `fchmod`.
    * @param [Number] mode
    */
   public chmodSync(mode: number): void {
@@ -355,6 +355,35 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
     }
     this._dirty = true;
     this._stat.chmod(mode);
+    this.syncSync();
+  }
+
+ /**
+   * Asynchronous `fchown`.
+   * @param [Number] uid
+   * @param [Number] gid
+   * @param [Function(BrowserFS.ApiError)] cb
+   */
+ public chown(uid: number, gid: number, cb: BFSOneArgCallback): void {
+    try {
+      this.chownSync(uid, gid);
+      cb();
+    } catch (e) {
+      cb(e);
+    }
+  }
+
+  /**
+   * Synchronous `fchown`.
+   * @param [Number] uid
+   * @param [Number] gid
+   */
+  public chownSync(uid: number, gid: number): void {
+    if (!this._fs.supportsProps()) {
+      throw new ApiError(ErrorCode.ENOTSUP);
+    }
+    this._dirty = true;
+    this._stat.chown(uid, gid);
     this.syncSync();
   }
 

@@ -5,7 +5,7 @@ import {BaseFile, File} from '../core/file';
 import {uint8Array2Buffer, buffer2Uint8array} from '../core/util';
 import {ApiError, ErrorCode, ErrorStrings} from '../core/api_error';
 import {EmscriptenFSNode} from '../generic/emscripten_fs';
-
+import Cred from '../core/cred';
 /**
  * @hidden
  */
@@ -68,7 +68,7 @@ export class EmscriptenFile extends BaseFile implements File {
   }
   public statSync(): Stats {
     try {
-      return this._fs.statSync(this._path, false);
+      return this._fs.statSync(this._path, false, Cred.Root);
     } catch (e) {
       throw convertError(e, this._path);
     }
@@ -176,7 +176,7 @@ export class EmscriptenFile extends BaseFile implements File {
     }
   }
   public utimesSync(atime: Date, mtime: Date): void {
-    this._fs.utimesSync(this._path, atime, mtime);
+    this._fs.utimesSync(this._path, atime, mtime, Cred.Root);
   }
 }
 
@@ -207,6 +207,19 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
   public static Create(opts: EmscriptenFileSystemOptions, cb: BFSCallback<EmscriptenFileSystem>): void {
     cb(null, new EmscriptenFileSystem(opts.FS));
   }
+
+  public static CreateAsync(opts: EmscriptenFileSystemOptions): Promise<EmscriptenFileSystem> {
+    return new Promise((resolve, reject) => {
+      this.Create(opts, (error, fs) => {
+		if(error || !fs){
+			reject(error);
+		}else{
+			resolve(fs);
+		}
+      });
+    });
+  }
+
   public static isAvailable(): boolean { return true; }
 
   private _FS: any;
@@ -221,19 +234,19 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
   public supportsProps(): boolean { return true; }
   public supportsSynch(): boolean { return true; }
 
-  public renameSync(oldPath: string, newPath: string): void {
+  public renameSync(oldPath: string, newPath: string, cred: Cred): void {
     try {
       this._FS.rename(oldPath, newPath);
     } catch (e) {
       if (e.errno === ErrorCode.ENOENT) {
-        throw convertError(e, this.existsSync(oldPath) ? newPath : oldPath);
+        throw convertError(e, this.existsSync(oldPath, cred) ? newPath : oldPath);
       } else {
         throw convertError(e);
       }
     }
   }
 
-  public statSync(p: string, isLstat: boolean): Stats {
+  public statSync(p: string, isLstat: boolean, cred: Cred): Stats {
     try {
       const stats = isLstat ? this._FS.lstat(p) : this._FS.stat(p);
       const itemType = this.modeToFileType(stats.mode);
@@ -250,7 +263,7 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
     }
   }
 
-  public openSync(p: string, flag: FileFlag, mode: number): EmscriptenFile {
+  public openSync(p: string, flag: FileFlag, mode: number, cred: Cred): EmscriptenFile {
     try {
       const stream = this._FS.open(p, flag.getFlagString(), mode);
       return new EmscriptenFile(this, this._FS, p, stream);
@@ -259,7 +272,7 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
     }
   }
 
-  public unlinkSync(p: string): void {
+  public unlinkSync(p: string, cred: Cred): void {
     try {
       this._FS.unlink(p);
     } catch (e) {
@@ -267,7 +280,7 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
     }
   }
 
-  public rmdirSync(p: string): void {
+  public rmdirSync(p: string, cred: Cred): void {
     try {
       this._FS.rmdir(p);
     } catch (e) {
@@ -275,7 +288,7 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
     }
   }
 
-  public mkdirSync(p: string, mode: number): void {
+  public mkdirSync(p: string, mode: number, cred: Cred): void {
     try {
       this._FS.mkdir(p, mode);
     } catch (e) {
@@ -283,7 +296,7 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
     }
   }
 
-  public readdirSync(p: string): string[] {
+  public readdirSync(p: string, cred: Cred): string[] {
     try {
       // Emscripten returns items for '.' and '..'. Node does not.
       return this._FS.readdir(p).filter((p: string) => p !== '.' && p !== '..');
@@ -292,7 +305,7 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
     }
   }
 
-  public truncateSync(p: string, len: number): void {
+  public truncateSync(p: string, len: number, cred: Cred): void {
     try {
       this._FS.truncate(p, len);
     } catch (e) {
@@ -300,7 +313,7 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
     }
   }
 
-  public readFileSync(p: string, encoding: string, flag: FileFlag): any {
+  public readFileSync(p: string, encoding: string, flag: FileFlag, cred: Cred): any {
     try {
       const data: Uint8Array = this._FS.readFile(p, { flags: flag.getFlagString() });
       const buff = uint8Array2Buffer(data);
@@ -314,7 +327,7 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
     }
   }
 
-  public writeFileSync(p: string, data: any, encoding: string, flag: FileFlag, mode: number): void {
+  public writeFileSync(p: string, data: any, encoding: string, flag: FileFlag, mode: number, cred: Cred): void {
     try {
       if (encoding) {
         data = Buffer.from(data, encoding);
@@ -327,7 +340,7 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
     }
   }
 
-  public chmodSync(p: string, isLchmod: boolean, mode: number) {
+  public chmodSync(p: string, isLchmod: boolean, mode: number, cred: Cred) {
     try {
       isLchmod ? this._FS.lchmod(p, mode) : this._FS.chmod(p, mode);
     } catch (e) {
@@ -335,15 +348,15 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
     }
   }
 
-  public chownSync(p: string, isLchown: boolean, uid: number, gid: number): void {
+  public chownSync(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): void {
     try {
-      isLchown ? this._FS.lchown(p, uid, gid) : this._FS.chown(p, uid, gid);
+      isLchown ? this._FS.lchown(p, new_uid, new_gid) : this._FS.chown(p, new_uid, new_gid);
     } catch (e) {
       throw convertError(e, p);
     }
   }
 
-  public symlinkSync(srcpath: string, dstpath: string, type: string): void {
+  public symlinkSync(srcpath: string, dstpath: string, type: string, cred: Cred): void {
     try {
       this._FS.symlink(srcpath, dstpath);
     } catch (e) {
@@ -351,7 +364,7 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
     }
   }
 
-  public readlinkSync(p: string): string {
+  public readlinkSync(p: string, cred: Cred): string {
     try {
       return this._FS.readlink(p);
     } catch (e) {
@@ -359,7 +372,7 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
     }
   }
 
-  public utimesSync(p: string, atime: Date, mtime: Date): void {
+  public utimesSync(p: string, atime: Date, mtime: Date, cred: Cred): void {
     try {
       this._FS.utime(p, atime.getTime(), mtime.getTime());
     } catch (e) {

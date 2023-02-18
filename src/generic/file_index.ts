@@ -251,6 +251,8 @@ export interface Inode {
   isFile(): boolean;
   // Is this an inode for a directory?
   isDir(): boolean;
+  //compatibility with other Inode types
+  toStats(): Stats;
 }
 
 /**
@@ -262,6 +264,9 @@ export class FileInode<T> implements Inode {
   public isDir(): boolean { return false; }
   public getData(): T { return this.data; }
   public setData(data: T): void { this.data = data; }
+  public toStats(): Stats {
+    return new Stats(FileType.FILE, 4096, 0o666);
+  }
 }
 
 /**
@@ -287,7 +292,15 @@ export class DirInode<T> implements Inode {
    *       responsibility of the FileIndex.
    */
   public getStats(): Stats {
-    return new Stats(FileType.DIRECTORY, 4096, 0x16D);
+    return new Stats(FileType.DIRECTORY, 4096, 0o555);
+  }
+  /**
+   * Alias of getStats()
+   * @todo Remove this at some point. This isn't the
+   *       responsibility of the FileIndex.
+   */
+  public toStats(): Stats {
+    return this.getStats();
   }
   /**
    * Returns the directory listing for this directory. Paths in the directory are

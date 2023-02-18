@@ -46,6 +46,19 @@ export default class InMemoryFileSystem extends SyncKeyValueFileSystem {
   public static Create(options: any, cb: BFSCallback<InMemoryFileSystem>): void {
     cb(null, new InMemoryFileSystem());
   }
+
+  public static CreateAsync(opts: any): Promise<InMemoryFileSystem> {
+    return new Promise((resolve, reject) => {
+      this.Create(opts, (error, fs) => {
+		if(error || !fs){
+			reject(error);
+		}else{
+			resolve(fs);
+		}
+      });
+    });
+  }
+
   private constructor() {
     super({ store: new InMemoryStore() });
   }

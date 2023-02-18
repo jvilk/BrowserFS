@@ -241,6 +241,19 @@ export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
       }
     });
   }
+
+  public static CreateAsync(opts: IndexedDBFileSystemOptions): Promise<IndexedDBFileSystem> {
+    return new Promise((resolve, reject) => {
+      this.Create(opts, (error, fs) => {
+		if(error || !fs){
+			reject(error);
+		}else{
+			resolve(fs);
+		}
+      });
+    });
+  }
+
   public static isAvailable(): boolean {
     // In Safari's private browsing mode, indexedDB.open returns NULL.
     // In Firefox, it throws an exception.
