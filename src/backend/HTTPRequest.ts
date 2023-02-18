@@ -293,13 +293,18 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
     if(!inode.toStats().hasAccess(flags.getMode(), cred)){
       return cb(ApiError.EACCES(path));
     }
-    if (isFileInode<Stats>(inode)) {
+    if (isFileInode<Stats>(inode) || isDirInode<Stats>(inode)) {
       const stats = inode.getData();
       switch (flags.pathExistsAction()) {
         case ActionType.THROW_EXCEPTION:
         case ActionType.TRUNCATE_FILE:
           return cb(ApiError.EEXIST(path));
         case ActionType.NOP:
+          if (isDirInode<Stats>(inode)) {
+            const stats = inode.getStats();
+            return cb(null, new NoSyncFile(self, path, flags, stats, stats.fileData || undefined));
+          }
+          const stats = inode.getData();
           // Use existing file contents.
           // XXX: Uh, this maintains the previously-used flag.
           if (stats.fileData) {
@@ -320,7 +325,7 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
           return cb(new ApiError(ErrorCode.EINVAL, 'Invalid FileMode object.'));
       }
     } else {
-      return cb(ApiError.EISDIR(path));
+      return cb(ApiError.EPERM(path));
     }
   }
 
@@ -337,13 +342,18 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
     if(!inode.toStats().hasAccess(flags.getMode(), cred)){
       throw ApiError.EACCES(path);
     }
-    if (isFileInode<Stats>(inode)) {
+    if (isFileInode<Stats>(inode) || isDirInode<Stats>(inode)) {
       const stats = inode.getData();
       switch (flags.pathExistsAction()) {
         case ActionType.THROW_EXCEPTION:
         case ActionType.TRUNCATE_FILE:
           throw ApiError.EEXIST(path);
         case ActionType.NOP:
+          if (isDirInode<Stats>(inode)) {
+            const stats = inode.getStats();
+            return new NoSyncFile(this, path, flags, stats, stats.fileData || undefined);
+          }
+          const stats = inode.getData();
           // Use existing file contents.
           // XXX: Uh, this maintains the previously-used flag.
           if (stats.fileData) {
@@ -359,7 +369,7 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
           throw new ApiError(ErrorCode.EINVAL, 'Invalid FileMode object.');
       }
     } else {
-      throw ApiError.EISDIR(path);
+      throw ApiError.EPERM(path);
     }
   }
 

@@ -266,10 +266,6 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
   public openSync(p: string, flag: FileFlag, mode: number, cred: Cred): EmscriptenFile {
     try {
       const stream = this._FS.open(p, flag.getFlagString(), mode);
-      if (this._FS.isDir(stream.node.mode)) {
-        this._FS.close(stream);
-        throw ApiError.EISDIR(p);
-      }
       return new EmscriptenFile(this, this._FS, p, stream);
     } catch (e) {
       throw convertError(e, p);
