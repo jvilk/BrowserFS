@@ -134,6 +134,11 @@
     "@types/glob" "*"
     "@types/node" "*"
 
+"@types/wicg-file-system-access@^2020.9.4":
+  version "2020.9.4"
+  resolved "https://registry.yarnpkg.com/@types/wicg-file-system-access/-/wicg-file-system-access-2020.9.4.tgz#83f255d6bd20b0ae131d555693473d15a0574e92"
+  integrity sha512-o43jUljwP0ZrQ927mPjGdJaBMfS12nf3VPj6Z52fMucxILrSs8tnfLbMDSn6cP3hrrLChc3SYneeEvecknNVtA==
+
 "@webassemblyjs/ast@1.5.13":
   version "1.5.13"
   resolved "https://registry.yarnpkg.com/@webassemblyjs/ast/-/ast-1.5.13.tgz#81155a570bd5803a30ec31436bc2c9c0ede38f25"
@@ -4905,9 +4910,10 @@ typescript@2.7.2:
   version "2.7.2"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.7.2.tgz#2d615a1ef4aee4f574425cdff7026edf81919836"
 
-typescript@~3.0.1:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.0.1.tgz#43738f29585d3a87575520a4b93ab6026ef11fdb"
+typescript@~3.5.3:
+  version "3.5.3"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.5.3.tgz#c830f657f93f1ea846819e929092f5fe5983e977"
+  integrity sha512-ACzBtm/PhXBDId6a6sDJfroT2pOWt/oOnk4/dElG5G33ZL776N3Y6/6bKZJBFpd+b05F3Ct9qDjMeJmRWtE2/g==
 
 uglify-es@^3.3.4:
   version "3.3.9"
