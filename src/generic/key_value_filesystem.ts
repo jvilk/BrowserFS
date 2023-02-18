@@ -1,6 +1,6 @@
 import {BaseFileSystem, SynchronousFileSystem, BFSOneArgCallback, BFSCallback, BFSThreeArgCallback} from '../core/file_system';
 import {ApiError, ErrorCode} from '../core/api_error';
-import {default as Stats, FileType} from '../core/node_fs_stats';
+import {default as Stats, FileType, FilePerm } from '../core/node_fs_stats';
 import {File} from '../core/file';
 import {FileFlag} from '../core/file_flag';
 import * as path from 'path';
@@ -8,6 +8,7 @@ import * as process from 'process';
 import Inode from '../generic/inode';
 import PreloadFile from '../generic/preload_file';
 import {emptyBuffer} from '../core/util';
+import Cred from '../core/cred';
 /**
  * @hidden
  */
@@ -320,11 +321,11 @@ export interface SyncKeyValueFileSystemOptions {
    *
    * Defaults to *false*.
    */
-  // supportProps?: boolean;
+  supportProps?: boolean;
   /**
    * Should the file system support links?
    */
-  // supportLinks?: boolean;
+  supportLinks?: boolean;
 }
 
 export class SyncKeyValueFile extends PreloadFile<SyncKeyValueFileSystem> implements File {
@@ -368,7 +369,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
   public getName(): string { return this.store.name(); }
   public isReadOnly(): boolean { return false; }
   public supportsSymlinks(): boolean { return false; }
-  public supportsProps(): boolean { return false; }
+  public supportsProps(): boolean { return true; }
   public supportsSynch(): boolean { return true; }
 
   /**
@@ -379,14 +380,26 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
     // INVARIANT: Root always exists.
     this.makeRootDirectory();
   }
+  
+  public accessSync(p: string, mode: number, cred: Cred): void {
+    const tx = this.store.beginTransaction('readonly'),
+    node = this.findINode(tx, p);
+    if(!node.toStats().hasAccess(mode, cred)){
+      throw ApiError.EACCES(p);
+    }
+  }
 
-  public renameSync(oldPath: string, newPath: string): void {
+  public renameSync(oldPath: string, newPath: string, cred: Cred): void {
     const tx = this.store.beginTransaction('readwrite'),
       oldParent = path.dirname(oldPath), oldName = path.basename(oldPath),
       newParent = path.dirname(newPath), newName = path.basename(newPath),
       // Remove oldPath from parent's directory listing.
       oldDirNode = this.findINode(tx, oldParent),
       oldDirList = this.getDirListing(tx, oldParent, oldDirNode);
+
+    if(!oldDirNode.toStats().hasAccess(FilePerm.WRITE, cred)){
+      throw ApiError.EACCES(oldPath);
+    }
 
     if (!oldDirList[oldName]) {
       throw ApiError.ENOENT(oldPath);
@@ -444,51 +457,74 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
     tx.commit();
   }
 
-  public statSync(p: string, isLstat: boolean): Stats {
+  public statSync(p: string, isLstat: boolean, cred: Cred): Stats {
     // Get the inode to the item, convert it into a Stats object.
-    return this.findINode(this.store.beginTransaction('readonly'), p).toStats();
+    const stats = this.findINode(this.store.beginTransaction('readonly'), p).toStats();
+    if(!stats.hasAccess(FilePerm.READ, cred)){
+      throw ApiError.EACCES(p);
+    }
+    return stats;
   }
 
-  public createFileSync(p: string, flag: FileFlag, mode: number): File {
+  public createFileSync(p: string, flag: FileFlag, mode: number, cred: Cred): File {
     const tx = this.store.beginTransaction('readwrite'),
       data = emptyBuffer(),
-      newFile = this.commitNewFile(tx, p, FileType.FILE, mode, data);
+      newFile = this.commitNewFile(tx, p, FileType.FILE, mode, cred, data);
     // Open the file.
     return new SyncKeyValueFile(this, p, flag, newFile.toStats(), data);
   }
 
-  public openFileSync(p: string, flag: FileFlag): File {
+  public openFileSync(p: string, flag: FileFlag, cred: Cred): File {
     const tx = this.store.beginTransaction('readonly'),
       node = this.findINode(tx, p),
       data = tx.get(node.id);
+    if(!node.toStats().hasAccess(flag.getMode(), cred)){
+      throw ApiError.EACCES(p);
+    }
     if (data === undefined) {
       throw ApiError.ENOENT(p);
     }
     return new SyncKeyValueFile(this, p, flag, node.toStats(), data);
   }
 
-  public unlinkSync(p: string): void {
-    this.removeEntry(p, false);
+  public unlinkSync(p: string, cred: Cred): void {
+    this.removeEntry(p, false, cred);
   }
 
-  public rmdirSync(p: string): void {
+  public rmdirSync(p: string, cred: Cred): void {
     // Check first if directory is empty.
-    if (this.readdirSync(p).length > 0) {
+    if (this.readdirSync(p, cred).length > 0) {
       throw ApiError.ENOTEMPTY(p);
     } else {
-      this.removeEntry(p, true);
+      this.removeEntry(p, true, cred);
     }
   }
 
-  public mkdirSync(p: string, mode: number): void {
+  public mkdirSync(p: string, mode: number, cred: Cred): void {
     const tx = this.store.beginTransaction('readwrite'),
       data = Buffer.from('{}');
-    this.commitNewFile(tx, p, FileType.DIRECTORY, mode, data);
+    this.commitNewFile(tx, p, FileType.DIRECTORY, mode, cred, data);
   }
 
-  public readdirSync(p: string): string[] {
+  public readdirSync(p: string, cred: Cred): string[] {
     const tx = this.store.beginTransaction('readonly');
-    return Object.keys(this.getDirListing(tx, p, this.findINode(tx, p)));
+    const node = this.findINode(tx, p);
+    if(!node.toStats().hasAccess(FilePerm.READ, cred)){
+      throw ApiError.EACCES(p);
+    }
+    return Object.keys(this.getDirListing(tx, p, node));
+  }
+
+  public chmodSync(p: string, isLchmod: boolean, mode: number, cred: Cred): void {
+    const path = isLchmod ? p : this.realpathSync(p, {}, cred);
+    const fd = this.openFileSync(path, FileFlag.getFileFlag('r+'), cred);
+    fd.chmodSync(mode);
+  }
+
+  public chownSync(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): void {
+    const path = isLchown ? p : this.realpathSync(p, {}, cred);
+    const fd = this.openFileSync(path, FileFlag.getFileFlag('r+'), cred);
+    fd.chownSync(cred.euid, cred.egid);
   }
 
   public _syncSync(p: string, data: Buffer, stats: Stats): void {
@@ -522,8 +558,8 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
     if (tx.get(ROOT_NODE_ID) === undefined) {
       // Create new inode.
       const currTime = (new Date()).getTime(),
-        // Mode 0666
-        dirInode = new Inode(GenerateRandomID(), 4096, 511 | FileType.DIRECTORY, currTime, currTime, currTime);
+        // Mode 0666, owned by root:root
+        dirInode = new Inode(GenerateRandomID(), 4096, 511 | FileType.DIRECTORY, currTime, currTime, currTime, 0, 0);
       // If the root doesn't exist, the first random ID shouldn't exist,
       // either.
       tx.put(dirInode.id, getEmptyDirNode(), false);
@@ -636,12 +672,17 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
    * @param data The data to store at the file's data node.
    * @return The Inode for the new file.
    */
-  private commitNewFile(tx: SyncKeyValueRWTransaction, p: string, type: FileType, mode: number, data: Buffer): Inode {
+  private commitNewFile(tx: SyncKeyValueRWTransaction, p: string, type: FileType, mode: number, cred: Cred, data: Buffer): Inode {
     const parentDir = path.dirname(p),
       fname = path.basename(p),
       parentNode = this.findINode(tx, parentDir),
       dirListing = this.getDirListing(tx, parentDir, parentNode),
       currTime = (new Date()).getTime();
+
+      //Check that the creater has correct access
+    if(!parentNode.toStats().hasAccess(0b0100 /* Write */, cred)){
+      throw ApiError.EACCES(p);
+    }
 
     // Invariant: The root always exists.
     // If we don't check this prior to taking steps below, we will create a
@@ -659,7 +700,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
     try {
       // Commit data.
       const dataId = this.addNewNode(tx, data);
-      fileNode = new Inode(dataId, data.length, mode | type, currTime, currTime, currTime);
+      fileNode = new Inode(dataId, data.length, mode | type, currTime, currTime, currTime, cred.uid, cred.gid);
       // Commit file node.
       const fileNodeId = this.addNewNode(tx, fileNode.toBuffer());
       // Update and commit parent directory listing.
@@ -679,7 +720,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
    * @param isDir Does the path belong to a directory, or a file?
    * @todo Update mtime.
    */
-  private removeEntry(p: string, isDir: boolean): void {
+  private removeEntry(p: string, isDir: boolean, cred: Cred): void {
     const tx = this.store.beginTransaction('readwrite'),
       parent: string = path.dirname(p),
       parentNode = this.findINode(tx, parent),
@@ -690,12 +731,21 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
       throw ApiError.ENOENT(p);
     }
 
-    // Remove from directory listing of parent.
+    
     const fileNodeId = parentListing[fileName];
-    delete parentListing[fileName];
 
     // Get file inode.
     const fileNode = this.getINode(tx, p, fileNodeId);
+
+    if(fileNode.toStats().hasAccess(0b0100 /* Write */, cred)){
+      throw ApiError.EACCES(p);
+    }
+
+    // Remove from directory listing of parent.
+    delete parentListing[fileName];
+
+    
+    
     if (!isDir && fileNode.isDirectory()) {
       throw ApiError.EISDIR(p);
     } else if (isDir && !fileNode.isDirectory()) {
@@ -834,7 +884,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
   public getName(): string { return this.store.name(); }
   public isReadOnly(): boolean { return false; }
   public supportsSymlinks(): boolean { return false; }
-  public supportsProps(): boolean { return false; }
+  public supportsProps(): boolean { return true; }
   public supportsSynch(): boolean { return false; }
 
   /**
@@ -852,7 +902,20 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
     });
   }
 
-  public rename(oldPath: string, newPath: string, cb: BFSOneArgCallback): void {
+  public access(p: string, mode: number, cred: Cred, cb: BFSOneArgCallback): void {
+    const tx = this.store.beginTransaction('readonly');
+    this.findINode(tx, p, inode => {
+      if(inode instanceof Inode){
+        if(!inode!.toStats().hasAccess(mode, cred)){
+          cb(ApiError.EACCES(p));
+        }
+      } else {
+        cb(inode);
+      }
+    });
+  }
+
+  public rename(oldPath: string, newPath: string, cred: Cred, cb: BFSOneArgCallback): void {
     // TODO: Make rename compatible with the cache.
     if (this._cache) {
       // Clear and disable cache during renaming process.
@@ -875,6 +938,8 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
       [path: string]: { [file: string]: string }
     } = {};
     let errorOccurred: boolean = false;
+
+  
 
     // Invariant: Can't move a folder inside itself.
     // This funny little hack ensures that the check passes only if oldPath
@@ -962,6 +1027,9 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
      */
     const processInodeAndListings = (p: string): void => {
       this.findINodeAndDirListing(tx, p, (e?: ApiError | null, node?: Inode, dirList?: {[name: string]: string}): void => {
+        if(!node!.toStats().hasAccess(FilePerm.WRITE, cred)){
+          throw ApiError.EACCES(p);
+        }
         if (e) {
           if (!errorOccurred) {
             errorOccurred = true;
@@ -984,38 +1052,46 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
     }
   }
 
-  public stat(p: string, isLstat: boolean, cb: BFSCallback<Stats>): void {
+  public stat(p: string, isLstat: boolean, cred: Cred, cb: BFSCallback<Stats>): void {
     const tx = this.store.beginTransaction('readonly');
     this.findINode(tx, p, (e: ApiError, inode?: Inode): void => {
       if (noError(e, cb)) {
-        cb(null, inode!.toStats());
+        const stats = inode!.toStats();
+        if(!stats.hasAccess(FilePerm.READ, cred)){
+          cb(ApiError.EACCES(p));
+        }
+        cb(null, stats);
       }
     });
   }
 
-  public createFile(p: string, flag: FileFlag, mode: number, cb: BFSCallback<File>): void {
+  public createFile(p: string, flag: FileFlag, mode: number, cred: Cred, cb: BFSCallback<File>): void {
     const tx = this.store.beginTransaction('readwrite'),
       data = emptyBuffer();
 
-    this.commitNewFile(tx, p, FileType.FILE, mode, data, (e: ApiError, newFile?: Inode): void => {
+    this.commitNewFile(tx, p, FileType.FILE, mode, cred, data, (e: ApiError, newFile?: Inode): void => {
       if (noError(e, cb)) {
         cb(null, new AsyncKeyValueFile(this, p, flag, newFile!.toStats(), data));
       }
     });
   }
 
-  public openFile(p: string, flag: FileFlag, cb: BFSCallback<File>): void {
+  public openFile(p: string, flag: FileFlag, cred: Cred, cb: BFSCallback<File>): void {
     const tx = this.store.beginTransaction('readonly');
     // Step 1: Grab the file's inode.
     this.findINode(tx, p, (e: ApiError, inode?: Inode) => {
       if (noError(e, cb)) {
+        const stats = inode!.toStats();
+        if(!stats.hasAccess(flag.getMode(), cred)){
+          cb(ApiError.EACCES(p));
+        }
         // Step 2: Grab the file's data.
         tx.get(inode!.id, (e: ApiError, data?: Buffer): void => {
           if (noError(e, cb)) {
             if (data === undefined) {
               cb(ApiError.ENOENT(p));
             } else {
-              cb(null, new AsyncKeyValueFile(this, p, flag, inode!.toStats(), data));
+              cb(null, new AsyncKeyValueFile(this, p, flag, stats, data));
             }
           }
         });
@@ -1023,33 +1099,36 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
     });
   }
 
-  public unlink(p: string, cb: BFSOneArgCallback): void {
-    this.removeEntry(p, false, cb);
+  public unlink(p: string, cred: Cred, cb: BFSOneArgCallback): void {
+    this.removeEntry(p, false, cred, cb);
   }
 
-  public rmdir(p: string, cb: BFSOneArgCallback): void {
+  public rmdir(p: string, cred: Cred, cb: BFSOneArgCallback): void {
     // Check first if directory is empty.
-    this.readdir(p, (err, files?) => {
+    this.readdir(p, cred, (err, files?) => {
       if (err) {
         cb(err);
       } else if (files!.length > 0) {
         cb(ApiError.ENOTEMPTY(p));
       } else {
-        this.removeEntry(p, true, cb);
+        this.removeEntry(p, true, cred, cb);
       }
     });
   }
 
-  public mkdir(p: string, mode: number, cb: BFSOneArgCallback): void {
+  public mkdir(p: string, mode: number, cred: Cred, cb: BFSOneArgCallback): void {
     const tx = this.store.beginTransaction('readwrite'),
       data = Buffer.from('{}');
-    this.commitNewFile(tx, p, FileType.DIRECTORY, mode, data, cb);
+    this.commitNewFile(tx, p, FileType.DIRECTORY, mode, cred, data, cb);
   }
 
-  public readdir(p: string, cb: BFSCallback<string[]>): void {
+  public readdir(p: string, cred: Cred, cb: BFSCallback<string[]>): void {
     const tx = this.store.beginTransaction('readonly');
     this.findINode(tx, p, (e: ApiError, inode?: Inode) => {
       if (noError(e, cb)) {
+        if(!inode!.toStats().hasAccess(FilePerm.READ, cred)){
+          cb(ApiError.EACCES(p));
+        }
         this.getDirListing(tx, p, inode!, (e: ApiError, dirListing?: {[name: string]: string}) => {
           if (noError(e, cb)) {
             cb(null, Object.keys(dirListing!));
@@ -1101,8 +1180,8 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
       if (e || data === undefined) {
         // Create new inode.
         const currTime = (new Date()).getTime(),
-          // Mode 0666
-          dirInode = new Inode(GenerateRandomID(), 4096, 511 | FileType.DIRECTORY, currTime, currTime, currTime);
+          // Mode 0666, owned by root:root
+          dirInode = new Inode(GenerateRandomID(), 4096, 511 | FileType.DIRECTORY, currTime, currTime, currTime, 0, 0);
         // If the root doesn't exist, the first random ID shouldn't exist,
         // either.
         tx.put(dirInode.id, getEmptyDirNode(), false, (e?: ApiError) => {
@@ -1282,10 +1361,12 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
    * @param p The path to the new file.
    * @param type The type of the new file.
    * @param mode The mode to create the new file with.
+   * @param uid The UID to create the file with
+   * @param gid The GID to create the file with
    * @param data The data to store at the file's data node.
    * @param cb Passed an error or the Inode for the new file.
    */
-  private commitNewFile(tx: AsyncKeyValueRWTransaction, p: string, type: FileType, mode: number, data: Buffer, cb: BFSCallback<Inode>): void {
+  private commitNewFile(tx: AsyncKeyValueRWTransaction, p: string, type: FileType, mode: number, cred: Cred, data: Buffer, cb: BFSCallback<Inode>): void {
     const parentDir = path.dirname(p),
       fname = path.basename(p),
       currTime = (new Date()).getTime();
@@ -1301,6 +1382,9 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
 
     // Step 1: Get the parent directory's inode and directory listing
     this.findINodeAndDirListing(tx, parentDir, (e?: ApiError | null, parentNode?: Inode, dirListing?: {[name: string]: string}): void => {
+      if(!parentNode!.toStats().hasAccess(FilePerm.WRITE, cred)){
+        cb(ApiError.EACCES(p));
+      }
       if (noErrorTx(e, tx, cb)) {
         if (dirListing![fname]) {
           // File already exists.
@@ -1312,7 +1396,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
           this.addNewNode(tx, data, (e: ApiError, dataId?: string): void => {
             if (noErrorTx(e, tx, cb)) {
               // Step 3: Commit the file's inode to the store.
-              const fileInode = new Inode(dataId!, data.length, mode | type, currTime, currTime, currTime);
+              const fileInode = new Inode(dataId!, data.length, mode | type, currTime, currTime, currTime, cred.euid, cred.egid);
               this.addNewNode(tx, fileInode.toBuffer(), (e: ApiError, fileInodeId?: string): void => {
                 if (noErrorTx(e, tx, cb)) {
                   // Step 4: Update parent directory's listing.
@@ -1342,7 +1426,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
    * @param isDir Does the path belong to a directory, or a file?
    * @todo Update mtime.
    */
-  private removeEntry(p: string, isDir: boolean, cb: BFSOneArgCallback): void {
+  private removeEntry(p: string, isDir: boolean, cred: Cred, cb: BFSOneArgCallback): void {
     // Eagerly delete from cache (harmless even if removal fails)
     if (this._cache) {
       this._cache.remove(p);
@@ -1351,6 +1435,9 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
       parent: string = path.dirname(p), fileName: string = path.basename(p);
     // Step 1: Get parent directory's node and directory listing.
     this.findINodeAndDirListing(tx, parent, (e?: ApiError | null, parentNode?: Inode, parentListing?: {[name: string]: string}): void => {
+      if(!parentNode!.toStats().hasAccess(FilePerm.WRITE, cred)){
+        cb(ApiError.EACCES(p));
+      }
       if (noErrorTx(e, tx, cb)) {
         if (!parentListing![fileName]) {
           tx.abort(() => {

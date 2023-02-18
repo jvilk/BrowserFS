@@ -68,6 +68,11 @@ export class ApiError extends Error implements NodeJS.ErrnoException {
   public static FileError(code: ErrorCode, p: string): ApiError {
     return new ApiError(code, ErrorStrings[code], p);
   }
+
+  public static EACCES(path: string): ApiError {
+    return this.FileError(ErrorCode.EACCES, path)
+  }
+
   public static ENOENT(path: string): ApiError {
     return this.FileError(ErrorCode.ENOENT, path);
   }

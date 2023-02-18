@@ -3,11 +3,12 @@ import {ApiError, ErrorCode} from './api_error';
 import {FileSystem, BFSOneArgCallback, BFSCallback, BFSThreeArgCallback} from './file_system';
 import {FileFlag} from './file_flag';
 import * as path from 'path';
-import Stats from './node_fs_stats';
+import { default as Stats, FilePerm } from './node_fs_stats';
 import setImmediate from '../generic/setImmediate';
 
 // Typing info only.
 import * as _fs from 'fs';
+import Cred from './cred';
 
 /** Used for unit testing. Defaults to a NOP. */
 let wrapCbHook = function<T>(cb: T, numArgs: number): T {
@@ -173,13 +174,22 @@ export default class FS {
   public X_OK: number = 1;
 
   private root: FileSystem | null = null;
+  private cred: Cred;
   private fdMap: {[fd: number]: File} = {};
   private nextFd = 100;
 
-  public initialize(rootFS: FileSystem): FileSystem {
+  /**
+   * Initializes the FS Modules with the given filesystem
+   * @param rootFS the root filesystem of the FS
+   * @param uid the UID to user for interacting with the FS
+   * @param gid the GID to user for interacting with the FS
+   * @returns 
+   */
+  public initialize(rootFS: FileSystem, cred: Cred): FileSystem {
     if (!(<any> rootFS).constructor.isAvailable()) {
       throw new ApiError(ErrorCode.EINVAL, 'Tried to instantiate BrowserFS with an unavailable file system.');
     }
+    this.cred = cred;
     return this.root = rootFS;
   }
 
@@ -221,7 +231,7 @@ export default class FS {
   public rename(oldPath: string, newPath: string, cb: BFSOneArgCallback = nopCb): void {
     const newCb = wrapCb(cb, 1);
     try {
-      assertRoot(this.root).rename(normalizePath(oldPath), normalizePath(newPath), newCb);
+      assertRoot(this.root).rename(normalizePath(oldPath), normalizePath(newPath), this.cred, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -233,7 +243,7 @@ export default class FS {
    * @param newPath
    */
   public renameSync(oldPath: string, newPath: string): void {
-    assertRoot(this.root).renameSync(normalizePath(oldPath), normalizePath(newPath));
+    assertRoot(this.root).renameSync(normalizePath(oldPath), normalizePath(newPath), this.cred);
   }
 
   /**
@@ -249,7 +259,7 @@ export default class FS {
   public exists(path: string, cb: (exists: boolean) => any = nopCb): void {
     const newCb = wrapCb(cb, 1);
     try {
-      return assertRoot(this.root).exists(normalizePath(path), newCb);
+      return assertRoot(this.root).exists(normalizePath(path), this.cred, newCb);
     } catch (e) {
       // Doesn't return an error. If something bad happens, we assume it just
       // doesn't exist.
@@ -264,7 +274,7 @@ export default class FS {
    */
   public existsSync(path: string): boolean {
     try {
-      return assertRoot(this.root).existsSync(normalizePath(path));
+      return assertRoot(this.root).existsSync(normalizePath(path), this.cred);
     } catch (e) {
       // Doesn't return an error. If something bad happens, we assume it just
       // doesn't exist.
@@ -280,7 +290,7 @@ export default class FS {
   public stat(path: string, cb: BFSCallback<Stats> = nopCb): void {
     const newCb = wrapCb(cb, 2);
     try {
-      return assertRoot(this.root).stat(normalizePath(path), false, newCb);
+      return assertRoot(this.root).stat(normalizePath(path), false, this.cred, newCb);
     } catch (e) {
       return newCb(e);
     }
@@ -292,7 +302,7 @@ export default class FS {
    * @return [BrowserFS.node.fs.Stats]
    */
   public statSync(path: string): Stats {
-    return assertRoot(this.root).statSync(normalizePath(path), false);
+    return assertRoot(this.root).statSync(normalizePath(path), false, this.cred);
   }
 
   /**
@@ -305,7 +315,7 @@ export default class FS {
   public lstat(path: string, cb: BFSCallback<Stats> = nopCb): void {
     const newCb = wrapCb(cb, 2);
     try {
-      return assertRoot(this.root).stat(normalizePath(path), true, newCb);
+      return assertRoot(this.root).stat(normalizePath(path), true, this.cred, newCb);
     } catch (e) {
       return newCb(e);
     }
@@ -319,7 +329,7 @@ export default class FS {
    * @return [BrowserFS.node.fs.Stats]
    */
   public lstatSync(path: string): Stats {
-    return assertRoot(this.root).statSync(normalizePath(path), true);
+    return assertRoot(this.root).statSync(normalizePath(path), true, this.cred);
   }
 
   // FILE-ONLY METHODS
@@ -345,7 +355,7 @@ export default class FS {
       if (len < 0) {
         throw new ApiError(ErrorCode.EINVAL);
       }
-      return assertRoot(this.root).truncate(normalizePath(path), len, newCb);
+      return assertRoot(this.root).truncate(normalizePath(path), len, this.cred, newCb);
     } catch (e) {
       return newCb(e);
     }
@@ -360,7 +370,7 @@ export default class FS {
     if (len < 0) {
       throw new ApiError(ErrorCode.EINVAL);
     }
-    return assertRoot(this.root).truncateSync(normalizePath(path), len);
+    return assertRoot(this.root).truncateSync(normalizePath(path), len, this.cred);
   }
 
   /**
@@ -371,7 +381,7 @@ export default class FS {
   public unlink(path: string, cb: BFSOneArgCallback = nopCb): void {
     const newCb = wrapCb(cb, 1);
     try {
-      return assertRoot(this.root).unlink(normalizePath(path), newCb);
+      return assertRoot(this.root).unlink(normalizePath(path), this.cred, newCb);
     } catch (e) {
       return newCb(e);
     }
@@ -382,7 +392,7 @@ export default class FS {
    * @param path
    */
   public unlinkSync(path: string): void {
-    return assertRoot(this.root).unlinkSync(normalizePath(path));
+    return assertRoot(this.root).unlinkSync(normalizePath(path), this.cred);
   }
 
   /**
@@ -417,7 +427,7 @@ export default class FS {
     cb = typeof arg2 === 'function' ? arg2 : cb;
     const newCb = wrapCb(cb, 2);
     try {
-      assertRoot(this.root).open(normalizePath(path), FileFlag.getFileFlag(flag), mode, (e: ApiError, file?: File) => {
+      assertRoot(this.root).open(normalizePath(path), FileFlag.getFileFlag(flag), mode, this.cred, (e: ApiError, file?: File) => {
         if (file) {
           newCb(e, this.getFdForFile(file));
         } else {
@@ -439,7 +449,7 @@ export default class FS {
    */
   public openSync(path: string, flag: string, mode: number|string = 0x1a4): number {
     return this.getFdForFile(
-      assertRoot(this.root).openSync(normalizePath(path), FileFlag.getFileFlag(flag), normalizeMode(mode, 0x1a4)));
+      assertRoot(this.root).openSync(normalizePath(path), FileFlag.getFileFlag(flag), normalizeMode(mode, 0x1a4), this.cred));
   }
 
   /**
@@ -468,7 +478,7 @@ export default class FS {
       if (!flag.isReadable()) {
         return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to readFile must allow for reading.'));
       }
-      return assertRoot(this.root).readFile(normalizePath(filename), options.encoding, flag, newCb);
+      return assertRoot(this.root).readFile(normalizePath(filename), options.encoding, flag, this.cred, newCb);
     } catch (e) {
       return newCb(e);
     }
@@ -491,7 +501,7 @@ export default class FS {
     if (!flag.isReadable()) {
       throw new ApiError(ErrorCode.EINVAL, 'Flag passed to readFile must allow for reading.');
     }
-    return assertRoot(this.root).readFileSync(normalizePath(filename), options.encoding, flag);
+    return assertRoot(this.root).readFileSync(normalizePath(filename), options.encoding, flag, this.cred);
   }
 
   /**
@@ -525,7 +535,7 @@ export default class FS {
       if (!flag.isWriteable()) {
         return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to writeFile must allow for writing.'));
       }
-      return assertRoot(this.root).writeFile(normalizePath(filename), data, options.encoding, flag, options.mode, newCb);
+      return assertRoot(this.root).writeFile(normalizePath(filename), data, options.encoding, flag, options.mode, this.cred, newCb);
     } catch (e) {
       return newCb(e);
     }
@@ -551,7 +561,7 @@ export default class FS {
     if (!flag.isWriteable()) {
       throw new ApiError(ErrorCode.EINVAL, 'Flag passed to writeFile must allow for writing.');
     }
-    return assertRoot(this.root).writeFileSync(normalizePath(filename), data, options.encoding, flag, options.mode);
+    return assertRoot(this.root).writeFileSync(normalizePath(filename), data, options.encoding, flag, options.mode, this.cred);
   }
 
   /**
@@ -583,7 +593,7 @@ export default class FS {
       if (!flag.isAppendable()) {
         return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to appendFile must allow for appending.'));
       }
-      assertRoot(this.root).appendFile(normalizePath(filename), data, options.encoding, flag, options.mode, newCb);
+      assertRoot(this.root).appendFile(normalizePath(filename), data, options.encoding, flag, options.mode, this.cred, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -613,7 +623,7 @@ export default class FS {
     if (!flag.isAppendable()) {
       throw new ApiError(ErrorCode.EINVAL, 'Flag passed to appendFile must allow for appending.');
     }
-    return assertRoot(this.root).appendFileSync(normalizePath(filename), data, options.encoding, flag, options.mode);
+    return assertRoot(this.root).appendFileSync(normalizePath(filename), data, options.encoding, flag, options.mode, this.cred);
   }
 
   // FILE DESCRIPTOR METHODS
@@ -1052,7 +1062,7 @@ export default class FS {
     const newCb = wrapCb(cb, 1);
     try {
       path = normalizePath(path);
-      assertRoot(this.root).rmdir(path, newCb);
+      assertRoot(this.root).rmdir(path, this.cred, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1064,7 +1074,7 @@ export default class FS {
    */
   public rmdirSync(path: string): void {
     path = normalizePath(path);
-    return assertRoot(this.root).rmdirSync(path);
+    return assertRoot(this.root).rmdirSync(path, this.cred);
   }
 
   /**
@@ -1081,7 +1091,7 @@ export default class FS {
     const newCb = wrapCb(cb, 1);
     try {
       path = normalizePath(path);
-      assertRoot(this.root).mkdir(path, mode, newCb);
+      assertRoot(this.root).mkdir(path, mode, this.cred, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1093,7 +1103,7 @@ export default class FS {
    * @param mode defaults to `0777`
    */
   public mkdirSync(path: string, mode?: number | string): void {
-    assertRoot(this.root).mkdirSync(normalizePath(path), normalizeMode(mode, 0x1ff));
+    assertRoot(this.root).mkdirSync(normalizePath(path), normalizeMode(mode, 0x1ff), this.cred);
   }
 
   /**
@@ -1107,7 +1117,7 @@ export default class FS {
     const newCb = <(err: ApiError, files?: string[]) => void> wrapCb(cb, 2);
     try {
       path = normalizePath(path);
-      assertRoot(this.root).readdir(path, newCb);
+      assertRoot(this.root).readdir(path, this.cred, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1120,7 +1130,7 @@ export default class FS {
    */
   public readdirSync(path: string): string[] {
     path = normalizePath(path);
-    return assertRoot(this.root).readdirSync(path);
+    return assertRoot(this.root).readdirSync(path, this.cred);
   }
 
   // SYMLINK METHODS
@@ -1136,7 +1146,7 @@ export default class FS {
     try {
       srcpath = normalizePath(srcpath);
       dstpath = normalizePath(dstpath);
-      assertRoot(this.root).link(srcpath, dstpath, newCb);
+      assertRoot(this.root).link(srcpath, dstpath, this.cred, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1150,7 +1160,7 @@ export default class FS {
   public linkSync(srcpath: string, dstpath: string): void {
     srcpath = normalizePath(srcpath);
     dstpath = normalizePath(dstpath);
-    return assertRoot(this.root).linkSync(srcpath, dstpath);
+    return assertRoot(this.root).linkSync(srcpath, dstpath, this.cred);
   }
 
   /**
@@ -1172,7 +1182,7 @@ export default class FS {
       }
       srcpath = normalizePath(srcpath);
       dstpath = normalizePath(dstpath);
-      assertRoot(this.root).symlink(srcpath, dstpath, type, newCb);
+      assertRoot(this.root).symlink(srcpath, dstpath, type, this.cred, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1192,7 +1202,7 @@ export default class FS {
     }
     srcpath = normalizePath(srcpath);
     dstpath = normalizePath(dstpath);
-    return assertRoot(this.root).symlinkSync(srcpath, dstpath, type);
+    return assertRoot(this.root).symlinkSync(srcpath, dstpath, type, this.cred);
   }
 
   /**
@@ -1204,7 +1214,7 @@ export default class FS {
     const newCb = wrapCb(cb, 2);
     try {
       path = normalizePath(path);
-      assertRoot(this.root).readlink(path, newCb);
+      assertRoot(this.root).readlink(path, this.cred, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1217,7 +1227,7 @@ export default class FS {
    */
   public readlinkSync(path: string): string {
     path = normalizePath(path);
-    return assertRoot(this.root).readlinkSync(path);
+    return assertRoot(this.root).readlinkSync(path, this.cred);
   }
 
   // PROPERTY OPERATIONS
@@ -1233,7 +1243,7 @@ export default class FS {
     const newCb = wrapCb(cb, 1);
     try {
       path = normalizePath(path);
-      assertRoot(this.root).chown(path, false, uid, gid, newCb);
+      assertRoot(this.root).chown(path, false, uid, gid, this.cred, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1247,7 +1257,7 @@ export default class FS {
    */
   public chownSync(path: string, uid: number, gid: number): void {
     path = normalizePath(path);
-    assertRoot(this.root).chownSync(path, false, uid, gid);
+    assertRoot(this.root).chownSync(path, false, uid, gid, this.cred);
   }
 
   /**
@@ -1261,7 +1271,7 @@ export default class FS {
     const newCb = wrapCb(cb, 1);
     try {
       path = normalizePath(path);
-      assertRoot(this.root).chown(path, true, uid, gid, newCb);
+      assertRoot(this.root).chown(path, true, uid, gid, this.cred, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1275,7 +1285,7 @@ export default class FS {
    */
   public lchownSync(path: string, uid: number, gid: number): void {
     path = normalizePath(path);
-    assertRoot(this.root).chownSync(path, true, uid, gid);
+    assertRoot(this.root).chownSync(path, true, uid, gid, this.cred);
   }
 
   /**
@@ -1291,7 +1301,7 @@ export default class FS {
       if (numMode < 0) {
         throw new ApiError(ErrorCode.EINVAL, `Invalid mode.`);
       }
-      assertRoot(this.root).chmod(normalizePath(path), false, numMode, newCb);
+      assertRoot(this.root).chmod(normalizePath(path), false, numMode, this.cred, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1308,7 +1318,7 @@ export default class FS {
       throw new ApiError(ErrorCode.EINVAL, `Invalid mode.`);
     }
     path = normalizePath(path);
-    assertRoot(this.root).chmodSync(path, false, numMode);
+    assertRoot(this.root).chmodSync(path, false, numMode, this.cred);
   }
 
   /**
@@ -1324,7 +1334,7 @@ export default class FS {
       if (numMode < 0) {
         throw new ApiError(ErrorCode.EINVAL, `Invalid mode.`);
       }
-      assertRoot(this.root).chmod(normalizePath(path), true, numMode, newCb);
+      assertRoot(this.root).chmod(normalizePath(path), true, numMode, this.cred, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1340,7 +1350,7 @@ export default class FS {
     if (numMode < 1) {
       throw new ApiError(ErrorCode.EINVAL, `Invalid mode.`);
     }
-    assertRoot(this.root).chmodSync(normalizePath(path), true, numMode);
+    assertRoot(this.root).chmodSync(normalizePath(path), true, numMode, this.cred);
   }
 
   /**
@@ -1353,7 +1363,7 @@ export default class FS {
   public utimes(path: string, atime: number | Date, mtime: number | Date, cb: BFSOneArgCallback = nopCb): void {
     const newCb = wrapCb(cb, 1);
     try {
-      assertRoot(this.root).utimes(normalizePath(path), normalizeTime(atime), normalizeTime(mtime), newCb);
+      assertRoot(this.root).utimes(normalizePath(path), normalizeTime(atime), normalizeTime(mtime), this.cred, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1366,7 +1376,7 @@ export default class FS {
    * @param mtime
    */
   public utimesSync(path: string, atime: number | Date, mtime: number | Date): void {
-    assertRoot(this.root).utimesSync(normalizePath(path), normalizeTime(atime), normalizeTime(mtime));
+    assertRoot(this.root).utimesSync(normalizePath(path), normalizeTime(atime), normalizeTime(mtime), this.cred);
   }
 
   /**
@@ -1394,7 +1404,7 @@ export default class FS {
     const newCb = <(err: ApiError, resolvedPath?: string) => any> wrapCb(cb, 2);
     try {
       path = normalizePath(path);
-      assertRoot(this.root).realpath(path, cache, newCb);
+      assertRoot(this.root).realpath(path, cache, this.cred, newCb);
     } catch (e) {
       newCb(e);
     }
@@ -1410,7 +1420,7 @@ export default class FS {
    */
   public realpathSync(path: string, cache: {[path: string]: string} = {}): string {
     path = normalizePath(path);
-    return assertRoot(this.root).realpathSync(path, cache);
+    return assertRoot(this.root).realpathSync(path, cache, this.cred);
   }
 
   public watchFile(filename: string, listener: (curr: Stats, prev: Stats) => void): void;
@@ -1429,14 +1439,34 @@ export default class FS {
     throw new ApiError(ErrorCode.ENOTSUP);
   }
 
+  /**
+   * Asynchronous `access`.
+   * @param path
+   * @param mode
+   * @param callback 
+   */
   public access(path: string, callback: (err: ApiError) => void): void;
   public access(path: string, mode: number, callback: (err: ApiError) => void): void;
-  public access(path: string, arg2: any, cb: (e: ApiError) => void = nopCb): void {
-    throw new ApiError(ErrorCode.ENOTSUP);
+  public access(path: string, arg2: any, callback: (e: ApiError) => void = nopCb): void {
+    const mode = typeof(arg2) === 'number' ? arg2 : FilePerm.READ;
+    callback = typeof(arg2) === 'function' ? arg2 : nopCb;
+    const newCb = <(err: ApiError, resolvedPath?: string) => any> wrapCb(callback, 2);
+    try {
+      path = normalizePath(path);
+      assertRoot(this.root).access(path, mode, this.cred, newCb);
+    } catch (e) {
+      newCb(e);
+    }
   }
 
-  public accessSync(path: string, mode?: number): void {
-    throw new ApiError(ErrorCode.ENOTSUP);
+  /**
+   * Synchronous `access`.
+   * @param path 
+   * @param mode 
+   */
+  public accessSync(path: string, mode: number = 0o600): void {
+    path = normalizePath(path);
+    return assertRoot(this.root).accessSync(path, mode, this.cred);
   }
 
   public createReadStream(path: string, options?: {

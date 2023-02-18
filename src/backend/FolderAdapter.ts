@@ -1,6 +1,7 @@
 import {BaseFileSystem, FileSystem, BFSCallback, FileSystemOptions} from '../core/file_system';
 import * as path from 'path';
 import {ApiError} from '../core/api_error';
+import Cred from '../core/cred';
 
 /**
  * Configuration options for a FolderAdapter file system.
@@ -57,6 +58,19 @@ export default class FolderAdapter extends BaseFileSystem implements FileSystem 
       }
     });
   }
+
+  public static CreateAsync(opts: FolderAdapterOptions): Promise<FolderAdapter> {
+    return new Promise((resolve, reject) => {
+      this.Create(opts, (error, fs) => {
+		if(error || !fs){
+			reject(error);
+		}else{
+			resolve(fs);
+		}
+      });
+    });
+  }
+
   public static isAvailable(): boolean {
     return true;
   }
@@ -81,13 +95,13 @@ export default class FolderAdapter extends BaseFileSystem implements FileSystem 
    * has the given folder.
    */
   private _initialize(cb: (e?: ApiError) => void) {
-    this._wrapped.exists(this._folder, (exists: boolean) => {
+    this._wrapped.exists(this._folder, Cred.Root, (exists: boolean) => {
       if (exists) {
         cb();
       } else if (this._wrapped.isReadOnly()) {
         cb(ApiError.ENOENT(this._folder));
       } else {
-        this._wrapped.mkdir(this._folder, 0x1ff, cb);
+        this._wrapped.mkdir(this._folder, 0x1ff, Cred.Root, cb);
       }
     });
   }

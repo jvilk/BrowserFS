@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import Cred from './cred';
 
 /**
  * Indicates the type of the given file. Applied to 'mode'.
@@ -7,6 +8,15 @@ export enum FileType {
   FILE = 0x8000,
   DIRECTORY = 0x4000,
   SYMLINK = 0xA000
+}
+
+/**
+ * Indicates the different permssions on the file.
+ */
+export enum FilePerm {
+  READ = 0b100,
+  WRITE = 0b10,
+  EXECUTE = 0b1
 }
 
 /**
@@ -22,16 +32,18 @@ export default class Stats implements fs.Stats {
       mode = buffer.readUInt32LE(4),
       atime = buffer.readDoubleLE(8),
       mtime = buffer.readDoubleLE(16),
-      ctime = buffer.readDoubleLE(24);
+      ctime = buffer.readDoubleLE(24),
+      uid = buffer.readUInt32LE(32),
+      gid = buffer.readUInt32LE(36);
 
-    return new Stats(mode & 0xF000, size, mode & 0xFFF, atime, mtime, ctime);
+    return new Stats(mode & 0xF000, size, mode & 0xFFF, atime, mtime, ctime, uid, gid);
   }
 
   /**
    * Clones the stats object.
    */
   public static clone(s: Stats): Stats {
-    return new Stats(s.mode & 0xF000, s.size, s.mode & 0xFFF, s.atimeMs, s.mtimeMs, s.ctimeMs, s.birthtimeMs);
+    return new Stats(s.mode & 0xF000, s.size, s.mode & 0xFFF, s.atimeMs, s.mtimeMs, s.ctimeMs, s.uid, s.gid, s.birthtimeMs);
   }
 
   public blocks: number;
@@ -51,7 +63,6 @@ export default class Stats implements fs.Stats {
   public nlink: number = 1;
   // blocksize for file system I/O
   public blksize: number = 4096;
-  // @todo Maybe support these? atm, it's a one-user filesystem.
   // user ID of owner
   public uid: number = 0;
   // group ID of owner
@@ -89,6 +100,8 @@ export default class Stats implements fs.Stats {
    * @param atimeMs time of last access, in milliseconds since epoch
    * @param mtimeMs time of last modification, in milliseconds since epoch
    * @param ctimeMs time of last time file status was changed, in milliseconds since epoch
+   * @param uid the id of the user that owns the file
+   * @param gid the id of the group that owns the file
    * @param birthtimeMs time of file creation, in milliseconds since epoch
    */
   constructor(
@@ -98,6 +111,8 @@ export default class Stats implements fs.Stats {
     atimeMs?: number,
     mtimeMs?: number,
     ctimeMs?: number,
+    uid?: number,
+    gid?: number,
     birthtimeMs?: number) {
     this.size = size;
     let currentTime = 0;
@@ -122,6 +137,12 @@ export default class Stats implements fs.Stats {
         currentTime = Date.now();
       }
       birthtimeMs = currentTime;
+    }
+    if(typeof(uid) !== 'number') {
+      uid = 0
+    }
+    if(typeof(gid) !== 'number') {
+      gid = 0
     }
     this.atimeMs = atimeMs;
     this.ctimeMs = ctimeMs;
@@ -156,6 +177,8 @@ export default class Stats implements fs.Stats {
     buffer.writeDoubleLE(this.atime.getTime(), 8);
     buffer.writeDoubleLE(this.mtime.getTime(), 16);
     buffer.writeDoubleLE(this.ctime.getTime(), 24);
+    buffer.writeUInt32LE(this.uid, 32);
+    buffer.writeUInt32LE(this.gid, 36);
     return buffer;
   }
 
@@ -181,11 +204,63 @@ export default class Stats implements fs.Stats {
   }
 
   /**
+   * Checks if a given user/group has access to this item
+   * @param mode The request access as 4 bits (unused, read, write, execute)
+   * @param uid The requesting UID
+   * @param gid The requesting GID
+   * @returns [Boolean] True if the request has access, false if the request does not
+   */
+  public hasAccess(mode: number, cred: Cred): boolean {
+    if(cred.euid === 0 || cred.egid === 0){ //Running as root
+      return true;
+    }
+    const perms = this.mode & 0xFFF;
+    let uMode = 0xF, gMode = 0xF, wMode = 0xF;
+    
+    if(cred.euid == this.uid){
+        const uPerms = (0xF00 & perms) >> 8;
+        uMode = (mode ^ uPerms) & mode;
+    }
+    if(cred.egid == this.gid){
+        const gPerms = (0xF0 & perms) >> 4;
+        gMode = (mode ^ gPerms) & mode;
+    }
+    const wPerms = 0xF & perms;
+    wMode = (mode ^ wPerms) & mode;
+    /*
+        Result = 0b0xxx (read, write, execute)
+        If any bits are set that means the request does not have that permission.
+    */
+    const result = uMode & gMode & wMode;
+    return !result
+  }
+
+  /**
+   * Convert the current stats object into a cred object
+   */
+  public getCred(uid: number, gid: number): Cred {
+	return new Cred(uid, gid, this.uid, this.gid, uid, gid);
+  }
+
+  /**
    * Change the mode of the file. We use this helper function to prevent messing
    * up the type of the file, which is encoded in mode.
    */
   public chmod(mode: number): void {
     this.mode = (this.mode & 0xF000) | mode;
+  }
+
+  /**
+   * Change the owner user/group of the file.
+   * This function makes sure it is a valid UID/GID (that is, a 32 unsigned int)
+   */
+  public chown(uid: number, gid: number): void {
+    if(!isNaN(+uid) && 0 <= +uid && +uid < 2 ** 32){
+      this.uid = uid;
+    }
+    if(!isNaN(+gid) && 0 <= +gid && +gid < 2 ** 32){
+      this.gid = gid;
+    }
   }
 
   // We don't support the following types of files.
