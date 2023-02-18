@@ -14,7 +14,7 @@ import * as Errors from './api_error';
 import setImmediate from '../generic/setImmediate';
 import Cred from './cred';
 
-if ((<any> process)['initializeTTYs']) {
+if (process && (<any> process)['initializeTTYs']) {
   (<any> process)['initializeTTYs']();
 }
 
