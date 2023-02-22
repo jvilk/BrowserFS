@@ -1,5 +1,6 @@
 import { basename, dirname, join } from "path";
 import { ApiError, ErrorCode } from "../core/api_error";
+import Cred from "../core/cred";
 import { File } from "../core/file";
 import { FileFlag } from "../core/file_flag";
 import {
@@ -63,7 +64,7 @@ export class FileSystemAccessFile extends PreloadFile<FileSystemAccessFileSystem
 
   public sync(cb: BFSOneArgCallback): void {
     if (this.isDirty()) {
-      this._fs._sync(this.getPath(), this.getBuffer(), this.getStats(), (e?: ApiError) => {
+      this._fs._sync(this.getPath(), this.getBuffer(), this.getStats(), Cred.Root, (e?: ApiError) => {
         if (!e) {
           this.resetDirty();
         }
@@ -124,30 +125,30 @@ export default class FileSystemAccessFileSystem
     return false;
   }
 
-  public _sync(p: string, data: Buffer, stats: Stats, cb: BFSOneArgCallback): void {
-    this.stat(p, false, (err, currentStats) => {
+  public _sync(p: string, data: Buffer, stats: Stats, cred: Cred, cb: BFSOneArgCallback): void {
+    this.stat(p, false, cred, (err, currentStats) => {
       if (stats.mtime !== currentStats!.mtime) {
-        this.writeFile(p, data, null, FileFlag.getFileFlag('w'), currentStats!.mode, cb);
+        this.writeFile(p, data, null, FileFlag.getFileFlag('w'), currentStats!.mode, cred, cb);
       } else {
         cb(err);
       }
     });
   }
 
-  public rename(oldPath: string, newPath: string, cb: BFSOneArgCallback): void {
+  public rename(oldPath: string, newPath: string, cred: Cred, cb: BFSOneArgCallback): void {
     this.getHandle(oldPath, (sourceError, handle) => {
       if (sourceError) { return cb(sourceError); }
       if (handle instanceof FileSystemDirectoryHandle) {
-        this.readdir(oldPath, (readDirError, files = []) => {
+        this.readdir(oldPath, cred, (readDirError, files = []) => {
           if (readDirError) { return cb(readDirError); }
-          this.mkdir(newPath, "wx", (mkdirError) => {
+          this.mkdir(newPath, "wx", cred, (mkdirError) => {
             if (mkdirError) { return cb(mkdirError); }
             if (files.length === 0) {
-              this.unlink(oldPath, cb);
+              this.unlink(oldPath, cred, cb);
             } else {
               files.forEach((file) =>
-                this.rename(join(oldPath, file), join(newPath, file), () =>
-                  this.unlink(oldPath, cb)
+                this.rename(join(oldPath, file), join(newPath, file), cred, () =>
+                  this.unlink(oldPath, cred, cb)
                 )
               );
             }
@@ -174,7 +175,7 @@ export default class FileSystemAccessFileSystem
                               .write(buffer)
                               .then(() => {
                                 writable.close();
-                                this.unlink(oldPath, cb);
+                                this.unlink(oldPath, cred, cb);
                               })
                               .catch(handleError(cb, newPath))
                           )
@@ -197,6 +198,7 @@ export default class FileSystemAccessFileSystem
     encoding: string | null,
     flag: FileFlag,
     mode: number,
+	cred: Cred,	
     cb: BFSCallback<File | undefined>,
     createFile?: boolean
   ): void {
@@ -226,11 +228,11 @@ export default class FileSystemAccessFileSystem
     });
   }
 
-  public createFile(p: string, flag: FileFlag, mode: number, cb: BFSCallback<File>): void {
+  public createFile(p: string, flag: FileFlag, mode: number, cred: Cred, cb: BFSCallback<File>): void {
     this.writeFile(p, emptyBuffer(), null, flag, mode, cb, true);
   }
 
-  public stat(path: string, isLstat: boolean, cb: BFSCallback<Stats>): void {
+  public stat(path: string, isLstat: boolean, cred: Cred, cb: BFSCallback<Stats>): void {
     this.getHandle(path, (error, handle) => {
       if (error) { return cb(error); }
       if (!handle) {
@@ -253,11 +255,11 @@ export default class FileSystemAccessFileSystem
     });
   }
 
-  public exists(p: string, cb: (exists: boolean) => void): void {
+  public exists(p: string, cred: Cred, cb: (exists: boolean) => void): void {
     this.getHandle(p, (error) => cb(error === null));
   }
 
-  public openFile(path: string, flags: FileFlag, cb: BFSCallback<File>): void {
+  public openFile(path: string, flags: FileFlag, cred: Cred, cb: BFSCallback<File>): void {
     this.getHandle(path, (error, handle) => {
       if (error) { return cb(error); }
       if (handle instanceof FileSystemFileHandle) {
@@ -279,7 +281,7 @@ export default class FileSystemAccessFileSystem
     });
   }
 
-  public unlink(path: string, cb: BFSOneArgCallback): void {
+  public unlink(path: string, cred: Cred, cb: BFSOneArgCallback): void {
     this.getHandle(dirname(path), (error, handle) => {
       if (error) { return cb(error); }
       if (handle instanceof FileSystemDirectoryHandle) {
@@ -291,11 +293,11 @@ export default class FileSystemAccessFileSystem
     });
   }
 
-  public rmdir(path: string, cb: BFSOneArgCallback): void {
-    this.unlink(path, cb);
+  public rmdir(path: string, cred: Cred, cb: BFSOneArgCallback): void {
+    this.unlink(path, cred, cb);
   }
 
-  public mkdir(p: string, mode: any, cb: BFSOneArgCallback): void {
+  public mkdir(p: string, mode: any, cred: Cred, cb: BFSOneArgCallback): void {
     const overwrite =
       mode && mode.flag && mode.flag.includes("w") && !mode.flag.includes("x");
 
@@ -314,7 +316,7 @@ export default class FileSystemAccessFileSystem
     });
   }
 
-  public readdir(path: string, cb: BFSCallback<string[]>): void {
+  public readdir(path: string, cred: Cred, cb: BFSCallback<string[]>): void {
     this.getHandle(path, (readError, handle) => {
       if (readError) { return cb(readError); }
       if (handle instanceof FileSystemDirectoryHandle) {
