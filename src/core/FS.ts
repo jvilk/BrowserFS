@@ -181,8 +181,7 @@ export default class FS {
   /**
    * Initializes the FS Modules with the given filesystem
    * @param rootFS the root filesystem of the FS
-   * @param uid the UID to user for interacting with the FS
-   * @param gid the GID to user for interacting with the FS
+   * @param cred the credentials used for interacting with the FS
    * @returns 
    */
   public initialize(rootFS: FileSystem, cred: Cred): FileSystem {
