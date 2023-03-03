@@ -94,7 +94,7 @@ export default class FileSystemAccessFileSystem
     cb(null, new FileSystemAccessFileSystem(handle));
   }
 
-  public static CreateAsync({ handle }: FileSystemAccessFileSystemOptions): Promise<FileSystemAccessFileSystem> {
+  public static CreateAsync(opts: FileSystemAccessFileSystemOptions): Promise<FileSystemAccessFileSystem> {
     return new Promise((resolve, reject) => {
       this.Create(opts, (error, fs) => {
         if(error || !fs){
