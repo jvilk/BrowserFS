@@ -94,6 +94,18 @@ export default class FileSystemAccessFileSystem
     cb(null, new FileSystemAccessFileSystem(handle));
   }
 
+  public static CreateAsync(opts: FileSystemAccessFileSystemOptions): Promise<FileSystemAccessFileSystem> {
+    return new Promise((resolve, reject) => {
+      this.Create(opts, (error, fs) => {
+        if(error || !fs){
+          reject(error);
+        }else{
+          resolve(fs);
+        }
+      });
+    });
+  }
+
   public static isAvailable(): boolean {
     return typeof FileSystemHandle === "function";
   }
@@ -229,7 +241,7 @@ export default class FileSystemAccessFileSystem
   }
 
   public createFile(p: string, flag: FileFlag, mode: number, cred: Cred, cb: BFSCallback<File>): void {
-    this.writeFile(p, emptyBuffer(), null, flag, mode, cb, true);
+    this.writeFile(p, emptyBuffer(), null, flag, mode, cred, cb, true);
   }
 
   public stat(path: string, isLstat: boolean, cred: Cred, cb: BFSCallback<Stats>): void {

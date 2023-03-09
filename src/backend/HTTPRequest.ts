@@ -294,7 +294,6 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
       return cb(ApiError.EACCES(path));
     }
     if (isFileInode<Stats>(inode) || isDirInode<Stats>(inode)) {
-      const stats = inode.getData();
       switch (flags.pathExistsAction()) {
         case ActionType.THROW_EXCEPTION:
         case ActionType.TRUNCATE_FILE:
@@ -343,7 +342,6 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
       throw ApiError.EACCES(path);
     }
     if (isFileInode<Stats>(inode) || isDirInode<Stats>(inode)) {
-      const stats = inode.getData();
       switch (flags.pathExistsAction()) {
         case ActionType.THROW_EXCEPTION:
         case ActionType.TRUNCATE_FILE:
