@@ -3,8 +3,6 @@ doc
 *~
 *.DS_Store
 *.log
-*.json
-!tsconfig.json
 test/fixtures
 test/harness/load_fixtures.ts
 test/harness/factories/workerfs_worker.js*
