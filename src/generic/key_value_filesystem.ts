@@ -594,7 +594,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
         // BASE CASE #1: Return the root's ID.
         return ROOT_NODE_ID;
       } else {
-        // BASE CASE #2: Find the item in the root ndoe.
+        // BASE CASE #2: Find the item in the root node.
         return readDirectory(this.getINode(tx, parent, ROOT_NODE_ID));
       }
     } else {
