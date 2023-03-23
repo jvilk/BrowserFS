@@ -209,7 +209,7 @@ export function checkOptions(fsType: FileSystemConstructor, opts: any, cb: BFSOn
   for (const optName in optsInfo) {
     if (optsInfo.hasOwnProperty(optName)) {
       const opt = optsInfo[optName];
-      const providedValue = opts[optName];
+      const providedValue = opts && opts[optName];
 
       if (providedValue === undefined || providedValue === null) {
         if (!opt.optional) {

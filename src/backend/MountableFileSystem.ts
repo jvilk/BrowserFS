@@ -70,9 +70,9 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
       if (imfs) {
         const fs = new MountableFileSystem(imfs);
         try {
-          Object.keys(opts).forEach((mountPoint) => {
-            fs.mount(mountPoint, opts[mountPoint], Cred.Root);
-          });
+			for(const mountPoint of Object.keys(opts)){
+				fs.mount(mountPoint, opts[mountPoint], Cred.Root);
+			}
         } catch (e) {
           return cb(e);
         }
@@ -124,7 +124,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
     }
     mountPoint = path.resolve(mountPoint);
     if (this.mntMap[mountPoint]) {
-      throw new ApiError(ErrorCode.EINVAL, "Mount point " + mountPoint + " is already taken.");
+      throw new ApiError(ErrorCode.EINVAL, "Mount point " + mountPoint + " is already in use.");
     }
     mkdirpSync(mountPoint, 0x1ff, cred, this.rootFs);
     this.mntMap[mountPoint] = fs;
