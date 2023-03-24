@@ -17,8 +17,13 @@
 			"no-extra-semi": "warn",
 			"no-fallthrough": "off",
 			"no-empty": "warn",
-			"no-case-declarations": "off"
+			"no-case-declarations": "off",
+			"prefer-const": "warn",
+			"no-prototype-builtins": "warn",
+			"@typescript-eslint/no-inferrable-types": "off",
+			"@typescript-eslint/no-this-alias": "off",
+			"@typescript-eslint/ban-types": "warn"
 		},
-		"ignorePatterns": [	"scripts/*.js" ],
+		"ignorePatterns": [	"scripts/*.js", "src/*.config.js" ],
 		"plugins": ["@typescript-eslint"]
 }
