@@ -58,37 +58,39 @@ in place of the actual file system object:
 
 ```javascript
 var Buffer = BrowserFS.BFSRequire('buffer').Buffer;
-BrowserFS.configure({
-  fs: "OverlayFS",
-  options: {
-    readable: {
-      fs: "ZipFS",
-      options: {
-        zipData: Buffer.from(zipDataAsArrayBuffer)
-      }
-    },
-    writable: {
-      fs: "LocalStorage"
-    }
-  }
-}, function(e) {
-
-});
+BrowserFS.configure(
+	{
+		fs: 'OverlayFS',
+		options: {
+			readable: {
+				fs: 'ZipFS',
+				options: {
+					zipData: Buffer.from(zipDataAsArrayBuffer),
+				},
+			},
+			writable: {
+				fs: 'LocalStorage',
+			},
+		},
+	},
+	function (e) {}
+);
 ```
 
 Using this method, it's easy to configure mount points in the `MountableFileSystem`:
 
 ```javascript
-BrowserFS.configure({
-  fs: "MountableFileSystem",
-  options: {
-    '/tmp': { fs: "InMemory" },
-    '/home': { fs: "IndexedDB" },
-    '/mnt/usb0': { fs: "LocalStorage" }
-  }
-}, function(e) {
-
-});
+BrowserFS.configure(
+	{
+		fs: 'MountableFileSystem',
+		options: {
+			'/tmp': { fs: 'InMemory' },
+			'/home': { fs: 'IndexedDB' },
+			'/mnt/usb0': { fs: 'LocalStorage' },
+		},
+	},
+	function (e) {}
+);
 ```
 
 ### Advanced Usage
@@ -96,19 +98,22 @@ BrowserFS.configure({
 If `BrowserFS.configure` is not to your liking, you can manually instantiate file system backends and pass the root backend to BrowserFS via its `BrowserFS.initialize()` function.
 
 ```javascript
-BrowserFS.FileSystem.LocalStorage.Create(function(e, lsfs) {
-  BrowserFS.FileSystem.InMemory.Create(function(e, inMemory) {
-    BrowserFS.FileSystem.IndexedDB.Create({}, function(e, idbfs) {
-      BrowserFS.FileSystem.MountableFileSystem.Create({
-        '/tmp': inMemory,
-        '/home': idbfs,
-        '/mnt/usb0': lsfs
-      }, function(e, mfs) {
-        BrowserFS.initialize(mfs);
-        // BFS is now ready to use!
-      });
-    });
-  });
+BrowserFS.FileSystem.LocalStorage.Create(function (e, lsfs) {
+	BrowserFS.FileSystem.InMemory.Create(function (e, inMemory) {
+		BrowserFS.FileSystem.IndexedDB.Create({}, function (e, idbfs) {
+			BrowserFS.FileSystem.MountableFileSystem.Create(
+				{
+					'/tmp': inMemory,
+					'/home': idbfs,
+					'/mnt/usb0': lsfs,
+				},
+				function (e, mfs) {
+					BrowserFS.initialize(mfs);
+					// BFS is now ready to use!
+				}
+			);
+		});
+	});
 });
 ```
 
@@ -120,9 +125,9 @@ Once you have configured BrowserFS, you can mount it into the Emscripten file sy
 
 **Key:**
 
-* ✓ means 'yes'
-* ✗ means 'no'
-* ? means 'depends on configuration'
+-   ✓ means 'yes'
+-   ✗ means 'no'
+-   ? means 'depends on configuration'
 
 Note that any asynchronous file system can be accessed synchronously using the [AsyncMirror](classes/_backend_asyncmirror_.asyncmirror.html) file system at the cost of preloading the entire file system into some synchronous backend (e.g., `InMemory`).
 

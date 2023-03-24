@@ -1,6 +1,6 @@
-import {BFSCallback, FileSystemOptions} from '../core/file_system';
-import {SyncKeyValueStore, SimpleSyncStore, SyncKeyValueFileSystem, SimpleSyncRWTransaction, SyncKeyValueRWTransaction} from '../generic/key_value_filesystem';
-import {ApiError, ErrorCode} from '../core/api_error';
+import { BFSCallback, FileSystemOptions } from '../core/file_system';
+import { SyncKeyValueStore, SimpleSyncStore, SyncKeyValueFileSystem, SimpleSyncRWTransaction, SyncKeyValueRWTransaction } from '../generic/key_value_filesystem';
+import { ApiError, ErrorCode } from '../core/api_error';
 import global from '../core/global';
 
 /**
@@ -10,71 +10,71 @@ import global from '../core/global';
  * @hidden
  */
 let supportsBinaryString: boolean = false,
-  binaryEncoding: string;
+	binaryEncoding: string;
 try {
-  global.localStorage.setItem("__test__", String.fromCharCode(0xD800));
-  supportsBinaryString = global.localStorage.getItem("__test__") === String.fromCharCode(0xD800);
+	global.localStorage.setItem('__test__', String.fromCharCode(0xd800));
+	supportsBinaryString = global.localStorage.getItem('__test__') === String.fromCharCode(0xd800);
 } catch (e) {
-  // IE throws an exception.
-  supportsBinaryString = false;
+	// IE throws an exception.
+	supportsBinaryString = false;
 }
 binaryEncoding = supportsBinaryString ? 'binary_string' : 'binary_string_ie';
 if (!Buffer.isEncoding(binaryEncoding)) {
-  // Fallback for non BrowserFS implementations of buffer that lack a
-  // binary_string format.
-  binaryEncoding = "base64";
+	// Fallback for non BrowserFS implementations of buffer that lack a
+	// binary_string format.
+	binaryEncoding = 'base64';
 }
 
 /**
  * A synchronous key-value store backed by localStorage.
  */
 export class LocalStorageStore implements SyncKeyValueStore, SimpleSyncStore {
-  public name(): string {
-    return LocalStorageFileSystem.Name;
-  }
+	public name(): string {
+		return LocalStorageFileSystem.Name;
+	}
 
-  public clear(): void {
-    global.localStorage.clear();
-  }
+	public clear(): void {
+		global.localStorage.clear();
+	}
 
-  public beginTransaction(type: string): SyncKeyValueRWTransaction {
-    // No need to differentiate.
-    return new SimpleSyncRWTransaction(this);
-  }
+	public beginTransaction(type: string): SyncKeyValueRWTransaction {
+		// No need to differentiate.
+		return new SimpleSyncRWTransaction(this);
+	}
 
-  public get(key: string): Buffer | undefined {
-    try {
-      const data = global.localStorage.getItem(key);
-      if (data !== null) {
-        return Buffer.from(data, binaryEncoding);
-      }
-    } catch (e) {
-      // Do nothing.
-    }
-    // Key doesn't exist, or a failure occurred.
-    return undefined;
-  }
+	public get(key: string): Buffer | undefined {
+		try {
+			const data = global.localStorage.getItem(key);
+			if (data !== null) {
+				return Buffer.from(data, binaryEncoding);
+			}
+		} catch (e) {
+			// Do nothing.
+		}
+		// Key doesn't exist, or a failure occurred.
+		return undefined;
+	}
 
-  public put(key: string, data: Buffer, overwrite: boolean): boolean {
-    try {
-      if (!overwrite && global.localStorage.getItem(key) !== null) {
-        // Don't want to overwrite the key!
-        return false;
-      }
-      global.localStorage.setItem(key, data.toString(binaryEncoding));
-      return true;
-    } catch (e) {
-      throw new ApiError(ErrorCode.ENOSPC, "LocalStorage is full.");
-    }
-  }
+	public put(key: string, data: Buffer, overwrite: boolean): boolean {
+		try {
+			if (!overwrite && global.localStorage.getItem(key) !== null) {
+				// Don't want to overwrite the key!
+				return false;
+			}
+			global.localStorage.setItem(key, data.toString(binaryEncoding));
+			return true;
+		} catch (e) {
+			throw new ApiError(ErrorCode.ENOSPC, 'LocalStorage is full.');
+		}
+	}
 
-  public del(key: string): void {
-    try {
-      global.localStorage.removeItem(key);
-    } catch (e) {
-      throw new ApiError(ErrorCode.EIO, "Unable to delete key " + key + ": " + e);
-    }
-  }
+	public del(key: string): void {
+		try {
+			global.localStorage.removeItem(key);
+		} catch (e) {
+			throw new ApiError(ErrorCode.EIO, 'Unable to delete key ' + key + ': ' + e);
+		}
+	}
 }
 
 /**
@@ -82,34 +82,36 @@ export class LocalStorageStore implements SyncKeyValueStore, SimpleSyncStore {
  * LocalStorageStore to our SyncKeyValueFileSystem.
  */
 export default class LocalStorageFileSystem extends SyncKeyValueFileSystem {
-  public static readonly Name = "LocalStorage";
+	public static readonly Name = 'LocalStorage';
 
-  public static readonly Options: FileSystemOptions = {};
+	public static readonly Options: FileSystemOptions = {};
 
-  /**
-   * Creates a LocalStorageFileSystem instance.
-   */
-  public static Create(options: any, cb: BFSCallback<LocalStorageFileSystem>): void {
-    cb(null, new LocalStorageFileSystem());
-  }
+	/**
+	 * Creates a LocalStorageFileSystem instance.
+	 */
+	public static Create(options: any, cb: BFSCallback<LocalStorageFileSystem>): void {
+		cb(null, new LocalStorageFileSystem());
+	}
 
-  public static CreateAsync(opts: any): Promise<LocalStorageFileSystem> {
-    return new Promise((resolve, reject) => {
-      this.Create(opts, (error, fs) => {
-		if(error || !fs){
-			reject(error);
-		}else{
-			resolve(fs);
-		}
-      });
-    });
-  }
+	public static CreateAsync(opts: any): Promise<LocalStorageFileSystem> {
+		return new Promise((resolve, reject) => {
+			this.Create(opts, (error, fs) => {
+				if (error || !fs) {
+					reject(error);
+				} else {
+					resolve(fs);
+				}
+			});
+		});
+	}
 
-  public static isAvailable(): boolean {
-    return typeof global.localStorage !== 'undefined';
-  }
-  /**
-   * Creates a new LocalStorage file system using the contents of `localStorage`.
-   */
-  private constructor() { super({ store: new LocalStorageStore() }); }
+	public static isAvailable(): boolean {
+		return typeof global.localStorage !== 'undefined';
+	}
+	/**
+	 * Creates a new LocalStorage file system using the contents of `localStorage`.
+	 */
+	private constructor() {
+		super({ store: new LocalStorageStore() });
+	}
 }
