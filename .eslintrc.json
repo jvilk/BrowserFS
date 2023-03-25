@@ -11,7 +11,7 @@
 		},
 		"rules": {
 			"no-useless-escape": "warn",
-			"no-unused-vars": "warn",
+			"no-unused-vars": "off",
 			"no-mixed-spaces-and-tabs": "warn",
 			"no-unreachable": "warn",
 			"no-extra-semi": "warn",
@@ -20,6 +20,7 @@
 			"no-case-declarations": "off",
 			"prefer-const": "warn",
 			"no-prototype-builtins": "warn",
+			"@typescript-eslint/no-unused-vars": "warn",
 			"@typescript-eslint/no-inferrable-types": "off",
 			"@typescript-eslint/no-this-alias": "off",
 			"@typescript-eslint/ban-types": "warn"
