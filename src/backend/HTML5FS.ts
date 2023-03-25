@@ -6,7 +6,6 @@ import { default as Stats, FileType } from '../core/node_fs_stats';
 import { File as IFile } from '../core/file';
 import * as path from 'path';
 import global from '../core/global';
-import { each as asyncEach } from 'async';
 import { buffer2ArrayBuffer, arrayBuffer2Buffer } from '../core/util';
 import Cred from '../core/cred';
 /**
@@ -242,31 +241,18 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
 			if (err) {
 				mainCb(err);
 			} else {
-				// Called when every entry has been operated on
-				const finished = (er: any): void => {
-					if (err) {
-						mainCb(err);
-					} else {
-						mainCb();
-					}
-				};
 				// Removes files and recursively removes directories
-				const deleteEntry = (entry: Entry, cb: (e?: any) => void): void => {
-					const succ = () => {
-						cb();
-					};
-					const error = (err: DOMException) => {
-						cb(convertError(err, entry.fullPath, !entry.isDirectory));
-					};
+				Promise.all(entries!.map(entry => new Promise((resolve: BFSOneArgCallback, reject) => {
 					if (isDirectoryEntry(entry)) {
-						entry.removeRecursively(succ, error);
+						entry.removeRecursively(resolve, (err: DOMException) => reject({ err, entry }));
 					} else {
-						entry.remove(succ, error);
+						entry.remove(resolve, (err: DOMException) => reject({ err, entry }));
 					}
-				};
-				// Loop through the entries and remove them, then call the callback
-				// when they're all finished.
-				asyncEach(entries!, deleteEntry, finished);
+				})))
+				.then(() => mainCb())
+				.catch(({err, entry }: { err: DOMException, entry: Entry }) => {
+					mainCb(convertError(err, entry.fullPath, !entry.isDirectory))
+				});
 			}
 		});
 	}
