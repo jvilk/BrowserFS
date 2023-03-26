@@ -188,7 +188,7 @@ export function checkOptions(fsType: FileSystemConstructor, opts: any, cb: BFSOn
 
 	// Check for required options.
 	for (const optName in optsInfo) {
-		if (optsInfo.hasOwnProperty(optName)) {
+		if (Object.prototype.hasOwnProperty.call(optsInfo, optName)) {
 			const opt = optsInfo[optName];
 			const providedValue = opts && opts[optName];
 

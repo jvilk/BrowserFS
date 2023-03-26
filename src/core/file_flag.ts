@@ -31,7 +31,7 @@ export enum ActionType {
  */
 export class FileFlag {
 	// Contains cached FileMode instances.
-	private static flagCache: { [mode: string]: FileFlag } = {};
+	private static flagCache: Map<string, FileFlag> = new Map();
 	// Array of valid mode strings.
 	private static validFlagStrs = ['r', 'r+', 'rs', 'rs+', 'w', 'wx', 'w+', 'wx+', 'a', 'ax', 'a+', 'ax+'];
 
@@ -43,10 +43,10 @@ export class FileFlag {
 	 */
 	public static getFileFlag(flagStr: string): FileFlag {
 		// Check cache first.
-		if (FileFlag.flagCache.hasOwnProperty(flagStr)) {
-			return FileFlag.flagCache[flagStr];
+		if (!FileFlag.flagCache.has(flagStr)) {
+			FileFlag.flagCache.set(flagStr, new FileFlag(flagStr));
 		}
-		return (FileFlag.flagCache[flagStr] = new FileFlag(flagStr));
+		return FileFlag.flagCache.get(flagStr);
 	}
 
 	private flagStr: string;

@@ -27,7 +27,7 @@ export class FileIndex<T> {
 			const tree = next![1];
 			const parent = next![2];
 			for (const node in tree) {
-				if (tree.hasOwnProperty(node)) {
+				if (Object.prototype.hasOwnProperty.call(tree, node)) {
 					const children = tree[node];
 					const name = `${pwd}/${node}`;
 					if (children) {
@@ -65,7 +65,7 @@ export class FileIndex<T> {
 	 */
 	public fileIterator<T>(cb: (file: T | null) => void): void {
 		for (const path in this._index) {
-			if (this._index.hasOwnProperty(path)) {
+			if (Object.prototype.hasOwnProperty.call(this._index, path)) {
 				const dir = this._index[path];
 				const files = dir.getListing();
 				for (const file of files) {
@@ -99,7 +99,7 @@ export class FileIndex<T> {
 		}
 
 		// Check if it already exists.
-		if (this._index.hasOwnProperty(path)) {
+		if (Object.prototype.hasOwnProperty.call(this._index, path)) {
 			return this._index[path] === inode;
 		}
 

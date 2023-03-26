@@ -2,7 +2,7 @@
 /**
  * @hidden
  */
-let bfsSetImmediate: (cb: Function) => any;
+let bfsSetImmediate: (cb: () => any) => any;
 if (typeof setImmediate !== 'undefined') {
 	bfsSetImmediate = setImmediate;
 } else {

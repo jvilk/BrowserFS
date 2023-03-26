@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+// disable no-unused-vars since BaseFileSystem uses them a lot
+
 import { ApiError, ErrorCode } from './api_error';
 import Stats from './node_fs_stats';
 import { File } from './file';
@@ -642,8 +645,6 @@ export class BaseFileSystem {
 		// Need to safely close FD, regardless of whether or not truncate succeeds.
 		try {
 			fd.truncateSync(len);
-		} catch (e) {
-			throw e;
 		} finally {
 			fd.closeSync();
 		}
