@@ -111,8 +111,7 @@
     "format": "npm run format:check && npm run format:fix"
   },
   "dependencies": {
-    "async": "~2.6.1",
-    "pako": "~1.0.6"
+    "async": "~2.6.1"
   },
   "browserslist": "> 0.25%, not dead"
 }

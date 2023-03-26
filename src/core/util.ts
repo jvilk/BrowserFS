@@ -33,14 +33,6 @@ export const isIE: boolean = typeof navigator !== 'undefined' && !!(/(msie) ([\w
 export const isWebWorker: boolean = typeof window === 'undefined';
 
 /**
- * @hidden
- */
-export interface Arrayish<T> {
-	[idx: number]: T;
-	length: number;
-}
-
-/**
  * Throws an exception. Called on code paths that should be impossible.
  * @hidden
  */
@@ -88,21 +80,6 @@ export function buffer2Uint8array(buff: Buffer): Uint8Array {
 		// Uint8Arrays can be constructed from arrayish numbers.
 		// At this point, we assume this isn't a BFS array.
 		return new Uint8Array(buff);
-	}
-}
-
-/**
- * Converts the given arrayish object into a Buffer. Attempts to
- * be zero-copy.
- * @hidden
- */
-export function arrayish2Buffer(arr: Arrayish<number>): Buffer {
-	if (arr instanceof Buffer) {
-		return arr;
-	} else if (arr instanceof Uint8Array) {
-		return uint8Array2Buffer(arr);
-	} else {
-		return Buffer.from(<number[]>arr);
 	}
 }
 
