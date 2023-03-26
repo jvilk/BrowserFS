@@ -5,7 +5,6 @@ import { FileFlag, ActionType } from '../core/file_flag';
 import { default as Stats, FileType } from '../core/node_fs_stats';
 import { File as IFile } from '../core/file';
 import * as path from 'path';
-import global from '../core/global';
 import { buffer2ArrayBuffer, arrayBuffer2Buffer } from '../core/util';
 import Cred from '../core/cred';
 /**
@@ -19,7 +18,7 @@ function isDirectoryEntry(entry: Entry): entry is DirectoryEntry {
  * @hidden
  */
 const _getFS: (type: number, size: number, successCallback: FileSystemCallback, errorCallback?: ErrorCallback) => void =
-	global.webkitRequestFileSystem || global.requestFileSystem || null;
+	globalThis.webkitRequestFileSystem || globalThis.requestFileSystem || null;
 
 /**
  * @hidden
@@ -32,10 +31,10 @@ function _requestQuota(type: number, size: number, success: (size: number) => vo
 	// present in the DefinitelyTyped TypeScript typings for FileSystem.
 	if (typeof (<any>navigator)['webkitPersistentStorage'] !== 'undefined') {
 		switch (type) {
-			case global.PERSISTENT:
+			case globalThis.PERSISTENT:
 				(<any>navigator).webkitPersistentStorage.requestQuota(size, success, errorCallback);
 				break;
-			case global.TEMPORARY:
+			case globalThis.TEMPORARY:
 				(<any>navigator).webkitTemporaryStorage.requestQuota(size, success, errorCallback);
 				break;
 			default:
@@ -43,7 +42,7 @@ function _requestQuota(type: number, size: number, success: (size: number) => vo
 				break;
 		}
 	} else {
-		(<any>global).webkitStorageInfo.requestQuota(type, size, success, errorCallback);
+		(<any>globalThis).webkitStorageInfo.requestQuota(type, size, success, errorCallback);
 	}
 }
 
@@ -203,7 +202,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
 	 * @param size storage quota to request, in megabytes. Allocated value may be less.
 	 * @param type window.PERSISTENT or window.TEMPORARY. Defaults to PERSISTENT.
 	 */
-	private constructor(size: number = 5, type: number = global.PERSISTENT) {
+	private constructor(size: number = 5, type: number = globalThis.PERSISTENT) {
 		super();
 		// Convert MB to bytes.
 		this.size = 1024 * 1024 * size;
@@ -495,7 +494,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
 		const error = (err: DOMException): void => {
 			cb(convertError(err, '/', true));
 		};
-		if (this.type === global.PERSISTENT) {
+		if (this.type === globalThis.PERSISTENT) {
 			_requestQuota(
 				this.type,
 				this.size,

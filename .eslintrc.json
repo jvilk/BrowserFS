@@ -23,7 +23,8 @@
 			"@typescript-eslint/no-unused-vars": "warn",
 			"@typescript-eslint/no-inferrable-types": "off",
 			"@typescript-eslint/no-this-alias": "off",
-			"@typescript-eslint/ban-types": "warn"
+			"@typescript-eslint/ban-types": "warn",
+			"@typescript-eslint/triple-slash-reference": "warn"
 		},
 		"ignorePatterns": [	"scripts/*.js", "src/*.config.js" ],
 		"plugins": ["@typescript-eslint"]

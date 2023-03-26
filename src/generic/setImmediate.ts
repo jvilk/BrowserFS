@@ -1,4 +1,3 @@
-import global from '../core/global';
 
 /**
  * @hidden
@@ -7,7 +6,7 @@ let bfsSetImmediate: (cb: Function) => any;
 if (typeof setImmediate !== 'undefined') {
 	bfsSetImmediate = setImmediate;
 } else {
-	const gScope = global;
+	const gScope = globalThis;
 	const timeouts: (() => void)[] = [];
 	const messageName = 'zero-timeout-message';
 	const canUsePostMessage = function () {

@@ -1,7 +1,6 @@
 import { BFSCallback, FileSystemOptions } from '../core/file_system';
 import { SyncKeyValueStore, SimpleSyncStore, SyncKeyValueFileSystem, SimpleSyncRWTransaction, SyncKeyValueRWTransaction } from '../generic/key_value_filesystem';
 import { ApiError, ErrorCode } from '../core/api_error';
-import global from '../core/global';
 
 /**
  * Some versions of FF and all versions of IE do not support the full range of
@@ -12,8 +11,8 @@ import global from '../core/global';
 let supportsBinaryString: boolean = false,
 	binaryEncoding: string;
 try {
-	global.localStorage.setItem('__test__', String.fromCharCode(0xd800));
-	supportsBinaryString = global.localStorage.getItem('__test__') === String.fromCharCode(0xd800);
+	globalThis.localStorage.setItem('__test__', String.fromCharCode(0xd800));
+	supportsBinaryString = globalThis.localStorage.getItem('__test__') === String.fromCharCode(0xd800);
 } catch (e) {
 	// IE throws an exception.
 	supportsBinaryString = false;
@@ -34,7 +33,7 @@ export class LocalStorageStore implements SyncKeyValueStore, SimpleSyncStore {
 	}
 
 	public clear(): void {
-		global.localStorage.clear();
+		globalThis.localStorage.clear();
 	}
 
 	public beginTransaction(type: string): SyncKeyValueRWTransaction {
@@ -44,7 +43,7 @@ export class LocalStorageStore implements SyncKeyValueStore, SimpleSyncStore {
 
 	public get(key: string): Buffer | undefined {
 		try {
-			const data = global.localStorage.getItem(key);
+			const data = globalThis.localStorage.getItem(key);
 			if (data !== null) {
 				return Buffer.from(data, binaryEncoding);
 			}
@@ -57,11 +56,11 @@ export class LocalStorageStore implements SyncKeyValueStore, SimpleSyncStore {
 
 	public put(key: string, data: Buffer, overwrite: boolean): boolean {
 		try {
-			if (!overwrite && global.localStorage.getItem(key) !== null) {
+			if (!overwrite && globalThis.localStorage.getItem(key) !== null) {
 				// Don't want to overwrite the key!
 				return false;
 			}
-			global.localStorage.setItem(key, data.toString(binaryEncoding));
+			globalThis.localStorage.setItem(key, data.toString(binaryEncoding));
 			return true;
 		} catch (e) {
 			throw new ApiError(ErrorCode.ENOSPC, 'LocalStorage is full.');
@@ -70,7 +69,7 @@ export class LocalStorageStore implements SyncKeyValueStore, SimpleSyncStore {
 
 	public del(key: string): void {
 		try {
-			global.localStorage.removeItem(key);
+			globalThis.localStorage.removeItem(key);
 		} catch (e) {
 			throw new ApiError(ErrorCode.EIO, 'Unable to delete key ' + key + ': ' + e);
 		}
@@ -106,7 +105,7 @@ export default class LocalStorageFileSystem extends SyncKeyValueFileSystem {
 	}
 
 	public static isAvailable(): boolean {
-		return typeof global.localStorage !== 'undefined';
+		return typeof globalThis.localStorage !== 'undefined';
 	}
 	/**
 	 * Creates a new LocalStorage file system using the contents of `localStorage`.
