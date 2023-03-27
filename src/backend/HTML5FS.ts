@@ -54,11 +54,11 @@ function _toArray(list?: any[]): any[] {
 }
 
 /**
- * Converts the given DOMError into an appropriate ApiError.
- * @url https://developer.mozilla.org/en-US/docs/Web/API/DOMError
+ * Converts the given DOMException into an appropriate ApiError.
+ * @url https://developer.mozilla.org/en-US/docs/Web/API/DOMException
  * @hidden
  */
-function convertError(err: DOMError, p: string, expectedDir: boolean): ApiError {
+function convertError(err: DOMException, p: string, expectedDir: boolean): ApiError {
 	switch (err.name) {
 		/* The user agent failed to create a file or directory due to the existence of a file or
         directory with the same path.  */
@@ -359,7 +359,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
 	}
 
 	public open(p: string, flags: FileFlag, mode: number, cred: Cred, cb: BFSCallback<IFile>): void {
-		// XXX: err is a DOMError
+		// XXX: err is a DOMException
 		const error = (err: any): void => {
 			if (err.name === 'InvalidModificationError' && flags.isExclusive()) {
 				cb(ApiError.EEXIST(p));
