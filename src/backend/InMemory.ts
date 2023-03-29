@@ -5,13 +5,13 @@ import { SyncKeyValueStore, SimpleSyncStore, SimpleSyncRWTransaction, SyncKeyVal
  * A simple in-memory key-value store backed by a JavaScript object.
  */
 export class InMemoryStore implements SyncKeyValueStore, SimpleSyncStore {
-	private store: { [key: string]: Buffer } = {};
+	private store: Map<string, Buffer> = new Map<string, Buffer>();
 
 	public name() {
 		return InMemoryFileSystem.Name;
 	}
 	public clear() {
-		this.store = {};
+		this.store.clear();
 	}
 
 	public beginTransaction(type: string): SyncKeyValueRWTransaction {
@@ -19,19 +19,19 @@ export class InMemoryStore implements SyncKeyValueStore, SimpleSyncStore {
 	}
 
 	public get(key: string): Buffer {
-		return this.store[key];
+		return this.store.get(key);
 	}
 
 	public put(key: string, data: Buffer, overwrite: boolean): boolean {
-		if (!overwrite && this.store.hasOwnProperty(key)) {
+		if (!overwrite && this.store.has(key)) {
 			return false;
 		}
-		this.store[key] = data;
+		this.store.set(key, data);
 		return true;
 	}
 
 	public del(key: string): void {
-		delete this.store[key];
+		this.store.delete(key);
 	}
 }
 
