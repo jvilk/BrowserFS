@@ -387,7 +387,7 @@ interface IAPIRequest extends IBrowserFSMessage {
  * @hidden
  */
 function isAPIRequest(data: any): data is IAPIRequest {
-	return data && typeof data === 'object' && Object.prototype.hasOwnProperty(data, 'browserfsMessage') && data['browserfsMessage'];
+	return data && typeof data === 'object' && Object.prototype.hasOwnProperty.call(data, 'browserfsMessage') && data['browserfsMessage'];
 }
 
 /**
@@ -402,7 +402,7 @@ interface IAPIResponse extends IBrowserFSMessage {
  * @hidden
  */
 function isAPIResponse(data: any): data is IAPIResponse {
-	return data && typeof data === 'object' && Object.prototype.hasOwnProperty(data, 'browserfsMessage') && data['browserfsMessage'];
+	return data && typeof data === 'object' && Object.prototype.hasOwnProperty.call(data, 'browserfsMessage') && data['browserfsMessage'];
 }
 
 /**
