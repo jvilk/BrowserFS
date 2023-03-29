@@ -18,10 +18,9 @@ const _fsMock: FSModule = <any>{};
  * @hidden
  */
 const fsProto = FS.prototype;
-Object.keys(fsProto).forEach((...args) => {
-	const key = args[0];
+Object.keys(fsProto).forEach((key) => {
 	if (typeof fs[key] === 'function') {
-		(<any>_fsMock)[key] = function () {
+		(<any>_fsMock)[key] = function (...args) {
 			return (<Function>fs[key]).apply(fs, args);
 		};
 	} else {
