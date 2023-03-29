@@ -58,6 +58,7 @@
     "isomorphic-fetch": "~2.2.1",
     "npm-run-all": "~4.1.3",
     "object-wrapper": "~1.0.1",
+    "prettier": "^2.8.7",
     "remap-istanbul": "~0.11.1",
     "rimraf": "~2.6.2",
     "rollup": "^2.13.1",
@@ -103,16 +104,14 @@
     "test:prepare": "npm-run-all build:scripts script:make_fixture_loader script:make_test_launcher test:build script:make_zip_fixtures script:make_http_index",
     "test": "npm-run-all test:prepare test:karma",
     "watch-test": "npm-run-all test:prepare --parallel watch:scripts test:watch test:karma",
-    "prepare": "npm run dist",
+    "prepublishOnly": "npm run dist",
     "docs": "typedoc --mode modules --out doc --excludePrivate --readme src/DOCS.md --name BrowserFS --module umd --ignoreCompilerErrors src",
     "format:check": "prettier --check src",
     "format:fix": "prettier --write src",
     "format": "npm run format:check && npm run format:fix"
   },
   "dependencies": {
-    "async": "~2.6.1",
-    "pako": "~1.0.6",
-    "prettier": "^2.8.4"
+    "async": "~2.6.1"
   },
   "browserslist": "> 0.25%, not dead"
 }

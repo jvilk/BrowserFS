@@ -99,10 +99,10 @@ export class ApiError extends Error implements NodeJS.ErrnoException {
 
 	public errno: ErrorCode;
 	public code: string;
-	public path: string | undefined;
+	public path?: string;
 	// Unsupported.
 	public syscall: string = '';
-	public stack: string | undefined;
+	public stack?: string;
 
 	/**
 	 * Represents a BrowserFS error. Passed back to applications after a failed
@@ -119,7 +119,6 @@ export class ApiError extends Error implements NodeJS.ErrnoException {
 		this.errno = type;
 		this.code = ErrorCode[type];
 		this.path = path;
-		this.stack = new Error().stack;
 		this.message = `Error: ${this.code}: ${message}${this.path ? `, '${this.path}'` : ''}`;
 	}
 

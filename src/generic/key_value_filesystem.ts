@@ -283,6 +283,10 @@ export class SimpleSyncRWTransaction implements SyncKeyValueRWTransaction {
 		}
 	}
 
+	private _has(key: string){
+		return Object.prototype.hasOwnProperty.call(this.originalData, key);
+	}
+
 	/**
 	 * Stashes given key value pair into `originalData` if it doesn't already
 	 * exist. Allows us to stash values the program is requesting anyway to
@@ -291,7 +295,7 @@ export class SimpleSyncRWTransaction implements SyncKeyValueRWTransaction {
 	 */
 	private stashOldValue(key: string, value: Buffer | undefined) {
 		// Keep only the earliest value in the transaction.
-		if (!this.originalData.hasOwnProperty(key)) {
+		if (!this._has(key)) {
 			this.originalData[key] = value;
 		}
 	}
@@ -303,7 +307,7 @@ export class SimpleSyncRWTransaction implements SyncKeyValueRWTransaction {
 	private markModified(key: string) {
 		if (this.modifiedKeys.indexOf(key) === -1) {
 			this.modifiedKeys.push(key);
-			if (!this.originalData.hasOwnProperty(key)) {
+			if (!this._has(key)) {
 				this.originalData[key] = this.store.get(key);
 			}
 		}
@@ -751,7 +755,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
 		// Get file inode.
 		const fileNode = this.getINode(tx, p, fileNodeId);
 
-		if (fileNode.toStats().hasAccess(0b0100 /* Write */, cred)) {
+		if (!fileNode.toStats().hasAccess(FilePerm.WRITE, cred)) {
 			throw ApiError.EACCES(p);
 		}
 
@@ -980,7 +984,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
 		 */
 		const theOleSwitcharoo = (): void => {
 			// Sanity check: Ensure both paths are present, and no error has occurred.
-			if (errorOccurred || !lists.hasOwnProperty(oldParent) || !lists.hasOwnProperty(newParent)) {
+			if (errorOccurred || !Object.prototype.hasOwnProperty.call(lists, oldParent) || !Object.prototype.hasOwnProperty.call(lists, newParent)) {
 				return;
 			}
 			const oldParentList = lists[oldParent],

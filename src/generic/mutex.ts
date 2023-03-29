@@ -1,14 +1,15 @@
 import setImmediate from '../generic/setImmediate';
 
+export type MutexCallback = () => void;
 /**
  * Non-recursive mutex
  * @hidden
  */
 export default class Mutex {
 	private _locked: boolean = false;
-	private _waiters: Function[] = [];
+	private _waiters: MutexCallback[] = [];
 
-	public lock(cb: Function): void {
+	public lock(cb: MutexCallback): void {
 		if (this._locked) {
 			this._waiters.push(cb);
 			return;

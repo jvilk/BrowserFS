@@ -1,7 +1,6 @@
 import { BFSOneArgCallback, BFSCallback, FileSystemOptions } from '../core/file_system';
 import { AsyncKeyValueROTransaction, AsyncKeyValueRWTransaction, AsyncKeyValueStore, AsyncKeyValueFileSystem } from '../generic/key_value_filesystem';
 import { ApiError, ErrorCode } from '../core/api_error';
-import global from '../core/global';
 import { arrayBuffer2Buffer, buffer2ArrayBuffer } from '../core/util';
 /**
  * Get the indexedDB constructor for the current browser.
@@ -9,7 +8,7 @@ import { arrayBuffer2Buffer, buffer2ArrayBuffer } from '../core/util';
  */
 const indexedDB: IDBFactory = (() => {
 	try {
-		return global.indexedDB || (<any>global).mozIndexedDB || (<any>global).webkitIndexedDB || global.msIndexedDB;
+		return globalThis.indexedDB || (<any>globalThis).mozIndexedDB || (<any>globalThis).webkitIndexedDB || globalThis.msIndexedDB;
 	} catch {
 		return null;
 	}

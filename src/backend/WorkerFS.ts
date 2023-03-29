@@ -5,7 +5,6 @@ import { buffer2ArrayBuffer, arrayBuffer2Buffer, emptyBuffer } from '../core/uti
 import { File, BaseFile } from '../core/file';
 import { default as Stats } from '../core/node_fs_stats';
 import PreloadFile from '../generic/preload_file';
-import global from '../core/global';
 import fs from '../core/node_fs';
 import Cred from '../core/cred';
 
@@ -280,7 +279,7 @@ function errorLocal2Remote(e: Error): IErrorArgument {
 function errorRemote2Local(e: IErrorArgument): Error {
 	let cnstr: {
 		new (msg: string): Error;
-	} = global[e.name];
+	} = globalThis[e.name];
 	if (typeof cnstr !== 'function') {
 		cnstr = Error;
 	}
@@ -388,7 +387,7 @@ interface IAPIRequest extends IBrowserFSMessage {
  * @hidden
  */
 function isAPIRequest(data: any): data is IAPIRequest {
-	return data && typeof data === 'object' && data.hasOwnProperty('browserfsMessage') && data['browserfsMessage'];
+	return data && typeof data === 'object' && Object.prototype.hasOwnProperty.call(data, 'browserfsMessage') && data['browserfsMessage'];
 }
 
 /**
@@ -403,7 +402,7 @@ interface IAPIResponse extends IBrowserFSMessage {
  * @hidden
  */
 function isAPIResponse(data: any): data is IAPIResponse {
-	return data && typeof data === 'object' && data.hasOwnProperty('browserfsMessage') && data['browserfsMessage'];
+	return data && typeof data === 'object' && Object.prototype.hasOwnProperty.call(data, 'browserfsMessage') && data['browserfsMessage'];
 }
 
 /**

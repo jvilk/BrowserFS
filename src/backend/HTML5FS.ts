@@ -5,7 +5,6 @@ import { FileFlag, ActionType } from '../core/file_flag';
 import { default as Stats, FileType } from '../core/node_fs_stats';
 import { File as IFile } from '../core/file';
 import * as path from 'path';
-import global from '../core/global';
 import { buffer2ArrayBuffer, arrayBuffer2Buffer } from '../core/util';
 import Cred from '../core/cred';
 /**
@@ -19,7 +18,7 @@ function isDirectoryEntry(entry: Entry): entry is DirectoryEntry {
  * @hidden
  */
 const _getFS: (type: number, size: number, successCallback: FileSystemCallback, errorCallback?: ErrorCallback) => void =
-	global.webkitRequestFileSystem || global.requestFileSystem || null;
+	globalThis.webkitRequestFileSystem || globalThis.requestFileSystem || null;
 
 /**
  * @hidden
@@ -32,10 +31,10 @@ function _requestQuota(type: number, size: number, success: (size: number) => vo
 	// present in the DefinitelyTyped TypeScript typings for FileSystem.
 	if (typeof (<any>navigator)['webkitPersistentStorage'] !== 'undefined') {
 		switch (type) {
-			case global.PERSISTENT:
+			case globalThis.PERSISTENT:
 				(<any>navigator).webkitPersistentStorage.requestQuota(size, success, errorCallback);
 				break;
-			case global.TEMPORARY:
+			case globalThis.TEMPORARY:
 				(<any>navigator).webkitTemporaryStorage.requestQuota(size, success, errorCallback);
 				break;
 			default:
@@ -43,7 +42,7 @@ function _requestQuota(type: number, size: number, success: (size: number) => vo
 				break;
 		}
 	} else {
-		(<any>global).webkitStorageInfo.requestQuota(type, size, success, errorCallback);
+		(<any>globalThis).webkitStorageInfo.requestQuota(type, size, success, errorCallback);
 	}
 }
 
@@ -55,11 +54,11 @@ function _toArray(list?: any[]): any[] {
 }
 
 /**
- * Converts the given DOMError into an appropriate ApiError.
- * @url https://developer.mozilla.org/en-US/docs/Web/API/DOMError
+ * Converts the given DOMException into an appropriate ApiError.
+ * @url https://developer.mozilla.org/en-US/docs/Web/API/DOMException
  * @hidden
  */
-function convertError(err: DOMError, p: string, expectedDir: boolean): ApiError {
+function convertError(err: DOMException, p: string, expectedDir: boolean): ApiError {
 	switch (err.name) {
 		/* The user agent failed to create a file or directory due to the existence of a file or
         directory with the same path.  */
@@ -203,7 +202,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
 	 * @param size storage quota to request, in megabytes. Allocated value may be less.
 	 * @param type window.PERSISTENT or window.TEMPORARY. Defaults to PERSISTENT.
 	 */
-	private constructor(size: number = 5, type: number = global.PERSISTENT) {
+	private constructor(size: number = 5, type: number = globalThis.PERSISTENT) {
 		super();
 		// Convert MB to bytes.
 		this.size = 1024 * 1024 * size;
@@ -360,7 +359,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
 	}
 
 	public open(p: string, flags: FileFlag, mode: number, cred: Cred, cb: BFSCallback<IFile>): void {
-		// XXX: err is a DOMError
+		// XXX: err is a DOMException
 		const error = (err: any): void => {
 			if (err.name === 'InvalidModificationError' && flags.isExclusive()) {
 				cb(ApiError.EEXIST(p));
@@ -495,7 +494,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
 		const error = (err: DOMException): void => {
 			cb(convertError(err, '/', true));
 		};
-		if (this.type === global.PERSISTENT) {
+		if (this.type === globalThis.PERSISTENT) {
 			_requestQuota(
 				this.type,
 				this.size,

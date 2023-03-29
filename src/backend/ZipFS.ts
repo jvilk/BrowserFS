@@ -4,18 +4,10 @@ import { SynchronousFileSystem, FileSystem, BFSCallback, FileSystemOptions } fro
 import { File } from '../core/file';
 import { FileFlag, ActionType } from '../core/file_flag';
 import { NoSyncFile } from '../generic/preload_file';
-import { Arrayish, arrayish2Buffer, copyingSlice, bufferValidator } from '../core/util';
+import { copyingSlice, bufferValidator } from '../core/util';
 import ExtendedASCII from '../generic/extended_ascii';
 import setImmediate from '../generic/setImmediate';
-/**
- * @hidden
- */
-const inflateRaw: (
-	data: Arrayish<number>,
-	options?: {
-		chunkSize: number;
-	}
-) => Arrayish<number> = require('pako/lib/inflate').inflateRaw;
+import { inflateRawSync as inflateRaw } from 'zlib';
 import { FileIndex, DirInode, FileInode, isDirInode, isFileInode } from '../generic/file_index';
 
 /**
@@ -921,7 +913,7 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
 }
 
 ZipFS.RegisterDecompressionMethod(CompressionMethod.DEFLATE, (data, compressedSize, uncompressedSize) => {
-	return arrayish2Buffer(inflateRaw(data.slice(0, compressedSize), { chunkSize: uncompressedSize }));
+	return inflateRaw(data.slice(0, compressedSize), { chunkSize: uncompressedSize });
 });
 
 ZipFS.RegisterDecompressionMethod(CompressionMethod.STORED, (data, compressedSize, uncompressedSize) => {
