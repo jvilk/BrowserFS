@@ -286,8 +286,13 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
 			if (callbacks.push(userCb) === 1) {
 				const copyDirectory = (p: string, mode: number, cb: BFSOneArgCallback) => {
 						if (p !== '/') {
-							const stats = this._sync.statSync(p, true, Cred.Root);
-							this._sync.mkdirSync(p, stats.mode, Cred.Root);
+							this._async.stat(p, true, Cred.Root, (err?: ApiError, stats?: Stats) => {
+								if(err){
+									cb(err);
+								}
+								this._sync.mkdirSync(p, stats.mode, stats.getCred());
+							});
+							
 						}
 						this._async.readdir(p, Cred.Root, (err, files) => {
 							let i = 0;

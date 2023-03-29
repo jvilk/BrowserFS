@@ -232,7 +232,7 @@ export default class Stats implements fs.Stats {
 	/**
 	 * Convert the current stats object into a cred object
 	 */
-	public getCred(uid: number, gid: number): Cred {
+	public getCred(uid: number = this.uid, gid: number = this.gid): Cred {
 		return new Cred(uid, gid, this.uid, this.gid, uid, gid);
 	}
 

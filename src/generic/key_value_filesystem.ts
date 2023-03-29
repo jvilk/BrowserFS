@@ -755,7 +755,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
 		// Get file inode.
 		const fileNode = this.getINode(tx, p, fileNodeId);
 
-		if (fileNode.toStats().hasAccess(0b0100 /* Write */, cred)) {
+		if (!fileNode.toStats().hasAccess(FilePerm.WRITE, cred)) {
 			throw ApiError.EACCES(p);
 		}
 
