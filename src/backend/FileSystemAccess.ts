@@ -7,6 +7,7 @@ import { BaseFileSystem, BFSCallback, BFSOneArgCallback, FileSystem, FileSystemO
 import { default as Stats, FileType } from '../core/node_fs_stats';
 import { emptyBuffer } from '../core/util';
 import PreloadFile from '../generic/preload_file';
+import { Buffer } from 'buffer';
 
 interface FileSystemAccessFileSystemOptions {
 	handle: FileSystemDirectoryHandle;

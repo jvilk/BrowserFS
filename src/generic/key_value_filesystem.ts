@@ -9,6 +9,7 @@ import Inode from '../generic/inode';
 import PreloadFile from '../generic/preload_file';
 import { emptyBuffer } from '../core/util';
 import Cred from '../core/cred';
+import { Buffer } from 'buffer';
 /**
  * @hidden
  */

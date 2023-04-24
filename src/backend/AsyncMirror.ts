@@ -6,6 +6,7 @@ import Stats from '../core/node_fs_stats';
 import PreloadFile from '../generic/preload_file';
 import * as path from 'path';
 import Cred from '../core/cred';
+import type { Buffer } from 'buffer';
 /**
  * @hidden
  */

@@ -1,6 +1,7 @@
 import { BFSCallback, FileSystemOptions } from '../core/file_system';
 import { SyncKeyValueStore, SimpleSyncStore, SyncKeyValueFileSystem, SimpleSyncRWTransaction, SyncKeyValueRWTransaction } from '../generic/key_value_filesystem';
 import { ApiError, ErrorCode } from '../core/api_error';
+import { Buffer } from 'buffer';
 
 /**
  * Some versions of FF and all versions of IE do not support the full range of
@@ -9,7 +10,7 @@ import { ApiError, ErrorCode } from '../core/api_error';
  * @hidden
  */
 let supportsBinaryString: boolean = false,
-	binaryEncoding: string;
+	binaryEncoding: BufferEncoding;
 try {
 	globalThis.localStorage.setItem('__test__', String.fromCharCode(0xd800));
 	supportsBinaryString = globalThis.localStorage.getItem('__test__') === String.fromCharCode(0xd800);
@@ -17,7 +18,7 @@ try {
 	// IE throws an exception.
 	supportsBinaryString = false;
 }
-binaryEncoding = supportsBinaryString ? 'binary_string' : 'binary_string_ie';
+binaryEncoding = (supportsBinaryString ? 'binary_string' : 'binary_string_ie') as BufferEncoding;
 if (!Buffer.isEncoding(binaryEncoding)) {
 	// Fallback for non BrowserFS implementations of buffer that lack a
 	// binary_string format.

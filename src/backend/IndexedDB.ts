@@ -2,6 +2,7 @@ import { BFSOneArgCallback, BFSCallback, FileSystemOptions } from '../core/file_
 import { AsyncKeyValueROTransaction, AsyncKeyValueRWTransaction, AsyncKeyValueStore, AsyncKeyValueFileSystem } from '../generic/key_value_filesystem';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { arrayBuffer2Buffer, buffer2ArrayBuffer } from '../core/util';
+import type { Buffer } from 'buffer';
 /**
  * Get the indexedDB constructor for the current browser.
  * @hidden

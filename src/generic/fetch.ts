@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 /**
  * Contains utility methods using 'fetch'.
  */

@@ -7,17 +7,18 @@ import { File as IFile } from '../core/file';
 import * as path from 'path';
 import { buffer2ArrayBuffer, arrayBuffer2Buffer } from '../core/util';
 import Cred from '../core/cred';
+import type { Buffer } from 'buffer';
 /**
  * @hidden
  */
-function isDirectoryEntry(entry: Entry): entry is DirectoryEntry {
+function isDirectoryEntry(entry: FileSystemEntry): entry is FileSystemDirectoryEntry {
 	return entry.isDirectory;
 }
 
 /**
  * @hidden
  */
-const _getFS: (type: number, size: number, successCallback: FileSystemCallback, errorCallback?: ErrorCallback) => void =
+const _getFS: (type: number, size: number, successCallback: (fs: FileSystem) => void, errorCallback?: ErrorCallback) => void =
 	globalThis.webkitRequestFileSystem || globalThis.requestFileSystem || null;
 
 /**
@@ -106,9 +107,9 @@ function convertError(err: DOMException, p: string, expectedDir: boolean): ApiEr
 //                and throw an error if it does.
 
 export class HTML5FSFile extends PreloadFile<HTML5FS> implements IFile {
-	private _entry: FileEntry;
+	private _entry: FileSystemFileEntry;
 
-	constructor(fs: HTML5FS, entry: FileEntry, path: string, flag: FileFlag, stat: Stats, contents?: Buffer) {
+	constructor(fs: HTML5FS, entry: FileSystemFileEntry, path: string, flag: FileFlag, stat: Stats, contents?: Buffer) {
 		super(fs, path, flag, stat, contents);
 		this._entry = entry;
 	}
@@ -236,7 +237,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
 	 */
 	public empty(mainCb: BFSOneArgCallback): void {
 		// Get a list of all entries in the root directory to delete them
-		this._readdir('/', (err: ApiError, entries?: Entry[]): void => {
+		this._readdir('/', (err: ApiError, entries?: FileSystemEntry[]): void => {
 			if (err) {
 				mainCb(err);
 			} else {
@@ -259,14 +260,14 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
 	public rename(oldPath: string, newPath: string, cred: Cred, cb: BFSOneArgCallback): void {
 		let semaphore: number = 2;
 		let successCount: number = 0;
-		const root: DirectoryEntry = this.fs.root;
+		const root: FileSystemDirectoryEntry = this.fs.root;
 		let currentPath: string = oldPath;
 		const error = (err: DOMException): void => {
 			if (--semaphore <= 0) {
 				cb(convertError(err, currentPath, false));
 			}
 		};
-		const success = (file: Entry): void => {
+		const success = (file: FileSystemEntry): void => {
 			if (++successCount === 2) {
 				return cb(new ApiError(ErrorCode.EINVAL, 'Something was identified as both a file and a directory. This should never happen.'));
 			}
@@ -282,12 +283,12 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
 			root.getDirectory(
 				currentPath,
 				{},
-				(parentDir: DirectoryEntry): void => {
+				(parentDir: FileSystemDirectoryEntry): void => {
 					currentPath = path.basename(newPath);
 					file.moveTo(
 						parentDir,
 						currentPath,
-						(entry: Entry): void => {
+						(entry: FileSystemEntry): void => {
 							cb();
 						},
 						(err: DOMException): void => {
@@ -328,7 +329,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
 			create: false,
 		};
 		// Called when the path has been successfully loaded as a file.
-		const loadAsFile = (entry: FileEntry): void => {
+		const loadAsFile = (entry: FileSystemFileEntry): void => {
 			const fileFromEntry = (file: File): void => {
 				const stat = new Stats(FileType.FILE, file.size);
 				cb(null, stat);
@@ -336,7 +337,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
 			entry.file(fileFromEntry, failedToLoad);
 		};
 		// Called when the path has been successfully loaded as a directory.
-		const loadAsDir = (dir: DirectoryEntry): void => {
+		const loadAsDir = (dir: FileSystemDirectoryEntry): void => {
 			// Directory entry size can't be determined from the HTML5 FS API, and is
 			// implementation-dependant anyway, so a dummy value is used.
 			const size = 4096;
@@ -374,7 +375,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
 				create: flags.pathNotExistsAction() === ActionType.CREATE_FILE,
 				exclusive: flags.isExclusive(),
 			},
-			(entry: FileEntry): void => {
+			(entry: FileSystemFileEntry): void => {
 				// Try to fetch corresponding file.
 				entry.file((file: File): void => {
 					const reader = new FileReader();
@@ -416,7 +417,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
 			create: true,
 			exclusive: true,
 		};
-		const success = (dir: DirectoryEntry): void => {
+		const success = (dir: FileSystemDirectoryEntry): void => {
 			cb();
 		};
 		const error = (err: DOMException): void => {
@@ -429,7 +430,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
 	 * Map _readdir's list of `FileEntry`s to their names and return that.
 	 */
 	public readdir(path: string, cred: Cred, cb: BFSCallback<string[]>): void {
-		this._readdir(path, (e: ApiError, entries?: Entry[]): void => {
+		this._readdir(path, (e: ApiError, entries?: FileSystemEntry[]): void => {
 			if (entries) {
 				const rv: string[] = [];
 				for (const entry of entries) {
@@ -445,7 +446,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
 	/**
 	 * Returns a BrowserFS object representing a File.
 	 */
-	private _makeFile(path: string, entry: FileEntry, flag: FileFlag, stat: File, data: ArrayBuffer = new ArrayBuffer(0)): HTML5FSFile {
+	private _makeFile(path: string, entry: FileSystemFileEntry, flag: FileFlag, stat: File, data: ArrayBuffer = new ArrayBuffer(0)): HTML5FSFile {
 		const stats = new Stats(FileType.FILE, stat.size);
 		const buffer = arrayBuffer2Buffer(data);
 		return new HTML5FSFile(this, entry, path, flag, stats, buffer);
@@ -454,7 +455,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
 	/**
 	 * Returns an array of `FileEntry`s. Used internally by empty and readdir.
 	 */
-	private _readdir(path: string, cb: BFSCallback<Entry[]>): void {
+	private _readdir(path: string, cb: BFSCallback<FileSystemEntry[]>): void {
 		const error = (err: DOMException): void => {
 			cb(convertError(err, path, true));
 		};
@@ -462,9 +463,9 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
 		this.fs.root.getDirectory(
 			path,
 			{ create: false },
-			(dirEntry: DirectoryEntry) => {
+			(dirEntry: FileSystemDirectoryEntry) => {
 				const reader = dirEntry.createReader();
-				let entries: Entry[] = [];
+				let entries: FileSystemEntry[] = [];
 
 				// Call the reader.readEntries() until no more results are returned.
 				const readEntries = () => {
@@ -515,7 +516,7 @@ export default class HTML5FS extends BaseFileSystem implements IFileSystem {
 	 * returned
 	 */
 	private _remove(path: string, cb: BFSOneArgCallback, isFile: boolean): void {
-		const success = (entry: Entry): void => {
+		const success = (entry: FileSystemEntry): void => {
 			const succ = () => {
 				cb();
 			};

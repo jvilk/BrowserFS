@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import Cred from './cred';
+import { Buffer } from 'buffer';
 
 /**
  * Indicates the type of the given file. Applied to 'mode'.

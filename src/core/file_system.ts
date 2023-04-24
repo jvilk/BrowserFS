@@ -8,6 +8,7 @@ import { FileFlag, ActionType } from './file_flag';
 import * as path from 'path';
 import { fail } from './util';
 import Cred from './cred';
+import { Buffer } from 'buffer';
 
 export type BFSOneArgCallback = (e?: ApiError | null) => any;
 export type BFSCallback<T> = (e: ApiError | null | undefined, rv?: T) => any;
@@ -649,7 +650,7 @@ export class BaseFileSystem {
 			fd.closeSync();
 		}
 	}
-	public readFile(fname: string, encoding: string | null, flag: FileFlag, cred: Cred, cb: BFSCallback<string | Buffer>): void {
+	public readFile(fname: string, encoding: BufferEncoding | null, flag: FileFlag, cred: Cred, cb: BFSCallback<string | Buffer>): void {
 		// Wrap cb in file closing code.
 		const oldCb = cb;
 		// Get file.
@@ -686,7 +687,7 @@ export class BaseFileSystem {
 			});
 		});
 	}
-	public readFileSync(fname: string, encoding: string | null, flag: FileFlag, cred: Cred): any {
+	public readFileSync(fname: string, encoding: BufferEncoding | null, flag: FileFlag, cred: Cred): any {
 		// Get file.
 		const fd = this.openSync(fname, flag, 0x1a4, cred);
 		try {
@@ -703,7 +704,7 @@ export class BaseFileSystem {
 			fd.closeSync();
 		}
 	}
-	public writeFile(fname: string, data: any, encoding: string | null, flag: FileFlag, mode: number, cred: Cred, cb: BFSOneArgCallback): void {
+	public writeFile(fname: string, data: any, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred, cb: BFSOneArgCallback): void {
 		// Wrap cb in file closing code.
 		const oldCb = cb;
 		// Get file.
@@ -728,7 +729,7 @@ export class BaseFileSystem {
 			fd!.write(data, 0, data.length, 0, cb);
 		});
 	}
-	public writeFileSync(fname: string, data: any, encoding: string | null, flag: FileFlag, mode: number, cred: Cred): void {
+	public writeFileSync(fname: string, data: any, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred): void {
 		// Get file.
 		const fd = this.openSync(fname, flag, mode, cred);
 		try {
@@ -741,7 +742,7 @@ export class BaseFileSystem {
 			fd.closeSync();
 		}
 	}
-	public appendFile(fname: string, data: any, encoding: string | null, flag: FileFlag, mode: number, cred: Cred, cb: BFSOneArgCallback): void {
+	public appendFile(fname: string, data: any, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred, cb: BFSOneArgCallback): void {
 		// Wrap cb in file closing code.
 		const oldCb = cb;
 		this.open(fname, flag, mode, cred, function (err: ApiError, fd?: File) {
@@ -759,7 +760,7 @@ export class BaseFileSystem {
 			fd!.write(data, 0, data.length, null, cb);
 		});
 	}
-	public appendFileSync(fname: string, data: any, encoding: string | null, flag: FileFlag, mode: number, cred: Cred): void {
+	public appendFileSync(fname: string, data: any, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred): void {
 		const fd = this.openSync(fname, flag, mode, cred);
 		try {
 			if (typeof data === 'string') {

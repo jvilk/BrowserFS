@@ -5,10 +5,11 @@ import { default as Stats, FileType } from '../core/node_fs_stats';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { File } from '../core/file';
 import { arrayBuffer2Buffer, buffer2ArrayBuffer } from '../core/util';
-import { Dropbox } from 'dropbox_bridge';
+import { Dropbox } from '../generic/dropbox_bridge_actual';
 import setImmediate from '../generic/setImmediate';
 import { dirname } from 'path';
 import Cred from '../core/cred';
+import { Buffer } from 'buffer';
 type DropboxClient = DropboxTypes.Dropbox;
 
 /**

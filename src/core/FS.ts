@@ -5,6 +5,7 @@ import { FileFlag } from './file_flag';
 import * as path from 'path';
 import { default as Stats, FilePerm } from './node_fs_stats';
 import setImmediate from '../generic/setImmediate';
+import { Buffer } from 'buffer';
 
 // Typing info only.
 import * as _fs from 'fs';
@@ -780,7 +781,7 @@ export default class FS {
 	public write(fd: number, buffer: Buffer, offset: number, length: number, position: number | null, cb?: BFSThreeArgCallback<number, Buffer>): void;
 	public write(fd: number, data: any, cb?: BFSThreeArgCallback<number, string>): void;
 	public write(fd: number, data: any, position: number | null, cb?: BFSThreeArgCallback<number, string>): void;
-	public write(fd: number, data: any, position: number | null, encoding: string, cb?: BFSThreeArgCallback<number, string>): void;
+	public write(fd: number, data: any, position: number | null, encoding: BufferEncoding, cb?: BFSThreeArgCallback<number, string>): void;
 	public write(fd: number, arg2: any, arg3?: any, arg4?: any, arg5?: any, cb: BFSThreeArgCallback<number, any> = nopCb): void {
 		let buffer: Buffer,
 			offset: number,
@@ -788,7 +789,7 @@ export default class FS {
 			position: number | null = null;
 		if (typeof arg2 === 'string') {
 			// Signature 1: (fd, string, [position?, [encoding?]], cb?)
-			let encoding = 'utf8';
+			let encoding: BufferEncoding = 'utf8';
 			switch (typeof arg3) {
 				case 'function':
 					// (fd, string, cb)
@@ -797,7 +798,7 @@ export default class FS {
 				case 'number':
 					// (fd, string, position, encoding?, cb?)
 					position = arg3;
-					encoding = typeof arg4 === 'string' ? arg4 : 'utf8';
+					encoding = (typeof arg4 === 'string' ? arg4 : 'utf8') as BufferEncoding;
 					cb = typeof arg5 === 'function' ? arg5 : cb;
 					break;
 				default:
@@ -843,7 +844,7 @@ export default class FS {
 	 *   the current position.
 	 */
 	public writeSync(fd: number, buffer: Buffer, offset: number, length: number, position?: number | null): number;
-	public writeSync(fd: number, data: string, position?: number | null, encoding?: string): number;
+	public writeSync(fd: number, data: string, position?: number | null, encoding?: BufferEncoding): number;
 	public writeSync(fd: number, arg2: any, arg3?: any, arg4?: any, arg5?: any): number {
 		let buffer: Buffer,
 			offset: number = 0,
@@ -852,7 +853,7 @@ export default class FS {
 		if (typeof arg2 === 'string') {
 			// Signature 1: (fd, string, [position?, [encoding?]])
 			position = typeof arg3 === 'number' ? arg3 : null;
-			const encoding = typeof arg4 === 'string' ? arg4 : 'utf8';
+			const encoding = (typeof arg4 === 'string' ? arg4 : 'utf8') as BufferEncoding;
 			offset = 0;
 			buffer = Buffer.from(arg2, encoding);
 			length = buffer.length;
@@ -937,7 +938,7 @@ export default class FS {
 	 *   position.
 	 * @return [Number]
 	 */
-	public readSync(fd: number, length: number, position: number, encoding: string): string;
+	public readSync(fd: number, length: number, position: number, encoding: BufferEncoding): string;
 	public readSync(fd: number, buffer: Buffer, offset: number, length: number, position: number): number;
 	public readSync(fd: number, arg2: any, arg3: any, arg4: any, arg5?: any): any {
 		let shenanigans = false;
@@ -945,7 +946,7 @@ export default class FS {
 			offset: number,
 			length: number,
 			position: number,
-			encoding: string = 'utf8';
+			encoding: BufferEncoding = 'utf8';
 		if (typeof arg2 === 'number') {
 			length = arg2;
 			position = arg3;

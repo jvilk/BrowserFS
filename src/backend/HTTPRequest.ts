@@ -9,6 +9,7 @@ import { xhrIsAvailable, asyncDownloadFile, syncDownloadFile, getFileSizeAsync, 
 import { fetchIsAvailable, fetchFileAsync, fetchFileSizeAsync } from '../generic/fetch';
 import { FileIndex, isFileInode, isDirInode } from '../generic/file_index';
 import Cred from '../core/cred';
+import type { Buffer } from 'buffer';
 
 /**
  * Try to convert the given buffer into a string, and pass it to the callback.
@@ -16,7 +17,7 @@ import Cred from '../core/cred';
  * this is an uncommon case.
  * @hidden
  */
-function tryToString(buff: Buffer, encoding: string, cb: BFSCallback<string>) {
+function tryToString(buff: Buffer, encoding: BufferEncoding, cb: BFSCallback<string>) {
 	try {
 		cb(null, buff.toString(encoding));
 	} catch (e) {
@@ -396,7 +397,7 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
 	/**
 	 * We have the entire file as a buffer; optimize readFile.
 	 */
-	public readFile(fname: string, encoding: string, flag: FileFlag, cred: Cred, cb: BFSCallback<string | Buffer>): void {
+	public readFile(fname: string, encoding: BufferEncoding, flag: FileFlag, cred: Cred, cb: BFSCallback<string | Buffer>): void {
 		// Wrap cb in file closing code.
 		const oldCb = cb;
 		// Get file.
@@ -425,7 +426,7 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
 	/**
 	 * Specially-optimized readfile.
 	 */
-	public readFileSync(fname: string, encoding: string, flag: FileFlag, cred: Cred): any {
+	public readFileSync(fname: string, encoding: BufferEncoding, flag: FileFlag, cred: Cred): any {
 		// Get file.
 		const fd = this.openSync(fname, flag, 0x1a4, cred);
 		try {

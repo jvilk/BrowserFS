@@ -9,6 +9,7 @@ import ExtendedASCII from '../generic/extended_ascii';
 import setImmediate from '../generic/setImmediate';
 import { inflateRawSync as inflateRaw } from 'zlib';
 import { FileIndex, DirInode, FileInode, isDirInode, isFileInode } from '../generic/file_index';
+import type { Buffer } from 'buffer';
 
 /**
  * Maps CompressionMethod => function that decompresses.
@@ -896,7 +897,7 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
 	/**
 	 * Specially-optimized readfile.
 	 */
-	public readFileSync(fname: string, encoding: string, flag: FileFlag): any {
+	public readFileSync(fname: string, encoding: BufferEncoding, flag: FileFlag): any {
 		// Get file.
 		const fd = this.openSync(fname, flag, 0x1a4);
 		try {

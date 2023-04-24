@@ -7,6 +7,7 @@ import { default as Stats } from '../core/node_fs_stats';
 import PreloadFile from '../generic/preload_file';
 import fs from '../core/node_fs';
 import Cred from '../core/cred';
+import { Buffer } from 'buffer';
 
 /**
  * @hidden

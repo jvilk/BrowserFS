@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 /**
  * Standard libc error codes. Add more to this enum and ErrorStrings as they are
  * needed.
@@ -49,12 +50,9 @@ ErrorStrings[ErrorCode.ENOTSUP] = 'Operation is not supported.';
  */
 export class ApiError extends Error implements NodeJS.ErrnoException {
 	public static fromJSON(json: any): ApiError {
-		const err = new ApiError(0);
-		err.errno = json.errno;
+		const err = new ApiError(json.errno, json.message, json.path);
 		err.code = json.code;
-		err.path = json.path;
 		err.stack = json.stack;
-		err.message = json.message;
 		return err;
 	}
 

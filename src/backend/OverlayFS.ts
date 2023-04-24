@@ -7,6 +7,7 @@ import PreloadFile from '../generic/preload_file';
 import LockedFS from '../generic/locked_fs';
 import * as path from 'path';
 import Cred from '../core/cred';
+import type { Buffer } from 'buffer';
 /**
  * @hidden
  */
