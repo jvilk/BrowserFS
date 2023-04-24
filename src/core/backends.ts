@@ -6,7 +6,6 @@ import Dropbox from '../backend/Dropbox';
 import Emscripten from '../backend/Emscripten';
 import FileSystemAccess from '../backend/FileSystemAccess';
 import FolderAdapter from '../backend/FolderAdapter';
-import HTML5FS from '../backend/HTML5FS';
 import InMemory from '../backend/InMemory';
 import IndexedDB from '../backend/IndexedDB';
 import LocalStorage from '../backend/LocalStorage';
@@ -24,7 +23,6 @@ import IsoFS from '../backend/IsoFS';
 	Emscripten,
 	FileSystemAccess,
 	FolderAdapter,
-	HTML5FS,
 	InMemory,
 	IndexedDB,
 	IsoFS,
@@ -62,7 +60,6 @@ const Backends = {
 	Emscripten,
 	FileSystemAccess,
 	FolderAdapter,
-	HTML5FS,
 	InMemory,
 	IndexedDB,
 	IsoFS,
