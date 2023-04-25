@@ -33,13 +33,13 @@ await build({
 	outfile: 'dist/browserfs.mjs',
 	format: 'esm',
 });
-console.log('Built for browser, unminified.');
+console.log('Built for ESM, unminified.');
 
-console.log('Building for ESM, unminified...');
+console.log('Building for ESM, minified...');
 await build({
 	...options,
 	outfile: 'dist/browserfs.min.mjs',
 	format: 'esm',
 	minify: true,	
 });
-console.log('Built for browser, unminified.');
+console.log('Built for ESM, minified.');
