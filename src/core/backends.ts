@@ -6,7 +6,6 @@ import Dropbox from '../backend/Dropbox';
 import Emscripten from '../backend/Emscripten';
 import FileSystemAccess from '../backend/FileSystemAccess';
 import FolderAdapter from '../backend/FolderAdapter';
-import HTML5FS from '../backend/HTML5FS';
 import InMemory from '../backend/InMemory';
 import IndexedDB from '../backend/IndexedDB';
 import LocalStorage from '../backend/LocalStorage';
@@ -18,40 +17,26 @@ import ZipFS from '../backend/ZipFS';
 import IsoFS from '../backend/IsoFS';
 
 // Monkey-patch `Create` functions to check options before file system initialization.
-[
-	AsyncMirror,
-	Dropbox,
-	Emscripten,
-	FileSystemAccess,
-	FolderAdapter,
-	HTML5FS,
-	InMemory,
-	IndexedDB,
-	IsoFS,
-	LocalStorage,
-	MountableFileSystem,
-	OverlayFS,
-	WorkerFS,
-	HTTPRequest,
-	ZipFS,
-].forEach((fsType: FileSystemConstructor) => {
-	const create = fsType.Create;
-	fsType.Create = function (opts?: any, cb?: BFSCallback<FileSystem>): void {
-		const oneArg = typeof opts === 'function';
-		const normalizedCb = oneArg ? opts : cb;
-		const normalizedOpts = oneArg ? {} : opts;
+[AsyncMirror, Dropbox, Emscripten, FileSystemAccess, FolderAdapter, InMemory, IndexedDB, IsoFS, LocalStorage, MountableFileSystem, OverlayFS, WorkerFS, HTTPRequest, ZipFS].forEach(
+	(fsType: FileSystemConstructor) => {
+		const create = fsType.Create;
+		fsType.Create = function (opts?: any, cb?: BFSCallback<FileSystem>): void {
+			const oneArg = typeof opts === 'function';
+			const normalizedCb = oneArg ? opts : cb;
+			const normalizedOpts = oneArg ? {} : opts;
 
-		function wrappedCb(e?: ApiError): void {
-			if (e) {
-				normalizedCb(e);
-			} else {
-				create.call(fsType, normalizedOpts, normalizedCb);
+			function wrappedCb(e?: ApiError): void {
+				if (e) {
+					normalizedCb(e);
+				} else {
+					create.call(fsType, normalizedOpts, normalizedCb);
+				}
 			}
-		}
 
-		checkOptions(fsType, normalizedOpts, wrappedCb);
-	};
-});
+			checkOptions(fsType, normalizedOpts, wrappedCb);
+		};
+	}
+);
 
 /**
  * @hidden
@@ -62,7 +47,6 @@ const Backends = {
 	Emscripten,
 	FileSystemAccess,
 	FolderAdapter,
-	HTML5FS,
 	InMemory,
 	IndexedDB,
 	IsoFS,

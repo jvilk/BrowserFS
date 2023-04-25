@@ -6,6 +6,7 @@ import { FileFlag, ActionType } from '../core/file_flag';
 import { NoSyncFile } from '../generic/preload_file';
 import { copyingSlice, bufferValidator } from '../core/util';
 import * as path from 'path';
+import type { Buffer } from 'buffer';
 
 /**
  * @hidden
@@ -1316,7 +1317,7 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
 	/**
 	 * Specially-optimized readfile.
 	 */
-	public readFileSync(fname: string, encoding: string, flag: FileFlag): any {
+	public readFileSync(fname: string, encoding: BufferEncoding, flag: FileFlag): any {
 		// Get file.
 		const fd = this.openSync(fname, flag, 0x1a4);
 		try {

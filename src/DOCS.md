@@ -173,13 +173,6 @@ Note that any asynchronous file system can be accessed synchronously using the [
     <td>✗</td>
   </tr>
   <tr>
-    <td><a href="classes/_backend_html5fs_.html5fs.html">HTML5FS</a></td>
-    <td>✓</td>
-    <td>✗</td>
-    <td>✗</td>
-    <td>✗</td>
-  </tr>
-  <tr>
     <td><a href="classes/_backend_indexeddb_.indexeddbfilesystem.html">IndexedDB</a></td>
     <td>✓</td>
     <td>✗</td>

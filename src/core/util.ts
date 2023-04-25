@@ -6,6 +6,7 @@ import { ErrorCode, ApiError } from './api_error';
 import levenshtein from './levenshtein';
 import * as path from 'path';
 import Cred from './cred';
+import { Buffer } from 'buffer';
 
 export function deprecationMessage(print: boolean, fsName: string, opts: any): void {
 	if (print) {

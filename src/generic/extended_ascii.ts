@@ -1,3 +1,4 @@
+import type { Buffer } from 'buffer';
 /**
  * (Nonstandard) String utility function for 8-bit ASCII with the extended
  * character set. Unlike the ASCII above, we do not mask the high bits.

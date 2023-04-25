@@ -13,6 +13,7 @@ import * as BFSUtils from './util';
 import * as Errors from './api_error';
 import setImmediate from '../generic/setImmediate';
 import Cred from './cred';
+import * as process from 'process';
 
 if (process && (<any>process)['initializeTTYs']) {
 	(<any>process)['initializeTTYs']();

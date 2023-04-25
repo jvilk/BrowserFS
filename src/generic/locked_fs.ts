@@ -5,6 +5,7 @@ import { FileFlag } from '../core/file_flag';
 import { default as Stats } from '../core/node_fs_stats';
 import { File } from '../core/file';
 import Cred from '../core/cred';
+import type { Buffer } from 'buffer';
 
 /**
  * This class serializes access to an underlying async filesystem.

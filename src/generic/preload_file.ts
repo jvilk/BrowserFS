@@ -5,6 +5,7 @@ import { FileFlag } from '../core/file_flag';
 import { ApiError, ErrorCode } from '../core/api_error';
 import fs from '../core/node_fs';
 import { emptyBuffer } from '../core/util';
+import { Buffer } from 'buffer';
 
 /**
  * An implementation of the File interface that operates on a file that is

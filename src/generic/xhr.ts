@@ -6,6 +6,7 @@
 import { isIE, emptyBuffer } from '../core/util';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { BFSCallback } from '../core/file_system';
+import { Buffer } from 'buffer';
 
 export const xhrIsAvailable = typeof XMLHttpRequest !== 'undefined' && XMLHttpRequest !== null;
 

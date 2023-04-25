@@ -6,6 +6,7 @@ import Stats from '../core/node_fs_stats';
 import PreloadFile from '../generic/preload_file';
 import * as path from 'path';
 import Cred from '../core/cred';
+import type { Buffer } from 'buffer';
 /**
  * @hidden
  */
@@ -287,12 +288,11 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
 				const copyDirectory = (p: string, mode: number, cb: BFSOneArgCallback) => {
 						if (p !== '/') {
 							this._async.stat(p, true, Cred.Root, (err?: ApiError, stats?: Stats) => {
-								if(err){
+								if (err) {
 									cb(err);
 								}
 								this._sync.mkdirSync(p, stats.mode, stats.getCred());
 							});
-							
 						}
 						this._async.readdir(p, Cred.Root, (err, files) => {
 							let i = 0;
