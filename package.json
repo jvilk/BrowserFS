@@ -25,22 +25,24 @@
   "bin": {
     "make_http_index": "./dist/scripts/make_http_index.js"
   },
+  "exports": {
+	".": {
+		"require": "./dist/browserfs.min.js",
+		"import": "./dist/browserfs.min.mjs"
+	}
+  },
+  "module": "dist/browserfs.min.mjs",
   "devDependencies": {
     "@babel/core": "^7.10.2",
     "@babel/polyfill": "^7.10.1",
     "@babel/preset-env": "^7.10.2",
-    "@rollup/plugin-alias": "^3.1.1",
-    "@rollup/plugin-buble": "^0.21.3",
-    "@rollup/plugin-commonjs": "^13.0.0",
-    "@rollup/plugin-inject": "^4.0.2",
-    "@rollup/plugin-node-resolve": "^8.0.1",
+    "@esbuild-plugins/node-modules-polyfill": "^0.2.2",
     "@types/archiver": "~2.1.2",
     "@types/async": "2.0.31",
     "@types/body-parser": "~1.17.0",
     "@types/express": "~4.16.0",
     "@types/isomorphic-fetch": "^0.0.34",
     "@types/node": "^18.16.0",
-    "@types/rimraf": "~2.0.2",
     "@types/wicg-file-system-access": "^2020.9.4",
     "@typescript-eslint/eslint-plugin": "^5.55.0",
     "@typescript-eslint/parser": "^5.55.0",
@@ -52,6 +54,7 @@
     "buffer": "~5.1.0",
     "detect-browsers": "~2.0.0",
     "dropbox": "~4.0.9",
+    "esbuild": "^0.17.18",
     "eslint": "^8.36.0",
     "express": "~4.16.3",
     "isomorphic-fetch": "~2.2.1",
@@ -59,15 +62,9 @@
     "object-wrapper": "~1.0.1",
     "prettier": "^2.8.7",
     "remap-istanbul": "~0.11.1",
-    "rimraf": "~2.6.2",
-    "rollup": "^2.13.1",
-    "rollup-plugin-sourcemaps": "^0.4.2",
     "source-map-loader": "~0.2.3",
     "typedoc": "~0.11.1",
-    "typescript": "^4.9.5",
-    "webpack": "~4.16.5",
-    "webpack-cli": "~3.1.0",
-    "webpack-dev-server": "~3.1.5"
+    "typescript": "^4.9.5"
   },
   "scripts": {
     "lint": "eslint src",
@@ -83,16 +80,6 @@
     "watch:webpack-release": "webpack -w -p --config src/webpack.config.js",
     "build": "npm-run-all --parallel build:tsc build:scripts --sequential build:rollup --parallel build:webpack build:webpack-release",
     "watch": "npm-run-all build --parallel watch:tsc watch:scripts watch:rollup watch:webpack watch:webpack-release",
-    "test:build:tsc": "tsc -p test",
-    "test:watch:tsc": "tsc --watch -p test",
-    "test:build:rollup": "rollup -c test/rollup.config.js",
-    "test:watch:rollup": "rollup -w -c test/rollup.config.js",
-    "test:build:rollup-worker": "rollup -c test/rollup.worker.config.js",
-    "test:watch:rollup-worker": "rollup -w -c test/rollup.worker.config.js",
-    "test:build:webpack": "webpack --config test/webpack.config.js",
-    "test:watch:webpack": "webpack -w --config test/webpack.config.js",
-    "test:build": "npm-run-all test:build:tsc --parallel test:build:rollup test:build:rollup-worker --sequential test:build:webpack",
-    "test:watch": "npm-run-all --parallel test:watch:tsc test:watch:rollup test:watch:rollup-worker test:watch:webpack",
     "dist:build:node": "tsc -p src/tsconfig.node.json",
     "script:make_dist": "node build/scripts/make_dist.js",
     "dist": "npm-run-all build lint script:make_dist dist:build:node",

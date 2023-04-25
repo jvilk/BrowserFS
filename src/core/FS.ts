@@ -6,10 +6,10 @@ import * as path from 'path';
 import { default as Stats, FilePerm } from './node_fs_stats';
 import setImmediate from '../generic/setImmediate';
 import { Buffer } from 'buffer';
+import Cred from './cred';
 
 // Typing info only.
-import * as _fs from 'fs';
-import Cred from './cred';
+import type * as _fs from 'fs';
 
 /** Used for unit testing. Defaults to a NOP. */
 let wrapCbHook = function <T>(cb: T, numArgs: number): T {

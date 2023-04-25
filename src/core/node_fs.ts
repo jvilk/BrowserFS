@@ -17,24 +17,22 @@ const _fsMock: FSModule = <any>{};
 /**
  * @hidden
  */
-const fsProto = FS.prototype;
-Object.keys(fsProto).forEach((key) => {
+for (const key of Object.getOwnPropertyNames(FS.prototype)) {
 	if (typeof fs[key] === 'function') {
-		(<any>_fsMock)[key] = function (...args) {
+		_fsMock[key] = function (...args) {
 			return (<Function>fs[key]).apply(fs, args);
 		};
 	} else {
-		(<any>_fsMock)[key] = fs[key];
+		_fsMock[key] = fs[key];
 	}
-});
-
-_fsMock['changeFSModule'] = function (newFs: FS): void {
+}
+_fsMock.changeFSModule = function (newFs: FS): void {
 	fs = newFs;
 };
-_fsMock['getFSModule'] = function (): FS {
+_fsMock.getFSModule = function (): FS {
 	return fs;
 };
-_fsMock['FS'] = FS;
-_fsMock['Stats'] = FS.Stats;
+_fsMock.FS = FS;
+_fsMock.Stats = FS.Stats;
 
 export default _fsMock;

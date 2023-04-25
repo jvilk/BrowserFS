@@ -284,7 +284,7 @@ export class SimpleSyncRWTransaction implements SyncKeyValueRWTransaction {
 		}
 	}
 
-	private _has(key: string){
+	private _has(key: string) {
 		return Object.prototype.hasOwnProperty.call(this.originalData, key);
 	}
 
