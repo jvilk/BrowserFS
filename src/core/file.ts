@@ -1,6 +1,5 @@
 import { ApiError, ErrorCode } from './api_error';
 import Stats from './stats';
-import { BFSCallback, BFSOneArgCallback, BFSThreeArgCallback } from './file_system';
 import type { Buffer } from 'buffer';
 
 export interface File {
@@ -11,7 +10,7 @@ export interface File {
 	/**
 	 * **Core**: Asynchronous `stat`.
 	 */
-	stat(cb: BFSCallback<Stats>): void;
+	stat(): Promise<Stats>;
 	/**
 	 * **Core**: Synchronous `stat`.
 	 */
@@ -19,7 +18,7 @@ export interface File {
 	/**
 	 * **Core**: Asynchronous close.
 	 */
-	close(cb: BFSOneArgCallback): void;
+	close(): Promise<void>;
 	/**
 	 * **Core**: Synchronous close.
 	 */
@@ -27,7 +26,7 @@ export interface File {
 	/**
 	 * **Core**: Asynchronous truncate.
 	 */
-	truncate(len: number, cb: BFSOneArgCallback): void;
+	truncate(len: number): Promise<void>;
 	/**
 	 * **Core**: Synchronous truncate.
 	 */
@@ -35,7 +34,7 @@ export interface File {
 	/**
 	 * **Core**: Asynchronous sync.
 	 */
-	sync(cb: BFSOneArgCallback): void;
+	sync(): Promise<void>;
 	/**
 	 * **Core**: Synchronous sync.
 	 */
@@ -51,9 +50,9 @@ export interface File {
 	 * @param position Offset from the beginning of the file where this
 	 *   data should be written. If position is null, the data will be written at
 	 *   the current position.
-	 * @param cb The number specifies the number of bytes written into the file.
+	 * @returns Promise resolving to a buffer
 	 */
-	write(buffer: Buffer, offset: number, length: number, position: number | null, cb: BFSThreeArgCallback<number, Buffer>): void;
+	write(buffer: Buffer, offset: number, length: number, position: number | null): Promise<Buffer>;
 	/**
 	 * **Core**: Write buffer to the file.
 	 * Note that it is unsafe to use fs.writeSync multiple times on the same file
@@ -77,9 +76,9 @@ export interface File {
 	 * @param position An integer specifying where to begin reading from
 	 *   in the file. If position is null, data will be read from the current file
 	 *   position.
-	 * @param cb The number is the number of bytes read
+	 * @returns Promise resolving to a buffer
 	 */
-	read(buffer: Buffer, offset: number, length: number, position: number | null, cb: BFSThreeArgCallback<number, Buffer>): void;
+	read(buffer: Buffer, offset: number, length: number, position: number | null): Promise<Buffer>;
 	/**
 	 * **Core**: Read data from the file.
 	 * @param buffer The buffer that the data will be written to.
@@ -95,7 +94,7 @@ export interface File {
 	 *
 	 * Default implementation maps to `sync`.
 	 */
-	datasync(cb: BFSOneArgCallback): void;
+	datasync(): Promise<void>;
 	/**
 	 * **Supplementary**: Synchronous `datasync`.
 	 *
@@ -105,7 +104,7 @@ export interface File {
 	/**
 	 * **Optional**: Asynchronous `chown`.
 	 */
-	chown(uid: number, gid: number, cb: BFSOneArgCallback): void;
+	chown(uid: number, gid: number): Promise<void>;
 	/**
 	 * **Optional**: Synchronous `chown`.
 	 */
@@ -113,7 +112,7 @@ export interface File {
 	/**
 	 * **Optional**: Asynchronous `fchmod`.
 	 */
-	chmod(mode: number, cb: BFSOneArgCallback): void;
+	chmod(mode: number): Promise<void>;
 	/**
 	 * **Optional**: Synchronous `fchmod`.
 	 */
@@ -121,7 +120,7 @@ export interface File {
 	/**
 	 * **Optional**: Change the file timestamps of the file.
 	 */
-	utimes(atime: Date, mtime: Date, cb: BFSOneArgCallback): void;
+	utimes(atime: Date, mtime: Date): Promise<void>;
 	/**
 	 * **Optional**: Change the file timestamps of the file.
 	 */
@@ -133,32 +132,32 @@ export interface File {
  * object.
  */
 export class BaseFile {
-	public sync(cb: BFSOneArgCallback): void {
-		cb(new ApiError(ErrorCode.ENOTSUP));
+	public async sync(): Promise<void> {
+		throw new ApiError(ErrorCode.ENOTSUP);
 	}
 	public syncSync(): void {
 		throw new ApiError(ErrorCode.ENOTSUP);
 	}
-	public datasync(cb: BFSOneArgCallback): void {
-		this.sync(cb);
+	public async datasync(): Promise<void> {
+		return this.sync();
 	}
 	public datasyncSync(): void {
 		return this.syncSync();
 	}
-	public chown(uid: number, gid: number, cb: BFSOneArgCallback): void {
-		cb(new ApiError(ErrorCode.ENOTSUP));
+	public async chown(uid: number, gid: number): Promise<void> {
+		throw new ApiError(ErrorCode.ENOTSUP);
 	}
 	public chownSync(uid: number, gid: number): void {
 		throw new ApiError(ErrorCode.ENOTSUP);
 	}
-	public chmod(mode: number, cb: BFSOneArgCallback): void {
-		cb(new ApiError(ErrorCode.ENOTSUP));
+	public async chmod(mode: number): Promise<void> {
+		throw new ApiError(ErrorCode.ENOTSUP);
 	}
 	public chmodSync(mode: number): void {
 		throw new ApiError(ErrorCode.ENOTSUP);
 	}
-	public utimes(atime: Date, mtime: Date, cb: BFSOneArgCallback): void {
-		cb(new ApiError(ErrorCode.ENOTSUP));
+	public async utimes(atime: Date, mtime: Date): Promise<void> {
+		throw new ApiError(ErrorCode.ENOTSUP);
 	}
 	public utimesSync(atime: Date, mtime: Date): void {
 		throw new ApiError(ErrorCode.ENOTSUP);
