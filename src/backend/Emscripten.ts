@@ -1,5 +1,5 @@
 import { SynchronousFileSystem, BFSOneArgCallback, BFSCallback, BFSThreeArgCallback, FileSystemOptions } from '../core/file_system';
-import { default as Stats, FileType } from '../core/node_fs_stats';
+import { default as Stats, FileType } from '../core/stats';
 import { FileFlag } from '../core/file_flag';
 import { BaseFile, File } from '../core/file';
 import { uint8Array2Buffer, buffer2Uint8array } from '../core/util';

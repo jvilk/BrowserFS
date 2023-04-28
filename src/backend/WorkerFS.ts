@@ -3,7 +3,7 @@ import { ApiError, ErrorCode } from '../core/api_error';
 import { FileFlag } from '../core/file_flag';
 import { buffer2ArrayBuffer, arrayBuffer2Buffer, emptyBuffer } from '../core/util';
 import { File, BaseFile } from '../core/file';
-import { default as Stats } from '../core/node_fs_stats';
+import { default as Stats } from '../core/stats';
 import PreloadFile from '../generic/preload_file';
 import fs from '../core/node_fs';
 import Cred from '../core/cred';

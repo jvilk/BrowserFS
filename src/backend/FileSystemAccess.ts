@@ -4,7 +4,7 @@ import Cred from '../core/cred';
 import { File } from '../core/file';
 import { FileFlag } from '../core/file_flag';
 import { BaseFileSystem, BFSCallback, BFSOneArgCallback, FileSystem, FileSystemOptions } from '../core/file_system';
-import { default as Stats, FileType } from '../core/node_fs_stats';
+import { default as Stats, FileType } from '../core/stats';
 import { emptyBuffer } from '../core/util';
 import PreloadFile from '../generic/preload_file';
 import { Buffer } from 'buffer';

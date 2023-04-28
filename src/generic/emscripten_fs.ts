@@ -11,7 +11,7 @@
  */
 import FS from '../core/FS';
 import fs from '../core/node_fs';
-import NodeStats from '../core/node_fs_stats';
+import NodeStats from '../core/stats';
 import { uint8Array2Buffer } from '../core/util';
 
 export interface Stats {

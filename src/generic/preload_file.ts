@@ -1,6 +1,6 @@
 import { BaseFile, File } from '../core/file';
 import { FileSystem, BFSOneArgCallback, BFSCallback, BFSThreeArgCallback } from '../core/file_system';
-import Stats from '../core/node_fs_stats';
+import Stats from '../core/stats';
 import { FileFlag } from '../core/file_flag';
 import { ApiError, ErrorCode } from '../core/api_error';
 import fs from '../core/node_fs';

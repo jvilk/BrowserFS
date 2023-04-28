@@ -2,7 +2,7 @@ import Mutex from './mutex';
 import { FileSystem, BFSOneArgCallback, BFSCallback } from '../core/file_system';
 import { ApiError } from '../core/api_error';
 import { FileFlag } from '../core/file_flag';
-import { default as Stats } from '../core/node_fs_stats';
+import { default as Stats } from '../core/stats';
 import { File } from '../core/file';
 import Cred from '../core/cred';
 import type { Buffer } from 'buffer';

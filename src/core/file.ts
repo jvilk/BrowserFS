@@ -1,5 +1,5 @@
 import { ApiError, ErrorCode } from './api_error';
-import Stats from './node_fs_stats';
+import Stats from './stats';
 import { BFSCallback, BFSOneArgCallback, BFSThreeArgCallback } from './file_system';
 import type { Buffer } from 'buffer';
 

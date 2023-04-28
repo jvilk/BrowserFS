@@ -1,5 +1,5 @@
 import { ApiError, ErrorCode } from '../core/api_error';
-import { default as Stats, FileType } from '../core/node_fs_stats';
+import { default as Stats, FileType } from '../core/stats';
 import { SynchronousFileSystem, FileSystem, BFSCallback, FileSystemOptions } from '../core/file_system';
 import { File } from '../core/file';
 import { FileFlag, ActionType } from '../core/file_flag';

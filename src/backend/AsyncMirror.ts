@@ -2,7 +2,7 @@ import { FileSystem, SynchronousFileSystem, BFSOneArgCallback, BFSCallback, File
 import { ApiError, ErrorCode } from '../core/api_error';
 import { FileFlag } from '../core/file_flag';
 import { File } from '../core/file';
-import Stats from '../core/node_fs_stats';
+import Stats from '../core/stats';
 import PreloadFile from '../generic/preload_file';
 import * as path from 'path';
 import Cred from '../core/cred';

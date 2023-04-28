@@ -3,7 +3,7 @@ import { ApiError, ErrorCode } from './api_error';
 import { FileSystem, BFSOneArgCallback, BFSCallback, BFSThreeArgCallback } from './file_system';
 import { FileFlag } from './file_flag';
 import * as path from 'path';
-import { default as Stats, FilePerm } from './node_fs_stats';
+import { default as Stats, FilePerm } from './stats';
 import setImmediate from '../generic/setImmediate';
 import { Buffer } from 'buffer';
 import Cred from './cred';

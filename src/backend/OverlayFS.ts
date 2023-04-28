@@ -2,7 +2,7 @@ import { FileSystem, BaseFileSystem, BFSOneArgCallback, BFSCallback, FileSystemO
 import { ApiError, ErrorCode } from '../core/api_error';
 import { FileFlag, ActionType } from '../core/file_flag';
 import { File } from '../core/file';
-import { default as Stats } from '../core/node_fs_stats';
+import { default as Stats } from '../core/stats';
 import PreloadFile from '../generic/preload_file';
 import LockedFS from '../generic/locked_fs';
 import * as path from 'path';

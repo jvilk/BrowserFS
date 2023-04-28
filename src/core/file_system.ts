@@ -2,7 +2,7 @@
 // disable no-unused-vars since BaseFileSystem uses them a lot
 
 import { ApiError, ErrorCode } from './api_error';
-import Stats from './node_fs_stats';
+import Stats from './stats';
 import { File } from './file';
 import { FileFlag, ActionType } from './file_flag';
 import * as path from 'path';

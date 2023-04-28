@@ -3,7 +3,7 @@ import { ApiError, ErrorCode } from '../core/api_error';
 import { FileFlag, ActionType } from '../core/file_flag';
 import { copyingSlice } from '../core/util';
 import { File } from '../core/file';
-import { default as Stats, FilePerm } from '../core/node_fs_stats';
+import { default as Stats, FilePerm } from '../core/stats';
 import { NoSyncFile } from '../generic/preload_file';
 import { xhrIsAvailable, asyncDownloadFile, syncDownloadFile, getFileSizeAsync, getFileSizeSync } from '../generic/xhr';
 import { fetchIsAvailable, fetchFileAsync, fetchFileSizeAsync } from '../generic/fetch';

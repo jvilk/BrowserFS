@@ -1,7 +1,7 @@
 import PreloadFile from '../generic/preload_file';
 import { BaseFileSystem, FileSystem, BFSOneArgCallback, BFSCallback, FileSystemOptions } from '../core/file_system';
 import { FileFlag } from '../core/file_flag';
-import { default as Stats, FileType } from '../core/node_fs_stats';
+import { default as Stats, FileType } from '../core/stats';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { File } from '../core/file';
 import { arrayBuffer2Buffer, buffer2ArrayBuffer } from '../core/util';

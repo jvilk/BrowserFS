@@ -1,6 +1,6 @@
 import { BaseFileSystem, SynchronousFileSystem, BFSOneArgCallback, BFSCallback, BFSThreeArgCallback } from '../core/file_system';
 import { ApiError, ErrorCode } from '../core/api_error';
-import { default as Stats, FileType, FilePerm } from '../core/node_fs_stats';
+import { default as Stats, FileType, FilePerm } from '../core/stats';
 import { File } from '../core/file';
 import { FileFlag } from '../core/file_flag';
 import * as path from 'path';
