@@ -1066,7 +1066,7 @@ export default class FS {
 		const newCb = wrapCb(cb, 1);
 		try {
 			path = normalizePath(path);
-			assertRoot(this.root).rmdir(path, this.cred, newCb);
+			wrap(assertRoot(this.root).rmdir(path, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1095,7 +1095,7 @@ export default class FS {
 		const newCb = wrapCb(cb, 1);
 		try {
 			path = normalizePath(path);
-			assertRoot(this.root).mkdir(path, mode, this.cred, newCb);
+			wrap(assertRoot(this.root).mkdir(path, mode, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1121,7 +1121,7 @@ export default class FS {
 		const newCb = <(err: ApiError, files?: string[]) => void>wrapCb(cb, 2);
 		try {
 			path = normalizePath(path);
-			assertRoot(this.root).readdir(path, this.cred, newCb);
+			wrap(assertRoot(this.root).readdir(path, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1150,7 +1150,7 @@ export default class FS {
 		try {
 			srcpath = normalizePath(srcpath);
 			dstpath = normalizePath(dstpath);
-			assertRoot(this.root).link(srcpath, dstpath, this.cred, newCb);
+			wrap(assertRoot(this.root).link(srcpath, dstpath, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1186,7 +1186,7 @@ export default class FS {
 			}
 			srcpath = normalizePath(srcpath);
 			dstpath = normalizePath(dstpath);
-			assertRoot(this.root).symlink(srcpath, dstpath, type, this.cred, newCb);
+			wrap(assertRoot(this.root).symlink(srcpath, dstpath, type, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1218,7 +1218,7 @@ export default class FS {
 		const newCb = wrapCb(cb, 2);
 		try {
 			path = normalizePath(path);
-			assertRoot(this.root).readlink(path, this.cred, newCb);
+			wrap(assertRoot(this.root).readlink(path, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1247,7 +1247,7 @@ export default class FS {
 		const newCb = wrapCb(cb, 1);
 		try {
 			path = normalizePath(path);
-			assertRoot(this.root).chown(path, false, uid, gid, this.cred, newCb);
+			wrap(assertRoot(this.root).chown(path, false, uid, gid, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1275,7 +1275,7 @@ export default class FS {
 		const newCb = wrapCb(cb, 1);
 		try {
 			path = normalizePath(path);
-			assertRoot(this.root).chown(path, true, uid, gid, this.cred, newCb);
+			wrap(assertRoot(this.root).chown(path, true, uid, gid, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1305,7 +1305,7 @@ export default class FS {
 			if (numMode < 0) {
 				throw new ApiError(ErrorCode.EINVAL, `Invalid mode.`);
 			}
-			assertRoot(this.root).chmod(normalizePath(path), false, numMode, this.cred, newCb);
+			wrap(assertRoot(this.root).chmod(normalizePath(path), false, numMode, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1338,7 +1338,7 @@ export default class FS {
 			if (numMode < 0) {
 				throw new ApiError(ErrorCode.EINVAL, `Invalid mode.`);
 			}
-			assertRoot(this.root).chmod(normalizePath(path), true, numMode, this.cred, newCb);
+			wrap(assertRoot(this.root).chmod(normalizePath(path), true, numMode, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1367,7 +1367,7 @@ export default class FS {
 	public utimes(path: string, atime: number | Date, mtime: number | Date, cb: BFSOneArgCallback = nopCb): void {
 		const newCb = wrapCb(cb, 1);
 		try {
-			assertRoot(this.root).utimes(normalizePath(path), normalizeTime(atime), normalizeTime(mtime), this.cred, newCb);
+			wrap(assertRoot(this.root).utimes(normalizePath(path), normalizeTime(atime), normalizeTime(mtime), this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1408,7 +1408,7 @@ export default class FS {
 		const newCb = <(err: ApiError, resolvedPath?: string) => any>wrapCb(cb, 2);
 		try {
 			path = normalizePath(path);
-			assertRoot(this.root).realpath(path, cache, this.cred, newCb);
+			wrap(assertRoot(this.root).realpath(path, cache, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1457,7 +1457,7 @@ export default class FS {
 		const newCb = <(err: ApiError, resolvedPath?: string) => any>wrapCb(callback, 2);
 		try {
 			path = normalizePath(path);
-			assertRoot(this.root).access(path, mode, this.cred, newCb);
+			wrap(assertRoot(this.root).access(path, mode, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}

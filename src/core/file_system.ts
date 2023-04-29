@@ -352,7 +352,7 @@ export interface FileSystemOption<T> {
 	// A custom validation function to check if the option is valid.
 	// Calls the callback with an error object on an error.
 	// (Can call callback synchronously.)
-	// Defaults to `(opt, cb) => cb()`.
+	// Defaults to `(opt) => Promise<void>`.
 	validator?(opt: T): Promise<void>;
 }
 
