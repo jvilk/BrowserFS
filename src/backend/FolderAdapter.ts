@@ -49,26 +49,13 @@ export default class FolderAdapter extends BaseFileSystem implements FileSystem 
 	 * Creates a FolderAdapter instance with the given options.
 	 */
 	public static Create(opts: FolderAdapterOptions, cb: BFSCallback<FolderAdapter>): void {
-		const fa = new FolderAdapter(opts.folder, opts.wrapped);
-		fa._initialize(function (e?) {
-			if (e) {
-				cb(e);
-			} else {
-				cb(null, fa);
-			}
-		});
+		this.CreateAsync(opts).then(fa => cb(null, fa)).catch(cb);
 	}
 
-	public static CreateAsync(opts: FolderAdapterOptions): Promise<FolderAdapter> {
-		return new Promise((resolve, reject) => {
-			this.Create(opts, (error, fs) => {
-				if (error || !fs) {
-					reject(error);
-				} else {
-					resolve(fs);
-				}
-			});
-		});
+	public static async CreateAsync(opts: FolderAdapterOptions): Promise<FolderAdapter> {
+		const fa = new FolderAdapter(opts.folder, opts.wrapped);
+		await fa._initialize();
+		return fa;
 	}
 
 	public static isAvailable(): boolean {
@@ -104,16 +91,13 @@ export default class FolderAdapter extends BaseFileSystem implements FileSystem 
 	 * Initialize the file system. Ensures that the wrapped file system
 	 * has the given folder.
 	 */
-	private _initialize(cb: (e?: ApiError) => void) {
-		this._wrapped.exists(this._folder, Cred.Root, (exists: boolean) => {
-			if (exists) {
-				cb();
-			} else if (this._wrapped.isReadOnly()) {
-				cb(ApiError.ENOENT(this._folder));
-			} else {
-				this._wrapped.mkdir(this._folder, 0x1ff, Cred.Root, cb);
-			}
-		});
+	private async _initialize(): Promise<void> {
+		const exists = await this._wrapped.exists(this._folder, Cred.Root);
+		if (!exists && this._wrapped.isReadOnly()) {
+			throw ApiError.ENOENT(this._folder);
+		} else {
+			await this._wrapped.mkdir(this._folder, 0x1ff, Cred.Root);
+		}
 	}
 }
 

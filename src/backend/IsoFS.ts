@@ -4,7 +4,7 @@ import { SynchronousFileSystem, FileSystem, BFSCallback, FileSystemOptions } fro
 import { File } from '../core/file';
 import { FileFlag, ActionType } from '../core/file_flag';
 import { NoSyncFile } from '../generic/preload_file';
-import { copyingSlice, bufferValidator } from '../core/util';
+import { copyingSlice, bufferValidator as validator } from '../core/util';
 import * as path from 'path';
 import type { Buffer } from 'buffer';
 
@@ -1160,7 +1160,7 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
 		data: {
 			type: 'object',
 			description: 'The ISO file in a buffer',
-			validator: bufferValidator,
+			validator,
 		},
 	};
 

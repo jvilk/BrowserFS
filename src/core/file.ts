@@ -50,9 +50,9 @@ export interface File {
 	 * @param position Offset from the beginning of the file where this
 	 *   data should be written. If position is null, the data will be written at
 	 *   the current position.
-	 * @returns Promise resolving to a buffer
+	 * @returns Promise resolving to the new length of the buffer
 	 */
-	write(buffer: Buffer, offset: number, length: number, position: number | null): Promise<Buffer>;
+	write(buffer: Buffer, offset: number, length: number, position: number | null): Promise<number>;
 	/**
 	 * **Core**: Write buffer to the file.
 	 * Note that it is unsafe to use fs.writeSync multiple times on the same file
@@ -76,9 +76,9 @@ export interface File {
 	 * @param position An integer specifying where to begin reading from
 	 *   in the file. If position is null, data will be read from the current file
 	 *   position.
-	 * @returns Promise resolving to a buffer
+	 * @returns Promise resolving to the new length of the buffer
 	 */
-	read(buffer: Buffer, offset: number, length: number, position: number | null): Promise<Buffer>;
+	read(buffer: Buffer, offset: number, length: number, position: number | null): Promise<number>;
 	/**
 	 * **Core**: Read data from the file.
 	 * @param buffer The buffer that the data will be written to.

@@ -12,7 +12,6 @@
 import FS from '../core/FS';
 import fs from '../core/node_fs';
 import NodeStats from '../core/stats';
-import { uint8Array2Buffer } from '../core/util';
 
 export interface Stats {
 	dev: number;
@@ -122,7 +121,7 @@ class BFSEmscriptenStreamOps implements EmscriptenStreamOps {
 	public read(stream: EmscriptenStream, buffer: Uint8Array, offset: number, length: number, position: number): number {
 		// Avoid copying overhead by reading directly into buffer.
 		try {
-			return this.nodefs.readSync(stream.nfd, uint8Array2Buffer(buffer), offset, length, position);
+			return this.nodefs.readSync(stream.nfd, Buffer.from(buffer), offset, length, position);
 		} catch (e) {
 			throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
 		}
@@ -131,7 +130,7 @@ class BFSEmscriptenStreamOps implements EmscriptenStreamOps {
 	public write(stream: EmscriptenStream, buffer: Uint8Array, offset: number, length: number, position: number): number {
 		// Avoid copying overhead.
 		try {
-			return this.nodefs.writeSync(stream.nfd, uint8Array2Buffer(buffer), offset, length, position);
+			return this.nodefs.writeSync(stream.nfd, Buffer.from(buffer), offset, length, position);
 		} catch (e) {
 			throw new this.FS.ErrnoError(this.ERRNO_CODES[e.code]);
 		}

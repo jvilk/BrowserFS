@@ -214,9 +214,8 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
 	 * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)]
 	 *   cb The number specifies the number of bytes written into the file.
 	 */
-	public async write(buffer: Buffer, offset: number, length: number, position: number): Promise<Buffer> {
-		this.writeSync(buffer, offset, length, position);
-		return buffer;
+	public async write(buffer: Buffer, offset: number, length: number, position: number): Promise<number> {
+		return this.writeSync(buffer, offset, length, position);
 	}
 
 	/**
@@ -273,9 +272,8 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
 	 * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)] cb The
 	 *   number is the number of bytes read
 	 */
-	public async read(buffer: Buffer, offset: number, length: number, position: number): Promise<Buffer> {
-		this.readSync(buffer, offset, length, position);
-		return buffer;
+	public async read(buffer: Buffer, offset: number, length: number, position: number): Promise<number> {
+		return this.readSync(buffer, offset, length, position);
 	}
 
 	/**

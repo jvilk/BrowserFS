@@ -1,8 +1,7 @@
 import { BFSOneArgCallback, BFSCallback, FileSystemOptions } from '../core/file_system';
 import { AsyncKeyValueROTransaction, AsyncKeyValueRWTransaction, AsyncKeyValueStore, AsyncKeyValueFileSystem } from '../generic/key_value_filesystem';
 import { ApiError, ErrorCode } from '../core/api_error';
-import { arrayBuffer2Buffer, buffer2ArrayBuffer } from '../core/util';
-import type { Buffer } from 'buffer';
+import { Buffer } from 'buffer';
 /**
  * Get the indexedDB constructor for the current browser.
  * @hidden
@@ -52,24 +51,26 @@ function onErrorHandler(cb: (e: ApiError) => void, code: ErrorCode = ErrorCode.E
 export class IndexedDBROTransaction implements AsyncKeyValueROTransaction {
 	constructor(public tx: IDBTransaction, public store: IDBObjectStore) {}
 
-	public get(key: string, cb: BFSCallback<Buffer>): void {
-		try {
-			const r: IDBRequest = this.store.get(key);
-			r.onerror = onErrorHandler(cb);
-			r.onsuccess = event => {
-				// IDB returns the value 'undefined' when you try to get keys that
-				// don't exist. The caller expects this behavior.
-				const result: any = (<any>event.target).result;
-				if (result === undefined) {
-					cb(null, result);
-				} else {
-					// IDB data is stored as an ArrayBuffer
-					cb(null, arrayBuffer2Buffer(result));
-				}
-			};
-		} catch (e) {
-			cb(convertError(e));
-		}
+	public get(key: string): Promise<Buffer> {
+		return new Promise((resolve, reject) => {
+			try {
+				const r: IDBRequest = this.store.get(key);
+				r.onerror = onErrorHandler(reject);
+				r.onsuccess = event => {
+					// IDB returns the value 'undefined' when you try to get keys that
+					// don't exist. The caller expects this behavior.
+					const result = (<any>event.target).result;
+					if (result === undefined) {
+						resolve(result);
+					} else {
+						// IDB data is stored as an ArrayBuffer
+						resolve(Buffer.from(result));
+					}
+				};
+			} catch (e) {
+				reject(convertError(e));
+			}
+		});
 	}
 }
 
@@ -81,60 +82,63 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements As
 		super(tx, store);
 	}
 
-	public put(key: string, data: Buffer, overwrite: boolean, cb: BFSCallback<boolean>): void {
-		try {
-			const arraybuffer = buffer2ArrayBuffer(data);
-			let r: IDBRequest;
-			// Note: 'add' will never overwrite an existing key.
-			r = overwrite ? this.store.put(arraybuffer, key) : this.store.add(arraybuffer, key);
-			// XXX: NEED TO RETURN FALSE WHEN ADD HAS A KEY CONFLICT. NO ERROR.
-			r.onerror = onErrorHandler(cb);
-			r.onsuccess = event => {
-				cb(null, true);
-			};
-		} catch (e) {
-			cb(convertError(e));
-		}
+	/**
+	 * @todo return false when add has a key conflict (no error)
+	 */
+	public put(key: string, data: Buffer, overwrite: boolean): Promise<boolean> {
+		return new Promise((resolve, reject) => {
+			try {
+				const r: IDBRequest = overwrite ? this.store.put(data, key) : this.store.add(data, key);
+				r.onerror = onErrorHandler(reject);
+				r.onsuccess = () => {
+					resolve(true);
+				};
+			} catch (e) {
+				reject(convertError(e));
+			}
+		});
 	}
 
-	public del(key: string, cb: BFSOneArgCallback): void {
-		try {
-			// NOTE: IE8 has a bug with identifiers named 'delete' unless used as a string
-			// like this.
-			// http://stackoverflow.com/a/26479152
-			const r: IDBRequest = this.store['delete'](key);
-			r.onerror = onErrorHandler(cb);
-			r.onsuccess = event => {
-				cb();
-			};
-		} catch (e) {
-			cb(convertError(e));
-		}
+	public del(key: string): Promise<void> {
+		return new Promise((resolve, reject) => {
+			try {
+				const r: IDBRequest = this.store.delete(key);
+				r.onerror = onErrorHandler(reject);
+				r.onsuccess = () => {
+					resolve();
+				};
+			} catch (e) {
+				reject(convertError(e));
+			}
+		});
 	}
 
-	public commit(cb: BFSOneArgCallback): void {
-		// Return to the event loop to commit the transaction.
-		setTimeout(cb, 0);
+	public commit(): Promise<void> {
+		return new Promise(resolve => {
+			// Return to the event loop to commit the transaction.
+			setTimeout(resolve, 0);
+		});
 	}
 
-	public abort(cb: BFSOneArgCallback): void {
-		let _e: ApiError | null = null;
-		try {
-			this.tx.abort();
-		} catch (e) {
-			_e = convertError(e);
-		} finally {
-			cb(_e);
-		}
+	public abort(): Promise<void> {
+		return new Promise((resolve, reject) => {
+			try {
+				this.tx.abort();
+				resolve();
+			} catch (e) {
+				reject(convertError(e));
+			}
+		});
 	}
 }
 
 export class IndexedDBStore implements AsyncKeyValueStore {
-	public static Create(storeName: string, cb: BFSCallback<IndexedDBStore>): void {
+	public static Create(storeName: string): Promise<IndexedDBStore> {
+		return new Promise((resolve, reject) => {
 		const openReq: IDBOpenDBRequest = indexedDB.open(storeName, 1);
 
 		openReq.onupgradeneeded = event => {
-			const db: IDBDatabase = (<any>event.target).result;
+			const db: IDBDatabase = (<IDBOpenDBRequest>event.target).result;
 			// Huh. This should never happen; we're at version 1. Why does another
 			// database exist?
 			if (db.objectStoreNames.contains(storeName)) {
@@ -144,10 +148,11 @@ export class IndexedDBStore implements AsyncKeyValueStore {
 		};
 
 		openReq.onsuccess = event => {
-			cb(null, new IndexedDBStore((<any>event.target).result, storeName));
+			resolve(new IndexedDBStore((<IDBOpenDBRequest>event.target).result, storeName));
 		};
 
-		openReq.onerror = onErrorHandler(cb, ErrorCode.EACCES);
+		openReq.onerror = onErrorHandler(reject, ErrorCode.EACCES);
+	});
 	}
 
 	constructor(private db: IDBDatabase, private storeName: string) {}
@@ -156,19 +161,21 @@ export class IndexedDBStore implements AsyncKeyValueStore {
 		return IndexedDBFileSystem.Name + ' - ' + this.storeName;
 	}
 
-	public clear(cb: BFSOneArgCallback): void {
+	public clear(): Promise<void> {
+		return new Promise((resolve, reject) => {
 		try {
 			const tx = this.db.transaction(this.storeName, 'readwrite'),
 				objectStore = tx.objectStore(this.storeName),
 				r: IDBRequest = objectStore.clear();
-			r.onsuccess = event => {
+			r.onsuccess = () => {
 				// Use setTimeout to commit transaction.
-				setTimeout(cb, 0);
+				setTimeout(resolve, 0);
 			};
-			r.onerror = onErrorHandler(cb);
+			r.onerror = onErrorHandler(reject);
 		} catch (e) {
-			cb(convertError(e));
+			reject(convertError(e));
 		}
+		});
 	}
 
 	public beginTransaction(type: 'readonly'): AsyncKeyValueROTransaction;
@@ -220,38 +227,18 @@ export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
 	 * Constructs an IndexedDB file system with the given options.
 	 */
 	public static Create(options: IndexedDBFileSystemOptions, cb: BFSCallback<IndexedDBFileSystem>): void {
-		if (!options) {
-			options = {
-				storeName: 'browserfs',
-				cacheSize: 100,
-			};
-		}
-		IndexedDBStore.Create(options.storeName || 'browserfs', (e, store?) => {
-			if (store) {
-				const idbfs = new IndexedDBFileSystem(options.cacheSize || 100);
-				idbfs.init(store, e => {
-					if (e) {
-						cb(e);
-					} else {
-						cb(null, idbfs);
-					}
-				});
-			} else {
-				cb(e);
-			}
-		});
+		this.CreateAsync(options).then(fs => cb(null, fs)).catch(cb);
 	}
 
-	public static CreateAsync(opts: IndexedDBFileSystemOptions): Promise<IndexedDBFileSystem> {
-		return new Promise((resolve, reject) => {
-			this.Create(opts, (error, fs) => {
-				if (error || !fs) {
-					reject(error);
-				} else {
-					resolve(fs);
-				}
-			});
-		});
+	public static async CreateAsync(options: IndexedDBFileSystemOptions): Promise<IndexedDBFileSystem> {
+		options ||= {
+			storeName: 'browserfs',
+			cacheSize: 100,
+		};
+		const store = await IndexedDBStore.Create(options.storeName || 'browserfs'),
+		idbfs = new IndexedDBFileSystem(options.cacheSize || 100);
+		await idbfs.init(store);
+		return idbfs;
 	}
 
 	public static isAvailable(): boolean {
