@@ -135,24 +135,24 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements As
 export class IndexedDBStore implements AsyncKeyValueStore {
 	public static Create(storeName: string): Promise<IndexedDBStore> {
 		return new Promise((resolve, reject) => {
-		const openReq: IDBOpenDBRequest = indexedDB.open(storeName, 1);
+			const openReq: IDBOpenDBRequest = indexedDB.open(storeName, 1);
 
-		openReq.onupgradeneeded = event => {
-			const db: IDBDatabase = (<IDBOpenDBRequest>event.target).result;
-			// Huh. This should never happen; we're at version 1. Why does another
-			// database exist?
-			if (db.objectStoreNames.contains(storeName)) {
-				db.deleteObjectStore(storeName);
-			}
-			db.createObjectStore(storeName);
-		};
+			openReq.onupgradeneeded = event => {
+				const db: IDBDatabase = (<IDBOpenDBRequest>event.target).result;
+				// Huh. This should never happen; we're at version 1. Why does another
+				// database exist?
+				if (db.objectStoreNames.contains(storeName)) {
+					db.deleteObjectStore(storeName);
+				}
+				db.createObjectStore(storeName);
+			};
 
-		openReq.onsuccess = event => {
-			resolve(new IndexedDBStore((<IDBOpenDBRequest>event.target).result, storeName));
-		};
+			openReq.onsuccess = event => {
+				resolve(new IndexedDBStore((<IDBOpenDBRequest>event.target).result, storeName));
+			};
 
-		openReq.onerror = onErrorHandler(reject, ErrorCode.EACCES);
-	});
+			openReq.onerror = onErrorHandler(reject, ErrorCode.EACCES);
+		});
 	}
 
 	constructor(private db: IDBDatabase, private storeName: string) {}
@@ -163,18 +163,18 @@ export class IndexedDBStore implements AsyncKeyValueStore {
 
 	public clear(): Promise<void> {
 		return new Promise((resolve, reject) => {
-		try {
-			const tx = this.db.transaction(this.storeName, 'readwrite'),
-				objectStore = tx.objectStore(this.storeName),
-				r: IDBRequest = objectStore.clear();
-			r.onsuccess = () => {
-				// Use setTimeout to commit transaction.
-				setTimeout(resolve, 0);
-			};
-			r.onerror = onErrorHandler(reject);
-		} catch (e) {
-			reject(convertError(e));
-		}
+			try {
+				const tx = this.db.transaction(this.storeName, 'readwrite'),
+					objectStore = tx.objectStore(this.storeName),
+					r: IDBRequest = objectStore.clear();
+				r.onsuccess = () => {
+					// Use setTimeout to commit transaction.
+					setTimeout(resolve, 0);
+				};
+				r.onerror = onErrorHandler(reject);
+			} catch (e) {
+				reject(convertError(e));
+			}
 		});
 	}
 
@@ -227,7 +227,9 @@ export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
 	 * Constructs an IndexedDB file system with the given options.
 	 */
 	public static Create(options: IndexedDBFileSystemOptions, cb: BFSCallback<IndexedDBFileSystem>): void {
-		this.CreateAsync(options).then(fs => cb(null, fs)).catch(cb);
+		this.CreateAsync(options)
+			.then(fs => cb(null, fs))
+			.catch(cb);
 	}
 
 	public static async CreateAsync(options: IndexedDBFileSystemOptions): Promise<IndexedDBFileSystem> {
@@ -236,7 +238,7 @@ export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
 			cacheSize: 100,
 		};
 		const store = await IndexedDBStore.Create(options.storeName || 'browserfs'),
-		idbfs = new IndexedDBFileSystem(options.cacheSize || 100);
+			idbfs = new IndexedDBFileSystem(options.cacheSize || 100);
 		await idbfs.init(store);
 		return idbfs;
 	}

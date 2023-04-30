@@ -209,7 +209,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 				}
 			}
 		} else {
-			if (await this.exists(newPath, cred) && (await this.stat(newPath, false, cred)).isDirectory()) {
+			if ((await this.exists(newPath, cred)) && (await this.stat(newPath, false, cred)).isDirectory()) {
 				throw ApiError.EISDIR(newPath);
 			}
 
@@ -743,7 +743,9 @@ export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
 	 * Constructs and initializes an OverlayFS instance with the given options.
 	 */
 	public static Create(opts: OverlayFSOptions, cb: BFSCallback<OverlayFS>): void {
-		this.CreateAsync(opts).then(fs => cb(null, fs)).catch(cb);
+		this.CreateAsync(opts)
+			.then(fs => cb(null, fs))
+			.catch(cb);
 	}
 
 	public static async CreateAsync(opts: OverlayFSOptions): Promise<OverlayFS> {

@@ -475,7 +475,9 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
 	};
 
 	public static Create(opts: WorkerFSOptions, cb: BFSCallback<WorkerFS>): void {
-		this.CreateAsync(opts).then(fs => cb(null, fs)).catch(cb);
+		this.CreateAsync(opts)
+			.then(fs => cb(null, fs))
+			.catch(cb);
 	}
 
 	public static async CreateAsync(opts: WorkerFSOptions): Promise<WorkerFS> {
@@ -628,8 +630,8 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
 		this._worker = worker;
 		this._worker.addEventListener('message', (e: MessageEvent) => {
 			if (isAPIResponse(e.data)) {
-				if(!this._pendingRequests.has(e.data.id)){
-					throw new ApiError(ErrorCode.EIO, `WorkerFS sent a response for a request that did not exist (request #${e.data.id})`)
+				if (!this._pendingRequests.has(e.data.id)) {
+					throw new ApiError(ErrorCode.EIO, `WorkerFS sent a response for a request that did not exist (request #${e.data.id})`);
 				}
 				const req = this._pendingRequests.get(e.data.id);
 				this._pendingRequests.delete(e.data.id);

@@ -82,7 +82,9 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
 	 * Construct an HTTPRequest file system backend with the given options.
 	 */
 	public static Create(opts: HTTPRequestOptions, cb: BFSCallback<HTTPRequest>): void {
-		this.CreateAsync(opts).then(fs => cb(null, fs)).catch(cb);
+		this.CreateAsync(opts)
+			.then(fs => cb(null, fs))
+			.catch(cb);
 	}
 
 	public static async CreateAsync(opts: HTTPRequestOptions): Promise<HTTPRequest> {
@@ -90,7 +92,7 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
 			opts.index = 'index.json';
 		}
 
-		if(typeof opts.index != 'string'){
+		if (typeof opts.index != 'string') {
 			return new HTTPRequest(opts.index, opts.baseUrl);
 		}
 
@@ -116,9 +118,8 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
 		this.prefixUrl = prefixUrl;
 		this._index = FileIndex.fromListing(index);
 
-			this._requestFileInternal = fetchFile;
-			this._requestFileSizeInternal = fetchFileSize;
-
+		this._requestFileInternal = fetchFile;
+		this._requestFileSizeInternal = fetchFileSize;
 	}
 
 	public empty(): void {
@@ -287,5 +288,4 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
 	private _requestFileSize(path: string): Promise<number> {
 		return this._requestFileSizeInternal(this._getHTTPPath(path));
 	}
-
 }

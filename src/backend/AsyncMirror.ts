@@ -111,7 +111,9 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
 	public static Create(opts: AsyncMirrorOptions, cb: BFSCallback<AsyncMirror>): void {
 		try {
 			const fs = new AsyncMirror(opts.sync, opts.async);
-			fs._initialize().then(() => cb(null, fs)).catch(e => cb(e));
+			fs._initialize()
+				.then(() => cb(null, fs))
+				.catch(e => cb(e));
 		} catch (e) {
 			cb(e);
 		}
@@ -304,8 +306,8 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
 				}
 				if (this._queue.length > 0) {
 					const op = this._queue.shift()!;
-						op.arguments.push(doNextOp);
-					(<Function>(this._async)[op.apiMethod]).apply(this._async, op.arguments);
+					op.arguments.push(doNextOp);
+					(<Function>this._async[op.apiMethod]).apply(this._async, op.arguments);
 				} else {
 					this._queueRunning = false;
 				}

@@ -212,7 +212,7 @@ export default class FileSystemAccessFileSystem extends BaseFileSystem implement
 		const handle = await this.getHandle(path);
 		if (handle instanceof FileSystemDirectoryHandle) {
 			const _keys: string[] = [];
-			for await (const key of handle.keys()){
+			for await (const key of handle.keys()) {
 				_keys.push(join(path, key));
 			}
 			return _keys;

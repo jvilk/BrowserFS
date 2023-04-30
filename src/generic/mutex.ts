@@ -10,7 +10,7 @@ export default class Mutex {
 	private _waiters: MutexCallback[] = [];
 
 	public lock(): Promise<void> {
-		return new Promise((resolve) => {
+		return new Promise(resolve => {
 			if (this._locked) {
 				this._waiters.push(resolve);
 			}

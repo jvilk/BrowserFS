@@ -49,7 +49,9 @@ export default class FolderAdapter extends BaseFileSystem implements FileSystem 
 	 * Creates a FolderAdapter instance with the given options.
 	 */
 	public static Create(opts: FolderAdapterOptions, cb: BFSCallback<FolderAdapter>): void {
-		this.CreateAsync(opts).then(fa => cb(null, fa)).catch(cb);
+		this.CreateAsync(opts)
+			.then(fa => cb(null, fa))
+			.catch(cb);
 	}
 
 	public static async CreateAsync(opts: FolderAdapterOptions): Promise<FolderAdapter> {

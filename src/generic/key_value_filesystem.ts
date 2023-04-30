@@ -995,11 +995,11 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
 	public async stat(p: string, isLstat: boolean, cred: Cred): Promise<Stats> {
 		const tx = this.store.beginTransaction('readonly');
 		const inode = await this.findINode(tx, p);
-			const stats = inode!.toStats();
-				if (!stats.hasAccess(FilePerm.READ, cred)) {
-					throw ApiError.EACCES(p);
-				}
-				return stats;
+		const stats = inode!.toStats();
+		if (!stats.hasAccess(FilePerm.READ, cred)) {
+			throw ApiError.EACCES(p);
+		}
+		return stats;
 	}
 
 	public async createFile(p: string, flag: FileFlag, mode: number, cred: Cred): Promise<File> {

@@ -30,17 +30,17 @@ function wrapCb<T extends Function>(cb: T, numArgs: number): T {
 	// We could use `arguments`, but Function.call/apply is expensive. And we only
 	// need to handle 1-3 arguments
 	return <any>function (...args: any[]) {
-		setImmediate(function() {
+		setImmediate(function () {
 			return hookedCb(...args);
-		})
-	}
+		});
+	};
 }
 
 /**
  * Wrapped the async function for use with callbacks
  * @hidden
  */
-function wrap<T extends Function, P>(promise: Promise<P>, cb: T){
+function wrap<T extends Function, P>(promise: Promise<P>, cb: T) {
 	try {
 		promise.then(val => cb(null, val)).catch(err => cb(err));
 	} catch (err) {
