@@ -33,7 +33,7 @@ import IsoFS from '../backend/IsoFS';
 				}
 			}
 
-			checkOptions(fsType, normalizedOpts, wrappedCb);
+			checkOptions(fsType, normalizedOpts).then(() => wrappedCb()).catch(wrappedCb);
 		};
 	}
 );

@@ -1,6 +1,5 @@
 import Mutex from './mutex';
-import { FileSystem, BFSOneArgCallback, BFSCallback } from '../core/file_system';
-import { ApiError } from '../core/api_error';
+import { FileSystem } from '../core/file_system';
 import { FileFlag } from '../core/file_flag';
 import { default as Stats } from '../core/stats';
 import { File } from '../core/file';
@@ -54,13 +53,10 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs.supportsSynch();
 	}
 
-	public rename(oldPath: string, newPath: string, cred: Cred, cb: BFSOneArgCallback): void {
-		this._mu.lock(() => {
-			this._fs.rename(oldPath, newPath, cred, (err?: ApiError) => {
-				this._mu.unlock();
-				cb(err);
-			});
-		});
+	public async rename(oldPath: string, newPath: string, cred: Cred): Promise<void> {
+		await this._mu.lock();
+		await this._fs.rename(oldPath, newPath, cred);
+		this._mu.unlock();
 	}
 
 	public renameSync(oldPath: string, newPath: string, cred: Cred): void {
@@ -70,13 +66,11 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs.renameSync(oldPath, newPath, cred);
 	}
 
-	public stat(p: string, isLstat: boolean, cred: Cred, cb: BFSCallback<Stats>): void {
-		this._mu.lock(() => {
-			this._fs.stat(p, isLstat, cred, (err?: ApiError, stat?: Stats) => {
-				this._mu.unlock();
-				cb(err, stat);
-			});
-		});
+	public async stat(p: string, isLstat: boolean, cred: Cred): Promise<Stats> {
+		await this._mu.lock();
+		const stats = await this._fs.stat(p, isLstat, cred);
+		this._mu.unlock();
+		return stats;
 	}
 
 	public statSync(p: string, isLstat: boolean, cred: Cred): Stats {
@@ -86,13 +80,10 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs.statSync(p, isLstat, cred);
 	}
 
-	public access(p: string, mode: number, cred: Cred, cb: BFSOneArgCallback): void {
-		this._mu.lock(() => {
-			this._fs.access(p, mode, cred, (err?: ApiError) => {
-				this._mu.unlock();
-				cb(err);
-			});
-		});
+	public async access(p: string, mode: number, cred: Cred): Promise<void> {
+		await this._mu.lock();
+		await this._fs.access(p, mode, cred);
+		this._mu.unlock();
 	}
 
 	public accessSync(p: string, mode: number, cred: Cred): void {
@@ -102,13 +93,11 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs.accessSync(p, mode, cred);
 	}
 
-	public open(p: string, flag: FileFlag, mode: number, cred: Cred, cb: BFSCallback<File>): void {
-		this._mu.lock(() => {
-			this._fs.open(p, flag, mode, cred, (err?: ApiError, fd?: File) => {
-				this._mu.unlock();
-				cb(err, fd);
-			});
-		});
+	public async open(p: string, flag: FileFlag, mode: number, cred: Cred): Promise<File> {
+		await this._mu.lock();
+		const fd = await this._fs.open(p, flag, mode, cred);
+		this._mu.unlock();
+		return fd;
 	}
 
 	public openSync(p: string, flag: FileFlag, mode: number, cred: Cred): File {
@@ -118,13 +107,10 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs.openSync(p, flag, mode, cred);
 	}
 
-	public unlink(p: string, cred: Cred, cb: BFSOneArgCallback): void {
-		this._mu.lock(() => {
-			this._fs.unlink(p, cred, (err?: ApiError) => {
-				this._mu.unlock();
-				cb(err);
-			});
-		});
+	public async unlink(p: string, cred: Cred): Promise<void> {
+		await this._mu.lock();
+		await this._fs.unlink(p, cred);
+		this._mu.unlock();
 	}
 
 	public unlinkSync(p: string, cred: Cred): void {
@@ -134,13 +120,10 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs.unlinkSync(p, cred);
 	}
 
-	public rmdir(p: string, cred: Cred, cb: BFSOneArgCallback): void {
-		this._mu.lock(() => {
-			this._fs.rmdir(p, cred, (err?: ApiError) => {
-				this._mu.unlock();
-				cb(err);
-			});
-		});
+	public async rmdir(p: string, cred: Cred): Promise<void> {
+		await this._mu.lock();
+		await this._fs.rmdir(p, cred);
+		this._mu.unlock();
 	}
 
 	public rmdirSync(p: string, cred: Cred): void {
@@ -150,13 +133,10 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs.rmdirSync(p, cred);
 	}
 
-	public mkdir(p: string, mode: number, cred: Cred, cb: BFSOneArgCallback): void {
-		this._mu.lock(() => {
-			this._fs.mkdir(p, mode, cred, (err?: ApiError) => {
-				this._mu.unlock();
-				cb(err);
-			});
-		});
+	public async mkdir(p: string, mode: number, cred: Cred): Promise<void> {
+		await this._mu.lock();
+		await this._fs.mkdir(p, mode, cred);
+		this._mu.unlock();
 	}
 
 	public mkdirSync(p: string, mode: number, cred: Cred): void {
@@ -166,13 +146,11 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs.mkdirSync(p, mode, cred);
 	}
 
-	public readdir(p: string, cred: Cred, cb: BFSCallback<string[]>): void {
-		this._mu.lock(() => {
-			this._fs.readdir(p, cred, (err?: ApiError, files?: string[]) => {
-				this._mu.unlock();
-				cb(err, files);
-			});
-		});
+	public async readdir(p: string, cred: Cred): Promise<string[]> {
+		await this._mu.lock();
+		const files = await this._fs.readdir(p, cred);
+		this._mu.unlock();
+		return files;
 	}
 
 	public readdirSync(p: string, cred: Cred): string[] {
@@ -182,13 +160,11 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs.readdirSync(p, cred);
 	}
 
-	public exists(p: string, cred: Cred, cb: (exists: boolean) => void): void {
-		this._mu.lock(() => {
-			this._fs.exists(p, cred, (exists: boolean) => {
-				this._mu.unlock();
-				cb(exists);
-			});
-		});
+	public async exists(p: string, cred: Cred): Promise<boolean> {
+		await this._mu.lock();
+		const exists = await this._fs.exists(p, cred);
+		this._mu.unlock();
+		return exists;
 	}
 
 	public existsSync(p: string, cred: Cred): boolean {
@@ -198,13 +174,11 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs.existsSync(p, cred);
 	}
 
-	public realpath(p: string, cache: { [path: string]: string }, cred: Cred, cb: BFSCallback<string>): void {
-		this._mu.lock(() => {
-			this._fs.realpath(p, cache, cred, (err?: ApiError, resolvedPath?: string) => {
-				this._mu.unlock();
-				cb(err, resolvedPath);
-			});
-		});
+	public async realpath(p: string, cache: { [path: string]: string }, cred: Cred): Promise<string> {
+		await this._mu.lock();
+		const resolvedPath = await this._fs.realpath(p, cache, cred);
+		this._mu.unlock();
+		return resolvedPath;
 	}
 
 	public realpathSync(p: string, cache: { [path: string]: string }, cred: Cred): string {
@@ -214,13 +188,10 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs.realpathSync(p, cache, cred);
 	}
 
-	public truncate(p: string, len: number, cred: Cred, cb: BFSOneArgCallback): void {
-		this._mu.lock(() => {
-			this._fs.truncate(p, len, cred, (err?: ApiError) => {
-				this._mu.unlock();
-				cb(err);
-			});
-		});
+	public async truncate(p: string, len: number, cred: Cred): Promise<void> {
+		await this._mu.lock();
+		await this._fs.truncate(p, len, cred);
+		this._mu.unlock();
 	}
 
 	public truncateSync(p: string, len: number, cred: Cred): void {
@@ -230,13 +201,11 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs.truncateSync(p, len, cred);
 	}
 
-	public readFile(fname: string, encoding: string, flag: FileFlag, cred: Cred, cb: BFSCallback<string | Buffer>): void {
-		this._mu.lock(() => {
-			this._fs.readFile(fname, encoding, flag, cred, (err?: ApiError, data?: any) => {
-				this._mu.unlock();
-				cb(err, data);
-			});
-		});
+	public async readFile(fname: string, encoding: string, flag: FileFlag, cred: Cred): Promise<string | Buffer> {
+		await this._mu.lock();
+		const data = await this._fs.readFile(fname, encoding, flag, cred);
+		this._mu.unlock();
+		return data;
 	}
 
 	public readFileSync(fname: string, encoding: string, flag: FileFlag, cred: Cred): any {
@@ -246,13 +215,10 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs.readFileSync(fname, encoding, flag, cred);
 	}
 
-	public writeFile(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cred: Cred, cb: BFSOneArgCallback): void {
-		this._mu.lock(() => {
-			this._fs.writeFile(fname, data, encoding, flag, mode, cred, (err?: ApiError) => {
-				this._mu.unlock();
-				cb(err);
-			});
-		});
+	public async writeFile(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cred: Cred): Promise<void> {
+		await this._mu.lock();
+		await this._fs.writeFile(fname, data, encoding, flag, mode, cred);
+		this._mu.unlock();
 	}
 
 	public writeFileSync(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cred: Cred): void {
@@ -262,13 +228,10 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs.writeFileSync(fname, data, encoding, flag, mode, cred);
 	}
 
-	public appendFile(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cred: Cred, cb: BFSOneArgCallback): void {
-		this._mu.lock(() => {
-			this._fs.appendFile(fname, data, encoding, flag, mode, cred, (err?: ApiError) => {
-				this._mu.unlock();
-				cb(err);
-			});
-		});
+	public async appendFile(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cred: Cred): Promise<void> {
+		await this._mu.lock();
+		await this._fs.appendFile(fname, data, encoding, flag, mode, cred);
+		this._mu.unlock();
 	}
 
 	public appendFileSync(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cred: Cred): void {
@@ -278,13 +241,10 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs.appendFileSync(fname, data, encoding, flag, mode, cred);
 	}
 
-	public chmod(p: string, isLchmod: boolean, mode: number, cred: Cred, cb: BFSOneArgCallback): void {
-		this._mu.lock(() => {
-			this._fs.chmod(p, isLchmod, mode, cred, (err?: ApiError) => {
-				this._mu.unlock();
-				cb(err);
-			});
-		});
+	public async chmod(p: string, isLchmod: boolean, mode: number, cred: Cred): Promise<void> {
+		await this._mu.lock();
+		await this._fs.chmod(p, isLchmod, mode, cred);
+		this._mu.unlock();
 	}
 
 	public chmodSync(p: string, isLchmod: boolean, mode: number, cred: Cred): void {
@@ -294,13 +254,10 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs.chmodSync(p, isLchmod, mode, cred);
 	}
 
-	public chown(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred, cb: BFSOneArgCallback): void {
-		this._mu.lock(() => {
-			this._fs.chown(p, isLchown, new_uid, new_gid, cred, (err?: ApiError) => {
-				this._mu.unlock();
-				cb(err);
-			});
-		});
+	public async chown(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): Promise<void> {
+		await this._mu.lock();
+		await this._fs.chown(p, isLchown, new_uid, new_gid, cred);
+		this._mu.unlock();
 	}
 
 	public chownSync(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): void {
@@ -310,13 +267,10 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs.chownSync(p, isLchown, new_uid, new_gid, cred);
 	}
 
-	public utimes(p: string, atime: Date, mtime: Date, cred: Cred, cb: BFSOneArgCallback): void {
-		this._mu.lock(() => {
-			this._fs.utimes(p, atime, mtime, cred, (err?: ApiError) => {
-				this._mu.unlock();
-				cb(err);
-			});
-		});
+	public async utimes(p: string, atime: Date, mtime: Date, cred: Cred): Promise<void> {
+		await this._mu.lock();
+		await this._fs.utimes(p, atime, mtime, cred);
+		this._mu.unlock();
 	}
 
 	public utimesSync(p: string, atime: Date, mtime: Date, cred: Cred): void {
@@ -326,13 +280,10 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs.utimesSync(p, atime, mtime, cred);
 	}
 
-	public link(srcpath: string, dstpath: string, cred: Cred, cb: BFSOneArgCallback): void {
-		this._mu.lock(() => {
-			this._fs.link(srcpath, dstpath, cred, (err?: ApiError) => {
-				this._mu.unlock();
-				cb(err);
-			});
-		});
+	public async link(srcpath: string, dstpath: string, cred: Cred): Promise<void> {
+		await this._mu.lock();
+		await this._fs.link(srcpath, dstpath, cred);
+		this._mu.unlock();
 	}
 
 	public linkSync(srcpath: string, dstpath: string, cred: Cred): void {
@@ -342,13 +293,10 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs.linkSync(srcpath, dstpath, cred);
 	}
 
-	public symlink(srcpath: string, dstpath: string, type: string, cred: Cred, cb: BFSOneArgCallback): void {
-		this._mu.lock(() => {
-			this._fs.symlink(srcpath, dstpath, type, cred, (err?: ApiError) => {
-				this._mu.unlock();
-				cb(err);
-			});
-		});
+	public async symlink(srcpath: string, dstpath: string, type: string, cred: Cred): Promise<void> {
+		await this._mu.lock();
+		await this._fs.symlink(srcpath, dstpath, type, cred);
+		this._mu.unlock();
 	}
 
 	public symlinkSync(srcpath: string, dstpath: string, type: string, cred: Cred): void {
@@ -358,13 +306,11 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs.symlinkSync(srcpath, dstpath, type, cred);
 	}
 
-	public readlink(p: string, cred: Cred, cb: BFSCallback<string>): void {
-		this._mu.lock(() => {
-			this._fs.readlink(p, cred, (err?: ApiError, linkString?: string) => {
-				this._mu.unlock();
-				cb(err, linkString);
-			});
-		});
+	public async readlink(p: string, cred: Cred): Promise<string> {
+		await this._mu.lock();
+		const linkString = await this._fs.readlink(p, cred);
+		this._mu.unlock();
+		return linkString;
 	}
 
 	public readlinkSync(p: string, cred: Cred): string {

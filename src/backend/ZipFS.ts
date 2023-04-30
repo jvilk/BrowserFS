@@ -99,7 +99,7 @@ function safeToString(buff: Buffer, useUTF8: boolean, start: number, length: num
 	} else if (useUTF8) {
 		return buff.toString('utf8', start, start + length);
 	} else {
-		return ExtendedASCII.byte2str(buff.slice(start, start + length));
+		return ExtendedASCII.byte2str(buff.subarray(start, start + length));
 	}
 }
 
@@ -196,7 +196,7 @@ export class FileHeader {
 	}
 	public extraField(): Buffer {
 		const start = 30 + this.fileNameLength();
-		return this.data.slice(start, start + this.extraFieldLength());
+		return this.data.subarray(start, start + this.extraFieldLength());
 	}
 	public totalSize(): number {
 		return 30 + this.fileNameLength() + this.extraFieldLength();
@@ -301,7 +301,7 @@ export class ArchiveExtraDataRecord {
 		return this.data.readUInt32LE(4);
 	}
 	public extraFieldData(): Buffer {
-		return this.data.slice(8, 8 + this.length());
+		return this.data.subarray(8, 8 + this.length());
 	}
 }
 
@@ -332,7 +332,7 @@ export class DigitalSignature {
 		return this.data.readUInt16LE(4);
 	}
 	public signatureData(): Buffer {
-		return this.data.slice(6, 6 + this.size());
+		return this.data.subarray(6, 6 + this.size());
 	}
 }
 
@@ -441,11 +441,11 @@ export class CentralDirectory {
 		return this._filename;
 	}
 	public rawFileName(): Buffer {
-		return this.data.slice(46, 46 + this.fileNameLength());
+		return this.data.subarray(46, 46 + this.fileNameLength());
 	}
 	public extraField(): Buffer {
 		const start = 44 + this.fileNameLength();
-		return this.data.slice(start, start + this.extraFieldLength());
+		return this.data.subarray(start, start + this.extraFieldLength());
 	}
 	public fileComment(): string {
 		const start = 46 + this.fileNameLength() + this.extraFieldLength();
@@ -453,7 +453,7 @@ export class CentralDirectory {
 	}
 	public rawFileComment(): Buffer {
 		const start = 46 + this.fileNameLength() + this.extraFieldLength();
-		return this.data.slice(start, start + this.fileCommentLength());
+		return this.data.subarray(start, start + this.fileCommentLength());
 	}
 	public totalSize(): number {
 		return 46 + this.fileNameLength() + this.extraFieldLength() + this.fileCommentLength();
@@ -483,8 +483,8 @@ export class CentralDirectory {
 		// Need to grab the header before we can figure out where the actual
 		// compressed data starts.
 		const start = this.headerRelativeOffset();
-		const header = new FileHeader(this.zipData.slice(start));
-		return new FileData(header, this, this.zipData.slice(start + header.totalSize()));
+		const header = new FileHeader(this.zipData.subarray(start));
+		return new FileData(header, this, this.zipData.subarray(start + header.totalSize()));
 	}
 	public getData(): Buffer {
 		return this.getFileData().decompress();
@@ -683,7 +683,7 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
 		for (let i = startOffset; i < endOffset; i++) {
 			// Magic number: EOCD Signature
 			if (data.readUInt32LE(data.length - i) === 0x06054b50) {
-				return new EndOfCentralDirectory(data.slice(data.length - i));
+				return new EndOfCentralDirectory(data.subarray(data.length - i));
 			}
 		}
 		throw new ApiError(ErrorCode.EINVAL, 'Invalid ZIP file: Could not locate End of Central Directory signature.');
@@ -755,7 +755,7 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
 		if (cdPtr < cdEnd) {
 			let count = 0;
 			while (count++ < 200 && cdPtr < cdEnd) {
-				const cd: CentralDirectory = new CentralDirectory(data, data.slice(cdPtr));
+				const cd: CentralDirectory = new CentralDirectory(data, data.subarray(cdPtr));
 				ZipFS._addToIndex(cd, index);
 				cdPtr += cd.totalSize();
 				cdEntries.push(cd);
@@ -914,7 +914,7 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
 }
 
 ZipFS.RegisterDecompressionMethod(CompressionMethod.DEFLATE, (data, compressedSize, uncompressedSize) => {
-	return inflateRaw(data.slice(0, compressedSize), { chunkSize: uncompressedSize });
+	return inflateRaw(data.subarray(0, compressedSize), { chunkSize: uncompressedSize });
 });
 
 ZipFS.RegisterDecompressionMethod(CompressionMethod.STORED, (data, compressedSize, uncompressedSize) => {

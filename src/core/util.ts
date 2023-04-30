@@ -205,3 +205,22 @@ export function wait(ms: number): Promise<void> {
 		setTimeout(resolve, ms);
 	});
 }
+
+/**
+ * Converts a callback into a promise. Assumes last parameter is the callback
+ * @todo Look at changing resolve value from cbArgs[0] to include other callback arguments?
+ */
+export function toPromise(fn: (...fnArgs: unknown[]) => unknown) {
+	return function (...args: unknown[]): Promise<unknown> {
+		return new Promise((resolve, reject) => {
+			args.push((e: ApiError, ...cbArgs: unknown[]) => {
+				if (e) {
+					reject(e);
+				} else {
+					resolve(cbArgs[0]);
+				}
+			});
+			fn(...args);
+		});
+	};
+}

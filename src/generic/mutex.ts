@@ -9,13 +9,14 @@ export default class Mutex {
 	private _locked: boolean = false;
 	private _waiters: MutexCallback[] = [];
 
-	public lock(cb: MutexCallback): void {
-		if (this._locked) {
-			this._waiters.push(cb);
-			return;
-		}
-		this._locked = true;
-		cb();
+	public lock(): Promise<void> {
+		return new Promise((resolve) => {
+			if (this._locked) {
+				this._waiters.push(resolve);
+			}
+
+			this._locked = true;
+		});
 	}
 
 	public unlock(): void {
@@ -24,12 +25,14 @@ export default class Mutex {
 		}
 
 		const next = this._waiters.shift();
-		// don't unlock - we want to queue up next for the
-		// _end_ of the current task execution, but we don't
-		// want it to be called inline with whatever the
-		// current stack is.  This way we still get the nice
-		// behavior that an unlock immediately followed by a
-		// lock won't cause starvation.
+		/* 
+			don't unlock - we want to queue up next for the
+			_end_ of the current task execution, but we don't
+			want it to be called inline with whatever the
+			current stack is.  This way we still get the nice
+			behavior that an unlock immediately followed by a
+			lock won't cause starvation.
+		*/
 		if (next) {
 			setImmediate(next);
 			return;

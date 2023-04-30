@@ -1,12 +1,17 @@
-import { Buffer } from 'buffer';
 /**
- * Contains utility methods using 'fetch'.
+ * Contains utility methods for network I/O (using fetch)
  */
-
+import { Buffer } from 'buffer';
 import { ApiError, ErrorCode } from '../core/api_error';
-import { BFSCallback } from '../core/file_system';
 
 export const fetchIsAvailable = typeof fetch !== 'undefined' && fetch !== null;
+
+/**
+ * @hidden
+ */
+function convertError(e): never {
+	throw new ApiError(ErrorCode.EIO, e.message);
+}
 
 /**
  * Asynchronously download a file as a buffer or a JSON object.
@@ -15,53 +20,34 @@ export const fetchIsAvailable = typeof fetch !== 'undefined' && fetch !== null;
  * constants.
  * @hidden
  */
-export function fetchFileAsync(p: string, type: 'buffer', cb: BFSCallback<Buffer>): void;
-export function fetchFileAsync(p: string, type: 'json', cb: BFSCallback<any>): void;
-export function fetchFileAsync(p: string, type: string, cb: BFSCallback<any>): void;
-export function fetchFileAsync(p: string, type: string, cb: BFSCallback<any>): void {
-	let request;
-	try {
-		request = fetch(p);
-	} catch (e) {
-		// XXX: fetch will throw a TypeError if the URL has credentials in it
-		return cb(new ApiError(ErrorCode.EINVAL, e.message));
+export async function fetchFile(p: string, type: 'buffer'): Promise<Buffer>;
+export async function fetchFile(p: string, type: 'json'): Promise<any>;
+export async function fetchFile(p: string, type: string): Promise<any>;
+export async function fetchFile(p: string, type: string): Promise<any> {
+	const response = await fetch(p).catch(convertError);
+	if (!response.ok) {
+		throw new ApiError(ErrorCode.EIO, `fetch error: response returned code ${response.status}`);
 	}
-	request
-		.then(res => {
-			if (!res.ok) {
-				return cb(new ApiError(ErrorCode.EIO, `fetch error: response returned code ${res.status}`));
-			} else {
-				switch (type) {
-					case 'buffer':
-						res.arrayBuffer()
-							.then(buf => cb(null, Buffer.from(buf)))
-							.catch(err => cb(new ApiError(ErrorCode.EIO, err.message)));
-						break;
-					case 'json':
-						res.json()
-							.then(json => cb(null, json))
-							.catch(err => cb(new ApiError(ErrorCode.EIO, err.message)));
-						break;
-					default:
-						cb(new ApiError(ErrorCode.EINVAL, 'Invalid download type: ' + type));
-				}
-			}
-		})
-		.catch(err => cb(new ApiError(ErrorCode.EIO, err.message)));
+	switch (type) {
+		case 'buffer':
+			const buf = await response.arrayBuffer().catch(convertError);
+			return Buffer.from(buf);
+		case 'json':
+			const json = await response.json().catch(convertError);
+			return json;
+		default:
+			throw new ApiError(ErrorCode.EINVAL, 'Invalid download type: ' + type);
+	}
 }
 
 /**
  * Asynchronously retrieves the size of the given file in bytes.
  * @hidden
  */
-export function fetchFileSizeAsync(p: string, cb: BFSCallback<number>): void {
-	fetch(p, { method: 'HEAD' })
-		.then(res => {
-			if (!res.ok) {
-				return cb(new ApiError(ErrorCode.EIO, `fetch HEAD error: response returned code ${res.status}`));
-			} else {
-				return cb(null, parseInt(res.headers.get('Content-Length') || '-1', 10));
-			}
-		})
-		.catch(err => cb(new ApiError(ErrorCode.EIO, err.message)));
+export async function fetchFileSize(p: string): Promise<number> {
+	const response = await fetch(p, { method: 'HEAD' }).catch(convertError);
+	if (!response.ok) {
+		throw new ApiError(ErrorCode.EIO, `fetch HEAD error: response returned code ${response.status}`);
+	}
+	return parseInt(response.headers.get('Content-Length') || '-1', 10);
 }

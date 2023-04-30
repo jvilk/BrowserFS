@@ -1,4 +1,4 @@
-import { FileSystem, BaseFileSystem, BFSOneArgCallback, BFSCallback, FileSystemOptions } from '../core/file_system';
+import { FileSystem, BaseFileSystem, BFSCallback, FileSystemOptions } from '../core/file_system';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { FileFlag, ActionType } from '../core/file_flag';
 import { File } from '../core/file';
@@ -36,16 +36,13 @@ class OverlayFile extends PreloadFile<UnlockedOverlayFS> implements File {
 		super(fs, path, flag, stats, data);
 	}
 
-	public sync(cb: BFSOneArgCallback): void {
+	public async sync(): Promise<void> {
 		if (!this.isDirty()) {
-			cb(null);
 			return;
 		}
 
-		this._fs._syncAsync(this, (err: ApiError) => {
-			this.resetDirty();
-			cb(err);
-		});
+		await this._fs._syncAsync(this);
+		this.resetDirty();
 	}
 
 	public syncSync(): void {
@@ -55,8 +52,8 @@ class OverlayFile extends PreloadFile<UnlockedOverlayFS> implements File {
 		}
 	}
 
-	public close(cb: BFSOneArgCallback): void {
-		this.sync(cb);
+	public async close(): Promise<void> {
+		await this.sync();
 	}
 
 	public closeSync(): void {
@@ -78,7 +75,6 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 	private _writable: FileSystem;
 	private _readable: FileSystem;
 	private _isInitialized: boolean = false;
-	private _initializeCallbacks: BFSOneArgCallback[] = [];
 	private _deletedFiles: { [path: string]: boolean } = {};
 	private _deleteLog: string = '';
 	// If 'true', we have scheduled a delete log update.
@@ -105,14 +101,10 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 		};
 	}
 
-	public _syncAsync(file: PreloadFile<UnlockedOverlayFS>, cb: BFSOneArgCallback): void {
+	public async _syncAsync(file: PreloadFile<UnlockedOverlayFS>): Promise<void> {
 		const stats = file.getStats();
-		this.createParentDirectoriesAsync(file.getPath(), stats.getCred(0, 0), (err?: ApiError) => {
-			if (err) {
-				return cb(err);
-			}
-			this._writable.writeFile(file.getPath(), file.getBuffer(), null, getFlag('w'), stats.mode, stats.getCred(0, 0), cb);
-		});
+		await this.createParentDirectoriesAsync(file.getPath(), stats.getCred(0, 0));
+		return this._writable.writeFile(file.getPath(), file.getBuffer(), null, getFlag('w'), stats.mode, stats.getCred(0, 0));
 	}
 
 	public _syncSync(file: PreloadFile<UnlockedOverlayFS>): void {
@@ -130,39 +122,23 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 	 *
 	 * Called once to load up metadata stored on the writable file system.
 	 */
-	public _initialize(cb: BFSOneArgCallback): void {
-		const callbackArray = this._initializeCallbacks;
-
-		const end = (e?: ApiError): void => {
-			this._isInitialized = !e;
-			this._initializeCallbacks = [];
-			callbackArray.forEach(cb => cb(e));
-		};
-
+	public async _initialize(): Promise<void> {
 		// if we're already initialized, immediately invoke the callback
 		if (this._isInitialized) {
-			return cb();
-		}
-
-		callbackArray.push(cb);
-		// The first call to initialize initializes, the rest wait for it to complete.
-		if (callbackArray.length !== 1) {
 			return;
 		}
 
 		// Read deletion log, process into metadata.
-		this._writable.readFile(deletionLogPath, 'utf8', getFlag('r'), Cred.Root, (err: ApiError, data?: string) => {
-			if (err) {
-				// ENOENT === Newly-instantiated file system, and thus empty log.
-				if (err.errno !== ErrorCode.ENOENT) {
-					return end(err);
-				}
-			} else {
-				this._deleteLog = data!;
+		try {
+			const data = (await this._writable.readFile(deletionLogPath, 'utf8', getFlag('r'), Cred.Root)) as string;
+			this._deleteLog = data;
+		} catch (err) {
+			if (err.errno !== ErrorCode.ENOENT) {
+				throw err;
 			}
-			this._reparseDeletionLog();
-			end();
-		});
+		}
+		this._isInitialized = true;
+		this._reparseDeletionLog();
 	}
 
 	public isReadOnly(): boolean {
@@ -188,118 +164,61 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 		this.updateLog('', cred);
 	}
 
-	public rename(oldPath: string, newPath: string, cred: Cred, cb: BFSOneArgCallback): void {
-		if (!this.checkInitAsync(cb) || this.checkPathAsync(oldPath, cb) || this.checkPathAsync(newPath, cb)) {
-			return;
-		}
-
+	public async rename(oldPath: string, newPath: string, cred: Cred): Promise<void> {
+		this.checkInitialized();
+		this.checkPath(oldPath);
+		this.checkPath(newPath);
 		if (oldPath === deletionLogPath || newPath === deletionLogPath) {
-			return cb(ApiError.EPERM('Cannot rename deletion log.'));
+			throw ApiError.EPERM('Cannot rename deletion log.');
 		}
-
-		// nothing to do if paths match
-		if (oldPath === newPath) {
-			return cb();
-		}
-
-		this.stat(oldPath, false, cred, (oldErr: ApiError, oldStats?: Stats) => {
-			if (oldErr) {
-				return cb(oldErr);
+		// Write newPath using oldPath's contents, delete oldPath.
+		const oldStats = await this.stat(oldPath, false, cred);
+		if (oldStats.isDirectory()) {
+			// Optimization: Don't bother moving if old === new.
+			if (oldPath === newPath) {
+				return;
 			}
 
-			return this.stat(newPath, false, cred, (newErr: ApiError, newStats?: Stats) => {
-				const self = this;
-				// precondition: both oldPath and newPath exist and are dirs.
-				// decreases: |files|
-				// Need to move *every file/folder* currently stored on
-				// readable to its new location on writable.
-				function copyDirContents(files: string[]): void {
-					const file = files.shift();
-					if (!file) {
-						return cb();
+			let mode = 0o777;
+			if (await this.exists(newPath, cred)) {
+				const stats = await this.stat(newPath, false, cred);
+				mode = stats.mode;
+				if (stats.isDirectory()) {
+					if ((await this.readdir(newPath, cred)).length > 0) {
+						throw ApiError.ENOTEMPTY(newPath);
 					}
+				} else {
+					throw ApiError.ENOTDIR(newPath);
+				}
+			}
 
-					const oldFile = path.resolve(oldPath, file);
-					const newFile = path.resolve(newPath, file);
+			// Take care of writable first. Move any files there, or create an empty directory
+			// if it doesn't exist.
+			if (await this._writable.exists(oldPath, cred)) {
+				await this._writable.rename(oldPath, newPath, cred);
+			} else if (!(await this._writable.exists(newPath, cred))) {
+				await this._writable.mkdir(newPath, mode, cred);
+			}
 
+			// Need to move *every file/folder* currently stored on readable to its new location
+			// on writable.
+			if (await this._readable.exists(oldPath, cred)) {
+				for (const name of await this._readable.readdir(oldPath, cred)) {
 					// Recursion! Should work for any nested files / folders.
-					self.rename(oldFile, newFile, cred, (err?: ApiError) => {
-						if (err) {
-							return cb(err);
-						}
-						copyDirContents(files);
-					});
+					await this.rename(path.resolve(oldPath, name), path.resolve(newPath, name), cred);
 				}
+			}
+		} else {
+			if (await this.exists(newPath, cred) && (await this.stat(newPath, false, cred)).isDirectory()) {
+				throw ApiError.EISDIR(newPath);
+			}
 
-				let mode = 0o777;
+			await this.writeFile(newPath, await this.readFile(oldPath, null, getFlag('r'), cred), null, getFlag('w'), oldStats.mode, cred);
+		}
 
-				// from linux's rename(2) manpage: oldpath can specify a
-				// directory.  In this case, newpath must either not exist, or
-				// it must specify an empty directory.
-				if (oldStats!.isDirectory()) {
-					if (newErr) {
-						if (newErr.errno !== ErrorCode.ENOENT) {
-							return cb(newErr);
-						}
-
-						return this._writable.exists(oldPath, cred, (exists: boolean) => {
-							// simple case - both old and new are on the writable layer
-							if (exists) {
-								return this._writable.rename(oldPath, newPath, cred, cb);
-							}
-
-							this._writable.mkdir(newPath, mode, cred, (mkdirErr?: ApiError) => {
-								if (mkdirErr) {
-									return cb(mkdirErr);
-								}
-
-								this._readable.readdir(oldPath, cred, (err: ApiError, files?: string[]) => {
-									if (err) {
-										return cb();
-									}
-									copyDirContents(files!);
-								});
-							});
-						});
-					}
-
-					mode = newStats!.mode;
-					if (!newStats!.isDirectory()) {
-						return cb(ApiError.ENOTDIR(newPath));
-					}
-
-					this.readdir(newPath, cred, (readdirErr: ApiError, files?: string[]) => {
-						if (files && files.length) {
-							return cb(ApiError.ENOTEMPTY(newPath));
-						}
-
-						this._readable.readdir(oldPath, cred, (err: ApiError, files?: string[]) => {
-							if (err) {
-								return cb();
-							}
-							copyDirContents(files!);
-						});
-					});
-				}
-
-				if (newStats && newStats.isDirectory()) {
-					return cb(ApiError.EISDIR(newPath));
-				}
-
-				this.readFile(oldPath, null, getFlag('r'), cred, (err: ApiError, data?: any) => {
-					if (err) {
-						return cb(err);
-					}
-
-					return this.writeFile(newPath, data, null, getFlag('w'), oldStats!.mode, cred, (err: ApiError) => {
-						if (err) {
-							return cb(err);
-						}
-						return this.unlink(oldPath, cred, cb);
-					});
-				});
-			});
-		});
+		if (oldPath !== newPath && (await this.exists(oldPath, cred))) {
+			await this.unlink(oldPath, cred);
+		}
 	}
 
 	public renameSync(oldPath: string, newPath: string, cred: Cred): void {
@@ -359,29 +278,20 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 		}
 	}
 
-	public stat(p: string, isLstat: boolean, cred: Cred, cb: BFSCallback<Stats>): void {
-		if (!this.checkInitAsync(cb)) {
-			return;
-		}
-		this._writable.stat(p, isLstat, cred, (err: ApiError, stat?: Stats) => {
-			if (err && err.errno === ErrorCode.ENOENT) {
-				if (this._deletedFiles[p]) {
-					cb(ApiError.ENOENT(p));
-				}
-				this._readable.stat(p, isLstat, cred, (err: ApiError, stat?: Stats) => {
-					if (stat) {
-						// Make the oldStat's mode writable. Preserve the topmost
-						// part of the mode, which specifies if it is a file or a
-						// directory.
-						stat = Stats.clone(stat);
-						stat.mode = makeModeWritable(stat.mode);
-					}
-					cb(err, stat);
-				});
-			} else {
-				cb(err, stat);
+	public async stat(p: string, isLstat: boolean, cred: Cred): Promise<Stats> {
+		this.checkInitialized();
+		try {
+			return this._writable.stat(p, isLstat, cred);
+		} catch (e) {
+			if (this._deletedFiles[p]) {
+				throw ApiError.ENOENT(p);
 			}
-		});
+			const oldStat = Stats.clone(await this._readable.stat(p, isLstat, cred));
+			// Make the oldStat's mode writable. Preserve the topmost part of the
+			// mode, which specifies if it is a file or a directory.
+			oldStat.mode = makeModeWritable(oldStat.mode);
+			return oldStat;
+		}
 	}
 
 	public statSync(p: string, isLstat: boolean, cred: Cred): Stats {
@@ -400,58 +310,39 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 		}
 	}
 
-	public open(p: string, flag: FileFlag, mode: number, cred: Cred, cb: BFSCallback<File>): void {
-		if (!this.checkInitAsync(cb) || this.checkPathAsync(p, cb)) {
-			return;
+	public async open(p: string, flag: FileFlag, mode: number, cred: Cred): Promise<File> {
+		this.checkInitialized();
+		this.checkPath(p);
+		if (p === deletionLogPath) {
+			throw ApiError.EPERM('Cannot open deletion log.');
 		}
-		this.stat(p, false, cred, (err: ApiError, stats?: Stats) => {
-			if (stats) {
-				switch (flag.pathExistsAction()) {
-					case ActionType.TRUNCATE_FILE:
-						return this.createParentDirectoriesAsync(p, cred, (err?: ApiError) => {
-							if (err) {
-								return cb(err);
-							}
-							this._writable.open(p, flag, mode, cred, cb);
-						});
-					case ActionType.NOP:
-						return this._writable.exists(p, cred, (exists: boolean) => {
-							if (exists) {
-								this._writable.open(p, flag, mode, cred, cb);
-							} else {
-								// at this point we know the stats object we got is from
-								// the readable FS.
-								stats = Stats.clone(stats!);
-								stats.mode = mode;
-								this._readable.readFile(p, null, getFlag('r'), cred, (readFileErr: ApiError, data?: any) => {
-									if (readFileErr) {
-										return cb(readFileErr);
-									}
-									if (stats!.size === -1) {
-										stats!.size = data.length;
-									}
-									const f = new OverlayFile(this, p, flag, stats!, data);
-									cb(null, f);
-								});
-							}
-						});
-					default:
-						return cb(ApiError.EEXIST(p));
-				}
-			} else {
-				switch (flag.pathNotExistsAction()) {
-					case ActionType.CREATE_FILE:
-						return this.createParentDirectoriesAsync(p, cred, (err?: ApiError) => {
-							if (err) {
-								return cb(err);
-							}
-							return this._writable.open(p, flag, mode, cred, cb);
-						});
-					default:
-						return cb(ApiError.ENOENT(p));
-				}
+		if (await this.exists(p, cred)) {
+			switch (flag.pathExistsAction()) {
+				case ActionType.TRUNCATE_FILE:
+					await this.createParentDirectoriesAsync(p, cred);
+					return this._writable.open(p, flag, mode, cred);
+				case ActionType.NOP:
+					if (await this._writable.exists(p, cred)) {
+						return this._writable.open(p, flag, mode, cred);
+					} else {
+						// Create an OverlayFile.
+						const buf = await this._readable.readFile(p, null, getFlag('r'), cred);
+						const stats = Stats.clone(await this._readable.stat(p, false, cred));
+						stats.mode = mode;
+						return new OverlayFile(this, p, flag, stats, buf as Buffer);
+					}
+				default:
+					throw ApiError.EEXIST(p);
 			}
-		});
+		} else {
+			switch (flag.pathNotExistsAction()) {
+				case ActionType.CREATE_FILE:
+					await this.createParentDirectoriesAsync(p, cred);
+					return this._writable.open(p, flag, mode, cred);
+				default:
+					throw ApiError.ENOENT(p);
+			}
+		}
 	}
 
 	public openSync(p: string, flag: FileFlag, mode: number, cred: Cred): File {
@@ -489,37 +380,21 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 		}
 	}
 
-	public unlink(p: string, cred: Cred, cb: BFSOneArgCallback): void {
-		if (!this.checkInitAsync(cb) || this.checkPathAsync(p, cb)) {
-			return;
-		}
-		this.exists(p, cred, (exists: boolean) => {
-			if (!exists) {
-				return cb(ApiError.ENOENT(p));
+	public async unlink(p: string, cred: Cred): Promise<void> {
+		this.checkInitialized();
+		this.checkPath(p);
+		if (await this.exists(p, cred)) {
+			if (await this._writable.exists(p, cred)) {
+				await this._writable.unlink(p, cred);
 			}
 
-			this._writable.exists(p, cred, (writableExists: boolean) => {
-				if (writableExists) {
-					return this._writable.unlink(p, cred, (err: ApiError) => {
-						if (err) {
-							return cb(err);
-						}
-
-						this.exists(p, cred, (readableExists: boolean) => {
-							if (readableExists) {
-								this.deletePath(p, cred);
-							}
-							cb(null);
-						});
-					});
-				} else {
-					// if this only exists on the readable FS, add it to the
-					// delete map.
-					this.deletePath(p, cred);
-					cb(null);
-				}
-			});
-		});
+			// if it still exists add to the delete log
+			if (await this.exists(p, cred)) {
+				this.deletePath(p, cred);
+			}
+		} else {
+			throw ApiError.ENOENT(p);
+		}
 	}
 
 	public unlinkSync(p: string, cred: Cred): void {
@@ -539,51 +414,23 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 		}
 	}
 
-	public rmdir(p: string, cred: Cred, cb: BFSOneArgCallback): void {
-		if (!this.checkInitAsync(cb)) {
-			return;
-		}
-
-		const rmdirLower = (): void => {
-			this.readdir(p, cred, (err: ApiError, files: string[]): void => {
-				if (err) {
-					return cb(err);
-				}
-
-				if (files.length) {
-					return cb(ApiError.ENOTEMPTY(p));
-				}
-
-				this.deletePath(p, cred);
-				cb(null);
-			});
-		};
-
-		this.exists(p, cred, (exists: boolean) => {
-			if (!exists) {
-				return cb(ApiError.ENOENT(p));
+	public async rmdir(p: string, cred: Cred): Promise<void> {
+		this.checkInitialized();
+		if (await this.exists(p, cred)) {
+			if (await this._writable.exists(p, cred)) {
+				await this._writable.rmdir(p, cred);
 			}
-
-			this._writable.exists(p, cred, (writableExists: boolean) => {
-				if (writableExists) {
-					this._writable.rmdir(p, cred, (err: ApiError) => {
-						if (err) {
-							return cb(err);
-						}
-
-						this._readable.exists(p, cred, (readableExists: boolean) => {
-							if (readableExists) {
-								rmdirLower();
-							} else {
-								cb();
-							}
-						});
-					});
+			if (await this.exists(p, cred)) {
+				// Check if directory is empty.
+				if ((await this.readdir(p, cred)).length > 0) {
+					throw ApiError.ENOTEMPTY(p);
 				} else {
-					rmdirLower();
+					this.deletePath(p, cred);
 				}
-			});
-		});
+			}
+		} else {
+			throw ApiError.ENOENT(p);
+		}
 	}
 
 	public rmdirSync(p: string, cred: Cred): void {
@@ -605,24 +452,16 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 		}
 	}
 
-	public mkdir(p: string, mode: number, cred: Cred, cb: BFSCallback<Stats>): void {
-		if (!this.checkInitAsync(cb)) {
-			return;
+	public async mkdir(p: string, mode: number, cred: Cred): Promise<void> {
+		this.checkInitialized();
+		if (await this.exists(p, cred)) {
+			throw ApiError.EEXIST(p);
+		} else {
+			// The below will throw should any of the parent directories fail to exist
+			// on _writable.
+			await this.createParentDirectoriesAsync(p, cred);
+			await this._writable.mkdir(p, mode, cred);
 		}
-		this.exists(p, cred, (exists: boolean) => {
-			if (exists) {
-				return cb(ApiError.EEXIST(p));
-			}
-
-			// The below will throw should any of the parent directories
-			// fail to exist on _writable.
-			this.createParentDirectoriesAsync(p, cred, (err: ApiError) => {
-				if (err) {
-					return cb(err);
-				}
-				this._writable.mkdir(p, mode, cred, cb);
-			});
-		});
 	}
 
 	public mkdirSync(p: string, mode: number, cred: Cred): void {
@@ -637,44 +476,30 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 		}
 	}
 
-	public readdir(p: string, cred: Cred, cb: BFSCallback<string[]>): void {
-		if (!this.checkInitAsync(cb)) {
-			return;
+	public async readdir(p: string, cred: Cred): Promise<string[]> {
+		this.checkInitialized();
+		const dirStats = await this.stat(p, false, cred);
+		if (!dirStats.isDirectory()) {
+			throw ApiError.ENOTDIR(p);
 		}
-		this.stat(p, false, cred, (err: ApiError, dirStats?: Stats) => {
-			if (err) {
-				return cb(err);
-			}
 
-			if (!dirStats!.isDirectory()) {
-				return cb(ApiError.ENOTDIR(p));
-			}
-
-			this._writable.readdir(p, cred, (err: ApiError, wFiles: string[]) => {
-				if (err && err.code !== 'ENOENT') {
-					return cb(err);
-				} else if (err || !wFiles) {
-					wFiles = [];
-				}
-
-				this._readable.readdir(p, cred, (err: ApiError, rFiles: string[]) => {
-					// if the directory doesn't exist on the lower FS set rFiles
-					// here to simplify the following code.
-					if (err || !rFiles) {
-						rFiles = [];
-					}
-
-					// Readdir in both, check delete log on read-only file system's files, merge, return.
-					const seenMap: { [name: string]: boolean } = {};
-					const filtered: string[] = wFiles.concat(rFiles.filter((fPath: string) => !this._deletedFiles[`${p}/${fPath}`])).filter((fPath: string) => {
-						// Remove duplicates.
-						const result = !seenMap[fPath];
-						seenMap[fPath] = true;
-						return result;
-					});
-					cb(null, filtered);
-				});
-			});
+		// Readdir in both, check delete log on RO file system's listing, merge, return.
+		let contents: string[] = [];
+		try {
+			contents = contents.concat(await this._writable.readdir(p, cred));
+		} catch (e) {
+			// NOP.
+		}
+		try {
+			contents = contents.concat((await this._readable.readdir(p, cred)).filter((fPath: string) => !this._deletedFiles[`${p}/${fPath}`]));
+		} catch (e) {
+			// NOP.
+		}
+		const seenMap: { [name: string]: boolean } = {};
+		return contents.filter((fileP: string) => {
+			const result = !seenMap[fileP];
+			seenMap[fileP] = true;
+			return result;
 		});
 	}
 
@@ -705,19 +530,9 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 		});
 	}
 
-	public exists(p: string, cred: Cred, cb: (exists: boolean) => void): void {
-		// Cannot pass an error back to callback, so throw an exception instead
-		// if not initialized.
+	public async exists(p: string, cred: Cred): Promise<boolean> {
 		this.checkInitialized();
-		this._writable.exists(p, cred, (existsWritable: boolean) => {
-			if (existsWritable) {
-				return cb(true);
-			}
-
-			this._readable.exists(p, cred, (existsReadable: boolean) => {
-				cb(existsReadable && this._deletedFiles[p] !== true);
-			});
-		});
+		return (await this._writable.exists(p, cred)) || ((await this._readable.exists(p, cred)) && this._deletedFiles[p] !== true);
 	}
 
 	public existsSync(p: string, cred: Cred): boolean {
@@ -725,64 +540,40 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 		return this._writable.existsSync(p, cred) || (this._readable.existsSync(p, cred) && this._deletedFiles[p] !== true);
 	}
 
-	public chmod(p: string, isLchmod: boolean, mode: number, cred: Cred, cb: BFSOneArgCallback): void {
-		if (!this.checkInitAsync(cb)) {
-			return;
-		}
-		this.operateOnWritableAsync(p, cred, (err?: ApiError) => {
-			if (err) {
-				return cb(err);
-			} else {
-				this._writable.chmod(p, isLchmod, mode, cred, cb);
-			}
-		});
+	public async chmod(p: string, isLchmod: boolean, mode: number, cred: Cred): Promise<void> {
+		this.checkInitialized();
+		await this.operateOnWritableAsync(p, cred);
+		await this._writable.chmod(p, isLchmod, mode, cred);
 	}
 
 	public chmodSync(p: string, isLchmod: boolean, mode: number, cred: Cred): void {
 		this.checkInitialized();
-		this.operateOnWritable(p, cred, () => {
-			this._writable.chmodSync(p, isLchmod, mode, cred);
-		});
+		this.operateOnWritable(p, cred);
+		this._writable.chmodSync(p, isLchmod, mode, cred);
 	}
 
-	public chown(p: string, isLchmod: boolean, new_uid: number, new_gid: number, cred: Cred, cb: BFSOneArgCallback): void {
-		if (!this.checkInitAsync(cb)) {
-			return;
-		}
-		this.operateOnWritableAsync(p, cred, (err?: ApiError) => {
-			if (err) {
-				return cb(err);
-			} else {
-				this._writable.chown(p, isLchmod, new_uid, new_gid, cred, cb);
-			}
-		});
+	public async chown(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): Promise<void> {
+		this.checkInitialized();
+		await this.operateOnWritableAsync(p, cred);
+		await this._writable.chown(p, isLchown, new_uid, new_gid, cred);
 	}
 
 	public chownSync(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): void {
 		this.checkInitialized();
-		this.operateOnWritable(p, cred, () => {
-			this._writable.chownSync(p, isLchown, new_uid, new_gid, cred);
-		});
+		this.operateOnWritable(p, cred);
+		this._writable.chownSync(p, isLchown, new_uid, new_gid, cred);
 	}
 
-	public utimes(p: string, atime: Date, mtime: Date, cred: Cred, cb: BFSOneArgCallback): void {
-		if (!this.checkInitAsync(cb)) {
-			return;
-		}
-		this.operateOnWritableAsync(p, cred, (err?: ApiError) => {
-			if (err) {
-				return cb(err);
-			} else {
-				this._writable.utimes(p, atime, mtime, cred, cb);
-			}
-		});
+	public async utimes(p: string, atime: Date, mtime: Date, cred: Cred): Promise<void> {
+		this.checkInitialized();
+		await this.operateOnWritableAsync(p, cred);
+		await this._writable.utimes(p, atime, mtime, cred);
 	}
 
 	public utimesSync(p: string, atime: Date, mtime: Date, cred: Cred): void {
 		this.checkInitialized();
-		this.operateOnWritable(p, cred, () => {
-			this._writable.utimesSync(p, atime, mtime, cred);
-		});
+		this.operateOnWritable(p, cred);
+		this._writable.utimesSync(p, atime, mtime, cred);
 	}
 
 	private deletePath(p: string, cred: Cred): void {
@@ -796,15 +587,20 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 			this._deleteLogUpdateNeeded = true;
 		} else {
 			this._deleteLogUpdatePending = true;
-			this._writable.writeFile(deletionLogPath, this._deleteLog, 'utf8', FileFlag.getFileFlag('w'), 0o644, cred, e => {
-				this._deleteLogUpdatePending = false;
-				if (e) {
+			this._writable
+				.writeFile(deletionLogPath, this._deleteLog, 'utf8', FileFlag.getFileFlag('w'), 0o644, cred)
+				.then(() => {
+					if (this._deleteLogUpdateNeeded) {
+						this._deleteLogUpdateNeeded = false;
+						this.updateLog('', cred);
+					}
+				})
+				.catch(e => {
 					this._deleteLogError = e;
-				} else if (this._deleteLogUpdateNeeded) {
-					this._deleteLogUpdateNeeded = false;
-					this.updateLog('', cred);
-				}
-			});
+				})
+				.finally(() => {
+					this._deleteLogUpdatePending = false;
+				});
 		}
 	}
 
@@ -826,72 +622,9 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 		}
 	}
 
-	private checkInitAsync(cb: BFSOneArgCallback): boolean {
-		if (!this._isInitialized) {
-			cb(new ApiError(ErrorCode.EPERM, 'OverlayFS is not initialized. Please initialize OverlayFS using its initialize() method before using it.'));
-			return false;
-		} else if (this._deleteLogError !== null) {
-			const e = this._deleteLogError;
-			this._deleteLogError = null;
-			cb(e);
-			return false;
-		}
-		return true;
-	}
-
 	private checkPath(p: string): void {
 		if (p === deletionLogPath) {
 			throw ApiError.EPERM(p);
-		}
-	}
-
-	private checkPathAsync(p: string, cb: BFSOneArgCallback): boolean {
-		if (p === deletionLogPath) {
-			cb(ApiError.EPERM(p));
-			return true;
-		}
-		return false;
-	}
-
-	private createParentDirectoriesAsync(p: string, cred: Cred, cb: BFSOneArgCallback): void {
-		let parent = path.dirname(p);
-		const toCreate: string[] = [];
-		const self = this;
-
-		this._writable.stat(parent, false, cred, statDone);
-		function statDone(err: ApiError, stat?: Stats): void {
-			if (err) {
-				if (parent === '/') {
-					cb(new ApiError(ErrorCode.EBUSY, 'Invariant failed: root does not exist!'));
-				} else {
-					toCreate.push(parent);
-					parent = path.dirname(parent);
-					self._writable.stat(parent, false, cred, statDone);
-				}
-			} else {
-				createParents();
-			}
-		}
-
-		function createParents(): void {
-			if (!toCreate.length) {
-				return cb();
-			}
-
-			const dir = toCreate.pop();
-			self._readable.stat(dir!, false, cred, (err: ApiError, stats?: Stats) => {
-				// stop if we couldn't read the dir
-				if (!stats) {
-					return cb();
-				}
-
-				self._writable.mkdir(dir!, stats.mode, cred, (err?: ApiError) => {
-					if (err) {
-						return cb(err);
-					}
-					createParents();
-				});
-			});
 		}
 	}
 
@@ -908,9 +641,24 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 		}
 		toCreate = toCreate.reverse();
 
-		toCreate.forEach((p: string) => {
+		for (const p of toCreate) {
 			this._writable.mkdirSync(p, this.statSync(p, false, cred).mode, cred);
-		});
+		}
+	}
+
+	private async createParentDirectoriesAsync(p: string, cred: Cred): Promise<void> {
+		let parent = path.dirname(p),
+			toCreate: string[] = [];
+		while (!(await this._writable.exists(parent, cred))) {
+			toCreate.push(parent);
+			parent = path.dirname(parent);
+		}
+		toCreate = toCreate.reverse();
+
+		for (const p of toCreate) {
+			const stats = await this.stat(p, false, cred);
+			await this._writable.mkdir(p, stats.mode, cred);
+		}
 	}
 
 	/**
@@ -918,33 +666,25 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 	 * - Ensures p is on writable before proceeding. Throws an error if it doesn't exist.
 	 * - Calls f to perform operation on writable.
 	 */
-	private operateOnWritable(p: string, cred: Cred, f: () => void): void {
-		if (this.existsSync(p, cred)) {
-			if (!this._writable.existsSync(p, cred)) {
-				// File is on readable storage. Copy to writable storage before
-				// changing its mode.
-				this.copyToWritable(p, cred);
-			}
-			f();
-		} else {
+	private operateOnWritable(p: string, cred: Cred): void {
+		if (!this.existsSync(p, cred)) {
 			throw ApiError.ENOENT(p);
+		}
+		if (!this._writable.existsSync(p, cred)) {
+			// File is on readable storage. Copy to writable storage before
+			// changing its mode.
+			this.copyToWritable(p, cred);
 		}
 	}
 
-	private operateOnWritableAsync(p: string, cred: Cred, cb: BFSOneArgCallback): void {
-		this.exists(p, cred, (exists: boolean) => {
-			if (!exists) {
-				return cb(ApiError.ENOENT(p));
-			}
+	private async operateOnWritableAsync(p: string, cred: Cred): Promise<void> {
+		if (!(await this.exists(p, cred))) {
+			throw ApiError.ENOENT(p);
+		}
 
-			this._writable.exists(p, cred, (existsWritable: boolean) => {
-				if (existsWritable) {
-					cb();
-				} else {
-					return this.copyToWritableAsync(p, cred, cb);
-				}
-			});
-		});
+		if (!(await this._writable.exists(p, cred))) {
+			return this.copyToWritableAsync(p, cred);
+		}
 	}
 
 	/**
@@ -956,29 +696,17 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 		if (pStats.isDirectory()) {
 			this._writable.mkdirSync(p, pStats.mode, cred);
 		} else {
-			this.writeFileSync(p, this._readable.readFileSync(p, null, getFlag('r'), cred), null, getFlag('w'), this.statSync(p, false, cred).mode, cred);
+			this.writeFileSync(p, this._readable.readFileSync(p, null, getFlag('r'), cred), null, getFlag('w'), pStats.mode, cred);
 		}
 	}
 
-	private copyToWritableAsync(p: string, cred: Cred, cb: BFSOneArgCallback): void {
-		this.stat(p, false, cred, (err: ApiError, pStats?: Stats) => {
-			if (err) {
-				return cb(err);
-			}
-
-			if (pStats!.isDirectory()) {
-				return this._writable.mkdir(p, pStats!.mode, cred, cb);
-			}
-
-			// need to copy file.
-			this._readable.readFile(p, null, getFlag('r'), cred, (err: ApiError, data?: Buffer) => {
-				if (err) {
-					return cb(err);
-				}
-
-				this.writeFile(p, data, null, getFlag('w'), pStats!.mode, cred, cb);
-			});
-		});
+	private async copyToWritableAsync(p: string, cred: Cred): Promise<void> {
+		const pStats = await this.stat(p, false, cred);
+		if (pStats.isDirectory()) {
+			await this._writable.mkdir(p, pStats.mode, cred);
+		} else {
+			await this.writeFile(p, await this._readable.readFile(p, null, getFlag('r'), cred), null, getFlag('w'), pStats.mode, cred);
+		}
 	}
 }
 
@@ -1015,26 +743,13 @@ export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
 	 * Constructs and initializes an OverlayFS instance with the given options.
 	 */
 	public static Create(opts: OverlayFSOptions, cb: BFSCallback<OverlayFS>): void {
-		try {
-			const fs = new OverlayFS(opts.writable, opts.readable);
-			fs._initialize((e?) => {
-				cb(e, fs);
-			});
-		} catch (e) {
-			cb(e);
-		}
+		this.CreateAsync(opts).then(fs => cb(null, fs)).catch(cb);
 	}
 
-	public static CreateAsync(opts: OverlayFSOptions): Promise<OverlayFS> {
-		return new Promise((resolve, reject) => {
-			this.Create(opts, (error, fs) => {
-				if (error || !fs) {
-					reject(error);
-				} else {
-					resolve(fs);
-				}
-			});
-		});
+	public static async CreateAsync(opts: OverlayFSOptions): Promise<OverlayFS> {
+		const fs = new OverlayFS(opts.writable, opts.readable);
+		await fs._initialize();
+		return fs;
 	}
 
 	public static isAvailable(): boolean {
@@ -1057,7 +772,7 @@ export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
 		return super.getFSUnlocked();
 	}
 
-	private _initialize(cb: BFSOneArgCallback): void {
-		super.getFSUnlocked()._initialize(cb);
+	private async _initialize(): Promise<void> {
+		await super.getFSUnlocked()._initialize();
 	}
 }
