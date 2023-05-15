@@ -67,6 +67,8 @@
     "typescript": "^4.9.5"
   },
   "scripts": {
+    "lint:src": "eslint src",
+    "lint:tests": "eslint test",
     "lint": "eslint src test",
     "build:scripts": "tsc -p scripts",
     "build": "node scripts/build.mjs && npm run build:node && npm run build:scripts",
