@@ -1,28 +1,42 @@
 import fs from '../../../../src/core/node_fs';
 import * as path from 'path';
-import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
-export default function () {
-	const f = path.join(common.fixturesDir, 'x.txt');
+describe('fs.exists', () => {
 	let exists: boolean;
 	let doesNotExist: boolean;
+	const f = path.join(common.fixturesDir, 'x.txt');
 
-	fs.exists(f, function (y) {
-		exists = y;
+	beforeAll(() => {
+		return new Promise<void>(resolve => {
+			fs.exists(f, y => {
+				exists = y;
+				resolve();
+			});
+		});
 	});
 
-	fs.exists(f + '-NO', function (y) {
-		doesNotExist = y;
+	beforeAll(() => {
+		return new Promise<void>(resolve => {
+			fs.exists(f + '-NO', y => {
+				doesNotExist = y;
+				resolve();
+			});
+		});
+	});
+
+	it('should return true for an existing file', () => {
+		expect(exists).toBe(true);
+	});
+
+	it('should return false for a non-existent file', () => {
+		expect(doesNotExist).toBe(false);
 	});
 
 	if (fs.getRootFS().supportsSynch()) {
-		assert(fs.existsSync(f));
-		assert(!fs.existsSync(f + '-NO'));
+		it('should have sync methods that behave the same', () => {
+			expect(fs.existsSync(f)).toBe(true);
+			expect(fs.existsSync(f + '-NO')).toBe(false);
+		});
 	}
-
-	process.on('exit', function () {
-		assert.strictEqual(exists, true);
-		assert.strictEqual(doesNotExist, false);
-	});
-}
+});

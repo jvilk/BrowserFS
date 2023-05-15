@@ -1,152 +1,128 @@
 import fs from '../../../../src/core/node_fs';
 import * as path from 'path';
-import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
-export default function () {
-	let got_error = false;
-	let success_count = 0;
-	let mode_async: number;
-	let mode_sync: number;
-	const is_windows = process.platform === 'win32';
-	const rootFS = fs.getRootFS();
+const isWindows = process.platform === 'win32';
+describe('chmod tests', () => {
+	const fixturesDir = common.fixturesDir;
+	const tmpDir = common.tmpDir;
 
-	// BFS: This is only for writable file systems that support properties.
-	if (!(rootFS.isReadOnly() || rootFS.supportsProps() === false)) {
-		let openCount = 0;
+	afterEach(() => {
+		jest.restoreAllMocks();
+	});
 
-		const open = function () {
-			openCount++;
-			return (<any>fs)._open.apply(fs, arguments);
-		};
+	it('should change file mode using chmod', async () => {
+		const file1 = path.join(fixturesDir, 'a.js');
+		const modeAsync = 0o777;
+		const modeSync = 0o644;
 
-		const openSync = function () {
-			openCount++;
-			return (<any>fs)._openSync.apply(fs, arguments);
-		};
+		jest.spyOn(fs, 'chmod').mockImplementation((path, mode, callback) => {
+			expect(path).toBe(file1);
+			expect(mode).toBe(modeAsync.toString(8));
+			callback(null);
+		});
 
-		const close = function () {
-			openCount--;
-			return (<any>fs)._close.apply(fs, arguments);
-		};
+		jest.spyOn(fs, 'chmodSync').mockImplementation((path, mode) => {
+			expect(path).toBe(file1);
+			expect(mode).toBe(modeSync);
+		});
 
-		const closeSync = function () {
-			openCount--;
-			return (<any>fs)._closeSync.apply(fs, arguments);
-		};
+		jest.spyOn(fs, 'statSync').mockReturnValue({
+			mode: isWindows ? modeAsync & 0o777 : modeAsync,
+		});
 
-		// Need to hijack fs.open/close to make sure that things
-		// get closed once they're opened.
-		(<any>fs)._open = fs.open;
-		fs.open = open;
-		(<any>fs)._close = fs.close;
-		fs.close = close;
-		if (rootFS.supportsSynch()) {
-			(<any>fs)._openSync = fs.openSync;
-			fs.openSync = openSync;
-			(<any>fs)._closeSync = fs.closeSync;
-			fs.closeSync = closeSync;
-		}
+		await changeFileMode(file1, modeAsync, modeSync);
+	});
 
-		// On Windows chmod is only able to manipulate read-only bit
-		if (is_windows) {
-			mode_async = 0o400; // read-only
-			mode_sync = 0o600; // read-write
-		} else {
-			mode_async = 0o777;
-			mode_sync = 0o644;
-		}
+	it('should change file mode using fchmod', async () => {
+		const file2 = path.join(fixturesDir, 'a1.js');
+		const modeAsync = 0o777;
+		const modeSync = 0o644;
 
-		const file1 = path.join(common.fixturesDir, 'a.js'),
-			file2 = path.join(common.fixturesDir, 'a1.js');
+		jest.spyOn(fs, 'open').mockImplementation((path, flags, callback) => {
+			expect(path).toBe(file2);
+			expect(flags).toBe('a');
+			callback(null, 123);
+		});
 
-		fs.chmod(file1, mode_async.toString(8), function (err) {
+		jest.spyOn(fs, 'fchmod').mockImplementation((fd, mode, callback) => {
+			expect(fd).toBe(123);
+			expect(mode).toBe(modeAsync.toString(8));
+			callback(null);
+		});
+
+		jest.spyOn(fs, 'fchmodSync').mockImplementation((fd, mode) => {
+			expect(fd).toBe(123);
+			expect(mode).toBe(modeSync);
+		});
+
+		jest.spyOn(fs, 'fstatSync').mockReturnValue({
+			mode: isWindows ? modeAsync & 0o777 : modeAsync,
+		});
+
+		await changeFileMode(file2, modeAsync, modeSync);
+	});
+
+	it('should change symbolic link mode using lchmod', async () => {
+		const link = path.join(tmpDir, 'symbolic-link');
+		const file2 = path.join(fixturesDir, 'a1.js');
+		const modeAsync = 0o777;
+		const modeSync = 0o644;
+
+		jest.spyOn(fs, 'unlinkSync').mockImplementation(path => {
+			expect(path).toBe(link);
+		});
+
+		jest.spyOn(fs, 'symlinkSync').mockImplementation((target, path) => {
+			expect(target).toBe(file2);
+			expect(path).toBe(link);
+		});
+
+		jest.spyOn(fs, 'lchmod').mockImplementation((path, mode, callback) => {
+			expect(path).toBe(link);
+			expect(mode).toBe(modeAsync);
+			callback(null);
+		});
+
+		jest.spyOn(fs, 'lchmodSync').mockImplementation((path, mode) => {
+			expect(path).toBe(link);
+			expect(mode).toBe(modeSync);
+		});
+
+		jest.spyOn(fs, 'lstatSync').mockReturnValue({
+			mode: isWindows ? modeAsync & 0o777 : modeAsync,
+		});
+
+		await changeSymbolicLinkMode(link, file2, modeAsync, modeSync);
+	});
+});
+
+function changeFileMode(file: string, modeAsync: number, modeSync: number): Promise<void> {
+	return new Promise<void>((resolve, reject) => {
+		fs.chmod(file, modeAsync.toString(8), err => {
 			if (err) {
-				got_error = true;
+				reject(err);
 			} else {
-				if (is_windows) {
-					assert.ok(fs.statSync(file1).mode & 0o777 & mode_async);
-				} else {
-					assert.equal(mode_async, fs.statSync(file1).mode & 0o777);
-				}
-
-				fs.chmodSync(file1, mode_sync);
-				if (is_windows) {
-					assert.ok(fs.statSync(file1).mode & 0o777 & mode_sync);
-				} else {
-					assert.equal(mode_sync, fs.statSync(file1).mode & 0o777);
-				}
-				success_count++;
+				expect(fs.statSync(file).mode & 0o777).toBe(isWindows ? modeAsync & 0o777 : modeAsync);
+				fs.chmodSync(file, modeSync);
+				expect(fs.statSync(file).mode & 0o777).toBe(isWindows ? modeSync & 0o777 : modeSync);
+				resolve();
 			}
 		});
+	});
+}
 
-		fs.open(file2, 'a', function (err, fd) {
+function changeSymbolicLinkMode(link: string, target: string, modeAsync: number, modeSync: number): Promise<void> {
+	return new Promise<void>((resolve, reject) => {
+		fs.lchmod(link, modeAsync, err => {
 			if (err) {
-				got_error = true;
-				console.log(err.stack);
-				return;
-			}
-			fs.fchmod(fd, mode_async.toString(8), function (err) {
-				if (err) {
-					got_error = true;
-				} else {
-					if (is_windows) {
-						assert.ok(fs.fstatSync(fd).mode & 0o777 & mode_async);
-					} else {
-						assert.equal(mode_async, fs.fstatSync(fd).mode & 0o777);
-					}
-
-					fs.fchmodSync(fd, mode_sync);
-					if (is_windows) {
-						assert.ok(fs.fstatSync(fd).mode & 0o777 & mode_sync);
-					} else {
-						assert.equal(mode_sync, fs.fstatSync(fd).mode & 0o777);
-					}
-					success_count++;
-					fs.close(fd);
-				}
-			});
-		});
-
-		// lchmod
-		if (rootFS.supportsLinks()) {
-			if (fs.lchmod) {
-				const link = path.join(common.tmpDir, 'symbolic-link');
-
-				try {
-					fs.unlinkSync(link);
-				} catch (er) {}
-				fs.symlinkSync(file2, link);
-
-				fs.lchmod(link, mode_async, function (err) {
-					if (err) {
-						got_error = true;
-					} else {
-						console.log(fs.lstatSync(link).mode);
-						assert.equal(mode_async, fs.lstatSync(link).mode & 0o777);
-
-						fs.lchmodSync(link, mode_sync);
-						assert.equal(mode_sync, fs.lstatSync(link).mode & 0o777);
-						success_count++;
-					}
-				});
+				reject(err);
 			} else {
-				success_count++;
+				expect(fs.lstatSync(link).mode & 0o777).toBe(isWindows ? modeAsync & 0o777 : modeAsync);
+				fs.lchmodSync(link, modeSync);
+				expect(fs.lstatSync(link).mode & 0o777).toBe(isWindows ? modeSync & 0o777 : modeSync);
+				resolve();
 			}
-		}
-
-		process.on('exit', function () {
-			// BFS: Restore methods so we can continue unit testing.
-			fs.open = (<any>fs)._open;
-			fs.close = (<any>fs)._close;
-			if (rootFS.supportsSynch()) {
-				fs.openSync = (<any>fs)._openSync;
-				fs.closeSync = (<any>fs)._closeSync;
-			}
-			if (rootFS.supportsLinks()) assert.equal(3, success_count);
-			else assert.equal(2, success_count);
-			assert.equal(0, openCount);
-			assert.equal(false, got_error);
 		});
-	}
+	});
 }

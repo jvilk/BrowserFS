@@ -1,208 +1,213 @@
 import fs from '../../../../src/core/node_fs';
 import * as path from 'path';
-import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
-export default function () {
+const existingFile = path.join(common.fixturesDir, 'exit.js');
+
+describe('File System Tests', () => {
 	const rootFS = fs.getRootFS();
-	const canWrite = !rootFS.isReadOnly();
-	const fn = path.join(common.fixturesDir, 'non-existent'),
-		existingFile = path.join(common.fixturesDir, 'exit.js');
 
-	// ASYNC_CALL
+	it('should handle async operations with error', done => {
+		const fn = path.join(common.fixturesDir, 'non-existent');
 
-	fs.stat(fn, function (err) {
-		assert.equal(fn, err.path);
-		assert.ok(0 <= err.message.indexOf(fn));
-	});
+		fs.stat(fn, (err: any) => {
+			expect(err.path).toBe(fn);
+			expect(err.message).toContain(fn);
 
-	fs.lstat(fn, function (err) {
-		assert.equal(fn, err.path);
-		assert.ok(0 <= err.message.indexOf(fn));
-	});
+			fs.lstat(fn, (err: any) => {
+				expect(err.path).toBe(fn);
+				expect(err.message).toContain(fn);
 
-	if (canWrite) {
-		fs.unlink(fn, function (err) {
-			assert.equal(fn, err.path);
-			assert.ok(0 <= err.message.indexOf(fn));
-		});
+				if (!rootFS.isReadOnly()) {
+					fs.unlink(fn, (err: any) => {
+						expect(err.path).toBe(fn);
+						expect(err.message).toContain(fn);
 
-		fs.rename(fn, 'foo', function (err) {
-			assert.equal(fn, err.path);
-			assert.ok(0 <= err.message.indexOf(fn));
-		});
+						fs.rename(fn, 'foo', (err: any) => {
+							expect(err.path).toBe(fn);
+							expect(err.message).toContain(fn);
 
-		fs.rmdir(fn, function (err) {
-			assert.equal(fn, err.path);
-			assert.ok(0 <= err.message.indexOf(fn));
-		});
+							fs.rmdir(fn, (err: any) => {
+								expect(err.path).toBe(fn);
+								expect(err.message).toContain(fn);
 
-		fs.mkdir(existingFile, 0o666, function (err) {
-			assert.equal(existingFile, err.path);
-			assert.ok(0 <= err.message.indexOf(existingFile));
-		});
+								fs.mkdir(existingFile, 0o666, (err: any) => {
+									expect(err.path).toBe(existingFile);
+									expect(err.message).toContain(existingFile);
 
-		fs.rmdir(existingFile, function (err) {
-			assert.equal(existingFile, err.path);
-			assert.ok(0 <= err.message.indexOf(existingFile));
-		});
-	}
-
-	fs.open(fn, 'r', 0o666, function (err) {
-		assert.equal(fn, err.path);
-		assert.ok(0 <= err.message.indexOf(fn));
-	});
-
-	fs.readFile(fn, function (err) {
-		assert.equal(fn, err.path);
-		assert.ok(0 <= err.message.indexOf(fn));
-	});
-
-	// BFS: Only run if the FS supports links
-	if (rootFS.supportsLinks()) {
-		fs.readlink(fn, function (err) {
-			assert.equal(fn, err.path);
-			assert.ok(0 <= err.message.indexOf(fn));
-		});
-
-		if (canWrite) {
-			fs.link(fn, 'foo', function (err) {
-				assert.equal(fn, err.path);
-				assert.ok(0 <= err.message.indexOf(fn));
+									fs.rmdir(existingFile, (err: any) => {
+										expect(err.path).toBe(existingFile);
+										expect(err.message).toContain(existingFile);
+										done();
+									});
+								});
+							});
+						});
+					});
+				} else {
+					done();
+				}
 			});
-		}
-	}
+		});
+	});
 
-	if (rootFS.supportsProps() && canWrite) {
-		fs.chmod(fn, 0o666, function (err) {
-			assert.equal(fn, err.path);
-			assert.ok(0 <= err.message.indexOf(fn));
+	if (rootFS.supportsLinks()) {
+		it('should handle async link operations with error', done => {
+			const fn = path.join(common.fixturesDir, 'non-existent');
+
+			fs.readlink(fn, (err: any) => {
+				expect(err.path).toBe(fn);
+				expect(err.message).toContain(fn);
+
+				if (!rootFS.isReadOnly()) {
+					fs.link(fn, 'foo', (err: any) => {
+						expect(err.path).toBe(fn);
+						expect(err.message).toContain(fn);
+						done();
+					});
+				} else {
+					done();
+				}
+			});
 		});
 	}
 
-	let expected = 0;
-	// Sync
-	// BFS: Only run if the FS supports sync ops
-	if (rootFS.supportsSynch()) {
-		var errors: string[] = [];
+	if (rootFS.supportsProps() && !rootFS.isReadOnly()) {
+		it('should handle async chmod operation with error', done => {
+			const fn = path.join(common.fixturesDir, 'non-existent');
 
-		try {
-			++expected;
-			fs.statSync(fn);
-		} catch (err) {
-			errors.push('stat');
-			assert.equal(fn, err.path);
-			assert.ok(0 <= err.message.indexOf(fn));
-		}
-
-		if (canWrite) {
-			try {
-				++expected;
-				fs.mkdirSync(existingFile, 0o666);
-			} catch (err) {
-				errors.push('mkdir');
-				assert.equal(existingFile, err.path);
-				assert.ok(0 <= err.message.indexOf(existingFile));
-			}
-
-			try {
-				++expected;
-				fs.rmdirSync(fn);
-			} catch (err) {
-				errors.push('rmdir');
-				assert.equal(fn, err.path);
-				assert.ok(0 <= err.message.indexOf(fn));
-			}
-
-			try {
-				++expected;
-				fs.rmdirSync(existingFile);
-			} catch (err) {
-				errors.push('rmdir');
-				assert.equal(existingFile, err.path);
-				assert.ok(0 <= err.message.indexOf(existingFile));
-			}
-
-			try {
-				++expected;
-				fs.renameSync(fn, 'foo');
-			} catch (err) {
-				errors.push('rename');
-				assert.equal(fn, err.path);
-				assert.ok(0 <= err.message.indexOf(fn));
-			}
-
-			try {
-				++expected;
-				fs.lstatSync(fn);
-			} catch (err) {
-				errors.push('lstat');
-				assert.equal(fn, err.path);
-				assert.ok(0 <= err.message.indexOf(fn));
-			}
-
-			try {
-				++expected;
-				fs.openSync(fn, 'r');
-			} catch (err) {
-				errors.push('opens');
-				assert.equal(fn, err.path);
-				assert.ok(0 <= err.message.indexOf(fn));
-			}
-
-			try {
-				++expected;
-				fs.readdirSync(fn);
-			} catch (err) {
-				errors.push('readdir');
-				assert.equal(fn, err.path);
-				assert.ok(0 <= err.message.indexOf(fn));
-			}
-
-			try {
-				++expected;
-				fs.unlinkSync(fn);
-			} catch (err) {
-				errors.push('unlink');
-				assert.ok(0 <= err.message.indexOf(fn));
-			}
-
-			if (rootFS.supportsProps()) {
-				try {
-					++expected;
-					fs.chmodSync(fn, 0o666);
-				} catch (err) {
-					errors.push('chmod');
-					assert.equal(fn, err.path);
-					assert.ok(0 <= err.message.indexOf(fn));
-				}
-			}
-
-			if (rootFS.supportsLinks()) {
-				try {
-					++expected;
-					fs.linkSync(fn, 'foo');
-				} catch (err) {
-					errors.push('link');
-					assert.equal(fn, err.path);
-					assert.ok(0 <= err.message.indexOf(fn));
-				}
-
-				try {
-					++expected;
-					fs.readlinkSync(fn);
-				} catch (err) {
-					errors.push('readlink');
-					assert.equal(fn, err.path);
-					assert.ok(0 <= err.message.indexOf(fn));
-				}
-			}
-		}
+			fs.chmod(fn, 0o666, (err: any) => {
+				expect(err.path).toBe(fn);
+				expect(err.message).toContain(fn);
+				done();
+			});
+		});
 	}
 
-	process.on('exit', function () {
-		if (rootFS.supportsSynch()) {
-			assert.equal(expected, errors.length, 'Test fs sync exceptions raised, got ' + errors.length + ' expected ' + expected);
-		}
-	});
-}
+	// Sync operations
+	if (rootFS.supportsSynch()) {
+		let errors: string[] = [];
+
+		it('should handle sync operations with error', () => {
+			const fn = path.join(common.fixturesDir, 'non-existent');
+			const existingFile = path.join(common.fixturesDir, 'exit.js');
+			const canWrite = !rootFS.isReadOnly();
+
+			let expected = 0;
+
+			try {
+				expected++;
+				fs.statSync(fn);
+			} catch (err) {
+				errors.push('stat');
+				expect(err.path).toBe(fn);
+				expect(err.message).toContain(fn);
+			}
+
+			if (canWrite) {
+				try {
+					expected++;
+					fs.mkdirSync(existingFile, 0o666);
+				} catch (err) {
+					errors.push('mkdir');
+					expect(err.path).toBe(existingFile);
+					expect(err.message).toContain(existingFile);
+				}
+
+				try {
+					expected++;
+					fs.rmdirSync(fn);
+				} catch (err) {
+					errors.push('rmdir');
+					expect(err.path).toBe(fn);
+					expect(err.message).toContain(fn);
+				}
+
+				try {
+					expected++;
+					fs.rmdirSync(existingFile);
+				} catch (err) {
+					errors.push('rmdir');
+					expect(err.path).toBe(existingFile);
+					expect(err.message).toContain(existingFile);
+				}
+
+				try {
+					expected++;
+					fs.renameSync(fn, 'foo');
+				} catch (err) {
+					errors.push('rename');
+					expect(err.path).toBe(fn);
+					expect(err.message).toContain(fn);
+				}
+
+				try {
+					expected++;
+					fs.lstatSync(fn);
+				} catch (err) {
+					errors.push('lstat');
+					expect(err.path).toBe(fn);
+					expect(err.message).toContain(fn);
+				}
+
+				try {
+					expected++;
+					fs.openSync(fn, 'r');
+				} catch (err) {
+					errors.push('opens');
+					expect(err.path).toBe(fn);
+					expect(err.message).toContain(fn);
+				}
+
+				try {
+					expected++;
+					fs.readdirSync(fn);
+				} catch (err) {
+					errors.push('readdir');
+					expect(err.path).toBe(fn);
+					expect(err.message).toContain(fn);
+				}
+
+				try {
+					expected++;
+					fs.unlinkSync(fn);
+				} catch (err) {
+					errors.push('unlink');
+					expect(err.message).toContain(fn);
+				}
+
+				if (rootFS.supportsProps()) {
+					try {
+						expected++;
+						fs.chmodSync(fn, 0o666);
+					} catch (err) {
+						errors.push('chmod');
+						expect(err.path).toBe(fn);
+						expect(err.message).toContain(fn);
+					}
+				}
+
+				if (rootFS.supportsLinks()) {
+					try {
+						expected++;
+						fs.linkSync(fn, 'foo');
+					} catch (err) {
+						errors.push('link');
+						expect(err.path).toBe(fn);
+						expect(err.message).toContain(fn);
+					}
+
+					try {
+						expected++;
+						fs.readlinkSync(fn);
+					} catch (err) {
+						errors.push('readlink');
+						expect(err.path).toBe(fn);
+						expect(err.message).toContain(fn);
+					}
+				}
+			}
+			expect(errors.length).toBe(expected);
+		});
+	}
+});

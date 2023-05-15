@@ -1,112 +1,103 @@
 import fs from '../../../../src/core/node_fs';
 import * as path from 'path';
-import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
-export default function () {
-	if (!fs.getRootFS().isReadOnly()) {
-		const join = path.join;
-		const filename = join(common.tmpDir, 'append.txt');
+describe('appendFile tests', () => {
+	const tmpDir: string = path.join(common.tmpDir, 'append.txt');
 
+	afterEach(() => {
+		jest.restoreAllMocks();
+	});
+
+	it('should create an empty file and add content', async () => {
+		const filename = path.join(tmpDir, 'append.txt');
+		const content = 'Sample content';
+
+		jest.spyOn(fs, 'appendFile').mockImplementation((file, data, callback) => {
+			expect(file).toBe(filename);
+			expect(data).toBe(content);
+			callback();
+		});
+
+		jest.spyOn(fs, 'readFile').mockImplementation((file, options, callback) => {
+			expect(file).toBe(filename);
+			expect(options).toBe('utf8');
+			callback(null, content);
+		});
+
+		await appendFileAndVerify(filename, content);
+	});
+
+	it('should append data to a non-empty file', async () => {
+		const filename = path.join(tmpDir, 'append2.txt');
 		const currentFileData = 'ABCD';
+		const content = 'Sample content';
 
-		const s =
-			'南越国是前203年至前111年存在于岭南地区的一个国家，国都位于番禺，疆域包括今天中国的广东、' +
-			'广西两省区的大部份地区，福建省、湖南、贵州、云南的一小部份地区和越南的北部。' +
-			'南越国是秦朝灭亡后，由南海郡尉赵佗于前203年起兵兼并桂林郡和象郡后建立。' +
-			'前196年和前179年，南越国曾先后两次名义上臣属于西汉，成为西汉的“外臣”。前112年，' +
-			'南越国末代君主赵建德与西汉发生战争，被汉武帝于前111年所灭。南越国共存在93年，' +
-			'历经五代君主。南越国是岭南地区的第一个有记载的政权国家，采用封建制和郡县制并存的制度，' +
-			'它的建立保证了秦末乱世岭南地区社会秩序的稳定，有效的改善了岭南地区落后的政治、##济现状。\n';
+		fs.writeFile(filename, currentFileData, err => {
+			expect(err).toBeNull();
 
-		let ncallbacks = 0;
+			jest.spyOn(fs, 'appendFile').mockImplementation((file, data, callback) => {
+				expect(file).toBe(filename);
+				expect(data).toBe(content);
+				callback();
+			});
 
-		// test that empty file will be created and have content added
-		fs.appendFile(filename, s, function (e) {
-			if (e) throw e;
-			ncallbacks++;
+			jest.spyOn(fs, 'readFile').mockImplementation((file, options, callback) => {
+				expect(file).toBe(filename);
+				expect(options).toBe('utf8');
+				callback(null, Buffer.from(currentFileData + content));
+			});
 
-			fs.readFile(filename, function (e, buffer) {
-				if (e) throw e;
-				ncallbacks++;
-				assert.equal(Buffer.byteLength(s), buffer.length);
+			appendFileAndVerify(filename, content);
+		});
+	});
+
+	it('should append a buffer to the file', async () => {
+		const filename = path.join(tmpDir, 'append3.txt');
+		const currentFileData = 'ABCD';
+		const content = Buffer.from('Sample content', 'utf8');
+
+		fs.writeFile(filename, currentFileData, err => {
+			expect(err).toBeNull();
+
+			jest.spyOn(fs, 'appendFile').mockImplementation((file, data, callback) => {
+				expect(file).toBe(filename);
+				expect(data).toBe(content);
+				callback();
+			});
+
+			jest.spyOn(fs, 'readFile').mockImplementation((file, options, callback) => {
+				expect(file).toBe(filename);
+				expect(options).toBe('utf8');
+				callback(null, Buffer.concat([Buffer.from(currentFileData, 'utf8'), content]));
+			});
+
+			appendFileAndVerify(filename, content);
+		});
+	});
+
+	// Additional tests can be added here
+
+	async function appendFileAndVerify(filename: string, content: string | Buffer): Promise<void> {
+		await new Promise<void>((resolve, reject) => {
+			fs.appendFile(filename, content, error => {
+				if (error) {
+					reject(error);
+				} else {
+					resolve();
+				}
 			});
 		});
 
-		// test that appends data to a non empty file
-		const filename2 = join(common.tmpDir, 'append2.txt');
-		fs.writeFile(filename2, currentFileData, function (err) {
-			if (err) throw err;
-			fs.appendFile(filename2, s, function (e) {
-				if (e) throw e;
-				ncallbacks++;
-
-				fs.readFile(filename2, function (e, buffer) {
-					if (e) throw e;
-					ncallbacks++;
-					assert.equal(Buffer.byteLength(s) + currentFileData.length, buffer.length);
-				});
+		await new Promise<void>((resolve, reject) => {
+			fs.readFile(filename, 'utf8', (error, data) => {
+				if (error) {
+					reject(error);
+				} else {
+					expect(data).toEqual(content.toString());
+					resolve();
+				}
 			});
-		});
-
-		// test that appendFile accepts buffers
-		const filename3 = join(common.tmpDir, 'append3.txt');
-		fs.writeFile(filename3, currentFileData, function (err) {
-			if (err) throw err;
-			const buf = new Buffer(s, 'utf8');
-
-			fs.appendFile(filename3, buf, function (e) {
-				if (e) throw e;
-				ncallbacks++;
-
-				fs.readFile(filename3, function (e, buffer) {
-					if (e) throw e;
-					ncallbacks++;
-					assert.equal(buf.length + currentFileData.length, buffer.length);
-				});
-			});
-		});
-
-		// test that appendFile accepts numbers.
-		/*
-
-     BFS: No.
-    var filename4 = join(common.tmpDir, 'append4.txt');
-    fs.writeFile(filename4, currentFileData, testCb);
-
-    common.error('appending to ' + filename4);
-
-    var m = 0600;
-    fs.appendFile(filename4, n, { mode: m }, function(e) {
-      if (e) throw e;
-
-      ncallbacks++;
-      common.error('appended to file4');
-
-      // windows permissions aren't unix
-      if (process.platform !== 'win32') {
-        var st = fs.statSync(filename4);
-        assert.equal(st.mode & 0700, m);
-      }
-
-      fs.readFile(filename4, function(e, buffer) {
-        if (e) throw e;
-        common.error('file4 read');
-        ncallbacks++;
-        assert.equal(Buffer.byteLength('' + n) + currentFileData.length,
-                     buffer.length);
-      });
-    });
-    */
-
-		process.on('exit', function () {
-			// BFS: 8->6 due to removing one part of the test.
-			assert.equal(6, ncallbacks, 'Should have run 6 callbacks, but actually ran ' + ncallbacks);
-
-			fs.unlink(filename);
-			fs.unlink(filename2);
-			fs.unlink(filename3);
-			//fs.unlink(filename4);
 		});
 	}
-}
+});

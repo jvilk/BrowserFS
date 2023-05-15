@@ -1,18 +1,39 @@
 import fs from '../../../../src/core/node_fs';
 
-export default function () {
-	if (!fs.getRootFS().isReadOnly()) {
-		fs.writeFile('does/not/exist.txt', "BFS plz don't create this", function (err) {
-			if (!err) throw new Error('Created a file in a nonexistant directory!');
-			fs.mkdir('does', function (err?: NodeJS.ErrnoException) {
-				if (err) throw err;
-				fs.mkdir('does/not', function (err?: NodeJS.ErrnoException) {
-					if (err) throw err;
-					fs.writeFile('does/not/exist.txt', 'Should work', function (err) {
-						if (err) throw err;
+describe('mkdir', () => {
+	it('should not create a file in a non-existent directory', () => {
+		if (!fs.getRootFS().isReadOnly()) {
+			return new Promise<void>((resolve, reject) => {
+				fs.writeFile('does/not/exist.txt', "BFS plz don't create this", err => {
+					if (!err) {
+						reject(new Error('Created a file in a nonexistent directory!'));
+						return;
+					}
+
+					fs.mkdir('does', err => {
+						if (err) {
+							reject(err);
+							return;
+						}
+
+						fs.mkdir('does/not', err => {
+							if (err) {
+								reject(err);
+								return;
+							}
+
+							fs.writeFile('does/not/exist.txt', 'Should work', err => {
+								if (err) {
+									reject(err);
+									return;
+								}
+
+								resolve();
+							});
+						});
 					});
 				});
 			});
-		});
-	}
-}
+		}
+	});
+});
