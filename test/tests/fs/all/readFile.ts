@@ -4,7 +4,7 @@ import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
 export default function () {
-	var rootFS = fs.getRootFS(),
+	let rootFS = fs.getRootFS(),
 		wasThrown = false;
 	if (rootFS.supportsSynch()) {
 		try {
@@ -21,7 +21,7 @@ export default function () {
 
 	fs.open(path.join(common.fixturesDir, 'a.js'), 'r', function (err, fd) {
 		assert(!err, 'Failed to open a.js from fixtures.');
-		var buffData = new Buffer(10);
+		const buffData = new Buffer(10);
 		fs.read(fd, buffData, 0, 10, 10000, function (err, bytesRead, buffer) {
 			assert(!err, 'Reading past the end of a file should not be an error.');
 			assert.strictEqual(bytesRead, 0, 'Reading past the end of a file should report 0 bytes read.');

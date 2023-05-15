@@ -236,7 +236,7 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
 	 */
 	public async empty(): Promise<void> {
 		const paths = await this.readdir('/', Cred.Root);
-		for (let path of paths) {
+		for (const path of paths) {
 			await deleteFiles(this._client, path);
 		}
 	}

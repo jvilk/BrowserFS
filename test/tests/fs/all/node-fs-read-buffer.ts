@@ -4,7 +4,7 @@ import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
 export default function () {
-	var filepath = path.join(common.fixturesDir, 'x.txt'),
+	let filepath = path.join(common.fixturesDir, 'x.txt'),
 		expected = 'xyz\n',
 		bufferAsync = new Buffer(expected.length),
 		bufferSync = new Buffer(expected.length),
@@ -21,7 +21,7 @@ export default function () {
 		});
 
 		if (rootFS.supportsSynch()) {
-			var r = fs.readSync(fd, bufferSync, 0, expected.length, 0);
+			const r = fs.readSync(fd, bufferSync, 0, expected.length, 0);
 			assert.equal(bufferSync.toString(), new Buffer(expected).toString());
 			assert.equal(r, expected.length);
 		}

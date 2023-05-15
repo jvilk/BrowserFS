@@ -24,7 +24,7 @@ import * as path from 'path';
 import assert from '../../../harness/wrapped-assert';
 
 export default function () {
-	var rootFS = fs.getRootFS(),
+	const rootFS = fs.getRootFS(),
 		isReadOnly = rootFS.isReadOnly(),
 		testFileContents = new Buffer('this is a test file, plz ignore.');
 
@@ -93,7 +93,7 @@ export default function () {
 			}
 
 			// Try to write a file into the directory.
-			var testFile = path.resolve(p, '__test_file_plz_ignore.txt');
+			const testFile = path.resolve(p, '__test_file_plz_ignore.txt');
 			fs.writeFile(testFile, testFileContents, function (e) {
 				if (e) {
 					if (e.code === 'EPERM') {

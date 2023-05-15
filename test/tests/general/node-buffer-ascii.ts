@@ -6,13 +6,13 @@ export default function () {
 	assert.equal(new Buffer('hérité').toString('ascii'), 'hC)ritC)');
 
 	// 71 characters, 78 bytes. The ’ character is a triple-byte sequence.
-	var input = 'C’est, graphiquement, la réunion d’un accent aigu ' + 'et d’un accent grave.';
+	const input = 'C’est, graphiquement, la réunion d’un accent aigu ' + 'et d’un accent grave.';
 
-	var expected = 'Cb\u0000\u0019est, graphiquement, la rC)union ' + 'db\u0000\u0019un accent aigu et db\u0000\u0019un ' + 'accent grave.';
+	const expected = 'Cb\u0000\u0019est, graphiquement, la rC)union ' + 'db\u0000\u0019un accent aigu et db\u0000\u0019un ' + 'accent grave.';
 
-	var buf = new Buffer(input);
+	const buf = new Buffer(input);
 
-	for (var i = 0; i < expected.length; ++i) {
+	for (let i = 0; i < expected.length; ++i) {
 		assert.equal(buf.slice(i).toString('ascii'), expected.slice(i));
 
 		// Skip remainder of multi-byte sequence.

@@ -10,7 +10,7 @@ export default function () {
 		});
 
 		// Same test, but for files.
-		var file = '/test/fixtures/files/node/a.js';
+		const file = '/test/fixtures/files/node/a.js';
 		fs.readFile(file, function (err, data) {
 			assert(!err, 'Failed to read ' + file);
 			fs.readFile(file, function (err, data2) {
@@ -20,7 +20,7 @@ export default function () {
 		});
 	});
 
-	var data = new Buffer('Hello, I am a dumb test file', 'utf8');
+	const data = new Buffer('Hello, I am a dumb test file', 'utf8');
 	fs.writeFile('/cache_test_file.txt', data, function (err) {
 		assert(!err, 'Failed to write /cache_test_file.txt');
 		fs.readFile('/cache_test_file.txt', function (err, data2) {

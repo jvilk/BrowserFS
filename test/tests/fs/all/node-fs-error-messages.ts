@@ -4,9 +4,9 @@ import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
 export default function () {
-	var rootFS = fs.getRootFS();
-	var canWrite = !rootFS.isReadOnly();
-	var fn = path.join(common.fixturesDir, 'non-existent'),
+	const rootFS = fs.getRootFS();
+	const canWrite = !rootFS.isReadOnly();
+	const fn = path.join(common.fixturesDir, 'non-existent'),
 		existingFile = path.join(common.fixturesDir, 'exit.js');
 
 	// ASYNC_CALL
@@ -80,7 +80,7 @@ export default function () {
 		});
 	}
 
-	var expected = 0;
+	let expected = 0;
 	// Sync
 	// BFS: Only run if the FS supports sync ops
 	if (rootFS.supportsSynch()) {

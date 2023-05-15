@@ -8,9 +8,9 @@ import * as BrowserFS from '../../../../src/core/browserfs';
 type Listing = { [name: string]: Listing | any };
 
 export default function () {
-	let oldRootFS = fs.getRootFS();
+	const oldRootFS = fs.getRootFS();
 
-	let listing: Listing = {
+	const listing: Listing = {
 		'README.md': null,
 		test: {
 			fixtures: {
@@ -34,9 +34,9 @@ export default function () {
 		(e, newXFS) => {
 			BrowserFS.initialize(newXFS);
 
-			let t1text = 'Invariant fail: Can query folder that contains items and a mount point.';
-			let expectedTestListing = ['README.md', 'src', 'test'];
-			let testListing = fs.readdirSync('/').sort();
+			const t1text = 'Invariant fail: Can query folder that contains items and a mount point.';
+			const expectedTestListing = ['README.md', 'src', 'test'];
+			const testListing = fs.readdirSync('/').sort();
 			assert.deepEqual(testListing, expectedTestListing, t1text);
 
 			fs.readdir('/', function (err, files) {

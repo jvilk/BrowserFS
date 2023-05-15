@@ -6,14 +6,14 @@ import assert from '../../../harness/wrapped-assert';
 import OverlayFS from '../../../../src/backend/OverlayFS';
 
 export default function () {
-	var rootFS = fs.getRootFS(),
+	const rootFS = fs.getRootFS(),
 		fses = (<OverlayFS>rootFS).getOverlayedFileSystems(),
 		// XXX: Make these proper API calls.
 		readable = fses.readable,
 		writable = fses.writable;
 	fs.initialize(new OverlayFS(writable, readable));
 
-	var err: NodeJS.ErrnoException = null;
+	let err: NodeJS.ErrnoException = null;
 	try {
 		fs.readdirSync('/');
 	} catch (e) {

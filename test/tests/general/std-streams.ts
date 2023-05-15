@@ -1,7 +1,7 @@
 import assert from '../../harness/wrapped-assert';
 
 export default function () {
-	var datStr = "hey\nhere's some data.",
+	let datStr = "hey\nhere's some data.",
 		count = 0,
 		cb = function (stream: NodeJS.ReadWriteStream) {
 			return function (data: Buffer) {

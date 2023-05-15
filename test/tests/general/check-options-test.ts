@@ -4,7 +4,7 @@ import { FileSystemOptions, FileSystemConstructor } from '../../../src/core/file
 import { ApiError } from '../../../src/core/api_error';
 import Backends from '../../../src/core/backends';
 
-declare var __numWaiting: number;
+declare let __numWaiting: number;
 
 function numWaitingWrap(cb: any): any {
 	__numWaiting++;

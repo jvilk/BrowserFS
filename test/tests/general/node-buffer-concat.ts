@@ -1,15 +1,15 @@
 import assert from '../../harness/wrapped-assert';
 
 export default function () {
-	var zero: Buffer[] = [];
-	var one = [new Buffer('asdf')];
-	var _long: Buffer[] = [];
-	for (var i = 0; i < 10; i++) _long.push(new Buffer('asdf'));
+	const zero: Buffer[] = [];
+	const one = [new Buffer('asdf')];
+	const _long: Buffer[] = [];
+	for (let i = 0; i < 10; i++) _long.push(new Buffer('asdf'));
 
-	var flatZero = Buffer.concat(zero);
-	var flatOne = Buffer.concat(one);
-	var flatLong = Buffer.concat(_long);
-	var flatLongLen = Buffer.concat(_long, 40);
+	const flatZero = Buffer.concat(zero);
+	const flatOne = Buffer.concat(one);
+	const flatLong = Buffer.concat(_long);
+	const flatLongLen = Buffer.concat(_long, 40);
 
 	assert(flatZero.length === 0);
 	assert(flatOne.toString() === 'asdf');

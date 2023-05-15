@@ -6,14 +6,14 @@ import BFSEmscriptenFS from '../../src/generic/emscripten_fs';
 import assert from './wrapped-assert';
 import loadFixtures from '../fixtures/load_fixtures';
 
-declare var __numWaiting: number;
-declare var __karma__: any;
+declare let __numWaiting: number;
+declare let __karma__: any;
 // HACK: Delay test execution until backends load.
 // https://zerokspot.com/weblog/2013/07/12/delay-test-execution-in-karma/
 __karma__.loaded = function () {};
 
 // Test timeout duration in milliseconds. Increase if needed.
-var timeout: number = 180000;
+const timeout: number = 180000;
 
 function waitsFor(test: () => boolean, what: string, timeout: number, done: (e?: Error) => void) {
 	var interval = setInterval(() => {
@@ -39,7 +39,7 @@ export default function (
 	},
 	backendFactories: BackendFactory[]
 ) {
-	var fsBackends: { name: string; backends: FileSystem[] }[] = [];
+	const fsBackends: { name: string; backends: FileSystem[] }[] = [];
 
 	// Install BFS as a global.
 	(<any>window)['BrowserFS'] = BrowserFS;
@@ -126,7 +126,7 @@ export default function (
 				let stderr = '';
 				let expectedStdout: string = null;
 				let expectedStderr: string = null;
-				let testNameNoExt = testName.slice(0, testName.length - path.extname(testName).length);
+				const testNameNoExt = testName.slice(0, testName.length - path.extname(testName).length);
 				try {
 					expectedStdout = fs.readFileSync(`/test/fixtures/files/emscripten/${testNameNoExt}.out`).toString().replace(/\r/g, '');
 					expectedStderr = fs.readFileSync(`/test/fixtures/files/emscripten/${testNameNoExt}.err`).toString().replace(/\r/g, '');
@@ -183,7 +183,7 @@ export default function (
 	}
 
 	function generateBackendTests(name: string, backend: FileSystem) {
-		var testName: string;
+		let testName: string;
 		generateTest('Load filesystem', function () {
 			__numWaiting = 0;
 			BrowserFS.initialize(backend);
@@ -211,7 +211,7 @@ export default function (
 
 			// generate generic non-backend specific tests
 			describe('General Tests', (): void => {
-				var genericTests = tests.general,
+				let genericTests = tests.general,
 					testName: string;
 				__numWaiting = 0;
 				for (testName in genericTests) {
@@ -227,7 +227,7 @@ export default function (
 			});
 
 			describe('Emscripten Tests', (): void => {
-				var emscriptenTests = tests.emscripten;
+				const emscriptenTests = tests.emscripten;
 				Object.keys(emscriptenTests).forEach(testName => {
 					generateEmscriptenTest(testName, emscriptenTests[testName]);
 				});
@@ -251,7 +251,7 @@ export default function (
 	asyncEachSeries(
 		backendFactories,
 		(factory: BackendFactory, cb: (e?: any) => void) => {
-			let timeout = setTimeout(() => {
+			const timeout = setTimeout(() => {
 				throw new Error(`Backend ${factory['name']} failed to initialize promptly.`);
 			}, 3000000);
 			factory((name: string, backends: FileSystem[]) => {

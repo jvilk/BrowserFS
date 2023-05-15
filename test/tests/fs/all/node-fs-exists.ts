@@ -4,9 +4,9 @@ import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
 export default function () {
-	var f = path.join(common.fixturesDir, 'x.txt');
-	var exists: boolean;
-	var doesNotExist: boolean;
+	const f = path.join(common.fixturesDir, 'x.txt');
+	let exists: boolean;
+	let doesNotExist: boolean;
 
 	fs.exists(f, function (y) {
 		exists = y;

@@ -4,9 +4,9 @@ import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
 export default function () {
-	var successes = 0;
-	var file = path.join(common.fixturesDir, 'a.js');
-	var rootFS = fs.getRootFS();
+	let successes = 0;
+	const file = path.join(common.fixturesDir, 'a.js');
+	const rootFS = fs.getRootFS();
 	if (!rootFS.isReadOnly()) {
 		fs.open(file, 'a', 0o777, function (err, fd) {
 			if (err) throw err;

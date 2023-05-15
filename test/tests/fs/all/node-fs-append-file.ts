@@ -5,12 +5,12 @@ import common from '../../../harness/common';
 
 export default function () {
 	if (!fs.getRootFS().isReadOnly()) {
-		var join = path.join;
-		var filename = join(common.tmpDir, 'append.txt');
+		const join = path.join;
+		const filename = join(common.tmpDir, 'append.txt');
 
-		var currentFileData = 'ABCD';
+		const currentFileData = 'ABCD';
 
-		var s =
+		const s =
 			'南越国是前203年至前111年存在于岭南地区的一个国家，国都位于番禺，疆域包括今天中国的广东、' +
 			'广西两省区的大部份地区，福建省、湖南、贵州、云南的一小部份地区和越南的北部。' +
 			'南越国是秦朝灭亡后，由南海郡尉赵佗于前203年起兵兼并桂林郡和象郡后建立。' +
@@ -19,7 +19,7 @@ export default function () {
 			'历经五代君主。南越国是岭南地区的第一个有记载的政权国家，采用封建制和郡县制并存的制度，' +
 			'它的建立保证了秦末乱世岭南地区社会秩序的稳定，有效的改善了岭南地区落后的政治、##济现状。\n';
 
-		var ncallbacks = 0;
+		let ncallbacks = 0;
 
 		// test that empty file will be created and have content added
 		fs.appendFile(filename, s, function (e) {
@@ -34,7 +34,7 @@ export default function () {
 		});
 
 		// test that appends data to a non empty file
-		var filename2 = join(common.tmpDir, 'append2.txt');
+		const filename2 = join(common.tmpDir, 'append2.txt');
 		fs.writeFile(filename2, currentFileData, function (err) {
 			if (err) throw err;
 			fs.appendFile(filename2, s, function (e) {
@@ -50,10 +50,10 @@ export default function () {
 		});
 
 		// test that appendFile accepts buffers
-		var filename3 = join(common.tmpDir, 'append3.txt');
+		const filename3 = join(common.tmpDir, 'append3.txt');
 		fs.writeFile(filename3, currentFileData, function (err) {
 			if (err) throw err;
-			var buf = new Buffer(s, 'utf8');
+			const buf = new Buffer(s, 'utf8');
 
 			fs.appendFile(filename3, buf, function (e) {
 				if (e) throw e;

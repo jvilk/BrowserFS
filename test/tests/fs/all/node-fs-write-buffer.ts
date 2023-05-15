@@ -5,7 +5,7 @@ import common from '../../../harness/common';
 
 export default function () {
 	if (!fs.getRootFS().isReadOnly()) {
-		var filename = path.join(common.tmpDir, 'write.txt'),
+		let filename = path.join(common.tmpDir, 'write.txt'),
 			expected = new Buffer('hello'),
 			openCalled = 0,
 			writeCalled = 0;

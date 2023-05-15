@@ -2,11 +2,11 @@ import assert from '../../harness/wrapped-assert';
 import * as path from 'path';
 
 export default function () {
-	var isWindows = process.platform === 'win32';
-	var failures: string[] = [];
+	const isWindows = process.platform === 'win32';
+	let failures: string[] = [];
 
 	// BFS: Make explicit for the browser.
-	var f = '/Users/jvilk/Code/BrowserFS/test/node/test-path.js';
+	const f = '/Users/jvilk/Code/BrowserFS/test/node/test-path.js';
 
 	assert.equal(path.basename(f), 'test-path.js');
 	assert.equal(path.basename(f, '.js'), 'test-path');
@@ -45,7 +45,7 @@ export default function () {
 	// POSIX filenames may include control characters
 	// c.f. http://www.dwheeler.com/essays/fixing-unix-linux-filenames.html
 	if (!isWindows) {
-		var controlCharFilename = 'Icon' + String.fromCharCode(13);
+		const controlCharFilename = 'Icon' + String.fromCharCode(13);
 		assert.equal(path.basename('/a/b/' + controlCharFilename), controlCharFilename);
 	}
 
@@ -109,12 +109,12 @@ export default function () {
 		['file.//', '.'],
 	].forEach(function (test) {
 		[path.posix.extname, path.win32.extname].forEach(function (extname) {
-			var input = test[0];
-			var os = 'posix';
-			var actual = extname(input);
-			var expected = test[1];
-			var fn = 'path' + os + '.extname(';
-			var message = fn + JSON.stringify(input) + ')' + '\n  expect=' + JSON.stringify(expected) + '\n  actual=' + JSON.stringify(actual);
+			const input = test[0];
+			const os = 'posix';
+			const actual = extname(input);
+			const expected = test[1];
+			const fn = 'path' + os + '.extname(';
+			const message = fn + JSON.stringify(input) + ')' + '\n  expect=' + JSON.stringify(expected) + '\n  actual=' + JSON.stringify(actual);
 			if (actual !== expected) failures.push('\n' + message);
 		});
 	});
@@ -173,7 +173,7 @@ export default function () {
 	assert.equal(path.extname('file.\\\\'), '.\\\\');
 
 	// path.join tests
-	var joinTests: [string[], string][] =
+	const joinTests: [string[], string][] =
 		// arguments                     result
 		[
 			[['.', 'x/b', '..', '/b/c.js'], 'x/b/c.js'],
@@ -226,14 +226,14 @@ export default function () {
 
 	// Run the join tests.
 	joinTests.forEach(function (test) {
-		var actual = path.join.apply(path, test[0]);
-		var expected = isWindows ? test[1].replace(/\//g, '\\') : test[1];
-		var message = 'path.join(' + test[0].map(<any>JSON.stringify).join(',') + ')' + '\n  expect=' + JSON.stringify(expected) + '\n  actual=' + JSON.stringify(actual);
+		const actual = path.join.apply(path, test[0]);
+		const expected = isWindows ? test[1].replace(/\//g, '\\') : test[1];
+		const message = 'path.join(' + test[0].map(<any>JSON.stringify).join(',') + ')' + '\n  expect=' + JSON.stringify(expected) + '\n  actual=' + JSON.stringify(actual);
 		if (actual !== expected) failures.push('\n' + message);
 		// assert.equal(actual, expected, message);
 	});
 	assert.equal(failures.length, 0, failures.join(''));
-	var joinThrowTests: any[] = [true, false, 7, null, {}, undefined, [], NaN];
+	const joinThrowTests: any[] = [true, false, 7, null, {}, undefined, [], NaN];
 	joinThrowTests.forEach(function (test: any) {
 		assert.throws(function () {
 			path.join(test);
@@ -254,7 +254,7 @@ export default function () {
 
 	// path.resolve tests
 	// Posix
-	var resolveTests: [string[], string][] =
+	const resolveTests: [string[], string][] =
 		// arguments                                    result
 		[
 			[['/var/lib', '../', 'file/'], '/var/file'],
@@ -267,9 +267,9 @@ export default function () {
 
 	failures = [];
 	resolveTests.forEach(function (test) {
-		var actual = path.resolve.apply(path, test[0]);
-		var expected = test[1];
-		var message = 'path.resolve(' + test[0].map(<any>JSON.stringify).join(',') + ')' + '\n  expect=' + JSON.stringify(expected) + '\n  actual=' + JSON.stringify(actual);
+		const actual = path.resolve.apply(path, test[0]);
+		const expected = test[1];
+		const message = 'path.resolve(' + test[0].map(<any>JSON.stringify).join(',') + ')' + '\n  expect=' + JSON.stringify(expected) + '\n  actual=' + JSON.stringify(actual);
 		if (actual !== expected) failures.push('\n' + message);
 		// assert.equal(actual, expected, message);
 	});
@@ -283,7 +283,7 @@ export default function () {
 
 	// path.relative tests
 	// posix
-	var relativeTests =
+	const relativeTests =
 		// arguments                    result
 		[
 			['/var/lib', '/var', '..'],
@@ -301,9 +301,9 @@ export default function () {
 		];
 	failures = [];
 	relativeTests.forEach(function (test) {
-		var actual = path.relative(test[0], test[1]);
-		var expected = test[2];
-		var message =
+		const actual = path.relative(test[0], test[1]);
+		const expected = test[2];
+		const message =
 			'path.relative(' +
 			test
 				.slice(0, 2)
@@ -331,7 +331,7 @@ export default function () {
 	assert.equal(path.posix.delimiter, ':');
 
 	// path._makeLong tests
-	var emptyObj = {};
+	const emptyObj = {};
 	assert.equal((<any>path.posix)._makeLong('/foo/bar'), '/foo/bar');
 	assert.equal((<any>path.posix)._makeLong('foo/bar'), 'foo/bar');
 	assert.equal((<any>path.posix)._makeLong(null), null);

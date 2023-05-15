@@ -5,11 +5,11 @@ import common from '../../../harness/common';
 
 export default function () {
 	if (!fs.getRootFS().isReadOnly()) {
-		var join = path.join;
+		const join = path.join;
 
 		// BFS: Original test joined on \n for some reason, but that ruined my extra
 		// 'readFile' test.
-		var data = [
+		const data = [
 			'/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcH',
 			'Bw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/',
 			'2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4e',
@@ -29,7 +29,7 @@ export default function () {
 			'0NvnKRjJBUE5PAx3NYxxUY0pRtvYHSc5Ka2X9d7H/9k=',
 		].join('');
 
-		var buf = new Buffer(data, 'base64');
+		const buf = new Buffer(data, 'base64');
 		fs.writeFile(join(common.tmpDir, 'test.jpg'), buf, function (err) {
 			if (err) throw err;
 			// BFS: Adding this extra step.

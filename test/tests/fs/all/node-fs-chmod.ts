@@ -4,33 +4,33 @@ import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
 export default function () {
-	var got_error = false;
-	var success_count = 0;
-	var mode_async: number;
-	var mode_sync: number;
-	var is_windows = process.platform === 'win32';
-	var rootFS = fs.getRootFS();
+	let got_error = false;
+	let success_count = 0;
+	let mode_async: number;
+	let mode_sync: number;
+	const is_windows = process.platform === 'win32';
+	const rootFS = fs.getRootFS();
 
 	// BFS: This is only for writable file systems that support properties.
 	if (!(rootFS.isReadOnly() || rootFS.supportsProps() === false)) {
-		var openCount = 0;
+		let openCount = 0;
 
-		var open = function () {
+		const open = function () {
 			openCount++;
 			return (<any>fs)._open.apply(fs, arguments);
 		};
 
-		var openSync = function () {
+		const openSync = function () {
 			openCount++;
 			return (<any>fs)._openSync.apply(fs, arguments);
 		};
 
-		var close = function () {
+		const close = function () {
 			openCount--;
 			return (<any>fs)._close.apply(fs, arguments);
 		};
 
-		var closeSync = function () {
+		const closeSync = function () {
 			openCount--;
 			return (<any>fs)._closeSync.apply(fs, arguments);
 		};
@@ -57,7 +57,7 @@ export default function () {
 			mode_sync = 0o644;
 		}
 
-		var file1 = path.join(common.fixturesDir, 'a.js'),
+		const file1 = path.join(common.fixturesDir, 'a.js'),
 			file2 = path.join(common.fixturesDir, 'a1.js');
 
 		fs.chmod(file1, mode_async.toString(8), function (err) {
@@ -111,7 +111,7 @@ export default function () {
 		// lchmod
 		if (rootFS.supportsLinks()) {
 			if (fs.lchmod) {
-				var link = path.join(common.tmpDir, 'symbolic-link');
+				const link = path.join(common.tmpDir, 'symbolic-link');
 
 				try {
 					fs.unlinkSync(link);

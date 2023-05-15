@@ -3,7 +3,7 @@ import { SlowBuffer } from 'buffer';
 
 export default function () {
 	// counter to ensure unique value is always copied
-	var cntr = 0;
+	let cntr = 0;
 
 	var b = new Buffer(1024); // safe constructor
 
@@ -105,7 +105,7 @@ export default function () {
 	b.fill(++cntr);
 	c.fill(++cntr);
 	var copied = b.copy(c, 0, b.length - Math.floor(c.length / 2));
-	var expected = Math.floor(c.length / 2);
+	const expected = Math.floor(c.length / 2);
 	assert.strictEqual(expected, copied, 'Expected ' + expected + ' copied bytes, got: ' + copied);
 	for (var i = 0; i < Math.floor(c.length / 2); i++) {
 		assert.strictEqual(b[b.length - Math.floor(c.length / 2) + i], c[i]);
@@ -133,10 +133,10 @@ export default function () {
 	}
 
 	// copy string longer than buffer length (failure will segfault)
-	var bb = new Buffer(10);
+	const bb = new Buffer(10);
 	bb.fill('hello crazy world');
 
-	var caught_error: NodeJS.ErrnoException = null;
+	let caught_error: NodeJS.ErrnoException = null;
 
 	// try to copy from before the beginning of b
 	caught_error = null;
@@ -243,7 +243,7 @@ export default function () {
 	// testing for smart defaults and ability to pass string values as offset
 	// BFS: Yeah, we're not going to support out-of-order arguments and numeric
 	//     values as strings.
-	var writeTest = new Buffer('abcdes');
+	const writeTest = new Buffer('abcdes');
 	writeTest.write('n', <any>'ascii');
 	writeTest.write('o', 1, <any>'ascii');
 	writeTest.write('d', 2, <any>'ascii');
@@ -252,7 +252,7 @@ export default function () {
 	assert.equal(writeTest.toString(), 'nodejs');
 
 	// ASCII slice test
-	var asciiString = 'hello world';
+	const asciiString = 'hello world';
 	var offset = 100;
 
 	for (var i = 0; i < asciiString.length; i++) {
@@ -274,11 +274,11 @@ export default function () {
 
 	// UTF-8 slice test
 
-	var utf8String = '¡hέlló wôrld!';
+	const utf8String = '¡hέlló wôrld!';
 	var offset = 100;
 
 	b.write(utf8String, 0, Buffer.byteLength(utf8String), 'utf8');
-	var utf8Slice = b.toString('utf8', 0, Buffer.byteLength(utf8String));
+	let utf8Slice = b.toString('utf8', 0, Buffer.byteLength(utf8String));
 	assert.equal(utf8String, utf8Slice);
 
 	var written = b.write(utf8String, offset, <any>'utf8');
@@ -292,7 +292,7 @@ export default function () {
 		assert.equal(sliceA[i], sliceB[i]);
 	}
 
-	var slice = b.slice(100, 150);
+	const slice = b.slice(100, 150);
 	assert.equal(50, slice.length);
 	for (var i = 0; i < 50; i++) {
 		assert.equal(b[100 + i], slice[i]);
@@ -313,10 +313,10 @@ export default function () {
 
 	{
 		// Bug regression test
-		var testValue = '\u00F6\u65E5\u672C\u8A9E'; // ö日本語
-		var buffer = new Buffer(32);
-		var size = buffer.write(testValue, 0, <any>'utf8');
-		let slice = buffer.toString('utf8', 0, size);
+		const testValue = '\u00F6\u65E5\u672C\u8A9E'; // ö日本語
+		const buffer = new Buffer(32);
+		const size = buffer.write(testValue, 0, <any>'utf8');
+		const slice = buffer.toString('utf8', 0, size);
 		assert.equal(slice, testValue);
 	}
 
@@ -362,7 +362,7 @@ export default function () {
 
 		var f = new Buffer([0, 0, 0, 0, 0]);
 		assert.equal(f.length, 5);
-		var size = f.write('あいうえお', <any>encoding);
+		const size = f.write('あいうえお', <any>encoding);
 		assert.equal(size, 4, 'expected 4 bytes written to buffer, got: ' + size);
 		equalCheck(f, new Buffer([0x42, 0x30, 0x44, 0x30, 0x00]));
 	});
@@ -371,8 +371,8 @@ export default function () {
 	assert.equal(4, f.length, 'f.length: ' + f.length + ' (should be 4)');
 	equalCheck(f, new Buffer('3DD84DDC', 'hex'));
 
-	var arrayIsh = { 0: 0, 1: 1, 2: 2, 3: 3, length: 4 };
-	var g = new Buffer(<any>arrayIsh);
+	const arrayIsh = { 0: 0, 1: 1, 2: 2, 3: 3, length: 4 };
+	const g = new Buffer(<any>arrayIsh);
 	equalCheck(g, new Buffer([0, 1, 2, 3]));
 	// BFS: We don't support these types of shenanigans.
 	//var strArrayIsh = {0: '0', 1: '1', 2: '2', 3: '3', length: 4};
@@ -386,20 +386,20 @@ export default function () {
 
 	{
 		// test that regular and URL-safe base64 both work
-		let expected = [0xff, 0xff, 0xbe, 0xff, 0xef, 0xbf, 0xfb, 0xef, 0xff];
+		const expected = [0xff, 0xff, 0xbe, 0xff, 0xef, 0xbf, 0xfb, 0xef, 0xff];
 		equalCheck(new Buffer('//++/++/++//', 'base64'), new Buffer(expected));
 		equalCheck(new Buffer('__--_--_--__', 'base64'), new Buffer(expected));
 	}
 
 	{
 		// big example
-		let quote =
+		const quote =
 			'Man is distinguished, not only by his reason, but by this ' +
 			'singular passion from other animals, which is a lust ' +
 			'of the mind, that by a perseverance of delight in the continued ' +
 			'and indefatigable generation of knowledge, exceeds the short ' +
 			'vehemence of any carnal pleasure.';
-		let expected =
+		const expected =
 			'TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24s' +
 			'IGJ1dCBieSB0aGlzIHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltY' +
 			'WxzLCB3aGljaCBpcyBhIGx1c3Qgb2YgdGhlIG1pbmQsIHRoYXQgYnkgYSBwZX' +
@@ -409,12 +409,12 @@ export default function () {
 		assert.equal(expected, new Buffer(quote).toString('base64'));
 
 		b = new Buffer(1024);
-		var bytesWritten = b.write(expected, 0, <any>'base64');
+		let bytesWritten = b.write(expected, 0, <any>'base64');
 		assert.equal(quote.length, bytesWritten);
 		assert.equal(quote, b.toString('ascii', 0, quote.length));
 
 		// check that the base64 decoder ignores whitespace
-		var expectedWhite =
+		const expectedWhite =
 			expected.slice(0, 60) +
 			' \n' +
 			expected.slice(60, 120) +
@@ -439,7 +439,7 @@ export default function () {
 		assert.equal(quote, b.toString('ascii', 0, quote.length));
 
 		// check that the base64 decoder ignores illegal chars
-		var expectedIllegal =
+		const expectedIllegal =
 			expected.slice(0, 60) +
 			' \x80' +
 			expected.slice(60, 120) +
@@ -506,7 +506,7 @@ export default function () {
 	assert.equal(new Buffer('w69jACy6BgZmaFvv96HG6MYksWytuZu3T1FvGnulPg', 'base64').length, 31);
 
 	// This string encodes single '.' character in UTF-16
-	var dot = new Buffer('//4uAA==', 'base64');
+	const dot = new Buffer('//4uAA==', 'base64');
 	assert.equal(dot[0], 0xff);
 	assert.equal(dot[1], 0xfe);
 	assert.equal(dot[2], 0x2e);
@@ -516,9 +516,9 @@ export default function () {
 	// Writing base64 at a position > 0 should not mangle the result.
 	//
 	// https://github.com/joyent/node/issues/402
-	var segments = ['TWFkbmVzcz8h', 'IFRoaXM=', 'IGlz', 'IG5vZGUuanMh'];
+	const segments = ['TWFkbmVzcz8h', 'IFRoaXM=', 'IGlz', 'IG5vZGUuanMh'];
 	var buf = new Buffer(64);
-	var pos = 0;
+	let pos = 0;
 
 	for (var i = 0; i < segments.length; ++i) {
 		pos += b.write(segments[i], pos, <any>'base64');
@@ -526,7 +526,7 @@ export default function () {
 	assert.equal(b.toString('binary', 0, pos), 'Madness?! This is node.js!');
 
 	// Creating buffers larger than pool size.
-	var l = (<any>Buffer).poolSize + 5;
+	const l = (<any>Buffer).poolSize + 5;
 	var s = '';
 	for (i = 0; i < l; i++) {
 		s += 'h';
@@ -538,7 +538,7 @@ export default function () {
 		assert.equal('h'.charCodeAt(0), b[i]);
 	}
 
-	var sb = b.toString();
+	const sb = b.toString();
 	assert.equal(sb.length, s.length);
 	assert.equal(sb, s);
 
@@ -550,11 +550,11 @@ export default function () {
 	assert.equal(0, new Buffer('hello').slice(0, 0).length);
 
 	// test hex toString
-	var hexb = new Buffer(256);
+	const hexb = new Buffer(256);
 	for (var i = 0; i < 256; i++) {
 		hexb[i] = i;
 	}
-	var hexStr = hexb.toString('hex');
+	const hexStr = hexb.toString('hex');
 	assert.equal(
 		hexStr,
 		'000102030405060708090a0b0c0d0e0f' +
@@ -575,22 +575,22 @@ export default function () {
 			'f0f1f2f3f4f5f6f7f8f9fafbfcfdfeff'
 	);
 
-	var hexb2 = new Buffer(hexStr, 'hex');
+	const hexb2 = new Buffer(hexStr, 'hex');
 	for (var i = 0; i < 256; i++) {
 		assert.equal(hexb2[i], hexb[i]);
 	}
 
 	// test an invalid slice end.
 	var b = new Buffer([1, 2, 3, 4, 5]);
-	var b2 = b.toString('hex', 1, 10000);
-	var b3 = b.toString('hex', 1, 5);
-	var b4 = b.toString('hex', 1);
+	const b2 = b.toString('hex', 1, 10000);
+	const b3 = b.toString('hex', 1, 5);
+	const b4 = b.toString('hex', 1);
 	assert.equal(b2, b3);
 	assert.equal(b2, b4);
 
 	function buildBuffer(data: number[]) {
 		if (Array.isArray(data)) {
-			var buffer = new Buffer(data.length);
+			const buffer = new Buffer(data.length);
 			data.forEach(function (v, k) {
 				buffer[k] = v;
 			});
@@ -599,7 +599,7 @@ export default function () {
 		return null;
 	}
 
-	var x = buildBuffer([0x81, 0xa3, 0x66, 0x6f, 0x6f, 0xa3, 0x62, 0x61, 0x72]);
+	const x = buildBuffer([0x81, 0xa3, 0x66, 0x6f, 0x6f, 0xa3, 0x62, 0x61, 0x72]);
 
 	assert.equal('<Buffer 81 a3 66 6f 6f a3 62 61 72>', (<any>x).inspect());
 
@@ -634,7 +634,7 @@ export default function () {
 	assert.equal(0, new Buffer('hello').slice(0, 0).length);
 
 	['ucs2', 'ucs-2', 'utf16le', 'utf-16le'].forEach(function (encoding) {
-		var b = new Buffer(10);
+		const b = new Buffer(10);
 		b.write('あいうえお', <any>encoding);
 		assert.equal(b.toString(encoding), 'あいうえお');
 	});
@@ -752,7 +752,7 @@ export default function () {
 
 	// test for buffer overrun
 	buf = new Buffer([0, 0, 0, 0, 0]); // length: 5
-	var sub = buf.slice(0, 4); // length: 4
+	const sub = buf.slice(0, 4); // length: 4
 	written = sub.write('12345', <any>'binary');
 	assert.equal(written, 4);
 	assert.equal(buf[4], 0);
@@ -795,7 +795,7 @@ export default function () {
 
 	// GH-5110
 	(function () {
-		var buffer = new Buffer('test'),
+		const buffer = new Buffer('test'),
 			string = JSON.stringify(buffer);
 
 		assert.equal(string, '{"type":"Buffer","data":[116,101,115,116]}');
@@ -810,10 +810,10 @@ export default function () {
 
 	// issue GH-7849
 	(function () {
-		var buf = new Buffer('test');
-		var json = JSON.stringify(buf);
-		var obj = JSON.parse(json);
-		var copy = new Buffer(obj);
+		const buf = new Buffer('test');
+		const json = JSON.stringify(buf);
+		const obj = JSON.parse(json);
+		const copy = new Buffer(obj);
 
 		assert(buf.equals(copy));
 	})();
@@ -827,43 +827,43 @@ export default function () {
 
 	// attempt to overflow buffers, similar to previous bug in array buffers
 	assert.throws(function () {
-		var buf = new Buffer(8);
+		const buf = new Buffer(8);
 		buf.readFloatLE(0xffffffff);
 	}, RangeError);
 
 	assert.throws(function () {
-		var buf = new Buffer(8);
+		const buf = new Buffer(8);
 		buf.writeFloatLE(0.0, 0xffffffff);
 	}, RangeError);
 
 	assert.throws(function () {
-		var buf = new Buffer(8);
+		const buf = new Buffer(8);
 		buf.readFloatLE(0xffffffff);
 	}, RangeError);
 
 	assert.throws(function () {
-		var buf = new Buffer(8);
+		const buf = new Buffer(8);
 		buf.writeFloatLE(0.0, 0xffffffff);
 	}, RangeError);
 
 	// ensure negative values can't get past offset
 	assert.throws(function () {
-		var buf = new Buffer(8);
+		const buf = new Buffer(8);
 		buf.readFloatLE(-1);
 	}, RangeError);
 
 	assert.throws(function () {
-		var buf = new Buffer(8);
+		const buf = new Buffer(8);
 		buf.writeFloatLE(0.0, -1);
 	}, RangeError);
 
 	assert.throws(function () {
-		var buf = new Buffer(8);
+		const buf = new Buffer(8);
 		buf.readFloatLE(-1);
 	}, RangeError);
 
 	assert.throws(function () {
-		var buf = new Buffer(8);
+		const buf = new Buffer(8);
 		buf.writeFloatLE(0.0, -1);
 	}, RangeError);
 
@@ -883,7 +883,7 @@ export default function () {
 	assert.equal(buf.readInt8(0), -1);
 
 	[16, 32].forEach(function (bits) {
-		var buf = new Buffer(bits / 8 - 1);
+		const buf = new Buffer(bits / 8 - 1);
 
 		assert.throws(
 			function () {
@@ -919,7 +919,7 @@ export default function () {
 	});
 
 	[16, 32].forEach(function (bits) {
-		var buf = new Buffer([0xff, 0xff, 0xff, 0xff]);
+		const buf = new Buffer([0xff, 0xff, 0xff, 0xff]);
 
 		assert.equal((<any>buf)['readUInt' + bits + 'BE'](0), 0xffffffff >>> (32 - bits));
 
@@ -932,7 +932,7 @@ export default function () {
 
 	// test for common read(U)IntLE/BE
 	(function () {
-		var buf = new Buffer([0x01, 0x02, 0x03, 0x04, 0x05, 0x06]);
+		const buf = new Buffer([0x01, 0x02, 0x03, 0x04, 0x05, 0x06]);
 
 		assert.equal(buf.readUIntLE(0, 1), 0x01);
 		assert.equal(buf.readUIntBE(0, 1), 0x01);
@@ -954,7 +954,7 @@ export default function () {
 
 	// test for common write(U)IntLE/BE
 	(function () {
-		var buf = new Buffer(3);
+		let buf = new Buffer(3);
 		buf.writeUIntLE(0x123456, 0, 3);
 		assert.deepEqual(buf.toJSON().data, [0x56, 0x34, 0x12]);
 		assert.equal(buf.readUIntLE(0, 3), 0x123456);
@@ -1017,7 +1017,7 @@ export default function () {
 
 	// test Buffer slice
 	(function () {
-		var buf = new Buffer('0123456789');
+		const buf = new Buffer('0123456789');
 		assert.equal(buf.slice(-10, 10), '0123456789');
 		assert.equal(buf.slice(-20, 10), '0123456789');
 		assert.equal(buf.slice(-20, -10), '');
@@ -1043,14 +1043,14 @@ export default function () {
 		assert.equal(buf.slice(-5, -8), '');
 		assert.equal(buf.slice(-5, -3), '56');
 		assert.equal(buf.slice(-10, 10), '0123456789');
-		for (var i = 0, s = buf.toString(); i < buf.length; ++i) {
+		for (let i = 0, s = buf.toString(); i < buf.length; ++i) {
 			assert.equal(buf.slice(i), s.slice(i));
 			assert.equal(buf.slice(0, i), s.slice(0, i));
 			assert.equal(buf.slice(-i), s.slice(-i));
 			assert.equal(buf.slice(0, -i), s.slice(0, -i));
 		}
 
-		var utf16Buf = new Buffer('0123456789', 'utf16le');
+		const utf16Buf = new Buffer('0123456789', 'utf16le');
 		assert.deepEqual(utf16Buf.slice(0, 6), (<any>Buffer)('012', 'utf16le'));
 
 		assert.equal((<any>buf).slice('0', '1'), '0');
@@ -1074,13 +1074,13 @@ export default function () {
 	// Regression test for #6111. Constructing a buffer from another buffer
 	// should a) work, and b) not corrupt the source buffer.
 	(function () {
-		var a = [0];
+		let a = [0];
 		for (var i = 0; i < 7; ++i) a = a.concat(a);
 		a = a.map(function (_, i) {
 			return i;
 		});
-		var b = new Buffer(a);
-		var c = new Buffer(b);
+		const b = new Buffer(a);
+		const c = new Buffer(b);
 		assert.equal(b.length, a.length);
 		assert.equal(c.length, a.length);
 		for (var i = 0, k = a.length; i < k; ++i) {
@@ -1120,17 +1120,17 @@ export default function () {
 	assert.equal(Buffer.compare(new Buffer(1), new Buffer(0)), 1);
 
 	assert.throws(function () {
-		var b = new Buffer(1);
+		const b = new Buffer(1);
 		Buffer.compare(b, <any>'abc');
 	});
 
 	assert.throws(function () {
-		var b = new Buffer(1);
+		const b = new Buffer(1);
 		Buffer.compare(<any>'abc', b);
 	});
 
 	assert.throws(function () {
-		var b = new Buffer(1);
+		const b = new Buffer(1);
 		b.compare(<any>'abc');
 	});
 
@@ -1146,7 +1146,7 @@ export default function () {
 	assert.ok(d.equals(d));
 
 	assert.throws(function () {
-		var b = new Buffer(1);
+		const b = new Buffer(1);
 		b.equals(<any>'abc');
 	});
 

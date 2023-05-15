@@ -4,7 +4,7 @@ import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
 export default function () {
-	var rootFS = fs.getRootFS(),
+	let rootFS = fs.getRootFS(),
 		wasThrown = false;
 	if (rootFS.supportsSynch()) {
 		try {

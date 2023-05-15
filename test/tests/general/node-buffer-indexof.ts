@@ -1,12 +1,12 @@
 import assert from '../../harness/wrapped-assert';
 
 export default function () {
-	var b = new Buffer('abcdef');
-	var buf_a = new Buffer('a');
-	var buf_bc = new Buffer('bc');
-	var buf_f = new Buffer('f');
-	var buf_z = new Buffer('z');
-	var buf_empty = new Buffer('');
+	const b = new Buffer('abcdef');
+	const buf_a = new Buffer('a');
+	const buf_bc = new Buffer('bc');
+	const buf_f = new Buffer('f');
+	const buf_z = new Buffer('z');
+	const buf_empty = new Buffer('');
 
 	assert.equal(b.indexOf('a'), 0);
 	assert.equal(b.indexOf('a', 1), -1);

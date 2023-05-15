@@ -4,8 +4,8 @@ import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
 export default function () {
-	var fn = path.join(common.fixturesDir, 'empty.txt');
-	var rootFS = fs.getRootFS();
+	const fn = path.join(common.fixturesDir, 'empty.txt');
+	const rootFS = fs.getRootFS();
 
 	fs.readFile(fn, function (err, data) {
 		assert.ok(data);

@@ -5,19 +5,19 @@ import fs from '../../../../src/core/node_fs';
 import assert from '../../../harness/wrapped-assert';
 import OverlayFS from '../../../../src/backend/OverlayFS';
 const logPath = '/.deletedFiles.log';
-declare var __numWaiting: number;
+declare let __numWaiting: number;
 
 export default function () {
 	// HACK around TypeScript bug.
 	if (__numWaiting) {
 	}
-	var rootFS = (<OverlayFS>fs.getRootFS()).unwrap(),
+	let rootFS = (<OverlayFS>fs.getRootFS()).unwrap(),
 		fses = rootFS.getOverlayedFileSystems(),
 		// XXX: Make these proper API calls.
 		readable = fses.readable,
 		writable = fses.writable;
 	// Back up the current log.
-	var deletionLog = rootFS.getDeletionLog();
+	const deletionLog = rootFS.getDeletionLog();
 	// Delete a file in the underlay.
 	fs.unlinkSync('/test/fixtures/files/node/a.js');
 	assert(!fs.existsSync('/test/fixtures/files/node/a.js'), 'Failed to properly delete a.js.');

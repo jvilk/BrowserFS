@@ -4,14 +4,14 @@ import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
 export default function () {
-	var completed = 0;
-	var expected_tests = 4;
+	let completed = 0;
+	const expected_tests = 4;
 
 	// test creating and reading symbolic link
-	var linkData = path.join(common.fixturesDir, 'cycles/');
-	var linkPath = path.join(common.tmpDir, 'cycles_link');
+	const linkData = path.join(common.fixturesDir, 'cycles/');
+	const linkPath = path.join(common.tmpDir, 'cycles_link');
 
-	var rootFS = fs.getRootFS();
+	const rootFS = fs.getRootFS();
 	if (!(rootFS.isReadOnly() || !rootFS.supportsLinks())) {
 		// Delete previously created link
 		fs.unlink(linkPath, function (err) {

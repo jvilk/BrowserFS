@@ -12,7 +12,7 @@ export default function ZipFSFactory(cb: (name: string, objs: FileSystem[]) => v
 			}
 
 			// Add three Zip FS variants for different zip files.
-			var zipFiles = ['0', '4', '9'],
+			let zipFiles = ['0', '4', '9'],
 				i: number,
 				rv: FileSystem[] = [],
 				fs: typeof _fs = BrowserFS.BFSRequire('fs');

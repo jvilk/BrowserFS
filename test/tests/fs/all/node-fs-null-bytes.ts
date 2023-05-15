@@ -2,12 +2,12 @@ import fs from '../../../../src/core/node_fs';
 import assert from '../../../harness/wrapped-assert';
 
 export default function () {
-	var rootFS = fs.getRootFS();
+	const rootFS = fs.getRootFS();
 
 	function check(async: Function, sync: Function, arg1?: any, arg2?: any, arg3?: any): void {
-		var expected = /Path must be a string without null bytes./;
-		var argsSync = Array.prototype.slice.call(arguments, 2);
-		var argsAsync = argsSync.concat(function (er: NodeJS.ErrnoException) {
+		const expected = /Path must be a string without null bytes./;
+		const argsSync = Array.prototype.slice.call(arguments, 2);
+		const argsAsync = argsSync.concat(function (er: NodeJS.ErrnoException) {
 			assert(er && er.message.match(expected));
 		});
 

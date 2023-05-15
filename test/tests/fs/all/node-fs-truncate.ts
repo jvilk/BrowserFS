@@ -4,16 +4,16 @@ import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
 export default function () {
-	var rootFS = fs.getRootFS();
+	const rootFS = fs.getRootFS();
 	if (rootFS.isReadOnly()) {
 		return;
 	}
-	var tmp = common.tmpDir;
-	var filename = path.resolve(tmp, 'truncate-file.txt');
-	var data = new Buffer(1024 * 16);
+	const tmp = common.tmpDir;
+	const filename = path.resolve(tmp, 'truncate-file.txt');
+	const data = new Buffer(1024 * 16);
 	data.fill('x');
 
-	var stat: any;
+	let stat: any;
 
 	// truncateSync
 	if (rootFS.supportsSynch()) {
@@ -31,7 +31,7 @@ export default function () {
 
 		// ftruncateSync
 		fs.writeFileSync(filename, data);
-		var fd = fs.openSync(filename, 'r+');
+		const fd = fs.openSync(filename, 'r+');
 
 		stat = fs.statSync(filename);
 		assert.equal(stat.size, 1024 * 16);
@@ -114,7 +114,7 @@ export default function () {
 	}
 
 	// async tests
-	var success = 0;
+	let success = 0;
 	testTruncate(function (er: NodeJS.ErrnoException) {
 		if (er) throw er;
 		success++;

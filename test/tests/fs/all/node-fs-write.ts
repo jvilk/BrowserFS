@@ -5,9 +5,9 @@ import common from '../../../harness/common';
 
 export default function () {
 	if (!fs.getRootFS().isReadOnly()) {
-		var fn = path.join(common.tmpDir, 'write.txt');
-		var fn2 = path.join(common.tmpDir, 'write2.txt');
-		var expected = 'ümlaut.';
+		const fn = path.join(common.tmpDir, 'write.txt');
+		const fn2 = path.join(common.tmpDir, 'write2.txt');
+		const expected = 'ümlaut.';
 
 		fs.open(fn, 'w', 0o644, function (err, fd) {
 			if (err) throw err;

@@ -5,10 +5,10 @@ import common from '../../../harness/common';
 
 export default function () {
 	if (!fs.getRootFS().isReadOnly()) {
-		var dirName = path.resolve(common.fixturesDir, 'test-readfile-unlink'),
+		const dirName = path.resolve(common.fixturesDir, 'test-readfile-unlink'),
 			fileName = path.resolve(dirName, 'test.bin');
 
-		var buf = new Buffer(512);
+		const buf = new Buffer(512);
 		buf.fill(42);
 
 		fs.mkdir(dirName, function (err: NodeJS.ErrnoException) {

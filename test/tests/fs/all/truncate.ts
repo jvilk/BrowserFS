@@ -2,13 +2,13 @@ import fs from '../../../../src/core/node_fs';
 import assert from '../../../harness/wrapped-assert';
 
 export default function () {
-	var rootFS = fs.getRootFS(),
+	const rootFS = fs.getRootFS(),
 		isReadOnly = rootFS.isReadOnly();
 
 	if (isReadOnly) {
 		return;
 	}
-	var file = '/truncateFile.txt';
+	const file = '/truncateFile.txt';
 	fs.writeFile(file, new Buffer('123456789'), function (e) {
 		assert(e == null);
 		fs.truncate(file, 9, function (e) {

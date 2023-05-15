@@ -4,11 +4,11 @@ import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
 export default function () {
-	var filename = path.join(common.fixturesDir, 'a.js');
+	const filename = path.join(common.fixturesDir, 'a.js');
 
-	var caughtException = false;
+	let caughtException = false;
 	// Only run if the FS supports sync ops.
-	var rootFS = fs.getRootFS();
+	const rootFS = fs.getRootFS();
 	if (rootFS.supportsSynch()) {
 		try {
 			// should throw ENOENT, not EBADF

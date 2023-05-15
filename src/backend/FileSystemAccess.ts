@@ -107,7 +107,7 @@ export default class FileSystemAccessFileSystem extends BaseFileSystem implement
 				if (files.length === 0) {
 					await this.unlink(oldPath, cred);
 				} else {
-					for (let file of files) {
+					for (const file of files) {
 						await this.rename(join(oldPath, file), join(newPath, file), cred);
 						await this.unlink(oldPath, cred);
 					}

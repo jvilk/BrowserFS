@@ -2,7 +2,7 @@ import fs from '../../../../src/core/node_fs';
 import assert from '../../../harness/wrapped-assert';
 
 export default function () {
-	var rootFS = fs.getRootFS(),
+	const rootFS = fs.getRootFS(),
 		isReadOnly = rootFS.isReadOnly(),
 		fileName = '/writeFileText.txt';
 

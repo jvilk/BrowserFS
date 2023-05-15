@@ -7,7 +7,7 @@ export default function () {
 	// directory. This test makes sure that the behaviour is intact between commits.
 	// See: https://github.com/nodejs/node/pull/2106
 
-	var pwd = process.cwd();
+	const pwd = process.cwd();
 
 	// join will internally ignore all the zero-length strings and it will return
 	// '.' if the joined string is a zero-length string.

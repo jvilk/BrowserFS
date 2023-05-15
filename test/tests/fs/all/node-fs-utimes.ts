@@ -4,9 +4,9 @@ import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
 export default function () {
-	var tests_ok = 0;
-	var tests_run = 0;
-	var rootFS = fs.getRootFS();
+	let tests_ok = 0;
+	let tests_run = 0;
+	const rootFS = fs.getRootFS();
 
 	function stat_resource(resource: string | number) {
 		if (typeof resource == 'string') {
@@ -19,9 +19,9 @@ export default function () {
 	}
 
 	function check_mtime(resource: string | number, mtime: Date | number) {
-		var mtimeNo = fs._toUnixTimestamp(mtime);
-		var stats = stat_resource(resource);
-		var real_mtime = fs._toUnixTimestamp(stats.mtime);
+		const mtimeNo = fs._toUnixTimestamp(mtime);
+		const stats = stat_resource(resource);
+		const real_mtime = fs._toUnixTimestamp(stats.mtime);
 		// check up to single-second precision
 		// sub-second precision is OS and fs dependant
 		return Math.floor(mtimeNo) == Math.floor(real_mtime);
@@ -54,9 +54,9 @@ export default function () {
 	// the tests assume that __filename belongs to the user running the tests
 	// this should be a fairly safe assumption; testing against a temp file
 	// would be even better though (node doesn't have such functionality yet)
-	var filename = path.join(common.fixturesDir, 'x.txt');
+	const filename = path.join(common.fixturesDir, 'x.txt');
 	function runTest(atime: Date | number, mtime: Date | number, callback: any): void {
-		var fd: number;
+		let fd: number;
 		//
 		// test synchronized code paths, these functions throw on failure
 		//
@@ -73,7 +73,7 @@ export default function () {
 				expect_errno('futimesSync', fd, ex, 'ENOSYS');
 			}
 
-			var err: NodeJS.ErrnoException;
+			let err: NodeJS.ErrnoException;
 			err = undefined;
 			try {
 				fs.utimesSync('foobarbaz', atime, mtime);
@@ -119,7 +119,7 @@ export default function () {
 	}
 
 	if (rootFS.supportsProps()) {
-		var stats = fs.statSync(filename);
+		const stats = fs.statSync(filename);
 
 		// BFS: Original tests used:
 		//   new Date('1982-09-10T13:37:00Z'), new Date('1982-09-10T13:37:00Z')

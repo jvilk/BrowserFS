@@ -5,7 +5,7 @@
 import assert from '../../harness/wrapped-assert';
 
 export default function () {
-	var i: number,
+	let i: number,
 		buff = new Buffer(8);
 
 	/**
@@ -30,29 +30,29 @@ export default function () {
 		};
 	}
 
-	var oneByteInts = [0, 0x7f, [0xff, -1], -1 * 0x7f, -1];
+	const oneByteInts = [0, 0x7f, [0xff, -1], -1 * 0x7f, -1];
 	oneByteInts.forEach(testFunction('readInt8', 'writeInt8'));
 
-	var readMethods = ['readInt16LE', 'readInt16BE'];
-	var writeMethods = ['writeInt16LE', 'writeInt16BE'];
-	var twoByteInts = [0, 0x7fff, [0xffff, -1], -1 * 0x7fff, -1];
+	const readMethods = ['readInt16LE', 'readInt16BE'];
+	const writeMethods = ['writeInt16LE', 'writeInt16BE'];
+	const twoByteInts = [0, 0x7fff, [0xffff, -1], -1 * 0x7fff, -1];
 	for (i = 0; i < 2; i++) {
 		twoByteInts.forEach(testFunction(readMethods[i], writeMethods[i]));
 	}
 
-	var fourByteInts = [0, 0x7fffffff, [0xffffffff, 0xffffffff | 0], -1, -1 * 0x7fffffff];
-	var readMethods4B = ['readInt32LE', 'readInt32BE'];
-	var writeMethods4B = ['writeInt32LE', 'writeInt32BE'];
+	const fourByteInts = [0, 0x7fffffff, [0xffffffff, 0xffffffff | 0], -1, -1 * 0x7fffffff];
+	const readMethods4B = ['readInt32LE', 'readInt32BE'];
+	const writeMethods4B = ['writeInt32LE', 'writeInt32BE'];
 	for (i = 0; i < 2; i++) {
 		fourByteInts.forEach(testFunction(readMethods4B[i], writeMethods4B[i]));
 	}
 
-	var floatVals = [0, -1, 1, [Math.pow(2, 128), Number.POSITIVE_INFINITY], [-1 * Math.pow(2, 128), Number.NEGATIVE_INFINITY], NaN];
+	const floatVals = [0, -1, 1, [Math.pow(2, 128), Number.POSITIVE_INFINITY], [-1 * Math.pow(2, 128), Number.NEGATIVE_INFINITY], NaN];
 	floatVals.forEach(testFunction('readFloatLE', 'writeFloatLE'));
 	floatVals.forEach(testFunction('readFloatBE', 'writeFloatBE'));
 
 	// int -> float
-	var int2float = [
+	const int2float = [
 		[0x7f800000, Number.POSITIVE_INFINITY],
 		[-8388608, Number.NEGATIVE_INFINITY],
 		[0x7fc00000, Number.NaN],
@@ -60,12 +60,12 @@ export default function () {
 	int2float.forEach(testFunction('readFloatLE', 'writeInt32LE'));
 	int2float.forEach(testFunction('readFloatBE', 'writeInt32BE'));
 
-	var doubleVals = [0, -1, 1, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, NaN];
+	const doubleVals = [0, -1, 1, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, NaN];
 	doubleVals.forEach(testFunction('readDoubleLE', 'writeDoubleLE'));
 	doubleVals.forEach(testFunction('readDoubleBE', 'writeDoubleBE'));
 
 	// long -> double
-	var long2double = [
+	const long2double = [
 		[0, 0, 0],
 		[0x80000000, 0, 0],
 		[0x7ff00000, 0, Number.POSITIVE_INFINITY],
@@ -143,8 +143,8 @@ export default function () {
 	/**
 	 * Slice test! Ensure that sliced buffers share the same backing memory.
 	 */
-	var buff1 = new Buffer(4);
-	var buff2 = buff1.slice(2);
+	const buff1 = new Buffer(4);
+	const buff2 = buff1.slice(2);
 	buff1.writeInt16LE(-203, 2);
 	assert.strictEqual(-203, buff1.readInt16LE(2));
 	assert.strictEqual(-203, buff2.readInt16LE(0));
@@ -181,7 +181,7 @@ export default function () {
 	/**
 	 * Copying to/from buffers that are slices.
 	 */
-	var originalBuff1 = new Buffer(10),
+	const originalBuff1 = new Buffer(10),
 		originalBuff2 = new Buffer(10),
 		slice1 = originalBuff1.slice(1),
 		slice2 = originalBuff2.slice(1);

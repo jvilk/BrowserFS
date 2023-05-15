@@ -4,10 +4,10 @@ import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
 export default function () {
-	var got_error = false;
-	var success_count = 0;
-	var existing_dir = common.fixturesDir;
-	var existing_file = path.join(common.fixturesDir, 'x.txt');
+	let got_error = false;
+	let success_count = 0;
+	const existing_dir = common.fixturesDir;
+	const existing_file = path.join(common.fixturesDir, 'x.txt');
 
 	// Empty string is not a valid file path.
 	fs.stat('', function (err, stats) {
@@ -55,7 +55,7 @@ export default function () {
 	if (fs.getRootFS().supportsSynch()) {
 		// fstatSync
 		fs.open(existing_file, 'r', undefined, function (err, fd) {
-			var stats: any;
+			let stats: any;
 			try {
 				stats = fs.fstatSync(fd);
 			} catch (e) {
@@ -87,7 +87,7 @@ export default function () {
 	});
 
 	process.on('exit', function () {
-		var expected_success = 5;
+		let expected_success = 5;
 		if (fs.getRootFS().supportsSynch()) expected_success++;
 		assert.equal(expected_success, success_count);
 		assert.equal(false, got_error);

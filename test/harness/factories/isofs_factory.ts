@@ -13,11 +13,11 @@ export default function IsoFSFactory(cb: (name: string, objs: FileSystem[]) => v
 
 			// Leverage the HTTPFS to download the fixtures for this FS.
 			BrowserFS.initialize(httpdownloadfs[0]);
-			let fs = BrowserFS.BFSRequire('fs');
+			const fs = BrowserFS.BFSRequire('fs');
 
 			// Add three Zip FS variants for different zip files.
-			let isoFiles = fs.readdirSync(isodir);
-			let rv: FileSystem[] = [];
+			const isoFiles = fs.readdirSync(isodir);
+			const rv: FileSystem[] = [];
 			let countdown = isoFiles.length;
 			function fetchIso(isoFilename: string): void {
 				fs.readFile(isoFilename, (e, data?) => {

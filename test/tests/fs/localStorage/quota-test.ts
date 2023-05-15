@@ -6,7 +6,7 @@ export default function () {
 	// blocking popup, interrupting our test.
 	if (!(typeof navigator !== 'undefined' && navigator.userAgent.indexOf('Presto') > -1)) {
 		// Avoid encoding overhead, and store 256KB chunks until LS is full.
-		var numChunks = 0,
+		let numChunks = 0,
 			chunk = '';
 		for (let i = 0; i < 256 * 1024; i++) {
 			chunk += ' ';
@@ -21,8 +21,8 @@ export default function () {
 		}
 
 		// Attempt to store another 512KB. (Due to our binary string compression, we store it as 256KB on some platforms.)
-		var bigbuff = new Buffer(512 * 1024);
-		var errorThrown = false;
+		const bigbuff = new Buffer(512 * 1024);
+		let errorThrown = false;
 		// Try to write it to local storage. Should get an error!
 		try {
 			fs.writeFileSync('/bigfile.txt', bigbuff);

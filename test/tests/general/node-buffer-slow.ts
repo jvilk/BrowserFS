@@ -13,7 +13,7 @@ function equalCheck(b1: Buffer, b2: Buffer | number[]) {
 
 export default function () {
 	// should create a Buffer
-	var sb = new SlowBuffer(4);
+	let sb = new SlowBuffer(4);
 	assert(sb instanceof Buffer);
 	assert.strictEqual(sb.length, 4);
 	sb.fill(1);

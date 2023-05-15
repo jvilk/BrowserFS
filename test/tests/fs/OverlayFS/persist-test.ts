@@ -10,14 +10,14 @@ import OverlayFS from '../../../../src/backend/OverlayFS';
 import InMemory from '../../../../src/backend/InMemory';
 
 export default function () {
-	var rootFS = fs.getRootFS(),
+	const rootFS = fs.getRootFS(),
 		fses = (<OverlayFS>rootFS).getOverlayedFileSystems(),
 		// XXX: Make these proper API calls.
 		readable = fses.readable,
 		writable = fses.writable;
 
 	// Ensure no files are doubled.
-	var seenMap: string[] = [];
+	const seenMap: string[] = [];
 	fs.readdirSync('/test/fixtures/files/node').forEach(function (file) {
 		assert(seenMap.indexOf(file) === -1, 'File ' + file + ' cannot exist multiple times.');
 		seenMap.push(file);

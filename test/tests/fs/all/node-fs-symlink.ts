@@ -4,17 +4,17 @@ import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
 export default function () {
-	var completed = 0;
-	var expected_tests = 2;
-	var rootFS = fs.getRootFS();
+	let completed = 0;
+	const expected_tests = 2;
+	const rootFS = fs.getRootFS();
 
 	// BFS: Link/symlink support is required for this test.
 	if (rootFS.supportsLinks()) {
-		var runtest = function (skip_symlinks: boolean) {
+		const runtest = function (skip_symlinks: boolean) {
 			if (!skip_symlinks) {
 				// test creating and reading symbolic link
-				var linkData = path.join(common.fixturesDir, '/cycles/root.js');
-				var linkPath = path.join(common.tmpDir, 'symlink1.js');
+				const linkData = path.join(common.fixturesDir, '/cycles/root.js');
+				const linkPath = path.join(common.tmpDir, 'symlink1.js');
 
 				// Delete previously created link
 				try {
@@ -34,8 +34,8 @@ export default function () {
 			}
 
 			// test creating and reading hard link
-			var srcPath = path.join(common.fixturesDir, 'cycles', 'root.js');
-			var dstPath = path.join(common.tmpDir, 'link1.js');
+			const srcPath = path.join(common.fixturesDir, 'cycles', 'root.js');
+			const dstPath = path.join(common.tmpDir, 'link1.js');
 
 			// Delete previously created link
 			try {
@@ -45,8 +45,8 @@ export default function () {
 			fs.link(srcPath, dstPath, function (err) {
 				if (err) throw err;
 				console.log('hard link done');
-				var srcContent = fs.readFileSync(srcPath, 'utf8');
-				var dstContent = fs.readFileSync(dstPath, 'utf8');
+				const srcContent = fs.readFileSync(srcPath, 'utf8');
+				const dstContent = fs.readFileSync(dstPath, 'utf8');
 				assert.equal(srcContent, dstContent);
 				completed++;
 			});

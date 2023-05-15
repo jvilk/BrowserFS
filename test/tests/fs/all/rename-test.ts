@@ -3,7 +3,7 @@ import * as path from 'path';
 import assert from '../../../harness/wrapped-assert';
 
 export default function () {
-	var rootFS = fs.getRootFS(),
+	const rootFS = fs.getRootFS(),
 		isReadOnly = rootFS.isReadOnly();
 
 	if (isReadOnly) {
@@ -16,7 +16,7 @@ export default function () {
 	 * - file.dat
 	 */
 	function populate_directory(dir: string, cb: Function) {
-		var dir1 = path.resolve(dir, '_rename_me'),
+		const dir1 = path.resolve(dir, '_rename_me'),
 			file1 = path.resolve(dir, 'file.dat'),
 			file2 = path.resolve(dir1, 'lol.txt');
 		fs.mkdir(dir1, function (e: NodeJS.ErrnoException) {
@@ -41,7 +41,7 @@ export default function () {
 	 * Check that the directory structure created in populate_directory remains.
 	 */
 	function check_directory(dir: string, cb: Function) {
-		var dir1 = path.resolve(dir, '_rename_me'),
+		const dir1 = path.resolve(dir, '_rename_me'),
 			file1 = path.resolve(dir, 'file.dat'),
 			file2 = path.resolve(dir1, 'lol.txt');
 		fs.readdir(dir, function (e, contents) {
@@ -65,7 +65,7 @@ export default function () {
 		});
 	}
 
-	var oldDir = '/rename_test',
+	const oldDir = '/rename_test',
 		newDir = '/rename_test2';
 
 	// Directory rename.
@@ -120,7 +120,7 @@ export default function () {
 	});
 
 	// File rename.
-	var fileDir = '/rename_file_test',
+	const fileDir = '/rename_file_test',
 		file1 = path.resolve(fileDir, 'fun.js'),
 		file2 = path.resolve(fileDir, 'fun2.js');
 	fs.mkdir(fileDir, function (e: NodeJS.ErrnoException) {
@@ -161,7 +161,7 @@ export default function () {
 	});
 
 	// file-2-dir and dir-2-file rename
-	var dir = '/rename_filedir_test',
+	const dir = '/rename_filedir_test',
 		file = '/rename_filedir_test.txt';
 	fs.mkdir(dir, function (e: NodeJS.ErrnoException) {
 		if (e) {
@@ -192,7 +192,7 @@ export default function () {
 	});
 
 	// cannot rename a directory inside itself
-	var renDir1 = '/renamedir_1',
+	const renDir1 = '/renamedir_1',
 		renDir2 = '/renamedir_1/lol';
 	fs.mkdir(renDir1, function (e: NodeJS.ErrnoException) {
 		if (e) {

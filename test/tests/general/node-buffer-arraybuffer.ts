@@ -1,7 +1,7 @@
 import assert from '../../harness/wrapped-assert';
 
 export default function () {
-	var LENGTH = 16,
+	const LENGTH = 16,
 		ab = new ArrayBuffer(LENGTH),
 		dv = new DataView(ab),
 		ui = new Uint8Array(ab),
@@ -16,7 +16,7 @@ export default function () {
 	assert.equal(buf.length, ab.byteLength);
 
 	buf.fill(0xc);
-	for (var i = 0; i < LENGTH; i++) {
+	for (let i = 0; i < LENGTH; i++) {
 		assert.equal(ui[i], 0xc);
 		ui[i] = 0xf;
 		assert.equal(buf[i], 0xf);

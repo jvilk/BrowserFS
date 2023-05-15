@@ -10,9 +10,9 @@ export default function () {
 		assert(buff.readUInt16LE(0) === 32994);
 	});
 	// Same, but synchronous.
-	var rootFS = fs.getRootFS();
+	const rootFS = fs.getRootFS();
 	if (rootFS.supportsSynch()) {
-		var buff = fs.readFileSync(path.join(common.fixturesDir, 'elipses.txt'));
+		const buff = fs.readFileSync(path.join(common.fixturesDir, 'elipses.txt'));
 		assert(buff.readUInt16LE(0) === 32994);
 	}
 }

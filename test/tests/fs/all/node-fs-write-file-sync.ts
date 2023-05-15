@@ -5,9 +5,9 @@ import common from '../../../harness/common';
 
 export default function () {
 	//var openCount = 0;
-	var mode: number;
-	var content: string;
-	var rootFS = fs.getRootFS();
+	let mode: number;
+	let content: string;
+	const rootFS = fs.getRootFS();
 
 	// Removes a file if it exists.
 	function removeFile(file: string) {
@@ -54,7 +54,7 @@ export default function () {
 		mode = 0o755;
 
 		// Test writeFileSync
-		var file1 = path.join(common.tmpDir, 'testWriteFileSync.txt');
+		const file1 = path.join(common.tmpDir, 'testWriteFileSync.txt');
 		removeFile(file1);
 
 		fs.writeFileSync(file1, '123', { mode: mode });
@@ -63,14 +63,14 @@ export default function () {
 		assert.equal('123', content, "File contents mismatch: '" + content + "' != '123'");
 
 		if (rootFS.supportsProps()) {
-			var actual = fs.statSync(file1).mode & 0o777;
+			const actual = fs.statSync(file1).mode & 0o777;
 			assert.equal(mode, actual, 'Expected mode 0' + mode.toString(8) + ', got mode 0' + actual.toString(8));
 		}
 
 		removeFile(file1);
 
 		// Test appendFileSync
-		var file2 = path.join(common.tmpDir, 'testAppendFileSync.txt');
+		const file2 = path.join(common.tmpDir, 'testAppendFileSync.txt');
 		removeFile(file2);
 
 		fs.appendFileSync(file2, 'abc', { mode: mode });

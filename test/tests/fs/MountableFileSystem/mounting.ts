@@ -6,7 +6,7 @@ import assert from '../../../harness/wrapped-assert';
 import * as BrowserFS from '../../../../src/core/browserfs';
 
 function codeAssertThrows(op: Function, assertMsg: string) {
-	var thrown = false;
+	let thrown = false;
 	try {
 		op();
 	} catch (e) {
@@ -17,7 +17,7 @@ function codeAssertThrows(op: Function, assertMsg: string) {
 }
 
 export default function () {
-	var oldmfs = fs.getRootFS();
+	const oldmfs = fs.getRootFS();
 
 	BrowserFS.FileSystem.InMemory.Create({}, (e, rootForMfs?) => {
 		if (!rootForMfs) {
@@ -48,16 +48,16 @@ export default function () {
 
 			assert.equal(fs.readdirSync('/')[0], 'root', 'Invariant fail: Can query root directory.');
 
-			var t1text = 'Invariant fail: Can query folder that contains items and a mount point.';
-			var expectedHomeListing = ['anotherFolder', 'secondRoot'];
-			var homeListing = fs.readdirSync('/root/home').sort();
+			const t1text = 'Invariant fail: Can query folder that contains items and a mount point.';
+			const expectedHomeListing = ['anotherFolder', 'secondRoot'];
+			const homeListing = fs.readdirSync('/root/home').sort();
 			assert.deepEqual(homeListing, expectedHomeListing, t1text);
 
 			fs.readdir('/root/home', function (err, files) {
 				assert(!err, t1text);
 				assert.deepEqual(files.sort(), expectedHomeListing, t1text);
 
-				var t2text = 'Invariant fail: Cannot delete a mount point.';
+				const t2text = 'Invariant fail: Cannot delete a mount point.';
 				codeAssertThrows(function () {
 					fs.rmdirSync('/root/home/secondRoot');
 				}, t2text);
@@ -66,7 +66,7 @@ export default function () {
 					assert(err, t2text);
 					assert(fs.statSync('/root/home').isDirectory(), 'Invariant fail: Can stat a mount point.');
 
-					var t4text = 'Invariant fail: Cannot move a mount point.';
+					const t4text = 'Invariant fail: Cannot move a mount point.';
 					codeAssertThrows(function () {
 						fs.renameSync('/root/home/secondRoot', '/root/home/anotherFolder');
 					}, t4text);
@@ -76,7 +76,7 @@ export default function () {
 
 						fs.rmdirSync('/root/home/anotherFolder');
 
-						var t5text = 'Invariant fail: Cannot remove parent of mount point, even if empty in owning FS.';
+						const t5text = 'Invariant fail: Cannot remove parent of mount point, even if empty in owning FS.';
 						codeAssertThrows(function () {
 							fs.rmdirSync('/root/home');
 						}, t5text);
