@@ -1,10 +1,11 @@
 {
 	"compilerOptions": {
 		"module": "esnext",
-		"target": "es2017",
+		"target": "esnext",
 		"outDir": "../build/temp/test",
 		"lib": [ "esnext"],
 		"moduleResolution": "node",
+		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
 		"sourceMap": true,
 		"inlineSources": true,

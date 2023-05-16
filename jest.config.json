@@ -1,4 +1,9 @@
 {
-  "preset": "ts-jest",
-  "testEnvironment": "node"
+	"preset": "ts-jest",
+	"testEnvironment": "node",
+	"globals": {
+		"ts-jest": {
+			"tsconfig": "test/tsconfig.json"
+		}
+	}
 }
