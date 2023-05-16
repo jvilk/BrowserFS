@@ -1,6 +1,6 @@
-import fs from '../../../../src/core/node_fs';
+import { fs } from '../../../common';
 import path from 'path';
-import common from '../../../harness/common';
+import common from '../../../common';
 
 describe('fs file reading', () => {
 	const filepath = path.join(common.fixturesDir, 'x.txt');

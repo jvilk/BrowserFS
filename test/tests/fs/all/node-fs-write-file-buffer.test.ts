@@ -1,6 +1,6 @@
-import fs from '../../../../src/core/node_fs';
+import { fs } from '../../../common';
 import * as path from 'path';
-import common from '../../../harness/common';
+import common from '../../../common';
 
 describe('File Writing', () => {
 	it('should write base64 data to a file and read it back', done => {

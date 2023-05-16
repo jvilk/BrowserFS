@@ -7,16 +7,12 @@ import assert from './wrapped-assert';
 import loadFixtures from '../fixtures/load_fixtures';
 
 declare let __numWaiting: number;
-declare let __karma__: any;
-// HACK: Delay test execution until backends load.
-// https://zerokspot.com/weblog/2013/07/12/delay-test-execution-in-karma/
-__karma__.loaded = function () {};
 
 // Test timeout duration in milliseconds. Increase if needed.
 const timeout: number = 180000;
 
 function waitsFor(test: () => boolean, what: string, timeout: number, done: (e?: Error) => void) {
-	var interval = setInterval(() => {
+	const interval = setInterval(() => {
 		if (test()) {
 			clearInterval(interval);
 			done();
@@ -244,8 +240,6 @@ export default function (
 			});
 		});
 
-		// Kick off the tests!
-		__karma__.start();
 	}
 
 	asyncEachSeries(

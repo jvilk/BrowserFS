@@ -1,6 +1,6 @@
-import fs from '../../../../src/core/node_fs';
+import { fs } from '../../../common';
 import * as path from 'path';
-import common from '../../../harness/common';
+import common from '../../../common';
 
 describe('File Reading', () => {
 	test('Read a file and check its binary bytes (asynchronous)', done => {

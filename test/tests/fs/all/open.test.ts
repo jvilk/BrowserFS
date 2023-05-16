@@ -1,6 +1,6 @@
-import fs from '../../../../src/core/node_fs';
+import { fs } from '../../../common';
 import * as path from 'path';
-import common from '../../../harness/common';
+import common from '../../../common';
 
 describe('File System Tests', () => {
 	let rootFS = fs.getRootFS();

@@ -1,4 +1,4 @@
-import fs from '../../../../src/core/node_fs';
+import { fs } from '../../../common';
 
 describe('File Truncation', () => {
 	test('Truncate file', () => {

@@ -1,6 +1,6 @@
-import fs from '../../../../src/core/node_fs';
+import { fs } from '../../../common';
 import * as path from 'path';
-import common from '../../../harness/common';
+import common from '../../../common';
 
 describe('Asynchronous File Writing', () => {
 	it('should write file asynchronously with specified content', done => {

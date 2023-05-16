@@ -1,4 +1,4 @@
-import fs from '../../../../src/core/node_fs';
+import { fs } from '../../../common';
 
 describe('File Writing', () => {
 	test('Write and overwrite file', () => {

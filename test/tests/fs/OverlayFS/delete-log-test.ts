@@ -1,7 +1,7 @@
 /**
  * Ensures that the deletion log works properly.
  */
-import fs from '../../../../src/core/node_fs';
+import { fs } from '../../../common';
 import assert from '../../../harness/wrapped-assert';
 import OverlayFS from '../../../../src/backend/OverlayFS';
 const logPath = '/.deletedFiles.log';

@@ -1,4 +1,4 @@
-import fs from '../../../../src/core/node_fs';
+import { fs } from '../../../common';
 
 describe('mkdir', () => {
 	it('should not create a file in a non-existent directory', () => {

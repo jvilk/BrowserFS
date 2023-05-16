@@ -1,6 +1,6 @@
-import fs from '../../../../src/core/node_fs';
+import { fs } from '../../../common';
 import * as path from 'path';
-import common from '../../../harness/common';
+import common from '../../../common';
 
 describe('appendFile tests', () => {
 	const tmpDir: string = path.join(common.tmpDir, 'append.txt');
@@ -13,7 +13,7 @@ describe('appendFile tests', () => {
 		const filename = path.join(tmpDir, 'append.txt');
 		const content = 'Sample content';
 
-		jest.spyOn(fs, 'appendFile').mockImplementation((file, data, callback) => {
+		jest.spyOn(fs, 'appendFile').mockImplementation((file, data, mode, callback) => {
 			expect(file).toBe(filename);
 			expect(data).toBe(content);
 			callback();
@@ -36,7 +36,7 @@ describe('appendFile tests', () => {
 		fs.writeFile(filename, currentFileData, err => {
 			expect(err).toBeNull();
 
-			jest.spyOn(fs, 'appendFile').mockImplementation((file, data, callback) => {
+			jest.spyOn(fs, 'appendFile').mockImplementation((file, data, mode, callback) => {
 				expect(file).toBe(filename);
 				expect(data).toBe(content);
 				callback();
@@ -45,7 +45,7 @@ describe('appendFile tests', () => {
 			jest.spyOn(fs, 'readFile').mockImplementation((file, options, callback) => {
 				expect(file).toBe(filename);
 				expect(options).toBe('utf8');
-				callback(null, Buffer.from(currentFileData + content));
+				callback(null, currentFileData + content);
 			});
 
 			appendFileAndVerify(filename, content);
@@ -60,7 +60,7 @@ describe('appendFile tests', () => {
 		fs.writeFile(filename, currentFileData, err => {
 			expect(err).toBeNull();
 
-			jest.spyOn(fs, 'appendFile').mockImplementation((file, data, callback) => {
+			jest.spyOn(fs, 'appendFile').mockImplementation((file, data, mode, callback) => {
 				expect(file).toBe(filename);
 				expect(data).toBe(content);
 				callback();
@@ -69,7 +69,7 @@ describe('appendFile tests', () => {
 			jest.spyOn(fs, 'readFile').mockImplementation((file, options, callback) => {
 				expect(file).toBe(filename);
 				expect(options).toBe('utf8');
-				callback(null, Buffer.concat([Buffer.from(currentFileData, 'utf8'), content]));
+				callback(null, currentFileData + content);
 			});
 
 			appendFileAndVerify(filename, content);

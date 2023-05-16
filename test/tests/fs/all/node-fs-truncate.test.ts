@@ -1,6 +1,7 @@
-import fs from '../../../../src/core/node_fs';
+import { fs } from '../../../common';
 import * as path from 'path';
-import common from '../../../harness/common';
+import common from '../../../common';
+import type { BFSOneArgCallback } from '../../../../src/core/file_system';
 
 describe('Truncate Tests', () => {
 	let filename: string;
@@ -47,7 +48,7 @@ describe('Truncate Tests', () => {
 		});
 	};
 
-	const testFtruncate = (cb: Function) => {
+	const testFtruncate = (cb: BFSOneArgCallback) => {
 		fs.writeFile(filename, data, er => {
 			if (er) return cb(er);
 			fs.stat(filename, (er, stat) => {

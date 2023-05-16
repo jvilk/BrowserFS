@@ -1,6 +1,6 @@
-import fs from '../../../../src/core/node_fs';
+import { fs, createMockStats } from '../../../common';
 import * as path from 'path';
-import common from '../../../harness/common';
+import common from '../../../common';
 
 const isWindows = process.platform === 'win32';
 describe('chmod tests', () => {
@@ -27,9 +27,7 @@ describe('chmod tests', () => {
 			expect(mode).toBe(modeSync);
 		});
 
-		jest.spyOn(fs, 'statSync').mockReturnValue({
-			mode: isWindows ? modeAsync & 0o777 : modeAsync,
-		});
+		jest.spyOn(fs, 'statSync').mockReturnValue(createMockStats(isWindows ? modeAsync & 0o777 : modeAsync));
 
 		await changeFileMode(file1, modeAsync, modeSync);
 	});
@@ -39,7 +37,7 @@ describe('chmod tests', () => {
 		const modeAsync = 0o777;
 		const modeSync = 0o644;
 
-		jest.spyOn(fs, 'open').mockImplementation((path, flags, callback) => {
+		jest.spyOn(fs, 'open').mockImplementation((path, flags, mode, callback) => {
 			expect(path).toBe(file2);
 			expect(flags).toBe('a');
 			callback(null, 123);
@@ -56,9 +54,7 @@ describe('chmod tests', () => {
 			expect(mode).toBe(modeSync);
 		});
 
-		jest.spyOn(fs, 'fstatSync').mockReturnValue({
-			mode: isWindows ? modeAsync & 0o777 : modeAsync,
-		});
+		jest.spyOn(fs, 'fstatSync').mockReturnValue(createMockStats(isWindows ? modeAsync & 0o777 : modeAsync));
 
 		await changeFileMode(file2, modeAsync, modeSync);
 	});
@@ -89,9 +85,7 @@ describe('chmod tests', () => {
 			expect(mode).toBe(modeSync);
 		});
 
-		jest.spyOn(fs, 'lstatSync').mockReturnValue({
-			mode: isWindows ? modeAsync & 0o777 : modeAsync,
-		});
+		jest.spyOn(fs, 'lstatSync').mockReturnValue(createMockStats(isWindows ? modeAsync & 0o777 : modeAsync));
 
 		await changeSymbolicLinkMode(link, file2, modeAsync, modeSync);
 	});

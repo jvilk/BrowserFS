@@ -1,7 +1,7 @@
 /**
  * Unit tests for HTTPDownloadFS
  */
-import fs from '../../../../src/core/node_fs';
+import { fs } from '../../../common';
 import assert from '../../../harness/wrapped-assert';
 import * as BrowserFS from '../../../../src/core/browserfs';
 

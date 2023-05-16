@@ -1,5 +1,5 @@
-import fs from '../../../../src/core/node_fs';
-import common from '../../../harness/common';
+import { fs } from '../../../common';
+import common from '../../../common';
 
 describe('fs.mkdir', () => {
 	if (!fs.getRootFS().isReadOnly()) {
