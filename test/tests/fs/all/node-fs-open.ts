@@ -1,42 +1,45 @@
 import fs from '../../../../src/core/node_fs';
-import * as path from 'path';
-import assert from '../../../harness/wrapped-assert';
+import path from 'path';
 import common from '../../../harness/common';
 
-export default function () {
+describe('fs file opening', () => {
 	const filename = path.join(common.fixturesDir, 'a.js');
 
-	let caughtException = false;
-	// Only run if the FS supports sync ops.
-	const rootFS = fs.getRootFS();
-	if (rootFS.supportsSynch()) {
-		try {
-			// should throw ENOENT, not EBADF
-			// see https://github.com/joyent/node/pull/1228
-			fs.openSync('/path/to/file/that/does/not/exist', 'r');
-		} catch (e) {
-			assert.equal(e.code, 'ENOENT');
-			caughtException = true;
+	it('should throw ENOENT when opening non-existent file (sync)', () => {
+		let caughtException = false;
+		const rootFS = fs.getRootFS();
+		if (rootFS.supportsSynch()) {
+			try {
+				fs.openSync('/path/to/file/that/does/not/exist', 'r');
+			} catch (e) {
+				expect(e.code).toBe('ENOENT');
+				caughtException = true;
+			}
+			expect(caughtException).toBeTruthy();
 		}
-		assert.ok(caughtException);
-	}
-
-	fs.open('/path/to/file/that/does/not/exist', 'r', function (e) {
-		assert(e != null);
-		assert.equal(e.code, 'ENOENT');
 	});
 
-	fs.open(filename, 'r', function (err, fd) {
-		if (err) {
-			throw err;
-		}
-		assert.ok(fd, 'failed to open with mode `r`: ' + filename);
+	it('should throw ENOENT when opening non-existent file (async)', done => {
+		fs.open('/path/to/file/that/does/not/exist', 'r', err => {
+			expect(err).not.toBeNull();
+			expect(err.code).toBe('ENOENT');
+			done();
+		});
 	});
 
-	fs.open(filename, 'rs', function (err, fd) {
-		if (err) {
-			throw err;
-		}
-		assert.ok(fd, 'failed to open with mode `rs`: ' + filename);
+	it('should open file with mode "r"', done => {
+		fs.open(filename, 'r', (err, fd) => {
+			if (err) throw err;
+			expect(fd).toBeTruthy();
+			done();
+		});
 	});
-}
+
+	it('should open file with mode "rs"', done => {
+		fs.open(filename, 'rs', (err, fd) => {
+			if (err) throw err;
+			expect(fd).toBeTruthy();
+			done();
+		});
+	});
+});

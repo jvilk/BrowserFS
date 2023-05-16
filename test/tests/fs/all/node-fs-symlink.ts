@@ -1,39 +1,35 @@
 import fs from '../../../../src/core/node_fs';
 import * as path from 'path';
-import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
-export default function () {
+describe('Link and Symlink Test', () => {
 	let completed = 0;
 	const expected_tests = 2;
 	const rootFS = fs.getRootFS();
 
-	// BFS: Link/symlink support is required for this test.
 	if (rootFS.supportsLinks()) {
-		const runtest = function (skip_symlinks: boolean) {
-			if (!skip_symlinks) {
-				// test creating and reading symbolic link
-				const linkData = path.join(common.fixturesDir, '/cycles/root.js');
-				const linkPath = path.join(common.tmpDir, 'symlink1.js');
+		it('should create and read symbolic link', done => {
+			const linkData = path.join(common.fixturesDir, '/cycles/root.js');
+			const linkPath = path.join(common.tmpDir, 'symlink1.js');
 
-				// Delete previously created link
-				try {
-					fs.unlinkSync(linkPath);
-				} catch (e) {}
+			// Delete previously created link
+			try {
+				fs.unlinkSync(linkPath);
+			} catch (e) {}
 
-				fs.symlink(linkData, linkPath, function (err) {
+			fs.symlink(linkData, linkPath, err => {
+				if (err) throw err;
+				console.log('symlink done');
+				fs.readlink(linkPath, (err, destination) => {
 					if (err) throw err;
-					console.log('symlink done');
-					// todo: fs.lstat?
-					fs.readlink(linkPath, function (err, destination) {
-						if (err) throw err;
-						assert.equal(destination, linkData);
-						completed++;
-					});
+					expect(destination).toBe(linkData);
+					completed++;
+					done();
 				});
-			}
+			});
+		});
 
-			// test creating and reading hard link
+		it('should create and read hard link', done => {
 			const srcPath = path.join(common.fixturesDir, 'cycles', 'root.js');
 			const dstPath = path.join(common.tmpDir, 'link1.js');
 
@@ -42,20 +38,20 @@ export default function () {
 				fs.unlinkSync(dstPath);
 			} catch (e) {}
 
-			fs.link(srcPath, dstPath, function (err) {
+			fs.link(srcPath, dstPath, err => {
 				if (err) throw err;
 				console.log('hard link done');
 				const srcContent = fs.readFileSync(srcPath, 'utf8');
 				const dstContent = fs.readFileSync(dstPath, 'utf8');
-				assert.equal(srcContent, dstContent);
+				expect(srcContent).toBe(dstContent);
 				completed++;
+				done();
 			});
-		};
+		});
 
-		runtest(false);
-
-		process.on('exit', function () {
-			assert.equal(completed, expected_tests);
+		afterAll(() => {
+			expect(completed).toBe(expected_tests);
+			process.exitCode = 0;
 		});
 	}
-}
+});

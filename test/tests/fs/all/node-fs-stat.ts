@@ -1,95 +1,108 @@
 import fs from '../../../../src/core/node_fs';
 import * as path from 'path';
-import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
-export default function () {
+describe('File Stat Test', () => {
 	let got_error = false;
 	let success_count = 0;
 	const existing_dir = common.fixturesDir;
 	const existing_file = path.join(common.fixturesDir, 'x.txt');
 
-	// Empty string is not a valid file path.
-	fs.stat('', function (err, stats) {
-		if (err) {
+	it('should handle empty file path', done => {
+		fs.stat('', (err, stats) => {
+			expect(err).toBeTruthy();
 			success_count++;
-		} else {
-			got_error = true;
-		}
+			done();
+		});
 	});
 
-	fs.stat(existing_dir, function (err, stats) {
-		if (err) {
-			got_error = true;
-		} else {
-			assert.ok(stats.mtime instanceof Date);
-			success_count++;
-		}
-	});
-
-	fs.lstat(existing_dir, function (err, stats) {
-		if (err) {
-			got_error = true;
-		} else {
-			assert.ok(stats.mtime instanceof Date);
-			success_count++;
-		}
-	});
-
-	// fstat
-	fs.open(existing_file, 'r', undefined, function (err, fd) {
-		assert.ok(!err);
-		assert.ok(fd);
-
-		fs.fstat(fd, function (err, stats) {
+	it('should stat existing directory', done => {
+		fs.stat(existing_dir, (err, stats) => {
 			if (err) {
 				got_error = true;
 			} else {
-				assert.ok(stats.mtime instanceof Date);
+				expect(stats.mtime).toBeInstanceOf(Date);
 				success_count++;
-				fs.close(fd);
 			}
+			done();
+		});
+	});
+
+	it('should lstat existing directory', done => {
+		fs.lstat(existing_dir, (err, stats) => {
+			if (err) {
+				got_error = true;
+			} else {
+				expect(stats.mtime).toBeInstanceOf(Date);
+				success_count++;
+			}
+			done();
+		});
+	});
+
+	it('should fstat existing file', done => {
+		fs.open(existing_file, 'r', undefined, (err, fd) => {
+			expect(err).toBeNull();
+			expect(fd).toBeTruthy();
+
+			fs.fstat(fd, (err, stats) => {
+				if (err) {
+					got_error = true;
+				} else {
+					expect(stats.mtime).toBeInstanceOf(Date);
+					success_count++;
+					fs.close(fd, () => {
+						done();
+					});
+				}
+			});
 		});
 	});
 
 	if (fs.getRootFS().supportsSynch()) {
-		// fstatSync
-		fs.open(existing_file, 'r', undefined, function (err, fd) {
-			let stats: any;
-			try {
-				stats = fs.fstatSync(fd);
-			} catch (e) {
-				got_error = true;
-			}
-			if (stats) {
-				assert.ok(stats.mtime instanceof Date);
-				success_count++;
-			}
-			fs.close(fd);
+		it('should fstatSync existing file', done => {
+			fs.open(existing_file, 'r', undefined, (err, fd) => {
+				let stats;
+				try {
+					stats = fs.fstatSync(fd);
+				} catch (e) {
+					got_error = true;
+				}
+				if (stats) {
+					expect(stats.mtime).toBeInstanceOf(Date);
+					success_count++;
+				}
+				fs.close(fd, () => {
+					done();
+				});
+			});
 		});
 	}
 
-	fs.stat(existing_file, function (err, s) {
-		if (err) {
-			got_error = true;
-		} else {
-			success_count++;
-			assert.equal(false, s.isDirectory());
-			assert.equal(true, s.isFile());
-			assert.equal(false, s.isSocket());
-			//assert.equal(false, s.isBlockDevice());
-			assert.equal(false, s.isCharacterDevice());
-			assert.equal(false, s.isFIFO());
-			assert.equal(false, s.isSymbolicLink());
-
-			assert.ok(s.mtime instanceof Date);
-		}
+	it('should stat existing file', done => {
+		fs.stat(existing_file, (err, s) => {
+			if (err) {
+				got_error = true;
+			} else {
+				success_count++;
+				expect(s.isDirectory()).toBe(false);
+				expect(s.isFile()).toBe(true);
+				expect(s.isSocket()).toBe(false);
+				//expect(s.isBlockDevice()).toBe(false);
+				expect(s.isCharacterDevice()).toBe(false);
+				expect(s.isFIFO()).toBe(false);
+				expect(s.isSymbolicLink()).toBe(false);
+				expect(s.mtime).toBeInstanceOf(Date);
+			}
+			done();
+		});
 	});
 
-	process.on('exit', function () {
+	afterAll(() => {
 		let expected_success = 5;
 		if (fs.getRootFS().supportsSynch()) expected_success++;
-		assert.equal(expected_success, success_count);
-		assert.equal(false, got_error);
+		expect(success_count).toBe(expected_success);
+		expect(got_error).toBe(false);
+		process.exitCode = 0;
 	});
-}
+});

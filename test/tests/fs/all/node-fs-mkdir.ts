@@ -1,31 +1,39 @@
 import fs from '../../../../src/core/node_fs';
-import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
-export default function () {
+describe('fs.mkdir', () => {
 	if (!fs.getRootFS().isReadOnly()) {
 		const pathname1 = common.tmpDir + '/mkdir-test1';
 
-		fs.mkdir(pathname1, function (err: NodeJS.ErrnoException) {
-			assert.equal(err, null, 'fs.mkdir(' + pathname1 + ') reports non-null error: ' + err);
-			fs.exists(pathname1, function (y) {
-				assert.equal(y, true, 'Got null error from fs.mkdir, but fs.exists reports false for ' + pathname1);
+		it('should create a directory and verify its existence', done => {
+			fs.mkdir(pathname1, err => {
+				expect(err).toBeNull();
+				fs.exists(pathname1, y => {
+					expect(y).toBe(true);
+					done();
+				});
 			});
 		});
 
 		const pathname2 = common.tmpDir + '/mkdir-test2';
 
-		fs.mkdir(pathname2, 511 /*=0777*/, function (err) {
-			assert.equal(err, null, 'fs.mkdir(' + pathname2 + ') reports non-null error: ' + err);
-			fs.exists(pathname2, function (y) {
-				assert.equal(y, true, 'Got null error from fs.mkdir, but fs.exists reports false for ' + pathname2);
+		it('should create a directory with custom permissions and verify its existence', done => {
+			fs.mkdir(pathname2, 0o777, err => {
+				expect(err).toBeNull();
+				fs.exists(pathname2, y => {
+					expect(y).toBe(true);
+					done();
+				});
 			});
 		});
 
-		// Shouldn't be able to make multi-level dirs.
 		const pathname3 = common.tmpDir + '/mkdir-test3/again';
-		fs.mkdir(pathname3, 511 /*=0777*/, function (err) {
-			assert.notEqual(err, null, 'fs.mkdir(' + pathname3 + ') reports null error');
+
+		it('should not be able to create multi-level directories', done => {
+			fs.mkdir(pathname3, 0o777, err => {
+				expect(err).not.toBeNull();
+				done();
+			});
 		});
 	}
-}
+});

@@ -1,33 +1,40 @@
 import fs from '../../../../src/core/node_fs';
-import * as path from 'path';
-import assert from '../../../harness/wrapped-assert';
+import path from 'path';
 import common from '../../../harness/common';
 
-export default function () {
-	let filepath = path.join(common.fixturesDir, 'x.txt'),
-		expected = 'xyz\n',
-		bufferAsync = new Buffer(expected.length),
-		bufferSync = new Buffer(expected.length),
-		readCalled = 0,
-		rootFS = fs.getRootFS();
+describe('fs file reading', () => {
+	const filepath = path.join(common.fixturesDir, 'x.txt');
+	const expected = 'xyz\n';
+	const bufferAsync = Buffer.alloc(expected.length);
+	const bufferSync = Buffer.alloc(expected.length);
+	let readCalled = 0;
+	const rootFS = fs.getRootFS();
 
-	fs.open(filepath, 'r', function (err, fd) {
-		if (err) throw err;
-		fs.read(fd, bufferAsync, 0, expected.length, 0, function (err, bytesRead) {
-			readCalled++;
+	it('should read file asynchronously', done => {
+		fs.open(filepath, 'r', (err, fd) => {
+			if (err) throw err;
 
-			assert.equal(bytesRead, expected.length);
-			assert.equal(bufferAsync.toString(), new Buffer(expected).toString());
+			fs.read(fd, bufferAsync, 0, expected.length, 0, (err, bytesRead) => {
+				readCalled++;
+
+				expect(bytesRead).toBe(expected.length);
+				expect(bufferAsync.toString()).toBe(expected);
+				done();
+			});
 		});
-
-		if (rootFS.supportsSynch()) {
-			const r = fs.readSync(fd, bufferSync, 0, expected.length, 0);
-			assert.equal(bufferSync.toString(), new Buffer(expected).toString());
-			assert.equal(r, expected.length);
-		}
 	});
 
-	process.on('exit', function () {
-		assert.equal(readCalled, 1);
+	if (rootFS.supportsSynch()) {
+		it('should read file synchronously', () => {
+			const fd = fs.openSync(filepath, 'r');
+			const bytesRead = fs.readSync(fd, bufferSync, 0, expected.length, 0);
+
+			expect(bufferSync.toString()).toBe(expected);
+			expect(bytesRead).toBe(expected.length);
+		});
+	}
+
+	afterAll(() => {
+		expect(readCalled).toBe(1);
 	});
-}
+});

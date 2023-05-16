@@ -1,27 +1,30 @@
 import fs from '../../../../src/core/node_fs';
 import * as path from 'path';
-import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
-export default function () {
+describe('fs.writeFile', () => {
 	if (!fs.getRootFS().isReadOnly()) {
-		// make a path that will be at least 260 chars long.
 		const fileNameLen = Math.max(260 - common.tmpDir.length - 1, 1);
 		const fileName = path.join(common.tmpDir, new Array(fileNameLen + 1).join('x'));
 		const fullPath = path.resolve(fileName);
 
-		fs.writeFile(fullPath, 'ok', function (err) {
-			if (err) throw err;
-
-			fs.stat(fullPath, function (err, stats) {
+		it('should write file and verify its size', done => {
+			fs.writeFile(fullPath, 'ok', err => {
 				if (err) throw err;
-				assert.equal(2, stats.size, 'stats.size: expected 2, got: ' + stats.size);
+
+				fs.stat(fullPath, (err, stats) => {
+					if (err) throw err;
+					expect(stats.size).toBe(2);
+					done();
+				});
 			});
 		});
 
-		process.on('exit', function () {
-			fs.unlink(fullPath);
-			//assert.equal(2, successes);
+		afterAll(done => {
+			fs.unlink(fullPath, err => {
+				if (err) throw err;
+				done();
+			});
 		});
 	}
-}
+});

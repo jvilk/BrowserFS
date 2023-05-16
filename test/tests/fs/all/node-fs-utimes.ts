@@ -1,15 +1,20 @@
 import fs from '../../../../src/core/node_fs';
 import * as path from 'path';
-import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
-export default function () {
-	let tests_ok = 0;
-	let tests_run = 0;
+describe('Utimes Tests', () => {
+	let tests_ok: number;
+	let tests_run: number;
 	const rootFS = fs.getRootFS();
+	const filename = path.join(common.fixturesDir, 'x.txt');
+
+	beforeAll(() => {
+		tests_ok = 0;
+		tests_run = 0;
+	});
 
 	function stat_resource(resource: string | number) {
-		if (typeof resource == 'string') {
+		if (typeof resource === 'string') {
 			return fs.statSync(resource);
 		} else {
 			// ensure mtime has been written to disk
@@ -23,8 +28,8 @@ export default function () {
 		const stats = stat_resource(resource);
 		const real_mtime = fs._toUnixTimestamp(stats.mtime);
 		// check up to single-second precision
-		// sub-second precision is OS and fs dependant
-		return Math.floor(mtimeNo) == Math.floor(real_mtime);
+		// sub-second precision is OS and fs dependent
+		return Math.floor(mtimeNo) === Math.floor(real_mtime);
 	}
 
 	function expect_errno(syscall: string, resource: string | number, err: NodeJS.ErrnoException, errno: string) {
@@ -33,9 +38,7 @@ export default function () {
 			//&& (err.code === errno || err.code === 'ENOSYS')) {
 			tests_ok++;
 		} else {
-			// BFS: IE doesn't have a toString method for the arguments pseudo-array,
-			// so we create a real array for printing w/ slice.
-			console.log('FAILED:', Array.prototype.slice.call(arguments, 0));
+			console.error('FAILED:', arguments);
 		}
 	}
 
@@ -45,73 +48,68 @@ export default function () {
 			//&& err.code === 'ENOSYS') {
 			tests_ok++;
 		} else {
-			// BFS: IE doesn't have a toString method for the arguments pseudo-array,
-			// so we create a real array for printing w/ slice.
-			console.log('FAILED:', Array.prototype.slice.call(arguments, 0));
+			console.error('FAILED:', arguments);
 		}
 	}
 
-	// the tests assume that __filename belongs to the user running the tests
-	// this should be a fairly safe assumption; testing against a temp file
-	// would be even better though (node doesn't have such functionality yet)
-	const filename = path.join(common.fixturesDir, 'x.txt');
-	function runTest(atime: Date | number, mtime: Date | number, callback: any): void {
-		let fd: number;
-		//
-		// test synchronized code paths, these functions throw on failure
-		//
-		function syncTests() {
-			fs.utimesSync(filename, atime, mtime);
-			expect_ok('utimesSync', filename, undefined, atime, mtime);
+	function runTest(atime: Date | number, mtime: Date | number): Promise<void> {
+		return new Promise(resolve => {
+			let fd: number;
+			//
+			// test synchronized code paths, these functions throw on failure
+			//
+			function syncTests() {
+				fs.utimesSync(filename, atime, mtime);
+				expect_ok('utimesSync', filename, undefined, atime, mtime);
 
-			// some systems don't have futimes
-			// if there's an error, it should be ENOSYS
-			try {
-				fs.futimesSync(fd, atime, mtime);
-				expect_ok('futimesSync', fd, undefined, atime, mtime);
-			} catch (ex) {
-				expect_errno('futimesSync', fd, ex, 'ENOSYS');
+				// some systems don't have futimes
+				// if there's an error, it should be ENOSYS
+				try {
+					fs.futimesSync(fd, atime, mtime);
+					expect_ok('futimesSync', fd, undefined, atime, mtime);
+				} catch (ex) {
+					expect_errno('futimesSync', fd, ex, 'ENOSYS');
+				}
+
+				let err: NodeJS.ErrnoException;
+				err = undefined;
+				try {
+					fs.utimesSync('foobarbaz', atime, mtime);
+				} catch (ex) {
+					err = ex;
+				}
+				expect_errno('utimesSync', 'foobarbaz', err, 'ENOENT');
+
+				err = undefined;
+				try {
+					fs.futimesSync(-1, atime, mtime);
+				} catch (ex) {
+					err = ex;
+				}
+				expect_errno('futimesSync', -1, err, 'EBADF');
 			}
 
-			let err: NodeJS.ErrnoException;
-			err = undefined;
-			try {
-				fs.utimesSync('foobarbaz', atime, mtime);
-			} catch (ex) {
-				err = ex;
-			}
-			expect_errno('utimesSync', 'foobarbaz', err, 'ENOENT');
+			//
+			// test async code paths  //
+			fs.utimes(filename, atime, mtime, function (err) {
+				expect_ok('utimes', filename, err, atime, mtime);
 
-			err = undefined;
-			try {
-				fs.futimesSync(-1, atime, mtime);
-			} catch (ex) {
-				err = ex;
-			}
-			expect_errno('futimesSync', -1, err, 'EBADF');
-		}
+				fs.utimes('foobarbaz', atime, mtime, function (err) {
+					expect_errno('utimes', 'foobarbaz', err, 'ENOENT');
 
-		//
-		// test async code paths
-		//
-		fs.utimes(filename, atime, mtime, function (err) {
-			expect_ok('utimes', filename, err, atime, mtime);
+					// don't close this fd
+					fd = fs.openSync(filename, 'r');
 
-			fs.utimes('foobarbaz', atime, mtime, function (err) {
-				expect_errno('utimes', 'foobarbaz', err, 'ENOENT');
+					fs.futimes(fd, atime, mtime, function (err) {
+						expect_ok('futimes', fd, err, atime, mtime);
 
-				// don't close this fd
-				fd = fs.openSync(filename, 'r');
-
-				fs.futimes(fd, atime, mtime, function (err) {
-					expect_ok('futimes', fd, err, atime, mtime);
-
-					fs.futimes(-1, atime, mtime, function (err) {
-						expect_errno('futimes', -1, err, 'EBADF');
-						if (rootFS.supportsSynch()) {
-							syncTests();
-						}
-						callback();
+						fs.futimes(-1, atime, mtime, function (err) {
+							expect_errno('futimes', -1, err, 'EBADF');
+							if (rootFS.supportsSynch()) {
+								syncTests();
+							}
+							resolve();
+						});
 					});
 				});
 			});
@@ -120,22 +118,24 @@ export default function () {
 
 	if (rootFS.supportsProps()) {
 		const stats = fs.statSync(filename);
-
-		// BFS: Original tests used:
-		//   new Date('1982-09-10T13:37:00Z'), new Date('1982-09-10T13:37:00Z')
-		// These are not supported in IE < 9: http://dygraphs.com/date-formats.html
-		runTest(new Date('1982/09/10 13:37:00'), new Date('1982/09/10 13:37:00'), function () {
-			runTest(new Date(), new Date(), function () {
-				runTest(123456.789, 123456.789, function () {
-					runTest(stats.mtime, stats.mtime, function () {
-						// done
-					});
-				});
-			});
+		test('Run Test 1', async () => {
+			await runTest(new Date('1982/09/10 13:37:00'), new Date('1982/09/10 13:37:00'));
 		});
 
-		process.on('exit', function () {
-			assert.equal(tests_ok, tests_run, tests_ok + ' OK / ' + tests_run + ' total tests.');
+		test('Run Test 2', async () => {
+			await runTest(new Date(), new Date());
+		});
+
+		test('Run Test 3', async () => {
+			await runTest(123456.789, 123456.789);
+		});
+
+		test('Run Test 4', async () => {
+			await runTest(stats.mtime, stats.mtime);
+		});
+
+		afterAll(() => {
+			expect(tests_ok).toBe(tests_run);
 		});
 	}
-}
+});

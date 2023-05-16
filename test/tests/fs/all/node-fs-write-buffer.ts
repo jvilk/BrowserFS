@@ -1,39 +1,43 @@
 import fs from '../../../../src/core/node_fs';
 import * as path from 'path';
-import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
-export default function () {
-	if (!fs.getRootFS().isReadOnly()) {
-		let filename = path.join(common.tmpDir, 'write.txt'),
-			expected = new Buffer('hello'),
-			openCalled = 0,
-			writeCalled = 0;
+describe('File Writing', () => {
+	it('should write content to a file', done => {
+		if (!fs.getRootFS().isReadOnly()) {
+			const filename = path.join(common.tmpDir, 'write.txt');
+			const expected = Buffer.from('hello');
+			let openCalled = 0;
+			let writeCalled = 0;
 
-		fs.open(filename, 'w', 0o644, function (err, fd) {
-			openCalled++;
-			if (err) throw err;
-
-			fs.write(fd, expected, 0, expected.length, null, function (err, written) {
-				writeCalled++;
+			fs.open(filename, 'w', 0o644, (err, fd) => {
+				openCalled++;
 				if (err) throw err;
 
-				assert.equal(expected.length, written);
-				fs.close(fd, function (err) {
+				fs.write(fd, expected, 0, expected.length, null, (err, written) => {
+					writeCalled++;
 					if (err) throw err;
-					fs.readFile(filename, 'utf8', function (err, found) {
-						assert.deepEqual(expected.toString(), found);
-						fs.unlink(filename, function (err) {
-							if (err) throw err;
+
+					expect(expected.length).toBe(written);
+
+					fs.close(fd, err => {
+						if (err) throw err;
+
+						fs.readFile(filename, 'utf8', (err, found) => {
+							expect(expected.toString()).toBe(found);
+
+							fs.unlink(filename, err => {
+								if (err) throw err;
+
+								expect(openCalled).toBe(1);
+								expect(writeCalled).toBe(1);
+
+								done();
+							});
 						});
 					});
 				});
 			});
-		});
-
-		process.on('exit', function () {
-			assert.equal(1, openCalled);
-			assert.equal(1, writeCalled);
-		});
-	}
-}
+		}
+	});
+});

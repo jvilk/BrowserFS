@@ -1,22 +1,36 @@
 import fs from '../../../../src/core/node_fs';
 import * as path from 'path';
-import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
-export default function () {
+describe('Read File Test', () => {
 	const fn = path.join(common.fixturesDir, 'empty.txt');
 	const rootFS = fs.getRootFS();
 
-	fs.readFile(fn, function (err, data) {
-		assert.ok(data);
+	it('should read file asynchronously', done => {
+		fs.readFile(fn, (err: NodeJS.ErrnoException, data: Buffer) => {
+			expect(data).toBeDefined();
+			done();
+		});
 	});
 
-	fs.readFile(fn, 'utf8', function (err, data) {
-		assert.strictEqual('', data);
+	it('should read file with utf-8 encoding asynchronously', done => {
+		fs.readFile(fn, 'utf8', (err: NodeJS.ErrnoException, data: string) => {
+			expect(data).toBe('');
+			done();
+		});
 	});
 
 	if (rootFS.supportsSynch()) {
-		assert.ok(fs.readFileSync(fn));
-		assert.strictEqual('', fs.readFileSync(fn, 'utf8'));
+		it('should read file synchronously', () => {
+			expect(fs.readFileSync(fn)).toBeDefined();
+		});
+
+		it('should read file with utf-8 encoding synchronously', () => {
+			expect(fs.readFileSync(fn, 'utf8')).toBe('');
+		});
 	}
-}
+
+	afterAll(() => {
+		process.exitCode = 0;
+	});
+});

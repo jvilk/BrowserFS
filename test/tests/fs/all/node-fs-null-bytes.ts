@@ -1,22 +1,29 @@
 import fs from '../../../../src/core/node_fs';
-import assert from '../../../harness/wrapped-assert';
 
-export default function () {
+describe('fs path validation', () => {
 	const rootFS = fs.getRootFS();
 
-	function check(async: Function, sync: Function, arg1?: any, arg2?: any, arg3?: any): void {
+	function check(asyncFn: Function, syncFn: Function, ...args: any[]): void {
 		const expected = /Path must be a string without null bytes./;
-		const argsSync = Array.prototype.slice.call(arguments, 2);
-		const argsAsync = argsSync.concat(function (er: NodeJS.ErrnoException) {
-			assert(er && er.message.match(expected));
+		const argsSync = args.slice();
+		const argsAsync = args.concat(function (er: NodeJS.ErrnoException) {
+			expect(er && er.message.match(expected)).toBeTruthy();
 		});
 
-		if (rootFS.supportsSynch() && sync)
-			assert.throws(function () {
-				sync.apply(null, argsSync);
-			}, expected);
+		if (rootFS.supportsSynch() && syncFn) {
+			it(`should throw an error for invalid path (sync)`, () => {
+				expect(() => {
+					syncFn.apply(null, argsSync);
+				}).toThrow(expected);
+			});
+		}
 
-		if (async) async.apply(null, argsAsync);
+		if (asyncFn) {
+			it(`should throw an error for invalid path (async)`, done => {
+				asyncFn.apply(null, argsAsync);
+				done();
+			});
+		}
 	}
 
 	check(fs.appendFile, fs.appendFileSync, 'foo\u0000bar');
@@ -48,17 +55,16 @@ export default function () {
 		check(fs.utimes, fs.utimesSync, 'foo\u0000bar', 0, 0);
 	}
 
-	// BFS: We don't support watching files right now.
-	//check(null,           fs.unwatchFile,     'foo\u0000bar', assert.fail);
-	//check(null,           fs.watch,           'foo\u0000bar', assert.fail);
-	//check(null,           fs.watchFile,       'foo\u0000bar', assert.fail);
-
-	// an 'error' for exists means that it doesn't exist.
-	// one of many reasons why this file is the absolute worst.
-	fs.exists('foo\u0000bar', function (exists) {
-		assert(!exists);
+	it('should return false for non-existing path', done => {
+		fs.exists('foo\u0000bar', exists => {
+			expect(exists).toBeFalsy();
+			done();
+		});
 	});
+
 	if (rootFS.supportsSynch()) {
-		assert(!fs.existsSync('foo\u0000bar'));
+		it('should return false for non-existing path (sync)', () => {
+			expect(fs.existsSync('foo\u0000bar')).toBeFalsy();
+		});
 	}
-}
+});

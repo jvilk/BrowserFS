@@ -1,9 +1,8 @@
 import fs from '../../../../src/core/node_fs';
 import * as path from 'path';
-import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
-export default function () {
+describe('Symbolic Link Test', () => {
 	let completed = 0;
 	const expected_tests = 4;
 
@@ -13,39 +12,52 @@ export default function () {
 
 	const rootFS = fs.getRootFS();
 	if (!(rootFS.isReadOnly() || !rootFS.supportsLinks())) {
-		// Delete previously created link
-		fs.unlink(linkPath, function (err) {
-			if (err) throw err;
-			console.log('linkData: ' + linkData);
-			console.log('linkPath: ' + linkPath);
-
-			fs.symlink(linkData, linkPath, 'junction', function (err) {
+		beforeAll(done => {
+			// Delete previously created link
+			fs.unlink(linkPath, err => {
 				if (err) throw err;
-				completed++;
+				console.log('linkData: ' + linkData);
+				console.log('linkPath: ' + linkPath);
 
-				fs.lstat(linkPath, function (err, stats) {
+				fs.symlink(linkData, linkPath, 'junction', err => {
 					if (err) throw err;
-					assert.ok(stats.isSymbolicLink());
 					completed++;
-
-					fs.readlink(linkPath, function (err, destination) {
-						if (err) throw err;
-						assert.equal(destination, linkData);
-						completed++;
-
-						fs.unlink(linkPath, function (err) {
-							if (err) throw err;
-							assert(!fs.existsSync(linkPath));
-							assert(fs.existsSync(linkData));
-							completed++;
-						});
-					});
+					done();
 				});
 			});
 		});
 
-		process.on('exit', function () {
-			assert.equal(completed, expected_tests);
+		it('should lstat symbolic link', done => {
+			fs.lstat(linkPath, (err, stats) => {
+				if (err) throw err;
+				expect(stats.isSymbolicLink()).toBe(true);
+				completed++;
+				done();
+			});
+		});
+
+		it('should readlink symbolic link', done => {
+			fs.readlink(linkPath, (err, destination) => {
+				if (err) throw err;
+				expect(destination).toBe(linkData);
+				completed++;
+				done();
+			});
+		});
+
+		it('should unlink symbolic link', done => {
+			fs.unlink(linkPath, err => {
+				if (err) throw err;
+				expect(fs.existsSync(linkPath)).toBe(false);
+				expect(fs.existsSync(linkData)).toBe(true);
+				completed++;
+				done();
+			});
+		});
+
+		afterAll(() => {
+			expect(completed).toBe(expected_tests);
+			process.exitCode = 0;
 		});
 	}
-}
+});
