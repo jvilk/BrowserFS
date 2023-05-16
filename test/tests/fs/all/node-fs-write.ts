@@ -1,10 +1,14 @@
 import fs from '../../../../src/core/node_fs';
 import * as path from 'path';
-import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
-export default function () {
-	if (!fs.getRootFS().isReadOnly()) {
+describe('Asynchronous File Writing', () => {
+	it('should write file asynchronously with specified content', done => {
+		if (fs.getRootFS().isReadOnly()) {
+			done();
+			return;
+		}
+
 		const fn = path.join(common.tmpDir, 'write.txt');
 		const fn2 = path.join(common.tmpDir, 'write2.txt');
 		const expected = 'ümlaut.';
@@ -12,18 +16,19 @@ export default function () {
 		fs.open(fn, 'w', 0o644, function (err, fd) {
 			if (err) throw err;
 			fs.write(fd, '', 0, 'utf8', function (err, written) {
-				assert.equal(0, written);
+				expect(written).toBe(0);
 			});
 			fs.write(fd, expected, 0, 'utf8', function (err, written) {
 				if (err) throw err;
-				assert.equal(Buffer.byteLength(expected), written);
+				expect(written).toBe(Buffer.byteLength(expected));
 				fs.close(fd, function (err) {
 					if (err) throw err;
 					fs.readFile(fn, 'utf8', function (err, data) {
 						if (err) throw err;
-						assert.equal(expected, data, 'expected: "' + data + '", found: "' + data + '"');
+						expect(data).toBe(expected);
 						fs.unlink(fn, function (err) {
 							if (err) throw err;
+							done();
 						});
 					});
 				});
@@ -33,22 +38,23 @@ export default function () {
 		fs.open(fn2, 'w', 0o644, function (err, fd) {
 			if (err) throw err;
 			fs.write(fd, '', 0, 'utf8', function (err, written) {
-				assert.equal(0, written);
+				expect(written).toBe(0);
 			});
 			fs.write(fd, expected, 0, 'utf8', function (err, written) {
 				if (err) throw err;
-				assert.equal(Buffer.byteLength(expected), written);
+				expect(written).toBe(Buffer.byteLength(expected));
 				fs.close(fd, function (err) {
 					if (err) throw err;
 					fs.readFile(fn2, 'utf8', function (err, data) {
 						if (err) throw err;
-						assert.equal(expected, data, 'expected: "' + expected + '", found: "' + data + '"');
+						expect(data).toBe(expected);
 						fs.unlink(fn2, function (err) {
 							if (err) throw err;
+							done();
 						});
 					});
 				});
 			});
 		});
-	}
-}
+	});
+});

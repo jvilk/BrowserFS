@@ -1,80 +1,101 @@
 import fs from '../../../../src/core/node_fs';
 import * as path from 'path';
-import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
-export default function () {
-	let rootFS = fs.getRootFS(),
-		hasThrown = false;
-	if (rootFS.supportsSynch()) {
-		try {
-			fs.openSync(common.fixturesDir, 'r');
-		} catch (e) {
-			hasThrown = true;
-			assert.equal(e.code, 'EISDIR');
-		}
-		assert(hasThrown, 'Failed invariant: Cannot open() a directory.');
-		hasThrown = false;
-	}
+describe('File System Tests', () => {
+	let rootFS = fs.getRootFS();
 
-	// Async versions of the above.
-	fs.open(common.fixturesDir, 'r', function (err, fd) {
-		assert(err, 'Failed invariant: Cannot open() a directory.');
-		assert.equal(err.code, 'EISDIR');
+	test('Cannot open a directory (synchronous)', () => {
+		let hasThrown = false;
+		if (rootFS.supportsSynch()) {
+			try {
+				fs.openSync(common.fixturesDir, 'r');
+			} catch (e) {
+				hasThrown = true;
+				expect(e.code).toBe('EISDIR');
+			}
+			expect(hasThrown).toBeTruthy();
+		}
+	});
+
+	test('Cannot open a directory (asynchronous)', done => {
+		fs.open(common.fixturesDir, 'r', (err, fd) => {
+			expect(err).toBeTruthy();
+			expect(err.code).toBe('EISDIR');
+			done();
+		});
 	});
 
 	if (!rootFS.isReadOnly()) {
-		if (rootFS.supportsSynch()) {
-			try {
-				fs.openSync(common.fixturesDir, 'wx');
-			} catch (e) {
-				hasThrown = true;
-				assert(e.code === 'EISDIR' || e.code === 'EEXIST', 'Expected EISDIR or EEXIST, got ' + e.code);
-			}
-			assert(hasThrown, 'Failed invariant: Cannot open() an existing file exclusively.');
-			hasThrown = false;
-
-			try {
-				fs.openSync(path.join(common.fixturesDir, 'a.js'), 'wx');
-			} catch (e) {
-				hasThrown = true;
-				assert.equal(e.code, 'EEXIST');
-			}
-			assert(hasThrown, 'Failed invariant: Open exclusively demands that the file does not exist.');
-			hasThrown = false;
-		}
-
-		// Async versions of the above.
-		fs.open(common.fixturesDir, 'wx', function (err, fd) {
-			assert(err, 'Failed invariant: Cannot open() an existing file exclusively.');
-			assert(err.code === 'EISDIR' || err.code === 'EEXIST', 'Expected EISDIR or EEXIST, got ' + err.code);
-		});
-
-		fs.open(path.join(common.fixturesDir, 'a.js'), 'wx', function (err, fd) {
-			assert(err, 'Failed invariant: Open exclusively demands that the file does not exist.');
-			assert.equal(err.code, 'EEXIST');
-		});
-	} else {
-		// READ-ONLY tests!
-		if (rootFS.supportsSynch()) {
-			['a', 'w'].forEach(function (mode) {
+		test('Cannot open an existing file exclusively (synchronous)', () => {
+			let hasThrown = false;
+			if (rootFS.supportsSynch()) {
 				try {
-					fs.openSync(path.join(common.fixturesDir, 'a.js'), mode);
+					fs.openSync(common.fixturesDir, 'wx');
 				} catch (e) {
 					hasThrown = true;
-					assert.equal(e.code, 'EPERM');
+					expect(e.code === 'EISDIR' || e.code === 'EEXIST').toBeTruthy();
 				}
-				assert(hasThrown, 'Failed invariant: Cannot write to RO file system.');
-				hasThrown = false;
-			});
-		}
+				expect(hasThrown).toBeTruthy();
 
-		// Async versions of the above.
-		['a', 'w'].forEach(function (mode) {
-			fs.open(path.join(common.fixturesDir, 'a.js'), mode, function (err, fd) {
-				assert(err, 'Failed invariant: Cannot write to RO file system.');
-				assert.equal(err.code, 'EPERM');
+				hasThrown = false;
+				try {
+					fs.openSync(path.join(common.fixturesDir, 'a.js'), 'wx');
+				} catch (e) {
+					hasThrown = true;
+					expect(e.code).toBe('EEXIST');
+				}
+				expect(hasThrown).toBeTruthy();
+			}
+		});
+
+		test('Cannot open an existing file exclusively (asynchronous)', done => {
+			fs.open(common.fixturesDir, 'wx', (err, fd) => {
+				expect(err).toBeTruthy();
+				expect(err.code === 'EISDIR' || err.code === 'EEXIST').toBeTruthy();
+				done();
+			});
+
+			fs.open(path.join(common.fixturesDir, 'a.js'), 'wx', (err, fd) => {
+				expect(err).toBeTruthy();
+				expect(err.code).toBe('EEXIST');
+				done();
+			});
+		});
+	} else {
+		test('Cannot write to a read-only file system (synchronous)', () => {
+			if (rootFS.supportsSynch()) {
+				['a', 'w'].forEach(mode => {
+					let hasThrown = false;
+					try {
+						fs.openSync(path.join(common.fixturesDir, 'a.js'), mode);
+					} catch (e) {
+						hasThrown = true;
+						expect(e.code).toBe('EPERM');
+					}
+					expect(hasThrown).toBeTruthy();
+				});
+			}
+		});
+
+		test('Cannot write to a read-only file system (asynchronous)', done => {
+			const testModes = ['a', 'w'];
+			let count = 0;
+
+			const checkDone = () => {
+				count++;
+				if (count === testModes.length) {
+					done();
+				}
+			};
+
+			testModes.forEach(mode => {
+				fs.open(path.join(common.fixturesDir, 'a.js'), mode, (err, fd) => {
+					expect(err).toBeTruthy();
+					expect(err.code).toBe('EPERM');
+					checkDone();
+				});
 			});
 		});
 	}
-}
+});

@@ -1,19 +1,18 @@
 import fs from '../../../../src/core/node_fs';
-import assert from '../../../harness/wrapped-assert';
 
-export default function () {
-	const rootFS = fs.getRootFS();
-	if (!rootFS.isReadOnly()) {
-		// Ensure we cannot remove directories that are non-empty.
-		fs.mkdir('/rmdirTest', function (e: NodeJS.ErrnoException) {
-			assert(!e);
-			fs.mkdir('/rmdirTest/rmdirTest2', function (e: NodeJS.ErrnoException) {
-				assert(!e);
-				fs.rmdir('/rmdirTest', function (e) {
-					assert(!!e, 'Invariant failed: Successfully removed a non-empty directory.');
-					assert(e.code === 'ENOTEMPTY');
+describe('Directory Removal', () => {
+	test('Cannot remove non-empty directories', () => {
+		fs.mkdir('/rmdirTest', (e: NodeJS.ErrnoException | null) => {
+			expect(e).toBeNull();
+
+			fs.mkdir('/rmdirTest/rmdirTest2', (e: NodeJS.ErrnoException | null) => {
+				expect(e).toBeNull();
+
+				fs.rmdir('/rmdirTest', (e: NodeJS.ErrnoException | null) => {
+					expect(e).not.toBeNull();
+					expect(e!.code).toBe('ENOTEMPTY');
 				});
 			});
 		});
-	}
-}
+	});
+});

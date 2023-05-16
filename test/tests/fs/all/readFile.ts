@@ -1,31 +1,38 @@
 import fs from '../../../../src/core/node_fs';
 import * as path from 'path';
-import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
-export default function () {
-	let rootFS = fs.getRootFS(),
-		wasThrown = false;
-	if (rootFS.supportsSynch()) {
-		try {
-			fs.readFileSync(path.join(common.fixturesDir, 'a.js'), 'wrongencoding');
-		} catch (e) {
-			wasThrown = true;
+describe('File Reading', () => {
+	test('Cannot read a file with an invalid encoding (synchronous)', () => {
+		const rootFS = fs.getRootFS();
+		let wasThrown = false;
+		if (rootFS.supportsSynch()) {
+			try {
+				fs.readFileSync(path.join(common.fixturesDir, 'a.js'), 'wrongencoding');
+			} catch (e) {
+				wasThrown = true;
+			}
+			expect(wasThrown).toBeTruthy();
 		}
-		assert(wasThrown, 'Failed invariant: Cannot read a file with an invalid encoding.');
-	}
-
-	fs.readFile(path.join(common.fixturesDir, 'a.js'), 'wrongencoding', function (err, data) {
-		assert(err, 'Failed invariant: Cannot read a file with an invalid encoding.');
 	});
 
-	fs.open(path.join(common.fixturesDir, 'a.js'), 'r', function (err, fd) {
-		assert(!err, 'Failed to open a.js from fixtures.');
-		const buffData = new Buffer(10);
-		fs.read(fd, buffData, 0, 10, 10000, function (err, bytesRead, buffer) {
-			assert(!err, 'Reading past the end of a file should not be an error.');
-			assert.strictEqual(bytesRead, 0, 'Reading past the end of a file should report 0 bytes read.');
-			assert.strictEqual(buffer, buffData, 'Read should return same buffer passed in.');
+	test('Cannot read a file with an invalid encoding (asynchronous)', done => {
+		fs.readFile(path.join(common.fixturesDir, 'a.js'), 'wrongencoding', (err, data) => {
+			expect(err).toBeTruthy();
+			done();
 		});
 	});
-}
+
+	test('Reading past the end of a file should not be an error', done => {
+		fs.open(path.join(common.fixturesDir, 'a.js'), 'r', (err, fd) => {
+			expect(err).toBeFalsy();
+			const buffData = Buffer.alloc(10);
+			fs.read(fd, buffData, 0, 10, 10000, (err, bytesRead, buffer) => {
+				expect(err).toBeFalsy();
+				expect(bytesRead).toBe(0);
+				expect(buffer).toBe(buffData);
+				done();
+			});
+		});
+	});
+});

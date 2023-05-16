@@ -1,40 +1,38 @@
 import fs from '../../../../src/core/node_fs';
-import assert from '../../../harness/wrapped-assert';
 
-export default function () {
-	const rootFS = fs.getRootFS(),
-		isReadOnly = rootFS.isReadOnly();
+describe('File Truncation', () => {
+	test('Truncate file', () => {
+		const file = '/truncateFile.txt';
 
-	if (isReadOnly) {
-		return;
-	}
-	const file = '/truncateFile.txt';
-	fs.writeFile(file, new Buffer('123456789'), function (e) {
-		assert(e == null);
-		fs.truncate(file, 9, function (e) {
-			assert(e == null);
-			// Read it back, check contents.
-			fs.readFile(file, function (e, data) {
-				assert(e == null);
-				assert(data.length === 9);
-				assert(data.toString() === '123456789');
-				// Truncating past the file size results in 0 padding.
-				fs.truncate(file, 10, function (e) {
-					assert(e == null);
-					fs.readFile(file, function (e, data) {
-						assert(e == null);
-						assert(data.length === 10);
-						assert(data.toString() === '123456789\u0000');
-						// Can't truncate negatively.
-						fs.truncate(file, -1, function (e) {
-							assert(e != null);
-							//assert(e.code === 'EINVAL');
-							// Truncate to 0!
-							fs.truncate(file, 0, function (e) {
-								assert(e == null);
-								fs.readFile(file, function (e, data) {
-									assert(e == null);
-									assert(data.toString() === '');
+		fs.writeFile(file, Buffer.from('123456789'), (e: NodeJS.ErrnoException | null) => {
+			expect(e).toBeNull();
+
+			fs.truncate(file, 9, (e: NodeJS.ErrnoException | null) => {
+				expect(e).toBeNull();
+
+				fs.readFile(file, (e: NodeJS.ErrnoException | null, data: Buffer) => {
+					expect(e).toBeNull();
+					expect(data.length).toBe(9);
+					expect(data.toString()).toBe('123456789');
+
+					fs.truncate(file, 10, (e: NodeJS.ErrnoException | null) => {
+						expect(e).toBeNull();
+
+						fs.readFile(file, (e: NodeJS.ErrnoException | null, data: Buffer) => {
+							expect(e).toBeNull();
+							expect(data.length).toBe(10);
+							expect(data.toString()).toBe('123456789\u0000');
+
+							fs.truncate(file, -1, (e: NodeJS.ErrnoException | null) => {
+								expect(e).not.toBeNull();
+
+								fs.truncate(file, 0, (e: NodeJS.ErrnoException | null) => {
+									expect(e).toBeNull();
+
+									fs.readFile(file, (e: NodeJS.ErrnoException | null, data: Buffer) => {
+										expect(e).toBeNull();
+										expect(data.toString()).toBe('');
+									});
 								});
 							});
 						});
@@ -43,4 +41,4 @@ export default function () {
 			});
 		});
 	});
-}
+});

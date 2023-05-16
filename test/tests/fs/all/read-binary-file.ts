@@ -1,18 +1,21 @@
 import fs from '../../../../src/core/node_fs';
 import * as path from 'path';
-import assert from '../../../harness/wrapped-assert';
 import common from '../../../harness/common';
 
-export default function () {
-	// Read a file and check its binary bytes.
-	fs.readFile(path.join(common.fixturesDir, 'elipses.txt'), function (err, buff) {
-		if (err) throw err;
-		assert(buff.readUInt16LE(0) === 32994);
+describe('File Reading', () => {
+	test('Read a file and check its binary bytes (asynchronous)', done => {
+		fs.readFile(path.join(common.fixturesDir, 'elipses.txt'), (err, buff) => {
+			if (err) throw err;
+			expect(buff.readUInt16LE(0)).toBe(32994);
+			done();
+		});
 	});
-	// Same, but synchronous.
-	const rootFS = fs.getRootFS();
-	if (rootFS.supportsSynch()) {
-		const buff = fs.readFileSync(path.join(common.fixturesDir, 'elipses.txt'));
-		assert(buff.readUInt16LE(0) === 32994);
-	}
-}
+
+	test('Read a file and check its binary bytes (synchronous)', () => {
+		const rootFS = fs.getRootFS();
+		if (rootFS.supportsSynch()) {
+			const buff = fs.readFileSync(path.join(common.fixturesDir, 'elipses.txt'));
+			expect(buff.readUInt16LE(0)).toBe(32994);
+		}
+	});
+});

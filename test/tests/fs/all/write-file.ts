@@ -1,21 +1,20 @@
 import fs from '../../../../src/core/node_fs';
-import assert from '../../../harness/wrapped-assert';
 
-export default function () {
-	const rootFS = fs.getRootFS(),
-		isReadOnly = rootFS.isReadOnly(),
-		fileName = '/writeFileText.txt';
+describe('File Writing', () => {
+	test('Write and overwrite file', () => {
+		const fileName = '/writeFileText.txt';
 
-	if (!isReadOnly) {
-		fs.writeFile(fileName, new Buffer('Hello!'), function (err) {
-			assert(!err, 'Failed to write a file.');
-			fs.writeFile(fileName, new Buffer('Hello 2!'), function (err) {
-				assert(!err, 'Failed to overwrite a file with writeFile.');
-				fs.readFile(fileName, function (err, data) {
-					assert(!err, 'Failed to read file that we wrote.');
-					assert.equal(data.toString('utf8'), 'Hello 2!');
+		fs.writeFile(fileName, Buffer.from('Hello!'), (err: NodeJS.ErrnoException | null) => {
+			expect(err).toBeNull();
+
+			fs.writeFile(fileName, Buffer.from('Hello 2!'), (err: NodeJS.ErrnoException | null) => {
+				expect(err).toBeNull();
+
+				fs.readFile(fileName, (err: NodeJS.ErrnoException | null, data: Buffer) => {
+					expect(err).toBeNull();
+					expect(data.toString('utf8')).toBe('Hello 2!');
 				});
 			});
 		});
-	}
-}
+	});
+});
