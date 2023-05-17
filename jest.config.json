@@ -1,9 +1,23 @@
 {
-	"preset": "ts-jest",
+	"preset": "ts-jest/presets/default-esm",
 	"testEnvironment": "node",
-	"globals": {
-		"ts-jest": {
-			"tsconfig": "test/tsconfig.json"
-		}
-	}
+	"extensionsToTreatAsEsm": [
+		".ts"
+	],
+	"testMatch": [
+		"./**/*.test.ts"
+	],
+	"moduleNameMapper": {
+		"^(\\.{1,2}/.*)\\.js$": "$1"
+	},
+	"transform": {
+		"^.+\\.ts$": [
+			"ts-jest",
+			{
+				"tsconfig": "test/tsconfig.json",
+				"useESM": true
+			}
+		]
+	},
+	"verbose": true
 }

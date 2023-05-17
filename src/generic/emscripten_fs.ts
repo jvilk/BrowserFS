@@ -11,9 +11,9 @@
  */
 import FS from '../core/FS';
 import fs from '../core/node_fs';
-import NodeStats from '../core/stats';
+import Stats from '../core/stats';
 
-export interface Stats {
+export interface EmscriptenStats {
 	dev: number;
 	ino: number;
 	mode: number;
@@ -47,8 +47,8 @@ export interface EmscriptenStream {
 }
 
 export interface EmscriptenNodeOps {
-	getattr(node: EmscriptenFSNode): Stats;
-	setattr(node: EmscriptenFSNode, attr: Stats): void;
+	getattr(node: EmscriptenFSNode): EmscriptenStats;
+	setattr(node: EmscriptenFSNode, attr: EmscriptenStats): void;
 	lookup(parent: EmscriptenFSNode, name: string): EmscriptenFSNode;
 	mknod(parent: EmscriptenFSNode, name: string, mode: number, dev: any): EmscriptenFSNode;
 	rename(oldNode: EmscriptenFSNode, newDir: EmscriptenFSNode, newName: string): void;
@@ -175,9 +175,9 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
 		this.ERRNO_CODES = fs.getERRNO_CODES();
 	}
 
-	public getattr(node: EmscriptenFSNode): Stats {
+	public getattr(node: EmscriptenFSNode): EmscriptenStats {
 		const path = this.fs.realPath(node);
-		let stat: NodeStats;
+		let stat: Stats;
 		try {
 			stat = this.nodefs.lstatSync(path);
 		} catch (e) {
@@ -203,7 +203,7 @@ class BFSEmscriptenNodeOps implements EmscriptenNodeOps {
 		};
 	}
 
-	public setattr(node: EmscriptenFSNode, attr: Stats): void {
+	public setattr(node: EmscriptenFSNode, attr: EmscriptenStats): void {
 		const path = this.fs.realPath(node);
 		try {
 			if (attr.mode !== undefined) {
@@ -382,7 +382,7 @@ export default class BFSEmscriptenFS implements EmscriptenFS {
 	private PATH: any;
 	private ERRNO_CODES: any;
 	private nodefs: FS;
-	constructor(_FS = (<any>self)['FS'], _PATH = (<any>self)['PATH'], _ERRNO_CODES = (<any>self)['ERRNO_CODES'], nodefs: FS = fs) {
+	constructor(_FS = (<any>globalThis)['FS'], _PATH = (<any>globalThis)['PATH'], _ERRNO_CODES = (<any>globalThis)['ERRNO_CODES'], nodefs: FS = fs) {
 		this.nodefs = nodefs;
 		this.FS = _FS;
 		this.PATH = _PATH;
@@ -407,7 +407,7 @@ export default class BFSEmscriptenFS implements EmscriptenFS {
 	}
 
 	public getMode(path: string): number {
-		let stat: NodeStats;
+		let stat: Stats;
 		try {
 			stat = this.nodefs.lstatSync(path);
 		} catch (e) {

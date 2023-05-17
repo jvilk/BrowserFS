@@ -1,16 +1,12 @@
 {
 	"compilerOptions": {
-		"module": "esnext",
-		"target": "esnext",
+		"module": "ESNext",
+		"target": "ESNext",
 		"outDir": "../build/temp/test",
-		"lib": [ "esnext"],
+		"lib": ["esnext"],
 		"moduleResolution": "node",
 		"esModuleInterop": true,
-		"allowSyntheticDefaultImports": true,
-		"sourceMap": true,
-		"inlineSources": true,
-		"declaration": true,
-		"typeRoots": ["../node_modules/@types"]
+		"allowSyntheticDefaultImports": true
 	},
-	"include": ["**/*"]
+	"include": ["**/*", "*"]
 }

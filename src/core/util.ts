@@ -25,13 +25,15 @@ export function deprecationMessage(print: boolean, fsName: string, opts: any): v
  * userAgent string.
  * @hidden
  */
-export const isIE: boolean = typeof navigator !== 'undefined' && !!(/(msie) ([\w.]+)/.exec(navigator.userAgent.toLowerCase()) || navigator.userAgent.indexOf('Trident') !== -1);
+export const isIE: boolean =
+	typeof globalThis.navigator !== 'undefined' &&
+	!!(/(msie) ([\w.]+)/.exec(globalThis.navigator.userAgent.toLowerCase()) || globalThis.navigator.userAgent.indexOf('Trident') !== -1);
 
 /**
  * Check if we're in a web worker.
  * @hidden
  */
-export const isWebWorker: boolean = typeof window === 'undefined';
+export const isWebWorker: boolean = typeof globalThis.window === 'undefined';
 
 /**
  * Throws an exception. Called on code paths that should be impossible.
