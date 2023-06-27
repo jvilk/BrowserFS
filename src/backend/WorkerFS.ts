@@ -496,7 +496,7 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
 	public static attachRemoteListener(worker: Worker) {
 		const fdConverter = new FileDescriptorArgumentConverter();
 
-		async function argLocal2Remote(arg: any, requestArgs: any[]): Promise<any> {
+		async function argLocal2Remote(arg: any, requestArgs: any[]) {
 			if (typeof arg != 'object') {
 				return arg;
 			}
@@ -525,10 +525,10 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
 			switch (arg.type) {
 				case SpecialArgType.CB:
 					const cbId = (<CallbackArgument>arg).id;
-					return async function () {
-						const fixedArgs = new Array(arguments.length);
+					return async function (...args) {
+						const fixedArgs = new Array(args.length);
 
-						for (let i = 0; i < arguments.length; i++) {
+						for (let i = 0; i < args.length; i++) {
 							try {
 								fixedArgs[i] = await argLocal2Remote(arg, fixedRequestArgs);
 							} catch (err) {
