@@ -1,4 +1,4 @@
-import { BFSOneArgCallback, BFSCallback, FileSystemOptions } from '../core/file_system';
+import { BFSOneArgCallback, BFSCallback, BackendOptions } from '../core/file_system';
 import { AsyncKeyValueROTransaction, AsyncKeyValueRWTransaction, AsyncKeyValueStore, AsyncKeyValueFileSystem } from '../generic/key_value_filesystem';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { Buffer } from 'buffer';
@@ -210,7 +210,7 @@ export interface IndexedDBFileSystemOptions {
 export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
 	public static readonly Name = 'IndexedDB';
 
-	public static readonly Options: FileSystemOptions = {
+	public static readonly Options: BackendOptions = {
 		storeName: {
 			type: 'string',
 			optional: true,

@@ -3,7 +3,7 @@ import { ApiError, ErrorCode } from '../core/api_error';
 import Cred from '../core/cred';
 import { File } from '../core/file';
 import { FileFlag } from '../core/file_flag';
-import { BaseFileSystem, BFSCallback, BFSOneArgCallback, FileSystem, FileSystemOptions } from '../core/file_system';
+import { BaseFileSystem, BFSCallback, BFSOneArgCallback, FileSystem, BackendOptions } from '../core/file_system';
 import { default as Stats, FileType } from '../core/stats';
 import { emptyBuffer } from '../core/util';
 import PreloadFile from '../generic/preload_file';
@@ -49,7 +49,7 @@ export class FileSystemAccessFile extends PreloadFile<FileSystemAccessFileSystem
 export default class FileSystemAccessFileSystem extends BaseFileSystem implements FileSystem {
 	public static readonly Name = 'FileSystemAccess';
 
-	public static readonly Options: FileSystemOptions = {};
+	public static readonly Options: BackendOptions = {};
 
 	public static Create({ handle }: FileSystemAccessFileSystemOptions, cb: BFSCallback<FileSystemAccessFileSystem>): void {
 		cb(null, new FileSystemAccessFileSystem(handle));

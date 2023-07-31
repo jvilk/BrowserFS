@@ -1,4 +1,4 @@
-import { BFSCallback, FileSystemOptions } from '../core/file_system';
+import { BFSCallback, BackendOptions } from '../core/file_system';
 import { SyncKeyValueStore, SimpleSyncStore, SimpleSyncRWTransaction, SyncKeyValueRWTransaction, SyncKeyValueFileSystem } from '../generic/key_value_filesystem';
 import type { Buffer } from 'buffer';
 
@@ -43,7 +43,7 @@ export class InMemoryStore implements SyncKeyValueStore, SimpleSyncStore {
 export default class InMemoryFileSystem extends SyncKeyValueFileSystem {
 	public static readonly Name = 'InMemory';
 
-	public static readonly Options: FileSystemOptions = {};
+	public static readonly Options: BackendOptions = {};
 
 	/**
 	 * Creates an InMemoryFileSystem instance.

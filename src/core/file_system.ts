@@ -341,7 +341,7 @@ export interface FileSystem {
 /**
  * Describes a file system option.
  */
-export interface FileSystemOption<T> {
+export interface BackendOption<T> {
 	// The basic JavaScript type(s) for this option.
 	type: string | string[];
 	// Whether or not the option is optional (e.g., can be set to null or undefined).
@@ -359,14 +359,18 @@ export interface FileSystemOption<T> {
 /**
  * Describes all of the options available in a file system.
  */
-export interface FileSystemOptions {
-	[name: string]: FileSystemOption<any>;
+export interface BackendOptions {
+	[name: string]: BackendOption<any>;
+}
+
+export interface FileSystemConstructor {
+	new (): FileSystem;
 }
 
 /**
  * Contains typings for static functions on the file system constructor.
  */
-export interface FileSystemConstructor {
+export interface BackendConstructor {
 	/**
 	 * **Core**: Name to identify this particular file system.
 	 */
@@ -374,7 +378,7 @@ export interface FileSystemConstructor {
 	/**
 	 * **Core**: Describes all of the options available for this file system.
 	 */
-	Options: FileSystemOptions;
+	Options: BackendOptions;
 	/**
 	 * **Core**: Creates a file system of this given type with the given
 	 * options, and returns the result in a callback.
@@ -399,10 +403,27 @@ export interface FileSystemConstructor {
  * Basic filesystem class. Most filesystems should extend this class, as it
  * provides default implementations for a handful of methods.
  */
-export class BaseFileSystem {
+export class BaseFileSystem implements FileSystem {
+	getName() {
+		return 'BaseFileSystem';
+	}
+
+	isReadOnly() {
+		return false;
+	}
+
+	supportsProps() {
+		return false;
+	}
+
+	supportsSynch() {
+		return false;
+	}
+
 	public supportsLinks(): boolean {
 		return false;
 	}
+
 	public diskSpace(p: string, cb: (total: number, free: number) => any): void {
 		cb(0, 0);
 	}

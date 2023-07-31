@@ -1,4 +1,4 @@
-import { FileSystem, BaseFileSystem, BFSCallback, FileSystemOptions } from '../core/file_system';
+import { FileSystem, BaseFileSystem, BFSCallback, BackendOptions } from '../core/file_system';
 import InMemoryFileSystem from './InMemory';
 import { ApiError, ErrorCode } from '../core/api_error';
 import fs from '../core/node_fs';
@@ -60,7 +60,7 @@ export interface MountableFileSystemOptions {
 export default class MountableFileSystem extends BaseFileSystem implements FileSystem {
 	public static readonly Name = 'MountableFileSystem';
 
-	public static readonly Options: FileSystemOptions = {};
+	public static readonly Options: BackendOptions = {};
 
 	/**
 	 * Creates a MountableFileSystem instance with the given options.

@@ -1,4 +1,4 @@
-import { BFSCallback, BaseFileSystem, FileSystem, FileSystemOptions } from '../core/file_system';
+import { BFSCallback, BaseFileSystem, FileSystem, BackendOptions } from '../core/file_system';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { FileFlag } from '../core/file_flag';
 import { buffer2ArrayBuffer, emptyBuffer } from '../core/util';
@@ -461,7 +461,7 @@ export interface WorkerFSOptions {
 export default class WorkerFS extends BaseFileSystem implements FileSystem {
 	public static readonly Name = 'WorkerFS';
 
-	public static readonly Options: FileSystemOptions = {
+	public static readonly Options: BackendOptions = {
 		worker: {
 			type: 'object',
 			description: 'The target worker that you want to connect to, or the current worker if in a worker context.',

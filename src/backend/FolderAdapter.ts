@@ -1,4 +1,4 @@
-import { BaseFileSystem, FileSystem, BFSCallback, FileSystemOptions } from '../core/file_system';
+import { BaseFileSystem, FileSystem, BFSCallback, BackendOptions } from '../core/file_system';
 import * as path from 'path';
 import { ApiError } from '../core/api_error';
 import Cred from '../core/cred';
@@ -34,7 +34,7 @@ export interface FolderAdapterOptions {
 export default class FolderAdapter extends BaseFileSystem implements FileSystem {
 	public static readonly Name = 'FolderAdapter';
 
-	public static readonly Options: FileSystemOptions = {
+	public static readonly Options: BackendOptions = {
 		folder: {
 			type: 'string',
 			description: 'The folder to use as the root directory',

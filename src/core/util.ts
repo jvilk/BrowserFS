@@ -1,7 +1,7 @@
 /**
  * Grab bag of utility functions used across the code.
  */
-import { FileSystem, FileSystemConstructor } from './file_system';
+import { FileSystem, BackendConstructor } from './file_system';
 import { ErrorCode, ApiError } from './api_error';
 import levenshtein from './levenshtein';
 import * as path from 'path';
@@ -115,7 +115,7 @@ export async function bufferValidator(v: object): Promise<void> {
  * Checks that the given options object is valid for the file system options.
  * @hidden
  */
-export async function checkOptions(fsType: FileSystemConstructor, opts: any): Promise<void> {
+export async function checkOptions(fsType: BackendConstructor, opts: any): Promise<void> {
 	const optsInfo = fsType.Options;
 	const fsName = fsType.Name;
 

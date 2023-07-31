@@ -1,6 +1,6 @@
 import assert from '../../harness/wrapped-assert';
 import { checkOptions } from '../../../src/core/util';
-import { FileSystemOptions, FileSystemConstructor } from '../../../src/core/file_system';
+import { BackendOptions, BackendConstructor } from '../../../src/core/file_system';
 import { ApiError } from '../../../src/core/api_error';
 import Backends from '../../../src/core/backends';
 
@@ -14,7 +14,7 @@ function numWaitingWrap(cb: any): any {
 	};
 }
 
-function getFileSystem(opts: FileSystemOptions): FileSystemConstructor {
+function getFileSystem(opts: BackendOptions): BackendConstructor {
 	return {
 		Options: opts,
 		Name: 'TestFS',

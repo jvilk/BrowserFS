@@ -1,4 +1,4 @@
-import { FileSystem, SynchronousFileSystem, BFSCallback, FileSystemOptions } from '../core/file_system';
+import { FileSystem, SynchronousFileSystem, BFSCallback, BackendOptions } from '../core/file_system';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { FileFlag } from '../core/file_flag';
 import { File } from '../core/file';
@@ -89,7 +89,7 @@ export interface AsyncMirrorOptions {
 export default class AsyncMirror extends SynchronousFileSystem implements FileSystem {
 	public static readonly Name = 'AsyncMirror';
 
-	public static readonly Options: FileSystemOptions = {
+	public static readonly Options: BackendOptions = {
 		sync: {
 			type: 'object',
 			description: 'The synchronous file system to mirror the asynchronous file system to.',

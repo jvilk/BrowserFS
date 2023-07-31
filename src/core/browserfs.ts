@@ -6,9 +6,9 @@
 import * as buffer from 'buffer';
 import fs from './node_fs';
 import * as path from 'path';
-import { FileSystemConstructor, FileSystem, BFSOneArgCallback, BFSCallback } from './file_system';
+import { BackendConstructor, FileSystem, BFSOneArgCallback, BFSCallback, BaseFileSystem } from './file_system';
 import EmscriptenFS from '../generic/emscripten_fs';
-import Backends from './backends';
+import { backends } from './backends';
 import * as BFSUtils from './util';
 import * as Errors from './api_error';
 import setImmediate from '../generic/setImmediate';
@@ -41,8 +41,8 @@ export function install(obj: any) {
 /**
  * @hidden
  */
-export function registerFileSystem(name: string, fs: FileSystemConstructor) {
-	(<any>Backends)[name] = fs;
+export function registerFileSystem(name: string, fs: BackendConstructor) {
+	backends[name] = fs;
 }
 
 /**
@@ -53,7 +53,7 @@ export function BFSRequire(module: 'path'): typeof path;
 export function BFSRequire(module: 'buffer'): typeof buffer;
 export function BFSRequire(module: 'process'): typeof process;
 export function BFSRequire(module: 'bfs_utils'): typeof BFSUtils;
-export function BFSRequire(module: string): any;
+export function BFSRequire(module: string): BackendConstructor;
 export function BFSRequire(module: string): any {
 	switch (module) {
 		case 'fs':
@@ -69,7 +69,7 @@ export function BFSRequire(module: string): any {
 		case 'bfs-utils':
 			return BFSUtils;
 		default:
-			return (<any>Backends)[module];
+			return backends[module];
 	}
 }
 
@@ -156,7 +156,7 @@ export function getFileSystem(config: FileSystemConfiguration, cb: BFSCallback<F
 	function finish() {
 		if (!called) {
 			called = true;
-			const fsc = <FileSystemConstructor | undefined>(<any>Backends)[fsName];
+			const fsc = <BackendConstructor | undefined>(<any>backends)[fsName];
 			if (!fsc) {
 				cb(new Errors.ApiError(Errors.ErrorCode.EPERM, `File system ${fsName} is not available in BrowserFS.`));
 			} else {
@@ -197,4 +197,4 @@ export function getFileSystem(config: FileSystemConfiguration, cb: BFSCallback<F
 	}
 }
 
-export { EmscriptenFS, Backends as FileSystem, Errors, setImmediate };
+export { EmscriptenFS, FileSystem, BaseFileSystem, backends as Backend, Errors, setImmediate };

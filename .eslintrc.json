@@ -28,6 +28,6 @@
 			"@typescript-eslint/triple-slash-reference": "warn",
 			"@typescript-eslint/no-non-null-assertion": "off"
 		},
-		"ignorePatterns": [	"scripts/*.js", "src/*.config.js" ],
+		"ignorePatterns": [	"scripts/*.js", "src/*.config.js", "test/harness", "test/fixtures", "test/tests/emscripten", "test/tests/general" ],
 		"plugins": ["@typescript-eslint"]
 }

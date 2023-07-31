@@ -1,6 +1,6 @@
 import { ApiError, ErrorCode } from '../core/api_error';
 import { default as Stats, FileType } from '../core/stats';
-import { SynchronousFileSystem, FileSystem, BFSCallback, FileSystemOptions } from '../core/file_system';
+import { SynchronousFileSystem, FileSystem, BFSCallback, BackendOptions } from '../core/file_system';
 import { File } from '../core/file';
 import { FileFlag, ActionType } from '../core/file_flag';
 import { NoSyncFile } from '../generic/preload_file';
@@ -1156,7 +1156,7 @@ export interface IsoFSOptions {
 export default class IsoFS extends SynchronousFileSystem implements FileSystem {
 	public static readonly Name = 'IsoFS';
 
-	public static readonly Options: FileSystemOptions = {
+	public static readonly Options: BackendOptions = {
 		data: {
 			type: 'object',
 			description: 'The ISO file in a buffer',

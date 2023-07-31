@@ -1,4 +1,4 @@
-import { FileSystem, BaseFileSystem, BFSCallback, FileSystemOptions } from '../core/file_system';
+import { FileSystem, BaseFileSystem, BFSCallback, BackendOptions } from '../core/file_system';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { FileFlag, ActionType } from '../core/file_flag';
 import { File } from '../core/file';
@@ -728,7 +728,7 @@ export interface OverlayFSOptions {
 export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
 	public static readonly Name = 'OverlayFS';
 
-	public static readonly Options: FileSystemOptions = {
+	public static readonly Options: BackendOptions = {
 		writable: {
 			type: 'object',
 			description: 'The file system to write modified files to.',

@@ -1,5 +1,5 @@
 import PreloadFile from '../generic/preload_file';
-import { BaseFileSystem, FileSystem, BFSCallback, FileSystemOptions } from '../core/file_system';
+import { BaseFileSystem, FileSystem, BFSCallback, BackendOptions } from '../core/file_system';
 import { FileFlag } from '../core/file_flag';
 import { default as Stats, FileType } from '../core/stats';
 import { ApiError, ErrorCode } from '../core/api_error';
@@ -172,7 +172,7 @@ export interface DropboxFileSystemOptions {
 export default class DropboxFileSystem extends BaseFileSystem implements FileSystem {
 	public static readonly Name = 'DropboxV2';
 
-	public static readonly Options: FileSystemOptions = {
+	public static readonly Options: BackendOptions = {
 		client: {
 			type: 'object',
 			description: 'An *authenticated* Dropbox client. Must be from the 2.5.x JS SDK.',

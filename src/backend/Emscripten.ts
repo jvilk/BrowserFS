@@ -1,4 +1,4 @@
-import { SynchronousFileSystem, BFSCallback, FileSystemOptions } from '../core/file_system';
+import { SynchronousFileSystem, BFSCallback, BackendOptions } from '../core/file_system';
 import { default as Stats, FileType } from '../core/stats';
 import { FileFlag } from '../core/file_flag';
 import { BaseFile, File } from '../core/file';
@@ -140,7 +140,7 @@ export interface EmscriptenFileSystemOptions {
 export default class EmscriptenFileSystem extends SynchronousFileSystem {
 	public static readonly Name = 'EmscriptenFileSystem';
 
-	public static readonly Options: FileSystemOptions = {
+	public static readonly Options: BackendOptions = {
 		FS: {
 			type: 'object',
 			description: 'The Emscripten file system to use (the `FS` variable)',

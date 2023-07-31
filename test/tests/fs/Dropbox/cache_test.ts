@@ -1,31 +1,47 @@
 import { fs } from '../../../common';
-import assert from '../../../harness/wrapped-assert';
 
-export default function () {
-	fs.readdir('/', function (err, data) {
-		assert(!err, 'Failed to read root directory.');
-		fs.readdir('/', function (err, data2) {
-			assert(!err, 'Failed to read root directory.');
-			assert(data !== data2, 'Dropbox cache should *copy* values from cache.');
-		});
+describe('File System Cache', () => {
+	test('Readdir and readFile cache', () => {
+		return new Promise<void>(resolve => {
+			fs.readdir('/', (err: NodeJS.ErrnoException | null, data: string[]) => {
+				expect(err).toBeNull();
+				const cachedData = data;
 
-		// Same test, but for files.
-		const file = '/test/fixtures/files/node/a.js';
-		fs.readFile(file, function (err, data) {
-			assert(!err, 'Failed to read ' + file);
-			fs.readFile(file, function (err, data2) {
-				assert(!err, 'Failed to read file ' + file);
-				assert(data !== data2, 'Dropbox cache should *copy* values from cache.');
+				fs.readdir('/', (err: NodeJS.ErrnoException | null, data2: string[]) => {
+					expect(err).toBeNull();
+					expect(data2).not.toBe(cachedData); // Dropbox cache should *copy* values from cache.
+
+					const file = '/test/fixtures/files/node/a.js';
+					fs.readFile(file, (err: NodeJS.ErrnoException | null, data: Buffer) => {
+						expect(err).toBeNull();
+						const cachedData = data;
+
+						fs.readFile(file, (err: NodeJS.ErrnoException | null, data2: Buffer) => {
+							expect(err).toBeNull();
+							expect(data2).not.toBe(cachedData); // Dropbox cache should *copy* values from cache.
+
+							resolve();
+						});
+					});
+				});
 			});
 		});
 	});
 
-	const data = new Buffer('Hello, I am a dumb test file', 'utf8');
-	fs.writeFile('/cache_test_file.txt', data, function (err) {
-		assert(!err, 'Failed to write /cache_test_file.txt');
-		fs.readFile('/cache_test_file.txt', function (err, data2) {
-			assert(!err, "Failed to read '/cache_test_file'");
-			assert(data2 !== data, 'Cache should copy data *into* cache.');
+	test('Write and readFile cache', () => {
+		const data = Buffer.from('Hello, I am a dumb test file', 'utf8');
+
+		return new Promise<void>(resolve => {
+			fs.writeFile('/cache_test_file.txt', data, (err: NodeJS.ErrnoException | null) => {
+				expect(err).toBeNull();
+
+				fs.readFile('/cache_test_file.txt', (err: NodeJS.ErrnoException | null, data2: Buffer) => {
+					expect(err).toBeNull();
+					expect(data2).not.toBe(data); // Cache should copy data *into* cache.
+
+					resolve();
+				});
+			});
 		});
 	});
-}
+});

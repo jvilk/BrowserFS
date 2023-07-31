@@ -1,4 +1,4 @@
-import { BaseFileSystem, FileSystem, BFSCallback, FileSystemOptions } from '../core/file_system';
+import { BaseFileSystem, FileSystem, BFSCallback, BackendOptions } from '../core/file_system';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { FileFlag, ActionType } from '../core/file_flag';
 import { copyingSlice } from '../core/util';
@@ -60,7 +60,7 @@ function syncNotAvailableError(): never {
 export default class HTTPRequest extends BaseFileSystem implements FileSystem {
 	public static readonly Name = 'HTTPRequest';
 
-	public static readonly Options: FileSystemOptions = {
+	public static readonly Options: BackendOptions = {
 		index: {
 			type: ['string', 'object'],
 			optional: true,

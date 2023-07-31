@@ -1,12 +1,10 @@
-import { FileSystem } from './core/file_system';
-
 /**
  * We use typedoc in 'file' mode to avoid many issues.
  * Unfortunately, it does not process export statements properly in some circumstances.
  * Here, we redefine the main BrowserFS object for documentation purposes.
  */
 
-import { FileSystem as Backends, BFSRequire } from './index';
+import { FileSystem, Backend, BFSRequire } from './index';
 
 /**
  * BrowserFS's main interface.
@@ -19,7 +17,7 @@ export interface BrowserFS {
 	/**
 	 * Exposes all of the file system backends available in BrowserFS.
 	 */
-	FileSystem: typeof Backends;
+	Backend: typeof Backend;
 	/**
 	 * Emulates Node's `require()` function for filesystem-related modules (`'fs'`, `'path'`, `'buffer'`, etc).
 	 */

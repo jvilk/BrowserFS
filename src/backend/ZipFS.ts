@@ -1,6 +1,6 @@
 import { ApiError, ErrorCode } from '../core/api_error';
 import { default as Stats, FileType } from '../core/stats';
-import { SynchronousFileSystem, FileSystem, BFSCallback, FileSystemOptions } from '../core/file_system';
+import { SynchronousFileSystem, FileSystem, BFSCallback, BackendOptions } from '../core/file_system';
 import { File } from '../core/file';
 import { FileFlag, ActionType } from '../core/file_flag';
 import { NoSyncFile } from '../generic/preload_file';
@@ -612,7 +612,7 @@ export interface ZipFSOptions {
 export default class ZipFS extends SynchronousFileSystem implements FileSystem {
 	public static readonly Name = 'ZipFS';
 
-	public static readonly Options: FileSystemOptions = {
+	public static readonly Options: BackendOptions = {
 		zipData: {
 			type: 'object',
 			description: 'The zip file as a Buffer object.',

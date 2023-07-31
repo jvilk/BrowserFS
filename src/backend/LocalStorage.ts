@@ -1,4 +1,4 @@
-import { BFSCallback, FileSystemOptions } from '../core/file_system';
+import { BFSCallback, BackendOptions } from '../core/file_system';
 import { SyncKeyValueStore, SimpleSyncStore, SyncKeyValueFileSystem, SimpleSyncRWTransaction, SyncKeyValueRWTransaction } from '../generic/key_value_filesystem';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { Buffer } from 'buffer';
@@ -84,7 +84,7 @@ export class LocalStorageStore implements SyncKeyValueStore, SimpleSyncStore {
 export default class LocalStorageFileSystem extends SyncKeyValueFileSystem {
 	public static readonly Name = 'LocalStorage';
 
-	public static readonly Options: FileSystemOptions = {};
+	public static readonly Options: BackendOptions = {};
 
 	/**
 	 * Creates a LocalStorageFileSystem instance.
