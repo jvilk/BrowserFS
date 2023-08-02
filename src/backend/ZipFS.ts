@@ -1,15 +1,16 @@
 import { ApiError, ErrorCode } from '../core/api_error';
 import { default as Stats, FileType } from '../core/stats';
-import { SynchronousFileSystem, FileSystem, BFSCallback, BackendOptions } from '../core/file_system';
+import { SynchronousFileSystem, FileSystem, type BFSCallback } from '../core/file_system';
 import { File } from '../core/file';
 import { FileFlag, ActionType } from '../core/file_flag';
 import { NoSyncFile } from '../generic/preload_file';
 import { copyingSlice, bufferValidator } from '../core/util';
 import ExtendedASCII from '../generic/extended_ascii';
 import setImmediate from '../generic/setImmediate';
-import { inflateRawSync as inflateRaw } from 'zlib';
+import { inflateRawSync } from 'zlib';
 import { FileIndex, DirInode, FileInode, isDirInode, isFileInode } from '../generic/file_index';
 import type { Buffer } from 'buffer';
+import type { BackendOptions } from '../core/backends';
 
 /**
  * Maps CompressionMethod => function that decompresses.
@@ -914,7 +915,7 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
 }
 
 ZipFS.RegisterDecompressionMethod(CompressionMethod.DEFLATE, (data, compressedSize, uncompressedSize) => {
-	return inflateRaw(data.subarray(0, compressedSize), { chunkSize: uncompressedSize });
+	return inflateRawSync(data.subarray(0, compressedSize), { chunkSize: uncompressedSize });
 });
 
 ZipFS.RegisterDecompressionMethod(CompressionMethod.STORED, (data, compressedSize, uncompressedSize) => {

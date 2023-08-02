@@ -1,7 +1,10 @@
-import { BFSOneArgCallback, BFSCallback, BackendOptions } from '../core/file_system';
+/// <reference lib="dom" />
+import type { BFSCallback } from '../core/file_system';
 import { AsyncKeyValueROTransaction, AsyncKeyValueRWTransaction, AsyncKeyValueStore, AsyncKeyValueFileSystem } from '../generic/key_value_filesystem';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { Buffer } from 'buffer';
+import type { BackendOptions } from '../core/backends';
+
 /**
  * Get the indexedDB constructor for the current browser.
  * @hidden

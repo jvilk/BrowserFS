@@ -1,12 +1,13 @@
 import { ApiError, ErrorCode } from '../core/api_error';
 import { default as Stats, FileType } from '../core/stats';
-import { SynchronousFileSystem, FileSystem, BFSCallback, BackendOptions } from '../core/file_system';
+import { SynchronousFileSystem, FileSystem, type BFSCallback } from '../core/file_system';
 import { File } from '../core/file';
 import { FileFlag, ActionType } from '../core/file_flag';
 import { NoSyncFile } from '../generic/preload_file';
 import { copyingSlice, bufferValidator as validator } from '../core/util';
 import * as path from 'path';
 import type { Buffer } from 'buffer';
+import type { BackendOptions } from '../core/backends';
 
 /**
  * @hidden

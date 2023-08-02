@@ -108,7 +108,7 @@ function normalizePath(p: string): string {
 /**
  * @hidden
  */
-function normalizeOptions(options: any, defEnc: string | null, defFlag: string, defMode: number | null): { encoding: string; flag: string; mode: number } {
+function normalizeOptions(options: any, defEnc: string | null, defFlag: string, defMode: number | null): { encoding: BufferEncoding; flag: string; mode: number } {
 	// typeof null === 'object' so special-case handing is needed.
 	switch (options === null ? 'null' : typeof options) {
 		case 'object':
@@ -127,7 +127,7 @@ function normalizeOptions(options: any, defEnc: string | null, defFlag: string, 
 		case 'undefined':
 		case 'function':
 			return {
-				encoding: defEnc!,
+				encoding: defEnc! as BufferEncoding,
 				flag: defFlag,
 				mode: defMode!,
 			};
@@ -287,7 +287,8 @@ export default class FS {
 		try {
 			return wrap(assertRoot(this.root).stat(normalizePath(path), false, this.cred), newCb);
 		} catch (e) {
-			return newCb(e);
+			newCb(e);
+			return;
 		}
 	}
 
@@ -312,7 +313,8 @@ export default class FS {
 		try {
 			return wrap(assertRoot(this.root).stat(normalizePath(path), true, this.cred), newCb);
 		} catch (e) {
-			return newCb(e);
+			newCb(e);
+			return;
 		}
 	}
 
@@ -352,7 +354,8 @@ export default class FS {
 			}
 			return wrap(assertRoot(this.root).truncate(normalizePath(path), len, this.cred), newCb);
 		} catch (e) {
-			return newCb(e);
+			newCb(e);
+			return;
 		}
 	}
 
@@ -378,7 +381,8 @@ export default class FS {
 		try {
 			return wrap(assertRoot(this.root).unlink(normalizePath(path), this.cred), newCb);
 		} catch (e) {
-			return newCb(e);
+			newCb(e);
+			return;
 		}
 	}
 
@@ -474,7 +478,8 @@ export default class FS {
 			}
 			return wrap(assertRoot(this.root).readFile(normalizePath(filename), options.encoding, flag, this.cred), newCb);
 		} catch (e) {
-			return newCb(e);
+			newCb(e);
+			return;
 		}
 	}
 
@@ -527,11 +532,13 @@ export default class FS {
 		try {
 			const flag = FileFlag.getFileFlag(options.flag);
 			if (!flag.isWriteable()) {
-				return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to writeFile must allow for writing.'));
+				newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to writeFile must allow for writing.'));
+				return;
 			}
 			return wrap(assertRoot(this.root).writeFile(normalizePath(filename), data, options.encoding, flag, options.mode, this.cred), newCb);
 		} catch (e) {
-			return newCb(e);
+			newCb(e);
+			return;
 		}
 	}
 
@@ -585,7 +592,8 @@ export default class FS {
 		try {
 			const flag = FileFlag.getFileFlag(options.flag);
 			if (!flag.isAppendable()) {
-				return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to appendFile must allow for appending.'));
+				newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to appendFile must allow for appending.'));
+				return;
 			}
 			wrap(assertRoot(this.root).appendFile(normalizePath(filename), data, options.encoding, flag, options.mode, this.cred), newCb);
 		} catch (e) {
@@ -799,7 +807,8 @@ export default class FS {
 				default:
 					// ...try to find the callback and get out of here!
 					cb = typeof arg4 === 'function' ? arg4 : typeof arg5 === 'function' ? arg5 : cb;
-					return cb(new ApiError(ErrorCode.EINVAL, 'Invalid arguments.'));
+					cb(new ApiError(ErrorCode.EINVAL, 'Invalid arguments.'));
+					return;
 			}
 			buffer = Buffer.from(arg2, encoding);
 			offset = 0;
@@ -1182,7 +1191,8 @@ export default class FS {
 		const newCb = wrapCb(cb, 1);
 		try {
 			if (type !== 'file' && type !== 'dir') {
-				return newCb(new ApiError(ErrorCode.EINVAL, 'Invalid type: ' + type));
+				newCb(new ApiError(ErrorCode.EINVAL, 'Invalid type: ' + type));
+				return;
 			}
 			srcpath = normalizePath(srcpath);
 			dstpath = normalizePath(dstpath);

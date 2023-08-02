@@ -1,4 +1,4 @@
-import { SynchronousFileSystem, BFSCallback, BackendOptions } from '../core/file_system';
+import { SynchronousFileSystem, type BFSCallback } from '../core/file_system';
 import { default as Stats, FileType } from '../core/stats';
 import { FileFlag } from '../core/file_flag';
 import { BaseFile, File } from '../core/file';
@@ -6,6 +6,8 @@ import { ApiError, ErrorCode, ErrorStrings } from '../core/api_error';
 import { EmscriptenFSNode } from '../generic/emscripten_fs';
 import Cred from '../core/cred';
 import { Buffer } from 'buffer';
+import type { BackendOptions } from '../core/backends';
+
 /**
  * @hidden
  */

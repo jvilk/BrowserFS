@@ -1,25 +1,19 @@
+/// <reference lib="dom" />
 import { basename, dirname, join } from 'path';
 import { ApiError, ErrorCode } from '../core/api_error';
 import Cred from '../core/cred';
 import { File } from '../core/file';
 import { FileFlag } from '../core/file_flag';
-import { BaseFileSystem, BFSCallback, BFSOneArgCallback, FileSystem, BackendOptions } from '../core/file_system';
+import { BaseFileSystem, type BFSCallback, FileSystem } from '../core/file_system';
 import { default as Stats, FileType } from '../core/stats';
 import { emptyBuffer } from '../core/util';
 import PreloadFile from '../generic/preload_file';
 import { Buffer } from 'buffer';
+import type { BackendOptions } from '../core/backends';
 
 interface FileSystemAccessFileSystemOptions {
 	handle: FileSystemDirectoryHandle;
 }
-
-type FileSystemKeysIterator = AsyncIterableIterator<string> & {
-	next: () => Promise<IteratorResult<string>>;
-};
-
-type GlobalFile = globalThis.File & {
-	arrayBuffer: () => Promise<ArrayBuffer>;
-};
 
 const handleError = (path = '', error: Error) => {
 	if (error.name === 'NotFoundError') {
@@ -173,7 +167,7 @@ export default class FileSystemAccessFileSystem extends BaseFileSystem implement
 	public async openFile(path: string, flags: FileFlag, cred: Cred): Promise<File> {
 		const handle = await this.getHandle(path);
 		if (handle instanceof FileSystemFileHandle) {
-			const file: GlobalFile = await handle.getFile();
+			const file = await handle.getFile();
 			const buffer = await file.arrayBuffer();
 			return this.newFile(path, flags, buffer, file.size, file.lastModified);
 		}

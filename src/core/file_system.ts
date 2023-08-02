@@ -10,9 +10,13 @@ import { fail } from './util';
 import Cred from './cred';
 import { Buffer } from 'buffer';
 
-export type BFSOneArgCallback = (e?: ApiError | null) => any;
-export type BFSCallback<T> = (e: ApiError | null | undefined, rv?: T) => any;
-export type BFSThreeArgCallback<T, U> = (e: ApiError | null | undefined, arg1?: T, arg2?: U) => any;
+export type BFSOneArgCallback = (e?: ApiError | null) => unknown;
+export type BFSCallback<T> = (e: ApiError | null | undefined, rv?: T) => unknown;
+export type BFSThreeArgCallback<T, U> = (e: ApiError | null | undefined, arg1?: T, arg2?: U) => unknown;
+
+export type FileContents = Buffer | string;
+
+export type DiskSpaceCB = (total: number, free: number) => unknown;
 
 /**
  * Interface for a filesystem. **All** BrowserFS FileSystems should implement
@@ -78,7 +82,7 @@ export interface FileSystem {
 	 * @param path The path to the location that is being queried. Only
 	 *   useful for filesystems that support mount points.
 	 */
-	diskSpace(p: string, cb: (total: number, free: number) => any): void;
+	diskSpace(p: string, cb: DiskSpaceCB): void;
 	/**
 	 * **Core**: Is this filesystem read-only?
 	 * @return True if this FileSystem is inherently read-only.
@@ -237,40 +241,40 @@ export interface FileSystem {
 	 * @param encoding If non-null, the file's contents should be decoded
 	 *   into a string using that encoding. Otherwise, if encoding is null, fetch
 	 *   the file's contents as a Buffer.
-	 * @param cb If no encoding is specified, then the raw buffer is returned.
+	 * If no encoding is specified, then the raw buffer is returned.
 	 */
-	readFile(fname: string, encoding: string | null, flag: FileFlag, cred: Cred): Promise<string | Buffer>;
+	readFile(fname: string, encoding: BufferEncoding | null, flag: FileFlag, cred: Cred): Promise<FileContents>;
 	/**
 	 * **Supplemental**: Synchronously reads the entire contents of a file.
 	 * @param encoding If non-null, the file's contents should be decoded
 	 *   into a string using that encoding. Otherwise, if encoding is null, fetch
 	 *   the file's contents as a Buffer.
 	 */
-	readFileSync(fname: string, encoding: string | null, flag: FileFlag, cred: Cred): any;
+	readFileSync(fname: string, encoding: BufferEncoding | null, flag: FileFlag, cred: Cred): FileContents;
 	/**
 	 * **Supplemental**: Asynchronously writes data to a file, replacing the file
 	 * if it already exists.
 	 *
 	 * The encoding option is ignored if data is a buffer.
 	 */
-	writeFile(fname: string, data: any, encoding: string | null, flag: FileFlag, mode: number, cred: Cred): Promise<void>;
+	writeFile(fname: string, data: FileContents, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred): Promise<void>;
 	/**
 	 * **Supplemental**: Synchronously writes data to a file, replacing the file
 	 * if it already exists.
 	 *
 	 * The encoding option is ignored if data is a buffer.
 	 */
-	writeFileSync(fname: string, data: string | Buffer, encoding: string | null, flag: FileFlag, mode: number, cred: Cred): void;
+	writeFileSync(fname: string, data: FileContents, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred): void;
 	/**
 	 * **Supplemental**: Asynchronously append data to a file, creating the file if
 	 * it not yet exists.
 	 */
-	appendFile(fname: string, data: string | Buffer, encoding: string | null, flag: FileFlag, mode: number, cred: Cred): Promise<void>;
+	appendFile(fname: string, data: FileContents, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred): Promise<void>;
 	/**
 	 * **Supplemental**: Synchronously append data to a file, creating the file if
 	 * it not yet exists.
 	 */
-	appendFileSync(fname: string, data: string | Buffer, encoding: string | null, flag: FileFlag, mode: number, cred: Cred): void;
+	appendFileSync(fname: string, data: FileContents, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred): void;
 	// **OPTIONAL INTERFACE METHODS**
 	// Property operations
 	// This isn't always possible on some filesystem types (e.g. Dropbox).
@@ -338,65 +342,8 @@ export interface FileSystem {
 	readlinkSync(p: string, cred: Cred): string;
 }
 
-/**
- * Describes a file system option.
- */
-export interface BackendOption<T> {
-	// The basic JavaScript type(s) for this option.
-	type: string | string[];
-	// Whether or not the option is optional (e.g., can be set to null or undefined).
-	// Defaults to `false`.
-	optional?: boolean;
-	// Description of the option. Used in error messages and documentation.
-	description: string;
-	// A custom validation function to check if the option is valid.
-	// Calls the callback with an error object on an error.
-	// (Can call callback synchronously.)
-	// Defaults to `(opt) => Promise<void>`.
-	validator?(opt: T): Promise<void>;
-}
-
-/**
- * Describes all of the options available in a file system.
- */
-export interface BackendOptions {
-	[name: string]: BackendOption<any>;
-}
-
 export interface FileSystemConstructor {
 	new (): FileSystem;
-}
-
-/**
- * Contains typings for static functions on the file system constructor.
- */
-export interface BackendConstructor {
-	/**
-	 * **Core**: Name to identify this particular file system.
-	 */
-	Name: string;
-	/**
-	 * **Core**: Describes all of the options available for this file system.
-	 */
-	Options: BackendOptions;
-	/**
-	 * **Core**: Creates a file system of this given type with the given
-	 * options, and returns the result in a callback.
-	 */
-	Create(options: object, cb: (e?: ApiError, fs?: FileSystem) => unknown);
-	/**
-	 * **Core**: Creates a file system of this given type with the given
-	 * options, and returns the result in a promise.
-	 */
-	CreateAsync(options: object): Promise<FileSystem>;
-	/**
-	 * **Core**: Returns 'true' if this filesystem is available in the current
-	 * environment. For example, a `localStorage`-backed filesystem will return
-	 * 'false' if the browser does not support that API.
-	 *
-	 * Defaults to 'false', as the FileSystem base class isn't usable alone.
-	 */
-	isAvailable(): boolean;
 }
 
 /**
@@ -424,7 +371,7 @@ export class BaseFileSystem implements FileSystem {
 		return false;
 	}
 
-	public diskSpace(p: string, cb: (total: number, free: number) => any): void {
+	public diskSpace(p: string, cb: DiskSpaceCB): void {
 		cb(0, 0);
 	}
 	/**
@@ -655,7 +602,7 @@ export class BaseFileSystem implements FileSystem {
 			fd.closeSync();
 		}
 	}
-	public async readFile(fname: string, encoding: BufferEncoding | null, flag: FileFlag, cred: Cred): Promise<string | Buffer> {
+	public async readFile(fname: string, encoding: BufferEncoding | null, flag: FileFlag, cred: Cred): Promise<FileContents> {
 		// Get file.
 		const fd = await this.open(fname, flag, 0o644, cred);
 		try {
@@ -672,7 +619,7 @@ export class BaseFileSystem implements FileSystem {
 			await fd.close();
 		}
 	}
-	public readFileSync(fname: string, encoding: BufferEncoding | null, flag: FileFlag, cred: Cred): any {
+	public readFileSync(fname: string, encoding: BufferEncoding | null, flag: FileFlag, cred: Cred): FileContents {
 		// Get file.
 		const fd = this.openSync(fname, flag, 0o644, cred);
 		try {
@@ -689,7 +636,7 @@ export class BaseFileSystem implements FileSystem {
 			fd.closeSync();
 		}
 	}
-	public async writeFile(fname: string, data: any, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred): Promise<void> {
+	public async writeFile(fname: string, data: FileContents, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred): Promise<void> {
 		// Get file.
 		const fd = await this.open(fname, flag, mode, cred);
 		try {
@@ -702,7 +649,7 @@ export class BaseFileSystem implements FileSystem {
 			await fd.close();
 		}
 	}
-	public writeFileSync(fname: string, data: any, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred): void {
+	public writeFileSync(fname: string, data: FileContents, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred): void {
 		// Get file.
 		const fd = this.openSync(fname, flag, mode, cred);
 		try {
@@ -715,7 +662,7 @@ export class BaseFileSystem implements FileSystem {
 			fd.closeSync();
 		}
 	}
-	public async appendFile(fname: string, data: any, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred): Promise<void> {
+	public async appendFile(fname: string, data: FileContents, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred): Promise<void> {
 		const fd = await this.open(fname, flag, mode, cred);
 		try {
 			if (typeof data === 'string') {
@@ -726,7 +673,7 @@ export class BaseFileSystem implements FileSystem {
 			await fd.close();
 		}
 	}
-	public appendFileSync(fname: string, data: any, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred): void {
+	public appendFileSync(fname: string, data: FileContents, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred): void {
 		const fd = this.openSync(fname, flag, mode, cred);
 		try {
 			if (typeof data === 'string') {

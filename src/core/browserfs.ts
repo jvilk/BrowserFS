@@ -6,7 +6,7 @@
 import * as buffer from 'buffer';
 import fs from './node_fs';
 import * as path from 'path';
-import { BackendConstructor, FileSystem, BFSOneArgCallback, BFSCallback, BaseFileSystem } from './file_system';
+import { FileSystem, type BFSOneArgCallback, type BFSCallback, BaseFileSystem } from './file_system';
 import EmscriptenFS from '../generic/emscripten_fs';
 import { backends } from './backends';
 import * as BFSUtils from './util';
@@ -14,6 +14,7 @@ import * as Errors from './api_error';
 import setImmediate from '../generic/setImmediate';
 import Cred from './cred';
 import * as process from 'process';
+import type { BackendConstructor } from '../core/backends';
 
 if (process && (<any>process)['initializeTTYs']) {
 	(<any>process)['initializeTTYs']();
@@ -148,7 +149,8 @@ export interface FileSystemConfiguration {
 export function getFileSystem(config: FileSystemConfiguration, cb: BFSCallback<FileSystem>): void {
 	const fsName = config['fs'];
 	if (!fsName) {
-		return cb(new Errors.ApiError(Errors.ErrorCode.EPERM, 'Missing "fs" property on configuration object.'));
+		cb(new Errors.ApiError(Errors.ErrorCode.EPERM, 'Missing "fs" property on configuration object.'));
+		return;
 	}
 	const options = config['options'];
 	let waitCount = 0;

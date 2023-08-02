@@ -1,43 +1,141 @@
 import { fs } from '../../../common';
+import * as path from 'path';
+import common from '../../../common';
+import type { BFSOneArgCallback } from '../../../../src/core/file_system';
 
-describe('File Truncation', () => {
-	test('Truncate file', () => {
-		const file = '/truncateFile.txt';
+describe('Truncate Tests', () => {
+	let filename: string;
+	const data = Buffer.alloc(1024 * 16, 'x');
+	let success: number;
 
-		fs.writeFile(file, Buffer.from('123456789'), (e: NodeJS.ErrnoException | null) => {
-			expect(e).toBeNull();
+	beforeAll(() => {
+		const tmp = common.tmpDir;
+		filename = path.resolve(tmp, 'truncate-file.txt');
+	});
 
-			fs.truncate(file, 9, (e: NodeJS.ErrnoException | null) => {
-				expect(e).toBeNull();
+	beforeEach(() => {
+		success = 0;
+	});
 
-				fs.readFile(file, (e: NodeJS.ErrnoException | null, data: Buffer) => {
-					expect(e).toBeNull();
-					expect(data.length).toBe(9);
-					expect(data.toString()).toBe('123456789');
+	afterEach(() => {
+		fs.unlinkSync(filename);
+	});
 
-					fs.truncate(file, 10, (e: NodeJS.ErrnoException | null) => {
-						expect(e).toBeNull();
+	const testTruncate = (cb: Function) => {
+		fs.writeFile(filename, data, er => {
+			if (er) return cb(er);
+			fs.stat(filename, (er, stat) => {
+				if (er) return cb(er);
+				expect(stat.size).toBe(1024 * 16);
 
-						fs.readFile(file, (e: NodeJS.ErrnoException | null, data: Buffer) => {
-							expect(e).toBeNull();
-							expect(data.length).toBe(10);
-							expect(data.toString()).toBe('123456789\u0000');
+				fs.truncate(filename, 1024, er => {
+					if (er) return cb(er);
+					fs.stat(filename, (er, stat) => {
+						if (er) return cb(er);
+						expect(stat.size).toBe(1024);
 
-							fs.truncate(file, -1, (e: NodeJS.ErrnoException | null) => {
-								expect(e).not.toBeNull();
+						fs.truncate(filename, er => {
+							if (er) return cb(er);
+							fs.stat(filename, (er, stat) => {
+								if (er) return cb(er);
+								expect(stat.size).toBe(0);
+								cb();
+							});
+						});
+					});
+				});
+			});
+		});
+	};
 
-								fs.truncate(file, 0, (e: NodeJS.ErrnoException | null) => {
-									expect(e).toBeNull();
+	const testFtruncate = (cb: BFSOneArgCallback) => {
+		fs.writeFile(filename, data, er => {
+			if (er) return cb(er);
+			fs.stat(filename, (er, stat) => {
+				if (er) return cb(er);
+				expect(stat.size).toBe(1024 * 16);
 
-									fs.readFile(file, (e: NodeJS.ErrnoException | null, data: Buffer) => {
-										expect(e).toBeNull();
-										expect(data.toString()).toBe('');
+				fs.open(filename, 'w', (er, fd) => {
+					if (er) return cb(er);
+					fs.ftruncate(fd, 1024, er => {
+						if (er) return cb(er);
+						// Force a sync.
+						fs.fsync(fd, er => {
+							if (er) return cb(er);
+							fs.stat(filename, (er, stat) => {
+								if (er) return cb(er);
+								expect(stat.size).toBe(1024);
+
+								fs.ftruncate(fd, er => {
+									if (er) return cb(er);
+									// Force a sync.
+									fs.fsync(fd, er => {
+										if (er) return cb(er);
+										fs.stat(filename, (er, stat) => {
+											if (er) return cb(er);
+											expect(stat.size).toBe(0);
+											fs.close(fd, cb);
+										});
 									});
 								});
 							});
 						});
 					});
 				});
+			});
+		});
+	};
+
+	test('Truncate Sync', () => {
+		const rootFS = fs.getRootFS();
+		if (!rootFS.supportsSynch()) return;
+
+		fs.writeFileSync(filename, data);
+		let stat = fs.statSync(filename);
+		expect(stat.size).toBe(1024 * 16);
+
+		fs.truncateSync(filename, 1024);
+		stat = fs.statSync(filename);
+		expect(stat.size).toBe(1024);
+
+		fs.truncateSync(filename);
+		stat = fs.statSync(filename);
+		expect(stat.size).toBe(0);
+
+		fs.writeFileSync(filename, data);
+		const fd = fs.openSync(filename, 'r+');
+		stat = fs.statSync(filename);
+		expect(stat.size).toBe(1024 * 16);
+
+		// TODO: Uncomment the following lines once fs.ftruncateSync is supported.
+		// fs.ftruncateSync(fd, 1024);
+		// stat = fs.statSync(filename);
+		// expect(stat.size).toBe(1024);
+
+		// fs.ftruncateSync(fd);
+		// stat = fs.statSync(filename);
+		// expect(stat.size).toBe(0);
+
+		fs.closeSync(fd);
+	});
+
+	test('Truncate Async', done => {
+		const rootFS = fs.getRootFS();
+		if (rootFS.isReadOnly() || !rootFS.supportsSynch()) {
+			done();
+			return;
+		}
+
+		success = 0;
+
+		testTruncate((er: NodeJS.ErrnoException) => {
+			if (er) throw er;
+			success++;
+			testFtruncate((er: NodeJS.ErrnoException) => {
+				if (er) throw er;
+				success++;
+				expect(success).toBe(2);
+				done();
 			});
 		});
 	});

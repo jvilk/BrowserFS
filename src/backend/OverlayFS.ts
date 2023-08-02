@@ -1,4 +1,4 @@
-import { FileSystem, BaseFileSystem, BFSCallback, BackendOptions } from '../core/file_system';
+import { FileSystem, BaseFileSystem, type BFSCallback } from '../core/file_system';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { FileFlag, ActionType } from '../core/file_flag';
 import { File } from '../core/file';
@@ -8,6 +8,7 @@ import LockedFS from '../generic/locked_fs';
 import * as path from 'path';
 import Cred from '../core/cred';
 import type { Buffer } from 'buffer';
+import type { BackendOptions } from '../core/backends';
 /**
  * @hidden
  */
@@ -361,7 +362,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 						return this._writable.openSync(p, flag, mode, cred);
 					} else {
 						// Create an OverlayFile.
-						const buf = this._readable.readFileSync(p, null, getFlag('r'), cred);
+						const buf = <Buffer>this._readable.readFileSync(p, null, getFlag('r'), cred);
 						const stats = Stats.clone(this._readable.statSync(p, false, cred));
 						stats.mode = mode;
 						return new OverlayFile(this, p, flag, stats, buf);

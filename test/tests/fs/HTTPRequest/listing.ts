@@ -4,7 +4,7 @@ import * as BrowserFS from '../../../../src/core/browserfs';
 type Listing = { [name: string]: Listing | null };
 
 describe('HTTPDownloadFS', () => {
-	let oldRootFS: BrowserFS.FileSystem.FileSystem;
+	let oldRootFS: BrowserFS.FileSystem;
 
 	beforeAll(() => {
 		oldRootFS = fs.getRootFS();
@@ -32,7 +32,7 @@ describe('HTTPDownloadFS', () => {
 		};
 
 		return new Promise<void>(resolve => {
-			BrowserFS.FileSystem.XmlHttpRequest.Create(
+			BrowserFS.Backend.XmlHttpRequest.Create(
 				{
 					index: listing,
 					baseUrl: '/',
@@ -76,6 +76,6 @@ describe('HTTPDownloadFS', () => {
 	});
 
 	test('Maintains XHR file system for backwards compatibility', () => {
-		expect(BrowserFS.FileSystem.XmlHttpRequest).toBe(BrowserFS.FileSystem.HTTPRequest);
+		expect(BrowserFS.Backend.XmlHttpRequest).toBe(BrowserFS.Backend.HTTPRequest);
 	});
 });

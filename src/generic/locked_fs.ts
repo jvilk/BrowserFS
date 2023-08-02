@@ -1,10 +1,9 @@
 import Mutex from './mutex';
-import { FileSystem } from '../core/file_system';
+import { DiskSpaceCB, FileContents, FileSystem } from '../core/file_system';
 import { FileFlag } from '../core/file_flag';
 import { default as Stats } from '../core/stats';
 import { File } from '../core/file';
 import Cred from '../core/cred';
-import type { Buffer } from 'buffer';
 
 /**
  * This class serializes access to an underlying async filesystem.
@@ -32,7 +31,7 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs;
 	}
 
-	public diskSpace(p: string, cb: (total: number, free: number) => any): void {
+	public diskSpace(p: string, cb: DiskSpaceCB): void {
 		// FIXME: should this lock?
 		this._fs.diskSpace(p, cb);
 	}
@@ -201,40 +200,40 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs.truncateSync(p, len, cred);
 	}
 
-	public async readFile(fname: string, encoding: string, flag: FileFlag, cred: Cred): Promise<string | Buffer> {
+	public async readFile(fname: string, encoding: BufferEncoding, flag: FileFlag, cred: Cred): Promise<FileContents> {
 		await this._mu.lock();
 		const data = await this._fs.readFile(fname, encoding, flag, cred);
 		this._mu.unlock();
 		return data;
 	}
 
-	public readFileSync(fname: string, encoding: string, flag: FileFlag, cred: Cred): any {
+	public readFileSync(fname: string, encoding: BufferEncoding, flag: FileFlag, cred: Cred): FileContents {
 		if (this._mu.isLocked()) {
 			throw new Error('invalid sync call');
 		}
 		return this._fs.readFileSync(fname, encoding, flag, cred);
 	}
 
-	public async writeFile(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cred: Cred): Promise<void> {
+	public async writeFile(fname: string, data: FileContents, encoding: BufferEncoding, flag: FileFlag, mode: number, cred: Cred): Promise<void> {
 		await this._mu.lock();
 		await this._fs.writeFile(fname, data, encoding, flag, mode, cred);
 		this._mu.unlock();
 	}
 
-	public writeFileSync(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cred: Cred): void {
+	public writeFileSync(fname: string, data: FileContents, encoding: BufferEncoding, flag: FileFlag, mode: number, cred: Cred): void {
 		if (this._mu.isLocked()) {
 			throw new Error('invalid sync call');
 		}
 		return this._fs.writeFileSync(fname, data, encoding, flag, mode, cred);
 	}
 
-	public async appendFile(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cred: Cred): Promise<void> {
+	public async appendFile(fname: string, data: FileContents, encoding: BufferEncoding, flag: FileFlag, mode: number, cred: Cred): Promise<void> {
 		await this._mu.lock();
 		await this._fs.appendFile(fname, data, encoding, flag, mode, cred);
 		this._mu.unlock();
 	}
 
-	public appendFileSync(fname: string, data: any, encoding: string, flag: FileFlag, mode: number, cred: Cred): void {
+	public appendFileSync(fname: string, data: FileContents, encoding: BufferEncoding, flag: FileFlag, mode: number, cred: Cred): void {
 		if (this._mu.isLocked()) {
 			throw new Error('invalid sync call');
 		}

@@ -43,5 +43,5 @@ export interface BrowserFS {
 	 * This allows you to write code as if you were running inside Node.
 	 * @param obj The object to install things onto (e.g. window)
 	 */
-	install(obj: any): void;
+	install(obj: object): void;
 }

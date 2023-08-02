@@ -1,15 +1,15 @@
 import PreloadFile from '../generic/preload_file';
-import { BaseFileSystem, FileSystem, BFSCallback, BackendOptions } from '../core/file_system';
+import { BaseFileSystem, FileSystem, type BFSCallback } from '../core/file_system';
 import { FileFlag } from '../core/file_flag';
 import { default as Stats, FileType } from '../core/stats';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { File } from '../core/file';
-import { buffer2ArrayBuffer, wait } from '../core/util';
-import { Dropbox } from '../generic/dropbox_bridge_actual';
+import { wait } from '../core/util';
+import type * as DropboxTypes from 'dropbox';
 import { dirname } from 'path';
 import Cred from '../core/cred';
 import { Buffer } from 'buffer';
-type DropboxClient = DropboxTypes.Dropbox;
+import type { BackendOptions } from '../core/backends';
 
 /**
  * Dropbox paths do not begin with a /, they just begin with a folder at the root node.
@@ -118,7 +118,7 @@ function convertWriteError(err: DropboxTypes.files.WriteError, p: string, msg: s
 	}
 }
 
-async function deleteFiles(client: DropboxClient, p: string): Promise<void> {
+async function deleteFiles(client: DropboxTypes.Dropbox, p: string): Promise<void> {
 	const arg: DropboxTypes.files.DeleteArg = {
 		path: fixPath(p),
 	};
@@ -197,7 +197,7 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
 
 	public static isAvailable(): boolean {
 		// Checks if the Dropbox library is loaded.
-		return typeof Dropbox !== 'undefined';
+		return typeof globalThis.Dropbox !== 'undefined';
 	}
 
 	private _client: DropboxTypes.Dropbox;
@@ -351,7 +351,7 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
 
 	public async createFile(p: string, flags: FileFlag, mode: number, cred: Cred): Promise<File> {
 		const fileData = Buffer.alloc(0),
-			contents = new Blob([buffer2ArrayBuffer(fileData) as ArrayBuffer], { type: 'octet/stream' });
+			contents = new Blob([fileData], { type: 'octet/stream' });
 		const commitInfo: DropboxTypes.files.CommitInfo = {
 			contents,
 			path: fixPath(p),
@@ -448,7 +448,7 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
 	 * Syncs file to Dropbox.
 	 */
 	public async _syncFile(p: string, d: Buffer): Promise<void> {
-		const blob = new Blob([buffer2ArrayBuffer(d) as ArrayBuffer], { type: 'octet/stream' });
+		const blob = new Blob([d], { type: 'octet/stream' });
 		const arg: DropboxTypes.files.CommitInfo = {
 			contents: blob,
 			path: fixPath(p),

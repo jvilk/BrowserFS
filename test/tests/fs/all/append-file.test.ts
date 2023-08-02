@@ -1,6 +1,7 @@
 import { fs } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
+import type { FileContents } from '../../../../src/core/file_system';
 
 describe('appendFile tests', () => {
 	const tmpDir: string = path.join(common.tmpDir, 'append.txt');
@@ -78,7 +79,7 @@ describe('appendFile tests', () => {
 
 	// Additional tests can be added here
 
-	async function appendFileAndVerify(filename: string, content: string | Buffer): Promise<void> {
+	async function appendFileAndVerify(filename: string, content: FileContents): Promise<void> {
 		await new Promise<void>((resolve, reject) => {
 			fs.appendFile(filename, content, error => {
 				if (error) {

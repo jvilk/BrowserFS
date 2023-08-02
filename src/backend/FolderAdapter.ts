@@ -1,7 +1,8 @@
-import { BaseFileSystem, FileSystem, BFSCallback, BackendOptions } from '../core/file_system';
+import { BaseFileSystem, FileSystem, type BFSCallback } from '../core/file_system';
 import * as path from 'path';
 import { ApiError } from '../core/api_error';
 import Cred from '../core/cred';
+import type { BackendOptions } from '../core/backends';
 
 /**
  * Configuration options for a FolderAdapter file system.

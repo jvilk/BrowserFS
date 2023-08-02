@@ -1,6 +1,7 @@
-import { BFSCallback, BackendOptions } from '../core/file_system';
+import type { BFSCallback } from '../core/file_system';
 import { SyncKeyValueStore, SimpleSyncStore, SimpleSyncRWTransaction, SyncKeyValueRWTransaction, SyncKeyValueFileSystem } from '../generic/key_value_filesystem';
 import type { Buffer } from 'buffer';
+import type { BackendOptions } from '../core/backends';
 
 /**
  * A simple in-memory key-value store backed by a JavaScript object.

@@ -1,10 +1,12 @@
-import { FileSystem, BaseFileSystem, BFSCallback, BackendOptions } from '../core/file_system';
+import { FileSystem, BaseFileSystem, type BFSCallback } from '../core/file_system';
 import InMemoryFileSystem from './InMemory';
 import { ApiError, ErrorCode } from '../core/api_error';
 import fs from '../core/node_fs';
 import * as path from 'path';
 import { mkdirpSync, toPromise } from '../core/util';
 import Cred from '../core/cred';
+import type { BackendOptions } from '../core/backends';
+
 /**
  * Configuration options for the MountableFileSystem backend.
  */
@@ -37,16 +39,16 @@ export interface MountableFileSystemOptions {
  *
  * For advanced users, you can also mount file systems *after* MFS is constructed:
  * ```javascript
- * BrowserFS.FileSystem.HTTPRequest.Create({
+ * BrowserFS.Backend.HTTPRequest.Create({
  *   index: "http://mysite.com/files/index.json"
  * }, function(e, xhrfs) {
- *   BrowserFS.FileSystem.MountableFileSystem.Create({
+ *   BrowserFS.Backend.MountableFileSystem.Create({
  *     '/data': xhrfs
  *   }, function(e, mfs) {
  *     BrowserFS.initialize(mfs);
  *
  *     // Added after-the-fact...
- *     BrowserFS.FileSystem.LocalStorage.Create(function(e, lsfs) {
+ *     BrowserFS.Backend.LocalStorage.Create(function(e, lsfs) {
  *       mfs.mount('/home', lsfs);
  *     });
  *   });

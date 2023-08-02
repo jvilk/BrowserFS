@@ -1,4 +1,4 @@
-import { FileSystem, SynchronousFileSystem, BFSCallback, BackendOptions } from '../core/file_system';
+import { FileSystem, SynchronousFileSystem, type BFSCallback } from '../core/file_system';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { FileFlag } from '../core/file_flag';
 import { File } from '../core/file';
@@ -7,6 +7,7 @@ import PreloadFile from '../generic/preload_file';
 import * as path from 'path';
 import Cred from '../core/cred';
 import type { Buffer } from 'buffer';
+import type { BackendOptions } from '../core/backends';
 /**
  * @hidden
  */
@@ -75,9 +76,9 @@ export interface AsyncMirrorOptions {
  * Or, alternatively:
  *
  * ```javascript
- * BrowserFS.FileSystem.IndexedDB.Create(function(e, idbfs) {
- *   BrowserFS.FileSystem.InMemory.Create(function(e, inMemory) {
- *     BrowserFS.FileSystem.AsyncMirror({
+ * BrowserFS.Backend.IndexedDB.Create(function(e, idbfs) {
+ *   BrowserFS.Backend.InMemory.Create(function(e, inMemory) {
+ *     BrowserFS.Backend.AsyncMirror({
  *       sync: inMemory, async: idbfs
  *     }, function(e, mirrored) {
  *       BrowserFS.initialize(mirrored);
@@ -199,7 +200,7 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
 		// Sanity check: Is this open/close permitted?
 		const fd = this._sync.openSync(p, flag, mode, cred);
 		fd.closeSync();
-		return new MirrorFile(this, p, flag, this._sync.statSync(p, false, cred), this._sync.readFileSync(p, null, FileFlag.getFileFlag('r'), cred));
+		return new MirrorFile(this, p, flag, this._sync.statSync(p, false, cred), <Buffer>this._sync.readFileSync(p, null, FileFlag.getFileFlag('r'), cred));
 	}
 
 	public unlinkSync(p: string, cred: Cred): void {

@@ -1,4 +1,4 @@
-import { BaseFileSystem, FileSystem, BFSCallback, BackendOptions } from '../core/file_system';
+import { BaseFileSystem, FileSystem, type BFSCallback, FileContents } from '../core/file_system';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { FileFlag, ActionType } from '../core/file_flag';
 import { copyingSlice } from '../core/util';
@@ -9,6 +9,7 @@ import { fetchIsAvailable, fetchFile, fetchFileSize } from '../generic/fetch';
 import { FileIndex, isFileInode, isDirInode } from '../generic/file_index';
 import Cred from '../core/cred';
 import type { Buffer } from 'buffer';
+import type { BackendOptions } from '../core/backends';
 
 /**
  * Configuration options for a HTTPRequest file system.
@@ -250,7 +251,7 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
 	/**
 	 * We have the entire file as a buffer; optimize readFile.
 	 */
-	public async readFile(fname: string, encoding: BufferEncoding, flag: FileFlag, cred: Cred): Promise<string | Buffer> {
+	public async readFile(fname: string, encoding: BufferEncoding, flag: FileFlag, cred: Cred): Promise<FileContents> {
 		// Get file.
 		const fd = await this.open(fname, flag, 0o644, cred);
 		try {
