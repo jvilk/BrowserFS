@@ -1,4 +1,4 @@
-import { BaseFileSystem, FileSystem, type BFSCallback } from '../core/file_system';
+import { BaseFileSystem, type FileSystem } from '../core/file_system';
 import * as path from 'path';
 import { ApiError } from '../core/api_error';
 import Cred from '../core/cred';
@@ -32,7 +32,7 @@ export interface FolderAdapterOptions {
  * });
  * ```
  */
-export default class FolderAdapter extends BaseFileSystem implements FileSystem {
+export class FolderAdapter extends BaseFileSystem implements FileSystem {
 	public static readonly Name = 'FolderAdapter';
 
 	public static readonly Options: BackendOptions = {
@@ -45,15 +45,6 @@ export default class FolderAdapter extends BaseFileSystem implements FileSystem 
 			description: 'The file system to wrap',
 		},
 	};
-
-	/**
-	 * Creates a FolderAdapter instance with the given options.
-	 */
-	public static Create(opts: FolderAdapterOptions, cb: BFSCallback<FolderAdapter>): void {
-		this.CreateAsync(opts)
-			.then(fa => cb(null, fa))
-			.catch(cb);
-	}
 
 	public static async CreateAsync(opts: FolderAdapterOptions): Promise<FolderAdapter> {
 		const fa = new FolderAdapter(opts.folder, opts.wrapped);

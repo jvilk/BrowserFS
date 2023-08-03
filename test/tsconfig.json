@@ -1,9 +1,10 @@
 {
+	"type": "module",
 	"compilerOptions": {
 		"module": "ESNext",
 		"target": "ESNext",
 		"outDir": "../build/temp/test",
-		"lib": ["esnext"],
+		"lib": ["esnext", "dom"],
 		"moduleResolution": "node",
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true

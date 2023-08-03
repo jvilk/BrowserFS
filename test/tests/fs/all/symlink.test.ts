@@ -1,8 +1,8 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe('Link and Symlink Test', () => {
+describe.each(backends)('%s Link and Symlink Test', () => {
 	let completed = 0;
 	const expected_tests = 2;
 	const rootFS = fs.getRootFS();

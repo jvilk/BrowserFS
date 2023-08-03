@@ -1,8 +1,8 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe('Utimes Tests', () => {
+describe.each(backends)('%s Utimes Tests', () => {
 	let tests_ok: number;
 	let tests_run: number;
 	const rootFS = fs.getRootFS();

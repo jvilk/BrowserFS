@@ -1,8 +1,8 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe('fs.writeFile', () => {
+describe.each(backends)('%s fs.writeFile', () => {
 	if (!fs.getRootFS().isReadOnly()) {
 		const fileNameLen = Math.max(260 - common.tmpDir.length - 1, 1);
 		const fileName = path.join(common.tmpDir, new Array(fileNameLen + 1).join('x'));

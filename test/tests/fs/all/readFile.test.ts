@@ -1,8 +1,8 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe('File Reading', () => {
+describe.each(backends)('%s File Reading', () => {
 	test('Cannot read a file with an invalid encoding (synchronous)', () => {
 		const rootFS = fs.getRootFS();
 		let wasThrown = false;

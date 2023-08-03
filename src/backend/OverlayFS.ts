@@ -1,4 +1,4 @@
-import { FileSystem, BaseFileSystem, type BFSCallback } from '../core/file_system';
+import { type FileSystem, BaseFileSystem } from '../core/file_system';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { FileFlag, ActionType } from '../core/file_flag';
 import { File } from '../core/file';
@@ -726,7 +726,7 @@ export interface OverlayFSOptions {
  * writable file system. Deletes are persisted via metadata stored on the writable
  * file system.
  */
-export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
+export class OverlayFS extends LockedFS<UnlockedOverlayFS> {
 	public static readonly Name = 'OverlayFS';
 
 	public static readonly Options: BackendOptions = {
@@ -739,15 +739,6 @@ export default class OverlayFS extends LockedFS<UnlockedOverlayFS> {
 			description: 'The file system that initially populates this file system.',
 		},
 	};
-
-	/**
-	 * Constructs and initializes an OverlayFS instance with the given options.
-	 */
-	public static Create(opts: OverlayFSOptions, cb: BFSCallback<OverlayFS>): void {
-		this.CreateAsync(opts)
-			.then(fs => cb(null, fs))
-			.catch(cb);
-	}
 
 	public static async CreateAsync(opts: OverlayFSOptions): Promise<OverlayFS> {
 		const fs = new OverlayFS(opts.writable, opts.readable);

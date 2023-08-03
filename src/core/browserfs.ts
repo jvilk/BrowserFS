@@ -199,4 +199,5 @@ export function getFileSystem(config: FileSystemConfiguration, cb: BFSCallback<F
 	}
 }
 
-export { EmscriptenFS, FileSystem, BaseFileSystem, backends as Backend, Errors, setImmediate };
+export * from './backends';
+export { EmscriptenFS, FileSystem, BaseFileSystem, Errors, setImmediate };

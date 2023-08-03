@@ -1,8 +1,8 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe('fs.fileSync', () => {
+describe.each(backends)('%s fs.fileSync', () => {
 	const file = path.join(common.fixturesDir, 'a.js');
 	const rootFS = fs.getRootFS();
 

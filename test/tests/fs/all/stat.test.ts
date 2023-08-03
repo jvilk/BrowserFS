@@ -1,8 +1,8 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe('File Stat Test', () => {
+describe.each(backends)('%s File Stat Test', () => {
 	let got_error = false;
 	let success_count = 0;
 	const existing_dir = common.fixturesDir;

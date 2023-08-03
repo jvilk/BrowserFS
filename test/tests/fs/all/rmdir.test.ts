@@ -1,6 +1,6 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 
-describe('Directory Removal', () => {
+describe.each(backends)('%s Directory Removal', () => {
 	test('Cannot remove non-empty directories', () => {
 		fs.mkdir('/rmdirTest', (e: NodeJS.ErrnoException | null) => {
 			expect(e).toBeNull();

@@ -1,5 +1,5 @@
 import PreloadFile from '../generic/preload_file';
-import { BaseFileSystem, FileSystem, type BFSCallback } from '../core/file_system';
+import { BaseFileSystem, type FileSystem } from '../core/file_system';
 import { FileFlag } from '../core/file_flag';
 import { default as Stats, FileType } from '../core/stats';
 import { ApiError, ErrorCode } from '../core/api_error';
@@ -169,7 +169,7 @@ export interface DropboxFileSystemOptions {
  *
  * Uses the Dropbox V2 API, and the 2.x JS SDK.
  */
-export default class DropboxFileSystem extends BaseFileSystem implements FileSystem {
+export class DropboxFileSystem extends BaseFileSystem implements FileSystem {
 	public static readonly Name = 'DropboxV2';
 
 	public static readonly Options: BackendOptions = {
@@ -178,14 +178,6 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
 			description: 'An *authenticated* Dropbox client. Must be from the 2.5.x JS SDK.',
 		},
 	};
-
-	/**
-	 * Creates a new DropboxFileSystem instance with the given options.
-	 * Must be given an *authenticated* Dropbox client from 2.x JS SDK.
-	 */
-	public static Create(opts: DropboxFileSystemOptions, cb: BFSCallback<DropboxFileSystem>): void {
-		cb(null, new DropboxFileSystem(opts.client));
-	}
 
 	/**
 	 * Asynchronously creates a new DropboxFileSystem instance with the given options.

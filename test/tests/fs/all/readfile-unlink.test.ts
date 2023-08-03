@@ -1,8 +1,8 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe('Read and Unlink File Test', () => {
+describe.each(backends)('%s Read and Unlink File Test', () => {
 	if (!fs.getRootFS().isReadOnly()) {
 		const dirName = path.resolve(common.fixturesDir, 'test-readfile-unlink');
 		const fileName = path.resolve(dirName, 'test.bin');

@@ -21,12 +21,12 @@ export enum ErrorCode {
 	ENOTEMPTY = 39,
 	ENOTSUP = 95,
 }
-/* tslint:disable:variable-name */
+
 /**
  * Strings associated with each error code.
  * @hidden
  */
-export const ErrorStrings: { [code: string]: string; [code: number]: string } = {};
+export const ErrorStrings: { [code: string | number]: string } = {};
 ErrorStrings[ErrorCode.EPERM] = 'Operation not permitted.';
 ErrorStrings[ErrorCode.ENOENT] = 'No such file or directory.';
 ErrorStrings[ErrorCode.EIO] = 'Input/output error.';
@@ -42,14 +42,21 @@ ErrorStrings[ErrorCode.ENOSPC] = 'No space left on disk.';
 ErrorStrings[ErrorCode.EROFS] = 'Cannot modify a read-only file system.';
 ErrorStrings[ErrorCode.ENOTEMPTY] = 'Directory is not empty.';
 ErrorStrings[ErrorCode.ENOTSUP] = 'Operation is not supported.';
-/* tslint:enable:variable-name */
+
+interface ApiErrorJSON {
+	errno: ErrorCode;
+	message: string;
+	path: string;
+	code: string;
+	stack: string;
+}
 
 /**
  * Represents a BrowserFS error. Passed back to applications after a failed
  * call to the BrowserFS API.
  */
 export class ApiError extends Error implements NodeJS.ErrnoException {
-	public static fromJSON(json: any): ApiError {
+	public static fromJSON(json: ApiErrorJSON): ApiError {
 		const err = new ApiError(json.errno, json.message, json.path);
 		err.code = json.code;
 		err.stack = json.stack;

@@ -1,8 +1,8 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe('fs.exists', () => {
+describe.each(backends)('%s fs.exists', () => {
 	let exists: boolean;
 	let doesNotExist: boolean;
 	const f = path.join(common.fixturesDir, 'x.txt');

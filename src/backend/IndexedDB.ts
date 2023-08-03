@@ -1,5 +1,4 @@
 /// <reference lib="dom" />
-import type { BFSCallback } from '../core/file_system';
 import { AsyncKeyValueROTransaction, AsyncKeyValueRWTransaction, AsyncKeyValueStore, AsyncKeyValueFileSystem } from '../generic/key_value_filesystem';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { Buffer } from 'buffer';
@@ -210,7 +209,7 @@ export interface IndexedDBFileSystemOptions {
 /**
  * A file system that uses the IndexedDB key value file system.
  */
-export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
+export class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
 	public static readonly Name = 'IndexedDB';
 
 	public static readonly Options: BackendOptions = {
@@ -225,15 +224,6 @@ export default class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
 			description: 'The size of the inode cache. Defaults to 100. A size of 0 or below disables caching.',
 		},
 	};
-
-	/**
-	 * Constructs an IndexedDB file system with the given options.
-	 */
-	public static Create(options: IndexedDBFileSystemOptions, cb: BFSCallback<IndexedDBFileSystem>): void {
-		this.CreateAsync(options)
-			.then(fs => cb(null, fs))
-			.catch(cb);
-	}
 
 	public static async CreateAsync(options: IndexedDBFileSystemOptions): Promise<IndexedDBFileSystem> {
 		options ||= {

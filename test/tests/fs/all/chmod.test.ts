@@ -1,9 +1,10 @@
-import { fs, createMockStats } from '../../../common';
+import { fs, createMockStats, backends } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
+import { jest } from '@jest/globals';
 
 const isWindows = process.platform === 'win32';
-describe('chmod tests', () => {
+describe.each(backends)('%s chmod tests', () => {
 	const fixturesDir = common.fixturesDir;
 	const tmpDir = common.tmpDir;
 

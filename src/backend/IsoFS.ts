@@ -1,6 +1,6 @@
 import { ApiError, ErrorCode } from '../core/api_error';
 import { default as Stats, FileType } from '../core/stats';
-import { SynchronousFileSystem, FileSystem, type BFSCallback } from '../core/file_system';
+import { SynchronousFileSystem, type FileSystem } from '../core/file_system';
 import { File } from '../core/file';
 import { FileFlag, ActionType } from '../core/file_flag';
 import { NoSyncFile } from '../generic/preload_file';
@@ -1154,7 +1154,7 @@ export interface IsoFSOptions {
  * * Vanilla ISO9660 ISOs
  * * Microsoft Joliet and Rock Ridge extensions to the ISO9660 standard
  */
-export default class IsoFS extends SynchronousFileSystem implements FileSystem {
+export class IsoFS extends SynchronousFileSystem implements FileSystem {
 	public static readonly Name = 'IsoFS';
 
 	public static readonly Options: BackendOptions = {
@@ -1165,27 +1165,8 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
 		},
 	};
 
-	/**
-	 * Creates an IsoFS instance with the given options.
-	 */
-	public static Create(opts: IsoFSOptions, cb: BFSCallback<IsoFS>): void {
-		try {
-			cb(null, new IsoFS(opts.data, opts.name));
-		} catch (e) {
-			cb(e);
-		}
-	}
-
-	public static CreateAsync(opts: IsoFSOptions): Promise<IsoFS> {
-		return new Promise((resolve, reject) => {
-			this.Create(opts, (error, fs) => {
-				if (error || !fs) {
-					reject(error);
-				} else {
-					resolve(fs);
-				}
-			});
-		});
+	public static async CreateAsync(opts: IsoFSOptions): Promise<IsoFS> {
+		return new IsoFS(opts.data, opts.name);
 	}
 
 	public static isAvailable(): boolean {

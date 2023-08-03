@@ -1,4 +1,4 @@
-import { FileSystem, SynchronousFileSystem, type BFSCallback } from '../core/file_system';
+import { type FileSystem, SynchronousFileSystem } from '../core/file_system';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { FileFlag } from '../core/file_flag';
 import { File } from '../core/file';
@@ -87,7 +87,7 @@ export interface AsyncMirrorOptions {
  * });
  * ```
  */
-export default class AsyncMirror extends SynchronousFileSystem implements FileSystem {
+export class AsyncMirror extends SynchronousFileSystem implements FileSystem {
 	public static readonly Name = 'AsyncMirror';
 
 	public static readonly Options: BackendOptions = {
@@ -105,20 +105,6 @@ export default class AsyncMirror extends SynchronousFileSystem implements FileSy
 			description: 'The asynchronous file system to mirror.',
 		},
 	};
-
-	/**
-	 * Constructs and initializes an AsyncMirror file system with the given options.
-	 */
-	public static Create(opts: AsyncMirrorOptions, cb: BFSCallback<AsyncMirror>): void {
-		try {
-			const fs = new AsyncMirror(opts.sync, opts.async);
-			fs._initialize()
-				.then(() => cb(null, fs))
-				.catch(e => cb(e));
-		} catch (e) {
-			cb(e);
-		}
-	}
 
 	/**
 	 * Asynchronously constructs and initializes an AsyncMirror file system with the given options.

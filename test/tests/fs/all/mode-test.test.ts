@@ -1,7 +1,7 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import * as path from 'path';
 
-describe('PermissionsTest', () => {
+describe.each(backends)('%s PermissionsTest', () => {
 	const testFileContents = Buffer.from('this is a test file, plz ignore.');
 
 	function is_writable(mode: number) {

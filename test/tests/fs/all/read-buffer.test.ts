@@ -1,8 +1,8 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import path from 'path';
 import common from '../../../common';
 
-describe('fs file reading', () => {
+describe.each(backends)('%s fs file reading', () => {
 	const filepath = path.join(common.fixturesDir, 'x.txt');
 	const expected = 'xyz\n';
 	const bufferAsync = Buffer.alloc(expected.length);

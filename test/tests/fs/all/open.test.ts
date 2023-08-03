@@ -1,8 +1,8 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import path from 'path';
 import common from '../../../common';
 
-describe('fs file opening', () => {
+describe.each(backends)('%s fs file opening', () => {
 	const filename = path.join(common.fixturesDir, 'a.js');
 
 	it('should throw ENOENT when opening non-existent file (sync)', () => {

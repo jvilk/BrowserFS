@@ -1,8 +1,8 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe('File Reading', () => {
+describe.each(backends)('%s File Reading', () => {
 	test('Read a file and check its binary bytes (asynchronous)', done => {
 		fs.readFile(path.join(common.fixturesDir, 'elipses.txt'), (err, buff) => {
 			if (err) throw err;

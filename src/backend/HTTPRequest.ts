@@ -1,4 +1,4 @@
-import { BaseFileSystem, FileSystem, type BFSCallback, FileContents } from '../core/file_system';
+import { BaseFileSystem, type FileSystem, FileContents } from '../core/file_system';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { FileFlag, ActionType } from '../core/file_flag';
 import { copyingSlice } from '../core/util';
@@ -58,7 +58,7 @@ function syncNotAvailableError(): never {
  *
  * *This example has the folder `/home/jvilk` with subfile `someFile.txt` and subfolder `someDir`.*
  */
-export default class HTTPRequest extends BaseFileSystem implements FileSystem {
+export class HTTPRequest extends BaseFileSystem implements FileSystem {
 	public static readonly Name = 'HTTPRequest';
 
 	public static readonly Options: BackendOptions = {
@@ -78,15 +78,6 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
 			description: 'Whether to prefer XmlHttpRequest or fetch for async operations if both are available. Default: false',
 		},
 	};
-
-	/**
-	 * Construct an HTTPRequest file system backend with the given options.
-	 */
-	public static Create(opts: HTTPRequestOptions, cb: BFSCallback<HTTPRequest>): void {
-		this.CreateAsync(opts)
-			.then(fs => cb(null, fs))
-			.catch(cb);
-	}
 
 	public static async CreateAsync(opts: HTTPRequestOptions): Promise<HTTPRequest> {
 		if (!opts.index) {

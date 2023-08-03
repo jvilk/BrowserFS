@@ -100,9 +100,9 @@ export async function bufferValidator(v: object): Promise<void> {
  * Checks that the given options object is valid for the file system options.
  * @hidden
  */
-export async function checkOptions(fsType: BackendConstructor, opts: any): Promise<void> {
-	const optsInfo = fsType.Options;
-	const fsName = fsType.Name;
+export async function checkOptions(backend: BackendConstructor, opts: object): Promise<void> {
+	const optsInfo = backend.Options;
+	const fsName = backend.Name;
 
 	let pendingValidators = 0;
 	let callbackCalled = false;

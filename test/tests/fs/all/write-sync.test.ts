@@ -1,8 +1,8 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe('File Writing Synchronously', () => {
+describe.each(backends)('%s File Writing Synchronously', () => {
 	it('should write file synchronously with specified content', () => {
 		const rootFS = fs.getRootFS();
 		if (rootFS.isReadOnly() || !rootFS.supportsSynch()) {

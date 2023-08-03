@@ -1,8 +1,8 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe('File Read Test', () => {
+describe.each(backends)('%s File Read Test', () => {
 	let filepath: string;
 	let expected: string;
 	let rootFS: any;

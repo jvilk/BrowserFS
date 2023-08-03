@@ -1,8 +1,8 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe('Read File Test', () => {
+describe.each(backends)('%s Read File Test', () => {
 	const fn = path.join(common.fixturesDir, 'empty.txt');
 	const rootFS = fs.getRootFS();
 

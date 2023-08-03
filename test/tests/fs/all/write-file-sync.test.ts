@@ -1,8 +1,9 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
+import { jest } from '@jest/globals';
 
-describe('File Writing with Custom Mode', () => {
+describe.each(backends)('%s File Writing with Custom Mode', () => {
 	afterEach(() => {
 		jest.restoreAllMocks();
 	});

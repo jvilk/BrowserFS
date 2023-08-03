@@ -1,7 +1,7 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import common from '../../../common';
 
-describe('fs.mkdir', () => {
+describe.each(backends)('%s fs.mkdir', () => {
 	if (!fs.getRootFS().isReadOnly()) {
 		const pathname1 = common.tmpDir + '/mkdir-test1';
 

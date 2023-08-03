@@ -1,7 +1,7 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import * as path from 'path';
 
-describe('File and Directory Rename Tests', () => {
+describe.each(backends)('%s File and Directory Rename Tests', () => {
 	let rootFS;
 	let isReadOnly;
 

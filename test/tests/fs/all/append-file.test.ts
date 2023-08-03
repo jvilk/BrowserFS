@@ -1,9 +1,10 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 import type { FileContents } from '../../../../src/core/file_system';
+import { jest } from '@jest/globals';
 
-describe('appendFile tests', () => {
+describe.each(backends)('%s appendFile tests', () => {
 	const tmpDir: string = path.join(common.tmpDir, 'append.txt');
 
 	afterEach(() => {

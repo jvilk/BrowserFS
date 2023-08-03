@@ -1,8 +1,8 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe('Asynchronous File Writing', () => {
+describe.each(backends)('%s Asynchronous File Writing', () => {
 	it('should write file asynchronously with specified content', done => {
 		if (fs.getRootFS().isReadOnly()) {
 			done();

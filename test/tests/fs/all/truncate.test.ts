@@ -1,9 +1,9 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 import type { BFSOneArgCallback } from '../../../../src/core/file_system';
 
-describe('Truncate Tests', () => {
+describe.each(backends)('%s Truncate Tests', () => {
 	let filename: string;
 	const data = Buffer.alloc(1024 * 16, 'x');
 	let success: number;

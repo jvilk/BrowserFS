@@ -1,4 +1,4 @@
-import { SynchronousFileSystem, type BFSCallback } from '../core/file_system';
+import { SynchronousFileSystem } from '../core/file_system';
 import { default as Stats, FileType } from '../core/stats';
 import { FileFlag } from '../core/file_flag';
 import { BaseFile, File } from '../core/file';
@@ -139,7 +139,7 @@ export interface EmscriptenFileSystemOptions {
 /**
  * Mounts an Emscripten file system into the BrowserFS file system.
  */
-export default class EmscriptenFileSystem extends SynchronousFileSystem {
+export class EmscriptenFileSystem extends SynchronousFileSystem {
 	public static readonly Name = 'EmscriptenFileSystem';
 
 	public static readonly Options: BackendOptions = {
@@ -148,13 +148,6 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
 			description: 'The Emscripten file system to use (the `FS` variable)',
 		},
 	};
-
-	/**
-	 * Create an EmscriptenFileSystem instance with the given options.
-	 */
-	public static Create(opts: EmscriptenFileSystemOptions, cb: BFSCallback<EmscriptenFileSystem>): void {
-		cb(null, new EmscriptenFileSystem(opts.FS));
-	}
 
 	public static async CreateAsync(opts: EmscriptenFileSystemOptions): Promise<EmscriptenFileSystem> {
 		return new EmscriptenFileSystem(opts.FS);

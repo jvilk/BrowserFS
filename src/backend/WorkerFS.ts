@@ -1,4 +1,4 @@
-import { type BFSCallback, BaseFileSystem, FileSystem, FileContents } from '../core/file_system';
+import { type FileSystem, BaseFileSystem, FileContents } from '../core/file_system';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { FileFlag } from '../core/file_flag';
 import { File } from '../core/file';
@@ -88,7 +88,7 @@ type _RPCExtractReturnValue<T extends RPCResponse['method']> = Promise<Extract<R
  * Note that synchronous operations are not permitted on the WorkerFS, regardless
  * of the configuration option of the remote FS.
  */
-export default class WorkerFS extends BaseFileSystem implements FileSystem {
+export class WorkerFS extends BaseFileSystem implements FileSystem {
 	public static readonly Name = 'WorkerFS';
 
 	public static readonly Options: BackendOptions = {
@@ -104,15 +104,8 @@ export default class WorkerFS extends BaseFileSystem implements FileSystem {
 		},
 	};
 
-	public static Create(opts: WorkerFSOptions, cb: BFSCallback<WorkerFS>): void {
-		this.CreateAsync(opts)
-			.then(fs => cb(null, fs))
-			.catch(cb);
-	}
-
 	public static async CreateAsync(opts: WorkerFSOptions): Promise<WorkerFS> {
-		const fs = new WorkerFS(opts.worker);
-		return fs;
+		return new WorkerFS(opts.worker);
 	}
 
 	public static isAvailable(): boolean {

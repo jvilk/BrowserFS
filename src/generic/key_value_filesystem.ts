@@ -568,7 +568,13 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
 	 *   the parent.
 	 * @return string The ID of the file's inode in the file system.
 	 */
-	private _findINode(tx: SyncKeyValueROTransaction, parent: string, filename: string): string {
+	private _findINode(tx: SyncKeyValueROTransaction, parent: string, filename: string, visited: Set<string> = new Set<string>()): string {
+		const currentPath = path.posix.join(parent, filename);
+		if (visited.has(currentPath)) {
+			throw new ApiError(ErrorCode.EIO, 'Infinite loop detected while finding inode', currentPath);
+		}
+
+		visited.add(currentPath);
 		const readDirectory = (inode: Inode): string => {
 			// Get the root's directory listing.
 			const dirList = this.getDirListing(tx, parent, inode);
@@ -591,7 +597,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
 				return readDirectory(this.getINode(tx, parent, ROOT_NODE_ID));
 			}
 		} else {
-			return readDirectory(this.getINode(tx, parent + path.sep + filename, this._findINode(tx, path.dirname(parent), path.basename(parent))));
+			return readDirectory(this.getINode(tx, parent + path.sep + filename, this._findINode(tx, path.dirname(parent), path.basename(parent), visited)));
 		}
 	}
 
@@ -1110,9 +1116,15 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
 	 * @param filename The filename of the inode we are attempting to find, minus
 	 *   the parent.
 	 */
-	private async _findINode(tx: AsyncKeyValueROTransaction, parent: string, filename: string): Promise<string> {
+	private async _findINode(tx: AsyncKeyValueROTransaction, parent: string, filename: string, visited: Set<string> = new Set<string>()): Promise<string> {
+		const currentPath = path.posix.join(parent, filename);
+		if (visited.has(currentPath)) {
+			throw new ApiError(ErrorCode.EIO, 'Infinite loop detected while finding inode', currentPath);
+		}
+
+		visited.add(currentPath);
 		if (this._cache) {
-			const id = this._cache.get(path.join(parent, filename));
+			const id = this._cache.get(currentPath);
 			if (id) {
 				return id;
 			}
@@ -1122,7 +1134,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
 			if (filename === '') {
 				// BASE CASE #1: Return the root's ID.
 				if (this._cache) {
-					this._cache.set(path.join(parent, filename), ROOT_NODE_ID);
+					this._cache.set(currentPath, ROOT_NODE_ID);
 				}
 				return ROOT_NODE_ID;
 			} else {
@@ -1132,7 +1144,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
 				if (dirList![filename]) {
 					const id = dirList![filename];
 					if (this._cache) {
-						this._cache.set(path.join(parent, filename), id);
+						this._cache.set(currentPath, id);
 					}
 					return id;
 				} else {
@@ -1142,12 +1154,12 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
 		} else {
 			// Get the parent directory's INode, and find the file in its directory
 			// listing.
-			const inode = await this.findINode(tx, parent);
+			const inode = await this.findINode(tx, parent, visited);
 			const dirList = await this.getDirListing(tx, parent, inode!);
 			if (dirList![filename]) {
 				const id = dirList![filename];
 				if (this._cache) {
-					this._cache.set(path.join(parent, filename), id);
+					this._cache.set(currentPath, id);
 				}
 				return id;
 			} else {
@@ -1161,8 +1173,8 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
 	 * @param p The path to look up.
 	 * @todo memoize/cache
 	 */
-	private async findINode(tx: AsyncKeyValueROTransaction, p: string): Promise<Inode> {
-		const id = await this._findINode(tx, path.dirname(p), path.basename(p));
+	private async findINode(tx: AsyncKeyValueROTransaction, p: string, visited: Set<string> = new Set<string>()): Promise<Inode> {
+		const id = await this._findINode(tx, path.dirname(p), path.basename(p), visited);
 		return this.getINode(tx, p, id!);
 	}
 

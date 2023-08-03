@@ -1,10 +1,10 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
 const existingFile = path.join(common.fixturesDir, 'exit.js');
 
-describe('File System Tests', () => {
+describe.each(backends)('%s File System Tests', () => {
 	const rootFS = fs.getRootFS();
 
 	it('should handle async operations with error', done => {

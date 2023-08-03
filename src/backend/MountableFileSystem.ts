@@ -1,5 +1,5 @@
-import { FileSystem, BaseFileSystem, type BFSCallback } from '../core/file_system';
-import InMemoryFileSystem from './InMemory';
+import { type FileSystem, BaseFileSystem } from '../core/file_system';
+import { InMemoryFileSystem } from './InMemory';
 import { ApiError, ErrorCode } from '../core/api_error';
 import fs from '../core/node_fs';
 import * as path from 'path';
@@ -59,37 +59,16 @@ export interface MountableFileSystemOptions {
  *
  * With no mounted file systems, `MountableFileSystem` acts as a simple `InMemory` filesystem.
  */
-export default class MountableFileSystem extends BaseFileSystem implements FileSystem {
+export class MountableFileSystem extends BaseFileSystem implements FileSystem {
 	public static readonly Name = 'MountableFileSystem';
 
 	public static readonly Options: BackendOptions = {};
-
-	/**
-	 * Creates a MountableFileSystem instance with the given options.
-	 */
-	public static Create(opts: MountableFileSystemOptions, cb: BFSCallback<MountableFileSystem>): void {
-		InMemoryFileSystem.Create({}, (e, imfs?) => {
-			if (imfs) {
-				const fs = new MountableFileSystem(imfs);
-				try {
-					for (const mountPoint of Object.keys(opts)) {
-						fs.mount(mountPoint, opts[mountPoint], Cred.Root);
-					}
-				} catch (e) {
-					return cb(e);
-				}
-				cb(null, fs);
-			} else {
-				cb(e);
-			}
-		});
-	}
 
 	public static async CreateAsync(opts: MountableFileSystemOptions): Promise<MountableFileSystem> {
 		const imfs = await InMemoryFileSystem.CreateAsync({});
 		const fs = new MountableFileSystem(imfs);
 		for (const mountPoint of Object.keys(opts)) {
-			fs.mount(mountPoint, opts[mountPoint], Cred.Root);
+			fs.mount(mountPoint, opts[mountPoint]);
 		}
 		return fs;
 	}
@@ -117,7 +96,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
 	/**
 	 * Mounts the file system at the given mount point.
 	 */
-	public mount(mountPoint: string, fs: FileSystem, cred: Cred): void {
+	public mount(mountPoint: string, fs: FileSystem, cred: Cred = Cred.Root): void {
 		if (mountPoint[0] !== '/') {
 			mountPoint = `/${mountPoint}`;
 		}
@@ -131,7 +110,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
 		this.mountList = this.mountList.sort((a, b) => b.length - a.length);
 	}
 
-	public umount(mountPoint: string, cred: Cred): void {
+	public umount(mountPoint: string, cred: Cred = Cred.Root): void {
 		if (mountPoint[0] !== '/') {
 			mountPoint = `/${mountPoint}`;
 		}

@@ -1,6 +1,6 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 
-describe('fs path validation', () => {
+describe.each(backends)('%s fs path validation', () => {
 	const rootFS = fs.getRootFS();
 
 	function check(asyncFn: Function, syncFn: Function, ...args: any[]): void {

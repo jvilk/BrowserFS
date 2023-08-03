@@ -1,8 +1,8 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe('Symbolic Link Test', () => {
+describe.each(backends)('%s Symbolic Link Test', () => {
 	let completed = 0;
 	const expected_tests = 4;
 

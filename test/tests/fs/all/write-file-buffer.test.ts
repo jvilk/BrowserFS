@@ -1,8 +1,8 @@
-import { fs } from '../../../common';
+import { backends, fs } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe('File Writing', () => {
+describe.each(backends)('%s File Writing', () => {
 	it('should write base64 data to a file and read it back', done => {
 		if (!fs.getRootFS().isReadOnly()) {
 			const join = path.join;

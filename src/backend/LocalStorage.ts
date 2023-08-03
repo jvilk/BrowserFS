@@ -1,4 +1,3 @@
-import type { BFSCallback } from '../core/file_system';
 import { SyncKeyValueStore, SimpleSyncStore, SyncKeyValueFileSystem, SimpleSyncRWTransaction, SyncKeyValueRWTransaction } from '../generic/key_value_filesystem';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { Buffer } from 'buffer';
@@ -82,28 +81,13 @@ export class LocalStorageStore implements SyncKeyValueStore, SimpleSyncStore {
  * A synchronous file system backed by localStorage. Connects our
  * LocalStorageStore to our SyncKeyValueFileSystem.
  */
-export default class LocalStorageFileSystem extends SyncKeyValueFileSystem {
+export class LocalStorageFileSystem extends SyncKeyValueFileSystem {
 	public static readonly Name = 'LocalStorage';
 
 	public static readonly Options: BackendOptions = {};
 
-	/**
-	 * Creates a LocalStorageFileSystem instance.
-	 */
-	public static Create(options: any, cb: BFSCallback<LocalStorageFileSystem>): void {
-		cb(null, new LocalStorageFileSystem());
-	}
-
-	public static CreateAsync(opts: any): Promise<LocalStorageFileSystem> {
-		return new Promise((resolve, reject) => {
-			this.Create(opts, (error, fs) => {
-				if (error || !fs) {
-					reject(error);
-				} else {
-					resolve(fs);
-				}
-			});
-		});
+	public static async CreateAsync(opts: any): Promise<LocalStorageFileSystem> {
+		return new LocalStorageFileSystem();
 	}
 
 	public static isAvailable(): boolean {

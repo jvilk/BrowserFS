@@ -1,5 +1,6 @@
 import { fs } from '../../../common';
 import * as BrowserFS from '../../../../src/core/browserfs';
+import Cred from '../../../../src/core/cred';
 
 describe('MountableFileSystem Mount/Unmount', () => {
 	let oldmfs: BrowserFS.FileSystem;
@@ -13,11 +14,7 @@ describe('MountableFileSystem Mount/Unmount', () => {
 	});
 
 	test('Mount and Unmount Features', async () => {
-		const rootForMfs = await new Promise<BrowserFS.FileSystem | undefined>(resolve => {
-			BrowserFS.Backend.InMemory.Create({}, (e, root) => {
-				resolve(root);
-			});
-		});
+		const rootForMfs = await BrowserFS.backends.InMemory.CreateAsync({});
 
 		if (!rootForMfs) {
 			throw new Error('Could not create rootForMfs.');
@@ -26,11 +23,7 @@ describe('MountableFileSystem Mount/Unmount', () => {
 		BrowserFS.initialize(rootForMfs);
 		fs.mkdirSync('/home');
 		fs.mkdirSync('/home/anotherFolder');
-		const newmfs = await new Promise<BrowserFS.Backend.MountableFileSystem | undefined>(resolve => {
-			BrowserFS.Backend.MountableFileSystem.Create({}, (e, newmfs) => {
-				resolve(newmfs);
-			});
-		});
+		const newmfs = await BrowserFS.backends.MountableFileSystem.CreateAsync({});
 
 		if (!newmfs) {
 			throw new Error('Could not create newmfs.');
@@ -82,31 +75,27 @@ describe('MountableFileSystem Mount/Unmount', () => {
 						// Cannot remove parent of mount point, even if empty in owning FS.
 						expect(() => fs.rmdirSync('/root/home')).toThrow();
 
-						fs.rmdir('/root/home', err => {
+						fs.rmdir('/root/home', async err => {
 							expect(err).toBeTruthy();
 
 							expect(fs.readdirSync('/root').sort()).toEqual(['anotherRoot', 'home']);
 
-							return new Promise<void>(resolve => {
-								BrowserFS.Backend.InMemory.Create({}, (e, newRoot) => {
-									if (!newRoot) {
-										throw new Error('Could not create newRoot.');
-									}
-									// Let's confuse things and mount something in '/'.
-									newmfs.mount('/', newRoot);
-									fs.mkdirSync('/home2');
-									expect(fs.existsSync('/home2')).toBe(true);
-									expect(newmfs.existsSync('/home2')).toBe(true);
-									expect(fs.existsSync('/root')).toBe(true);
-									newmfs.umount('/');
-									expect(fs.existsSync('/home2')).toBe(false);
-									resolve();
-								});
-							});
+							const newRoot = await BrowserFS.backends.InMemory.CreateAsync({});
+							if (!newRoot) {
+								throw new Error('Could not create newRoot.');
+							}
+							// Let's confuse things and mount something in '/'.
+							newmfs.mount('/', newRoot);
+							fs.mkdirSync('/home2');
+							expect(fs.existsSync('/home2')).toBe(true);
+							expect(newmfs.existsSync('/home2', Cred.Root)).toBe(true);
+							expect(fs.existsSync('/root')).toBe(true);
+							newmfs.umount('/');
+							expect(fs.existsSync('/home2')).toBe(false);
+							resolve();
 						});
 					});
 				});
-				resolve();
 			});
 		});
 	});
