@@ -3,7 +3,8 @@ name: Continuous Integration
 on:
     push:
         branches:
-            - [main,master]
+            - main
+            - master
     workflow_dispatch:
 
 jobs:
