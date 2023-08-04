@@ -1,8 +1,9 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe.each(backends)('%s File Read Test', () => {
+describe.each(backends)('%s File Read Test', (name, options) => {
+	const configured = configure({ fs: name, options });
 	let filepath: string;
 	let expected: string;
 	let rootFS: any;
@@ -13,7 +14,8 @@ describe.each(backends)('%s File Read Test', () => {
 		rootFS = fs.getRootFS();
 	});
 
-	it('should read file asynchronously', done => {
+	it('should read file asynchronously', async done => {
+		await configured;
 		fs.open(filepath, 'r', (err: NodeJS.ErrnoException, fd: number) => {
 			if (err) throw err;
 
@@ -28,7 +30,8 @@ describe.each(backends)('%s File Read Test', () => {
 	});
 
 	if (rootFS.supportsSynch()) {
-		it('should read file synchronously', () => {
+		it('should read file synchronously', async () => {
+			await configured;
 			const fd = fs.openSync(filepath, 'r');
 			const buffer = Buffer.alloc(expected.length);
 			const bytesRead = fs.readSync(fd, buffer, 0, expected.length, 0);

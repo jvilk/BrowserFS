@@ -1,9 +1,11 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe.each(backends)('%s File Writing', () => {
-	it('should write content to a file', done => {
+describe.each(backends)('%s File Writing', (name, options) => {
+	const configured = configure({ fs: name, options });
+	it('should write content to a file', async done => {
+		await configured;
 		if (!fs.getRootFS().isReadOnly()) {
 			const filename = path.join(common.tmpDir, 'write.txt');
 			const expected = Buffer.from('hello');

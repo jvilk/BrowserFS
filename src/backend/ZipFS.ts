@@ -627,7 +627,7 @@ export class ZipFS extends SynchronousFileSystem implements FileSystem {
 
 	public static readonly CompressionMethod = CompressionMethod;
 
-	public static async CreateAsync(opts: ZipFSOptions): Promise<ZipFS> {
+	public static async Create(opts: ZipFSOptions): Promise<ZipFS> {
 		const zipTOC = await ZipFS._computeIndex(opts.zipData);
 		return new ZipFS(zipTOC, opts.name);
 	}

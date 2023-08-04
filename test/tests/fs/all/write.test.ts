@@ -1,9 +1,11 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe.each(backends)('%s Asynchronous File Writing', () => {
-	it('should write file asynchronously with specified content', done => {
+describe.each(backends)('%s Asynchronous File Writing', (name, options) => {
+	const configured = configure({ fs: name, options });
+	it('should write file asynchronously with specified content', async done => {
+		await configured;
 		if (fs.getRootFS().isReadOnly()) {
 			done();
 			return;

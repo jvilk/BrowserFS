@@ -1,14 +1,16 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe.each(backends)('%s Link and Symlink Test', () => {
+describe.each(backends)('%s Link and Symlink Test', (name, options) => {
+	const configured = configure({ fs: name, options });
 	let completed = 0;
 	const expected_tests = 2;
 	const rootFS = fs.getRootFS();
 
-	if (rootFS.supportsLinks()) {
-		it('should create and read symbolic link', done => {
+	it('should create and read symbolic link', async done => {
+		if (rootFS.supportsLinks()) {
+			await configured;
 			const linkData = path.join(common.fixturesDir, '/cycles/root.js');
 			const linkPath = path.join(common.tmpDir, 'symlink1.js');
 
@@ -27,9 +29,12 @@ describe.each(backends)('%s Link and Symlink Test', () => {
 					done();
 				});
 			});
-		});
+		}
+	});
 
-		it('should create and read hard link', done => {
+	it('should create and read hard link', async done => {
+		if (rootFS.supportsLinks()) {
+			await configured;
 			const srcPath = path.join(common.fixturesDir, 'cycles', 'root.js');
 			const dstPath = path.join(common.tmpDir, 'link1.js');
 
@@ -47,11 +52,11 @@ describe.each(backends)('%s Link and Symlink Test', () => {
 				completed++;
 				done();
 			});
-		});
+		}
+	});
 
-		afterAll(() => {
-			expect(completed).toBe(expected_tests);
-			process.exitCode = 0;
-		});
-	}
+	afterAll(() => {
+		expect(completed).toBe(expected_tests);
+		process.exitCode = 0;
+	});
 });

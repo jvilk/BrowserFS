@@ -1,9 +1,10 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 import type { BFSOneArgCallback } from '../../../../src/core/file_system';
 
-describe.each(backends)('%s Truncate Tests', () => {
+describe.each(backends)('%s Truncate Tests', (name, options) => {
+	const configured = configure({ fs: name, options });
 	let filename: string;
 	const data = Buffer.alloc(1024 * 16, 'x');
 	let success: number;

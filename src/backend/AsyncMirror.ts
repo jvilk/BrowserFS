@@ -109,7 +109,7 @@ export class AsyncMirror extends SynchronousFileSystem implements FileSystem {
 	/**
 	 * Asynchronously constructs and initializes an AsyncMirror file system with the given options.
 	 */
-	public static async CreateAsync(opts: AsyncMirrorOptions): Promise<AsyncMirror> {
+	public static async Create(opts: AsyncMirrorOptions): Promise<AsyncMirror> {
 		const fs = new AsyncMirror(opts.sync, opts.async);
 		await fs._initialize();
 		return fs;

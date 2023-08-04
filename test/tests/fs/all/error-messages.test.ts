@@ -1,213 +1,102 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
+import { promisify } from 'util';
+import type { ApiError } from '../../../../src/core/api_error';
 
 const existingFile = path.join(common.fixturesDir, 'exit.js');
 
-describe.each(backends)('%s File System Tests', () => {
+const expectAsyncError = async (fn, p: string, ...args) => {
+	let error: ApiError;
+	try {
+		await promisify(fn)(p, ...args);
+	} catch (err) {
+		error = err;
+	}
+	expect(error).toBeDefined();
+	expect(error.path).toBe(p);
+	expect(error.message).toContain(p);
+	return error;
+};
+
+const expectSyncError = (fn, p: string, ...args) => {
+	let error: ApiError;
+	try {
+		fn(p, ...args);
+	} catch (err) {
+		error = err;
+	}
+	expect(error).toBeDefined();
+	expect(error.path).toBe(p);
+	expect(error.message).toContain(p);
+	return error;
+};
+
+describe.each(backends)('%s File System Tests', (name, options) => {
+	const configured = configure({ fs: name, options });
 	const rootFS = fs.getRootFS();
 
-	it('should handle async operations with error', done => {
+	it('should handle async operations with error', async () => {
+		await configured;
 		const fn = path.join(common.fixturesDir, 'non-existent');
 
-		fs.stat(fn, (err: any) => {
-			expect(err.path).toBe(fn);
-			expect(err.message).toContain(fn);
+		await expectAsyncError(fs.stat, fn);
 
-			fs.lstat(fn, (err: any) => {
-				expect(err.path).toBe(fn);
-				expect(err.message).toContain(fn);
+		if (!rootFS.isReadOnly()) {
+			await expectAsyncError(fs.mkdir, existingFile, 0o666);
+			await expectAsyncError(fs.rmdir, fn);
+			await expectAsyncError(fs.rmdir, existingFile);
+			await expectAsyncError(fs.rename, fn, 'foo');
+			await expectAsyncError(fs.open, fn, 'r');
+			await expectAsyncError(fs.readdir, fn);
+			await expectAsyncError(fs.unlink, fn);
 
-				if (!rootFS.isReadOnly()) {
-					fs.unlink(fn, (err: any) => {
-						expect(err.path).toBe(fn);
-						expect(err.message).toContain(fn);
+			if (rootFS.supportsLinks()) {
+				await expectAsyncError(fs.link, fn, 'foo');
+			}
 
-						fs.rename(fn, 'foo', (err: any) => {
-							expect(err.path).toBe(fn);
-							expect(err.message).toContain(fn);
+			if (rootFS.supportsProps()) {
+				await expectAsyncError(fs.chmod, fn, 0o666);
+			}
+		}
 
-							fs.rmdir(fn, (err: any) => {
-								expect(err.path).toBe(fn);
-								expect(err.message).toContain(fn);
-
-								fs.mkdir(existingFile, 0o666, (err: any) => {
-									expect(err.path).toBe(existingFile);
-									expect(err.message).toContain(existingFile);
-
-									fs.rmdir(existingFile, (err: any) => {
-										expect(err.path).toBe(existingFile);
-										expect(err.message).toContain(existingFile);
-										done();
-									});
-								});
-							});
-						});
-					});
-				} else {
-					done();
-				}
-			});
-		});
+		if (rootFS.supportsLinks()) {
+			await expectAsyncError(fs.lstat, fn);
+			await expectAsyncError(fs.readlink, fn);
+		}
 	});
-
-	if (rootFS.supportsLinks()) {
-		it('should handle async link operations with error', done => {
-			const fn = path.join(common.fixturesDir, 'non-existent');
-
-			fs.readlink(fn, (err: any) => {
-				expect(err.path).toBe(fn);
-				expect(err.message).toContain(fn);
-
-				if (!rootFS.isReadOnly()) {
-					fs.link(fn, 'foo', (err: any) => {
-						expect(err.path).toBe(fn);
-						expect(err.message).toContain(fn);
-						done();
-					});
-				} else {
-					done();
-				}
-			});
-		});
-	}
-
-	if (rootFS.supportsProps() && !rootFS.isReadOnly()) {
-		it('should handle async chmod operation with error', done => {
-			const fn = path.join(common.fixturesDir, 'non-existent');
-
-			fs.chmod(fn, 0o666, (err: any) => {
-				expect(err.path).toBe(fn);
-				expect(err.message).toContain(fn);
-				done();
-			});
-		});
-	}
 
 	// Sync operations
 	if (rootFS.supportsSynch()) {
-		let errors: string[] = [];
-
-		it('should handle sync operations with error', () => {
+		it('should handle sync operations with error', async () => {
+			await configured;
 			const fn = path.join(common.fixturesDir, 'non-existent');
 			const existingFile = path.join(common.fixturesDir, 'exit.js');
-			const canWrite = !rootFS.isReadOnly();
 
-			let expected = 0;
+			expectSyncError(fs.statSync, fn);
 
-			try {
-				expected++;
-				fs.statSync(fn);
-			} catch (err) {
-				errors.push('stat');
-				expect(err.path).toBe(fn);
-				expect(err.message).toContain(fn);
-			}
-
-			if (canWrite) {
-				try {
-					expected++;
-					fs.mkdirSync(existingFile, 0o666);
-				} catch (err) {
-					errors.push('mkdir');
-					expect(err.path).toBe(existingFile);
-					expect(err.message).toContain(existingFile);
-				}
-
-				try {
-					expected++;
-					fs.rmdirSync(fn);
-				} catch (err) {
-					errors.push('rmdir');
-					expect(err.path).toBe(fn);
-					expect(err.message).toContain(fn);
-				}
-
-				try {
-					expected++;
-					fs.rmdirSync(existingFile);
-				} catch (err) {
-					errors.push('rmdir');
-					expect(err.path).toBe(existingFile);
-					expect(err.message).toContain(existingFile);
-				}
-
-				try {
-					expected++;
-					fs.renameSync(fn, 'foo');
-				} catch (err) {
-					errors.push('rename');
-					expect(err.path).toBe(fn);
-					expect(err.message).toContain(fn);
-				}
-
-				try {
-					expected++;
-					fs.lstatSync(fn);
-				} catch (err) {
-					errors.push('lstat');
-					expect(err.path).toBe(fn);
-					expect(err.message).toContain(fn);
-				}
-
-				try {
-					expected++;
-					fs.openSync(fn, 'r');
-				} catch (err) {
-					errors.push('opens');
-					expect(err.path).toBe(fn);
-					expect(err.message).toContain(fn);
-				}
-
-				try {
-					expected++;
-					fs.readdirSync(fn);
-				} catch (err) {
-					errors.push('readdir');
-					expect(err.path).toBe(fn);
-					expect(err.message).toContain(fn);
-				}
-
-				try {
-					expected++;
-					fs.unlinkSync(fn);
-				} catch (err) {
-					errors.push('unlink');
-					expect(err.message).toContain(fn);
-				}
+			if (!rootFS.isReadOnly()) {
+				expectSyncError(fs.mkdirSync, existingFile, 0o666);
+				expectSyncError(fs.rmdirSync, fn);
+				expectSyncError(fs.rmdirSync, existingFile);
+				expectSyncError(fs.renameSync, fn, 'foo');
+				expectSyncError(fs.openSync, fn, 'r');
+				expectSyncError(fs.readdirSync, fn);
+				expectSyncError(fs.unlinkSync, fn);
 
 				if (rootFS.supportsProps()) {
-					try {
-						expected++;
-						fs.chmodSync(fn, 0o666);
-					} catch (err) {
-						errors.push('chmod');
-						expect(err.path).toBe(fn);
-						expect(err.message).toContain(fn);
-					}
+					expectSyncError(fs.chmodSync, fn, 0o666);
 				}
 
 				if (rootFS.supportsLinks()) {
-					try {
-						expected++;
-						fs.linkSync(fn, 'foo');
-					} catch (err) {
-						errors.push('link');
-						expect(err.path).toBe(fn);
-						expect(err.message).toContain(fn);
-					}
-
-					try {
-						expected++;
-						fs.readlinkSync(fn);
-					} catch (err) {
-						errors.push('readlink');
-						expect(err.path).toBe(fn);
-						expect(err.message).toContain(fn);
-					}
+					expectSyncError(fs.linkSync, fn, 'foo');
 				}
 			}
-			expect(errors.length).toBe(expected);
+
+			if (rootFS.supportsLinks()) {
+				expectSyncError(fs.lstatSync, fn);
+				expectSyncError(fs.readlinkSync, fn);
+			}
 		});
 	}
 });

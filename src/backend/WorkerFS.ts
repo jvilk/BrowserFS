@@ -104,7 +104,7 @@ export class WorkerFS extends BaseFileSystem implements FileSystem {
 		},
 	};
 
-	public static async CreateAsync(opts: WorkerFSOptions): Promise<WorkerFS> {
+	public static async Create(opts: WorkerFSOptions): Promise<WorkerFS> {
 		return new WorkerFS(opts.worker);
 	}
 

@@ -64,8 +64,8 @@ export class MountableFileSystem extends BaseFileSystem implements FileSystem {
 
 	public static readonly Options: BackendOptions = {};
 
-	public static async CreateAsync(opts: MountableFileSystemOptions): Promise<MountableFileSystem> {
-		const imfs = await InMemoryFileSystem.CreateAsync({});
+	public static async Create(opts: MountableFileSystemOptions): Promise<MountableFileSystem> {
+		const imfs = await InMemoryFileSystem.Create({});
 		const fs = new MountableFileSystem(imfs);
 		for (const mountPoint of Object.keys(opts)) {
 			fs.mount(mountPoint, opts[mountPoint]);

@@ -86,7 +86,7 @@ export class LocalStorageFileSystem extends SyncKeyValueFileSystem {
 
 	public static readonly Options: BackendOptions = {};
 
-	public static async CreateAsync(opts: any): Promise<LocalStorageFileSystem> {
+	public static async Create(opts: any): Promise<LocalStorageFileSystem> {
 		return new LocalStorageFileSystem();
 	}
 

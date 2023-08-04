@@ -149,7 +149,7 @@ export class EmscriptenFileSystem extends SynchronousFileSystem {
 		},
 	};
 
-	public static async CreateAsync(opts: EmscriptenFileSystemOptions): Promise<EmscriptenFileSystem> {
+	public static async Create(opts: EmscriptenFileSystemOptions): Promise<EmscriptenFileSystem> {
 		return new EmscriptenFileSystem(opts.FS);
 	}
 

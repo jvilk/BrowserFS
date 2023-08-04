@@ -1,14 +1,16 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 import { jest } from '@jest/globals';
 
-describe.each(backends)('%s File Writing with Custom Mode', () => {
+describe.each(backends)('%s File Writing with Custom Mode', (name, options) => {
+	const configured = configure({ fs: name, options });
 	afterEach(() => {
 		jest.restoreAllMocks();
 	});
 
-	it('should write file synchronously with custom mode', () => {
+	it('should write file synchronously with custom mode', async () => {
+		await configured;
 		const rootFS = fs.getRootFS();
 		const file = path.join(common.tmpDir, 'testWriteFileSync.txt');
 		const mode = 0o755;
@@ -34,7 +36,8 @@ describe.each(backends)('%s File Writing with Custom Mode', () => {
 		fs.unlinkSync(file);
 	});
 
-	it('should append to a file synchronously with custom mode', () => {
+	it('should append to a file synchronously with custom mode', async () => {
+		await configured;
 		const rootFS = fs.getRootFS();
 		const file = path.join(common.tmpDir, 'testAppendFileSync.txt');
 		const mode = 0o755;

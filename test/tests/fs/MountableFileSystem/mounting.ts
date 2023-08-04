@@ -14,7 +14,7 @@ describe('MountableFileSystem Mount/Unmount', () => {
 	});
 
 	test('Mount and Unmount Features', async () => {
-		const rootForMfs = await BrowserFS.backends.InMemory.CreateAsync({});
+		const rootForMfs = await BrowserFS.backends.InMemory.Create({});
 
 		if (!rootForMfs) {
 			throw new Error('Could not create rootForMfs.');
@@ -23,7 +23,7 @@ describe('MountableFileSystem Mount/Unmount', () => {
 		BrowserFS.initialize(rootForMfs);
 		fs.mkdirSync('/home');
 		fs.mkdirSync('/home/anotherFolder');
-		const newmfs = await BrowserFS.backends.MountableFileSystem.CreateAsync({});
+		const newmfs = await BrowserFS.backends.MountableFileSystem.Create({});
 
 		if (!newmfs) {
 			throw new Error('Could not create newmfs.');
@@ -80,7 +80,7 @@ describe('MountableFileSystem Mount/Unmount', () => {
 
 							expect(fs.readdirSync('/root').sort()).toEqual(['anotherRoot', 'home']);
 
-							const newRoot = await BrowserFS.backends.InMemory.CreateAsync({});
+							const newRoot = await BrowserFS.backends.InMemory.Create({});
 							if (!newRoot) {
 								throw new Error('Could not create newRoot.');
 							}

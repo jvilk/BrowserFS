@@ -740,7 +740,7 @@ export class OverlayFS extends LockedFS<UnlockedOverlayFS> {
 		},
 	};
 
-	public static async CreateAsync(opts: OverlayFSOptions): Promise<OverlayFS> {
+	public static async Create(opts: OverlayFSOptions): Promise<OverlayFS> {
 		const fs = new OverlayFS(opts.writable, opts.readable);
 		await fs._initialize();
 		return fs;

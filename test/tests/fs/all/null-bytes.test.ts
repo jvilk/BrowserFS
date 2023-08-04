@@ -1,6 +1,7 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 
-describe.each(backends)('%s fs path validation', () => {
+describe.each(backends)('%s fs path validation', (name, options) => {
+	const configured = configure({ fs: name, options });
 	const rootFS = fs.getRootFS();
 
 	function check(asyncFn: Function, syncFn: Function, ...args: any[]): void {
@@ -55,7 +56,8 @@ describe.each(backends)('%s fs path validation', () => {
 		check(fs.utimes, fs.utimesSync, 'foo\u0000bar', 0, 0);
 	}
 
-	it('should return false for non-existing path', done => {
+	it('should return false for non-existing path', async done => {
+		await configured;
 		fs.exists('foo\u0000bar', exists => {
 			expect(exists).toBeFalsy();
 			done();
@@ -63,7 +65,8 @@ describe.each(backends)('%s fs path validation', () => {
 	});
 
 	if (rootFS.supportsSynch()) {
-		it('should return false for non-existing path (sync)', () => {
+		it('should return false for non-existing path (sync)', async () => {
+			await configured;
 			expect(fs.existsSync('foo\u0000bar')).toBeFalsy();
 		});
 	}

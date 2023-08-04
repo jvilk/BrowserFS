@@ -1,8 +1,9 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe.each(backends)('%s fs.fileSync', () => {
+describe.each(backends)('%s fs.fileSync', (name, options) => {
+	const configured = configure({ fs: name, options });
 	const file = path.join(common.fixturesDir, 'a.js');
 	const rootFS = fs.getRootFS();
 
@@ -19,7 +20,8 @@ describe.each(backends)('%s fs.fileSync', () => {
 		});
 
 		if (rootFS.supportsSynch()) {
-			it('should synchronize file data changes (sync)', () => {
+			it('should synchronize file data changes (sync)', async () => {
+				await configured;
 				fs.fdatasyncSync(fd);
 				successes++;
 				fs.fsyncSync(fd);
@@ -27,7 +29,8 @@ describe.each(backends)('%s fs.fileSync', () => {
 			});
 		}
 
-		it('should synchronize file data changes (async)', done => {
+		it('should synchronize file data changes (async)', async done => {
+			await configured;
 			fs.fdatasync(fd, err => {
 				if (err) throw err;
 				successes++;
@@ -46,7 +49,8 @@ describe.each(backends)('%s fs.fileSync', () => {
 			});
 		});
 
-		it('should have correct number of successes', () => {
+		it('should have correct number of successes', async () => {
+			await configured;
 			if (rootFS.supportsSynch()) {
 				expect(successes).toBe(4);
 			} else {

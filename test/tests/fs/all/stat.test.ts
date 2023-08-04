@@ -1,14 +1,16 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe.each(backends)('%s File Stat Test', () => {
+describe.each(backends)('%s File Stat Test', (name, options) => {
+	const configured = configure({ fs: name, options });
 	let got_error = false;
 	let success_count = 0;
 	const existing_dir = common.fixturesDir;
 	const existing_file = path.join(common.fixturesDir, 'x.txt');
 
-	it('should handle empty file path', done => {
+	it('should handle empty file path', async done => {
+		await configured;
 		fs.stat('', (err, stats) => {
 			expect(err).toBeTruthy();
 			success_count++;
@@ -16,7 +18,8 @@ describe.each(backends)('%s File Stat Test', () => {
 		});
 	});
 
-	it('should stat existing directory', done => {
+	it('should stat existing directory', async done => {
+		await configured;
 		fs.stat(existing_dir, (err, stats) => {
 			if (err) {
 				got_error = true;
@@ -28,7 +31,8 @@ describe.each(backends)('%s File Stat Test', () => {
 		});
 	});
 
-	it('should lstat existing directory', done => {
+	it('should lstat existing directory', async done => {
+		await configured;
 		fs.lstat(existing_dir, (err, stats) => {
 			if (err) {
 				got_error = true;
@@ -40,7 +44,8 @@ describe.each(backends)('%s File Stat Test', () => {
 		});
 	});
 
-	it('should fstat existing file', done => {
+	it('should fstat existing file', async done => {
+		await configured;
 		fs.open(existing_file, 'r', undefined, (err, fd) => {
 			expect(err).toBeNull();
 			expect(fd).toBeTruthy();
@@ -60,7 +65,8 @@ describe.each(backends)('%s File Stat Test', () => {
 	});
 
 	if (fs.getRootFS().supportsSynch()) {
-		it('should fstatSync existing file', done => {
+		it('should fstatSync existing file', async done => {
+			await configured;
 			fs.open(existing_file, 'r', undefined, (err, fd) => {
 				let stats;
 				try {
@@ -79,7 +85,8 @@ describe.each(backends)('%s File Stat Test', () => {
 		});
 	}
 
-	it('should stat existing file', done => {
+	it('should stat existing file', async done => {
+		await configured;
 		fs.stat(existing_file, (err, s) => {
 			if (err) {
 				got_error = true;

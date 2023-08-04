@@ -1,8 +1,9 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe.each(backends)('%s Symbolic Link Test', () => {
+describe.each(backends)('%s Symbolic Link Test', (name, options) => {
+	const configured = configure({ fs: name, options });
 	let completed = 0;
 	const expected_tests = 4;
 
@@ -27,7 +28,8 @@ describe.each(backends)('%s Symbolic Link Test', () => {
 			});
 		});
 
-		it('should lstat symbolic link', done => {
+		it('should lstat symbolic link', async done => {
+			await configured;
 			fs.lstat(linkPath, (err, stats) => {
 				if (err) throw err;
 				expect(stats.isSymbolicLink()).toBe(true);
@@ -36,7 +38,8 @@ describe.each(backends)('%s Symbolic Link Test', () => {
 			});
 		});
 
-		it('should readlink symbolic link', done => {
+		it('should readlink symbolic link', async done => {
+			await configured;
 			fs.readlink(linkPath, (err, destination) => {
 				if (err) throw err;
 				expect(destination).toBe(linkData);
@@ -45,7 +48,8 @@ describe.each(backends)('%s Symbolic Link Test', () => {
 			});
 		});
 
-		it('should unlink symbolic link', done => {
+		it('should unlink symbolic link', async done => {
+			await configured;
 			fs.unlink(linkPath, err => {
 				if (err) throw err;
 				expect(fs.existsSync(linkPath)).toBe(false);

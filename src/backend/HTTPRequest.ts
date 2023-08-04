@@ -79,7 +79,7 @@ export class HTTPRequest extends BaseFileSystem implements FileSystem {
 		},
 	};
 
-	public static async CreateAsync(opts: HTTPRequestOptions): Promise<HTTPRequest> {
+	public static async Create(opts: HTTPRequestOptions): Promise<HTTPRequest> {
 		if (!opts.index) {
 			opts.index = 'index.json';
 		}

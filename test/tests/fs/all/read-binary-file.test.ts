@@ -1,8 +1,9 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe.each(backends)('%s File Reading', () => {
+describe.each(backends)('%s File Reading', (name, options) => {
+	const configured = configure({ fs: name, options });
 	test('Read a file and check its binary bytes (asynchronous)', done => {
 		fs.readFile(path.join(common.fixturesDir, 'elipses.txt'), (err, buff) => {
 			if (err) throw err;

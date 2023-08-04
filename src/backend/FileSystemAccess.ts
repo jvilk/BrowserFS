@@ -45,7 +45,7 @@ export class FileSystemAccessFileSystem extends BaseFileSystem implements FileSy
 
 	public static readonly Options: BackendOptions = {};
 
-	public static async CreateAsync({ handle }: FileSystemAccessFileSystemOptions): Promise<FileSystemAccessFileSystem> {
+	public static async Create({ handle }: FileSystemAccessFileSystemOptions): Promise<FileSystemAccessFileSystem> {
 		return new FileSystemAccessFileSystem(handle);
 	}
 

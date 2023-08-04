@@ -1,8 +1,9 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 import path from 'path';
 import common from '../../../common';
 
-describe.each(backends)('%s fs file reading', () => {
+describe.each(backends)('%s fs file reading', (name, options) => {
+	const configured = configure({ fs: name, options });
 	const filepath = path.join(common.fixturesDir, 'x.txt');
 	const expected = 'xyz\n';
 	const bufferAsync = Buffer.alloc(expected.length);
@@ -10,7 +11,8 @@ describe.each(backends)('%s fs file reading', () => {
 	let readCalled = 0;
 	const rootFS = fs.getRootFS();
 
-	it('should read file asynchronously', done => {
+	it('should read file asynchronously', async done => {
+		await configured;
 		fs.open(filepath, 'r', (err, fd) => {
 			if (err) throw err;
 
@@ -25,7 +27,8 @@ describe.each(backends)('%s fs file reading', () => {
 	});
 
 	if (rootFS.supportsSynch()) {
-		it('should read file synchronously', () => {
+		it('should read file synchronously', async () => {
+			await configured;
 			const fd = fs.openSync(filepath, 'r');
 			const bytesRead = fs.readSync(fd, bufferSync, 0, expected.length, 0);
 

@@ -1,10 +1,11 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 import type { FileContents } from '../../../../src/core/file_system';
 import { jest } from '@jest/globals';
 
-describe.each(backends)('%s appendFile tests', () => {
+describe.each(backends)('%s appendFile tests', (name, options) => {
+	const configured = configure({ fs: name, options });
 	const tmpDir: string = path.join(common.tmpDir, 'append.txt');
 
 	afterEach(() => {
@@ -12,10 +13,14 @@ describe.each(backends)('%s appendFile tests', () => {
 	});
 
 	it('should create an empty file and add content', async () => {
+		await configured;
 		const filename = path.join(tmpDir, 'append.txt');
 		const content = 'Sample content';
 
 		jest.spyOn(fs, 'appendFile').mockImplementation((file, data, mode, callback) => {
+			if (typeof mode == 'function') {
+				callback = mode;
+			}
 			expect(file).toBe(filename);
 			expect(data).toBe(content);
 			callback();
@@ -31,6 +36,7 @@ describe.each(backends)('%s appendFile tests', () => {
 	});
 
 	it('should append data to a non-empty file', async () => {
+		await configured;
 		const filename = path.join(tmpDir, 'append2.txt');
 		const currentFileData = 'ABCD';
 		const content = 'Sample content';
@@ -39,6 +45,9 @@ describe.each(backends)('%s appendFile tests', () => {
 			expect(err).toBeNull();
 
 			jest.spyOn(fs, 'appendFile').mockImplementation((file, data, mode, callback) => {
+				if (typeof mode == 'function') {
+					callback = mode;
+				}
 				expect(file).toBe(filename);
 				expect(data).toBe(content);
 				callback();
@@ -55,6 +64,7 @@ describe.each(backends)('%s appendFile tests', () => {
 	});
 
 	it('should append a buffer to the file', async () => {
+		await configured;
 		const filename = path.join(tmpDir, 'append3.txt');
 		const currentFileData = 'ABCD';
 		const content = Buffer.from('Sample content', 'utf8');
@@ -63,6 +73,9 @@ describe.each(backends)('%s appendFile tests', () => {
 			expect(err).toBeNull();
 
 			jest.spyOn(fs, 'appendFile').mockImplementation((file, data, mode, callback) => {
+				if (typeof mode == 'function') {
+					callback = mode;
+				}
 				expect(file).toBe(filename);
 				expect(data).toBe(content);
 				callback();

@@ -1,8 +1,9 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe.each(backends)('%s Utimes Tests', () => {
+describe.each(backends)('%s Utimes Tests', (name, options) => {
+	const configured = configure({ fs: name, options });
 	let tests_ok: number;
 	let tests_run: number;
 	const rootFS = fs.getRootFS();
@@ -119,18 +120,22 @@ describe.each(backends)('%s Utimes Tests', () => {
 	if (rootFS.supportsProps()) {
 		const stats = fs.statSync(filename);
 		test('Run Test 1', async () => {
+			await configured;
 			await runTest(new Date('1982/09/10 13:37:00'), new Date('1982/09/10 13:37:00'));
 		});
 
 		test('Run Test 2', async () => {
+			await configured;
 			await runTest(new Date(), new Date());
 		});
 
 		test('Run Test 3', async () => {
+			await configured;
 			await runTest(123456.789, 123456.789);
 		});
 
 		test('Run Test 4', async () => {
+			await configured;
 			await runTest(stats.mtime, stats.mtime);
 		});
 

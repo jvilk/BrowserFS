@@ -1,9 +1,11 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe.each(backends)('%s File Writing Synchronously', () => {
-	it('should write file synchronously with specified content', () => {
+describe.each(backends)('%s File Writing Synchronously', (name, options) => {
+	const configured = configure({ fs: name, options });
+	it('should write file synchronously with specified content', async () => {
+		await configured;
 		const rootFS = fs.getRootFS();
 		if (rootFS.isReadOnly() || !rootFS.supportsSynch()) {
 			return;

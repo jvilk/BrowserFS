@@ -1,7 +1,8 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 
-describe.each(backends)('%s File and Directory Rename Tests', () => {
+describe.each(backends)('%s File and Directory Rename Tests', (name, options) => {
+	const configured = configure({ fs: name, options });
 	let rootFS;
 	let isReadOnly;
 

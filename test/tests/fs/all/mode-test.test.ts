@@ -1,7 +1,8 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 
-describe.each(backends)('%s PermissionsTest', () => {
+describe.each(backends)('%s PermissionsTest', (name, options) => {
+	const configured = configure({ fs: name, options });
 	const testFileContents = Buffer.from('this is a test file, plz ignore.');
 
 	function is_writable(mode: number) {
@@ -128,7 +129,8 @@ describe.each(backends)('%s PermissionsTest', () => {
 		});
 	}
 
-	it('should satisfy the permissions invariants', () => {
+	it('should satisfy the permissions invariants', async () => {
+		await configured;
 		return process_item('/', 0x1ff);
 	});
 });

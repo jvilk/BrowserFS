@@ -1,9 +1,11 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe.each(backends)('%s File Writing', () => {
-	it('should write base64 data to a file and read it back', done => {
+describe.each(backends)('%s File Writing', (name, options) => {
+	const configured = configure({ fs: name, options });
+	it('should write base64 data to a file and read it back', async done => {
+		await configured;
 		if (!fs.getRootFS().isReadOnly()) {
 			const join = path.join;
 
@@ -31,6 +33,8 @@ describe.each(backends)('%s File Writing', () => {
 				if (err) throw err;
 
 				fs.readFile(join(common.tmpDir, 'test.jpg'), (err, bufdat) => {
+					if (err) throw err;
+
 					expect(bufdat.toString('base64')).toBe(data);
 
 					done();

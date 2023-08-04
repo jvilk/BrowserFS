@@ -4,7 +4,7 @@
  * Here, we redefine the main BrowserFS object for documentation purposes.
  */
 
-import { FileSystem, Backend, BFSRequire } from './index';
+import { FileSystem, backends, BFSRequire } from './index';
 
 /**
  * BrowserFS's main interface.
@@ -17,7 +17,7 @@ export interface BrowserFS {
 	/**
 	 * Exposes all of the file system backends available in BrowserFS.
 	 */
-	Backend: typeof Backend;
+	backends: typeof backends;
 	/**
 	 * Emulates Node's `require()` function for filesystem-related modules (`'fs'`, `'path'`, `'buffer'`, etc).
 	 */

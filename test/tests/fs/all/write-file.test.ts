@@ -1,4 +1,4 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 import { jest } from '@jest/globals';
@@ -12,12 +12,14 @@ const s =
 	'历经五代君主。南越国是岭南地区的第一个有记载的政权国家，采用封建制和郡县制并存的制度，' +
 	'它的建立保证了秦末乱世岭南地区社会秩序的稳定，有效的改善了岭南地区落后的政治、经济现状。\n';
 
-describe.each(backends)('%s File Writing with Read and Write', () => {
+describe.each(backends)('%s File Writing with Read and Write', (name, options) => {
+	const configured = configure({ fs: name, options });
 	afterEach(() => {
 		jest.restoreAllMocks();
 	});
 
-	it('should write and read file with specified content', done => {
+	it('should write and read file with specified content', async done => {
+		await configured;
 		if (fs.getRootFS().isReadOnly()) {
 			done();
 			return;
@@ -49,7 +51,8 @@ describe.each(backends)('%s File Writing with Read and Write', () => {
 		});
 	});
 
-	it('should write and read file using buffer', done => {
+	it('should write and read file using buffer', async done => {
+		await configured;
 		if (fs.getRootFS().isReadOnly()) {
 			done();
 			return;

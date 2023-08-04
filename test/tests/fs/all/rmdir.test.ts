@@ -1,6 +1,7 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 
-describe.each(backends)('%s Directory Removal', () => {
+describe.each(backends)('%s Directory Removal', (name, options) => {
+	const configured = configure({ fs: name, options });
 	test('Cannot remove non-empty directories', () => {
 		fs.mkdir('/rmdirTest', (e: NodeJS.ErrnoException | null) => {
 			expect(e).toBeNull();

@@ -1,10 +1,11 @@
-import { fs, createMockStats, backends } from '../../../common';
+import { fs, createMockStats, backends, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 import { jest } from '@jest/globals';
 
 const isWindows = process.platform === 'win32';
-describe.each(backends)('%s chmod tests', () => {
+describe.each(backends)('%s chmod tests', (name, options) => {
+	const configured = configure({ fs: name, options });
 	const fixturesDir = common.fixturesDir;
 	const tmpDir = common.tmpDir;
 
@@ -13,6 +14,7 @@ describe.each(backends)('%s chmod tests', () => {
 	});
 
 	it('should change file mode using chmod', async () => {
+		await configured;
 		const file1 = path.join(fixturesDir, 'a.js');
 		const modeAsync = 0o777;
 		const modeSync = 0o644;
@@ -34,6 +36,7 @@ describe.each(backends)('%s chmod tests', () => {
 	});
 
 	it('should change file mode using fchmod', async () => {
+		await configured;
 		const file2 = path.join(fixturesDir, 'a1.js');
 		const modeAsync = 0o777;
 		const modeSync = 0o644;
@@ -61,6 +64,7 @@ describe.each(backends)('%s chmod tests', () => {
 	});
 
 	it('should change symbolic link mode using lchmod', async () => {
+		await configured;
 		const link = path.join(tmpDir, 'symbolic-link');
 		const file2 = path.join(fixturesDir, 'a1.js');
 		const modeAsync = 0o777;

@@ -45,7 +45,7 @@ export class InMemoryFileSystem extends SyncKeyValueFileSystem {
 
 	public static readonly Options: BackendOptions = {};
 
-	public static async CreateAsync(opts: object): Promise<InMemoryFileSystem> {
+	public static async Create(opts: object): Promise<InMemoryFileSystem> {
 		return new InMemoryFileSystem();
 	}
 

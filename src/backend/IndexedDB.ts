@@ -225,7 +225,7 @@ export class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
 		},
 	};
 
-	public static async CreateAsync(options: IndexedDBFileSystemOptions): Promise<IndexedDBFileSystem> {
+	public static async Create(options: IndexedDBFileSystemOptions): Promise<IndexedDBFileSystem> {
 		options ||= {
 			storeName: 'browserfs',
 			cacheSize: 100,

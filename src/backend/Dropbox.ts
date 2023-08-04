@@ -183,7 +183,7 @@ export class DropboxFileSystem extends BaseFileSystem implements FileSystem {
 	 * Asynchronously creates a new DropboxFileSystem instance with the given options.
 	 * Must be given an *authenticated* Dropbox client from 2.x JS SDK.
 	 */
-	public static async CreateAsync(opts: DropboxFileSystemOptions): Promise<DropboxFileSystem> {
+	public static async Create(opts: DropboxFileSystemOptions): Promise<DropboxFileSystem> {
 		return new DropboxFileSystem(opts.client);
 	}
 

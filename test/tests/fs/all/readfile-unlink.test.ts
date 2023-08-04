@@ -1,8 +1,9 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe.each(backends)('%s Read and Unlink File Test', () => {
+describe.each(backends)('%s Read and Unlink File Test', (name, options) => {
+	const configured = configure({ fs: name, options });
 	if (!fs.getRootFS().isReadOnly()) {
 		const dirName = path.resolve(common.fixturesDir, 'test-readfile-unlink');
 		const fileName = path.resolve(dirName, 'test.bin');
@@ -20,7 +21,8 @@ describe.each(backends)('%s Read and Unlink File Test', () => {
 			});
 		});
 
-		it('should read file and verify its content', done => {
+		it('should read file and verify its content', async done => {
+			await configured;
 			fs.readFile(fileName, (err, data) => {
 				expect(err).toBeNull();
 				expect(data.length).toBe(buf.length);
@@ -29,7 +31,8 @@ describe.each(backends)('%s Read and Unlink File Test', () => {
 			});
 		});
 
-		it('should unlink file and remove directory', done => {
+		it('should unlink file and remove directory', async done => {
+			await configured;
 			fs.unlink(fileName, err => {
 				if (err) throw err;
 				fs.rmdir(dirName, err => {

@@ -1,8 +1,9 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe.each(backends)('%s Directory Reading', () => {
+describe.each(backends)('%s Directory Reading', (name, options) => {
+	const configured = configure({ fs: name, options });
 	test('Cannot call readdir on a file (synchronous)', () => {
 		const rootFS = fs.getRootFS();
 		let wasThrown = false;

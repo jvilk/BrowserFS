@@ -46,7 +46,7 @@ export class FolderAdapter extends BaseFileSystem implements FileSystem {
 		},
 	};
 
-	public static async CreateAsync(opts: FolderAdapterOptions): Promise<FolderAdapter> {
+	public static async Create(opts: FolderAdapterOptions): Promise<FolderAdapter> {
 		const fa = new FolderAdapter(opts.folder, opts.wrapped);
 		await fa._initialize();
 		return fa;

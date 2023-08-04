@@ -1,8 +1,9 @@
-import { backends, fs } from '../../../common';
+import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe.each(backends)('%s fs.exists', () => {
+describe.each(backends)('%s fs.exists', (name, options) => {
+	const configured = configure({ fs: name, options });
 	let exists: boolean;
 	let doesNotExist: boolean;
 	const f = path.join(common.fixturesDir, 'x.txt');
@@ -25,16 +26,19 @@ describe.each(backends)('%s fs.exists', () => {
 		});
 	});
 
-	it('should return true for an existing file', () => {
+	it('should return true for an existing file', async () => {
+		await configured;
 		expect(exists).toBe(true);
 	});
 
-	it('should return false for a non-existent file', () => {
+	it('should return false for a non-existent file', async () => {
+		await configured;
 		expect(doesNotExist).toBe(false);
 	});
 
 	if (fs.getRootFS().supportsSynch()) {
-		it('should have sync methods that behave the same', () => {
+		it('should have sync methods that behave the same', async () => {
+			await configured;
 			expect(fs.existsSync(f)).toBe(true);
 			expect(fs.existsSync(f + '-NO')).toBe(false);
 		});

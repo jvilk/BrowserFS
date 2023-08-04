@@ -1,5 +1,4 @@
-import { BFSCallback, FileSystem } from './file_system';
-import type { ApiError } from './api_error';
+import type { BFSCallback, FileSystem } from './file_system';
 import { checkOptions } from './util';
 import { AsyncMirror } from '../backend/AsyncMirror';
 import { DropboxFileSystem as Dropbox } from '../backend/Dropbox';
@@ -59,7 +58,7 @@ interface InternalBackendConstructor<FS extends FileSystem = FileSystem> {
 	 * **Core**: Creates backend of this given type with the given
 	 * options, and returns the result in a promise.
 	 */
-	CreateAsync(options: object): Promise<FS>;
+	Create(options: object): Promise<FS>;
 
 	/**
 	 * **Core**: Returns 'true' if this backend is available in the current
@@ -74,15 +73,38 @@ interface InternalBackendConstructor<FS extends FileSystem = FileSystem> {
 /**
  * Contains typings for static functions on the backend constructor.
  */
-export interface BackendConstructor<FS extends FileSystem = FileSystem> extends InternalBackendConstructor<FS> {
+export interface BackendConstructor<FS extends FileSystem = FileSystem> {
 	/**
-	 * **Core**: Creates a backend of this given type with the given
-	 * options, and returns the result in a callback.
+	 * **Core**: Name to identify this backend.
 	 */
-	Create(options: object, cb: (e?: ApiError, fs?: FS) => unknown): void;
+	Name: string;
+
+	/**
+	 * **Core**: Describes all of the options available for this backend.
+	 */
+	Options: BackendOptions;
+
+	/**
+	 * **Core**: Creates backend of this given type with the given
+	 * options, and either returns the result in a promise or callback.
+	 */
+	Create(): Promise<FS>;
+	Create(options: object): Promise<FS>;
+	Create(cb: BFSCallback<FS>): void;
+	Create(options: object, cb: BFSCallback<FS>): void;
+	Create(options: object, cb?: BFSCallback<FS>): Promise<FS> | void;
+
+	/**
+	 * **Core**: Returns 'true' if this backend is available in the current
+	 * environment. For example, a `localStorage`-backed filesystem will return
+	 * 'false' if the browser does not support that API.
+	 *
+	 * Defaults to 'false', as the FileSystem base class isn't usable alone.
+	 */
+	isAvailable(): boolean;
 }
 
-type UnwrapCreateAsync<T> = T extends { CreateAsync: (...args: unknown[]) => Promise<infer U> } ? U : never;
+type UnwrapInternalCreate<T> = T extends { Create: (...args: unknown[]) => Promise<infer U> } ? U : never;
 const _backends = {
 	AsyncMirror,
 	Dropbox,
@@ -101,26 +123,41 @@ const _backends = {
 	ZipFS,
 };
 const backends = _backends as { [K in keyof typeof _backends]: InternalBackendConstructor } as {
-	[K in keyof typeof _backends]: BackendConstructor<UnwrapCreateAsync<(typeof _backends)[K]>>;
+	[K in keyof typeof _backends]: BackendConstructor<UnwrapInternalCreate<(typeof _backends)[K]>>;
 };
 
-// Monkey-patch `CreateAsync` functions to check options before file system initialization and add `Create`.
+// Monkey-patch `Create` functions to check options before file system initialization and add `Create`.
 for (const backend of Object.values(backends) as BackendConstructor[]) {
-	const createAsync = backend.CreateAsync;
-	backend.CreateAsync = async function (options: Parameters<typeof createAsync>[0] = {}): ReturnType<typeof createAsync> {
+	/* eslint-disable no-inner-declarations */
+	const __create = backend.Create;
+	async function _create(options: object) {
 		await checkOptions(backend, options);
-		return createAsync.call(backend, options);
-	};
-	backend.Create = function (opts?: object, cb?: BFSCallback<FileSystem>): void {
+		return __create.call(backend, options);
+	}
+
+	function create(): Promise<FileSystem>;
+	function create(opts: object): Promise<FileSystem>;
+	function create(cb: BFSCallback<FileSystem>): void;
+	function create(opts: object, cb: BFSCallback<FileSystem>): void;
+	function create(opts?: object, cb?: BFSCallback<FileSystem>): Promise<FileSystem> | void {
 		const oneArg = typeof opts === 'function';
 		const normalizedCb = oneArg ? opts : cb;
 		const normalizedOpts = oneArg ? {} : opts;
 
-		backend
-			.CreateAsync(normalizedOpts)
+		// Promise
+		if (typeof normalizedCb != 'function') {
+			return _create(normalizedOpts);
+		}
+
+		// Callback
+		_create(normalizedOpts)
 			.then(fs => normalizedCb(null, fs))
 			.catch(err => normalizedCb(err));
-	};
+	}
+
+	backend.Create = create;
+
+	/* eslint-enable no-inner-declarations */
 }
 
 export { backends };
