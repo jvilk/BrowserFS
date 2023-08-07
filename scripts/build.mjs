@@ -1,5 +1,5 @@
 import { build } from 'esbuild';
-import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill';
+import { polyfillNode  } from 'esbuild-plugin-polyfill-node';
 
 const common = {
 	entryPoints: ['src/core/browserfs.ts'],
@@ -8,8 +8,8 @@ const common = {
 	globalName: 'BrowserFS',
 	sourcemap: true,
 	bundle: true,
-	alias: { path: 'bfs-path', process: 'bfs-process' },
-	plugins: [NodeModulesPolyfillPlugin()],
+	alias: { process: 'bfs-process', path: 'path' },
+	plugins: [polyfillNode()],
 };
 
 const configs = {
