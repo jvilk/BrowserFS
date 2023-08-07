@@ -6,8 +6,8 @@ describe.each(backends)('%s File Writing Synchronously', (name, options) => {
 	const configured = configure({ fs: name, options });
 	it('should write file synchronously with specified content', async () => {
 		await configured;
-		const rootFS = fs.getRootFS();
-		if (rootFS.isReadOnly() || !rootFS.supportsSynch()) {
+
+		if (fs.getRootFS().isReadOnly() || !fs.getRootFS().supportsSynch()) {
 			return;
 		}
 

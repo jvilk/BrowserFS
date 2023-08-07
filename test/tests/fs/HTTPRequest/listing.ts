@@ -1,5 +1,6 @@
 import { fs } from '../../../common';
 import * as BrowserFS from '../../../../src/core/browserfs';
+import { promisify } from 'node:util';
 
 type Listing = { [name: string]: Listing | null };
 
@@ -14,7 +15,7 @@ describe('HTTPDownloadFS', () => {
 		BrowserFS.initialize(oldRootFS);
 	});
 
-	test('File System Operations', () => {
+	it('File System Operations', async () => {
 		const listing: Listing = {
 			'README.md': null,
 			test: {
@@ -31,51 +32,42 @@ describe('HTTPDownloadFS', () => {
 			},
 		};
 
-		return new Promise<void>(resolve => {
-			BrowserFS.Backend.XmlHttpRequest.Create(
-				{
-					index: listing,
-					baseUrl: '/',
-				},
-				(e, newXFS) => {
-					BrowserFS.initialize(newXFS);
-
-					const t1text = 'Invariant fail: Can query folder that contains items and a mount point.';
-					const expectedTestListing = ['README.md', 'src', 'test'];
-					const testListing = fs.readdirSync('/').sort();
-					expect(testListing).toEqual(expectedTestListing);
-
-					fs.readdir('/', (err: NodeJS.ErrnoException | null, files: string[]) => {
-						expect(err).toBeNull();
-						expect(files.sort()).toEqual(expectedTestListing);
-
-						fs.stat('/test/fixtures/static/49chars.txt', (err, stats) => {
-							expect(err).toBeNull();
-							expect(stats.isFile()).toBe(true);
-							expect(stats.isDirectory()).toBe(false);
-							// NOTE: Size is 50 in Windows due to line endings.
-							expect(stats.size).toBeGreaterThanOrEqual(49);
-							expect(stats.size).toBeLessThanOrEqual(50);
-						});
-
-						fs.stat('/src/backend', (err, stats) => {
-							expect(err).toBeNull();
-							expect(stats.isDirectory()).toBe(true);
-							expect(stats.isFile()).toBe(false);
-						});
-
-						fs.stat('/src/not-existing-name', (err, stats) => {
-							expect(err).toBeTruthy();
-						});
-
-						resolve();
-					});
-				}
-			);
+		const newXFS = await BrowserFS.backends.HTTPRequest.Create({
+			index: listing,
+			baseUrl: '/',
 		});
+
+		BrowserFS.initialize(newXFS);
+
+		const expectedTestListing = ['README.md', 'src', 'test'];
+		const testListing = fs.readdirSync('/').sort();
+		expect(testListing).toEqual(expectedTestListing);
+
+		const readdirAsync = promisify(fs.readdir);
+		const files = await readdirAsync('/');
+		expect(files.sort()).toEqual(expectedTestListing);
+
+		const statAsync = promisify(fs.stat);
+		const stats = await statAsync('/test/fixtures/static/49chars.txt');
+		expect(stats.isFile()).toBe(true);
+		expect(stats.isDirectory()).toBe(false);
+		expect(stats.size).toBeGreaterThanOrEqual(49);
+		expect(stats.size).toBeLessThanOrEqual(50);
+
+		const backendStats = await statAsync('/src/backend');
+		expect(backendStats.isDirectory()).toBe(true);
+		expect(backendStats.isFile()).toBe(false);
+
+		let statError = null;
+		try {
+			await statAsync('/src/not-existing-name');
+		} catch (error) {
+			statError = error;
+		}
+		expect(statError).toBeTruthy();
 	});
 
-	test('Maintains XHR file system for backwards compatibility', () => {
-		expect(BrowserFS.Backend.XmlHttpRequest).toBe(BrowserFS.Backend.HTTPRequest);
+	it('Maintains XHR file system for backwards compatibility', () => {
+		expect(BrowserFS.backends.HTTPRequest).toBe(BrowserFS.backends.XmlHttpRequest);
 	});
 });

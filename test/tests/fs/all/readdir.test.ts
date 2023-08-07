@@ -1,13 +1,14 @@
 import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
+import { promisify } from 'node:util';
 
 describe.each(backends)('%s Directory Reading', (name, options) => {
 	const configured = configure({ fs: name, options });
-	test('Cannot call readdir on a file (synchronous)', () => {
-		const rootFS = fs.getRootFS();
+
+	it('Cannot call readdir on a file (synchronous)', () => {
 		let wasThrown = false;
-		if (rootFS.supportsSynch()) {
+		if (fs.getRootFS().supportsSynch()) {
 			try {
 				fs.readdirSync(path.join(common.fixturesDir, 'a.js'));
 			} catch (e) {
@@ -18,10 +19,9 @@ describe.each(backends)('%s Directory Reading', (name, options) => {
 		}
 	});
 
-	test('Cannot call readdir on a non-existent directory (synchronous)', () => {
-		const rootFS = fs.getRootFS();
+	it('Cannot call readdir on a non-existent directory (synchronous)', () => {
 		let wasThrown = false;
-		if (rootFS.supportsSynch()) {
+		if (fs.getRootFS().supportsSynch()) {
 			try {
 				fs.readdirSync('/does/not/exist');
 			} catch (e) {
@@ -32,19 +32,23 @@ describe.each(backends)('%s Directory Reading', (name, options) => {
 		}
 	});
 
-	test('Cannot call readdir on a file (asynchronous)', done => {
-		fs.readdir(path.join(common.fixturesDir, 'a.js'), (err, files) => {
+	it('Cannot call readdir on a file (asynchronous)', async () => {
+		await configured;
+		try {
+			await promisify(fs.readdir)(path.join(common.fixturesDir, 'a.js'));
+		} catch (err) {
 			expect(err).toBeTruthy();
 			expect(err.code).toBe('ENOTDIR');
-			done();
-		});
+		}
 	});
 
-	test('Cannot call readdir on a non-existent directory (asynchronous)', done => {
-		fs.readdir('/does/not/exist', (err, files) => {
+	it('Cannot call readdir on a non-existent directory (asynchronous)', async () => {
+		await configured;
+		try {
+			await promisify(fs.readdir)('/does/not/exist');
+		} catch (err) {
 			expect(err).toBeTruthy();
 			expect(err.code).toBe('ENOENT');
-			done();
-		});
+		}
 	});
 });

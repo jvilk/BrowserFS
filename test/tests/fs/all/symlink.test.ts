@@ -1,57 +1,52 @@
 import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
+import { promisify } from 'node:util';
 
 describe.each(backends)('%s Link and Symlink Test', (name, options) => {
 	const configured = configure({ fs: name, options });
 	let completed = 0;
 	const expected_tests = 2;
-	const rootFS = fs.getRootFS();
+	const readFileAsync = promisify<string, string, string>(fs.readFile);
 
-	it('should create and read symbolic link', async done => {
-		if (rootFS.supportsLinks()) {
-			await configured;
+	it('should create and read symbolic link', async () => {
+		await configured;
+		if (fs.getRootFS().supportsLinks()) {
 			const linkData = path.join(common.fixturesDir, '/cycles/root.js');
 			const linkPath = path.join(common.tmpDir, 'symlink1.js');
 
 			// Delete previously created link
 			try {
-				fs.unlinkSync(linkPath);
+				await promisify(fs.unlink)(linkPath);
 			} catch (e) {}
 
-			fs.symlink(linkData, linkPath, err => {
-				if (err) throw err;
-				console.log('symlink done');
-				fs.readlink(linkPath, (err, destination) => {
-					if (err) throw err;
-					expect(destination).toBe(linkData);
-					completed++;
-					done();
-				});
-			});
+			await promisify(fs.symlink)(linkData, linkPath);
+			console.log('symlink done');
+
+			const destination = await promisify(fs.readlink)(linkPath);
+			expect(destination).toBe(linkData);
+			completed++;
 		}
 	});
 
-	it('should create and read hard link', async done => {
-		if (rootFS.supportsLinks()) {
-			await configured;
+	it('should create and read hard link', async () => {
+		await configured;
+		if (fs.getRootFS().supportsLinks()) {
 			const srcPath = path.join(common.fixturesDir, 'cycles', 'root.js');
 			const dstPath = path.join(common.tmpDir, 'link1.js');
 
 			// Delete previously created link
 			try {
-				fs.unlinkSync(dstPath);
+				await promisify(fs.unlink)(dstPath);
 			} catch (e) {}
 
-			fs.link(srcPath, dstPath, err => {
-				if (err) throw err;
-				console.log('hard link done');
-				const srcContent = fs.readFileSync(srcPath, 'utf8');
-				const dstContent = fs.readFileSync(dstPath, 'utf8');
-				expect(srcContent).toBe(dstContent);
-				completed++;
-				done();
-			});
+			await promisify(fs.link)(srcPath, dstPath);
+			console.log('hard link done');
+
+			const srcContent = await readFileAsync(srcPath, 'utf8');
+			const dstContent = await readFileAsync(dstPath, 'utf8');
+			expect(srcContent).toBe(dstContent);
+			completed++;
 		}
 	});
 

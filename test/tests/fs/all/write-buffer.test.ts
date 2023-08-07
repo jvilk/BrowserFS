@@ -1,45 +1,37 @@
 import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
+import { promisify } from 'node:util';
 
 describe.each(backends)('%s File Writing', (name, options) => {
 	const configured = configure({ fs: name, options });
-	it('should write content to a file', async done => {
+
+	it('should write content to a file', async () => {
 		await configured;
+
 		if (!fs.getRootFS().isReadOnly()) {
 			const filename = path.join(common.tmpDir, 'write.txt');
 			const expected = Buffer.from('hello');
 			let openCalled = 0;
 			let writeCalled = 0;
 
-			fs.open(filename, 'w', 0o644, (err, fd) => {
-				openCalled++;
-				if (err) throw err;
+			const fd = await promisify<string, string, number, number>(fs.open)(filename, 'w', 0o644);
+			openCalled++;
 
-				fs.write(fd, expected, 0, expected.length, null, (err, written) => {
-					writeCalled++;
-					if (err) throw err;
+			const written = await promisify<number, Buffer, number, number, number | null, number>(fs.write)(fd, expected, 0, expected.length, null);
+			writeCalled++;
 
-					expect(expected.length).toBe(written);
+			expect(expected.length).toBe(written);
 
-					fs.close(fd, err => {
-						if (err) throw err;
+			await promisify(fs.close)(fd);
 
-						fs.readFile(filename, 'utf8', (err, found) => {
-							expect(expected.toString()).toBe(found);
+			const found = await promisify<string, string, string>(fs.readFile)(filename, 'utf8');
+			expect(expected.toString()).toBe(found);
 
-							fs.unlink(filename, err => {
-								if (err) throw err;
+			await promisify(fs.unlink)(filename);
 
-								expect(openCalled).toBe(1);
-								expect(writeCalled).toBe(1);
-
-								done();
-							});
-						});
-					});
-				});
-			});
+			expect(openCalled).toBe(1);
+			expect(writeCalled).toBe(1);
 		}
 	});
 });

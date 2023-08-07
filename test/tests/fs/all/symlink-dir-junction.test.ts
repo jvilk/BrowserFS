@@ -1,6 +1,7 @@
 import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
+import { promisify } from 'node:util';
 
 describe.each(backends)('%s Symbolic Link Test', (name, options) => {
 	const configured = configure({ fs: name, options });
@@ -11,57 +12,56 @@ describe.each(backends)('%s Symbolic Link Test', (name, options) => {
 	const linkData = path.join(common.fixturesDir, 'cycles/');
 	const linkPath = path.join(common.tmpDir, 'cycles_link');
 
-	const rootFS = fs.getRootFS();
-	if (!(rootFS.isReadOnly() || !rootFS.supportsLinks())) {
-		beforeAll(done => {
-			// Delete previously created link
-			fs.unlink(linkPath, err => {
-				if (err) throw err;
-				console.log('linkData: ' + linkData);
-				console.log('linkPath: ' + linkPath);
+	const unlinkAsync = promisify(fs.unlink);
+	const existsAsync = promisify(fs.existsSync);
 
-				fs.symlink(linkData, linkPath, 'junction', err => {
-					if (err) throw err;
-					completed++;
-					done();
-				});
-			});
-		});
+	beforeAll(async () => {
+		await configured;
 
-		it('should lstat symbolic link', async done => {
-			await configured;
-			fs.lstat(linkPath, (err, stats) => {
-				if (err) throw err;
-				expect(stats.isSymbolicLink()).toBe(true);
-				completed++;
-				done();
-			});
-		});
+		// Delete previously created link
+		await unlinkAsync(linkPath);
 
-		it('should readlink symbolic link', async done => {
-			await configured;
-			fs.readlink(linkPath, (err, destination) => {
-				if (err) throw err;
-				expect(destination).toBe(linkData);
-				completed++;
-				done();
-			});
-		});
+		console.log('linkData: ' + linkData);
+		console.log('linkPath: ' + linkPath);
 
-		it('should unlink symbolic link', async done => {
-			await configured;
-			fs.unlink(linkPath, err => {
-				if (err) throw err;
-				expect(fs.existsSync(linkPath)).toBe(false);
-				expect(fs.existsSync(linkData)).toBe(true);
-				completed++;
-				done();
-			});
-		});
+		await promisify<string, string, string, void>(fs.symlink)(linkData, linkPath, 'junction');
+		completed++;
+	});
 
-		afterAll(() => {
-			expect(completed).toBe(expected_tests);
-			process.exitCode = 0;
-		});
-	}
+	it('should lstat symbolic link', async () => {
+		await configured;
+		if (fs.getRootFS().isReadOnly() || !fs.getRootFS().supportsLinks()) {
+			return;
+		}
+
+		const stats = await promisify(fs.lstat)(linkPath);
+		expect(stats.isSymbolicLink()).toBe(true);
+		completed++;
+	});
+
+	it('should readlink symbolic link', async () => {
+		await configured;
+		if (fs.getRootFS().isReadOnly() || !fs.getRootFS().supportsLinks()) {
+			return;
+		}
+		const destination = await promisify(fs.readlink)(linkPath);
+		expect(destination).toBe(linkData);
+		completed++;
+	});
+
+	it('should unlink symbolic link', async () => {
+		await configured;
+		if (fs.getRootFS().isReadOnly() || !fs.getRootFS().supportsLinks()) {
+			return;
+		}
+		await unlinkAsync(linkPath);
+		expect(await existsAsync(linkPath)).toBe(false);
+		expect(await existsAsync(linkData)).toBe(true);
+		completed++;
+	});
+
+	afterAll(() => {
+		expect(completed).toBe(expected_tests);
+		process.exitCode = 0;
+	});
 });

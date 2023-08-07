@@ -1,13 +1,15 @@
 import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
+import { promisify } from 'node:util';
 
 describe.each(backends)('%s File Reading', (name, options) => {
 	const configured = configure({ fs: name, options });
-	test('Cannot read a file with an invalid encoding (synchronous)', () => {
-		const rootFS = fs.getRootFS();
+	it('Cannot read a file with an invalid encoding (synchronous)', async () => {
+		await configured;
+
 		let wasThrown = false;
-		if (rootFS.supportsSynch()) {
+		if (fs.getRootFS().supportsSynch()) {
 			try {
 				fs.readFileSync(path.join(common.fixturesDir, 'a.js'), 'wrongencoding');
 			} catch (e) {
@@ -17,23 +19,16 @@ describe.each(backends)('%s File Reading', (name, options) => {
 		}
 	});
 
-	test('Cannot read a file with an invalid encoding (asynchronous)', done => {
-		fs.readFile(path.join(common.fixturesDir, 'a.js'), 'wrongencoding', (err, data) => {
-			expect(err).toBeTruthy();
-			done();
-		});
+	it('Cannot read a file with an invalid encoding (asynchronous)', async () => {
+		await configured;
+		expect(await promisify<string, string>(fs.readFile)(path.join(common.fixturesDir, 'a.js'), 'wrongencoding')).toThrow();
 	});
 
-	test('Reading past the end of a file should not be an error', done => {
-		fs.open(path.join(common.fixturesDir, 'a.js'), 'r', (err, fd) => {
-			expect(err).toBeFalsy();
-			const buffData = Buffer.alloc(10);
-			fs.read(fd, buffData, 0, 10, 10000, (err, bytesRead, buffer) => {
-				expect(err).toBeFalsy();
-				expect(bytesRead).toBe(0);
-				expect(buffer).toBe(buffData);
-				done();
-			});
-		});
+	it('Reading past the end of a file should not be an error', async () => {
+		await configured;
+		const fd = await promisify<string, string, number>(fs.open)(path.join(common.fixturesDir, 'a.js'), 'r');
+		const buffData = Buffer.alloc(10);
+		const bytesRead = await promisify(fs.read)(fd, buffData, 0, 10, 10000);
+		expect(bytesRead).toBe(0);
 	});
 });

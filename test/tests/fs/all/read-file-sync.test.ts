@@ -4,10 +4,10 @@ import common from '../../../common';
 
 describe.each(backends)('%s fs file reading', (name, options) => {
 	const configured = configure({ fs: name, options });
-	const rootFS = fs.getRootFS();
+
 	const filepath = path.join(common.fixturesDir, 'elipses.txt');
 
-	if (rootFS.supportsSynch()) {
+	if (fs.getRootFS().supportsSynch()) {
 		it('should read file synchronously and verify the content', async () => {
 			await configured;
 			const content = fs.readFileSync(filepath, 'utf8');

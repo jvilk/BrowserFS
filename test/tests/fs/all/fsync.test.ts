@@ -1,5 +1,6 @@
 import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
+import { promisify } from 'node:util'; // Import promisify
 import common from '../../../common';
 
 describe.each(backends)('%s fs.fileSync', (name, options) => {
@@ -7,19 +8,16 @@ describe.each(backends)('%s fs.fileSync', (name, options) => {
 	const file = path.join(common.fixturesDir, 'a.js');
 	const rootFS = fs.getRootFS();
 
-	if (!rootFS.isReadOnly()) {
+	if (!fs.getRootFS().isReadOnly()) {
 		let fd: number;
 		let successes = 0;
 
-		beforeAll(done => {
-			fs.open(file, 'a', 0o777, (err, fileDescriptor) => {
-				if (err) throw err;
-				fd = fileDescriptor;
-				done();
-			});
+		beforeAll(async () => {
+			// Promisify the fs.open function
+			fd = await promisify<string, string, number, number>(fs.open)(file, 'a', 0o777);
 		});
 
-		if (rootFS.supportsSynch()) {
+		if (fs.getRootFS().supportsSynch()) {
 			it('should synchronize file data changes (sync)', async () => {
 				await configured;
 				fs.fdatasyncSync(fd);
@@ -29,29 +27,27 @@ describe.each(backends)('%s fs.fileSync', (name, options) => {
 			});
 		}
 
-		it('should synchronize file data changes (async)', async done => {
+		it('should synchronize file data changes (async)', async () => {
 			await configured;
-			fs.fdatasync(fd, err => {
-				if (err) throw err;
-				successes++;
-				fs.fsync(fd, err => {
-					if (err) throw err;
-					successes++;
-					done();
-				});
-			});
+			// Promisify the fs.fdatasync and fs.fsync functions
+			const fdatasyncAsync = promisify(fs.fdatasync);
+			const fsyncAsync = promisify(fs.fsync);
+
+			await fdatasyncAsync(fd);
+			successes++;
+			await fsyncAsync(fd);
+			successes++;
 		});
 
-		afterAll(done => {
-			fs.close(fd, err => {
-				if (err) throw err;
-				done();
-			});
+		afterAll(async () => {
+			// Promisify the fs.close function
+			const closeAsync = promisify(fs.close);
+			await closeAsync(fd);
 		});
 
 		it('should have correct number of successes', async () => {
 			await configured;
-			if (rootFS.supportsSynch()) {
+			if (fs.getRootFS().supportsSynch()) {
 				expect(successes).toBe(4);
 			} else {
 				expect(successes).toBe(2);

@@ -3,6 +3,7 @@ import * as path from 'path';
 import common from '../../../common';
 import type { FileContents } from '../../../../src/core/file_system';
 import { jest } from '@jest/globals';
+import { promisify } from 'node:util';
 
 describe.each(backends)('%s appendFile tests', (name, options) => {
 	const configured = configure({ fs: name, options });
@@ -17,19 +18,15 @@ describe.each(backends)('%s appendFile tests', (name, options) => {
 		const filename = path.join(tmpDir, 'append.txt');
 		const content = 'Sample content';
 
-		jest.spyOn(fs, 'appendFile').mockImplementation((file, data, mode, callback) => {
-			if (typeof mode == 'function') {
-				callback = mode;
-			}
+		jest.spyOn(fs, 'appendFile').mockImplementation(async (file, data, mode) => {
 			expect(file).toBe(filename);
 			expect(data).toBe(content);
-			callback();
 		});
 
-		jest.spyOn(fs, 'readFile').mockImplementation((file, options, callback) => {
+		jest.spyOn(fs, 'readFile').mockImplementation(async (file, options) => {
 			expect(file).toBe(filename);
 			expect(options).toBe('utf8');
-			callback(null, content);
+			return content;
 		});
 
 		await appendFileAndVerify(filename, content);
@@ -41,26 +38,20 @@ describe.each(backends)('%s appendFile tests', (name, options) => {
 		const currentFileData = 'ABCD';
 		const content = 'Sample content';
 
-		fs.writeFile(filename, currentFileData, err => {
-			expect(err).toBeNull();
+		await promisify<string, string, void>(fs.writeFile)(filename, currentFileData);
 
-			jest.spyOn(fs, 'appendFile').mockImplementation((file, data, mode, callback) => {
-				if (typeof mode == 'function') {
-					callback = mode;
-				}
-				expect(file).toBe(filename);
-				expect(data).toBe(content);
-				callback();
-			});
-
-			jest.spyOn(fs, 'readFile').mockImplementation((file, options, callback) => {
-				expect(file).toBe(filename);
-				expect(options).toBe('utf8');
-				callback(null, currentFileData + content);
-			});
-
-			appendFileAndVerify(filename, content);
+		jest.spyOn(fs, 'appendFile').mockImplementation(async (file, data, mode) => {
+			expect(file).toBe(filename);
+			expect(data).toBe(content);
 		});
+
+		jest.spyOn(fs, 'readFile').mockImplementation(async (file, options) => {
+			expect(file).toBe(filename);
+			expect(options).toBe('utf8');
+			return currentFileData + content;
+		});
+
+		await appendFileAndVerify(filename, content);
 	});
 
 	it('should append a buffer to the file', async () => {
@@ -69,50 +60,28 @@ describe.each(backends)('%s appendFile tests', (name, options) => {
 		const currentFileData = 'ABCD';
 		const content = Buffer.from('Sample content', 'utf8');
 
-		fs.writeFile(filename, currentFileData, err => {
-			expect(err).toBeNull();
+		await promisify<string, string, void>(fs.writeFile)(filename, currentFileData);
 
-			jest.spyOn(fs, 'appendFile').mockImplementation((file, data, mode, callback) => {
-				if (typeof mode == 'function') {
-					callback = mode;
-				}
-				expect(file).toBe(filename);
-				expect(data).toBe(content);
-				callback();
-			});
-
-			jest.spyOn(fs, 'readFile').mockImplementation((file, options, callback) => {
-				expect(file).toBe(filename);
-				expect(options).toBe('utf8');
-				callback(null, currentFileData + content);
-			});
-
-			appendFileAndVerify(filename, content);
+		jest.spyOn(fs, 'appendFile').mockImplementation(async (file, data, mode) => {
+			expect(file).toBe(filename);
+			expect(data).toBe(content);
 		});
+
+		jest.spyOn(fs, 'readFile').mockImplementation(async (file, options) => {
+			expect(file).toBe(filename);
+			expect(options).toBe('utf8');
+			return currentFileData + content;
+		});
+
+		await appendFileAndVerify(filename, content);
 	});
 
 	// Additional tests can be added here
 
 	async function appendFileAndVerify(filename: string, content: FileContents): Promise<void> {
-		await new Promise<void>((resolve, reject) => {
-			fs.appendFile(filename, content, error => {
-				if (error) {
-					reject(error);
-				} else {
-					resolve();
-				}
-			});
-		});
+		await promisify<string, FileContents, void>(fs.appendFile)(filename, content);
 
-		await new Promise<void>((resolve, reject) => {
-			fs.readFile(filename, 'utf8', (error, data) => {
-				if (error) {
-					reject(error);
-				} else {
-					expect(data).toEqual(content.toString());
-					resolve();
-				}
-			});
-		});
+		const data = await promisify<string, string, string>(fs.readFile)(filename, 'utf8');
+		expect(data).toEqual(content.toString());
 	}
 });

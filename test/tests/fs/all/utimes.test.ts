@@ -1,12 +1,13 @@
 import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
+import { promisify } from 'node:util';
 
 describe.each(backends)('%s Utimes Tests', (name, options) => {
 	const configured = configure({ fs: name, options });
 	let tests_ok: number;
 	let tests_run: number;
-	const rootFS = fs.getRootFS();
+
 	const filename = path.join(common.fixturesDir, 'x.txt');
 
 	beforeAll(() => {
@@ -53,88 +54,80 @@ describe.each(backends)('%s Utimes Tests', (name, options) => {
 		}
 	}
 
-	function runTest(atime: Date | number, mtime: Date | number): Promise<void> {
-		return new Promise(resolve => {
-			let fd: number;
-			//
-			// test synchronized code paths, these functions throw on failure
-			//
-			function syncTests() {
-				fs.utimesSync(filename, atime, mtime);
-				expect_ok('utimesSync', filename, undefined, atime, mtime);
+	async function runTest(atime: Date | number, mtime: Date | number): Promise<void> {
+		await configured;
+		let fd: number;
 
-				// some systems don't have futimes
-				// if there's an error, it should be ENOSYS
-				try {
-					fs.futimesSync(fd, atime, mtime);
-					expect_ok('futimesSync', fd, undefined, atime, mtime);
-				} catch (ex) {
-					expect_errno('futimesSync', fd, ex, 'ENOSYS');
-				}
+		//
+		// test async code paths
+		await promisify(fs.utimes)(filename, atime, mtime);
+		expect_ok('utimes', filename, undefined, atime, mtime);
 
-				let err: NodeJS.ErrnoException;
-				err = undefined;
-				try {
-					fs.utimesSync('foobarbaz', atime, mtime);
-				} catch (ex) {
-					err = ex;
-				}
-				expect_errno('utimesSync', 'foobarbaz', err, 'ENOENT');
+		await promisify(fs.utimes)('foobarbaz', atime, mtime).catch(err => {
+			expect_errno('utimes', 'foobarbaz', err, 'ENOENT');
+		});
 
-				err = undefined;
-				try {
-					fs.futimesSync(-1, atime, mtime);
-				} catch (ex) {
-					err = ex;
-				}
-				expect_errno('futimesSync', -1, err, 'EBADF');
+		// don't close this fd
+		fd = await promisify<string, string, number>(fs.open)(filename, 'r');
+
+		await promisify(fs.futimes)(fd, atime, mtime);
+		expect_ok('futimes', fd, undefined, atime, mtime);
+
+		await promisify(fs.futimes)(-1, atime, mtime).catch(err => {
+			expect_errno('futimes', -1, err, 'EBADF');
+		});
+
+		if (fs.getRootFS().supportsSynch()) {
+			fs.utimesSync(filename, atime, mtime);
+			expect_ok('utimesSync', filename, undefined, atime, mtime);
+
+			// some systems don't have futimes
+			// if there's an error, it should be ENOSYS
+			try {
+				fs.futimesSync(fd, atime, mtime);
+				expect_ok('futimesSync', fd, undefined, atime, mtime);
+			} catch (ex) {
+				expect_errno('futimesSync', fd, ex, 'ENOSYS');
 			}
 
-			//
-			// test async code paths  //
-			fs.utimes(filename, atime, mtime, function (err) {
-				expect_ok('utimes', filename, err, atime, mtime);
+			let err: NodeJS.ErrnoException;
+			err = undefined;
+			try {
+				fs.utimesSync('foobarbaz', atime, mtime);
+			} catch (ex) {
+				err = ex;
+			}
+			expect_errno('utimesSync', 'foobarbaz', err, 'ENOENT');
 
-				fs.utimes('foobarbaz', atime, mtime, function (err) {
-					expect_errno('utimes', 'foobarbaz', err, 'ENOENT');
-
-					// don't close this fd
-					fd = fs.openSync(filename, 'r');
-
-					fs.futimes(fd, atime, mtime, function (err) {
-						expect_ok('futimes', fd, err, atime, mtime);
-
-						fs.futimes(-1, atime, mtime, function (err) {
-							expect_errno('futimes', -1, err, 'EBADF');
-							if (rootFS.supportsSynch()) {
-								syncTests();
-							}
-							resolve();
-						});
-					});
-				});
-			});
-		});
+			err = undefined;
+			try {
+				fs.futimesSync(-1, atime, mtime);
+			} catch (ex) {
+				err = ex;
+			}
+			expect_errno('futimesSync', -1, err, 'EBADF');
+		}
 	}
 
-	if (rootFS.supportsProps()) {
+	if (fs.getRootFS().supportsProps()) {
 		const stats = fs.statSync(filename);
-		test('Run Test 1', async () => {
+
+		it('Run Test 1', async () => {
 			await configured;
 			await runTest(new Date('1982/09/10 13:37:00'), new Date('1982/09/10 13:37:00'));
 		});
 
-		test('Run Test 2', async () => {
+		it('Run Test 2', async () => {
 			await configured;
 			await runTest(new Date(), new Date());
 		});
 
-		test('Run Test 3', async () => {
+		it('Run Test 3', async () => {
 			await configured;
 			await runTest(123456.789, 123456.789);
 		});
 
-		test('Run Test 4', async () => {
+		it('Run Test 4', async () => {
 			await configured;
 			await runTest(stats.mtime, stats.mtime);
 		});

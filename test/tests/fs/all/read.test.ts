@@ -1,6 +1,7 @@
 import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
+import { promisify } from 'node:util';
 
 describe.each(backends)('%s File Read Test', (name, options) => {
 	const configured = configure({ fs: name, options });
@@ -14,27 +15,22 @@ describe.each(backends)('%s File Read Test', (name, options) => {
 		rootFS = fs.getRootFS();
 	});
 
-	it('should read file asynchronously', async done => {
+	it('should read file asynchronously', async () => {
 		await configured;
-		fs.open(filepath, 'r', (err: NodeJS.ErrnoException, fd: number) => {
-			if (err) throw err;
+		const fd = await promisify<string, string, number>(fs.open)(filepath, 'r');
+		const buffer = Buffer.alloc(expected.length);
+		const bytesRead = await promisify(fs.read)(fd, buffer, 0, expected.length, 0);
 
-			const buffer = Buffer.alloc(expected.length);
-			fs.read(fd, buffer, 0, expected.length, 0, (err: NodeJS.ErrnoException, bytesRead: number) => {
-				expect(err).toBeNull();
-				expect(buffer.toString()).toEqual(expected);
-				expect(bytesRead).toEqual(expected.length);
-				done();
-			});
-		});
+		expect(buffer.toString()).toEqual(expected);
+		expect(bytesRead).toEqual(expected.length);
 	});
 
-	if (rootFS.supportsSynch()) {
+	if (fs.getRootFS().supportsSynch()) {
 		it('should read file synchronously', async () => {
 			await configured;
 			const fd = fs.openSync(filepath, 'r');
 			const buffer = Buffer.alloc(expected.length);
-			const bytesRead = fs.readSync(fd, buffer, 0, expected.length, 0);
+			const bytesRead = await promisify(fs.readSync)(fd, buffer, 0, expected.length, 0);
 
 			expect(buffer.toString()).toEqual(expected);
 			expect(bytesRead).toEqual(expected.length);

@@ -1,6 +1,7 @@
 import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
+import { promisify } from 'node:util';
 
 describe.each(backends)('%s Read and Unlink File Test', (name, options) => {
 	const configured = configure({ fs: name, options });
@@ -11,35 +12,23 @@ describe.each(backends)('%s Read and Unlink File Test', (name, options) => {
 		const buf = Buffer.alloc(512);
 		buf.fill(42);
 
-		beforeAll(done => {
-			fs.mkdir(dirName, (err: NodeJS.ErrnoException) => {
-				if (err) throw err;
-				fs.writeFile(fileName, buf, err => {
-					if (err) throw err;
-					done();
-				});
-			});
+		beforeAll(async () => {
+			await configured;
+			await promisify(fs.mkdir)(dirName);
+			await promisify<string, Buffer, void>(fs.writeFile)(fileName, buf);
 		});
 
-		it('should read file and verify its content', async done => {
+		it('should read file and verify its content', async () => {
 			await configured;
-			fs.readFile(fileName, (err, data) => {
-				expect(err).toBeNull();
-				expect(data.length).toBe(buf.length);
-				expect(data[0]).toBe(42);
-				done();
-			});
+			const data: Buffer = await promisify<string, Buffer>(fs.readFile)(fileName);
+			expect(data.length).toBe(buf.length);
+			expect(data[0]).toBe(42);
 		});
 
-		it('should unlink file and remove directory', async done => {
+		it('should unlink file and remove directory', async () => {
 			await configured;
-			fs.unlink(fileName, err => {
-				if (err) throw err;
-				fs.rmdir(dirName, err => {
-					if (err) throw err;
-					done();
-				});
-			});
+			await promisify(fs.unlink)(fileName);
+			await promisify(fs.rmdir)(dirName);
 		});
 	}
 

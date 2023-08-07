@@ -11,11 +11,11 @@ describe.each(backends)('%s File Writing with Custom Mode', (name, options) => {
 
 	it('should write file synchronously with custom mode', async () => {
 		await configured;
-		const rootFS = fs.getRootFS();
+
 		const file = path.join(common.tmpDir, 'testWriteFileSync.txt');
 		const mode = 0o755;
 
-		jest.spyOn(rootFS, 'openSync').mockImplementation((...args) => {
+		jest.spyOn(fs, 'openSync').mockImplementation((...args) => {
 			return fs.openSync.apply(fs, args);
 		});
 
@@ -28,7 +28,7 @@ describe.each(backends)('%s File Writing with Custom Mode', (name, options) => {
 		const content = fs.readFileSync(file, { encoding: 'utf8' });
 		expect(content).toBe('123');
 
-		if (rootFS.supportsProps()) {
+		if (fs.getRootFS().supportsProps()) {
 			const actual = fs.statSync(file).mode & 0o777;
 			expect(actual).toBe(mode);
 		}
@@ -38,11 +38,11 @@ describe.each(backends)('%s File Writing with Custom Mode', (name, options) => {
 
 	it('should append to a file synchronously with custom mode', async () => {
 		await configured;
-		const rootFS = fs.getRootFS();
+
 		const file = path.join(common.tmpDir, 'testAppendFileSync.txt');
 		const mode = 0o755;
 
-		jest.spyOn(rootFS, 'openSync').mockImplementation((...args) => {
+		jest.spyOn(fs, 'openSync').mockImplementation((...args) => {
 			return fs.openSync.apply(fs, args);
 		});
 
@@ -55,7 +55,7 @@ describe.each(backends)('%s File Writing with Custom Mode', (name, options) => {
 		const content = fs.readFileSync(file, { encoding: 'utf8' });
 		expect(content).toBe('abc');
 
-		if (rootFS.supportsProps()) {
+		if (fs.getRootFS().supportsProps()) {
 			expect(fs.statSync(file).mode & mode).toBe(mode);
 		}
 

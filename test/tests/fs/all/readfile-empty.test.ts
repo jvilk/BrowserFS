@@ -1,37 +1,35 @@
 import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
+import { promisify } from 'node:util';
 
 describe.each(backends)('%s Read File Test', (name, options) => {
 	const configured = configure({ fs: name, options });
 	const fn = path.join(common.fixturesDir, 'empty.txt');
-	const rootFS = fs.getRootFS();
 
-	it('should read file asynchronously', async done => {
+	it('should read file asynchronously', async () => {
 		await configured;
-		fs.readFile(fn, (err: NodeJS.ErrnoException, data: Buffer) => {
-			expect(data).toBeDefined();
-			done();
-		});
+		const data: Buffer = await promisify<string, Buffer>(fs.readFile)(fn);
+		expect(data).toBeDefined();
 	});
 
-	it('should read file with utf-8 encoding asynchronously', async done => {
+	it('should read file with utf-8 encoding asynchronously', async () => {
 		await configured;
-		fs.readFile(fn, 'utf8', (err: NodeJS.ErrnoException, data: string) => {
-			expect(data).toBe('');
-			done();
-		});
+		const data: string = await promisify<string, string, string>(fs.readFile)(fn, 'utf8');
+		expect(data).toBe('');
 	});
 
-	if (rootFS.supportsSynch()) {
+	if (fs.getRootFS().supportsSynch()) {
 		it('should read file synchronously', async () => {
 			await configured;
-			expect(fs.readFileSync(fn)).toBeDefined();
+			const data: Buffer = fs.readFileSync(fn);
+			expect(data).toBeDefined();
 		});
 
 		it('should read file with utf-8 encoding synchronously', async () => {
 			await configured;
-			expect(fs.readFileSync(fn, 'utf8')).toBe('');
+			const data: string = fs.readFileSync(fn, 'utf8');
+			expect(data).toBe('');
 		});
 	}
 

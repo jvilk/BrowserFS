@@ -1,19 +1,24 @@
 import { backends, fs, configure } from '../../../common';
+import { promisify } from 'node:util';
 
 describe.each(backends)('%s Directory Removal', (name, options) => {
 	const configured = configure({ fs: name, options });
-	test('Cannot remove non-empty directories', () => {
-		fs.mkdir('/rmdirTest', (e: NodeJS.ErrnoException | null) => {
-			expect(e).toBeNull();
 
-			fs.mkdir('/rmdirTest/rmdirTest2', (e: NodeJS.ErrnoException | null) => {
-				expect(e).toBeNull();
+	it('Cannot remove non-empty directories', async () => {
+		await configured;
 
-				fs.rmdir('/rmdirTest', (e: NodeJS.ErrnoException | null) => {
-					expect(e).not.toBeNull();
-					expect(e!.code).toBe('ENOTEMPTY');
-				});
-			});
-		});
+		const createDir = promisify(fs.mkdir);
+		const removeDir = promisify(fs.rmdir);
+
+		await createDir('/rmdirTest');
+
+		await createDir('/rmdirTest/rmdirTest2');
+
+		try {
+			await removeDir('/rmdirTest');
+		} catch (err) {
+			expect(err).not.toBeNull();
+			expect(err.code).toBe('ENOTEMPTY');
+		}
 	});
 });

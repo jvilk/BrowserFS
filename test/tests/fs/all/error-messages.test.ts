@@ -34,7 +34,6 @@ const expectSyncError = (fn, p: string, ...args) => {
 
 describe.each(backends)('%s File System Tests', (name, options) => {
 	const configured = configure({ fs: name, options });
-	const rootFS = fs.getRootFS();
 
 	it('should handle async operations with error', async () => {
 		await configured;
@@ -42,7 +41,7 @@ describe.each(backends)('%s File System Tests', (name, options) => {
 
 		await expectAsyncError(fs.stat, fn);
 
-		if (!rootFS.isReadOnly()) {
+		if (!fs.getRootFS().isReadOnly()) {
 			await expectAsyncError(fs.mkdir, existingFile, 0o666);
 			await expectAsyncError(fs.rmdir, fn);
 			await expectAsyncError(fs.rmdir, existingFile);
@@ -51,23 +50,23 @@ describe.each(backends)('%s File System Tests', (name, options) => {
 			await expectAsyncError(fs.readdir, fn);
 			await expectAsyncError(fs.unlink, fn);
 
-			if (rootFS.supportsLinks()) {
+			if (fs.getRootFS().supportsLinks()) {
 				await expectAsyncError(fs.link, fn, 'foo');
 			}
 
-			if (rootFS.supportsProps()) {
+			if (fs.getRootFS().supportsProps()) {
 				await expectAsyncError(fs.chmod, fn, 0o666);
 			}
 		}
 
-		if (rootFS.supportsLinks()) {
+		if (fs.getRootFS().supportsLinks()) {
 			await expectAsyncError(fs.lstat, fn);
 			await expectAsyncError(fs.readlink, fn);
 		}
 	});
 
 	// Sync operations
-	if (rootFS.supportsSynch()) {
+	if (fs.getRootFS().supportsSynch()) {
 		it('should handle sync operations with error', async () => {
 			await configured;
 			const fn = path.join(common.fixturesDir, 'non-existent');
@@ -75,7 +74,7 @@ describe.each(backends)('%s File System Tests', (name, options) => {
 
 			expectSyncError(fs.statSync, fn);
 
-			if (!rootFS.isReadOnly()) {
+			if (!fs.getRootFS().isReadOnly()) {
 				expectSyncError(fs.mkdirSync, existingFile, 0o666);
 				expectSyncError(fs.rmdirSync, fn);
 				expectSyncError(fs.rmdirSync, existingFile);
@@ -84,16 +83,16 @@ describe.each(backends)('%s File System Tests', (name, options) => {
 				expectSyncError(fs.readdirSync, fn);
 				expectSyncError(fs.unlinkSync, fn);
 
-				if (rootFS.supportsProps()) {
+				if (fs.getRootFS().supportsProps()) {
 					expectSyncError(fs.chmodSync, fn, 0o666);
 				}
 
-				if (rootFS.supportsLinks()) {
+				if (fs.getRootFS().supportsLinks()) {
 					expectSyncError(fs.linkSync, fn, 'foo');
 				}
 			}
 
-			if (rootFS.supportsLinks()) {
+			if (fs.getRootFS().supportsLinks()) {
 				expectSyncError(fs.lstatSync, fn);
 				expectSyncError(fs.readlinkSync, fn);
 			}
