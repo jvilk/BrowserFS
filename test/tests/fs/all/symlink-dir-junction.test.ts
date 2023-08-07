@@ -5,8 +5,6 @@ import { promisify } from 'node:util';
 
 describe.each(backends)('%s Symbolic Link Test', (name, options) => {
 	const configured = configure({ fs: name, options });
-	let completed = 0;
-	const expected_tests = 4;
 
 	// test creating and reading symbolic link
 	const linkData = path.join(common.fixturesDir, 'cycles/');
@@ -25,7 +23,7 @@ describe.each(backends)('%s Symbolic Link Test', (name, options) => {
 		console.log('linkPath: ' + linkPath);
 
 		await promisify<string, string, string, void>(fs.symlink)(linkData, linkPath, 'junction');
-		completed++;
+		return;
 	});
 
 	it('should lstat symbolic link', async () => {
@@ -36,7 +34,6 @@ describe.each(backends)('%s Symbolic Link Test', (name, options) => {
 
 		const stats = await promisify(fs.lstat)(linkPath);
 		expect(stats.isSymbolicLink()).toBe(true);
-		completed++;
 	});
 
 	it('should readlink symbolic link', async () => {
@@ -46,7 +43,6 @@ describe.each(backends)('%s Symbolic Link Test', (name, options) => {
 		}
 		const destination = await promisify(fs.readlink)(linkPath);
 		expect(destination).toBe(linkData);
-		completed++;
 	});
 
 	it('should unlink symbolic link', async () => {
@@ -57,11 +53,5 @@ describe.each(backends)('%s Symbolic Link Test', (name, options) => {
 		await unlinkAsync(linkPath);
 		expect(await existsAsync(linkPath)).toBe(false);
 		expect(await existsAsync(linkData)).toBe(true);
-		completed++;
-	});
-
-	afterAll(() => {
-		expect(completed).toBe(expected_tests);
-		process.exitCode = 0;
 	});
 });

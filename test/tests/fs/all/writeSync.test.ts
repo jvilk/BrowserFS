@@ -2,7 +2,7 @@ import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import common from '../../../common';
 
-describe.each(backends)('%s File Writing Synchronously', (name, options) => {
+describe.each(backends)('%s fs.writeSync', (name, options) => {
 	const configured = configure({ fs: name, options });
 	it('should write file synchronously with specified content', async () => {
 		await configured;

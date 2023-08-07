@@ -3,15 +3,15 @@ import * as path from 'path';
 import common from '../../../common';
 import { promisify } from 'node:util';
 
-const openAsync = promisify<string, string, number, number>(fs.open);
-const writeAsync = promisify<number, string, number, string, number>(fs.write);
-const closeAsync = promisify(fs.close);
-const readFileAsync = promisify<string, string, string>(fs.readFile);
-const unlinkAsync = promisify(fs.unlink);
+const open = promisify<string, string, number, number>(fs.open);
+const write = promisify<number, string, number, string, number>(fs.write);
+const close = promisify(fs.close);
+const readFile = promisify<string, string, string>(fs.readFile);
+const unlink = promisify(fs.unlink);
 
-describe.each(backends)('%s Asynchronous File Writing', (name, options) => {
+describe.each(backends)('%s fs.write', (name, options) => {
 	const configured = configure({ fs: name, options });
-	it('should write file asynchronously with specified content', async () => {
+	it('should write file with specified content asynchronously', async () => {
 		await configured;
 		if (fs.getRootFS().isReadOnly()) {
 			return;
@@ -21,25 +21,48 @@ describe.each(backends)('%s Asynchronous File Writing', (name, options) => {
 		const fn2 = path.join(common.tmpDir, 'write2.txt');
 		const expected = 'ümlaut.';
 
-		const fd = await openAsync(fn, 'w', 0o644);
-		await writeAsync(fd, '', 0, 'utf8');
-		const written = await writeAsync(fd, expected, 0, 'utf8');
+		const fd = await open(fn, 'w', 0o644);
+		await write(fd, '', 0, 'utf8');
+		const written = await write(fd, expected, 0, 'utf8');
 		expect(written).toBe(Buffer.byteLength(expected));
-		await closeAsync(fd);
+		await close(fd);
 
-		const data = await readFileAsync(fn, 'utf8');
+		const data = await readFile(fn, 'utf8');
 		expect(data).toBe(expected);
 
-		await unlinkAsync(fn);
-		const fd2 = await openAsync(fn2, 'w', 0o644);
-		await writeAsync(fd2, '', 0, 'utf8');
-		const written2 = await writeAsync(fd2, expected, 0, 'utf8');
+		await unlink(fn);
+		const fd2 = await open(fn2, 'w', 0o644);
+		await write(fd2, '', 0, 'utf8');
+		const written2 = await write(fd2, expected, 0, 'utf8');
 		expect(written2).toBe(Buffer.byteLength(expected));
-		await closeAsync(fd2);
+		await close(fd2);
 
-		const data2 = await readFileAsync(fn2, 'utf8');
+		const data2 = await readFile(fn2, 'utf8');
 		expect(data2).toBe(expected);
 
-		await unlinkAsync(fn2);
+		await unlink(fn2);
+	});
+
+	it('should write a buffer to a file asynchronously', async () => {
+		await configured;
+		if (fs.getRootFS().isReadOnly()) {
+			return;
+		}
+
+		const filename = path.join(common.tmpDir, 'write.txt');
+		const expected = Buffer.from('hello');
+
+		const fd = await promisify<string, string, number, number>(fs.open)(filename, 'w', 0o644);
+
+		const written = await promisify<number, Buffer, number, number, number | null, number>(fs.write)(fd, expected, 0, expected.length, null);
+
+		expect(expected.length).toBe(written);
+
+		await promisify(fs.close)(fd);
+
+		const found = await promisify<string, string, string>(fs.readFile)(filename, 'utf8');
+		expect(expected.toString()).toBe(found);
+
+		await promisify(fs.unlink)(filename);
 	});
 });
