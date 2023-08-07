@@ -1,5 +1,5 @@
 import { build } from 'esbuild';
-import { polyfillNode  } from 'esbuild-plugin-polyfill-node';
+import { polyfillNode } from 'esbuild-plugin-polyfill-node';
 
 const common = {
 	entryPoints: ['src/core/browserfs.ts'],
