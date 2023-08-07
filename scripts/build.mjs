@@ -1,7 +1,7 @@
 import { build } from 'esbuild';
 import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfill';
 
-const options = {
+const common = {
 	entryPoints: ['src/core/browserfs.ts'],
 	target: ['es6'],
 	platform: 'browser',
@@ -9,37 +9,19 @@ const options = {
 	sourcemap: true,
 	bundle: true,
 	alias: { path: 'bfs-path', process: 'bfs-process' },
-	plugins: [ NodeModulesPolyfillPlugin() ],
+	plugins: [NodeModulesPolyfillPlugin()],
+};
+
+const configs = {
+	'browser, unminified': { outfile: 'dist/browserfs.js' },
+	'browser, minified': { outfile: 'dist/browserfs.min.js', minify: true },
+	'ESM, unminified': { outfile: 'dist/browserfs.mjs', format: 'esm' },
+	'ESM, minified': { outfile: 'dist/browserfs.min.mjs', format: 'esm', minify: true },
+	node: { outfile: 'dist/browserfs.cjs', platform: 'node', format: 'cjs', minify: true, alias: {}, plugins: [] },
+};
+
+for (const [name, config] of Object.entries(configs)) {
+	console.log(`Building for ${name}...`);
+	await build({ ...common, ...config });
+	console.log(`Built for ${name}.`);
 }
-
-console.log('Building for browser, unminified...');
-await build({
-	...options,
-	outfile: 'dist/browserfs.js',
-});
-console.log('Built for browser, unminified.');
-
-console.log('Building for browser, minified...');
-await build({
-	...options,
-	outfile: 'dist/browserfs.min.js',
-	minify: true,	
-});
-console.log('Built for browser, minified.');
-
-console.log('Building for ESM, unminified...');
-await build({
-	...options,
-	outfile: 'dist/browserfs.mjs',
-	format: 'esm',
-});
-console.log('Built for ESM, unminified.');
-
-console.log('Building for ESM, minified...');
-await build({
-	...options,
-	outfile: 'dist/browserfs.min.mjs',
-	format: 'esm',
-	minify: true,	
-});
-console.log('Built for ESM, minified.');
