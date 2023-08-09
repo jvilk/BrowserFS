@@ -1,6 +1,6 @@
-import { backends, fs, configure } from '../../../common';
+import { backends, fs, configure, tmpDir, fixturesDir } from '../../../common';
 import * as path from 'path';
-import common from '../../../common';
+
 import { promisify } from 'node:util';
 
 describe.each(backends)('%s Truncate Tests', (name, options) => {
@@ -10,7 +10,7 @@ describe.each(backends)('%s Truncate Tests', (name, options) => {
 	let success: number;
 
 	beforeAll(() => {
-		const tmp = common.tmpDir;
+		const tmp = tmpDir;
 		filename = path.resolve(tmp, 'truncate-file.txt');
 	});
 

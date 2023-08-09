@@ -1,11 +1,11 @@
 import { backends, fs, configure } from '../../../common';
 import * as path from 'path';
 import { promisify } from 'node:util'; // Import promisify
-import common from '../../../common';
+import { tmpDir, fixturesDir } from '../../../common';
 
 describe.each(backends)('%s fs.fileSync', (name, options) => {
 	const configured = configure({ fs: name, options });
-	const file = path.join(common.fixturesDir, 'a.js');
+	const file = path.join(fixturesDir, 'a.js');
 	const rootFS = fs.getRootFS();
 
 	if (!fs.getRootFS().isReadOnly()) {

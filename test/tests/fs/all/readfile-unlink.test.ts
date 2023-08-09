@@ -1,12 +1,12 @@
-import { backends, fs, configure } from '../../../common';
+import { backends, fs, configure, fixturesDir } from '../../../common';
 import * as path from 'path';
-import common from '../../../common';
+
 import { promisify } from 'node:util';
 
 describe.each(backends)('%s Read and Unlink File Test', (name, options) => {
 	const configured = configure({ fs: name, options });
 	if (!fs.getRootFS().isReadOnly()) {
-		const dirName = path.resolve(common.fixturesDir, 'test-readfile-unlink');
+		const dirName = path.resolve(fixturesDir, 'test-readfile-unlink');
 		const fileName = path.resolve(dirName, 'test.bin');
 
 		const buf = Buffer.alloc(512);
@@ -31,8 +31,4 @@ describe.each(backends)('%s Read and Unlink File Test', (name, options) => {
 			await promisify(fs.rmdir)(dirName);
 		});
 	}
-
-	afterAll(() => {
-		process.exitCode = 0;
-	});
 });

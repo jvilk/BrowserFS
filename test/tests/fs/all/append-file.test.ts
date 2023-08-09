@@ -1,13 +1,13 @@
-import { backends, fs, configure } from '../../../common';
+import { backends, fs, configure, tmpDir } from '../../../common';
 import * as path from 'path';
-import common from '../../../common';
+
 import type { FileContents } from '../../../../src/core/file_system';
 import { jest } from '@jest/globals';
 import { promisify } from 'node:util';
 
 describe.each(backends)('%s appendFile tests', (name, options) => {
 	const configured = configure({ fs: name, options });
-	const tmpDir: string = path.join(common.tmpDir, 'append.txt');
+	let tmpFile: string = path.join(tmpDir, 'append.txt');
 
 	afterEach(() => {
 		jest.restoreAllMocks();
@@ -15,7 +15,7 @@ describe.each(backends)('%s appendFile tests', (name, options) => {
 
 	it('should create an empty file and add content', async () => {
 		await configured;
-		const filename = path.join(tmpDir, 'append.txt');
+		const filename = path.join(tmpFile, 'append.txt');
 		const content = 'Sample content';
 
 		jest.spyOn(fs, 'appendFile').mockImplementation(async (file, data, mode) => {
@@ -34,7 +34,7 @@ describe.each(backends)('%s appendFile tests', (name, options) => {
 
 	it('should append data to a non-empty file', async () => {
 		await configured;
-		const filename = path.join(tmpDir, 'append2.txt');
+		const filename = path.join(tmpFile, 'append2.txt');
 		const currentFileData = 'ABCD';
 		const content = 'Sample content';
 
@@ -56,7 +56,7 @@ describe.each(backends)('%s appendFile tests', (name, options) => {
 
 	it('should append a buffer to the file', async () => {
 		await configured;
-		const filename = path.join(tmpDir, 'append3.txt');
+		const filename = path.join(tmpFile, 'append3.txt');
 		const currentFileData = 'ABCD';
 		const content = Buffer.from('Sample content', 'utf8');
 

@@ -1,11 +1,11 @@
-import { backends, fs, configure } from '../../../common';
+import { backends, fs, configure, tmpDir, fixturesDir } from '../../../common';
 import path from 'path';
-import common from '../../../common';
+
 import { promisify } from 'node:util';
 
 describe.each(backends)('%s fs file opening', (name, options) => {
 	const configured = configure({ fs: name, options });
-	const filename = path.join(common.fixturesDir, 'a.js');
+	const filename = path.join(fixturesDir, 'a.js');
 
 	it('should throw ENOENT when opening non-existent file (sync)', async () => {
 		await configured;

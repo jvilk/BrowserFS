@@ -1,13 +1,34 @@
 import Stats, { FileType } from '../src/core/stats';
-import { BFSRequire } from '../src/index';
-//import type { backends as Backends } from '../src/core/backends';
+import { configure as _configure, BFSRequire } from '../src/index';
+import * as path from 'node:path';
+import * as _fs from 'node:fs';
+import type { FSModule } from '../src/core/FS';
 
-/* Used by (almost) all tests */
-export default {
-	tmpDir: '/tmp/',
-	fixturesDir: '/test/fixtures/files/node',
-};
-export { configure } from '../src/index';
+export const tmpDir = 'tmp/';
+export const fixturesDir = 'test/fixtures/files/node';
+
+function copy(srcFS: typeof _fs, dstFS: FSModule, _p: string) {
+	const p = path.posix.resolve(_p);
+	const stats = srcFS.statSync(p);
+
+	if (!stats.isDirectory()) {
+		dstFS.writeFileSync(p, srcFS.readFileSync(_p));
+		return;
+	}
+
+	dstFS.mkdirSync(p);
+	for (const file of srcFS.readdirSync(_p)) {
+		copy(srcFS, dstFS, path.posix.join(p, file));
+	}
+}
+
+export async function configure(config) {
+	const result = await _configure(config);
+	const fs = BFSRequire('fs');
+	copy(_fs, fs, fixturesDir);
+	return result;
+}
+
 export const fs = BFSRequire('fs');
 
 export function createMockStats(mode): Stats {

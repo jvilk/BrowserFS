@@ -123,7 +123,7 @@ const _backends = {
 	ZipFS,
 };
 const backends = _backends as { [K in keyof typeof _backends]: InternalBackendConstructor } as {
-	[K in keyof typeof _backends]: BackendConstructor<UnwrapInternalCreate<(typeof _backends)[K]>>;
+	[K in keyof typeof _backends]: BackendConstructor<UnwrapInternalCreate<(typeof _backends)[K]>> & (typeof _backends)[K];
 };
 
 // Monkey-patch `Create` functions to check options before file system initialization and add `Create`.
@@ -160,4 +160,20 @@ for (const backend of Object.values(backends) as BackendConstructor[]) {
 	/* eslint-enable no-inner-declarations */
 }
 
-export { backends };
+export {
+	backends,
+	AsyncMirror,
+	Dropbox,
+	Emscripten,
+	FileSystemAccess,
+	FolderAdapter,
+	InMemory,
+	IndexedDB,
+	IsoFS,
+	LocalStorage,
+	MountableFileSystem,
+	OverlayFS,
+	WorkerFS,
+	HTTPRequest,
+	ZipFS,
+};

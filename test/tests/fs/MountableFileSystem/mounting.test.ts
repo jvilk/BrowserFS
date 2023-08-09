@@ -1,17 +1,14 @@
-import { fs } from '../../../common';
+import { fs, configure } from '../../../common';
 import * as BrowserFS from '../../../../src/core/browserfs';
 import Cred from '../../../../src/core/cred';
 import { promisify } from 'node:util';
+import type { MountableFileSystem } from '../../../../src/core/backends';
 
 describe('MountableFileSystem Mount/Unmount', () => {
-	let oldmfs: BrowserFS.FileSystem;
+	let mfs: MountableFileSystem;
 
-	beforeAll(() => {
-		oldmfs = fs.getRootFS();
-	});
-
-	afterAll(() => {
-		BrowserFS.initialize(oldmfs);
+	beforeAll(async () => {
+		mfs = (await configure({ fs: 'MountableFileSystem' })) as MountableFileSystem;
 	});
 
 	it('Mount and Unmount Features', async () => {
@@ -24,16 +21,10 @@ describe('MountableFileSystem Mount/Unmount', () => {
 		BrowserFS.initialize(rootForMfs);
 		fs.mkdirSync('/home');
 		fs.mkdirSync('/home/anotherFolder');
-		const newmfs = await BrowserFS.backends.MountableFileSystem.Create({});
 
-		if (!newmfs) {
-			throw new Error('Could not create newmfs.');
-		}
-
-		await newmfs.mount('/root', rootForMfs);
-		await newmfs.mount('/root/home/secondRoot', rootForMfs);
-		await newmfs.mount('/root/anotherRoot', rootForMfs);
-		BrowserFS.initialize(newmfs);
+		await mfs.mount('/root', rootForMfs);
+		await mfs.mount('/root/home/secondRoot', rootForMfs);
+		await mfs.mount('/root/anotherRoot', rootForMfs);
 
 		expect(fs.realpathSync('/root/anotherRoot')).toBe('/root/anotherRoot');
 		expect(await promisify(fs.realpath)('/root/anotherRoot')).toBe('/root/anotherRoot');
@@ -68,12 +59,12 @@ describe('MountableFileSystem Mount/Unmount', () => {
 			throw new Error('Could not create newRoot.');
 		}
 
-		await newmfs.mount('/', newRoot);
+		await mfs.mount('/', newRoot);
 		fs.mkdirSync('/home2');
 		expect(fs.existsSync('/home2')).toBe(true);
-		expect(newmfs.existsSync('/home2', Cred.Root)).toBe(true);
+		expect(mfs.existsSync('/home2', Cred.Root)).toBe(true);
 		expect(fs.existsSync('/root')).toBe(true);
-		newmfs.umount('/');
+		mfs.umount('/');
 		expect(fs.existsSync('/home2')).toBe(false);
 	});
 });

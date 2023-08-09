@@ -1,6 +1,6 @@
-import { fs, createMockStats, backends, configure } from '../../../common';
+import { fs, createMockStats, backends, configure, tmpDir, fixturesDir } from '../../../common';
 import * as path from 'path';
-import common from '../../../common';
+
 import { jest } from '@jest/globals';
 import { promisify } from 'node:util';
 
@@ -8,8 +8,6 @@ const isWindows = process.platform === 'win32';
 
 describe.each(backends)('%s chmod tests', (name, options) => {
 	const configured = configure({ fs: name, options });
-	const fixturesDir = common.fixturesDir;
-	const tmpDir = common.tmpDir;
 
 	afterEach(() => {
 		jest.restoreAllMocks();

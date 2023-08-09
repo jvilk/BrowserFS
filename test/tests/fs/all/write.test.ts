@@ -1,6 +1,6 @@
-import { backends, fs, configure } from '../../../common';
+import { backends, fs, configure, tmpDir, fixturesDir } from '../../../common';
 import * as path from 'path';
-import common from '../../../common';
+
 import { promisify } from 'node:util';
 
 const open = promisify<string, string, number, number>(fs.open);
@@ -17,8 +17,8 @@ describe.each(backends)('%s fs.write', (name, options) => {
 			return;
 		}
 
-		const fn = path.join(common.tmpDir, 'write.txt');
-		const fn2 = path.join(common.tmpDir, 'write2.txt');
+		const fn = path.join(tmpDir, 'write.txt');
+		const fn2 = path.join(tmpDir, 'write2.txt');
 		const expected = 'ümlaut.';
 
 		const fd = await open(fn, 'w', 0o644);
@@ -49,7 +49,7 @@ describe.each(backends)('%s fs.write', (name, options) => {
 			return;
 		}
 
-		const filename = path.join(common.tmpDir, 'write.txt');
+		const filename = path.join(tmpDir, 'write.txt');
 		const expected = Buffer.from('hello');
 
 		const fd = await promisify<string, string, number, number>(fs.open)(filename, 'w', 0o644);

@@ -1,6 +1,6 @@
-import { backends, fs, configure } from '../../../common';
+import { backends, fs, configure, tmpDir, fixturesDir } from '../../../common';
 import * as path from 'path';
-import common from '../../../common';
+
 import { jest } from '@jest/globals';
 
 describe.each(backends)('%s File Writing with Custom Mode', (name, options) => {
@@ -12,7 +12,7 @@ describe.each(backends)('%s File Writing with Custom Mode', (name, options) => {
 	it('should write file synchronously with custom mode', async () => {
 		await configured;
 
-		const file = path.join(common.tmpDir, 'testWriteFileSync.txt');
+		const file = path.join(tmpDir, 'testWriteFileSync.txt');
 		const mode = 0o755;
 
 		jest.spyOn(fs, 'openSync').mockImplementation((...args) => {
@@ -39,7 +39,7 @@ describe.each(backends)('%s File Writing with Custom Mode', (name, options) => {
 	it('should append to a file synchronously with custom mode', async () => {
 		await configured;
 
-		const file = path.join(common.tmpDir, 'testAppendFileSync.txt');
+		const file = path.join(tmpDir, 'testAppendFileSync.txt');
 		const mode = 0o755;
 
 		jest.spyOn(fs, 'openSync').mockImplementation((...args) => {

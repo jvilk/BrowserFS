@@ -1,6 +1,6 @@
-import { backends, fs, configure } from '../../../common';
+import { backends, fs, configure, fixturesDir } from '../../../common';
 import * as path from 'path';
-import common from '../../../common';
+
 import { promisify } from 'node:util';
 
 describe.each(backends)('%s Directory Reading', (name, options) => {
@@ -10,7 +10,7 @@ describe.each(backends)('%s Directory Reading', (name, options) => {
 		let wasThrown = false;
 		if (fs.getRootFS().supportsSynch()) {
 			try {
-				fs.readdirSync(path.join(common.fixturesDir, 'a.js'));
+				fs.readdirSync(path.join(fixturesDir, 'a.js'));
 			} catch (e) {
 				wasThrown = true;
 				expect(e.code).toBe('ENOTDIR');
@@ -35,7 +35,7 @@ describe.each(backends)('%s Directory Reading', (name, options) => {
 	it('Cannot call readdir on a file (asynchronous)', async () => {
 		await configured;
 		try {
-			await promisify(fs.readdir)(path.join(common.fixturesDir, 'a.js'));
+			await promisify(fs.readdir)(path.join(fixturesDir, 'a.js'));
 		} catch (err) {
 			expect(err).toBeTruthy();
 			expect(err.code).toBe('ENOTDIR');

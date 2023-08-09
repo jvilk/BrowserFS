@@ -1,10 +1,10 @@
-import { backends, fs, configure } from '../../../common';
+import { backends, fs, configure, fixturesDir } from '../../../common';
 import * as path from 'path';
-import common from '../../../common';
+
 import { promisify } from 'util';
 import type { ApiError } from '../../../../src/core/api_error';
 
-const existingFile = path.join(common.fixturesDir, 'exit.js');
+const existingFile = path.join(fixturesDir, 'exit.js');
 
 const expectAsyncError = async (fn, p: string, ...args) => {
 	let error: ApiError;
@@ -37,7 +37,7 @@ describe.each(backends)('%s File System Tests', (name, options) => {
 
 	it('should handle async operations with error', async () => {
 		await configured;
-		const fn = path.join(common.fixturesDir, 'non-existent');
+		const fn = path.join(fixturesDir, 'non-existent');
 
 		await expectAsyncError(fs.stat, fn);
 
@@ -69,8 +69,8 @@ describe.each(backends)('%s File System Tests', (name, options) => {
 	if (fs.getRootFS().supportsSynch()) {
 		it('should handle sync operations with error', async () => {
 			await configured;
-			const fn = path.join(common.fixturesDir, 'non-existent');
-			const existingFile = path.join(common.fixturesDir, 'exit.js');
+			const fn = path.join(fixturesDir, 'non-existent');
+			const existingFile = path.join(fixturesDir, 'exit.js');
 
 			expectSyncError(fs.statSync, fn);
 

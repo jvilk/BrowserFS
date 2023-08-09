@@ -1,11 +1,11 @@
-import { backends, fs, configure } from '../../../common';
+import { backends, fs, configure, tmpDir, fixturesDir } from '../../../common';
 import * as path from 'path';
-import common from '../../../common';
+
 import { promisify } from 'node:util';
 
 describe.each(backends)('%s Read File Test', (name, options) => {
 	const configured = configure({ fs: name, options });
-	const fn = path.join(common.fixturesDir, 'empty.txt');
+	const fn = path.join(fixturesDir, 'empty.txt');
 
 	it('should read file asynchronously', async () => {
 		await configured;

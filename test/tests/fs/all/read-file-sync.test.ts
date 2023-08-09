@@ -1,11 +1,10 @@
-import { backends, fs, configure } from '../../../common';
+import { backends, fs, configure, tmpDir, fixturesDir } from '../../../common';
 import path from 'path';
-import common from '../../../common';
 
 describe.each(backends)('%s fs file reading', (name, options) => {
 	const configured = configure({ fs: name, options });
 
-	const filepath = path.join(common.fixturesDir, 'elipses.txt');
+	const filepath = path.join(fixturesDir, 'elipses.txt');
 
 	if (fs.getRootFS().supportsSynch()) {
 		it('should read file synchronously and verify the content', async () => {

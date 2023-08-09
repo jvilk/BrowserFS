@@ -1,14 +1,13 @@
-import { backends, fs, configure } from '../../../common';
+import { backends, fs, configure, tmpDir, fixturesDir } from '../../../common';
 import * as path from 'path';
-import common from '../../../common';
 import { promisify } from 'node:util';
 
 describe.each(backends)('%s Symbolic Link Test', (name, options) => {
 	const configured = configure({ fs: name, options });
 
 	// test creating and reading symbolic link
-	const linkData = path.join(common.fixturesDir, 'cycles/');
-	const linkPath = path.join(common.tmpDir, 'cycles_link');
+	const linkData = path.join(fixturesDir, 'cycles/');
+	const linkPath = path.join(tmpDir, 'cycles_link');
 
 	const unlinkAsync = promisify(fs.unlink);
 	const existsAsync = promisify(fs.existsSync);

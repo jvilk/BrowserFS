@@ -1,6 +1,6 @@
-import { backends, fs, configure } from '../../../common';
+import { backends, fs, configure, tmpDir, fixturesDir } from '../../../common';
 import * as path from 'path';
-import common from '../../../common';
+
 import { promisify } from 'node:util';
 
 describe.each(backends)('%s Utimes Tests', (name, options) => {
@@ -8,7 +8,7 @@ describe.each(backends)('%s Utimes Tests', (name, options) => {
 	let tests_ok: number;
 	let tests_run: number;
 
-	const filename = path.join(common.fixturesDir, 'x.txt');
+	const filename = path.join(fixturesDir, 'x.txt');
 
 	beforeAll(() => {
 		tests_ok = 0;

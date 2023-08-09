@@ -1,6 +1,6 @@
-import { backends, fs, configure } from '../../../common';
+import { backends, fs, configure, tmpDir, fixturesDir } from '../../../common';
 import * as path from 'path';
-import common from '../../../common';
+
 import { promisify } from 'node:util';
 
 describe.each(backends)('%s File Read Test', (name, options) => {
@@ -10,7 +10,7 @@ describe.each(backends)('%s File Read Test', (name, options) => {
 	let rootFS: any;
 
 	beforeEach(() => {
-		filepath = path.join(common.fixturesDir, 'x.txt');
+		filepath = path.join(fixturesDir, 'x.txt');
 		expected = 'xyz\n';
 		rootFS = fs.getRootFS();
 	});
