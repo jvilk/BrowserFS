@@ -1,70 +1,73 @@
-/**
- * Unit tests for HTTPDownloadFS
- */
-import fs from '../../../../src/core/node_fs';
-import assert from '../../../harness/wrapped-assert';
+import { fs } from '../../../common';
 import * as BrowserFS from '../../../../src/core/browserfs';
+import { promisify } from 'node:util';
 
-type Listing = {[name: string]: Listing | any};
+type Listing = { [name: string]: Listing | null };
 
-export default function() {
-  let oldRootFS = fs.getRootFS();
+describe('HTTPDownloadFS', () => {
+	let oldRootFS: BrowserFS.FileSystem;
 
-  let listing: Listing = {
-    "README.md": null,
-    "test": {
-      "fixtures": {
-        "static": {
-          "49chars.txt": null
-        }
-      }
-    },
-    "src":{
-      "README.md": null,
-      "backend":{"AsyncMirror.ts": null, "XmlHttpRequest.ts": null, "ZipFS.ts": null},
-      "main.ts": null
-    }
-  }
+	beforeAll(() => {
+		oldRootFS = fs.getRootFS();
+	});
 
-  BrowserFS.FileSystem.XmlHttpRequest.Create({
-    index: listing,
-    baseUrl: "/"
-  }, (e, newXFS) => {
-    BrowserFS.initialize(newXFS);
+	afterAll(() => {
+		BrowserFS.initialize(oldRootFS);
+	});
 
-    let t1text = 'Invariant fail: Can query folder that contains items and a mount point.';
-    let expectedTestListing = ['README.md', 'src', 'test'];
-    let testListing = fs.readdirSync('/').sort();
-    assert.deepEqual(testListing, expectedTestListing, t1text);
+	it('File System Operations', async () => {
+		const listing: Listing = {
+			'README.md': null,
+			test: {
+				fixtures: {
+					static: {
+						'49chars.txt': null,
+					},
+				},
+			},
+			src: {
+				'README.md': null,
+				backend: { 'AsyncMirror.ts': null, 'XmlHttpRequest.ts': null, 'ZipFS.ts': null },
+				'main.ts': null,
+			},
+		};
 
-    fs.readdir('/', function(err, files) {
-      assert(!err, t1text);
-      assert.deepEqual(files.sort(), expectedTestListing, t1text);
-      fs.stat("/test/fixtures/static/49chars.txt", function(err, stats) {
-        assert(!err, "Can stat an existing file");
-        assert(stats.isFile(), "File should be interpreted as a file");
-        assert(!stats.isDirectory(), "File should be interpreted as a directory");
-        // NOTE: Size is 50 in Windows due to line endings.
-        assert(stats.size == 49 || stats.size == 50, "file size should match");
-      });
+		const newXFS = await BrowserFS.backends.HTTPRequest.Create({
+			index: listing,
+			baseUrl: '/',
+		});
 
-      fs.stat("/src/backend", function(err, stats) {
-        assert(!err, "Can stat an existing directory");
-        assert(stats.isDirectory(), "directory should be interpreted as a directory");
-        assert(!stats.isFile(), "directory should be interpreted as a file");
-      });
+		BrowserFS.initialize(newXFS);
 
-      fs.stat("/src/not-existing-name", function(err, stats) {
-        assert(!!err, "Non existing file should return an error");
-      });
+		const expectedTestListing = ['README.md', 'src', 'test'];
+		const testListing = fs.readdirSync('/').sort();
+		expect(testListing).toEqual(expectedTestListing);
 
-    });
-  });
+		const readdirAsync = promisify(fs.readdir);
+		const files = await readdirAsync('/');
+		expect(files.sort()).toEqual(expectedTestListing);
 
-  assert(BrowserFS.FileSystem.XmlHttpRequest === BrowserFS.FileSystem.HTTPRequest, `Maintains XHR file system for backwards compatibility.`);
+		const statAsync = promisify(fs.stat);
+		const stats = await statAsync('/test/fixtures/static/49chars.txt');
+		expect(stats.isFile()).toBe(true);
+		expect(stats.isDirectory()).toBe(false);
+		expect(stats.size).toBeGreaterThanOrEqual(49);
+		expect(stats.size).toBeLessThanOrEqual(50);
 
-  // Restore test FS on test end.
-  process.on('exit', function() {
-    BrowserFS.initialize(oldRootFS);
-  });
-};
+		const backendStats = await statAsync('/src/backend');
+		expect(backendStats.isDirectory()).toBe(true);
+		expect(backendStats.isFile()).toBe(false);
+
+		let statError = null;
+		try {
+			await statAsync('/src/not-existing-name');
+		} catch (error) {
+			statError = error;
+		}
+		expect(statError).toBeTruthy();
+	});
+
+	it('Maintains XHR file system for backwards compatibility', () => {
+		expect(BrowserFS.backends.HTTPRequest).toBe(BrowserFS.backends.XmlHttpRequest);
+	});
+});

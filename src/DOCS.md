@@ -98,10 +98,10 @@ BrowserFS.configure(
 If `BrowserFS.configure` is not to your liking, you can manually instantiate file system backends and pass the root backend to BrowserFS via its `BrowserFS.initialize()` function.
 
 ```javascript
-BrowserFS.FileSystem.LocalStorage.Create(function (e, lsfs) {
-	BrowserFS.FileSystem.InMemory.Create(function (e, inMemory) {
-		BrowserFS.FileSystem.IndexedDB.Create({}, function (e, idbfs) {
-			BrowserFS.FileSystem.MountableFileSystem.Create(
+BrowserFS.Backend.LocalStorage.Create(function (e, lsfs) {
+	BrowserFS.Backend.InMemory.Create(function (e, inMemory) {
+		BrowserFS.Backend.IndexedDB.Create({}, function (e, idbfs) {
+			BrowserFS.Backend.MountableFileSystem.Create(
 				{
 					'/tmp': inMemory,
 					'/home': idbfs,

@@ -29,27 +29,22 @@ function wrapCb<T extends Function>(cb: T, numArgs: number): T {
 
 	// We could use `arguments`, but Function.call/apply is expensive. And we only
 	// need to handle 1-3 arguments
-	switch (numArgs) {
-		case 1:
-			return <any>function (arg1: any) {
-				setImmediate(function () {
-					return hookedCb(arg1);
-				});
-			};
-		case 2:
-			return <any>function (arg1: any, arg2: any) {
-				setImmediate(function () {
-					return hookedCb(arg1, arg2);
-				});
-			};
-		case 3:
-			return <any>function (arg1: any, arg2: any, arg3: any) {
-				setImmediate(function () {
-					return hookedCb(arg1, arg2, arg3);
-				});
-			};
-		default:
-			throw new Error('Invalid invocation of wrapCb.');
+	return <any>function (...args: any[]) {
+		setImmediate(function () {
+			return hookedCb(...args);
+		});
+	};
+}
+
+/**
+ * Wrapped the async function for use with callbacks
+ * @hidden
+ */
+function wrap<T extends Function, P>(promise: Promise<P>, cb: T) {
+	try {
+		promise.then(val => cb(null, val)).catch(err => cb(err));
+	} catch (err) {
+		cb(err);
 	}
 }
 
@@ -113,7 +108,7 @@ function normalizePath(p: string): string {
 /**
  * @hidden
  */
-function normalizeOptions(options: any, defEnc: string | null, defFlag: string, defMode: number | null): { encoding: string; flag: string; mode: number } {
+function normalizeOptions(options: any, defEnc: string | null, defFlag: string, defMode: number | null): { encoding: BufferEncoding; flag: string; mode: number } {
 	// typeof null === 'object' so special-case handing is needed.
 	switch (options === null ? 'null' : typeof options) {
 		case 'object':
@@ -132,7 +127,7 @@ function normalizeOptions(options: any, defEnc: string | null, defFlag: string, 
 		case 'undefined':
 		case 'function':
 			return {
-				encoding: defEnc!,
+				encoding: defEnc! as BufferEncoding,
 				flag: defFlag,
 				mode: defMode!,
 			};
@@ -231,7 +226,7 @@ export default class FS {
 	public rename(oldPath: string, newPath: string, cb: BFSOneArgCallback = nopCb): void {
 		const newCb = wrapCb(cb, 1);
 		try {
-			assertRoot(this.root).rename(normalizePath(oldPath), normalizePath(newPath), this.cred, newCb);
+			return wrap(assertRoot(this.root).rename(normalizePath(oldPath), normalizePath(newPath), this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -259,7 +254,7 @@ export default class FS {
 	public exists(path: string, cb: (exists: boolean) => any = nopCb): void {
 		const newCb = wrapCb(cb, 1);
 		try {
-			return assertRoot(this.root).exists(normalizePath(path), this.cred, newCb);
+			return wrap(assertRoot(this.root).exists(normalizePath(path), this.cred), newCb);
 		} catch (e) {
 			// Doesn't return an error. If something bad happens, we assume it just
 			// doesn't exist.
@@ -290,9 +285,10 @@ export default class FS {
 	public stat(path: string, cb: BFSCallback<Stats> = nopCb): void {
 		const newCb = wrapCb(cb, 2);
 		try {
-			return assertRoot(this.root).stat(normalizePath(path), false, this.cred, newCb);
+			return wrap(assertRoot(this.root).stat(normalizePath(path), false, this.cred), newCb);
 		} catch (e) {
-			return newCb(e);
+			newCb(e);
+			return;
 		}
 	}
 
@@ -315,9 +311,10 @@ export default class FS {
 	public lstat(path: string, cb: BFSCallback<Stats> = nopCb): void {
 		const newCb = wrapCb(cb, 2);
 		try {
-			return assertRoot(this.root).stat(normalizePath(path), true, this.cred, newCb);
+			return wrap(assertRoot(this.root).stat(normalizePath(path), true, this.cred), newCb);
 		} catch (e) {
-			return newCb(e);
+			newCb(e);
+			return;
 		}
 	}
 
@@ -355,9 +352,10 @@ export default class FS {
 			if (len < 0) {
 				throw new ApiError(ErrorCode.EINVAL);
 			}
-			return assertRoot(this.root).truncate(normalizePath(path), len, this.cred, newCb);
+			return wrap(assertRoot(this.root).truncate(normalizePath(path), len, this.cred), newCb);
 		} catch (e) {
-			return newCb(e);
+			newCb(e);
+			return;
 		}
 	}
 
@@ -381,9 +379,10 @@ export default class FS {
 	public unlink(path: string, cb: BFSOneArgCallback = nopCb): void {
 		const newCb = wrapCb(cb, 1);
 		try {
-			return assertRoot(this.root).unlink(normalizePath(path), this.cred, newCb);
+			return wrap(assertRoot(this.root).unlink(normalizePath(path), this.cred), newCb);
 		} catch (e) {
-			return newCb(e);
+			newCb(e);
+			return;
 		}
 	}
 
@@ -427,7 +426,7 @@ export default class FS {
 		cb = typeof arg2 === 'function' ? arg2 : cb;
 		const newCb = wrapCb(cb, 2);
 		try {
-			assertRoot(this.root).open(normalizePath(path), FileFlag.getFileFlag(flag), mode, this.cred, (e: ApiError, file?: File) => {
+			wrap(assertRoot(this.root).open(normalizePath(path), FileFlag.getFileFlag(flag), mode, this.cred), (e: ApiError, file?: File) => {
 				if (file) {
 					newCb(e, this.getFdForFile(file));
 				} else {
@@ -477,9 +476,10 @@ export default class FS {
 			if (!flag.isReadable()) {
 				return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to readFile must allow for reading.'));
 			}
-			return assertRoot(this.root).readFile(normalizePath(filename), options.encoding, flag, this.cred, newCb);
+			return wrap(assertRoot(this.root).readFile(normalizePath(filename), options.encoding, flag, this.cred), newCb);
 		} catch (e) {
-			return newCb(e);
+			newCb(e);
+			return;
 		}
 	}
 
@@ -532,11 +532,13 @@ export default class FS {
 		try {
 			const flag = FileFlag.getFileFlag(options.flag);
 			if (!flag.isWriteable()) {
-				return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to writeFile must allow for writing.'));
+				newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to writeFile must allow for writing.'));
+				return;
 			}
-			return assertRoot(this.root).writeFile(normalizePath(filename), data, options.encoding, flag, options.mode, this.cred, newCb);
+			return wrap(assertRoot(this.root).writeFile(normalizePath(filename), data, options.encoding, flag, options.mode, this.cred), newCb);
 		} catch (e) {
-			return newCb(e);
+			newCb(e);
+			return;
 		}
 	}
 
@@ -590,9 +592,10 @@ export default class FS {
 		try {
 			const flag = FileFlag.getFileFlag(options.flag);
 			if (!flag.isAppendable()) {
-				return newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to appendFile must allow for appending.'));
+				newCb(new ApiError(ErrorCode.EINVAL, 'Flag passed to appendFile must allow for appending.'));
+				return;
 			}
-			assertRoot(this.root).appendFile(normalizePath(filename), data, options.encoding, flag, options.mode, this.cred, newCb);
+			wrap(assertRoot(this.root).appendFile(normalizePath(filename), data, options.encoding, flag, options.mode, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -638,7 +641,7 @@ export default class FS {
 		const newCb = wrapCb(cb, 2);
 		try {
 			const file = this.fd2file(fd);
-			file.stat(newCb);
+			wrap(file.stat(), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -663,7 +666,7 @@ export default class FS {
 	public close(fd: number, cb: BFSOneArgCallback = nopCb): void {
 		const newCb = wrapCb(cb, 1);
 		try {
-			this.fd2file(fd).close((e: ApiError) => {
+			wrap(this.fd2file(fd).close(), (e: ApiError) => {
 				if (!e) {
 					this.closeFd(fd);
 				}
@@ -700,7 +703,7 @@ export default class FS {
 			if (length < 0) {
 				throw new ApiError(ErrorCode.EINVAL);
 			}
-			file.truncate(length, newCb);
+			wrap(file.truncate(length), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -727,7 +730,7 @@ export default class FS {
 	public fsync(fd: number, cb: BFSOneArgCallback = nopCb): void {
 		const newCb = wrapCb(cb, 1);
 		try {
-			this.fd2file(fd).sync(newCb);
+			wrap(this.fd2file(fd).sync(), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -749,7 +752,7 @@ export default class FS {
 	public fdatasync(fd: number, cb: BFSOneArgCallback = nopCb): void {
 		const newCb = wrapCb(cb, 1);
 		try {
-			this.fd2file(fd).datasync(newCb);
+			wrap(this.fd2file(fd).datasync(), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -804,7 +807,8 @@ export default class FS {
 				default:
 					// ...try to find the callback and get out of here!
 					cb = typeof arg4 === 'function' ? arg4 : typeof arg5 === 'function' ? arg5 : cb;
-					return cb(new ApiError(ErrorCode.EINVAL, 'Invalid arguments.'));
+					cb(new ApiError(ErrorCode.EINVAL, 'Invalid arguments.'));
+					return;
 			}
 			buffer = Buffer.from(arg2, encoding);
 			offset = 0;
@@ -824,7 +828,7 @@ export default class FS {
 			if (position === undefined || position === null) {
 				position = file.getPos()!;
 			}
-			file.write(buffer, offset, length, position, newCb);
+			wrap(file.write(buffer, offset, length, position), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -919,7 +923,7 @@ export default class FS {
 			if (position === undefined || position === null) {
 				position = file.getPos()!;
 			}
-			file.read(buffer, offset, length, position, newCb);
+			wrap(file.read(buffer, offset, length, position), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -983,7 +987,7 @@ export default class FS {
 	public fchown(fd: number, uid: number, gid: number, callback: BFSOneArgCallback = nopCb): void {
 		const newCb = wrapCb(callback, 1);
 		try {
-			this.fd2file(fd).chown(uid, gid, newCb);
+			wrap(this.fd2file(fd).chown(uid, gid), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1009,7 +1013,7 @@ export default class FS {
 		const newCb = wrapCb(cb, 1);
 		try {
 			const numMode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
-			this.fd2file(fd).chmod(numMode, newCb);
+			wrap(this.fd2file(fd).chmod(numMode), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1043,7 +1047,7 @@ export default class FS {
 			if (typeof mtime === 'number') {
 				mtime = new Date(mtime * 1000);
 			}
-			file.utimes(atime, mtime, newCb);
+			wrap(file.utimes(atime, mtime), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1071,7 +1075,7 @@ export default class FS {
 		const newCb = wrapCb(cb, 1);
 		try {
 			path = normalizePath(path);
-			assertRoot(this.root).rmdir(path, this.cred, newCb);
+			wrap(assertRoot(this.root).rmdir(path, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1100,7 +1104,7 @@ export default class FS {
 		const newCb = wrapCb(cb, 1);
 		try {
 			path = normalizePath(path);
-			assertRoot(this.root).mkdir(path, mode, this.cred, newCb);
+			wrap(assertRoot(this.root).mkdir(path, mode, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1126,7 +1130,7 @@ export default class FS {
 		const newCb = <(err: ApiError, files?: string[]) => void>wrapCb(cb, 2);
 		try {
 			path = normalizePath(path);
-			assertRoot(this.root).readdir(path, this.cred, newCb);
+			wrap(assertRoot(this.root).readdir(path, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1155,7 +1159,7 @@ export default class FS {
 		try {
 			srcpath = normalizePath(srcpath);
 			dstpath = normalizePath(dstpath);
-			assertRoot(this.root).link(srcpath, dstpath, this.cred, newCb);
+			wrap(assertRoot(this.root).link(srcpath, dstpath, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1187,11 +1191,12 @@ export default class FS {
 		const newCb = wrapCb(cb, 1);
 		try {
 			if (type !== 'file' && type !== 'dir') {
-				return newCb(new ApiError(ErrorCode.EINVAL, 'Invalid type: ' + type));
+				newCb(new ApiError(ErrorCode.EINVAL, 'Invalid type: ' + type));
+				return;
 			}
 			srcpath = normalizePath(srcpath);
 			dstpath = normalizePath(dstpath);
-			assertRoot(this.root).symlink(srcpath, dstpath, type, this.cred, newCb);
+			wrap(assertRoot(this.root).symlink(srcpath, dstpath, type, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1223,7 +1228,7 @@ export default class FS {
 		const newCb = wrapCb(cb, 2);
 		try {
 			path = normalizePath(path);
-			assertRoot(this.root).readlink(path, this.cred, newCb);
+			wrap(assertRoot(this.root).readlink(path, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1252,7 +1257,7 @@ export default class FS {
 		const newCb = wrapCb(cb, 1);
 		try {
 			path = normalizePath(path);
-			assertRoot(this.root).chown(path, false, uid, gid, this.cred, newCb);
+			wrap(assertRoot(this.root).chown(path, false, uid, gid, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1280,7 +1285,7 @@ export default class FS {
 		const newCb = wrapCb(cb, 1);
 		try {
 			path = normalizePath(path);
-			assertRoot(this.root).chown(path, true, uid, gid, this.cred, newCb);
+			wrap(assertRoot(this.root).chown(path, true, uid, gid, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1310,7 +1315,7 @@ export default class FS {
 			if (numMode < 0) {
 				throw new ApiError(ErrorCode.EINVAL, `Invalid mode.`);
 			}
-			assertRoot(this.root).chmod(normalizePath(path), false, numMode, this.cred, newCb);
+			wrap(assertRoot(this.root).chmod(normalizePath(path), false, numMode, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1343,7 +1348,7 @@ export default class FS {
 			if (numMode < 0) {
 				throw new ApiError(ErrorCode.EINVAL, `Invalid mode.`);
 			}
-			assertRoot(this.root).chmod(normalizePath(path), true, numMode, this.cred, newCb);
+			wrap(assertRoot(this.root).chmod(normalizePath(path), true, numMode, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1372,7 +1377,7 @@ export default class FS {
 	public utimes(path: string, atime: number | Date, mtime: number | Date, cb: BFSOneArgCallback = nopCb): void {
 		const newCb = wrapCb(cb, 1);
 		try {
-			assertRoot(this.root).utimes(normalizePath(path), normalizeTime(atime), normalizeTime(mtime), this.cred, newCb);
+			wrap(assertRoot(this.root).utimes(normalizePath(path), normalizeTime(atime), normalizeTime(mtime), this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1413,7 +1418,7 @@ export default class FS {
 		const newCb = <(err: ApiError, resolvedPath?: string) => any>wrapCb(cb, 2);
 		try {
 			path = normalizePath(path);
-			assertRoot(this.root).realpath(path, cache, this.cred, newCb);
+			wrap(assertRoot(this.root).realpath(path, cache, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}
@@ -1462,7 +1467,7 @@ export default class FS {
 		const newCb = <(err: ApiError, resolvedPath?: string) => any>wrapCb(callback, 2);
 		try {
 			path = normalizePath(path);
-			assertRoot(this.root).access(path, mode, this.cred, newCb);
+			wrap(assertRoot(this.root).access(path, mode, this.cred), newCb);
 		} catch (e) {
 			newCb(e);
 		}

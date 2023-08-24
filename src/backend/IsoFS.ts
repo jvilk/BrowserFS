@@ -1,12 +1,13 @@
 import { ApiError, ErrorCode } from '../core/api_error';
 import { default as Stats, FileType } from '../core/stats';
-import { SynchronousFileSystem, FileSystem, BFSCallback, FileSystemOptions } from '../core/file_system';
+import { SynchronousFileSystem, type FileSystem } from '../core/file_system';
 import { File } from '../core/file';
 import { FileFlag, ActionType } from '../core/file_flag';
 import { NoSyncFile } from '../generic/preload_file';
-import { copyingSlice, bufferValidator } from '../core/util';
+import { copyingSlice, bufferValidator as validator } from '../core/util';
 import * as path from 'path';
 import type { Buffer } from 'buffer';
+import type { BackendOptions } from '../core/backends';
 
 /**
  * @hidden
@@ -88,7 +89,7 @@ function getShortFormDate(data: Buffer, startIndex: number): Date {
  * @hidden
  */
 function constructSystemUseEntry(bigData: Buffer, i: number): SystemUseEntry {
-	const data = bigData.slice(i);
+	const data = bigData.subarray(i);
 	const sue = new SystemUseEntry(data);
 	switch (sue.signatureWord()) {
 		case SystemUseEntrySignatures.CE:
@@ -176,7 +177,7 @@ class VolumeDescriptor {
 		return this._data[6];
 	}
 	public data(): Buffer {
-		return this._data.slice(7, 2048);
+		return this._data.subarray(7, 2048);
 	}
 }
 
@@ -223,7 +224,7 @@ abstract class PrimaryOrSupplementaryVolumeDescriptor extends VolumeDescriptor {
 	}
 	public rootDirectoryEntry(isoData: Buffer): DirectoryRecord {
 		if (this._root === null) {
-			this._root = this._constructRootDirectoryRecord(this._data.slice(156));
+			this._root = this._constructRootDirectoryRecord(this._data.subarray(156));
 			this._root.rootCheckForRockRidge(isoData);
 		}
 		return this._root;
@@ -265,10 +266,10 @@ abstract class PrimaryOrSupplementaryVolumeDescriptor extends VolumeDescriptor {
 		return this._data[881];
 	}
 	public applicationUsed(): Buffer {
-		return this._data.slice(883, 883 + 512);
+		return this._data.subarray(883, 883 + 512);
 	}
 	public reserved(): Buffer {
-		return this._data.slice(1395, 1395 + 653);
+		return this._data.subarray(1395, 1395 + 653);
 	}
 	public abstract name(): string;
 	protected abstract _constructRootDirectoryRecord(data: Buffer): DirectoryRecord;
@@ -320,7 +321,7 @@ class SupplementaryVolumeDescriptor extends PrimaryOrSupplementaryVolumeDescript
 		return 'Joliet';
 	}
 	public escapeSequence(): Buffer {
-		return this._data.slice(88, 120);
+		return this._data.subarray(88, 120);
 	}
 	protected _constructRootDirectoryRecord(data: Buffer): DirectoryRecord {
 		return new JolietDirectoryRecord(data, -1);
@@ -483,7 +484,7 @@ abstract class DirectoryRecord {
 			throw new Error(`Tried to get a File from a directory.`);
 		}
 		if (this._fileOrDir === null) {
-			this._fileOrDir = isoData.slice(this.lba(), this.lba() + this.dataLength());
+			this._fileOrDir = isoData.subarray(this.lba(), this.lba() + this.dataLength());
 		}
 		return <Buffer>this._fileOrDir;
 	}
@@ -822,7 +823,7 @@ class SLEntry extends SystemUseEntry {
 		const records = new Array<SLComponentRecord>();
 		let i = 5;
 		while (i < this.length()) {
-			const record = new SLComponentRecord(this._data.slice(i));
+			const record = new SLComponentRecord(this._data.subarray(i));
 			records.push(record);
 			i += record.length();
 		}
@@ -1080,7 +1081,7 @@ abstract class Directory<T extends DirectoryRecord> {
 				i++;
 				continue;
 			}
-			const r = this._constructDirectoryRecord(isoData.slice(i));
+			const r = this._constructDirectoryRecord(isoData.subarray(i));
 			const fname = r.fileName(isoData);
 			// Skip '.' and '..' entries.
 			if (fname !== '\u0000' && fname !== '\u0001') {
@@ -1107,7 +1108,7 @@ abstract class Directory<T extends DirectoryRecord> {
 		return this._fileList;
 	}
 	public getDotEntry(isoData: Buffer): T {
-		return this._constructDirectoryRecord(isoData.slice(this._record.lba()));
+		return this._constructDirectoryRecord(isoData.subarray(this._record.lba()));
 	}
 	protected abstract _constructDirectoryRecord(data: Buffer): T;
 }
@@ -1153,38 +1154,19 @@ export interface IsoFSOptions {
  * * Vanilla ISO9660 ISOs
  * * Microsoft Joliet and Rock Ridge extensions to the ISO9660 standard
  */
-export default class IsoFS extends SynchronousFileSystem implements FileSystem {
+export class IsoFS extends SynchronousFileSystem implements FileSystem {
 	public static readonly Name = 'IsoFS';
 
-	public static readonly Options: FileSystemOptions = {
+	public static readonly Options: BackendOptions = {
 		data: {
 			type: 'object',
 			description: 'The ISO file in a buffer',
-			validator: bufferValidator,
+			validator,
 		},
 	};
 
-	/**
-	 * Creates an IsoFS instance with the given options.
-	 */
-	public static Create(opts: IsoFSOptions, cb: BFSCallback<IsoFS>): void {
-		try {
-			cb(null, new IsoFS(opts.data, opts.name));
-		} catch (e) {
-			cb(e);
-		}
-	}
-
-	public static CreateAsync(opts: IsoFSOptions): Promise<IsoFS> {
-		return new Promise((resolve, reject) => {
-			this.Create(opts, (error, fs) => {
-				if (error || !fs) {
-					reject(error);
-				} else {
-					resolve(fs);
-				}
-			});
-		});
+	public static async Create(opts: IsoFSOptions): Promise<IsoFS> {
+		return new IsoFS(opts.data, opts.name);
 	}
 
 	public static isAvailable(): boolean {
@@ -1211,7 +1193,7 @@ export default class IsoFS extends SynchronousFileSystem implements FileSystem {
 		let i = 16 * 2048;
 		const candidateVDs = new Array<PrimaryOrSupplementaryVolumeDescriptor>();
 		while (!vdTerminatorFound) {
-			const slice = data.slice(i);
+			const slice = data.subarray(i);
 			const vd = new VolumeDescriptor(slice);
 			switch (vd.type()) {
 				case VolumeDescriptorTypeCode.PrimaryVolumeDescriptor:

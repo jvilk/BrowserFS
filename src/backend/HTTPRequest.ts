@@ -1,29 +1,15 @@
-import { BaseFileSystem, FileSystem, BFSCallback, FileSystemOptions } from '../core/file_system';
+import { BaseFileSystem, type FileSystem, FileContents } from '../core/file_system';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { FileFlag, ActionType } from '../core/file_flag';
 import { copyingSlice } from '../core/util';
 import { File } from '../core/file';
 import { default as Stats, FilePerm } from '../core/stats';
 import { NoSyncFile } from '../generic/preload_file';
-import { xhrIsAvailable, asyncDownloadFile, syncDownloadFile, getFileSizeAsync, getFileSizeSync } from '../generic/xhr';
-import { fetchIsAvailable, fetchFileAsync, fetchFileSizeAsync } from '../generic/fetch';
+import { fetchIsAvailable, fetchFile, fetchFileSize } from '../generic/fetch';
 import { FileIndex, isFileInode, isDirInode } from '../generic/file_index';
 import Cred from '../core/cred';
 import type { Buffer } from 'buffer';
-
-/**
- * Try to convert the given buffer into a string, and pass it to the callback.
- * Optimization that removes the needed try/catch into a helper function, as
- * this is an uncommon case.
- * @hidden
- */
-function tryToString(buff: Buffer, encoding: BufferEncoding, cb: BFSCallback<string>) {
-	try {
-		cb(null, buff.toString(encoding));
-	} catch (e) {
-		cb(e);
-	}
-}
+import type { BackendOptions } from '../core/backends';
 
 /**
  * Configuration options for a HTTPRequest file system.
@@ -38,18 +24,6 @@ export interface HTTPRequestOptions {
 	// Whether to prefer XmlHttpRequest or fetch for async operations if both are available.
 	// Default: false
 	preferXHR?: boolean;
-}
-
-interface AsyncDownloadFileMethod {
-	(p: string, type: 'buffer', cb: BFSCallback<Buffer>): void;
-	(p: string, type: 'json', cb: BFSCallback<any>): void;
-	(p: string, type: string, cb: BFSCallback<any>): void;
-}
-
-interface SyncDownloadFileMethod {
-	(p: string, type: 'buffer'): Buffer;
-	(p: string, type: 'json'): any;
-	(p: string, type: string): any;
 }
 
 function syncNotAvailableError(): never {
@@ -84,10 +58,10 @@ function syncNotAvailableError(): never {
  *
  * *This example has the folder `/home/jvilk` with subfile `someFile.txt` and subfolder `someDir`.*
  */
-export default class HTTPRequest extends BaseFileSystem implements FileSystem {
+export class HTTPRequest extends BaseFileSystem implements FileSystem {
 	public static readonly Name = 'HTTPRequest';
 
-	public static readonly Options: FileSystemOptions = {
+	public static readonly Options: BackendOptions = {
 		index: {
 			type: ['string', 'object'],
 			optional: true,
@@ -105,50 +79,29 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
 		},
 	};
 
-	/**
-	 * Construct an HTTPRequest file system backend with the given options.
-	 */
-	public static Create(opts: HTTPRequestOptions, cb: BFSCallback<HTTPRequest>): void {
-		if (opts.index === undefined) {
-			opts.index = `index.json`;
+	public static async Create(opts: HTTPRequestOptions): Promise<HTTPRequest> {
+		if (!opts.index) {
+			opts.index = 'index.json';
 		}
-		if (typeof opts.index === 'string') {
-			asyncDownloadFile(opts.index, 'json', (e, data?) => {
-				if (e) {
-					cb(e);
-				} else {
-					cb(null, new HTTPRequest(data, opts.baseUrl));
-				}
-			});
-		} else {
-			cb(null, new HTTPRequest(opts.index, opts.baseUrl));
-		}
-	}
 
-	public static CreateAsync(opts: HTTPRequestOptions): Promise<HTTPRequest> {
-		return new Promise((resolve, reject) => {
-			this.Create(opts, (error, fs) => {
-				if (error || !fs) {
-					reject(error);
-				} else {
-					resolve(fs);
-				}
-			});
-		});
+		if (typeof opts.index != 'string') {
+			return new HTTPRequest(opts.index, opts.baseUrl);
+		}
+
+		const data = await fetchFile(opts.index, 'json');
+		return new HTTPRequest(data, opts.baseUrl);
 	}
 
 	public static isAvailable(): boolean {
-		return xhrIsAvailable || fetchIsAvailable;
+		return fetchIsAvailable;
 	}
 
 	public readonly prefixUrl: string;
 	private _index: FileIndex<{}>;
-	private _requestFileAsyncInternal: AsyncDownloadFileMethod;
-	private _requestFileSizeAsyncInternal: (p: string, cb: BFSCallback<number>) => void;
-	private _requestFileSyncInternal: SyncDownloadFileMethod;
-	private _requestFileSizeSyncInternal: (p: string) => number;
+	private _requestFileInternal: typeof fetchFile;
+	private _requestFileSizeInternal: typeof fetchFileSize;
 
-	private constructor(index: object, prefixUrl: string = '', preferXHR: boolean = false) {
+	private constructor(index: object, prefixUrl: string = '') {
 		super();
 		// prefix_url must end in a directory separator.
 		if (prefixUrl.length > 0 && prefixUrl.charAt(prefixUrl.length - 1) !== '/') {
@@ -157,21 +110,8 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
 		this.prefixUrl = prefixUrl;
 		this._index = FileIndex.fromListing(index);
 
-		if (fetchIsAvailable && (!preferXHR || !xhrIsAvailable)) {
-			this._requestFileAsyncInternal = fetchFileAsync;
-			this._requestFileSizeAsyncInternal = fetchFileSizeAsync;
-		} else {
-			this._requestFileAsyncInternal = asyncDownloadFile;
-			this._requestFileSizeAsyncInternal = getFileSizeAsync;
-		}
-
-		if (xhrIsAvailable) {
-			this._requestFileSyncInternal = syncDownloadFile;
-			this._requestFileSizeSyncInternal = getFileSizeSync;
-		} else {
-			this._requestFileSyncInternal = syncNotAvailableError;
-			this._requestFileSizeSyncInternal = syncNotAvailableError;
-		}
+		this._requestFileInternal = fetchFile;
+		this._requestFileSizeInternal = fetchFileSize;
 	}
 
 	public empty(): void {
@@ -202,9 +142,12 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
 		return false;
 	}
 
+	/**
+	 * Synchronous XHRs are deprecated.
+	 * @returns false
+	 */
 	public supportsSynch(): boolean {
-		// Synchronous operations are only available via the XHR interface for now.
-		return xhrIsAvailable;
+		return false;
 	}
 
 	/**
@@ -226,38 +169,7 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
 		}
 	}
 
-	public stat(path: string, isLstat: boolean, cred: Cred, cb: BFSCallback<Stats>): void {
-		const inode = this._index.getInode(path);
-		if (inode === null) {
-			return cb(ApiError.ENOENT(path));
-		}
-		let stats: Stats;
-		if (!inode!.toStats().hasAccess(FilePerm.READ, cred)) {
-			return cb(ApiError.EACCES(path));
-		}
-		if (isFileInode<Stats>(inode)) {
-			stats = inode.getData();
-			// At this point, a non-opened file will still have default stats from the listing.
-			if (stats.size < 0) {
-				this._requestFileSizeAsync(path, function (e: ApiError, size?: number) {
-					if (e) {
-						return cb(e);
-					}
-					stats.size = size!;
-					cb(null, Stats.clone(stats));
-				});
-			} else {
-				cb(null, Stats.clone(stats));
-			}
-		} else if (isDirInode(inode)) {
-			stats = inode.getStats();
-			cb(null, stats);
-		} else {
-			cb(ApiError.FileError(ErrorCode.EINVAL, path));
-		}
-	}
-
-	public statSync(path: string, isLstat: boolean, cred: Cred): Stats {
+	public async stat(path: string, isLstat: boolean, cred: Cred): Promise<Stats> {
 		const inode = this._index.getInode(path);
 		if (inode === null) {
 			throw ApiError.ENOENT(path);
@@ -270,7 +182,7 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
 			stats = inode.getData();
 			// At this point, a non-opened file will still have default stats from the listing.
 			if (stats.size < 0) {
-				stats.size = this._requestFileSizeSync(path);
+				stats.size = await this._requestFileSize(path);
 			}
 		} else if (isDirInode(inode)) {
 			stats = inode.getStats();
@@ -280,56 +192,7 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
 		return stats;
 	}
 
-	public open(path: string, flags: FileFlag, mode: number, cred: Cred, cb: BFSCallback<File>): void {
-		// INVARIANT: You can't write to files on this file system.
-		if (flags.isWriteable()) {
-			return cb(new ApiError(ErrorCode.EPERM, path));
-		}
-		const self = this;
-		// Check if the path exists, and is a file.
-		const inode = this._index.getInode(path);
-		if (inode === null) {
-			return cb(ApiError.ENOENT(path));
-		}
-		if (!inode.toStats().hasAccess(flags.getMode(), cred)) {
-			return cb(ApiError.EACCES(path));
-		}
-		if (isFileInode<Stats>(inode) || isDirInode<Stats>(inode)) {
-			switch (flags.pathExistsAction()) {
-				case ActionType.THROW_EXCEPTION:
-				case ActionType.TRUNCATE_FILE:
-					return cb(ApiError.EEXIST(path));
-				case ActionType.NOP:
-					if (isDirInode<Stats>(inode)) {
-						const stats = inode.getStats();
-						return cb(null, new NoSyncFile(self, path, flags, stats, stats.fileData || undefined));
-					}
-					const stats = inode.getData();
-					// Use existing file contents.
-					// XXX: Uh, this maintains the previously-used flag.
-					if (stats.fileData) {
-						return cb(null, new NoSyncFile(self, path, flags, Stats.clone(stats), stats.fileData));
-					}
-					// @todo be lazier about actually requesting the file
-					this._requestFileAsync(path, 'buffer', function (err: ApiError, buffer?: Buffer) {
-						if (err) {
-							return cb(err);
-						}
-						// we don't initially have file sizes
-						stats.size = buffer!.length;
-						stats.fileData = buffer!;
-						return cb(null, new NoSyncFile(self, path, flags, Stats.clone(stats), buffer));
-					});
-					break;
-				default:
-					return cb(new ApiError(ErrorCode.EINVAL, 'Invalid FileMode object.'));
-			}
-		} else {
-			return cb(ApiError.EPERM(path));
-		}
-	}
-
-	public openSync(path: string, flags: FileFlag, mode: number, cred: Cred): File {
+	public async open(path: string, flags: FileFlag, mode: number, cred: Cred): Promise<File> {
 		// INVARIANT: You can't write to files on this file system.
 		if (flags.isWriteable()) {
 			throw new ApiError(ErrorCode.EPERM, path);
@@ -359,7 +222,7 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
 						return new NoSyncFile(this, path, flags, Stats.clone(stats), stats.fileData);
 					}
 					// @todo be lazier about actually requesting the file
-					const buffer = this._requestFileSync(path, 'buffer');
+					const buffer = await this._requestFile(path, 'buffer');
 					// we don't initially have file sizes
 					stats.size = buffer.length;
 					stats.fileData = buffer;
@@ -372,63 +235,16 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
 		}
 	}
 
-	public readdir(path: string, cred: Cred, cb: BFSCallback<string[]>): void {
-		try {
-			cb(null, this.readdirSync(path, cred));
-		} catch (e) {
-			cb(e);
-		}
-	}
-
-	public readdirSync(path: string, cred: Cred): string[] {
-		// Check if it exists.
-		const inode = this._index.getInode(path);
-		if (inode === null) {
-			throw ApiError.ENOENT(path);
-		} else if (!inode.toStats().hasAccess(FilePerm.READ, cred)) {
-			throw ApiError.EACCES(path);
-		} else if (isDirInode(inode)) {
-			return inode.getListing();
-		} else {
-			throw ApiError.ENOTDIR(path);
-		}
+	public async readdir(path: string, cred: Cred): Promise<string[]> {
+		return this.readdirSync(path, cred);
 	}
 
 	/**
 	 * We have the entire file as a buffer; optimize readFile.
 	 */
-	public readFile(fname: string, encoding: BufferEncoding, flag: FileFlag, cred: Cred, cb: BFSCallback<string | Buffer>): void {
-		// Wrap cb in file closing code.
-		const oldCb = cb;
+	public async readFile(fname: string, encoding: BufferEncoding, flag: FileFlag, cred: Cred): Promise<FileContents> {
 		// Get file.
-		this.open(fname, flag, 0x1a4, cred, function (err: ApiError, fd?: File) {
-			if (err) {
-				return cb(err);
-			}
-			cb = function (err: ApiError, arg?: Buffer) {
-				fd!.close(function (err2: any) {
-					if (!err) {
-						err = err2;
-					}
-					return oldCb(err, arg);
-				});
-			};
-			const fdCast = <NoSyncFile<HTTPRequest>>fd;
-			const fdBuff = <Buffer>fdCast.getBuffer();
-			if (encoding === null) {
-				cb(err, copyingSlice(fdBuff));
-			} else {
-				tryToString(fdBuff, encoding, cb);
-			}
-		});
-	}
-
-	/**
-	 * Specially-optimized readfile.
-	 */
-	public readFileSync(fname: string, encoding: BufferEncoding, flag: FileFlag, cred: Cred): any {
-		// Get file.
-		const fd = this.openSync(fname, flag, 0x1a4, cred);
+		const fd = await this.open(fname, flag, 0o644, cred);
 		try {
 			const fdCast = <NoSyncFile<HTTPRequest>>fd;
 			const fdBuff = <Buffer>fdCast.getBuffer();
@@ -437,7 +253,7 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
 			}
 			return fdBuff.toString(encoding);
 		} finally {
-			fd.closeSync();
+			await fd.close();
 		}
 	}
 
@@ -451,31 +267,17 @@ export default class HTTPRequest extends BaseFileSystem implements FileSystem {
 	/**
 	 * Asynchronously download the given file.
 	 */
-	private _requestFileAsync(p: string, type: 'buffer', cb: BFSCallback<Buffer>): void;
-	private _requestFileAsync(p: string, type: 'json', cb: BFSCallback<any>): void;
-	private _requestFileAsync(p: string, type: string, cb: BFSCallback<any>): void;
-	private _requestFileAsync(p: string, type: string, cb: BFSCallback<any>): void {
-		this._requestFileAsyncInternal(this._getHTTPPath(p), type, cb);
-	}
-
-	/**
-	 * Synchronously download the given file.
-	 */
-	private _requestFileSync(p: string, type: 'buffer'): Buffer;
-	private _requestFileSync(p: string, type: 'json'): any;
-	private _requestFileSync(p: string, type: string): any;
-	private _requestFileSync(p: string, type: string): any {
-		return this._requestFileSyncInternal(this._getHTTPPath(p), type);
+	private _requestFile(p: string, type: 'buffer'): Promise<Buffer>;
+	private _requestFile(p: string, type: 'json'): Promise<any>;
+	private _requestFile(p: string, type: string): Promise<string>;
+	private _requestFile(p: string, type: string): Promise<any> {
+		return this._requestFileInternal(this._getHTTPPath(p), type);
 	}
 
 	/**
 	 * Only requests the HEAD content, for the file size.
 	 */
-	private _requestFileSizeAsync(path: string, cb: BFSCallback<number>): void {
-		this._requestFileSizeAsyncInternal(this._getHTTPPath(path), cb);
-	}
-
-	private _requestFileSizeSync(path: string): number {
-		return this._requestFileSizeSyncInternal(this._getHTTPPath(path));
+	private _requestFileSize(path: string): Promise<number> {
+		return this._requestFileSizeInternal(this._getHTTPPath(path));
 	}
 }

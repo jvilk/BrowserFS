@@ -1,6 +1,6 @@
-import { BFSCallback, FileSystemOptions } from '../core/file_system';
 import { SyncKeyValueStore, SimpleSyncStore, SimpleSyncRWTransaction, SyncKeyValueRWTransaction, SyncKeyValueFileSystem } from '../generic/key_value_filesystem';
 import type { Buffer } from 'buffer';
+import type { BackendOptions } from '../core/backends';
 
 /**
  * A simple in-memory key-value store backed by a JavaScript object.
@@ -40,28 +40,13 @@ export class InMemoryStore implements SyncKeyValueStore, SimpleSyncStore {
  * A simple in-memory file system backed by an InMemoryStore.
  * Files are not persisted across page loads.
  */
-export default class InMemoryFileSystem extends SyncKeyValueFileSystem {
+export class InMemoryFileSystem extends SyncKeyValueFileSystem {
 	public static readonly Name = 'InMemory';
 
-	public static readonly Options: FileSystemOptions = {};
+	public static readonly Options: BackendOptions = {};
 
-	/**
-	 * Creates an InMemoryFileSystem instance.
-	 */
-	public static Create(options: any, cb: BFSCallback<InMemoryFileSystem>): void {
-		cb(null, new InMemoryFileSystem());
-	}
-
-	public static CreateAsync(opts: any): Promise<InMemoryFileSystem> {
-		return new Promise((resolve, reject) => {
-			this.Create(opts, (error, fs) => {
-				if (error || !fs) {
-					reject(error);
-				} else {
-					resolve(fs);
-				}
-			});
-		});
+	public static async Create(opts: object): Promise<InMemoryFileSystem> {
+		return new InMemoryFileSystem();
 	}
 
 	private constructor() {

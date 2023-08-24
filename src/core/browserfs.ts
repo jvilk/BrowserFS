@@ -6,14 +6,15 @@
 import * as buffer from 'buffer';
 import fs from './node_fs';
 import * as path from 'path';
-import { FileSystemConstructor, FileSystem, BFSOneArgCallback, BFSCallback } from './file_system';
+import { FileSystem, type BFSOneArgCallback, type BFSCallback, BaseFileSystem } from './file_system';
 import EmscriptenFS from '../generic/emscripten_fs';
-import Backends from './backends';
+import { backends } from './backends';
 import * as BFSUtils from './util';
 import * as Errors from './api_error';
 import setImmediate from '../generic/setImmediate';
 import Cred from './cred';
 import * as process from 'process';
+import type { BackendConstructor } from '../core/backends';
 
 if (process && (<any>process)['initializeTTYs']) {
 	(<any>process)['initializeTTYs']();
@@ -41,8 +42,8 @@ export function install(obj: any) {
 /**
  * @hidden
  */
-export function registerFileSystem(name: string, fs: FileSystemConstructor) {
-	(<any>Backends)[name] = fs;
+export function registerFileSystem(name: string, fs: BackendConstructor) {
+	backends[name] = fs;
 }
 
 /**
@@ -53,7 +54,7 @@ export function BFSRequire(module: 'path'): typeof path;
 export function BFSRequire(module: 'buffer'): typeof buffer;
 export function BFSRequire(module: 'process'): typeof process;
 export function BFSRequire(module: 'bfs_utils'): typeof BFSUtils;
-export function BFSRequire(module: string): any;
+export function BFSRequire(module: string): BackendConstructor;
 export function BFSRequire(module: string): any {
 	switch (module) {
 		case 'fs':
@@ -69,7 +70,7 @@ export function BFSRequire(module: string): any {
 		case 'bfs-utils':
 			return BFSUtils;
 		default:
-			return (<any>Backends)[module];
+			return backends[module];
 	}
 }
 
@@ -81,19 +82,28 @@ export function initialize(rootfs: FileSystem, uid: number = 0, gid: number = 0)
 	return fs.initialize(rootfs, cred);
 }
 
+async function _configure(config: FileSystemConfiguration): Promise<FileSystem> {
+	const fs = await getFileSystem(config);
+	return initialize(fs);
+}
+
 /**
  * Creates a file system with the given configuration, and initializes BrowserFS with it.
  * See the FileSystemConfiguration type for more info on the configuration object.
  */
-export function configure(config: FileSystemConfiguration, cb: BFSOneArgCallback): void {
-	getFileSystem(config, (e, fs?) => {
-		if (fs) {
-			initialize(fs);
-			cb();
-		} else {
-			cb(e);
-		}
-	});
+export function configure(config: FileSystemConfiguration): Promise<FileSystem>;
+export function configure(config: FileSystemConfiguration, cb: BFSOneArgCallback): void;
+export function configure(config: FileSystemConfiguration, cb?: BFSOneArgCallback): Promise<FileSystem> | void {
+	// Promise version
+	if (typeof cb != 'function') {
+		return _configure(config);
+	}
+
+	// Callback version
+	_configure(config)
+		.then(() => cb())
+		.catch(err => cb(err));
+	return;
 }
 
 /**
@@ -101,18 +111,6 @@ export function configure(config: FileSystemConfiguration, cb: BFSOneArgCallback
  * See the FileSystemConfiguration type for more info on the configuration object.
  * Note: unlike configure, the .then is provided with the file system
  */
-export function configureAsync(config: FileSystemConfiguration): Promise<FileSystem | Errors.ApiError | null> {
-	return new Promise((resolve, reject) => {
-		getFileSystem(config, (e, fs?) => {
-			if (fs) {
-				initialize(fs);
-				resolve(fs);
-			} else {
-				reject(e);
-			}
-		});
-	});
-}
 
 /**
  * Specifies a file system backend type and its options.
@@ -137,64 +135,57 @@ export function configureAsync(config: FileSystemConfiguration): Promise<FileSys
  */
 export interface FileSystemConfiguration {
 	fs: string;
-	options?: any;
+	options?: object;
+}
+
+async function _getFileSystem({ fs: fsName, options = {} }: FileSystemConfiguration): Promise<FileSystem> {
+	if (!fsName) {
+		throw new Errors.ApiError(Errors.ErrorCode.EPERM, 'Missing "fs" property on configuration object.');
+	}
+
+	if (typeof options !== 'object' || options === null) {
+		throw new Errors.ApiError(Errors.ErrorCode.EINVAL, 'Invalid "options" property on configuration object.');
+	}
+
+	const props = Object.keys(options).filter(k => k != 'fs');
+
+	for (const prop of props) {
+		const opt = options[prop];
+		if (opt === null || typeof opt !== 'object' || !('fs' in opt)) {
+			continue;
+		}
+
+		const fs = await _getFileSystem(opt);
+		options[prop] = fs;
+	}
+
+	const fsc = <BackendConstructor | undefined>(<any>backends)[fsName];
+	if (!fsc) {
+		throw new Errors.ApiError(Errors.ErrorCode.EPERM, `File system ${fsName} is not available in BrowserFS.`);
+	} else {
+		return fsc.Create(options);
+	}
 }
 
 /**
- * Retrieve a file system with the given configuration.
+ * Retrieve a file system with the given configuration. Will return a promise if invoked without a callback
  * @param config A FileSystemConfiguration object. See FileSystemConfiguration for details.
  * @param cb Called when the file system is constructed, or when an error occurs.
  */
-export function getFileSystem(config: FileSystemConfiguration, cb: BFSCallback<FileSystem>): void {
-	const fsName = config['fs'];
-	if (!fsName) {
-		return cb(new Errors.ApiError(Errors.ErrorCode.EPERM, 'Missing "fs" property on configuration object.'));
-	}
-	const options = config['options'];
-	let waitCount = 0;
-	let called = false;
-	function finish() {
-		if (!called) {
-			called = true;
-			const fsc = <FileSystemConstructor | undefined>(<any>Backends)[fsName];
-			if (!fsc) {
-				cb(new Errors.ApiError(Errors.ErrorCode.EPERM, `File system ${fsName} is not available in BrowserFS.`));
-			} else {
-				fsc.Create(options, cb);
-			}
-		}
+export function getFileSystem(config: FileSystemConfiguration): Promise<FileSystem>;
+export function getFileSystem(config: FileSystemConfiguration, cb: BFSCallback<FileSystem>): void;
+export function getFileSystem(config: FileSystemConfiguration, cb?: BFSCallback<FileSystem>): Promise<FileSystem> | void {
+	// Promise version
+	if (typeof cb != 'function') {
+		return _getFileSystem(config);
 	}
 
-	if (options !== null && typeof options === 'object') {
-		let finishedIterating = false;
-		const props = Object.keys(options).filter(k => k !== 'fs');
-		// Check recursively if other fields have 'fs' properties.
-		props.forEach(p => {
-			const d = options[p];
-			if (d !== null && typeof d === 'object' && d['fs']) {
-				waitCount++;
-				getFileSystem(d, function (e, fs?) {
-					waitCount--;
-					if (e) {
-						if (called) {
-							return;
-						}
-						called = true;
-						cb(e);
-					} else {
-						options[p] = fs;
-						if (waitCount === 0 && finishedIterating) {
-							finish();
-						}
-					}
-				});
-			}
-		});
-		finishedIterating = true;
-	}
-	if (waitCount === 0) {
-		finish();
-	}
+	// Callback version
+	_getFileSystem(config)
+		.then(fs => cb(null, fs))
+		.catch(err => cb(err));
+	return;
 }
 
-export { EmscriptenFS, Backends as FileSystem, Errors, setImmediate };
+export * from './backends';
+export { EmscriptenFS, FileSystem, BaseFileSystem, Errors, setImmediate };

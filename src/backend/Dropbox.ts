@@ -1,23 +1,22 @@
 import PreloadFile from '../generic/preload_file';
-import { BaseFileSystem, FileSystem, BFSOneArgCallback, BFSCallback, FileSystemOptions } from '../core/file_system';
+import { BaseFileSystem, type FileSystem } from '../core/file_system';
 import { FileFlag } from '../core/file_flag';
 import { default as Stats, FileType } from '../core/stats';
 import { ApiError, ErrorCode } from '../core/api_error';
 import { File } from '../core/file';
-import { arrayBuffer2Buffer, buffer2ArrayBuffer } from '../core/util';
-import { Dropbox } from '../generic/dropbox_bridge_actual';
-import setImmediate from '../generic/setImmediate';
+import { wait } from '../core/util';
+import type * as DropboxTypes from 'dropbox';
 import { dirname } from 'path';
 import Cred from '../core/cred';
 import { Buffer } from 'buffer';
-type DropboxClient = DropboxTypes.Dropbox;
+import type { BackendOptions } from '../core/backends';
 
 /**
  * Dropbox paths do not begin with a /, they just begin with a folder at the root node.
  * Here, we strip the `/`.
  * @param p An absolute path
  */
-function FixPath(p: string): string {
+function fixPath(p: string): string {
 	if (p === '/') {
 		return '';
 	} else {
@@ -30,7 +29,7 @@ function FixPath(p: string): string {
  * @url https://github.com/dropbox/dropbox-sdk-js/issues/146
  * @param e
  */
-function ExtractTheFuckingError<T>(e: DropboxTypes.Error<T>): T {
+function extractError<T>(e: DropboxTypes.Error<T>): T {
 	const obj = <any>e.error;
 	if (obj['.tag']) {
 		// Everything is OK.
@@ -69,7 +68,7 @@ function ExtractTheFuckingError<T>(e: DropboxTypes.Error<T>): T {
  * @url https://github.com/dropbox/dropbox-sdk-js/issues/144
  * @param err An error.
  */
-function GetErrorMessage(err: DropboxTypes.Error<any>): string {
+function getErrorMessage(err: DropboxTypes.Error<any>): string {
 	if (err['user_message']) {
 		return err.user_message.text;
 	} else if (err['error_summary']) {
@@ -78,13 +77,13 @@ function GetErrorMessage(err: DropboxTypes.Error<any>): string {
 		return err.error;
 	} else if (typeof err.error === 'object') {
 		// DROPBOX BUG: Sometimes, error is a nested error.
-		return GetErrorMessage(err.error);
+		return getErrorMessage(err.error);
 	} else {
 		throw new Error(`Dropbox's servers gave us a garbage error message: ${JSON.stringify(err)}`);
 	}
 }
 
-function LookupErrorToError(err: DropboxTypes.files.LookupError, p: string, msg: string): ApiError {
+function convertLookupError(err: DropboxTypes.files.LookupError, p: string, msg: string): ApiError {
 	switch (err['.tag']) {
 		case 'malformed_path':
 			return new ApiError(ErrorCode.EBADF, msg, p);
@@ -102,7 +101,7 @@ function LookupErrorToError(err: DropboxTypes.files.LookupError, p: string, msg:
 	}
 }
 
-function WriteErrorToError(err: DropboxTypes.files.WriteError, p: string, msg: string): ApiError {
+function convertWriteError(err: DropboxTypes.files.WriteError, p: string, msg: string): ApiError {
 	switch (err['.tag']) {
 		case 'malformed_path':
 		case 'disallowed_name':
@@ -119,33 +118,28 @@ function WriteErrorToError(err: DropboxTypes.files.WriteError, p: string, msg: s
 	}
 }
 
-function FilesDeleteWrapped(client: DropboxClient, p: string, cb: BFSOneArgCallback): void {
+async function deleteFiles(client: DropboxTypes.Dropbox, p: string): Promise<void> {
 	const arg: DropboxTypes.files.DeleteArg = {
-		path: FixPath(p),
+		path: fixPath(p),
 	};
-	client
-		.filesDeleteV2(arg)
-		.then(() => {
-			cb();
-		})
-		.catch((e: DropboxTypes.Error<DropboxTypes.files.DeleteError>) => {
-			const err = ExtractTheFuckingError(e);
-			switch (err['.tag']) {
-				case 'path_lookup':
-					cb(LookupErrorToError((<DropboxTypes.files.DeleteErrorPathLookup>err).path_lookup, p, GetErrorMessage(e)));
-					break;
-				case 'path_write':
-					cb(WriteErrorToError((<DropboxTypes.files.DeleteErrorPathWrite>err).path_write, p, GetErrorMessage(e)));
-					break;
-				case 'too_many_write_operations':
-					setTimeout(() => FilesDeleteWrapped(client, p, cb), 500 + 300 * Math.random());
-					break;
-				case 'other':
-				default:
-					cb(new ApiError(ErrorCode.EIO, GetErrorMessage(e), p));
-					break;
-			}
-		});
+	try {
+		await client.filesDeleteV2(arg);
+	} catch (e) {
+		const err = extractError(e as DropboxTypes.Error<DropboxTypes.files.DeleteError>);
+		switch (err['.tag']) {
+			case 'path_lookup':
+				throw convertLookupError((<DropboxTypes.files.DeleteErrorPathLookup>err).path_lookup, p, getErrorMessage(e));
+			case 'path_write':
+				throw convertWriteError((<DropboxTypes.files.DeleteErrorPathWrite>err).path_write, p, getErrorMessage(e));
+			case 'too_many_write_operations':
+				await wait(500);
+				await deleteFiles(client, p);
+				break;
+			case 'other':
+			default:
+				throw new ApiError(ErrorCode.EIO, getErrorMessage(e), p);
+		}
+	}
 }
 
 export class DropboxFile extends PreloadFile<DropboxFileSystem> implements File {
@@ -153,12 +147,12 @@ export class DropboxFile extends PreloadFile<DropboxFileSystem> implements File 
 		super(_fs, _path, _flag, _stat, contents);
 	}
 
-	public sync(cb: BFSOneArgCallback): void {
-		this._fs._syncFile(this.getPath(), this.getBuffer(), cb);
+	public async sync(): Promise<void> {
+		await this._fs._syncFile(this.getPath(), this.getBuffer());
 	}
 
-	public close(cb: BFSOneArgCallback): void {
-		this.sync(cb);
+	public async close(): Promise<void> {
+		await this.sync();
 	}
 }
 
@@ -175,10 +169,10 @@ export interface DropboxFileSystemOptions {
  *
  * Uses the Dropbox V2 API, and the 2.x JS SDK.
  */
-export default class DropboxFileSystem extends BaseFileSystem implements FileSystem {
+export class DropboxFileSystem extends BaseFileSystem implements FileSystem {
 	public static readonly Name = 'DropboxV2';
 
-	public static readonly Options: FileSystemOptions = {
+	public static readonly Options: BackendOptions = {
 		client: {
 			type: 'object',
 			description: 'An *authenticated* Dropbox client. Must be from the 2.5.x JS SDK.',
@@ -186,32 +180,16 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
 	};
 
 	/**
-	 * Creates a new DropboxFileSystem instance with the given options.
-	 * Must be given an *authenticated* Dropbox client from 2.x JS SDK.
-	 */
-	public static Create(opts: DropboxFileSystemOptions, cb: BFSCallback<DropboxFileSystem>): void {
-		cb(null, new DropboxFileSystem(opts.client));
-	}
-
-	/**
 	 * Asynchronously creates a new DropboxFileSystem instance with the given options.
 	 * Must be given an *authenticated* Dropbox client from 2.x JS SDK.
 	 */
-	public static CreateAsync(opts: DropboxFileSystemOptions): Promise<DropboxFileSystem> {
-		return new Promise((resolve, reject) => {
-			this.Create(opts, (error, fs) => {
-				if (error || !fs) {
-					reject(error);
-				} else {
-					resolve(fs);
-				}
-			});
-		});
+	public static async Create(opts: DropboxFileSystemOptions): Promise<DropboxFileSystem> {
+		return new DropboxFileSystem(opts.client);
 	}
 
 	public static isAvailable(): boolean {
 		// Checks if the Dropbox library is loaded.
-		return typeof Dropbox !== 'undefined';
+		return typeof globalThis.Dropbox !== 'undefined';
 	}
 
 	private _client: DropboxTypes.Dropbox;
@@ -248,346 +226,273 @@ export default class DropboxFileSystem extends BaseFileSystem implements FileSys
 	 * Deletes *everything* in the file system. Mainly intended for unit testing!
 	 * @param mainCb Called when operation completes.
 	 */
-	public empty(mainCb: BFSOneArgCallback): void {
-		this.readdir('/', Cred.Root, (e, paths?) => {
-			if (paths) {
-				const next = (e?: ApiError) => {
-					if (paths.length === 0) {
-						mainCb();
-					} else {
-						FilesDeleteWrapped(this._client, <string>paths.shift(), next);
-					}
-				};
-				next();
-			} else {
-				mainCb(e);
-			}
-		});
+	public async empty(): Promise<void> {
+		const paths = await this.readdir('/', Cred.Root);
+		for (const path of paths) {
+			await deleteFiles(this._client, path);
+		}
 	}
 
-	public rename(oldPath: string, newPath: string, cred: Cred, cb: BFSOneArgCallback): void {
+	public async rename(oldPath: string, newPath: string, cred: Cred): Promise<void> {
 		// Dropbox doesn't let you rename things over existing things, but POSIX does.
 		// So, we need to see if newPath exists...
-		this.stat(newPath, false, cred, (e, stats?) => {
-			const rename = () => {
-				const relocationArg: DropboxTypes.files.RelocationArg = {
-					from_path: FixPath(oldPath),
-					to_path: FixPath(newPath),
-				};
-				this._client
-					.filesMoveV2(relocationArg)
-					.then(() => cb())
-					.catch(function (e: DropboxTypes.Error<DropboxTypes.files.RelocationError>) {
-						const err = ExtractTheFuckingError(e);
-						switch (err['.tag']) {
-							case 'from_lookup':
-								cb(LookupErrorToError((<DropboxTypes.files.RelocationErrorFromLookup>err).from_lookup, oldPath, GetErrorMessage(e)));
-								break;
-							case 'from_write':
-								cb(WriteErrorToError((<DropboxTypes.files.RelocationErrorFromWrite>err).from_write, oldPath, GetErrorMessage(e)));
-								break;
-							case 'to':
-								cb(WriteErrorToError((<DropboxTypes.files.RelocationErrorTo>err).to, newPath, GetErrorMessage(e)));
-								break;
-							case 'cant_copy_shared_folder':
-							case 'cant_nest_shared_folder':
-								cb(new ApiError(ErrorCode.EPERM, GetErrorMessage(e), oldPath));
-								break;
-							case 'cant_move_folder_into_itself':
-							case 'duplicated_or_nested_paths':
-								cb(new ApiError(ErrorCode.EBADF, GetErrorMessage(e), oldPath));
-								break;
-							case 'too_many_files':
-								cb(new ApiError(ErrorCode.ENOSPC, GetErrorMessage(e), oldPath));
-								break;
-							case 'other':
-							default:
-								cb(new ApiError(ErrorCode.EIO, GetErrorMessage(e), oldPath));
-								break;
-						}
-					});
+		const rename = async () => {
+			const relocationArg: DropboxTypes.files.RelocationArg = {
+				from_path: fixPath(oldPath),
+				to_path: fixPath(newPath),
 			};
-			if (e) {
-				// Doesn't exist. Proceed!
-				rename();
-			} else if (oldPath === newPath) {
-				// NOP if the path exists. Error if it doesn't exist.
-				if (e) {
-					cb(ApiError.ENOENT(newPath));
-				} else {
-					cb();
+			try {
+				await this._client.filesMoveV2(relocationArg);
+			} catch (e) {
+				const err = extractError(e as DropboxTypes.Error<DropboxTypes.files.RelocationError>);
+				switch (err['.tag']) {
+					case 'from_lookup':
+						throw convertLookupError((<DropboxTypes.files.RelocationErrorFromLookup>err).from_lookup, oldPath, getErrorMessage(e));
+					case 'from_write':
+						throw convertWriteError((<DropboxTypes.files.RelocationErrorFromWrite>err).from_write, oldPath, getErrorMessage(e));
+					case 'to':
+						throw convertWriteError((<DropboxTypes.files.RelocationErrorTo>err).to, newPath, getErrorMessage(e));
+					case 'cant_copy_shared_folder':
+					case 'cant_nest_shared_folder':
+						throw new ApiError(ErrorCode.EPERM, getErrorMessage(e), oldPath);
+					case 'cant_move_folder_into_itself':
+					case 'duplicated_or_nested_paths':
+						throw new ApiError(ErrorCode.EBADF, getErrorMessage(e), oldPath);
+					case 'too_many_files':
+						throw new ApiError(ErrorCode.ENOSPC, getErrorMessage(e), oldPath);
+					case 'other':
+					default:
+						throw new ApiError(ErrorCode.EIO, getErrorMessage(e), oldPath);
 				}
-			} else if (stats && stats.isDirectory()) {
-				// Exists, is a directory. Cannot rename over an existing directory.
-				cb(ApiError.EISDIR(newPath));
-			} else {
-				// Exists, is a file, and differs from oldPath. Delete and rename.
-				this.unlink(newPath, cred, e => {
-					if (e) {
-						cb(e);
-					} else {
-						rename();
-					}
-				});
 			}
-		});
+		};
+		try {
+			const stats = await this.stat(newPath, false, cred);
+
+			if (stats.isDirectory()) {
+				throw ApiError.EISDIR(newPath);
+			}
+
+			await this.unlink(newPath, cred);
+			rename();
+		} catch (e) {
+			if (oldPath === newPath) {
+				throw ApiError.ENOENT(newPath);
+			}
+			rename();
+		}
 	}
 
-	public stat(path: string, isLstat: boolean, cred: Cred, cb: BFSCallback<Stats>): void {
+	/**
+	 * @todo parse time fields
+	 */
+	public async stat(path: string, isLstat: boolean, cred: Cred): Promise<Stats> {
 		if (path === '/') {
 			// Dropbox doesn't support querying the root directory.
-			setImmediate(function () {
-				cb(null, new Stats(FileType.DIRECTORY, 4096));
-			});
-			return;
+			return new Stats(FileType.DIRECTORY, 4096);
 		}
 		const arg: DropboxTypes.files.GetMetadataArg = {
-			path: FixPath(path),
+			path: fixPath(path),
 		};
-		this._client
-			.filesGetMetadata(arg)
-			.then(ref => {
-				switch (ref['.tag']) {
-					case 'file':
-						const fileMetadata = <DropboxTypes.files.FileMetadata>ref;
-						// TODO: Parse time fields.
-						cb(null, new Stats(FileType.FILE, fileMetadata.size));
-						break;
-					case 'folder':
-						cb(null, new Stats(FileType.DIRECTORY, 4096));
-						break;
-					case 'deleted':
-						cb(ApiError.ENOENT(path));
-						break;
-					default:
-						// Unknown.
-						break;
-				}
-			})
-			.catch((e: DropboxTypes.Error<DropboxTypes.files.GetMetadataError>) => {
-				const err = ExtractTheFuckingError(e);
-				switch (err['.tag']) {
-					case 'path':
-						cb(LookupErrorToError(err.path, path, GetErrorMessage(e)));
-						break;
-					default:
-						cb(new ApiError(ErrorCode.EIO, GetErrorMessage(e), path));
-						break;
-				}
-			});
+
+		try {
+			const ref = await this._client.filesGetMetadata(arg);
+			switch (ref['.tag']) {
+				case 'file':
+					const fileMetadata = <DropboxTypes.files.FileMetadata>ref;
+					return new Stats(FileType.FILE, fileMetadata.size);
+				case 'folder':
+					return new Stats(FileType.DIRECTORY, 4096);
+				case 'deleted':
+					throw ApiError.ENOENT(path);
+				default:
+					throw new ApiError(ErrorCode.EINVAL, 'Invalid file type', path);
+			}
+		} catch (e) {
+			const err = extractError(e as DropboxTypes.Error<DropboxTypes.files.GetMetadataError>);
+			switch (err['.tag']) {
+				case 'path':
+					throw convertLookupError(err.path, path, getErrorMessage(e));
+				default:
+					throw new ApiError(ErrorCode.EIO, getErrorMessage(e), path);
+			}
+		}
 	}
 
-	public openFile(path: string, flags: FileFlag, cred: Cred, cb: BFSCallback<File>): void {
+	public async openFile(path: string, flags: FileFlag, cred: Cred): Promise<File> {
 		const downloadArg: DropboxTypes.files.DownloadArg = {
-			path: FixPath(path),
+			path: fixPath(path),
 		};
-		this._client
-			.filesDownload(downloadArg)
-			.then(res => {
-				const b: Blob = (<any>res).fileBlob;
-				const fr = new FileReader();
-				fr.onload = () => {
-					const ab = fr.result as ArrayBuffer;
-					cb(null, new DropboxFile(this, path, flags, new Stats(FileType.FILE, ab.byteLength), arrayBuffer2Buffer(ab)));
-				};
-				fr.readAsArrayBuffer(b);
-			})
-			.catch((e: DropboxTypes.Error<DropboxTypes.files.DownloadError>) => {
-				const err = ExtractTheFuckingError(e);
-				switch (err['.tag']) {
-					case 'path':
-						const dpError = <DropboxTypes.files.DownloadErrorPath>err;
-						cb(LookupErrorToError(dpError.path, path, GetErrorMessage(e)));
-						break;
-					case 'other':
-					default:
-						cb(new ApiError(ErrorCode.EIO, GetErrorMessage(e), path));
-						break;
-				}
-			});
+
+		try {
+			const res = (await this._client.filesDownload(downloadArg)) as any;
+			const data = await res.fileBlob.arrayBuffer();
+			return new DropboxFile(this, path, flags, new Stats(FileType.FILE, data.byteLength), Buffer.from(data));
+		} catch (e) {
+			const err = extractError(e as DropboxTypes.Error<DropboxTypes.files.DownloadError>);
+			switch (err['.tag']) {
+				case 'path':
+					const dpError = <DropboxTypes.files.DownloadErrorPath>err;
+					throw convertLookupError(dpError.path, path, getErrorMessage(e));
+				case 'other':
+				default:
+					throw new ApiError(ErrorCode.EIO, getErrorMessage(e), path);
+			}
+		}
 	}
 
-	public createFile(p: string, flags: FileFlag, mode: number, cred: Cred, cb: BFSCallback<File>): void {
-		const fileData = Buffer.alloc(0);
-		const blob = new Blob([buffer2ArrayBuffer(fileData) as ArrayBuffer], { type: 'octet/stream' });
+	public async createFile(p: string, flags: FileFlag, mode: number, cred: Cred): Promise<File> {
+		const fileData = Buffer.alloc(0),
+			contents = new Blob([fileData], { type: 'octet/stream' });
 		const commitInfo: DropboxTypes.files.CommitInfo = {
-			contents: blob,
-			path: FixPath(p),
+			contents,
+			path: fixPath(p),
 		};
-		this._client
-			.filesUpload(commitInfo)
-			.then(metadata => {
-				cb(null, new DropboxFile(this, p, flags, new Stats(FileType.FILE, 0), fileData));
-			})
-			.catch((e: DropboxTypes.Error<DropboxTypes.files.UploadError>) => {
-				const err = ExtractTheFuckingError(e);
-				// HACK: Casting to 'any' since tag can be 'too_many_write_operations'.
-				switch (<string>err['.tag']) {
-					case 'path':
-						const upError = <DropboxTypes.files.UploadErrorPath>err;
-						cb(WriteErrorToError((upError as any).path.reason, p, GetErrorMessage(e)));
-						break;
-					case 'too_many_write_operations':
-						// Retry in (500, 800) ms.
-						setTimeout(() => this.createFile(p, flags, mode, cred, cb), 500 + 300 * Math.random());
-						break;
-					case 'other':
-					default:
-						cb(new ApiError(ErrorCode.EIO, GetErrorMessage(e), p));
-						break;
-				}
-			});
+		try {
+			const meta = await this._client.filesUpload(commitInfo);
+			return new DropboxFile(this, p, flags, new Stats(FileType.FILE, meta.size, 0o644, Date.now(), Date.parse(meta.server_modified)), fileData);
+		} catch (e) {
+			const err = extractError(e as DropboxTypes.Error<DropboxTypes.files.UploadError>);
+			// HACK: Casting to 'any' since tag can be 'too_many_write_operations'.
+			switch (<string>err['.tag']) {
+				case 'path':
+					const upError = <DropboxTypes.files.UploadErrorPath>err;
+					throw convertWriteError((upError as any).path.reason, p, getErrorMessage(e));
+				case 'too_many_write_operations':
+					// Retry in (500, 800) ms.
+					await wait(500);
+					await this.createFile(p, flags, mode, cred);
+					break;
+				case 'other':
+				default:
+					throw new ApiError(ErrorCode.EIO, getErrorMessage(e), p);
+			}
+		}
 	}
 
 	/**
 	 * Delete a file
 	 */
-	public unlink(path: string, cred: Cred, cb: BFSOneArgCallback): void {
+	public async unlink(path: string, cred: Cred): Promise<void> {
 		// Must be a file. Check first.
-		this.stat(path, false, cred, (e, stat) => {
-			if (stat) {
-				if (stat.isDirectory()) {
-					cb(ApiError.EISDIR(path));
-				} else {
-					FilesDeleteWrapped(this._client, path, cb);
-				}
-			} else {
-				cb(e);
-			}
-		});
+		const stats = await this.stat(path, false, cred);
+		if (stats.isDirectory()) {
+			throw ApiError.EISDIR(path);
+		}
+		await deleteFiles(this._client, path);
 	}
 
 	/**
 	 * Delete a directory
 	 */
-	public rmdir(path: string, cred: Cred, cb: BFSOneArgCallback): void {
-		this.readdir(path, cred, (e, paths) => {
-			if (paths) {
-				if (paths.length > 0) {
-					cb(ApiError.ENOTEMPTY(path));
-				} else {
-					FilesDeleteWrapped(this._client, path, cb);
-				}
-			} else {
-				cb(e);
-			}
-		});
+	public async rmdir(path: string, cred: Cred): Promise<void> {
+		const paths = await this.readdir(path, cred);
+		if (paths.length > 0) {
+			throw ApiError.ENOTEMPTY(path);
+		}
+		await deleteFiles(this._client, path);
 	}
 
 	/**
 	 * Create a directory
 	 */
-	public mkdir(p: string, mode: number, cred: Cred, cb: BFSOneArgCallback): void {
+	public async mkdir(p: string, mode: number, cred: Cred): Promise<void> {
 		// Dropbox's create_folder is recursive. Check if parent exists.
 		const parent = dirname(p);
-		this.stat(parent, false, cred, (e, stats?) => {
-			if (e) {
-				cb(e);
-			} else if (stats && !stats.isDirectory()) {
-				cb(ApiError.ENOTDIR(parent));
+		const stats = await this.stat(parent, false, cred);
+		if (stats && !stats.isDirectory()) {
+			throw ApiError.ENOTDIR(parent);
+		}
+		const arg: DropboxTypes.files.CreateFolderArg = {
+			path: fixPath(p),
+		};
+		try {
+			await this._client.filesCreateFolderV2(arg);
+		} catch (e) {
+			const err = extractError(e as DropboxTypes.Error<DropboxTypes.files.CreateFolderError>);
+			if (<string>err['.tag'] === 'too_many_write_operations') {
+				// Retry in a bit.
+				await wait(500);
+				await this.mkdir(p, mode, cred);
 			} else {
-				const arg: DropboxTypes.files.CreateFolderArg = {
-					path: FixPath(p),
-				};
-				this._client
-					.filesCreateFolderV2(arg)
-					.then(() => cb())
-					.catch((e: DropboxTypes.Error<DropboxTypes.files.CreateFolderError>) => {
-						const err = ExtractTheFuckingError(e);
-						if (<string>err['.tag'] === 'too_many_write_operations') {
-							// Retry in a bit.
-							setTimeout(() => this.mkdir(p, mode, cred, cb), 500 + 300 * Math.random());
-						} else {
-							cb(WriteErrorToError(ExtractTheFuckingError(e).path, p, GetErrorMessage(e)));
-						}
-					});
+				throw convertWriteError(err.path, p, getErrorMessage(e));
 			}
-		});
+		}
 	}
 
 	/**
 	 * Get the names of the files in a directory
 	 */
-	public readdir(path: string, cred: Cred, cb: BFSCallback<string[]>): void {
+	public async readdir(path: string, cred: Cred): Promise<string[]> {
 		const arg: DropboxTypes.files.ListFolderArg = {
-			path: FixPath(path),
+			path: fixPath(path),
 		};
-		this._client
-			.filesListFolder(arg)
-			.then(res => {
-				ContinueReadingDir(this._client, path, res, [], cb);
-			})
-			.catch((e: DropboxTypes.Error<DropboxTypes.files.ListFolderError>) => {
-				ProcessListFolderError(e, path, cb);
-			});
+		try {
+			const res = await this._client.filesListFolder(arg);
+			return await _readdir(this._client, res, path, []);
+		} catch (e) {
+			throw convertListFolderError(e as DropboxTypes.Error<DropboxTypes.files.ListFolderError>, path);
+		}
 	}
 
 	/**
-	 * (Internal) Syncs file to Dropbox.
+	 * @internal
+	 * Syncs file to Dropbox.
 	 */
-	public _syncFile(p: string, d: Buffer, cb: BFSOneArgCallback): void {
-		const blob = new Blob([buffer2ArrayBuffer(d) as ArrayBuffer], { type: 'octet/stream' });
+	public async _syncFile(p: string, d: Buffer): Promise<void> {
+		const blob = new Blob([d], { type: 'octet/stream' });
 		const arg: DropboxTypes.files.CommitInfo = {
 			contents: blob,
-			path: FixPath(p),
+			path: fixPath(p),
 			mode: {
 				'.tag': 'overwrite',
 			},
 		};
-		this._client
-			.filesUpload(arg)
-			.then(() => {
-				cb();
-			})
-			.catch((e: DropboxTypes.Error<DropboxTypes.files.UploadError>) => {
-				const err = ExtractTheFuckingError(e);
-				switch (<string>err['.tag']) {
-					case 'path':
-						const upError = <DropboxTypes.files.UploadErrorPath>err;
-						cb(WriteErrorToError((upError as any).path.reason, p, GetErrorMessage(e)));
-						break;
-					case 'too_many_write_operations':
-						setTimeout(() => this._syncFile(p, d, cb), 500 + 300 * Math.random());
-						break;
-					case 'other':
-					default:
-						cb(new ApiError(ErrorCode.EIO, GetErrorMessage(e), p));
-						break;
-				}
-			});
+		try {
+			await this._client.filesUpload(arg);
+		} catch (e) {
+			const err = extractError(e as DropboxTypes.Error<DropboxTypes.files.UploadError>);
+			switch (<string>err['.tag']) {
+				case 'path':
+					const upError = <DropboxTypes.files.UploadErrorPath>err;
+					throw convertWriteError((upError as any).path.reason, p, getErrorMessage(e));
+				case 'too_many_write_operations':
+					await wait(500);
+					await this._syncFile(p, d);
+					break;
+				case 'other':
+				default:
+					throw new ApiError(ErrorCode.EIO, getErrorMessage(e), p);
+			}
+		}
 	}
 }
 
-function ProcessListFolderError(e: DropboxTypes.Error<DropboxTypes.files.ListFolderError>, path: string, cb: BFSCallback<string[]>): void {
-	const err = ExtractTheFuckingError(e);
+function convertListFolderError(e: DropboxTypes.Error<DropboxTypes.files.ListFolderError>, path: string): ApiError {
+	const err = extractError(e);
 	switch (err['.tag']) {
 		case 'path':
 			const pathError = <DropboxTypes.files.ListFolderErrorPath>err;
-			cb(LookupErrorToError(pathError.path, path, GetErrorMessage(e)));
-			break;
+			return convertLookupError(pathError.path, path, getErrorMessage(e));
 		case 'other':
 		default:
-			cb(new ApiError(ErrorCode.EIO, GetErrorMessage(e), path));
-			break;
+			return new ApiError(ErrorCode.EIO, getErrorMessage(e), path);
 	}
 }
 
-function ContinueReadingDir(client: DropboxClient, path: string, res: DropboxTypes.files.ListFolderResult, previousEntries: string[], cb: BFSCallback<string[]>): void {
-	const newEntries = <string[]>res.entries.map(e => e.path_display).filter(p => !!p);
-	const entries = previousEntries.concat(newEntries);
-	if (!res.has_more) {
-		cb(null, entries);
-	} else {
+async function _readdir(res, client, path: string, previousEntries: string[]): Promise<string[]> {
+	try {
+		const newEntries = <string[]>res.entries.map(e => e.path_display).filter(p => !!p);
+		const entries = previousEntries.concat(newEntries);
+		if (!res.has_more) {
+			return entries;
+		}
 		const arg: DropboxTypes.files.ListFolderContinueArg = {
 			cursor: res.cursor,
 		};
-		client
-			.filesListFolderContinue(arg)
-			.then(res => {
-				ContinueReadingDir(client, path, res, entries, cb);
-			})
-			.catch((e: DropboxTypes.Error<DropboxTypes.files.ListFolderError>) => {
-				ProcessListFolderError(e, path, cb);
-			});
+		await client.filesListFolderContinue(arg);
+		return await _readdir(client, res, path, entries);
+	} catch (e) {
+		throw convertListFolderError(e as DropboxTypes.Error<DropboxTypes.files.ListFolderError>, path);
 	}
 }

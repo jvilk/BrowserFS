@@ -1,12 +1,13 @@
-import { SynchronousFileSystem, BFSOneArgCallback, BFSCallback, BFSThreeArgCallback, FileSystemOptions } from '../core/file_system';
+import { SynchronousFileSystem } from '../core/file_system';
 import { default as Stats, FileType } from '../core/stats';
 import { FileFlag } from '../core/file_flag';
 import { BaseFile, File } from '../core/file';
-import { uint8Array2Buffer, buffer2Uint8array } from '../core/util';
 import { ApiError, ErrorCode, ErrorStrings } from '../core/api_error';
 import { EmscriptenFSNode } from '../generic/emscripten_fs';
 import Cred from '../core/cred';
 import { Buffer } from 'buffer';
+import type { BackendOptions } from '../core/backends';
+
 /**
  * @hidden
  */
@@ -39,15 +40,8 @@ export class EmscriptenFile extends BaseFile implements File {
 	public getPos(): number | undefined {
 		return undefined;
 	}
-	public close(cb: BFSOneArgCallback): void {
-		let err: ApiError | null = null;
-		try {
-			this.closeSync();
-		} catch (e) {
-			err = e;
-		} finally {
-			cb(err);
-		}
+	public async close(): Promise<void> {
+		return this.closeSync();
 	}
 	public closeSync(): void {
 		try {
@@ -56,12 +50,8 @@ export class EmscriptenFile extends BaseFile implements File {
 			throw convertError(e, this._path);
 		}
 	}
-	public stat(cb: BFSCallback<Stats>): void {
-		try {
-			cb(null, this.statSync());
-		} catch (e) {
-			cb(e);
-		}
+	public async stat(): Promise<Stats> {
+		return this.statSync();
 	}
 	public statSync(): Stats {
 		try {
@@ -70,15 +60,8 @@ export class EmscriptenFile extends BaseFile implements File {
 			throw convertError(e, this._path);
 		}
 	}
-	public truncate(len: number, cb: BFSOneArgCallback): void {
-		let err: ApiError | null = null;
-		try {
-			this.truncateSync(len);
-		} catch (e) {
-			err = e;
-		} finally {
-			cb(err);
-		}
+	public async truncate(len: number): Promise<void> {
+		return this.truncateSync(len);
 	}
 	public truncateSync(len: number): void {
 		try {
@@ -87,56 +70,38 @@ export class EmscriptenFile extends BaseFile implements File {
 			throw convertError(e, this._path);
 		}
 	}
-	public write(buffer: Buffer, offset: number, length: number, position: number, cb: BFSThreeArgCallback<number, Buffer>): void {
-		try {
-			cb(null, this.writeSync(buffer, offset, length, position), buffer);
-		} catch (e) {
-			cb(e);
-		}
+	public async write(buffer: Buffer, offset: number, length: number, position: number): Promise<number> {
+		return this.writeSync(buffer, offset, length, position);
 	}
 	public writeSync(buffer: Buffer, offset: number, length: number, position: number | null): number {
 		try {
-			const u8 = buffer2Uint8array(buffer);
 			// Emscripten is particular about what position is set to.
 			const emPosition = position === null ? undefined : position;
-			return this._FS.write(this._stream, u8, offset, length, emPosition);
+			return this._FS.write(this._stream, buffer, offset, length, emPosition);
 		} catch (e) {
 			throw convertError(e, this._path);
 		}
 	}
-	public read(buffer: Buffer, offset: number, length: number, position: number, cb: BFSThreeArgCallback<number, Buffer>): void {
-		try {
-			cb(null, this.readSync(buffer, offset, length, position), buffer);
-		} catch (e) {
-			cb(e);
-		}
+	public async read(buffer: Buffer, offset: number, length: number, position: number): Promise<number> {
+		return this.readSync(buffer, offset, length, position);
 	}
 	public readSync(buffer: Buffer, offset: number, length: number, position: number | null): number {
 		try {
-			const u8 = buffer2Uint8array(buffer);
 			// Emscripten is particular about what position is set to.
 			const emPosition = position === null ? undefined : position;
-			return this._FS.read(this._stream, u8, offset, length, emPosition);
+			return this._FS.read(this._stream, buffer, offset, length, emPosition);
 		} catch (e) {
 			throw convertError(e, this._path);
 		}
 	}
-	public sync(cb: BFSOneArgCallback): void {
-		// NOP.
-		cb();
+	public async sync(): Promise<void> {
+		this.syncSync();
 	}
 	public syncSync(): void {
 		// NOP.
 	}
-	public chown(uid: number, gid: number, cb: BFSOneArgCallback): void {
-		let err: ApiError | null = null;
-		try {
-			this.chownSync(uid, gid);
-		} catch (e) {
-			err = e;
-		} finally {
-			cb(err);
-		}
+	public async chown(uid: number, gid: number): Promise<void> {
+		return this.chownSync(uid, gid);
 	}
 	public chownSync(uid: number, gid: number): void {
 		try {
@@ -145,15 +110,8 @@ export class EmscriptenFile extends BaseFile implements File {
 			throw convertError(e, this._path);
 		}
 	}
-	public chmod(mode: number, cb: BFSOneArgCallback): void {
-		let err: ApiError | null = null;
-		try {
-			this.chmodSync(mode);
-		} catch (e) {
-			err = e;
-		} finally {
-			cb(err);
-		}
+	public async chmod(mode: number): Promise<void> {
+		return this.chmodSync(mode);
 	}
 	public chmodSync(mode: number): void {
 		try {
@@ -162,15 +120,8 @@ export class EmscriptenFile extends BaseFile implements File {
 			throw convertError(e, this._path);
 		}
 	}
-	public utimes(atime: Date, mtime: Date, cb: BFSOneArgCallback): void {
-		let err: ApiError | null = null;
-		try {
-			this.utimesSync(atime, mtime);
-		} catch (e) {
-			err = e;
-		} finally {
-			cb(err);
-		}
+	public async utimes(atime: Date, mtime: Date): Promise<void> {
+		return this.utimesSync(atime, mtime);
 	}
 	public utimesSync(atime: Date, mtime: Date): void {
 		this._fs.utimesSync(this._path, atime, mtime, Cred.Root);
@@ -188,33 +139,18 @@ export interface EmscriptenFileSystemOptions {
 /**
  * Mounts an Emscripten file system into the BrowserFS file system.
  */
-export default class EmscriptenFileSystem extends SynchronousFileSystem {
+export class EmscriptenFileSystem extends SynchronousFileSystem {
 	public static readonly Name = 'EmscriptenFileSystem';
 
-	public static readonly Options: FileSystemOptions = {
+	public static readonly Options: BackendOptions = {
 		FS: {
 			type: 'object',
 			description: 'The Emscripten file system to use (the `FS` variable)',
 		},
 	};
 
-	/**
-	 * Create an EmscriptenFileSystem instance with the given options.
-	 */
-	public static Create(opts: EmscriptenFileSystemOptions, cb: BFSCallback<EmscriptenFileSystem>): void {
-		cb(null, new EmscriptenFileSystem(opts.FS));
-	}
-
-	public static CreateAsync(opts: EmscriptenFileSystemOptions): Promise<EmscriptenFileSystem> {
-		return new Promise((resolve, reject) => {
-			this.Create(opts, (error, fs) => {
-				if (error || !fs) {
-					reject(error);
-				} else {
-					resolve(fs);
-				}
-			});
-		});
+	public static async Create(opts: EmscriptenFileSystemOptions): Promise<EmscriptenFileSystem> {
+		return new EmscriptenFileSystem(opts.FS);
 	}
 
 	public static isAvailable(): boolean {
@@ -318,7 +254,7 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
 	public readFileSync(p: string, encoding: BufferEncoding, flag: FileFlag, cred: Cred): any {
 		try {
 			const data: Uint8Array = this._FS.readFile(p, { flags: flag.getFlagString() });
-			const buff = uint8Array2Buffer(data);
+			const buff = Buffer.from(data);
 			if (encoding) {
 				return buff.toString(encoding);
 			} else {
@@ -334,8 +270,7 @@ export default class EmscriptenFileSystem extends SynchronousFileSystem {
 			if (encoding) {
 				data = Buffer.from(data, encoding);
 			}
-			const u8 = buffer2Uint8array(data);
-			this._FS.writeFile(p, u8, { flags: flag.getFlagString(), encoding: 'binary' });
+			this._FS.writeFile(p, data, { flags: flag.getFlagString(), encoding: 'binary' });
 			this._FS.chmod(p, mode);
 		} catch (e) {
 			throw convertError(e, p);

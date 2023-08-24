@@ -1,53 +1,26 @@
+/// <reference lib="dom" />
 import { basename, dirname, join } from 'path';
 import { ApiError, ErrorCode } from '../core/api_error';
 import Cred from '../core/cred';
 import { File } from '../core/file';
 import { FileFlag } from '../core/file_flag';
-import { BaseFileSystem, BFSCallback, BFSOneArgCallback, FileSystem, FileSystemOptions } from '../core/file_system';
+import { BaseFileSystem, type FileSystem } from '../core/file_system';
 import { default as Stats, FileType } from '../core/stats';
 import { emptyBuffer } from '../core/util';
 import PreloadFile from '../generic/preload_file';
 import { Buffer } from 'buffer';
+import type { BackendOptions } from '../core/backends';
 
 interface FileSystemAccessFileSystemOptions {
 	handle: FileSystemDirectoryHandle;
 }
 
-type FileSystemKeysIterator = AsyncIterableIterator<string> & {
-	next: () => Promise<IteratorResult<string>>;
-};
+const handleError = (path = '', error: Error) => {
+	if (error.name === 'NotFoundError') {
+		throw ApiError.ENOENT(path);
+	}
 
-type GlobalFile = globalThis.File & {
-	arrayBuffer: () => Promise<ArrayBuffer>;
-};
-
-const handleError =
-	(cb: BFSCallback<never>, path = '') =>
-	(error: Error) => {
-		if (error.name === 'NotFoundError') {
-			return cb(ApiError.ENOENT(path));
-		}
-
-		cb(error as ApiError);
-	};
-
-const keysToArray = (directoryKeys: FileSystemKeysIterator, cb: BFSCallback<string[]>, path: string): void => {
-	const keys: string[] = [];
-	const iterateKeys = (): void => {
-		directoryKeys
-			.next()
-			.then(({ done, value }) => {
-				if (done) {
-					return cb(null, keys);
-				}
-
-				keys.push(value);
-				iterateKeys();
-			})
-			.catch(handleError(cb, path));
-	};
-
-	iterateKeys();
+	throw error as ApiError;
 };
 
 export class FileSystemAccessFile extends PreloadFile<FileSystemAccessFileSystem> implements File {
@@ -55,43 +28,25 @@ export class FileSystemAccessFile extends PreloadFile<FileSystemAccessFileSystem
 		super(_fs, _path, _flag, _stat, contents);
 	}
 
-	public sync(cb: BFSOneArgCallback): void {
+	public async sync(): Promise<void> {
 		if (this.isDirty()) {
-			this._fs._sync(this.getPath(), this.getBuffer(), this.getStats(), Cred.Root, (e?: ApiError) => {
-				if (!e) {
-					this.resetDirty();
-				}
-				cb(e);
-			});
-		} else {
-			cb();
+			await this._fs._sync(this.getPath(), this.getBuffer(), this.getStats(), Cred.Root);
+			this.resetDirty();
 		}
 	}
 
-	public close(cb: BFSOneArgCallback): void {
-		this.sync(cb);
+	public async close(): Promise<void> {
+		await this.sync();
 	}
 }
 
-export default class FileSystemAccessFileSystem extends BaseFileSystem implements FileSystem {
+export class FileSystemAccessFileSystem extends BaseFileSystem implements FileSystem {
 	public static readonly Name = 'FileSystemAccess';
 
-	public static readonly Options: FileSystemOptions = {};
+	public static readonly Options: BackendOptions = {};
 
-	public static Create({ handle }: FileSystemAccessFileSystemOptions, cb: BFSCallback<FileSystemAccessFileSystem>): void {
-		cb(null, new FileSystemAccessFileSystem(handle));
-	}
-
-	public static CreateAsync(opts: FileSystemAccessFileSystemOptions): Promise<FileSystemAccessFileSystem> {
-		return new Promise((resolve, reject) => {
-			this.Create(opts, (error, fs) => {
-				if (error || !fs) {
-					reject(error);
-				} else {
-					resolve(fs);
-				}
-			});
-		});
+	public static async Create({ handle }: FileSystemAccessFileSystemOptions): Promise<FileSystemAccessFileSystem> {
+		return new FileSystemAccessFileSystem(handle);
 	}
 
 	public static isAvailable(): boolean {
@@ -125,239 +80,175 @@ export default class FileSystemAccessFileSystem extends BaseFileSystem implement
 		return false;
 	}
 
-	public _sync(p: string, data: Buffer, stats: Stats, cred: Cred, cb: BFSOneArgCallback): void {
-		this.stat(p, false, cred, (err, currentStats) => {
-			if (stats.mtime !== currentStats!.mtime) {
-				this.writeFile(p, data, null, FileFlag.getFileFlag('w'), currentStats!.mode, cred, cb);
-			} else {
-				cb(err);
-			}
-		});
+	public async _sync(p: string, data: Buffer, stats: Stats, cred: Cred): Promise<void> {
+		const currentStats = await this.stat(p, false, cred);
+		if (stats.mtime !== currentStats!.mtime) {
+			await this.writeFile(p, data, null, FileFlag.getFileFlag('w'), currentStats!.mode, cred);
+		}
 	}
 
-	public rename(oldPath: string, newPath: string, cred: Cred, cb: BFSOneArgCallback): void {
-		this.getHandle(oldPath, (sourceError, handle) => {
-			if (sourceError) {
-				return cb(sourceError);
-			}
+	public async rename(oldPath: string, newPath: string, cred: Cred): Promise<void> {
+		try {
+			const handle = await this.getHandle(oldPath);
 			if (handle instanceof FileSystemDirectoryHandle) {
-				this.readdir(oldPath, cred, (readDirError, files = []) => {
-					if (readDirError) {
-						return cb(readDirError);
+				const files = await this.readdir(oldPath, cred);
+
+				await this.mkdir(newPath, 'wx', cred);
+				if (files.length === 0) {
+					await this.unlink(oldPath, cred);
+				} else {
+					for (const file of files) {
+						await this.rename(join(oldPath, file), join(newPath, file), cred);
+						await this.unlink(oldPath, cred);
 					}
-					this.mkdir(newPath, 'wx', cred, mkdirError => {
-						if (mkdirError) {
-							return cb(mkdirError);
-						}
-						if (files.length === 0) {
-							this.unlink(oldPath, cred, cb);
-						} else {
-							files.forEach(file => this.rename(join(oldPath, file), join(newPath, file), cred, () => this.unlink(oldPath, cred, cb)));
-						}
-					});
-				});
+				}
 			}
 			if (handle instanceof FileSystemFileHandle) {
-				handle
-					.getFile()
-					.then((oldFile: GlobalFile) =>
-						this.getHandle(dirname(newPath), (destError, destFolder) => {
-							if (destError) {
-								return cb(destError);
-							}
-							if (destFolder instanceof FileSystemDirectoryHandle) {
-								destFolder
-									.getFileHandle(basename(newPath), { create: true })
-									.then(newFile =>
-										newFile
-											.createWritable()
-											.then(writable =>
-												oldFile
-													.arrayBuffer()
-													.then(buffer =>
-														writable
-															.write(buffer)
-															.then(() => {
-																writable.close();
-																this.unlink(oldPath, cred, cb);
-															})
-															.catch(handleError(cb, newPath))
-													)
-													.catch(handleError(cb, oldPath))
-											)
-											.catch(handleError(cb, newPath))
-									)
-									.catch(handleError(cb, newPath));
-							}
-						})
-					)
-					.catch(handleError(cb, oldPath));
+				const oldFile = await handle.getFile(),
+					destFolder = await this.getHandle(dirname(newPath));
+				if (destFolder instanceof FileSystemDirectoryHandle) {
+					const newFile = await destFolder.getFileHandle(basename(newPath), { create: true });
+					const writable = await newFile.createWritable();
+					const buffer = await oldFile.arrayBuffer();
+					await writable.write(buffer);
+
+					writable.close();
+					await this.unlink(oldPath, cred);
+				}
 			}
-		});
+		} catch (err) {
+			handleError(oldPath, err);
+		}
 	}
 
-	public writeFile(fname: string, data: any, encoding: string | null, flag: FileFlag, mode: number, cred: Cred, cb: BFSCallback<File | undefined>, createFile?: boolean): void {
-		this.getHandle(dirname(fname), (error, handle) => {
-			if (error) {
-				return cb(error);
-			}
-			if (handle instanceof FileSystemDirectoryHandle) {
-				handle
-					.getFileHandle(basename(fname), { create: true })
-					.then(file =>
-						file
-							.createWritable()
-							.then(writable =>
-								writable
-									.write(data)
-									.then(() => {
-										writable.close().catch(handleError(cb, fname));
-										cb(null, createFile ? this.newFile(fname, flag, data) : undefined);
-									})
-									.catch(handleError(cb, fname))
-							)
-							.catch(handleError(cb, fname))
-					)
-					.catch(handleError(cb, fname));
-			}
-		});
+	public async writeFile(fname: string, data: any, encoding: string | null, flag: FileFlag, mode: number, cred: Cred, createFile?: boolean): Promise<void> {
+		const handle = await this.getHandle(dirname(fname));
+		if (handle instanceof FileSystemDirectoryHandle) {
+			const file = await handle.getFileHandle(basename(fname), { create: true });
+			const writable = await file.createWritable();
+			await writable.write(data);
+			await writable.close();
+			//return createFile ? this.newFile(fname, flag, data) : undefined;
+		}
 	}
 
-	public createFile(p: string, flag: FileFlag, mode: number, cred: Cred, cb: BFSCallback<File>): void {
-		this.writeFile(p, emptyBuffer(), null, flag, mode, cred, cb, true);
+	public async createFile(p: string, flag: FileFlag, mode: number, cred: Cred): Promise<File> {
+		await this.writeFile(p, emptyBuffer(), null, flag, mode, cred, true);
+		return this.openFile(p, flag, cred);
 	}
 
-	public stat(path: string, isLstat: boolean, cred: Cred, cb: BFSCallback<Stats>): void {
-		this.getHandle(path, (error, handle) => {
-			if (error) {
-				return cb(error);
-			}
-			if (!handle) {
-				return cb(ApiError.FileError(ErrorCode.EINVAL, path));
-			}
-			if (handle instanceof FileSystemDirectoryHandle) {
-				return cb(null, new Stats(FileType.DIRECTORY, 4096));
-			}
-			if (handle instanceof FileSystemFileHandle) {
-				handle
-					.getFile()
-					.then(({ lastModified, size }) => cb(null, new Stats(FileType.FILE, size, undefined, undefined, lastModified)))
-					.catch(handleError(cb, path));
-			}
-		});
+	public async stat(path: string, isLstat: boolean, cred: Cred): Promise<Stats> {
+		const handle = await this.getHandle(path);
+		if (!handle) {
+			throw ApiError.FileError(ErrorCode.EINVAL, path);
+		}
+		if (handle instanceof FileSystemDirectoryHandle) {
+			return new Stats(FileType.DIRECTORY, 4096);
+		}
+		if (handle instanceof FileSystemFileHandle) {
+			const { lastModified, size } = await handle.getFile();
+			return new Stats(FileType.FILE, size, undefined, undefined, lastModified);
+		}
 	}
 
-	public exists(p: string, cred: Cred, cb: (exists: boolean) => void): void {
-		this.getHandle(p, error => cb(error === null));
+	public async exists(p: string, cred: Cred): Promise<boolean> {
+		try {
+			await this.getHandle(p);
+			return true;
+		} catch (e) {
+			return false;
+		}
 	}
 
-	public openFile(path: string, flags: FileFlag, cred: Cred, cb: BFSCallback<File>): void {
-		this.getHandle(path, (error, handle) => {
-			if (error) {
-				return cb(error);
-			}
-			if (handle instanceof FileSystemFileHandle) {
-				handle
-					.getFile()
-					.then((file: GlobalFile) =>
-						file
-							.arrayBuffer()
-							.then(buffer => cb(null, this.newFile(path, flags, buffer, file.size, file.lastModified)))
-							.catch(handleError(cb, path))
-					)
-					.catch(handleError(cb, path));
-			}
-		});
+	public async openFile(path: string, flags: FileFlag, cred: Cred): Promise<File> {
+		const handle = await this.getHandle(path);
+		if (handle instanceof FileSystemFileHandle) {
+			const file = await handle.getFile();
+			const buffer = await file.arrayBuffer();
+			return this.newFile(path, flags, buffer, file.size, file.lastModified);
+		}
 	}
 
-	public unlink(path: string, cred: Cred, cb: BFSOneArgCallback): void {
-		this.getHandle(dirname(path), (error, handle) => {
-			if (error) {
-				return cb(error);
+	public async unlink(path: string, cred: Cred): Promise<void> {
+		const handle = await this.getHandle(dirname(path));
+		if (handle instanceof FileSystemDirectoryHandle) {
+			try {
+				await handle.removeEntry(basename(path), { recursive: true });
+			} catch (e) {
+				handleError(path, e);
 			}
-			if (handle instanceof FileSystemDirectoryHandle) {
-				handle
-					.removeEntry(basename(path), { recursive: true })
-					.then(() => cb(null))
-					.catch(handleError(cb, path));
-			}
-		});
+		}
 	}
 
-	public rmdir(path: string, cred: Cred, cb: BFSOneArgCallback): void {
-		this.unlink(path, cred, cb);
+	public async rmdir(path: string, cred: Cred): Promise<void> {
+		return this.unlink(path, cred);
 	}
 
-	public mkdir(p: string, mode: any, cred: Cred, cb: BFSOneArgCallback): void {
+	public async mkdir(p: string, mode: any, cred: Cred): Promise<void> {
 		const overwrite = mode && mode.flag && mode.flag.includes('w') && !mode.flag.includes('x');
 
-		this.getHandle(p, (_existingError, existingHandle) => {
-			if (existingHandle && !overwrite) {
-				return cb(ApiError.EEXIST(p));
-			}
+		const existingHandle = await this.getHandle(p);
+		if (existingHandle && !overwrite) {
+			throw ApiError.EEXIST(p);
+		}
 
-			this.getHandle(dirname(p), (error, handle) => {
-				if (error) {
-					return cb(error);
-				}
-				if (handle instanceof FileSystemDirectoryHandle) {
-					handle
-						.getDirectoryHandle(basename(p), { create: true })
-						.then(() => cb(null))
-						.catch(handleError(cb, p));
-				}
-			});
-		});
+		const handle = await this.getHandle(dirname(p));
+		if (handle instanceof FileSystemDirectoryHandle) {
+			await handle.getDirectoryHandle(basename(p), { create: true });
+		}
 	}
 
-	public readdir(path: string, cred: Cred, cb: BFSCallback<string[]>): void {
-		this.getHandle(path, (readError, handle) => {
-			if (readError) {
-				return cb(readError);
+	public async readdir(path: string, cred: Cred): Promise<string[]> {
+		const handle = await this.getHandle(path);
+		if (handle instanceof FileSystemDirectoryHandle) {
+			const _keys: string[] = [];
+			for await (const key of handle.keys()) {
+				_keys.push(join(path, key));
 			}
-			if (handle instanceof FileSystemDirectoryHandle) {
-				keysToArray(handle.keys() as FileSystemKeysIterator, cb, path);
-			}
-		});
+			return _keys;
+		}
 	}
 
 	private newFile(path: string, flag: FileFlag, data: ArrayBuffer, size?: number, lastModified?: number): File {
 		return new FileSystemAccessFile(this, path, flag, new Stats(FileType.FILE, size || 0, undefined, undefined, lastModified || new Date().getTime()), Buffer.from(data));
 	}
 
-	private getHandle(path: string, cb: BFSCallback<FileSystemHandle>): void {
+	private async getHandle(path: string): Promise<FileSystemHandle> {
 		if (path === '/') {
-			return cb(null, this._handles['/']);
+			return this._handles['/'];
 		}
 
 		let walkedPath = '/';
 		const [, ...pathParts] = path.split('/');
-		const getHandleParts = ([pathPart, ...remainingPathParts]: string[]) => {
+		const getHandleParts = async ([pathPart, ...remainingPathParts]: string[]) => {
 			const walkingPath = join(walkedPath, pathPart);
 			const continueWalk = (handle: FileSystemHandle) => {
 				walkedPath = walkingPath;
 				this._handles[walkedPath] = handle;
 
 				if (remainingPathParts.length === 0) {
-					return cb(null, this._handles[path]);
+					return this._handles[path];
 				}
 
 				getHandleParts(remainingPathParts);
 			};
 			const handle = this._handles[walkedPath] as FileSystemDirectoryHandle;
 
-			handle
-				.getDirectoryHandle(pathPart)
-				.then(continueWalk)
-				.catch((error: Error) => {
-					if (error.name === 'TypeMismatchError') {
-						handle.getFileHandle(pathPart).then(continueWalk).catch(handleError(cb, walkingPath));
-					} else if (error.message === 'Name is not allowed.') {
-						cb(new ApiError(ErrorCode.ENOENT, error.message, walkingPath));
-					} else {
-						handleError(cb, walkingPath)(error);
+			try {
+				return await continueWalk(await handle.getDirectoryHandle(pathPart));
+			} catch (error) {
+				if (error.name === 'TypeMismatchError') {
+					try {
+						return await continueWalk(await handle.getFileHandle(pathPart));
+					} catch (err) {
+						handleError(walkingPath, err);
 					}
-				});
+				} else if (error.message === 'Name is not allowed.') {
+					throw new ApiError(ErrorCode.ENOENT, error.message, walkingPath);
+				} else {
+					handleError(walkingPath, error);
+				}
+			}
 		};
 
 		getHandleParts(pathParts);

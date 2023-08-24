@@ -1,10 +1,12 @@
-import { FileSystem, BaseFileSystem, BFSOneArgCallback, BFSCallback, FileSystemOptions } from '../core/file_system';
-import InMemoryFileSystem from './InMemory';
+import { type FileSystem, BaseFileSystem } from '../core/file_system';
+import { InMemoryFileSystem } from './InMemory';
 import { ApiError, ErrorCode } from '../core/api_error';
 import fs from '../core/node_fs';
 import * as path from 'path';
-import { mkdirpSync } from '../core/util';
+import { mkdirpSync, toPromise } from '../core/util';
 import Cred from '../core/cred';
+import type { BackendOptions } from '../core/backends';
+
 /**
  * Configuration options for the MountableFileSystem backend.
  */
@@ -37,16 +39,16 @@ export interface MountableFileSystemOptions {
  *
  * For advanced users, you can also mount file systems *after* MFS is constructed:
  * ```javascript
- * BrowserFS.FileSystem.HTTPRequest.Create({
+ * BrowserFS.Backend.HTTPRequest.Create({
  *   index: "http://mysite.com/files/index.json"
  * }, function(e, xhrfs) {
- *   BrowserFS.FileSystem.MountableFileSystem.Create({
+ *   BrowserFS.Backend.MountableFileSystem.Create({
  *     '/data': xhrfs
  *   }, function(e, mfs) {
  *     BrowserFS.initialize(mfs);
  *
  *     // Added after-the-fact...
- *     BrowserFS.FileSystem.LocalStorage.Create(function(e, lsfs) {
+ *     BrowserFS.Backend.LocalStorage.Create(function(e, lsfs) {
  *       mfs.mount('/home', lsfs);
  *     });
  *   });
@@ -57,42 +59,18 @@ export interface MountableFileSystemOptions {
  *
  * With no mounted file systems, `MountableFileSystem` acts as a simple `InMemory` filesystem.
  */
-export default class MountableFileSystem extends BaseFileSystem implements FileSystem {
+export class MountableFileSystem extends BaseFileSystem implements FileSystem {
 	public static readonly Name = 'MountableFileSystem';
 
-	public static readonly Options: FileSystemOptions = {};
+	public static readonly Options: BackendOptions = {};
 
-	/**
-	 * Creates a MountableFileSystem instance with the given options.
-	 */
-	public static Create(opts: MountableFileSystemOptions, cb: BFSCallback<MountableFileSystem>): void {
-		InMemoryFileSystem.Create({}, (e, imfs?) => {
-			if (imfs) {
-				const fs = new MountableFileSystem(imfs);
-				try {
-					for (const mountPoint of Object.keys(opts)) {
-						fs.mount(mountPoint, opts[mountPoint], Cred.Root);
-					}
-				} catch (e) {
-					return cb(e);
-				}
-				cb(null, fs);
-			} else {
-				cb(e);
-			}
-		});
-	}
-
-	public static CreateAsync(opts: MountableFileSystemOptions): Promise<MountableFileSystem> {
-		return new Promise((resolve, reject) => {
-			this.Create(opts, (error, fs) => {
-				if (error || !fs) {
-					reject(error);
-				} else {
-					resolve(fs);
-				}
-			});
-		});
+	public static async Create(opts: MountableFileSystemOptions): Promise<MountableFileSystem> {
+		const imfs = await InMemoryFileSystem.Create({});
+		const fs = new MountableFileSystem(imfs);
+		for (const mountPoint of Object.keys(opts)) {
+			fs.mount(mountPoint, opts[mountPoint]);
+		}
+		return fs;
 	}
 
 	public static isAvailable(): boolean {
@@ -118,7 +96,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
 	/**
 	 * Mounts the file system at the given mount point.
 	 */
-	public mount(mountPoint: string, fs: FileSystem, cred: Cred): void {
+	public mount(mountPoint: string, fs: FileSystem, cred: Cred = Cred.Root): void {
 		if (mountPoint[0] !== '/') {
 			mountPoint = `/${mountPoint}`;
 		}
@@ -132,7 +110,7 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
 		this.mountList = this.mountList.sort((a, b) => b.length - a.length);
 	}
 
-	public umount(mountPoint: string, cred: Cred): void {
+	public umount(mountPoint: string, cred: Cred = Cred.Root): void {
 		if (mountPoint[0] !== '/') {
 			mountPoint = `/${mountPoint}`;
 		}
@@ -220,32 +198,23 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
 	// Note that we go through the Node API to use its robust default argument
 	// processing.
 
-	public rename(oldPath: string, newPath: string, cred: Cred, cb: BFSOneArgCallback): void {
+	public async rename(oldPath: string, newPath: string, cred: Cred): Promise<void> {
 		// Scenario 1: old and new are on same FS.
 		const fs1rv = this._getFs(oldPath);
 		const fs2rv = this._getFs(newPath);
 		if (fs1rv.fs === fs2rv.fs) {
-			return fs1rv.fs.rename(fs1rv.path, fs2rv.path, cred, (e?: ApiError) => {
-				if (e) {
-					this.standardizeError(this.standardizeError(e, fs1rv.path, oldPath), fs2rv.path, newPath);
-				}
-				cb(e);
-			});
+			try {
+				return fs1rv.fs.rename(fs1rv.path, fs2rv.path, cred);
+			} catch (e) {
+				throw this.standardizeError(this.standardizeError(e, fs1rv.path, oldPath), fs2rv.path, newPath);
+			}
 		}
 
 		// Scenario 2: Different file systems.
 		// Read old file, write new file, delete old file.
-		return fs.readFile(oldPath, function (err: ApiError, data?: any) {
-			if (err) {
-				return cb(err);
-			}
-			fs.writeFile(newPath, data, function (err: ApiError) {
-				if (err) {
-					return cb(err);
-				}
-				fs.unlink(oldPath, cb);
-			});
-		});
+		const data = await toPromise(fs.readFile)(oldPath);
+		await toPromise(fs.writeFile)(newPath, data);
+		await toPromise(fs.unlink)(oldPath);
 	}
 
 	public renameSync(oldPath: string, newPath: string, cred: Cred): void {
@@ -300,31 +269,24 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
 		}
 	}
 
-	public readdir(p: string, cred: Cred, cb: BFSCallback<string[]>): void {
+	public async readdir(p: string, cred: Cred): Promise<string[]> {
 		const fsInfo = this._getFs(p);
-		fsInfo.fs.readdir(fsInfo.path, cred, (err, files) => {
+		try {
+			let files = await fsInfo.fs.readdir(fsInfo.path, cred);
 			if (fsInfo.fs !== this.rootFs) {
-				try {
-					const rv = this.rootFs.readdirSync(p, cred);
-					if (files) {
-						// Filter out duplicates.
-						files = files.concat(rv.filter(val => files!.indexOf(val) === -1));
-					} else {
-						files = rv;
-					}
-				} catch (e) {
-					// Root FS and target FS did not have directory.
-					if (err) {
-						return cb(this.standardizeError(err, fsInfo.path, p));
-					}
+				const rv = this.rootFs.readdirSync(p, cred);
+				if (files) {
+					// Filter out duplicates.
+					files = files.concat(rv.filter(val => files!.indexOf(val) === -1));
+				} else {
+					files = rv;
 				}
-			} else if (err) {
-				// Root FS and target FS are the same, and did not have directory.
-				return cb(this.standardizeError(err, fsInfo.path, p));
 			}
 
-			cb(null, files);
-		});
+			return files;
+		} catch (e) {
+			throw this.standardizeError(e, fsInfo.path, p);
+		}
 	}
 
 	public realpathSync(p: string, cache: { [path: string]: string }, cred: Cred): string {
@@ -339,40 +301,39 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
 		}
 	}
 
-	public realpath(p: string, cache: { [path: string]: string }, cred: Cred, cb: BFSCallback<string>): void {
+	public async realpath(p: string, cache: { [path: string]: string }, cred: Cred): Promise<string> {
 		const fsInfo = this._getFs(p);
 
-		fsInfo.fs.realpath(fsInfo.path, {}, cred, (err, rv) => {
-			if (err) {
-				cb(this.standardizeError(err, fsInfo.path, p));
-			} else {
-				// resolve is there to remove any trailing slash that may be present
-				cb(null, path.resolve(path.join(fsInfo.mountPoint, rv!)));
-			}
-		});
+		try {
+			const rv = await fsInfo.fs.realpath(fsInfo.path, {}, cred);
+
+			return path.resolve(path.join(fsInfo.mountPoint, rv!));
+		} catch (e) {
+			this.standardizeError(e, fsInfo.path, p);
+		}
 	}
 
 	public rmdirSync(p: string, cred: Cred): void {
 		const fsInfo = this._getFs(p);
 		if (this._containsMountPt(p)) {
 			throw ApiError.ENOTEMPTY(p);
-		} else {
-			try {
-				fsInfo.fs.rmdirSync(fsInfo.path, cred);
-			} catch (e) {
-				throw this.standardizeError(e, fsInfo.path, p);
-			}
+		}
+		try {
+			fsInfo.fs.rmdirSync(fsInfo.path, cred);
+		} catch (e) {
+			throw this.standardizeError(e, fsInfo.path, p);
 		}
 	}
 
-	public rmdir(p: string, cred: Cred, cb: BFSOneArgCallback): void {
+	public async rmdir(p: string, cred: Cred): Promise<void> {
 		const fsInfo = this._getFs(p);
 		if (this._containsMountPt(p)) {
-			cb(ApiError.ENOTEMPTY(p));
-		} else {
-			fsInfo.fs.rmdir(fsInfo.path, cred, (err?) => {
-				cb(err ? this.standardizeError(err, fsInfo.path, p) : null);
-			});
+			throw ApiError.ENOTEMPTY(p);
+		}
+		try {
+			await fsInfo.fs.rmdir(fsInfo.path, cred);
+		} catch (e) {
+			throw this.standardizeError(e, fsInfo.path, p);
 		}
 	}
 
@@ -400,14 +361,16 @@ export default class MountableFileSystem extends BaseFileSystem implements FileS
  * @todo Can use numArgs to make proxying more efficient.
  * @hidden
  */
-function defineFcn(name: string, isSync: boolean, numArgs: number): (...args: any[]) => any {
+function defineFcn(name: string, isSync: false): (...args: any[]) => Promise<any>;
+function defineFcn(name: string, isSync: true): (...args: any[]) => any;
+function defineFcn(name: string, isSync: boolean): (...args: any[]) => any | Promise<any> {
 	if (isSync) {
 		return function (this: MountableFileSystem, ...args: any[]) {
 			const path = args[0];
 			const rv = this._getFs(path);
 			args[0] = rv.path;
 			try {
-				return (<any>rv.fs)[name].apply(rv.fs, args);
+				return (<any>rv.fs)[name](...args);
 			} catch (e) {
 				this.standardizeError(e, rv.path, path);
 				throw e;
@@ -418,16 +381,12 @@ function defineFcn(name: string, isSync: boolean, numArgs: number): (...args: an
 			const path = args[0];
 			const rv = this._getFs(path);
 			args[0] = rv.path;
-			if (typeof args[args.length - 1] === 'function') {
-				const cb = args[args.length - 1];
-				args[args.length - 1] = (...args: any[]) => {
-					if (args.length > 0 && args[0] instanceof ApiError) {
-						this.standardizeError(args[0], rv.path, path);
-					}
-					cb.apply(null, args);
-				};
+
+			try {
+				return (<FileSystem>rv.fs)[name](...args);
+			} catch (e) {
+				throw this.standardizeError(args[0], rv.path, path);
 			}
-			return (<any>rv.fs)[name].apply(rv.fs, args);
 		};
 	}
 }
@@ -435,23 +394,9 @@ function defineFcn(name: string, isSync: boolean, numArgs: number): (...args: an
 /**
  * @hidden
  */
-const fsCmdMap = [
-	// 1 arg functions
-	['exists', 'unlink', 'readlink'],
-	// 2 arg functions
-	['stat', 'mkdir', 'truncate'],
-	// 3 arg functions
-	['open', 'readFile', 'chmod', 'utimes'],
-	// 4 arg functions
-	['chown'],
-	// 5 arg functions
-	['writeFile', 'appendFile'],
-];
+const fsCmds = ['exists', 'unlink', 'readlink', 'stat', 'mkdir', 'truncate', 'open', 'readFile', 'chmod', 'utimes', 'chown', 'writeFile', 'appendFile'];
 
-for (let i = 0; i < fsCmdMap.length; i++) {
-	const cmds = fsCmdMap[i];
-	for (const fnName of cmds) {
-		(<any>MountableFileSystem.prototype)[fnName] = defineFcn(fnName, false, i + 1);
-		(<any>MountableFileSystem.prototype)[fnName + 'Sync'] = defineFcn(fnName + 'Sync', true, i + 1);
-	}
+for (const fn of fsCmds) {
+	MountableFileSystem.prototype[fn] = defineFcn(fn, false);
+	MountableFileSystem.prototype[fn + 'Sync'] = defineFcn(fn + 'Sync', true);
 }

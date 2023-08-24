@@ -1,7 +1,8 @@
-import { BaseFileSystem, FileSystem, BFSCallback, FileSystemOptions } from '../core/file_system';
+import { BaseFileSystem, type FileSystem } from '../core/file_system';
 import * as path from 'path';
 import { ApiError } from '../core/api_error';
 import Cred from '../core/cred';
+import type { BackendOptions } from '../core/backends';
 
 /**
  * Configuration options for a FolderAdapter file system.
@@ -31,10 +32,10 @@ export interface FolderAdapterOptions {
  * });
  * ```
  */
-export default class FolderAdapter extends BaseFileSystem implements FileSystem {
+export class FolderAdapter extends BaseFileSystem implements FileSystem {
 	public static readonly Name = 'FolderAdapter';
 
-	public static readonly Options: FileSystemOptions = {
+	public static readonly Options: BackendOptions = {
 		folder: {
 			type: 'string',
 			description: 'The folder to use as the root directory',
@@ -45,30 +46,10 @@ export default class FolderAdapter extends BaseFileSystem implements FileSystem 
 		},
 	};
 
-	/**
-	 * Creates a FolderAdapter instance with the given options.
-	 */
-	public static Create(opts: FolderAdapterOptions, cb: BFSCallback<FolderAdapter>): void {
+	public static async Create(opts: FolderAdapterOptions): Promise<FolderAdapter> {
 		const fa = new FolderAdapter(opts.folder, opts.wrapped);
-		fa._initialize(function (e?) {
-			if (e) {
-				cb(e);
-			} else {
-				cb(null, fa);
-			}
-		});
-	}
-
-	public static CreateAsync(opts: FolderAdapterOptions): Promise<FolderAdapter> {
-		return new Promise((resolve, reject) => {
-			this.Create(opts, (error, fs) => {
-				if (error || !fs) {
-					reject(error);
-				} else {
-					resolve(fs);
-				}
-			});
-		});
+		await fa._initialize();
+		return fa;
 	}
 
 	public static isAvailable(): boolean {
@@ -104,16 +85,13 @@ export default class FolderAdapter extends BaseFileSystem implements FileSystem 
 	 * Initialize the file system. Ensures that the wrapped file system
 	 * has the given folder.
 	 */
-	private _initialize(cb: (e?: ApiError) => void) {
-		this._wrapped.exists(this._folder, Cred.Root, (exists: boolean) => {
-			if (exists) {
-				cb();
-			} else if (this._wrapped.isReadOnly()) {
-				cb(ApiError.ENOENT(this._folder));
-			} else {
-				this._wrapped.mkdir(this._folder, 0x1ff, Cred.Root, cb);
-			}
-		});
+	private async _initialize(): Promise<void> {
+		const exists = await this._wrapped.exists(this._folder, Cred.Root);
+		if (!exists && this._wrapped.isReadOnly()) {
+			throw ApiError.ENOENT(this._folder);
+		} else {
+			await this._wrapped.mkdir(this._folder, 0x1ff, Cred.Root);
+		}
 	}
 }
 

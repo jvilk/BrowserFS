@@ -1,15 +1,15 @@
 import { ApiError, ErrorCode } from '../core/api_error';
 import { default as Stats, FileType } from '../core/stats';
-import { SynchronousFileSystem, FileSystem, BFSCallback, FileSystemOptions } from '../core/file_system';
+import { SynchronousFileSystem, type FileSystem } from '../core/file_system';
 import { File } from '../core/file';
 import { FileFlag, ActionType } from '../core/file_flag';
 import { NoSyncFile } from '../generic/preload_file';
 import { copyingSlice, bufferValidator } from '../core/util';
 import ExtendedASCII from '../generic/extended_ascii';
-import setImmediate from '../generic/setImmediate';
-import { inflateRawSync as inflateRaw } from 'zlib';
+import { inflateRawSync } from 'zlib';
 import { FileIndex, DirInode, FileInode, isDirInode, isFileInode } from '../generic/file_index';
 import type { Buffer } from 'buffer';
+import type { BackendOptions } from '../core/backends';
 
 /**
  * Maps CompressionMethod => function that decompresses.
@@ -99,7 +99,7 @@ function safeToString(buff: Buffer, useUTF8: boolean, start: number, length: num
 	} else if (useUTF8) {
 		return buff.toString('utf8', start, start + length);
 	} else {
-		return ExtendedASCII.byte2str(buff.slice(start, start + length));
+		return ExtendedASCII.byte2str(buff.subarray(start, start + length));
 	}
 }
 
@@ -196,7 +196,7 @@ export class FileHeader {
 	}
 	public extraField(): Buffer {
 		const start = 30 + this.fileNameLength();
-		return this.data.slice(start, start + this.extraFieldLength());
+		return this.data.subarray(start, start + this.extraFieldLength());
 	}
 	public totalSize(): number {
 		return 30 + this.fileNameLength() + this.extraFieldLength();
@@ -301,7 +301,7 @@ export class ArchiveExtraDataRecord {
 		return this.data.readUInt32LE(4);
 	}
 	public extraFieldData(): Buffer {
-		return this.data.slice(8, 8 + this.length());
+		return this.data.subarray(8, 8 + this.length());
 	}
 }
 
@@ -332,7 +332,7 @@ export class DigitalSignature {
 		return this.data.readUInt16LE(4);
 	}
 	public signatureData(): Buffer {
-		return this.data.slice(6, 6 + this.size());
+		return this.data.subarray(6, 6 + this.size());
 	}
 }
 
@@ -441,11 +441,11 @@ export class CentralDirectory {
 		return this._filename;
 	}
 	public rawFileName(): Buffer {
-		return this.data.slice(46, 46 + this.fileNameLength());
+		return this.data.subarray(46, 46 + this.fileNameLength());
 	}
 	public extraField(): Buffer {
 		const start = 44 + this.fileNameLength();
-		return this.data.slice(start, start + this.extraFieldLength());
+		return this.data.subarray(start, start + this.extraFieldLength());
 	}
 	public fileComment(): string {
 		const start = 46 + this.fileNameLength() + this.extraFieldLength();
@@ -453,7 +453,7 @@ export class CentralDirectory {
 	}
 	public rawFileComment(): Buffer {
 		const start = 46 + this.fileNameLength() + this.extraFieldLength();
-		return this.data.slice(start, start + this.fileCommentLength());
+		return this.data.subarray(start, start + this.fileCommentLength());
 	}
 	public totalSize(): number {
 		return 46 + this.fileNameLength() + this.extraFieldLength() + this.fileCommentLength();
@@ -483,8 +483,8 @@ export class CentralDirectory {
 		// Need to grab the header before we can figure out where the actual
 		// compressed data starts.
 		const start = this.headerRelativeOffset();
-		const header = new FileHeader(this.zipData.slice(start));
-		return new FileData(header, this, this.zipData.slice(start + header.totalSize()));
+		const header = new FileHeader(this.zipData.subarray(start));
+		return new FileData(header, this, this.zipData.subarray(start + header.totalSize()));
 	}
 	public getData(): Buffer {
 		return this.getFileData().decompress();
@@ -609,10 +609,10 @@ export interface ZipFSOptions {
  *   - Stream it out to a location.
  *   This isn't that bad, so we might do this at a later date.
  */
-export default class ZipFS extends SynchronousFileSystem implements FileSystem {
+export class ZipFS extends SynchronousFileSystem implements FileSystem {
 	public static readonly Name = 'ZipFS';
 
-	public static readonly Options: FileSystemOptions = {
+	public static readonly Options: BackendOptions = {
 		zipData: {
 			type: 'object',
 			description: 'The zip file as a Buffer object.',
@@ -627,34 +627,9 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
 
 	public static readonly CompressionMethod = CompressionMethod;
 
-	/**
-	 * Constructs a ZipFS instance with the given options.
-	 */
-	public static Create(opts: ZipFSOptions, cb: BFSCallback<ZipFS>): void {
-		try {
-			ZipFS._computeIndex(opts.zipData, (e, zipTOC?) => {
-				if (zipTOC) {
-					const fs = new ZipFS(zipTOC, opts.name);
-					cb(null, fs);
-				} else {
-					cb(e);
-				}
-			});
-		} catch (e) {
-			cb(e);
-		}
-	}
-
-	public static CreateAsync(opts: ZipFSOptions): Promise<ZipFS> {
-		return new Promise((resolve, reject) => {
-			this.Create(opts, (error, fs) => {
-				if (error || !fs) {
-					reject(error);
-				} else {
-					resolve(fs);
-				}
-			});
-		});
+	public static async Create(opts: ZipFSOptions): Promise<ZipFS> {
+		const zipTOC = await ZipFS._computeIndex(opts.zipData);
+		return new ZipFS(zipTOC, opts.name);
 	}
 
 	public static isAvailable(): boolean {
@@ -683,7 +658,7 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
 		for (let i = startOffset; i < endOffset; i++) {
 			// Magic number: EOCD Signature
 			if (data.readUInt32LE(data.length - i) === 0x06054b50) {
-				return new EndOfCentralDirectory(data.slice(data.length - i));
+				return new EndOfCentralDirectory(data.subarray(data.length - i));
 			}
 		}
 		throw new ApiError(ErrorCode.EINVAL, 'Invalid ZIP file: Could not locate End of Central Directory signature.');
@@ -708,64 +683,42 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
 		}
 	}
 
-	private static _computeIndex(data: Buffer, cb: BFSCallback<ZipTOC>) {
-		try {
-			const index: FileIndex<CentralDirectory> = new FileIndex<CentralDirectory>();
-			const eocd: EndOfCentralDirectory = ZipFS._getEOCD(data);
-			if (eocd.diskNumber() !== eocd.cdDiskNumber()) {
-				return cb(new ApiError(ErrorCode.EINVAL, 'ZipFS does not support spanned zip files.'));
-			}
-
-			const cdPtr = eocd.cdOffset();
-			if (cdPtr === 0xffffffff) {
-				return cb(new ApiError(ErrorCode.EINVAL, 'ZipFS does not support Zip64.'));
-			}
-			const cdEnd = cdPtr + eocd.cdSize();
-			ZipFS._computeIndexResponsive(data, index, cdPtr, cdEnd, cb, [], eocd);
-		} catch (e) {
-			cb(e);
+	private static async _computeIndex(data: Buffer): Promise<ZipTOC> {
+		const index: FileIndex<CentralDirectory> = new FileIndex<CentralDirectory>();
+		const eocd: EndOfCentralDirectory = ZipFS._getEOCD(data);
+		if (eocd.diskNumber() !== eocd.cdDiskNumber()) {
+			throw new ApiError(ErrorCode.EINVAL, 'ZipFS does not support spanned zip files.');
 		}
+
+		const cdPtr = eocd.cdOffset();
+		if (cdPtr === 0xffffffff) {
+			throw new ApiError(ErrorCode.EINVAL, 'ZipFS does not support Zip64.');
+		}
+		const cdEnd = cdPtr + eocd.cdSize();
+		return ZipFS._computeIndexResponsive(data, index, cdPtr, cdEnd, [], eocd);
 	}
 
-	private static _computeIndexResponsiveTrampoline(
+	private static async _computeIndexResponsive(
 		data: Buffer,
 		index: FileIndex<CentralDirectory>,
 		cdPtr: number,
 		cdEnd: number,
-		cb: BFSCallback<ZipTOC>,
 		cdEntries: CentralDirectory[],
 		eocd: EndOfCentralDirectory
-	) {
-		try {
-			ZipFS._computeIndexResponsive(data, index, cdPtr, cdEnd, cb, cdEntries, eocd);
-		} catch (e) {
-			cb(e);
+	): Promise<ZipTOC> {
+		if (cdPtr >= cdEnd) {
+			return new ZipTOC(index, cdEntries, eocd, data);
 		}
-	}
 
-	private static _computeIndexResponsive(
-		data: Buffer,
-		index: FileIndex<CentralDirectory>,
-		cdPtr: number,
-		cdEnd: number,
-		cb: BFSCallback<ZipTOC>,
-		cdEntries: CentralDirectory[],
-		eocd: EndOfCentralDirectory
-	) {
-		if (cdPtr < cdEnd) {
-			let count = 0;
-			while (count++ < 200 && cdPtr < cdEnd) {
-				const cd: CentralDirectory = new CentralDirectory(data, data.slice(cdPtr));
-				ZipFS._addToIndex(cd, index);
-				cdPtr += cd.totalSize();
-				cdEntries.push(cd);
-			}
-			setImmediate(() => {
-				ZipFS._computeIndexResponsiveTrampoline(data, index, cdPtr, cdEnd, cb, cdEntries, eocd);
-			});
-		} else {
-			cb(null, new ZipTOC(index, cdEntries, eocd, data));
+		let count = 0;
+		while (count++ < 200 && cdPtr < cdEnd) {
+			const cd: CentralDirectory = new CentralDirectory(data, data.subarray(cdPtr));
+			ZipFS._addToIndex(cd, index);
+			cdPtr += cd.totalSize();
+			cdEntries.push(cd);
 		}
+
+		return ZipFS._computeIndexResponsive(data, index, cdPtr, cdEnd, cdEntries, eocd);
 	}
 
 	private _index: FileIndex<CentralDirectory> = new FileIndex<CentralDirectory>();
@@ -914,7 +867,7 @@ export default class ZipFS extends SynchronousFileSystem implements FileSystem {
 }
 
 ZipFS.RegisterDecompressionMethod(CompressionMethod.DEFLATE, (data, compressedSize, uncompressedSize) => {
-	return inflateRaw(data.slice(0, compressedSize), { chunkSize: uncompressedSize });
+	return inflateRawSync(data.subarray(0, compressedSize), { chunkSize: uncompressedSize });
 });
 
 ZipFS.RegisterDecompressionMethod(CompressionMethod.STORED, (data, compressedSize, uncompressedSize) => {

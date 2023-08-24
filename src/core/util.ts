@@ -1,12 +1,13 @@
 /**
  * Grab bag of utility functions used across the code.
  */
-import { FileSystem, BFSOneArgCallback, FileSystemConstructor } from './file_system';
+import { FileSystem } from './file_system';
 import { ErrorCode, ApiError } from './api_error';
 import levenshtein from './levenshtein';
 import * as path from 'path';
 import Cred from './cred';
 import { Buffer } from 'buffer';
+import type { BackendConstructor } from '../core/backends';
 
 export function deprecationMessage(print: boolean, fsName: string, opts: any): void {
 	if (print) {
@@ -25,13 +26,15 @@ export function deprecationMessage(print: boolean, fsName: string, opts: any): v
  * userAgent string.
  * @hidden
  */
-export const isIE: boolean = typeof navigator !== 'undefined' && !!(/(msie) ([\w.]+)/.exec(navigator.userAgent.toLowerCase()) || navigator.userAgent.indexOf('Trident') !== -1);
+export const isIE: boolean =
+	typeof globalThis.navigator !== 'undefined' &&
+	!!(/(msie) ([\w.]+)/.exec(globalThis.navigator.userAgent.toLowerCase()) || globalThis.navigator.userAgent.indexOf('Trident') !== -1);
 
 /**
  * Check if we're in a web worker.
  * @hidden
  */
-export const isWebWorker: boolean = typeof window === 'undefined';
+export const isWebWorker: boolean = typeof globalThis.window === 'undefined';
 
 /**
  * Throws an exception. Called on code paths that should be impossible.
@@ -53,61 +56,6 @@ export function mkdirpSync(p: string, mode: number, cred: Cred, fs: FileSystem):
 }
 
 /**
- * Converts a buffer into an array buffer. Attempts to do so in a
- * zero-copy manner, e.g. the array references the same memory.
- * @hidden
- */
-export function buffer2ArrayBuffer(buff: Buffer): ArrayBuffer | SharedArrayBuffer {
-	const u8 = buffer2Uint8array(buff),
-		u8offset = u8.byteOffset,
-		u8Len = u8.byteLength;
-	if (u8offset === 0 && u8Len === u8.buffer.byteLength) {
-		return u8.buffer;
-	} else {
-		return u8.buffer.slice(u8offset, u8offset + u8Len);
-	}
-}
-
-/**
- * Converts a buffer into a Uint8Array. Attempts to do so in a
- * zero-copy manner, e.g. the array references the same memory.
- * @hidden
- */
-export function buffer2Uint8array(buff: Buffer): Uint8Array {
-	if (buff instanceof Uint8Array) {
-		// BFS & Node v4.0 buffers *are* Uint8Arrays.
-		return <any>buff;
-	} else {
-		// Uint8Arrays can be constructed from arrayish numbers.
-		// At this point, we assume this isn't a BFS array.
-		return new Uint8Array(buff);
-	}
-}
-
-/**
- * Converts the given Uint8Array into a Buffer. Attempts to be zero-copy.
- * @hidden
- */
-export function uint8Array2Buffer(u8: Uint8Array): Buffer {
-	if (u8 instanceof Buffer) {
-		return u8;
-	} else if (u8.byteOffset === 0 && u8.byteLength === u8.buffer.byteLength) {
-		return arrayBuffer2Buffer(u8.buffer);
-	} else {
-		return Buffer.from(<ArrayBuffer>u8.buffer, u8.byteOffset, u8.byteLength);
-	}
-}
-
-/**
- * Converts the given array buffer into a Buffer. Attempts to be
- * zero-copy.
- * @hidden
- */
-export function arrayBuffer2Buffer(ab: ArrayBuffer | SharedArrayBuffer): Buffer {
-	return Buffer.from(<ArrayBuffer>ab);
-}
-
-/**
  * Copies a slice of the given buffer
  * @hidden
  */
@@ -119,20 +67,7 @@ export function copyingSlice(buff: Buffer, start: number = 0, end = buff.length)
 		// Avoid s0 corner case in ArrayBuffer case.
 		return emptyBuffer();
 	} else {
-		const u8 = buffer2Uint8array(buff),
-			s0 = buff[0],
-			newS0 = (s0 + 1) % 0xff;
-
-		buff[0] = newS0;
-		if (u8[0] === newS0) {
-			// Same memory. Revert & copy.
-			u8[0] = s0;
-			return uint8Array2Buffer(u8.slice(start, end));
-		} else {
-			// Revert.
-			buff[0] = s0;
-			return uint8Array2Buffer(u8.subarray(start, end));
-		}
+		return buff.subarray(start, end);
 	}
 }
 
@@ -155,11 +90,9 @@ export function emptyBuffer(): Buffer {
  * Option validator for a Buffer file system option.
  * @hidden
  */
-export function bufferValidator(v: object, cb: BFSOneArgCallback): void {
-	if (Buffer.isBuffer(v)) {
-		cb();
-	} else {
-		cb(new ApiError(ErrorCode.EINVAL, `option must be a Buffer.`));
+export async function bufferValidator(v: object): Promise<void> {
+	if (!Buffer.isBuffer(v)) {
+		throw new ApiError(ErrorCode.EINVAL, 'option must be a Buffer.');
 	}
 }
 
@@ -167,25 +100,13 @@ export function bufferValidator(v: object, cb: BFSOneArgCallback): void {
  * Checks that the given options object is valid for the file system options.
  * @hidden
  */
-export function checkOptions(fsType: FileSystemConstructor, opts: any, cb: BFSOneArgCallback): void {
-	const optsInfo = fsType.Options;
-	const fsName = fsType.Name;
+export async function checkOptions(backend: BackendConstructor, opts: object): Promise<void> {
+	const optsInfo = backend.Options;
+	const fsName = backend.Name;
 
 	let pendingValidators = 0;
 	let callbackCalled = false;
 	let loopEnded = false;
-	function validatorCallback(e?: ApiError): void {
-		if (!callbackCalled) {
-			if (e) {
-				callbackCalled = true;
-				cb(e);
-			}
-			pendingValidators--;
-			if (pendingValidators === 0 && loopEnded) {
-				cb();
-			}
-		}
-	}
 
 	// Check for required options.
 	for (const optName in optsInfo) {
@@ -210,13 +131,11 @@ export function checkOptions(fsType: FileSystemConstructor, opts: any, cb: BFSOn
 						return;
 					}
 					callbackCalled = true;
-					return cb(
-						new ApiError(
-							ErrorCode.EINVAL,
-							`[${fsName}] Required option '${optName}' not provided.${
-								incorrectOptions.length > 0 ? ` You provided unrecognized option '${incorrectOptions[0].str}'; perhaps you meant to type '${optName}'.` : ''
-							}\nOption description: ${opt.description}`
-						)
+					throw new ApiError(
+						ErrorCode.EINVAL,
+						`[${fsName}] Required option '${optName}' not provided.${
+							incorrectOptions.length > 0 ? ` You provided unrecognized option '${incorrectOptions[0].str}'; perhaps you meant to type '${optName}'.` : ''
+						}\nOption description: ${opt.description}`
 					);
 				}
 				// Else: Optional option, not provided. That is OK.
@@ -234,17 +153,28 @@ export function checkOptions(fsType: FileSystemConstructor, opts: any, cb: BFSOn
 						return;
 					}
 					callbackCalled = true;
-					return cb(
-						new ApiError(
-							ErrorCode.EINVAL,
-							`[${fsName}] Value provided for option ${optName} is not the proper type. Expected ${
-								Array.isArray(opt.type) ? `one of {${opt.type.join(', ')}}` : opt.type
-							}, but received ${typeof providedValue}\nOption description: ${opt.description}`
-						)
+					throw new ApiError(
+						ErrorCode.EINVAL,
+						`[${fsName}] Value provided for option ${optName} is not the proper type. Expected ${
+							Array.isArray(opt.type) ? `one of {${opt.type.join(', ')}}` : opt.type
+						}, but received ${typeof providedValue}\nOption description: ${opt.description}`
 					);
 				} else if (opt.validator) {
 					pendingValidators++;
-					opt.validator(providedValue, validatorCallback);
+					try {
+						await opt.validator(providedValue);
+					} catch (e) {
+						if (!callbackCalled) {
+							if (e) {
+								callbackCalled = true;
+								throw e;
+							}
+							pendingValidators--;
+							if (pendingValidators === 0 && loopEnded) {
+								return;
+							}
+						}
+					}
 				}
 				// Otherwise: All good!
 			}
@@ -252,6 +182,32 @@ export function checkOptions(fsType: FileSystemConstructor, opts: any, cb: BFSOn
 	}
 	loopEnded = true;
 	if (pendingValidators === 0 && !callbackCalled) {
-		cb();
+		return;
 	}
+}
+
+/** Waits n ms.  */
+export function wait(ms: number): Promise<void> {
+	return new Promise(resolve => {
+		setTimeout(resolve, ms);
+	});
+}
+
+/**
+ * Converts a callback into a promise. Assumes last parameter is the callback
+ * @todo Look at changing resolve value from cbArgs[0] to include other callback arguments?
+ */
+export function toPromise(fn: (...fnArgs: unknown[]) => unknown) {
+	return function (...args: unknown[]): Promise<unknown> {
+		return new Promise((resolve, reject) => {
+			args.push((e: ApiError, ...cbArgs: unknown[]) => {
+				if (e) {
+					reject(e);
+				} else {
+					resolve(cbArgs[0]);
+				}
+			});
+			fn(...args);
+		});
+	};
 }
