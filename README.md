@@ -94,7 +94,6 @@ The following code mounts a zip file to `/zip`, in-memory storage to `/tmp`, and
 import { configure, BFSRequire } from 'browserfs';
 import Buffer from 'buffer';
 
-const res = ;
 const zipData = await (await fetch('mydata.zip')).arrayBuffer();
 
 await configure({
