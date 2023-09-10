@@ -67,7 +67,6 @@
     "prepublishOnly": "npm run dist",
     "docs": "typedoc --mode modules --out doc --excludePrivate --readme src/DOCS.md --name BrowserFS --module umd --ignoreCompilerErrors src",
     "format:check": "prettier --check src test",
-    "format:fix": "prettier --write src test",
-    "format": "npm run format:check && npm run format:fix"
+    "format": "prettier --write src test"
   }
 }

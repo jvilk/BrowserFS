@@ -36,7 +36,6 @@ describe.each(backends)('%s read', (name, options) => {
 			expect(bytesRead).toEqual(expected.length);
 		});
 	}
-
 });
 
 describe.each(backends)('%s read binary', (name, options) => {
@@ -83,4 +82,3 @@ describe.each(backends)('%s read buffer', (name, options) => {
 		}
 	});
 });
-

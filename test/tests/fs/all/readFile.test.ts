@@ -34,7 +34,6 @@ describe.each(backends)('%s File Reading', (name, options) => {
 	});
 });
 
-
 describe.each(backends)('%s Read and Unlink File Test', (name, options) => {
 	const configured = configure({ fs: name, options });
 	const dirName = path.resolve(fixturesDir, 'test-readfile-unlink');
@@ -98,5 +97,4 @@ describe.each(backends)('%s Read File Test', (name, options) => {
 			expect(data).toBe('');
 		});
 	}
-
 });

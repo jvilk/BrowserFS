@@ -44,7 +44,7 @@ describe.each(backends)('%s File and Directory Rename Tests', (name, options) =>
 
 	it('Directory Rename', async () => {
 		await configured;
-		if(fs.getRootFS().isReadOnly()){
+		if (fs.getRootFS().isReadOnly()) {
 			return;
 		}
 		const oldDir = '/rename_test';
@@ -74,7 +74,7 @@ describe.each(backends)('%s File and Directory Rename Tests', (name, options) =>
 
 	it('File Rename', async () => {
 		await configured;
-		if(fs.getRootFS().isReadOnly()){
+		if (fs.getRootFS().isReadOnly()) {
 			return;
 		}
 		const fileDir = '/rename_file_test';
@@ -98,7 +98,7 @@ describe.each(backends)('%s File and Directory Rename Tests', (name, options) =>
 
 	it('File to Directory and Directory to File Rename', async () => {
 		await configured;
-		if(fs.getRootFS().isReadOnly()){
+		if (fs.getRootFS().isReadOnly()) {
 			return;
 		}
 		const dir = '/rename_filedir_test';
@@ -127,7 +127,7 @@ describe.each(backends)('%s File and Directory Rename Tests', (name, options) =>
 
 	it('Cannot Rename a Directory Inside Itself', async () => {
 		await configured;
-		if(fs.getRootFS().isReadOnly()){
+		if (fs.getRootFS().isReadOnly()) {
 			return;
 		}
 		const renDir1 = '/renamedir_1';
