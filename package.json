@@ -45,7 +45,7 @@
 		"build:node": "tsc -p src/tsconfig.node.json",
 		"test": "cross-env NODE_OPTIONS=--experimental-vm-modules npx jest ",
 		"prepublishOnly": "npm run dist",
-		"docs": "typedoc --mode modules --out doc --excludePrivate --readme src/DOCS.md --name BrowserFS --module umd --ignoreCompilerErrors src",
+		"build:docs": "typedoc --out docs --readme src/docs.md --name BrowserFS src",
 		"format:check": "prettier --check src test",
 		"format": "prettier --write src test"
 	},
@@ -73,7 +73,7 @@
 		"prettier": "^2.8.7",
 		"source-map-loader": "~0.2.3",
 		"ts-jest": "^29.1.0",
-		"typedoc": "^0.24.8",
+		"typedoc": "^0.25.1",
 		"typescript": "^4.9.5"
 	}
 }

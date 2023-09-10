@@ -10,7 +10,7 @@ import { FileSystem, type BFSOneArgCallback, type BFSCallback, BaseFileSystem } 
 import EmscriptenFS from './generic/emscripten_fs';
 import { backends } from './core/backends';
 import * as BFSUtils from './core/util';
-import * as Errors from './core/api_error';
+import { ErrorCode, ApiError } from './core/api_error';
 import setImmediate from './generic/setImmediate';
 import Cred from './core/cred';
 import * as process from 'process';
@@ -140,11 +140,11 @@ export interface FileSystemConfiguration {
 
 async function _getFileSystem({ fs: fsName, options = {} }: FileSystemConfiguration): Promise<FileSystem> {
 	if (!fsName) {
-		throw new Errors.ApiError(Errors.ErrorCode.EPERM, 'Missing "fs" property on configuration object.');
+		throw new ApiError(ErrorCode.EPERM, 'Missing "fs" property on configuration object.');
 	}
 
 	if (typeof options !== 'object' || options === null) {
-		throw new Errors.ApiError(Errors.ErrorCode.EINVAL, 'Invalid "options" property on configuration object.');
+		throw new ApiError(ErrorCode.EINVAL, 'Invalid "options" property on configuration object.');
 	}
 
 	const props = Object.keys(options).filter(k => k != 'fs');
@@ -161,7 +161,7 @@ async function _getFileSystem({ fs: fsName, options = {} }: FileSystemConfigurat
 
 	const fsc = <BackendConstructor | undefined>(<any>backends)[fsName];
 	if (!fsc) {
-		throw new Errors.ApiError(Errors.ErrorCode.EPERM, `File system ${fsName} is not available in BrowserFS.`);
+		throw new ApiError(ErrorCode.EPERM, `File system ${fsName} is not available in BrowserFS.`);
 	} else {
 		return fsc.Create(options);
 	}
@@ -188,4 +188,5 @@ export function getFileSystem(config: FileSystemConfiguration, cb?: BFSCallback<
 }
 
 export * from './core/backends';
-export { EmscriptenFS, FileSystem, BaseFileSystem, Errors, setImmediate };
+export * from './core/api_error';
+export { EmscriptenFS, FileSystem, BaseFileSystem, setImmediate };

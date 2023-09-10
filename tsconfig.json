@@ -2,13 +2,13 @@
 	"compilerOptions": {
 		"module": "es2015",
 		"target": "es2015",
-		"outDir": "../build/temp/library/ts",
+		"outDir": "build/temp/library/ts",
 		"lib": ["dom", "esnext"],
 		"moduleResolution": "node",
 		"sourceMap": true,
 		"inlineSources": true,
 		"declaration": true,
-		"typeRoots": ["../node_modules/@types"]
+		"typeRoots": ["node_modules/@types"]
 	},
-	"include": ["**/*"]
+	"include": ["src/**/*"]
 }

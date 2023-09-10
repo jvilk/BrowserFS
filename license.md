@@ -2,7 +2,7 @@ BrowserFS's license follows:
 
 ====
 
-Copyright (c) 2013, 2014, 2015, 2016, 2017 John Vilk and other BrowserFS contributors.
+Copyright (c) 2013-2023 John Vilk and other BrowserFS contributors.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -26,8 +26,7 @@ SOFTWARE.
 
 This license applies to all parts of BrowserFS, except for the following items:
 
-- The unit tests from Node, located in `test/tests/**/node-*.js`, and their
-  test fixtures, located in `test/fixtures/files/node`. Their license follows:
+- The test fixtures located in `test/fixtures/files/node`. Their license follows:
   """
     Copyright Joyent, Inc. and other Node contributors. All rights reserved.
     Permission is hereby granted, free of charge, to any person obtaining a copy

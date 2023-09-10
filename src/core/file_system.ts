@@ -9,9 +9,9 @@ import * as path from 'path';
 import Cred from './cred';
 import { Buffer } from 'buffer';
 
-export type BFSOneArgCallback = (e?: ApiError | null) => unknown;
-export type BFSCallback<T> = (e: ApiError | null | undefined, rv?: T) => unknown;
-export type BFSThreeArgCallback<T, U> = (e: ApiError | null | undefined, arg1?: T, arg2?: U) => unknown;
+export type BFSOneArgCallback = (e?: ApiError) => unknown;
+export type BFSCallback<T> = (e?: ApiError, rv?: T) => unknown;
+export type BFSThreeArgCallback<T, U> = (e?: ApiError, arg1?: T, arg2?: U) => unknown;
 
 export type FileContents = Buffer | string;
 
