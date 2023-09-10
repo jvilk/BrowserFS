@@ -5,30 +5,34 @@ import { promisify } from 'node:util';
 
 describe.each(backends)('%s Read and Unlink File Test', (name, options) => {
 	const configured = configure({ fs: name, options });
-	if (!fs.getRootFS().isReadOnly()) {
-		const dirName = path.resolve(fixturesDir, 'test-readfile-unlink');
-		const fileName = path.resolve(dirName, 'test.bin');
+	const dirName = path.resolve(fixturesDir, 'test-readfile-unlink');
+	const fileName = path.resolve(dirName, 'test.bin');
 
-		const buf = Buffer.alloc(512);
-		buf.fill(42);
+	const buf = Buffer.alloc(512);
+	buf.fill(42);
 
-		beforeAll(async () => {
-			await configured;
-			await promisify(fs.mkdir)(dirName);
-			await promisify<string, Buffer, void>(fs.writeFile)(fileName, buf);
-		});
+	beforeAll(async () => {
+		await configured;
+		await promisify(fs.mkdir)(dirName);
+		await promisify<string, Buffer, void>(fs.writeFile)(fileName, buf);
+	});
 
-		it('should read file and verify its content', async () => {
-			await configured;
-			const data: Buffer = await promisify<string, Buffer>(fs.readFile)(fileName);
-			expect(data.length).toBe(buf.length);
-			expect(data[0]).toBe(42);
-		});
+	it('should read file and verify its content', async () => {
+		await configured;
+		if (fs.getRootFS().isReadOnly()) {
+			return;
+		}
+		const data: Buffer = await promisify<string, Buffer>(fs.readFile)(fileName);
+		expect(data.length).toBe(buf.length);
+		expect(data[0]).toBe(42);
+	});
 
-		it('should unlink file and remove directory', async () => {
-			await configured;
-			await promisify(fs.unlink)(fileName);
-			await promisify(fs.rmdir)(dirName);
-		});
-	}
+	it('should unlink file and remove directory', async () => {
+		await configured;
+		if (fs.getRootFS().isReadOnly()) {
+			return;
+		}
+		await promisify(fs.unlink)(fileName);
+		await promisify(fs.rmdir)(dirName);
+	});
 });

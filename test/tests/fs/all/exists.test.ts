@@ -1,4 +1,4 @@
-import { backends, fs, configure, tmpDir, fixturesDir } from '../../../common';
+import { backends, fs, configure, fixturesDir } from '../../../common';
 import * as path from 'path';
 
 describe.each(backends)('%s fs.exists', (name, options) => {
@@ -35,11 +35,11 @@ describe.each(backends)('%s fs.exists', (name, options) => {
 		expect(doesNotExist).toBe(false);
 	});
 
-	if (fs.getRootFS().supportsSynch()) {
-		it('should have sync methods that behave the same', async () => {
-			await configured;
+	it('should have sync methods that behave the same', async () => {
+		await configured;
+		if (fs.getRootFS().supportsSynch()) {
 			expect(fs.existsSync(f)).toBe(true);
 			expect(fs.existsSync(f + '-NO')).toBe(false);
-		});
-	}
+		}
+	});
 });

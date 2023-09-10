@@ -9,14 +9,16 @@ describe.each(backends)('%s File Reading', (name, options) => {
 		await configured;
 
 		let wasThrown = false;
-		if (fs.getRootFS().supportsSynch()) {
-			try {
-				fs.readFileSync(path.join(fixturesDir, 'a.js'), 'wrongencoding');
-			} catch (e) {
-				wasThrown = true;
-			}
-			expect(wasThrown).toBeTruthy();
+		if (!fs.getRootFS().supportsSynch()) {
+			return;
 		}
+
+		try {
+			fs.readFileSync(path.join(fixturesDir, 'a.js'), 'wrongencoding');
+		} catch (e) {
+			wasThrown = true;
+		}
+		expect(wasThrown).toBeTruthy();
 	});
 
 	it('Cannot read a file with an invalid encoding (asynchronous)', async () => {

@@ -4,17 +4,6 @@ import { promisify } from 'node:util';
 
 describe.each(backends)('%s File and Directory Rename Tests', (name, options) => {
 	const configured = configure({ fs: name, options });
-	let rootFS;
-	let isReadOnly;
-
-	beforeAll(() => {
-		rootFS = fs.getRootFS();
-		isReadOnly = fs.getRootFS().isReadOnly();
-	});
-
-	if (isReadOnly) {
-		return;
-	}
 
 	/**
 	 * Creates the following directory structure within the given dir:
@@ -55,6 +44,9 @@ describe.each(backends)('%s File and Directory Rename Tests', (name, options) =>
 
 	it('Directory Rename', async () => {
 		await configured;
+		if(fs.getRootFS().isReadOnly()){
+			return;
+		}
 		const oldDir = '/rename_test';
 		const newDir = '/rename_test2';
 
@@ -82,6 +74,9 @@ describe.each(backends)('%s File and Directory Rename Tests', (name, options) =>
 
 	it('File Rename', async () => {
 		await configured;
+		if(fs.getRootFS().isReadOnly()){
+			return;
+		}
 		const fileDir = '/rename_file_test';
 		const file1 = path.resolve(fileDir, 'fun.js');
 		const file2 = path.resolve(fileDir, 'fun2.js');
@@ -103,6 +98,9 @@ describe.each(backends)('%s File and Directory Rename Tests', (name, options) =>
 
 	it('File to Directory and Directory to File Rename', async () => {
 		await configured;
+		if(fs.getRootFS().isReadOnly()){
+			return;
+		}
 		const dir = '/rename_filedir_test';
 		const file = '/rename_filedir_test.txt';
 
@@ -129,6 +127,9 @@ describe.each(backends)('%s File and Directory Rename Tests', (name, options) =>
 
 	it('Cannot Rename a Directory Inside Itself', async () => {
 		await configured;
+		if(fs.getRootFS().isReadOnly()){
+			return;
+		}
 		const renDir1 = '/renamedir_1';
 		const renDir2 = '/renamedir_1/lol';
 
