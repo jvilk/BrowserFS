@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // disable no-unused-vars since BaseFileSystem uses them a lot
 
-import { ApiError, ErrorCode } from './api_error';
+import { ApiError, ErrorCode } from './ApiError';
 import Stats from './stats';
-import { File } from './file';
-import { FileFlag, ActionType } from './file_flag';
+import { File, FileFlag, ActionType } from './file';
 import * as path from 'path';
 import Cred from './cred';
 import { Buffer } from 'buffer';

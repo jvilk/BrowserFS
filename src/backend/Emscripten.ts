@@ -1,8 +1,7 @@
-import { SynchronousFileSystem } from '../core/file_system';
+import { SynchronousFileSystem } from '../core/filesystem';
 import { default as Stats, FileType } from '../core/stats';
-import { FileFlag } from '../core/file_flag';
-import { BaseFile, File } from '../core/file';
-import { ApiError, ErrorCode, ErrorStrings } from '../core/api_error';
+import { BaseFile, File, FileFlag } from '../core/file';
+import { ApiError, ErrorCode, ErrorStrings } from '../core/ApiError';
 import { EmscriptenFSNode } from '../generic/emscripten_fs';
 import Cred from '../core/cred';
 import { Buffer } from 'buffer';

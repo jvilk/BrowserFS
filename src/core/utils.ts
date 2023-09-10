@@ -1,13 +1,13 @@
 /**
  * Grab bag of utility functions used across the code.
  */
-import { FileSystem } from './file_system';
-import { ErrorCode, ApiError } from './api_error';
-import levenshtein from './levenshtein';
+import { FileSystem } from './filesystem';
+import { ErrorCode, ApiError } from './ApiError';
 import * as path from 'path';
 import Cred from './cred';
 import { Buffer } from 'buffer';
-import type { BackendConstructor } from '../core/backends';
+import type { BackendConstructor } from './backends';
+import levenshtein from './levenshtein';
 
 /**
  * Synchronous recursive makedir.
@@ -161,3 +161,8 @@ export function toPromise(fn: (...fnArgs: unknown[]) => unknown) {
 		});
 	};
 }
+
+/**
+ * @hidden
+ */
+export const setImmediate = typeof globalThis.setImmediate == 'function' ? globalThis.setImmediate : cb => setTimeout(cb, 0);

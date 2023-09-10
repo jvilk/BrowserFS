@@ -1,6 +1,6 @@
 /// <reference lib="dom" />
 import { AsyncKeyValueROTransaction, AsyncKeyValueRWTransaction, AsyncKeyValueStore, AsyncKeyValueFileSystem } from '../generic/key_value_filesystem';
-import { ApiError, ErrorCode } from '../core/api_error';
+import { ApiError, ErrorCode } from '../core/ApiError';
 import { Buffer } from 'buffer';
 import type { BackendOptions } from '../core/backends';
 

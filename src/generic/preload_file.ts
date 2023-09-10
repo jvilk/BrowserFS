@@ -1,8 +1,8 @@
 import { BaseFile, File } from '../core/file';
-import { FileSystem } from '../core/file_system';
+import { FileSystem } from '../core/filesystem';
 import Stats from '../core/stats';
-import { FileFlag } from '../core/file_flag';
-import { ApiError, ErrorCode } from '../core/api_error';
+import { FileFlag } from '../core/file';
+import { ApiError, ErrorCode } from '../core/ApiError';
 import fs from '../core/node_fs';
 import { Buffer } from 'buffer';
 

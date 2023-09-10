@@ -1,7 +1,6 @@
-import { type FileSystem, BaseFileSystem, FileContents } from '../core/file_system';
-import { ApiError, ErrorCode } from '../core/api_error';
-import { FileFlag } from '../core/file_flag';
-import { File } from '../core/file';
+import { type FileSystem, BaseFileSystem, FileContents } from '../core/filesystem';
+import { ApiError, ErrorCode } from '../core/ApiError';
+import { File, FileFlag } from '../core/file';
 import { default as Stats } from '../core/stats';
 import Cred from '../core/cred';
 import type { BackendOptions } from '../core/backends';

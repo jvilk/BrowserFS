@@ -1,46 +1,33 @@
-import { File } from './file';
-import { ApiError, ErrorCode } from './api_error';
-import { FileSystem, BFSOneArgCallback, BFSCallback, BFSThreeArgCallback } from './file_system';
-import { FileFlag } from './file_flag';
+import { File, FileFlag } from './file';
+import { ApiError, ErrorCode } from './ApiError';
+import { FileSystem, BFSOneArgCallback, BFSCallback, BFSThreeArgCallback } from './filesystem';
 import * as path from 'path';
 import { default as Stats, FilePerm } from './stats';
-import setImmediate from '../generic/setImmediate';
 import { Buffer } from 'buffer';
 import Cred from './cred';
 
 // Typing info only.
 import type * as _fs from 'fs';
 
-/** Used for unit testing. Defaults to a NOP. */
-let wrapCbHook = function <T>(cb: T, numArgs: number): T {
-	return cb;
-};
-
 /**
- * Wraps a callback function, ensuring it is invoked through setImmediate.
+ * Wraps a callback function, ensuring it is invoked through setTimeout with a delay of 0.
  * @hidden
  */
-function wrapCb<T extends Function>(cb: T, numArgs: number): T {
+function wrapCb<T extends (...args: unknown[]) => unknown>(cb: T): T {
 	if (typeof cb !== 'function') {
 		throw new Error('Callback must be a function.');
 	}
 
-	const hookedCb = wrapCbHook(cb, numArgs);
-
-	// We could use `arguments`, but Function.call/apply is expensive. And we only
-	// need to handle 1-3 arguments
-	return <any>function (...args: any[]) {
-		setImmediate(function () {
-			return hookedCb(...args);
-		});
-	};
+	return function (...args) {
+		setTimeout(() => cb(...args), 0);
+	} as T;
 }
 
 /**
  * Wrapped the async function for use with callbacks
  * @hidden
  */
-function wrap<T extends Function, P>(promise: Promise<P>, cb: T) {
+function wrap<T extends (...args: unknown[]) => unknown, P>(promise: Promise<P>, cb: T) {
 	try {
 		promise.then(val => cb(null, val)).catch(err => cb(err));
 	} catch (err) {
@@ -224,7 +211,7 @@ export default class FS {
 	 * @param callback
 	 */
 	public rename(oldPath: string, newPath: string, cb: BFSOneArgCallback = nopCb): void {
-		const newCb = wrapCb(cb, 1);
+		const newCb = wrapCb(cb);
 		try {
 			return wrap(assertRoot(this.root).rename(normalizePath(oldPath), normalizePath(newPath), this.cred), newCb);
 		} catch (e) {
@@ -252,7 +239,7 @@ export default class FS {
 	 * @param callback
 	 */
 	public exists(path: string, cb: (exists: boolean) => any = nopCb): void {
-		const newCb = wrapCb(cb, 1);
+		const newCb = wrapCb(cb);
 		try {
 			return wrap(assertRoot(this.root).exists(normalizePath(path), this.cred), newCb);
 		} catch (e) {
@@ -283,7 +270,7 @@ export default class FS {
 	 * @param callback
 	 */
 	public stat(path: string, cb: BFSCallback<Stats> = nopCb): void {
-		const newCb = wrapCb(cb, 2);
+		const newCb = wrapCb(cb);
 		try {
 			return wrap(assertRoot(this.root).stat(normalizePath(path), false, this.cred), newCb);
 		} catch (e) {
@@ -309,7 +296,7 @@ export default class FS {
 	 * @param callback
 	 */
 	public lstat(path: string, cb: BFSCallback<Stats> = nopCb): void {
-		const newCb = wrapCb(cb, 2);
+		const newCb = wrapCb(cb);
 		try {
 			return wrap(assertRoot(this.root).stat(normalizePath(path), true, this.cred), newCb);
 		} catch (e) {
@@ -347,7 +334,7 @@ export default class FS {
 			len = arg2;
 		}
 
-		const newCb = wrapCb(cb, 1);
+		const newCb = wrapCb(cb);
 		try {
 			if (len < 0) {
 				throw new ApiError(ErrorCode.EINVAL);
@@ -377,7 +364,7 @@ export default class FS {
 	 * @param callback
 	 */
 	public unlink(path: string, cb: BFSOneArgCallback = nopCb): void {
-		const newCb = wrapCb(cb, 1);
+		const newCb = wrapCb(cb);
 		try {
 			return wrap(assertRoot(this.root).unlink(normalizePath(path), this.cred), newCb);
 		} catch (e) {
@@ -424,7 +411,7 @@ export default class FS {
 	public open(path: string, flag: string, arg2?: any, cb: BFSCallback<number> = nopCb): void {
 		const mode = normalizeMode(arg2, 0x1a4);
 		cb = typeof arg2 === 'function' ? arg2 : cb;
-		const newCb = wrapCb(cb, 2);
+		const newCb = wrapCb(cb);
 		try {
 			wrap(assertRoot(this.root).open(normalizePath(path), FileFlag.getFileFlag(flag), mode, this.cred), (e: ApiError, file?: File) => {
 				if (file) {
@@ -470,7 +457,7 @@ export default class FS {
 	public readFile(filename: string, arg2: any = {}, cb: BFSCallback<any> = nopCb) {
 		const options = normalizeOptions(arg2, null, 'r', null);
 		cb = typeof arg2 === 'function' ? arg2 : cb;
-		const newCb = wrapCb(cb, 2);
+		const newCb = wrapCb(cb);
 		try {
 			const flag = FileFlag.getFileFlag(options['flag']);
 			if (!flag.isReadable()) {
@@ -528,7 +515,7 @@ export default class FS {
 	public writeFile(filename: string, data: any, arg3: any = {}, cb: BFSOneArgCallback = nopCb): void {
 		const options = normalizeOptions(arg3, 'utf8', 'w', 0x1a4);
 		cb = typeof arg3 === 'function' ? arg3 : cb;
-		const newCb = wrapCb(cb, 1);
+		const newCb = wrapCb(cb);
 		try {
 			const flag = FileFlag.getFileFlag(options.flag);
 			if (!flag.isWriteable()) {
@@ -588,7 +575,7 @@ export default class FS {
 	public appendFile(filename: string, data: any, arg3?: any, cb: BFSOneArgCallback = nopCb): void {
 		const options = normalizeOptions(arg3, 'utf8', 'a', 0x1a4);
 		cb = typeof arg3 === 'function' ? arg3 : cb;
-		const newCb = wrapCb(cb, 1);
+		const newCb = wrapCb(cb);
 		try {
 			const flag = FileFlag.getFileFlag(options.flag);
 			if (!flag.isAppendable()) {
@@ -638,7 +625,7 @@ export default class FS {
 	 * @param callback
 	 */
 	public fstat(fd: number, cb: BFSCallback<Stats> = nopCb): void {
-		const newCb = wrapCb(cb, 2);
+		const newCb = wrapCb(cb);
 		try {
 			const file = this.fd2file(fd);
 			wrap(file.stat(), newCb);
@@ -664,7 +651,7 @@ export default class FS {
 	 * @param callback
 	 */
 	public close(fd: number, cb: BFSOneArgCallback = nopCb): void {
-		const newCb = wrapCb(cb, 1);
+		const newCb = wrapCb(cb);
 		try {
 			wrap(this.fd2file(fd).close(), (e: ApiError) => {
 				if (!e) {
@@ -697,7 +684,7 @@ export default class FS {
 	public ftruncate(fd: number, arg2?: any, cb: BFSOneArgCallback = nopCb): void {
 		const length = typeof arg2 === 'number' ? arg2 : 0;
 		cb = typeof arg2 === 'function' ? arg2 : cb;
-		const newCb = wrapCb(cb, 1);
+		const newCb = wrapCb(cb);
 		try {
 			const file = this.fd2file(fd);
 			if (length < 0) {
@@ -728,7 +715,7 @@ export default class FS {
 	 * @param callback
 	 */
 	public fsync(fd: number, cb: BFSOneArgCallback = nopCb): void {
-		const newCb = wrapCb(cb, 1);
+		const newCb = wrapCb(cb);
 		try {
 			wrap(this.fd2file(fd).sync(), newCb);
 		} catch (e) {
@@ -750,7 +737,7 @@ export default class FS {
 	 * @param callback
 	 */
 	public fdatasync(fd: number, cb: BFSOneArgCallback = nopCb): void {
-		const newCb = wrapCb(cb, 1);
+		const newCb = wrapCb(cb);
 		try {
 			wrap(this.fd2file(fd).datasync(), newCb);
 		} catch (e) {
@@ -822,7 +809,7 @@ export default class FS {
 			cb = typeof arg5 === 'function' ? arg5 : cb;
 		}
 
-		const newCb = wrapCb(cb, 3);
+		const newCb = wrapCb(cb);
 		try {
 			const file = this.fd2file(fd);
 			if (position === undefined || position === null) {
@@ -890,7 +877,7 @@ export default class FS {
 	 */
 	public read(fd: number, length: number, position: number | null, encoding: string, cb?: BFSThreeArgCallback<string, number>): void;
 	public read(fd: number, buffer: Buffer, offset: number, length: number, position: number | null, cb?: BFSThreeArgCallback<number, Buffer>): void;
-	public read(fd: number, arg2: any, arg3: any, arg4: any, arg5?: any, cb: BFSThreeArgCallback<string, number> | BFSThreeArgCallback<number, Buffer> = nopCb): void {
+	public read(fd: number, arg2, arg3, arg4, arg5?, cb: BFSThreeArgCallback<string, number> | BFSThreeArgCallback<number, Buffer> = nopCb): void {
 		let position: number | null, offset: number, length: number, buffer: Buffer, newCb: BFSThreeArgCallback<number, Buffer>;
 		if (typeof arg2 === 'number') {
 			// legacy interface
@@ -901,21 +888,21 @@ export default class FS {
 			cb = typeof arg5 === 'function' ? arg5 : cb;
 			offset = 0;
 			buffer = Buffer.alloc(length);
-			// XXX: Inefficient.
+			// Inefficient.
 			// Wrap the cb so we shelter upper layers of the API from these
 			// shenanigans.
 			newCb = wrapCb((err?: ApiError | null, bytesRead?: number, buf?: Buffer) => {
 				if (err) {
-					return (<Function>cb)(err);
+					return cb(err);
 				}
-				(<BFSThreeArgCallback<string, number>>cb)(err, buf!.toString(encoding), bytesRead!);
-			}, 3);
+				(cb as BFSThreeArgCallback<string, number>)(err, buf!.toString(encoding), bytesRead!);
+			});
 		} else {
 			buffer = arg2;
 			offset = arg3;
 			length = arg4;
 			position = arg5;
-			newCb = wrapCb(<BFSThreeArgCallback<number, Buffer>>cb, 3);
+			newCb = wrapCb(cb as BFSThreeArgCallback<number, Buffer>);
 		}
 
 		try {
@@ -985,7 +972,7 @@ export default class FS {
 	 * @param callback
 	 */
 	public fchown(fd: number, uid: number, gid: number, callback: BFSOneArgCallback = nopCb): void {
-		const newCb = wrapCb(callback, 1);
+		const newCb = wrapCb(callback);
 		try {
 			wrap(this.fd2file(fd).chown(uid, gid), newCb);
 		} catch (e) {
@@ -1010,7 +997,7 @@ export default class FS {
 	 * @param callback
 	 */
 	public fchmod(fd: number, mode: string | number, cb: BFSOneArgCallback): void {
-		const newCb = wrapCb(cb, 1);
+		const newCb = wrapCb(cb);
 		try {
 			const numMode = typeof mode === 'string' ? parseInt(mode, 8) : mode;
 			wrap(this.fd2file(fd).chmod(numMode), newCb);
@@ -1038,7 +1025,7 @@ export default class FS {
 	 * @param callback
 	 */
 	public futimes(fd: number, atime: number | Date, mtime: number | Date, cb: BFSOneArgCallback = nopCb): void {
-		const newCb = wrapCb(cb, 1);
+		const newCb = wrapCb(cb);
 		try {
 			const file = this.fd2file(fd);
 			if (typeof atime === 'number') {
@@ -1072,7 +1059,7 @@ export default class FS {
 	 * @param callback
 	 */
 	public rmdir(path: string, cb: BFSOneArgCallback = nopCb): void {
-		const newCb = wrapCb(cb, 1);
+		const newCb = wrapCb(cb);
 		try {
 			path = normalizePath(path);
 			wrap(assertRoot(this.root).rmdir(path, this.cred), newCb);
@@ -1101,7 +1088,7 @@ export default class FS {
 			cb = mode;
 			mode = 0x1ff;
 		}
-		const newCb = wrapCb(cb, 1);
+		const newCb = wrapCb(cb);
 		try {
 			path = normalizePath(path);
 			wrap(assertRoot(this.root).mkdir(path, mode, this.cred), newCb);
@@ -1127,7 +1114,7 @@ export default class FS {
 	 * @param callback
 	 */
 	public readdir(path: string, cb: BFSCallback<string[]> = nopCb): void {
-		const newCb = <(err: ApiError, files?: string[]) => void>wrapCb(cb, 2);
+		const newCb = <(err: ApiError, files?: string[]) => void>wrapCb(cb);
 		try {
 			path = normalizePath(path);
 			wrap(assertRoot(this.root).readdir(path, this.cred), newCb);
@@ -1155,7 +1142,7 @@ export default class FS {
 	 * @param callback
 	 */
 	public link(srcpath: string, dstpath: string, cb: BFSOneArgCallback = nopCb): void {
-		const newCb = wrapCb(cb, 1);
+		const newCb = wrapCb(cb);
 		try {
 			srcpath = normalizePath(srcpath);
 			dstpath = normalizePath(dstpath);
@@ -1188,7 +1175,7 @@ export default class FS {
 	public symlink(srcpath: string, dstpath: string, arg3?: any, cb: BFSOneArgCallback = nopCb): void {
 		const type = typeof arg3 === 'string' ? arg3 : 'file';
 		cb = typeof arg3 === 'function' ? arg3 : cb;
-		const newCb = wrapCb(cb, 1);
+		const newCb = wrapCb(cb);
 		try {
 			if (type !== 'file' && type !== 'dir') {
 				newCb(new ApiError(ErrorCode.EINVAL, 'Invalid type: ' + type));
@@ -1225,7 +1212,7 @@ export default class FS {
 	 * @param callback
 	 */
 	public readlink(path: string, cb: BFSCallback<string> = nopCb): void {
-		const newCb = wrapCb(cb, 2);
+		const newCb = wrapCb(cb);
 		try {
 			path = normalizePath(path);
 			wrap(assertRoot(this.root).readlink(path, this.cred), newCb);
@@ -1254,7 +1241,7 @@ export default class FS {
 	 * @param callback
 	 */
 	public chown(path: string, uid: number, gid: number, cb: BFSOneArgCallback = nopCb): void {
-		const newCb = wrapCb(cb, 1);
+		const newCb = wrapCb(cb);
 		try {
 			path = normalizePath(path);
 			wrap(assertRoot(this.root).chown(path, false, uid, gid, this.cred), newCb);
@@ -1282,7 +1269,7 @@ export default class FS {
 	 * @param callback
 	 */
 	public lchown(path: string, uid: number, gid: number, cb: BFSOneArgCallback = nopCb): void {
-		const newCb = wrapCb(cb, 1);
+		const newCb = wrapCb(cb);
 		try {
 			path = normalizePath(path);
 			wrap(assertRoot(this.root).chown(path, true, uid, gid, this.cred), newCb);
@@ -1309,7 +1296,7 @@ export default class FS {
 	 * @param callback
 	 */
 	public chmod(path: string, mode: number | string, cb: BFSOneArgCallback = nopCb): void {
-		const newCb = wrapCb(cb, 1);
+		const newCb = wrapCb(cb);
 		try {
 			const numMode = normalizeMode(mode, -1);
 			if (numMode < 0) {
@@ -1342,7 +1329,7 @@ export default class FS {
 	 * @param callback
 	 */
 	public lchmod(path: string, mode: number | string, cb: BFSOneArgCallback = nopCb): void {
-		const newCb = wrapCb(cb, 1);
+		const newCb = wrapCb(cb);
 		try {
 			const numMode = normalizeMode(mode, -1);
 			if (numMode < 0) {
@@ -1375,7 +1362,7 @@ export default class FS {
 	 * @param callback
 	 */
 	public utimes(path: string, atime: number | Date, mtime: number | Date, cb: BFSOneArgCallback = nopCb): void {
-		const newCb = wrapCb(cb, 1);
+		const newCb = wrapCb(cb);
 		try {
 			wrap(assertRoot(this.root).utimes(normalizePath(path), normalizeTime(atime), normalizeTime(mtime), this.cred), newCb);
 		} catch (e) {
@@ -1415,7 +1402,7 @@ export default class FS {
 	public realpath(path: string, arg2?: any, cb: BFSCallback<string> = nopCb): void {
 		const cache = typeof arg2 === 'object' ? arg2 : {};
 		cb = typeof arg2 === 'function' ? arg2 : nopCb;
-		const newCb = <(err: ApiError, resolvedPath?: string) => any>wrapCb(cb, 2);
+		const newCb = <(err: ApiError, resolvedPath?: string) => any>wrapCb(cb);
 		try {
 			path = normalizePath(path);
 			wrap(assertRoot(this.root).realpath(path, cache, this.cred), newCb);
@@ -1464,7 +1451,7 @@ export default class FS {
 	public access(path: string, arg2: any, callback: (e: ApiError) => void = nopCb): void {
 		const mode = typeof arg2 === 'number' ? arg2 : FilePerm.READ;
 		callback = typeof arg2 === 'function' ? arg2 : nopCb;
-		const newCb = <(err: ApiError, resolvedPath?: string) => any>wrapCb(callback, 2);
+		const newCb = wrapCb(callback) as (err: ApiError, resolvedPath?: string) => unknown;
 		try {
 			path = normalizePath(path);
 			wrap(assertRoot(this.root).access(path, mode, this.cred), newCb);
@@ -1506,13 +1493,6 @@ export default class FS {
 		}
 	): _fs.WriteStream {
 		throw new ApiError(ErrorCode.ENOTSUP);
-	}
-
-	/**
-	 * For unit testing. Passes all incoming callbacks to cbWrapper for wrapping.
-	 */
-	public wrapCallbacks(cbWrapper: (cb: Function, args: number) => Function) {
-		wrapCbHook = <any>cbWrapper;
 	}
 
 	private getFdForFile(file: File): number {

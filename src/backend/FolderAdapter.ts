@@ -1,6 +1,6 @@
-import { BaseFileSystem, type FileSystem } from '../core/file_system';
+import { BaseFileSystem, type FileSystem } from '../core/filesystem';
 import * as path from 'path';
-import { ApiError } from '../core/api_error';
+import { ApiError } from '../core/ApiError';
 import Cred from '../core/cred';
 import type { BackendOptions } from '../core/backends';
 

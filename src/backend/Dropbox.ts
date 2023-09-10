@@ -1,10 +1,9 @@
 import PreloadFile from '../generic/preload_file';
-import { BaseFileSystem, type FileSystem } from '../core/file_system';
-import { FileFlag } from '../core/file_flag';
+import { BaseFileSystem, type FileSystem } from '../core/filesystem';
 import { default as Stats, FileType } from '../core/stats';
-import { ApiError, ErrorCode } from '../core/api_error';
-import { File } from '../core/file';
-import { wait } from '../core/util';
+import { ApiError, ErrorCode } from '../core/ApiError';
+import { File, FileFlag } from '../core/file';
+import { wait } from '../core/utils';
 import type * as DropboxTypes from 'dropbox';
 import { dirname } from 'path';
 import Cred from '../core/cred';

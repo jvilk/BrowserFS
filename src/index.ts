@@ -6,12 +6,11 @@
 import * as buffer from 'buffer';
 import fs from './core/node_fs';
 import * as path from 'path';
-import { FileSystem, type BFSOneArgCallback, type BFSCallback, BaseFileSystem } from './core/file_system';
+import { FileSystem, type BFSOneArgCallback, type BFSCallback, BaseFileSystem } from './core/filesystem';
 import EmscriptenFS from './generic/emscripten_fs';
 import { backends } from './core/backends';
-import * as BFSUtils from './core/util';
-import { ErrorCode, ApiError } from './core/api_error';
-import setImmediate from './generic/setImmediate';
+import * as BFSUtils from './core/utils';
+import { ErrorCode, ApiError } from './core/ApiError';
 import Cred from './core/cred';
 import * as process from 'process';
 import type { BackendConstructor } from './core/backends';
@@ -188,5 +187,5 @@ export function getFileSystem(config: FileSystemConfiguration, cb?: BFSCallback<
 }
 
 export * from './core/backends';
-export * from './core/api_error';
-export { EmscriptenFS, FileSystem, BaseFileSystem, setImmediate };
+export * from './core/ApiError';
+export { EmscriptenFS, FileSystem, BaseFileSystem };

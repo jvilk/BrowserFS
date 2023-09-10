@@ -1,8 +1,7 @@
-import { BaseFileSystem, type FileSystem, FileContents } from '../core/file_system';
-import { ApiError, ErrorCode } from '../core/api_error';
-import { FileFlag, ActionType } from '../core/file_flag';
-import { copyingSlice } from '../core/util';
-import { File } from '../core/file';
+import { BaseFileSystem, type FileSystem, FileContents } from '../core/filesystem';
+import { ApiError, ErrorCode } from '../core/ApiError';
+import { copyingSlice } from '../core/utils';
+import { File, FileFlag, ActionType } from '../core/file';
 import { default as Stats, FilePerm } from '../core/stats';
 import { NoSyncFile } from '../generic/preload_file';
 import { fetchIsAvailable, fetchFile, fetchFileSize } from '../generic/fetch';

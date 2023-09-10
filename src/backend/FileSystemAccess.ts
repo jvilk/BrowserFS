@@ -1,10 +1,9 @@
 /// <reference lib="dom" />
 import { basename, dirname, join } from 'path';
-import { ApiError, ErrorCode } from '../core/api_error';
+import { ApiError, ErrorCode } from '../core/ApiError';
 import Cred from '../core/cred';
-import { File } from '../core/file';
-import { FileFlag } from '../core/file_flag';
-import { BaseFileSystem, type FileSystem } from '../core/file_system';
+import { File, FileFlag } from '../core/file';
+import { BaseFileSystem, type FileSystem } from '../core/filesystem';
 import { default as Stats, FileType } from '../core/stats';
 import PreloadFile from '../generic/preload_file';
 import { Buffer } from 'buffer';

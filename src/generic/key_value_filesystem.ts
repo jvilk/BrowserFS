@@ -1,8 +1,8 @@
-import { BaseFileSystem, SynchronousFileSystem } from '../core/file_system';
-import { ApiError, ErrorCode } from '../core/api_error';
+import { BaseFileSystem, SynchronousFileSystem } from '../core/filesystem';
+import { ApiError, ErrorCode } from '../core/ApiError';
 import { default as Stats, FileType, FilePerm } from '../core/stats';
 import { File } from '../core/file';
-import { FileFlag } from '../core/file_flag';
+import { FileFlag } from '../core/file';
 import * as path from 'path';
 import * as process from 'process';
 import Inode from '../generic/inode';

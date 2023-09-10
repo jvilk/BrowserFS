@@ -1,15 +1,148 @@
-import { ApiError, ErrorCode } from '../core/api_error';
+import { ApiError, ErrorCode } from '../core/ApiError';
 import { default as Stats, FileType } from '../core/stats';
-import { SynchronousFileSystem, type FileSystem } from '../core/file_system';
-import { File } from '../core/file';
-import { FileFlag, ActionType } from '../core/file_flag';
+import { SynchronousFileSystem, type FileSystem } from '../core/filesystem';
+import { File, FileFlag, ActionType } from '../core/file';
 import { NoSyncFile } from '../generic/preload_file';
-import { copyingSlice, bufferValidator } from '../core/util';
-import ExtendedASCII from '../generic/extended_ascii';
+import { copyingSlice, bufferValidator } from '../core/utils';
 import { inflateRawSync } from 'zlib';
 import { FileIndex, DirInode, FileInode, isDirInode, isFileInode } from '../generic/file_index';
 import type { Buffer } from 'buffer';
 import type { BackendOptions } from '../core/backends';
+
+/**
+ * 8-bit ASCII with the extended character set. Unlike regular ASCII, we do not mask the high bits.
+ * @see http://en.wikipedia.org/wiki/Extended_ASCII
+ */
+const extendedASCIIChars = [
+	'\u00C7',
+	'\u00FC',
+	'\u00E9',
+	'\u00E2',
+	'\u00E4',
+	'\u00E0',
+	'\u00E5',
+	'\u00E7',
+	'\u00EA',
+	'\u00EB',
+	'\u00E8',
+	'\u00EF',
+	'\u00EE',
+	'\u00EC',
+	'\u00C4',
+	'\u00C5',
+	'\u00C9',
+	'\u00E6',
+	'\u00C6',
+	'\u00F4',
+	'\u00F6',
+	'\u00F2',
+	'\u00FB',
+	'\u00F9',
+	'\u00FF',
+	'\u00D6',
+	'\u00DC',
+	'\u00F8',
+	'\u00A3',
+	'\u00D8',
+	'\u00D7',
+	'\u0192',
+	'\u00E1',
+	'\u00ED',
+	'\u00F3',
+	'\u00FA',
+	'\u00F1',
+	'\u00D1',
+	'\u00AA',
+	'\u00BA',
+	'\u00BF',
+	'\u00AE',
+	'\u00AC',
+	'\u00BD',
+	'\u00BC',
+	'\u00A1',
+	'\u00AB',
+	'\u00BB',
+	'_',
+	'_',
+	'_',
+	'\u00A6',
+	'\u00A6',
+	'\u00C1',
+	'\u00C2',
+	'\u00C0',
+	'\u00A9',
+	'\u00A6',
+	'\u00A6',
+	'+',
+	'+',
+	'\u00A2',
+	'\u00A5',
+	'+',
+	'+',
+	'-',
+	'-',
+	'+',
+	'-',
+	'+',
+	'\u00E3',
+	'\u00C3',
+	'+',
+	'+',
+	'-',
+	'-',
+	'\u00A6',
+	'-',
+	'+',
+	'\u00A4',
+	'\u00F0',
+	'\u00D0',
+	'\u00CA',
+	'\u00CB',
+	'\u00C8',
+	'i',
+	'\u00CD',
+	'\u00CE',
+	'\u00CF',
+	'+',
+	'+',
+	'_',
+	'_',
+	'\u00A6',
+	'\u00CC',
+	'_',
+	'\u00D3',
+	'\u00DF',
+	'\u00D4',
+	'\u00D2',
+	'\u00F5',
+	'\u00D5',
+	'\u00B5',
+	'\u00FE',
+	'\u00DE',
+	'\u00DA',
+	'\u00DB',
+	'\u00D9',
+	'\u00FD',
+	'\u00DD',
+	'\u00AF',
+	'\u00B4',
+	'\u00AD',
+	'\u00B1',
+	'_',
+	'\u00BE',
+	'\u00B6',
+	'\u00A7',
+	'\u00F7',
+	'\u00B8',
+	'\u00B0',
+	'\u00A8',
+	'\u00B7',
+	'\u00B9',
+	'\u00B3',
+	'\u00B2',
+	'_',
+	' ',
+];
 
 /**
  * Maps CompressionMethod => function that decompresses.
@@ -99,7 +232,7 @@ function safeToString(buff: Buffer, useUTF8: boolean, start: number, length: num
 	} else if (useUTF8) {
 		return buff.toString('utf8', start, start + length);
 	} else {
-		return ExtendedASCII.byte2str(buff.subarray(start, start + length));
+		return [...buff].map(char => (char > 0x7f ? extendedASCIIChars[char - 128] : String.fromCharCode(char))).join();
 	}
 }
 

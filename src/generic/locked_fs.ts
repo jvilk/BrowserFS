@@ -1,6 +1,6 @@
 import Mutex from './mutex';
-import { DiskSpaceCB, FileContents, FileSystem } from '../core/file_system';
-import { FileFlag } from '../core/file_flag';
+import { DiskSpaceCB, FileContents, FileSystem } from '../core/filesystem';
+import { FileFlag } from '../core/file';
 import { default as Stats } from '../core/stats';
 import { File } from '../core/file';
 import Cred from '../core/cred';

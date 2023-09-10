@@ -1,9 +1,9 @@
-import { type FileSystem, BaseFileSystem } from '../core/file_system';
+import { type FileSystem, BaseFileSystem } from '../core/filesystem';
 import { InMemoryFileSystem } from './InMemory';
-import { ApiError, ErrorCode } from '../core/api_error';
+import { ApiError, ErrorCode } from '../core/ApiError';
 import fs from '../core/node_fs';
 import * as path from 'path';
-import { mkdirpSync, toPromise } from '../core/util';
+import { mkdirpSync, toPromise } from '../core/utils';
 import Cred from '../core/cred';
 import type { BackendOptions } from '../core/backends';
 

@@ -1,5 +1,3 @@
-import setImmediate from '../generic/setImmediate';
-
 export type MutexCallback = () => void;
 /**
  * Non-recursive mutex
@@ -27,14 +25,14 @@ export default class Mutex {
 		const next = this._waiters.shift();
 		/* 
 			don't unlock - we want to queue up next for the
-			_end_ of the current task execution, but we don't
+			end of the current task execution, but we don't
 			want it to be called inline with whatever the
 			current stack is.  This way we still get the nice
 			behavior that an unlock immediately followed by a
 			lock won't cause starvation.
 		*/
 		if (next) {
-			setImmediate(next);
+			setTimeout(next, 0);
 			return;
 		}
 

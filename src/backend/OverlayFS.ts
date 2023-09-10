@@ -1,7 +1,6 @@
-import { type FileSystem, BaseFileSystem } from '../core/file_system';
-import { ApiError, ErrorCode } from '../core/api_error';
-import { FileFlag, ActionType } from '../core/file_flag';
-import { File } from '../core/file';
+import { type FileSystem, BaseFileSystem } from '../core/filesystem';
+import { ApiError, ErrorCode } from '../core/ApiError';
+import { File, FileFlag, ActionType } from '../core/file';
 import { default as Stats } from '../core/stats';
 import PreloadFile from '../generic/preload_file';
 import LockedFS from '../generic/locked_fs';

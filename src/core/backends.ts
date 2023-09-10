@@ -1,19 +1,19 @@
-import type { BFSCallback, FileSystem } from './file_system';
-import { checkOptions } from './util';
-import { AsyncMirror } from '../backend/AsyncMirror';
-import { DropboxFileSystem as Dropbox } from '../backend/Dropbox';
-import { EmscriptenFileSystem as Emscripten } from '../backend/Emscripten';
-import { FileSystemAccessFileSystem as FileSystemAccess } from '../backend/FileSystemAccess';
-import { FolderAdapter } from '../backend/FolderAdapter';
-import { InMemoryFileSystem as InMemory } from '../backend/InMemory';
-import { IndexedDBFileSystem as IndexedDB } from '../backend/IndexedDB';
-import { LocalStorageFileSystem as LocalStorage } from '../backend/LocalStorage';
-import { MountableFileSystem } from '../backend/MountableFileSystem';
-import { OverlayFS } from '../backend/OverlayFS';
-import { WorkerFS } from '../backend/WorkerFS';
-import { HTTPRequest } from '../backend/HTTPRequest';
-import { ZipFS } from '../backend/ZipFS';
-import { IsoFS } from '../backend/IsoFS';
+import type { BFSCallback, FileSystem } from './filesystem';
+import { checkOptions } from './utils';
+import { AsyncMirror as _AsyncMirror } from '../backend/AsyncMirror';
+import { DropboxFileSystem } from '../backend/Dropbox';
+import { EmscriptenFileSystem } from '../backend/Emscripten';
+import { FileSystemAccessFileSystem } from '../backend/FileSystemAccess';
+import { FolderAdapter as _FolderAdapter } from '../backend/FolderAdapter';
+import { InMemoryFileSystem } from '../backend/InMemory';
+import { IndexedDBFileSystem } from '../backend/IndexedDB';
+import { LocalStorageFileSystem } from '../backend/LocalStorage';
+import { MountableFileSystem as _MountableFileSystem } from '../backend/MountableFileSystem';
+import { OverlayFS as _OverlayFS } from '../backend/OverlayFS';
+import { WorkerFS as _WorkerFS } from '../backend/WorkerFS';
+import { HTTPRequest as _HTTPRequest } from '../backend/HTTPRequest';
+import { ZipFS as _ZipFS } from '../backend/ZipFS';
+import { IsoFS as _IsoFS } from '../backend/IsoFS';
 
 /**
  * Describes a file system option.
@@ -106,27 +106,27 @@ export interface BackendConstructor<FS extends FileSystem = FileSystem> {
 
 type UnwrapInternalCreate<T> = T extends { Create: (...args: unknown[]) => Promise<infer U> } ? U : never;
 const _backends = {
-	AsyncMirror,
-	Dropbox,
-	Emscripten,
-	FileSystemAccess,
-	FolderAdapter,
-	InMemory,
-	IndexedDB,
-	IsoFS,
-	LocalStorage,
-	MountableFileSystem,
-	OverlayFS,
-	WorkerFS,
-	HTTPRequest,
-	XmlHttpRequest: HTTPRequest,
-	ZipFS,
+	AsyncMirror: _AsyncMirror,
+	Dropbox: DropboxFileSystem,
+	Emscripten: EmscriptenFileSystem,
+	FileSystemAccess: FileSystemAccessFileSystem,
+	FolderAdapter: _FolderAdapter,
+	InMemory: InMemoryFileSystem,
+	IndexedDB: IndexedDBFileSystem,
+	IsoFS: _IsoFS,
+	LocalStorage: LocalStorageFileSystem,
+	MountableFileSystem: _MountableFileSystem,
+	OverlayFS: _OverlayFS,
+	WorkerFS: _WorkerFS,
+	HTTPRequest: _HTTPRequest,
+	ZipFS: _ZipFS,
 };
+
 const backends = _backends as { [K in keyof typeof _backends]: InternalBackendConstructor } as {
 	[K in keyof typeof _backends]: BackendConstructor<UnwrapInternalCreate<(typeof _backends)[K]>> & (typeof _backends)[K];
 };
 
-// Monkey-patch `Create` functions to check options before file system initialization and add `Create`.
+// Monkey-patch `Create` functions to check options before file system initialization and add callback.
 for (const backend of Object.values(backends) as BackendConstructor[]) {
 	/* eslint-disable no-inner-declarations */
 	const __create = backend.Create;
@@ -160,8 +160,8 @@ for (const backend of Object.values(backends) as BackendConstructor[]) {
 	/* eslint-enable no-inner-declarations */
 }
 
-export {
-	backends,
+export { backends };
+export const {
 	AsyncMirror,
 	Dropbox,
 	Emscripten,
@@ -175,5 +175,6 @@ export {
 	OverlayFS,
 	WorkerFS,
 	HTTPRequest,
+	HTTPRequest: XMLHTTPRequest,
 	ZipFS,
-};
+} = backends;
