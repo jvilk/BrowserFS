@@ -21,9 +21,6 @@ export interface HTTPRequestOptions {
 	// Used as the URL prefix for fetched files.
 	// Default: Fetch files relative to the index.
 	baseUrl?: string;
-	// Whether to prefer XmlHttpRequest or fetch for async operations if both are available.
-	// Default: false
-	preferXHR?: boolean;
 }
 
 function syncNotAvailableError(): never {
@@ -71,11 +68,6 @@ export class HTTPRequest extends BaseFileSystem implements FileSystem {
 			type: 'string',
 			optional: true,
 			description: 'Used as the URL prefix for fetched files. Default: Fetch files relative to the index.',
-		},
-		preferXHR: {
-			type: 'boolean',
-			optional: true,
-			description: 'Whether to prefer XmlHttpRequest or fetch for async operations if both are available. Default: false',
 		},
 	};
 
