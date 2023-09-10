@@ -9,41 +9,6 @@ import Cred from './cred';
 import { Buffer } from 'buffer';
 import type { BackendConstructor } from '../core/backends';
 
-export function deprecationMessage(print: boolean, fsName: string, opts: any): void {
-	if (print) {
-		// tslint:disable-next-line:no-console
-		console.warn(
-			`[${fsName}] Direct file system constructor usage is deprecated for this file system, and will be removed in the next major version. Please use the '${fsName}.Create(${JSON.stringify(
-				opts
-			)}, callback)' method instead. See https://github.com/jvilk/BrowserFS/issues/176 for more details.`
-		);
-		// tslint:enable-next-line:no-console
-	}
-}
-
-/**
- * Checks for any IE version, including IE11 which removed MSIE from the
- * userAgent string.
- * @hidden
- */
-export const isIE: boolean =
-	typeof globalThis.navigator !== 'undefined' &&
-	!!(/(msie) ([\w.]+)/.exec(globalThis.navigator.userAgent.toLowerCase()) || globalThis.navigator.userAgent.indexOf('Trident') !== -1);
-
-/**
- * Check if we're in a web worker.
- * @hidden
- */
-export const isWebWorker: boolean = typeof globalThis.window === 'undefined';
-
-/**
- * Throws an exception. Called on code paths that should be impossible.
- * @hidden
- */
-export function fail() {
-	throw new Error('BFS has reached an impossible code path; please file a bug.');
-}
-
 /**
  * Synchronous recursive makedir.
  * @hidden
@@ -65,25 +30,10 @@ export function copyingSlice(buff: Buffer, start: number = 0, end = buff.length)
 	}
 	if (buff.length === 0) {
 		// Avoid s0 corner case in ArrayBuffer case.
-		return emptyBuffer();
+		return Buffer.alloc(0);
 	} else {
 		return buff.subarray(start, end);
 	}
-}
-
-/**
- * @hidden
- */
-let emptyBuff: Buffer | null = null;
-/**
- * Returns an empty buffer.
- * @hidden
- */
-export function emptyBuffer(): Buffer {
-	if (emptyBuff) {
-		return emptyBuff;
-	}
-	return (emptyBuff = Buffer.alloc(0));
 }
 
 /**

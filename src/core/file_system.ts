@@ -6,7 +6,6 @@ import Stats from './stats';
 import { File } from './file';
 import { FileFlag, ActionType } from './file_flag';
 import * as path from 'path';
-import { fail } from './util';
 import Cred from './cred';
 import { Buffer } from 'buffer';
 
@@ -401,7 +400,7 @@ export class BaseFileSystem implements FileSystem {
 					// asynchronous request was trying to read the file, as the file
 					// would not exist for a small period of time.
 					const fd = await this.openFile(p, flag, cred);
-					if (!fd) fail();
+					if (!fd) throw new Error('BFS has reached an impossible code path; please file a bug.');
 
 					await fd.truncate(0);
 					await fd.sync();

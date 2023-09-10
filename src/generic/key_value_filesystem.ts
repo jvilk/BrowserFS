@@ -7,7 +7,6 @@ import * as path from 'path';
 import * as process from 'process';
 import Inode from '../generic/inode';
 import PreloadFile from '../generic/preload_file';
-import { emptyBuffer } from '../core/util';
 import Cred from '../core/cred';
 import { Buffer } from 'buffer';
 /**
@@ -461,7 +460,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
 
 	public createFileSync(p: string, flag: FileFlag, mode: number, cred: Cred): File {
 		const tx = this.store.beginTransaction('readwrite'),
-			data = emptyBuffer(),
+			data = Buffer.alloc(0),
 			newFile = this.commitNewFile(tx, p, FileType.FILE, mode, cred, data);
 		// Open the file.
 		return new SyncKeyValueFile(this, p, flag, newFile.toStats(), data);
@@ -1010,7 +1009,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
 
 	public async createFile(p: string, flag: FileFlag, mode: number, cred: Cred): Promise<File> {
 		const tx = this.store.beginTransaction('readwrite'),
-			data = emptyBuffer(),
+			data = Buffer.alloc(0),
 			newFile = await this.commitNewFile(tx, p, FileType.FILE, mode, cred, data);
 		// Open the file.
 		return new AsyncKeyValueFile(this, p, flag, newFile.toStats(), data);

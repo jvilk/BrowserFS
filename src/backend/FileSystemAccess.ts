@@ -6,7 +6,6 @@ import { File } from '../core/file';
 import { FileFlag } from '../core/file_flag';
 import { BaseFileSystem, type FileSystem } from '../core/file_system';
 import { default as Stats, FileType } from '../core/stats';
-import { emptyBuffer } from '../core/util';
 import PreloadFile from '../generic/preload_file';
 import { Buffer } from 'buffer';
 import type { BackendOptions } from '../core/backends';
@@ -133,7 +132,7 @@ export class FileSystemAccessFileSystem extends BaseFileSystem implements FileSy
 	}
 
 	public async createFile(p: string, flag: FileFlag, mode: number, cred: Cred): Promise<File> {
-		await this.writeFile(p, emptyBuffer(), null, flag, mode, cred, true);
+		await this.writeFile(p, Buffer.alloc(0), null, flag, mode, cred, true);
 		return this.openFile(p, flag, cred);
 	}
 

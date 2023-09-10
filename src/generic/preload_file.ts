@@ -4,7 +4,6 @@ import Stats from '../core/stats';
 import { FileFlag } from '../core/file_flag';
 import { ApiError, ErrorCode } from '../core/api_error';
 import fs from '../core/node_fs';
-import { emptyBuffer } from '../core/util';
 import { Buffer } from 'buffer';
 
 /**
@@ -44,7 +43,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
 		this._path = _path;
 		this._flag = _flag;
 		this._stat = _stat;
-		this._buffer = contents ? contents : emptyBuffer();
+		this._buffer = contents ? contents : Buffer.alloc(0);
 		// Note: This invariant is *not* maintained once the file starts getting
 		// modified.
 		// Note: Only actually matters if file is readable, as writeable modes may
