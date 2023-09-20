@@ -1,6 +1,5 @@
 /**
  * BrowserFS's main module. This is exposed in the browser via the BrowserFS global.
- * Due to limitations in typedoc, we document these functions in ./typedoc.ts.
  */
 
 import * as buffer from 'buffer';
