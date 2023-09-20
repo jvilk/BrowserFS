@@ -2,7 +2,7 @@ import { build } from 'esbuild';
 import { polyfillNode } from 'esbuild-plugin-polyfill-node';
 
 const common = {
-	entryPoints: ['src/core/browserfs.ts'],
+	entryPoints: ['src/index.ts'],
 	target: ['es6'],
 	globalName: 'BrowserFS',
 	sourcemap: true,
