@@ -64,13 +64,13 @@ export type DiskSpaceCB = (total: number, free: number) => unknown;
  *   callback with the requested information, it will use `setImmediate` to
  *   reset the JavaScript stack depth before calling the user-supplied callback.
  */
-export interface FileSystem {
+export abstract class FileSystem {
 	/**
-	 * **Optional**: Returns the name of the file system.
+	 * Returns the name of the file system.
 	 */
-	getName(): string;
+	abstract getName(): string;
 	/**
-	 * **Optional**: Passes the following information to the callback:
+	 * Passes the following information to the callback:
 	 *
 	 * * Total number of bytes available on this file system.
 	 * * number of free bytes available on this file system.
@@ -80,134 +80,133 @@ export interface FileSystem {
 	 * @param path The path to the location that is being queried. Only
 	 *   useful for filesystems that support mount points.
 	 */
-	diskSpace(p: string, cb: DiskSpaceCB): void;
+	abstract diskSpace(p: string, cb: DiskSpaceCB): void;
 	/**
-	 * **Core**: Is this filesystem read-only?
+	 * Is this filesystem read-only?
 	 * @return True if this FileSystem is inherently read-only.
 	 */
-	isReadOnly(): boolean;
+	abstract isReadOnly(): boolean;
 	/**
-	 * **Core**: Does the filesystem support optional symlink/hardlink-related
-	 *   commands?
+	 * Does the filesystem support optional symlink/hardlink-related commands?
 	 * @return True if the FileSystem supports the optional
 	 *   symlink/hardlink-related commands.
 	 */
-	supportsLinks(): boolean;
+	abstract supportsLinks(): boolean;
 	/**
-	 * **Core**: Does the filesystem support optional property-related commands?
+	 * Does the filesystem support optional property-related commands?
 	 * @return True if the FileSystem supports the optional
 	 *   property-related commands (permissions, utimes, etc).
 	 */
-	supportsProps(): boolean;
+	abstract supportsProps(): boolean;
 	/**
-	 * **Core**: Does the filesystem support the optional synchronous interface?
+	 * Does the filesystem support the optional synchronous interface?
 	 * @return True if the FileSystem supports synchronous operations.
 	 */
-	supportsSynch(): boolean;
+	abstract supportsSynch(): boolean;
 	// **CORE API METHODS**
 	// File or directory operations
 	/**
-	 * **Core**: Asynchronous access.
+	 * Asynchronous access.
 	 */
-	access(p: string, mode: number, cred: Cred): Promise<void>;
+	abstract access(p: string, mode: number, cred: Cred): Promise<void>;
 	/**
-	 * **Core**: Synchronous access.
+	 * Synchronous access.
 	 */
-	accessSync(p: string, mode: number, cred: Cred): void;
+	abstract accessSync(p: string, mode: number, cred: Cred): void;
 	/**
-	 * **Core**: Asynchronous rename. No arguments other than a possible exception
+	 * Asynchronous rename. No arguments other than a possible exception
 	 * are given to the completion callback.
 	 */
-	rename(oldPath: string, newPath: string, cred: Cred): Promise<void>;
+	abstract rename(oldPath: string, newPath: string, cred: Cred): Promise<void>;
 	/**
-	 * **Core**: Synchronous rename.
+	 * Synchronous rename.
 	 */
-	renameSync(oldPath: string, newPath: string, cred: Cred): void;
+	abstract renameSync(oldPath: string, newPath: string, cred: Cred): void;
 	/**
-	 * **Core**: Asynchronous `stat` or `lstat`.
+	 * Asynchronous `stat` or `lstat`.
 	 * @param isLstat True if this is `lstat`, false if this is regular
 	 *   `stat`.
 	 */
-	stat(p: string, isLstat: boolean | null, cred: Cred): Promise<Stats>;
+	abstract stat(p: string, isLstat: boolean | null, cred: Cred): Promise<Stats>;
 	/**
-	 * **Core**: Synchronous `stat` or `lstat`.
+	 * Synchronous `stat` or `lstat`.
 	 * @param isLstat True if this is `lstat`, false if this is regular
 	 *   `stat`.
 	 */
-	statSync(p: string, isLstat: boolean | null, cred: Cred): Stats;
+	abstract statSync(p: string, isLstat: boolean | null, cred: Cred): Stats;
 	// File operations
 	/**
-	 * **Core**: Asynchronous file open.
+	 * Asynchronous file open.
 	 * @see http://www.manpagez.com/man/2/open/
 	 * @param flags Handles the complexity of the various file
 	 *   modes. See its API for more details.
 	 * @param mode Mode to use to open the file. Can be ignored if the
 	 *   filesystem doesn't support permissions.
 	 */
-	open(p: string, flag: FileFlag, mode: number, cred: Cred): Promise<File>;
+	abstract open(p: string, flag: FileFlag, mode: number, cred: Cred): Promise<File>;
 	/**
-	 * **Core**: Synchronous file open.
+	 * Synchronous file open.
 	 * @see http://www.manpagez.com/man/2/open/
 	 * @param flags Handles the complexity of the various file
 	 *   modes. See its API for more details.
 	 * @param mode Mode to use to open the file. Can be ignored if the
 	 *   filesystem doesn't support permissions.
 	 */
-	openSync(p: string, flag: FileFlag, mode: number, cred: Cred): File;
+	abstract openSync(p: string, flag: FileFlag, mode: number, cred: Cred): File;
 	/**
-	 * **Core**: Asynchronous `unlink`.
+	 * Asynchronous `unlink`.
 	 */
-	unlink(p: string, cred: Cred): Promise<void>;
+	abstract unlink(p: string, cred: Cred): Promise<void>;
 	/**
-	 * **Core**: Synchronous `unlink`.
+	 * Synchronous `unlink`.
 	 */
-	unlinkSync(p: string, cred: Cred): void;
+	abstract unlinkSync(p: string, cred: Cred): void;
 	// Directory operations
 	/**
-	 * **Core**: Asynchronous `rmdir`.
+	 * Asynchronous `rmdir`.
 	 */
-	rmdir(p: string, cred: Cred): Promise<void>;
+	abstract rmdir(p: string, cred: Cred): Promise<void>;
 	/**
-	 * **Core**: Synchronous `rmdir`.
+	 * Synchronous `rmdir`.
 	 */
-	rmdirSync(p: string, cred: Cred): void;
+	abstract rmdirSync(p: string, cred: Cred): void;
 	/**
-	 * **Core**: Asynchronous `mkdir`.
+	 * Asynchronous `mkdir`.
 	 * @param mode Mode to make the directory using. Can be ignored if
 	 *   the filesystem doesn't support permissions.
 	 */
-	mkdir(p: string, mode: number, cred: Cred): Promise<void>;
+	abstract mkdir(p: string, mode: number, cred: Cred): Promise<void>;
 	/**
-	 * **Core**: Synchronous `mkdir`.
+	 * Synchronous `mkdir`.
 	 * @param mode Mode to make the directory using. Can be ignored if
 	 *   the filesystem doesn't support permissions.
 	 */
-	mkdirSync(p: string, mode: number, cred: Cred): void;
+	abstract mkdirSync(p: string, mode: number, cred: Cred): void;
 	/**
-	 * **Core**: Asynchronous `readdir`. Reads the contents of a directory.
+	 * Asynchronous `readdir`. Reads the contents of a directory.
 	 *
 	 * The callback gets two arguments `(err, files)` where `files` is an array of
 	 * the names of the files in the directory excluding `'.'` and `'..'`.
 	 */
-	readdir(p: string, cred: Cred): Promise<string[]>;
+	abstract readdir(p: string, cred: Cred): Promise<string[]>;
 	/**
-	 * **Core**: Synchronous `readdir`. Reads the contents of a directory.
+	 * Synchronous `readdir`. Reads the contents of a directory.
 	 */
-	readdirSync(p: string, cred: Cred): string[];
+	abstract readdirSync(p: string, cred: Cred): string[];
 	// **SUPPLEMENTAL INTERFACE METHODS**
 	// File or directory operations
 	/**
-	 * **Supplemental**: Test whether or not the given path exists by checking with
+	 * Test whether or not the given path exists by checking with
 	 * the file system. Then call the callback argument with either true or false.
 	 */
-	exists(p: string, cred: Cred): Promise<boolean>;
+	abstract exists(p: string, cred: Cred): Promise<boolean>;
 	/**
-	 * **Supplemental**: Test whether or not the given path exists by checking with
+	 * Test whether or not the given path exists by checking with
 	 * the file system.
 	 */
-	existsSync(p: string, cred: Cred): boolean;
+	abstract existsSync(p: string, cred: Cred): boolean;
 	/**
-	 * **Supplemental**: Asynchronous `realpath`. The callback gets two arguments
+	 * Asynchronous `realpath`. The callback gets two arguments
 	 * `(err, resolvedPath)`.
 	 *
 	 * Note that the Node API will resolve `path` to an absolute path.
@@ -215,140 +214,136 @@ export interface FileSystem {
 	 *   force a specific path resolution or avoid additional `fs.stat` calls for
 	 *   known real paths. If not supplied by the user, it'll be an empty object.
 	 */
-	realpath(p: string, cache: { [path: string]: string }, cred: Cred): Promise<string>;
+	abstract realpath(p: string, cache: { [path: string]: string }, cred: Cred): Promise<string>;
 	/**
-	 * **Supplemental**: Synchronous `realpath`.
+	 * Synchronous `realpath`.
 	 *
 	 * Note that the Node API will resolve `path` to an absolute path.
 	 * @param cache An object literal of mapped paths that can be used to
 	 *   force a specific path resolution or avoid additional `fs.stat` calls for
 	 *   known real paths. If not supplied by the user, it'll be an empty object.
 	 */
-	realpathSync(p: string, cache: { [path: string]: string }, cred: Cred): string;
+	abstract realpathSync(p: string, cache: { [path: string]: string }, cred: Cred): string;
 	// File operations
 	/**
-	 * **Supplemental**: Asynchronous `truncate`.
+	 * Asynchronous `truncate`.
 	 */
-	truncate(p: string, len: number, cred: Cred): Promise<void>;
+	abstract truncate(p: string, len: number, cred: Cred): Promise<void>;
 	/**
-	 * **Supplemental**: Synchronous `truncate`.
+	 * Synchronous `truncate`.
 	 */
-	truncateSync(p: string, len: number, cred: Cred): void;
+	abstract truncateSync(p: string, len: number, cred: Cred): void;
 	/**
-	 * **Supplemental**: Asynchronously reads the entire contents of a file.
+	 * Asynchronously reads the entire contents of a file.
 	 * @param encoding If non-null, the file's contents should be decoded
 	 *   into a string using that encoding. Otherwise, if encoding is null, fetch
 	 *   the file's contents as a Buffer.
 	 * If no encoding is specified, then the raw buffer is returned.
 	 */
-	readFile(fname: string, encoding: BufferEncoding | null, flag: FileFlag, cred: Cred): Promise<FileContents>;
+	abstract readFile(fname: string, encoding: BufferEncoding | null, flag: FileFlag, cred: Cred): Promise<FileContents>;
 	/**
-	 * **Supplemental**: Synchronously reads the entire contents of a file.
+	 * Synchronously reads the entire contents of a file.
 	 * @param encoding If non-null, the file's contents should be decoded
 	 *   into a string using that encoding. Otherwise, if encoding is null, fetch
 	 *   the file's contents as a Buffer.
 	 */
-	readFileSync(fname: string, encoding: BufferEncoding | null, flag: FileFlag, cred: Cred): FileContents;
+	abstract readFileSync(fname: string, encoding: BufferEncoding | null, flag: FileFlag, cred: Cred): FileContents;
 	/**
-	 * **Supplemental**: Asynchronously writes data to a file, replacing the file
+	 * Asynchronously writes data to a file, replacing the file
 	 * if it already exists.
 	 *
 	 * The encoding option is ignored if data is a buffer.
 	 */
-	writeFile(fname: string, data: FileContents, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred): Promise<void>;
+	abstract writeFile(fname: string, data: FileContents, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred): Promise<void>;
 	/**
-	 * **Supplemental**: Synchronously writes data to a file, replacing the file
+	 * Synchronously writes data to a file, replacing the file
 	 * if it already exists.
 	 *
 	 * The encoding option is ignored if data is a buffer.
 	 */
-	writeFileSync(fname: string, data: FileContents, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred): void;
+	abstract writeFileSync(fname: string, data: FileContents, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred): void;
 	/**
-	 * **Supplemental**: Asynchronously append data to a file, creating the file if
+	 * Asynchronously append data to a file, creating the file if
 	 * it not yet exists.
 	 */
-	appendFile(fname: string, data: FileContents, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred): Promise<void>;
+	abstract appendFile(fname: string, data: FileContents, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred): Promise<void>;
 	/**
-	 * **Supplemental**: Synchronously append data to a file, creating the file if
+	 * Synchronously append data to a file, creating the file if
 	 * it not yet exists.
 	 */
-	appendFileSync(fname: string, data: FileContents, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred): void;
+	abstract appendFileSync(fname: string, data: FileContents, encoding: BufferEncoding | null, flag: FileFlag, mode: number, cred: Cred): void;
 	// **OPTIONAL INTERFACE METHODS**
 	// Property operations
 	// This isn't always possible on some filesystem types (e.g. Dropbox).
 	/**
-	 * **Optional**: Asynchronous `chmod` or `lchmod`.
+	 * Asynchronous `chmod` or `lchmod`.
 	 * @param isLchmod `True` if `lchmod`, false if `chmod`. Has no
 	 *   bearing on result if links aren't supported.
 	 */
-	chmod(p: string, isLchmod: boolean, mode: number, cred: Cred): Promise<void>;
+	abstract chmod(p: string, isLchmod: boolean, mode: number, cred: Cred): Promise<void>;
 	/**
-	 * **Optional**: Synchronous `chmod` or `lchmod`.
+	 * Synchronous `chmod` or `lchmod`.
 	 * @param isLchmod `True` if `lchmod`, false if `chmod`. Has no
 	 *   bearing on result if links aren't supported.
 	 */
-	chmodSync(p: string, isLchmod: boolean, mode: number, cred: Cred): void;
+	abstract chmodSync(p: string, isLchmod: boolean, mode: number, cred: Cred): void;
 	/**
-	 * **Optional**: Asynchronous `chown` or `lchown`.
+	 * Asynchronous `chown` or `lchown`.
 	 * @param isLchown `True` if `lchown`, false if `chown`. Has no
 	 *   bearing on result if links aren't supported.
 	 */
-	chown(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): Promise<void>;
+	abstract chown(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): Promise<void>;
 	/**
-	 * **Optional**: Synchronous `chown` or `lchown`.
+	 * Synchronous `chown` or `lchown`.
 	 * @param isLchown `True` if `lchown`, false if `chown`. Has no
 	 *   bearing on result if links aren't supported.
 	 */
-	chownSync(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): void;
+	abstract chownSync(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): void;
 	/**
-	 * **Optional**: Change file timestamps of the file referenced by the supplied
+	 * Change file timestamps of the file referenced by the supplied
 	 * path.
 	 */
-	utimes(p: string, atime: Date, mtime: Date, cred: Cred): Promise<void>;
+	abstract utimes(p: string, atime: Date, mtime: Date, cred: Cred): Promise<void>;
 	/**
-	 * **Optional**: Change file timestamps of the file referenced by the supplied
+	 * Change file timestamps of the file referenced by the supplied
 	 * path.
 	 */
-	utimesSync(p: string, atime: Date, mtime: Date, cred: Cred): void;
+	abstract utimesSync(p: string, atime: Date, mtime: Date, cred: Cred): void;
 	// Symlink operations
 	// Symlinks aren't always supported.
 	/**
-	 * **Optional**: Asynchronous `link`.
+	 * Asynchronous `link`.
 	 */
-	link(srcpath: string, dstpath: string, cred: Cred): Promise<void>;
+	abstract link(srcpath: string, dstpath: string, cred: Cred): Promise<void>;
 	/**
-	 * **Optional**: Synchronous `link`.
+	 * Synchronous `link`.
 	 */
-	linkSync(srcpath: string, dstpath: string, cred: Cred): void;
+	abstract linkSync(srcpath: string, dstpath: string, cred: Cred): void;
 	/**
-	 * **Optional**: Asynchronous `symlink`.
+	 * Asynchronous `symlink`.
 	 * @param type can be either `'dir'` or `'file'`
 	 */
-	symlink(srcpath: string, dstpath: string, type: string, cred: Cred): Promise<void>;
+	abstract symlink(srcpath: string, dstpath: string, type: string, cred: Cred): Promise<void>;
 	/**
-	 * **Optional**: Synchronous `symlink`.
+	 * Synchronous `symlink`.
 	 * @param type can be either `'dir'` or `'file'`
 	 */
-	symlinkSync(srcpath: string, dstpath: string, type: string, cred: Cred): void;
+	abstract symlinkSync(srcpath: string, dstpath: string, type: string, cred: Cred): void;
 	/**
-	 * **Optional**: Asynchronous readlink.
+	 * Asynchronous readlink.
 	 */
-	readlink(p: string, cred: Cred): Promise<string>;
+	abstract readlink(p: string, cred: Cred): Promise<string>;
 	/**
-	 * **Optional**: Synchronous readlink.
+	 * Synchronous readlink.
 	 */
-	readlinkSync(p: string, cred: Cred): string;
-}
-
-export interface FileSystemConstructor {
-	new (): FileSystem;
+	abstract readlinkSync(p: string, cred: Cred): string;
 }
 
 /**
  * Basic filesystem class. Most filesystems should extend this class, as it
  * provides default implementations for a handful of methods.
  */
-export class BaseFileSystem implements FileSystem {
+export class BaseFileSystem extends FileSystem {
 	getName() {
 		return 'BaseFileSystem';
 	}
@@ -722,7 +717,6 @@ export class BaseFileSystem implements FileSystem {
 
 /**
  * Implements the asynchronous API in terms of the synchronous API.
- * @class SynchronousFileSystem
  */
 export class SynchronousFileSystem extends BaseFileSystem {
 	public supportsSynch(): boolean {
