@@ -6,8 +6,7 @@ import { default as Stats, FilePerm } from './stats';
 import { Buffer } from 'buffer';
 import Cred from './cred';
 
-// Typing info only.
-import type * as _fs from 'fs';
+import type * as fs from 'fs';
 
 /**
  * Wraps a callback function, ensuring it is invoked through setTimeout with a delay of 0.
@@ -1434,9 +1433,9 @@ export default class FS {
 		throw new ApiError(ErrorCode.ENOTSUP);
 	}
 
-	public watch(filename: string, listener?: (event: string, filename: string) => any): _fs.FSWatcher;
-	public watch(filename: string, options: { persistent?: boolean }, listener?: (event: string, filename: string) => any): _fs.FSWatcher;
-	public watch(filename: string, arg2: any, listener: (event: string, filename: string) => any = nopCb): _fs.FSWatcher {
+	public watch(filename: string, listener?: (event: string, filename: string) => any): fs.FSWatcher;
+	public watch(filename: string, options: { persistent?: boolean }, listener?: (event: string, filename: string) => any): fs.FSWatcher;
+	public watch(filename: string, arg2: any, listener: (event: string, filename: string) => any = nopCb): fs.FSWatcher {
 		throw new ApiError(ErrorCode.ENOTSUP);
 	}
 
@@ -1479,7 +1478,7 @@ export default class FS {
 			mode?: number;
 			autoClose?: boolean;
 		}
-	): _fs.ReadStream {
+	): fs.ReadStream {
 		throw new ApiError(ErrorCode.ENOTSUP);
 	}
 
@@ -1491,7 +1490,7 @@ export default class FS {
 			fd?: number;
 			mode?: number;
 		}
-	): _fs.WriteStream {
+	): fs.WriteStream {
 		throw new ApiError(ErrorCode.ENOTSUP);
 	}
 

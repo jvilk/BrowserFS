@@ -1,4 +1,6 @@
 import { default as FS, FSModule } from './FS';
+import type * as _fs from 'fs';
+type NodeFS = typeof _fs;
 
 // Manually export the individual public functions of fs.
 // Required because some code will invoke functions off of the module.
@@ -9,7 +11,7 @@ import { default as FS, FSModule } from './FS';
 /**
  * @hidden
  */
-let fs: any = new FS();
+let fs: NodeFS = new FS();
 /**
  * @hidden
  */
