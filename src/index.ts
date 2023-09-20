@@ -188,4 +188,6 @@ export function getFileSystem(config: FileSystemConfiguration, cb?: BFSCallback<
 
 export * from './core/backends';
 export * from './core/ApiError';
+export * from './generic/key_value_filesystem';
+export * from './generic/inode';
 export { EmscriptenFS, FileSystem, BaseFileSystem };

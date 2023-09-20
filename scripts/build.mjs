@@ -4,7 +4,6 @@ import { polyfillNode } from 'esbuild-plugin-polyfill-node';
 const common = {
 	entryPoints: ['src/core/browserfs.ts'],
 	target: ['es6'],
-	platform: 'browser',
 	globalName: 'BrowserFS',
 	sourcemap: true,
 	bundle: true,
@@ -13,11 +12,12 @@ const common = {
 };
 
 const configs = {
-	'browser, unminified': { outfile: 'dist/browserfs.js' },
-	'browser, minified': { outfile: 'dist/browserfs.min.js', minify: true },
-	'ESM, unminified': { outfile: 'dist/browserfs.mjs', format: 'esm' },
-	'ESM, minified': { outfile: 'dist/browserfs.min.mjs', format: 'esm', minify: true },
-	node: { outfile: 'dist/browserfs.cjs', platform: 'node', format: 'cjs', minify: true, alias: {}, plugins: [] },
+	'browser, unminified': { outfile: 'dist/browserfs.js', platform: 'browser' },
+	'browser, minified': { outfile: 'dist/browserfs.min.js', platform: 'browser', minify: true },
+	'ESM, unminified': { outfile: 'dist/browserfs.mjs', platform: 'neutral', format: 'esm' },
+	'ESM, minified': { outfile: 'dist/browserfs.min.mjs', platform: 'neutral', format: 'esm', minify: true },
+	'node, unminified': { outfile: 'dist/browserfs.cjs', platform: 'node', format: 'cjs', alias: {}, plugins: [] },
+	'node, minified': { outfile: 'dist/browserfs.min.cjs', platform: 'node', format: 'cjs', minify: true, alias: {}, plugins: [] },
 };
 
 for (const [name, config] of Object.entries(configs)) {

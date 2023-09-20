@@ -3,7 +3,7 @@
 	"version": "2.0.0",
 	"description": "A filesystem in your browser!",
 	"main": "dist/browserfs.js",
-	"typings": "dist/browserfs",
+	"types": "dist",
 	"keywords": [
 		"filesystem",
 		"node",
@@ -28,14 +28,14 @@
 		"url": "https://github.com/jvilk/BrowserFS/issues"
 	},
 	"engines": {
-		"node": ">= 0.10"
+		"node": ">= 14"
 	},
 	"bin": {
 		"make_http_index": "./dist/scripts/make_http_index.js"
 	},
 	"exports": {
 		".": {
-			"require": "./dist/browserfs.min.js",
+			"require": "./dist/browserfs.min.cjs",
 			"import": "./dist/browserfs.min.mjs"
 		}
 	},

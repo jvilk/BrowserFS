@@ -51,7 +51,7 @@ export async function bufferValidator(v: object): Promise<void> {
  */
 
 function _min(d0: number, d1: number, d2: number, bx: number, ay: number): number {
-	return d0 < d1 || d2 < d1 ? (d0 > d2 ? d2 + 1 : d0 + 1) : bx === ay ? d1 : d1 + 1;
+	return Math.min(d0 + 1, d1 + 1, d2 + 1, bx === ay ? d1 : d1 + 1);
 }
 
 /**
@@ -65,14 +65,13 @@ function levenshtein(a: string, b: string): number {
 	}
 
 	if (a.length > b.length) {
-		const tmp = a;
-		a = b;
-		b = tmp;
+		[a, b] = [b, a]; // Swap a and b
 	}
 
 	let la = a.length;
 	let lb = b.length;
 
+	// Trim common suffix
 	while (la > 0 && a.charCodeAt(la - 1) === b.charCodeAt(lb - 1)) {
 		la--;
 		lb--;
@@ -80,6 +79,7 @@ function levenshtein(a: string, b: string): number {
 
 	let offset = 0;
 
+	// Trim common prefix
 	while (offset < la && a.charCodeAt(offset) === b.charCodeAt(offset)) {
 		offset++;
 	}
@@ -137,7 +137,6 @@ function levenshtein(a: string, b: string): number {
 
 	return dd;
 }
-
 
 /**
  * Checks that the given options object is valid for the file system options.
