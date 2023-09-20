@@ -1,14 +1,14 @@
-import { BaseFileSystem, type FileSystem, FileContents } from '../core/filesystem';
-import { ApiError, ErrorCode } from '../core/ApiError';
-import { copyingSlice } from '../core/utils';
-import { File, FileFlag, ActionType } from '../core/file';
-import { default as Stats, FilePerm } from '../core/stats';
+import { BaseFileSystem, type FileSystem, FileContents } from '../filesystem';
+import { ApiError, ErrorCode } from '../ApiError';
+import { copyingSlice } from '../utils';
+import { File, FileFlag, ActionType } from '../file';
+import { default as Stats, FilePerm } from '../stats';
 import { NoSyncFile } from '../generic/preload_file';
 import { fetchIsAvailable, fetchFile, fetchFileSize } from '../generic/fetch';
 import { FileIndex, isFileInode, isDirInode } from '../generic/file_index';
-import Cred from '../core/cred';
+import Cred from '../cred';
 import type { Buffer } from 'buffer';
-import type { BackendOptions } from '../core/backends';
+import type { BackendOptions } from '.';
 
 /**
  * Configuration options for a HTTPRequest file system.

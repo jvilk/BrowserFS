@@ -9,9 +9,9 @@
  * Adapted from Emscripten's NodeFS:
  * https://raw.github.com/kripken/emscripten/master/src/library_nodefs.js
  */
-import FS from '../core/FS';
-import fs from '../core/node_fs';
-import Stats from '../core/stats';
+import FS from '../FS';
+import fs from '../node_fs';
+import Stats from '../stats';
 
 export interface EmscriptenStats {
 	dev: number;

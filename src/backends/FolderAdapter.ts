@@ -1,8 +1,8 @@
-import { BaseFileSystem, type FileSystem } from '../core/filesystem';
+import { BaseFileSystem, type FileSystem } from '../filesystem';
 import * as path from 'path';
-import { ApiError } from '../core/ApiError';
-import Cred from '../core/cred';
-import type { BackendOptions } from '../core/backends';
+import { ApiError } from '../ApiError';
+import Cred from '../cred';
+import type { BackendOptions } from '.';
 
 /**
  * Configuration options for a FolderAdapter file system.

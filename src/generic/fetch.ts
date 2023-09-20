@@ -2,7 +2,7 @@
  * Contains utility methods for network I/O (using fetch)
  */
 import { Buffer } from 'buffer';
-import { ApiError, ErrorCode } from '../core/ApiError';
+import { ApiError, ErrorCode } from '../ApiError';
 
 export const fetchIsAvailable = typeof fetch !== 'undefined' && fetch !== null;
 

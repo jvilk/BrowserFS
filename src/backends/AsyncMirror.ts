@@ -1,12 +1,12 @@
-import { type FileSystem, SynchronousFileSystem } from '../core/filesystem';
-import { ApiError, ErrorCode } from '../core/ApiError';
-import { File, FileFlag } from '../core/file';
-import Stats from '../core/stats';
+import { type FileSystem, SynchronousFileSystem } from '../filesystem';
+import { ApiError, ErrorCode } from '../ApiError';
+import { File, FileFlag } from '../file';
+import Stats from '../stats';
 import PreloadFile from '../generic/preload_file';
 import * as path from 'path';
-import Cred from '../core/cred';
+import Cred from '../cred';
 import type { Buffer } from 'buffer';
-import type { BackendOptions } from '../core/backends';
+import type { BackendOptions } from '.';
 /**
  * @hidden
  */

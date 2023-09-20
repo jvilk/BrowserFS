@@ -1,13 +1,13 @@
 /// <reference lib="dom" />
 import { basename, dirname, join } from 'path';
-import { ApiError, ErrorCode } from '../core/ApiError';
-import Cred from '../core/cred';
-import { File, FileFlag } from '../core/file';
-import { BaseFileSystem, type FileSystem } from '../core/filesystem';
-import { default as Stats, FileType } from '../core/stats';
+import { ApiError, ErrorCode } from '../ApiError';
+import Cred from '../cred';
+import { File, FileFlag } from '../file';
+import { BaseFileSystem, type FileSystem } from '../filesystem';
+import { default as Stats, FileType } from '../stats';
 import PreloadFile from '../generic/preload_file';
 import { Buffer } from 'buffer';
-import type { BackendOptions } from '../core/backends';
+import type { BackendOptions } from '.';
 
 interface FileSystemAccessFileSystemOptions {
 	handle: FileSystemDirectoryHandle;

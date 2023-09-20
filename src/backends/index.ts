@@ -1,19 +1,19 @@
-import type { BFSCallback, FileSystem } from './filesystem';
-import { checkOptions } from './utils';
-import { AsyncMirror as _AsyncMirror } from '../backend/AsyncMirror';
-import { DropboxFileSystem } from '../backend/Dropbox';
-import { EmscriptenFileSystem } from '../backend/Emscripten';
-import { FileSystemAccessFileSystem } from '../backend/FileSystemAccess';
-import { FolderAdapter as _FolderAdapter } from '../backend/FolderAdapter';
-import { InMemoryFileSystem } from '../backend/InMemory';
-import { IndexedDBFileSystem } from '../backend/IndexedDB';
-import { LocalStorageFileSystem } from '../backend/LocalStorage';
-import { MountableFileSystem as _MountableFileSystem } from '../backend/MountableFileSystem';
-import { OverlayFS as _OverlayFS } from '../backend/OverlayFS';
-import { WorkerFS as _WorkerFS } from '../backend/WorkerFS';
-import { HTTPRequest as _HTTPRequest } from '../backend/HTTPRequest';
-import { ZipFS as _ZipFS } from '../backend/ZipFS';
-import { IsoFS as _IsoFS } from '../backend/IsoFS';
+import type { BFSCallback, FileSystem } from '../filesystem';
+import { checkOptions } from '../utils';
+import { AsyncMirror as _AsyncMirror } from './AsyncMirror';
+import { DropboxFileSystem } from './Dropbox';
+import { EmscriptenFileSystem } from './Emscripten';
+import { FileSystemAccessFileSystem } from './FileSystemAccess';
+import { FolderAdapter as _FolderAdapter } from './FolderAdapter';
+import { InMemoryFileSystem } from './InMemory';
+import { IndexedDBFileSystem } from './IndexedDB';
+import { LocalStorageFileSystem } from './LocalStorage';
+import { MountableFileSystem as _MountableFileSystem } from './MountableFileSystem';
+import { OverlayFS as _OverlayFS } from './OverlayFS';
+import { WorkerFS as _WorkerFS } from './WorkerFS';
+import { HTTPRequest as _HTTPRequest } from './HTTPRequest';
+import { ZipFS as _ZipFS } from './ZipFS';
+import { IsoFS as _IsoFS } from './IsoFS';
 
 /**
  * Describes a file system option.

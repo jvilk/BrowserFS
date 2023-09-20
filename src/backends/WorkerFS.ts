@@ -1,9 +1,9 @@
-import { type FileSystem, BaseFileSystem, FileContents } from '../core/filesystem';
-import { ApiError, ErrorCode } from '../core/ApiError';
-import { File, FileFlag } from '../core/file';
-import { default as Stats } from '../core/stats';
-import Cred from '../core/cred';
-import type { BackendOptions } from '../core/backends';
+import { type FileSystem, BaseFileSystem, FileContents } from '../filesystem';
+import { ApiError, ErrorCode } from '../ApiError';
+import { File, FileFlag } from '../file';
+import { default as Stats } from '../stats';
+import Cred from '../cred';
+import type { BackendOptions } from '.';
 
 /**
  * @hidden

@@ -1,11 +1,11 @@
-import { SynchronousFileSystem } from '../core/filesystem';
-import { default as Stats, FileType } from '../core/stats';
-import { BaseFile, File, FileFlag } from '../core/file';
-import { ApiError, ErrorCode, ErrorStrings } from '../core/ApiError';
+import { SynchronousFileSystem } from '../filesystem';
+import { default as Stats, FileType } from '../stats';
+import { BaseFile, File, FileFlag } from '../file';
+import { ApiError, ErrorCode, ErrorStrings } from '../ApiError';
 import { EmscriptenFSNode } from '../generic/emscripten_fs';
-import Cred from '../core/cred';
+import Cred from '../cred';
 import { Buffer } from 'buffer';
-import type { BackendOptions } from '../core/backends';
+import type { BackendOptions } from '.';
 
 /**
  * @hidden

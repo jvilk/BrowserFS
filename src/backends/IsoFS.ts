@@ -1,12 +1,12 @@
-import { ApiError, ErrorCode } from '../core/ApiError';
-import { default as Stats, FileType } from '../core/stats';
-import { SynchronousFileSystem, type FileSystem } from '../core/filesystem';
-import { File, FileFlag, ActionType } from '../core/file';
+import { ApiError, ErrorCode } from '../ApiError';
+import { default as Stats, FileType } from '../stats';
+import { SynchronousFileSystem, type FileSystem } from '../filesystem';
+import { File, FileFlag, ActionType } from '../file';
 import { NoSyncFile } from '../generic/preload_file';
-import { copyingSlice, bufferValidator as validator } from '../core/utils';
+import { copyingSlice, bufferValidator as validator } from '../utils';
 import * as path from 'path';
 import type { Buffer } from 'buffer';
-import type { BackendOptions } from '../core/backends';
+import type { BackendOptions } from '.';
 
 /**
  * @hidden

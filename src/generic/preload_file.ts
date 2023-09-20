@@ -1,9 +1,9 @@
-import { BaseFile, File } from '../core/file';
-import { FileSystem } from '../core/filesystem';
-import Stats from '../core/stats';
-import { FileFlag } from '../core/file';
-import { ApiError, ErrorCode } from '../core/ApiError';
-import fs from '../core/node_fs';
+import { BaseFile, File } from '../file';
+import { FileSystem } from '../filesystem';
+import Stats from '../stats';
+import { FileFlag } from '../file';
+import { ApiError, ErrorCode } from '../ApiError';
+import fs from '../node_fs';
 import { Buffer } from 'buffer';
 
 /**

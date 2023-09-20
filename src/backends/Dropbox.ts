@@ -1,14 +1,14 @@
 import PreloadFile from '../generic/preload_file';
-import { BaseFileSystem, type FileSystem } from '../core/filesystem';
-import { default as Stats, FileType } from '../core/stats';
-import { ApiError, ErrorCode } from '../core/ApiError';
-import { File, FileFlag } from '../core/file';
-import { wait } from '../core/utils';
+import { BaseFileSystem, type FileSystem } from '../filesystem';
+import { default as Stats, FileType } from '../stats';
+import { ApiError, ErrorCode } from '../ApiError';
+import { File, FileFlag } from '../file';
+import { wait } from '../utils';
 import type * as DropboxTypes from 'dropbox';
 import { dirname } from 'path';
-import Cred from '../core/cred';
+import Cred from '../cred';
 import { Buffer } from 'buffer';
-import type { BackendOptions } from '../core/backends';
+import type { BackendOptions } from '.';
 
 /**
  * Dropbox paths do not begin with a /, they just begin with a folder at the root node.

@@ -1,13 +1,13 @@
-import { ApiError, ErrorCode } from '../core/ApiError';
-import { default as Stats, FileType } from '../core/stats';
-import { SynchronousFileSystem, type FileSystem } from '../core/filesystem';
-import { File, FileFlag, ActionType } from '../core/file';
+import { ApiError, ErrorCode } from '../ApiError';
+import { default as Stats, FileType } from '../stats';
+import { SynchronousFileSystem, type FileSystem } from '../filesystem';
+import { File, FileFlag, ActionType } from '../file';
 import { NoSyncFile } from '../generic/preload_file';
-import { copyingSlice, bufferValidator } from '../core/utils';
+import { copyingSlice, bufferValidator } from '../utils';
 import { inflateRawSync } from 'zlib';
 import { FileIndex, DirInode, FileInode, isDirInode, isFileInode } from '../generic/file_index';
 import type { Buffer } from 'buffer';
-import type { BackendOptions } from '../core/backends';
+import type { BackendOptions } from '.';
 
 /**
  * 8-bit ASCII with the extended character set. Unlike regular ASCII, we do not mask the high bits.

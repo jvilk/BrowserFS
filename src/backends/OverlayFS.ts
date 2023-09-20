@@ -1,13 +1,13 @@
-import { type FileSystem, BaseFileSystem } from '../core/filesystem';
-import { ApiError, ErrorCode } from '../core/ApiError';
-import { File, FileFlag, ActionType } from '../core/file';
-import { default as Stats } from '../core/stats';
+import { type FileSystem, BaseFileSystem } from '../filesystem';
+import { ApiError, ErrorCode } from '../ApiError';
+import { File, FileFlag, ActionType } from '../file';
+import { default as Stats } from '../stats';
 import PreloadFile from '../generic/preload_file';
 import LockedFS from '../generic/locked_fs';
 import * as path from 'path';
-import Cred from '../core/cred';
+import Cred from '../cred';
 import type { Buffer } from 'buffer';
-import type { BackendOptions } from '../core/backends';
+import type { BackendOptions } from '.';
 /**
  * @hidden
  */

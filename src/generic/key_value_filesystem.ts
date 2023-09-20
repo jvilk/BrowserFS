@@ -1,13 +1,13 @@
-import { BaseFileSystem, SynchronousFileSystem } from '../core/filesystem';
-import { ApiError, ErrorCode } from '../core/ApiError';
-import { default as Stats, FileType, FilePerm } from '../core/stats';
-import { File } from '../core/file';
-import { FileFlag } from '../core/file';
+import { BaseFileSystem, SynchronousFileSystem } from '../filesystem';
+import { ApiError, ErrorCode } from '../ApiError';
+import { default as Stats, FileType, FilePerm } from '../stats';
+import { File } from '../file';
+import { FileFlag } from '../file';
 import * as path from 'path';
 import * as process from 'process';
-import Inode from '../generic/inode';
+import Inode from '../inode';
 import PreloadFile from '../generic/preload_file';
-import Cred from '../core/cred';
+import Cred from '../cred';
 import { Buffer } from 'buffer';
 /**
  * @hidden

@@ -4,16 +4,16 @@
  */
 
 import * as buffer from 'buffer';
-import fs from './core/node_fs';
+import fs from './node_fs';
 import * as path from 'path';
-import { FileSystem, type BFSOneArgCallback, type BFSCallback, BaseFileSystem } from './core/filesystem';
+import { FileSystem, type BFSOneArgCallback, type BFSCallback, BaseFileSystem } from './filesystem';
 import EmscriptenFS from './generic/emscripten_fs';
-import { backends } from './core/backends';
-import * as BFSUtils from './core/utils';
-import { ErrorCode, ApiError } from './core/ApiError';
-import Cred from './core/cred';
+import { backends } from './backends';
+import * as BFSUtils from './utils';
+import { ErrorCode, ApiError } from './ApiError';
+import Cred from './cred';
 import * as process from 'process';
-import type { BackendConstructor } from './core/backends';
+import type { BackendConstructor } from './backends';
 
 if (process && (<any>process)['initializeTTYs']) {
 	(<any>process)['initializeTTYs']();
@@ -186,8 +186,8 @@ export function getFileSystem(config: FileSystemConfiguration, cb?: BFSCallback<
 	return;
 }
 
-export * from './core/backends';
-export * from './core/ApiError';
+export * from './backends';
+export * from './ApiError';
 export * from './generic/key_value_filesystem';
-export * from './generic/inode';
+export * from './inode';
 export { EmscriptenFS, FileSystem, BaseFileSystem };

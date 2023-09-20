@@ -1,9 +1,9 @@
 import Mutex from './mutex';
-import { DiskSpaceCB, FileContents, FileSystem } from '../core/filesystem';
-import { FileFlag } from '../core/file';
-import { default as Stats } from '../core/stats';
-import { File } from '../core/file';
-import Cred from '../core/cred';
+import { DiskSpaceCB, FileContents, FileSystem } from '../filesystem';
+import { FileFlag } from '../file';
+import { default as Stats } from '../stats';
+import { File } from '../file';
+import Cred from '../cred';
 
 /**
  * This class serializes access to an underlying async filesystem.

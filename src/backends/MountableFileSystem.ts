@@ -1,11 +1,11 @@
-import { type FileSystem, BaseFileSystem } from '../core/filesystem';
+import { type FileSystem, BaseFileSystem } from '../filesystem';
 import { InMemoryFileSystem } from './InMemory';
-import { ApiError, ErrorCode } from '../core/ApiError';
-import fs from '../core/node_fs';
+import { ApiError, ErrorCode } from '../ApiError';
+import fs from '../node_fs';
 import * as path from 'path';
-import { mkdirpSync, toPromise } from '../core/utils';
-import Cred from '../core/cred';
-import type { BackendOptions } from '../core/backends';
+import { mkdirpSync, toPromise } from '../utils';
+import Cred from '../cred';
+import type { BackendOptions } from '.';
 
 /**
  * Configuration options for the MountableFileSystem backend.
