@@ -44,17 +44,14 @@ function assertRoot(fs?: FileSystem | null): FileSystem {
 	throw new ApiError(ErrorCode.EIO, `Initialize BrowserFS with a file system using BrowserFS.initialize(filesystem)`);
 }
 
-/**
- * @hidden
- */
 function normalizeMode(mode: number | string | null | undefined, def: number): number {
 	switch (typeof mode) {
 		case 'number':
 			// (path, flag, mode, cb?)
-			return <number>mode;
+			return mode;
 		case 'string':
 			// (path, flag, modeString, cb?)
-			const trueMode = parseInt(<string>mode, 8);
+			const trueMode = parseInt(mode, 8);
 			if (!isNaN(trueMode)) {
 				return trueMode;
 			}
@@ -65,35 +62,29 @@ function normalizeMode(mode: number | string | null | undefined, def: number): n
 	}
 }
 
-/**
- * @hidden
- */
 function normalizeTime(time: number | Date): Date {
 	if (time instanceof Date) {
 		return time;
-	} else if (typeof time === 'number') {
-		return new Date(time * 1000);
-	} else {
-		throw new ApiError(ErrorCode.EINVAL, `Invalid time.`);
 	}
+
+	if (typeof time === 'number') {
+		return new Date(time * 1000);
+	}
+
+	throw new ApiError(ErrorCode.EINVAL, `Invalid time.`);
 }
 
-/**
- * @hidden
- */
 function normalizePath(p: string): string {
 	// Node doesn't allow null characters in paths.
 	if (p.indexOf('\u0000') >= 0) {
 		throw new ApiError(ErrorCode.EINVAL, 'Path must be a string without null bytes.');
-	} else if (p === '') {
+	}
+	if (p === '') {
 		throw new ApiError(ErrorCode.EINVAL, 'Path must not be empty.');
 	}
 	return path.resolve(p);
 }
 
-/**
- * @hidden
- */
 function normalizeOptions(options: any, defEnc: string | null, defFlag: string, defMode: number | null): { encoding: BufferEncoding; flag: string; mode: number } {
 	// typeof null === 'object' so special-case handing is needed.
 	switch (options === null ? 'null' : typeof options) {
@@ -124,8 +115,6 @@ function normalizeOptions(options: any, defEnc: string | null, defFlag: string, 
 
 /**
  * The default callback is a NOP.
- * @hidden
- * @private
  */
 function nopCb() {
 	// NOP.

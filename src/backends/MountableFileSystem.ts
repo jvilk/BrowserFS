@@ -141,7 +141,7 @@ export class MountableFileSystem extends BaseFileSystem implements FileSystem {
 			const mountPoint = mountList[i];
 			// We know path is normalized, so it is a substring of the mount point.
 			if (mountPoint.length <= path.length && path.indexOf(mountPoint) === 0) {
-				path = path.substr(mountPoint.length > 1 ? mountPoint.length : 0);
+				path = path.substring(mountPoint.length > 1 ? mountPoint.length : 0);
 				if (path === '') {
 					path = '/';
 				}
@@ -187,7 +187,7 @@ export class MountableFileSystem extends BaseFileSystem implements FileSystem {
 	public standardizeError(err: ApiError, path: string, realPath: string): ApiError {
 		const index = err.message.indexOf(path);
 		if (index !== -1) {
-			err.message = err.message.substr(0, index) + realPath + err.message.substr(index + path.length);
+			err.message = err.message.substring(0, index) + realPath + err.message.substring(index + path.length);
 			err.path = realPath;
 		}
 		return err;
