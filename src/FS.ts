@@ -8,6 +8,8 @@ import Cred from './cred';
 
 import type { ReadStream, WriteStream, FSWatcher } from 'node:fs';
 
+export * as constants from './constants';
+
 /**
  * Wraps a callback function, ensuring it is invoked through setTimeout with a delay of 0.
  * @hidden
