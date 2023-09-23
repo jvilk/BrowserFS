@@ -1,15 +1,5 @@
-test
-coverage
-doc
-build
-typings
-.tscache
-.vscode
-*.yml
-karma.config.js
-yarn.lock
-tsconfig*.json
-tslint.json
-.eslintrc.json
-*.config.json
+*
+!src/**/*
+!dist/**/*
+!license.md
 

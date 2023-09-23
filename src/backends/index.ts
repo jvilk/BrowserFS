@@ -8,7 +8,6 @@ import { FolderAdapter as _FolderAdapter } from './FolderAdapter';
 import { InMemoryFileSystem } from './InMemory';
 import { IndexedDBFileSystem } from './IndexedDB';
 import { LocalStorageFileSystem } from './LocalStorage';
-import { MountableFileSystem as _MountableFileSystem } from './MountableFileSystem';
 import { OverlayFS as _OverlayFS } from './OverlayFS';
 import { WorkerFS as _WorkerFS } from './WorkerFS';
 import { HTTPRequest as _HTTPRequest } from './HTTPRequest';
@@ -115,7 +114,6 @@ const _backends = {
 	IndexedDB: IndexedDBFileSystem,
 	IsoFS: _IsoFS,
 	LocalStorage: LocalStorageFileSystem,
-	MountableFileSystem: _MountableFileSystem,
 	OverlayFS: _OverlayFS,
 	WorkerFS: _WorkerFS,
 	HTTPRequest: _HTTPRequest,
@@ -171,7 +169,6 @@ export const {
 	IndexedDB,
 	IsoFS,
 	LocalStorage,
-	MountableFileSystem,
 	OverlayFS,
 	WorkerFS,
 	HTTPRequest,

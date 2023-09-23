@@ -38,9 +38,15 @@ jobs:
             - name: Linting
               run: npm run lint
 
-            # Once tests are added
-            #-name: Test
-            # run: npm run test
+            # Once unit tests are working
+            #- name: Unit tests
+            #  run: npm run test
 
             - name: Build
               run: npm run build
+
+            - name: Deploy docs
+              uses: peaceiris/actions-gh-pages@v3
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  publish_dir: ./docs
