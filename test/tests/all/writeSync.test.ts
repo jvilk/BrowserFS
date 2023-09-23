@@ -1,4 +1,4 @@
-import { backends, fs, configure, tmpDir, fixturesDir } from '../../../common';
+import { backends, fs, configure, tmpDir, fixturesDir } from '../../common';
 import * as path from 'path';
 
 describe.each(backends)('%s fs.writeSync', (name, options) => {

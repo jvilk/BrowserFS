@@ -1,8 +1,8 @@
-import { backends, fs, configure, fixturesDir } from '../../../common';
+import { backends, fs, configure, fixturesDir } from '../../common';
 import * as path from 'path';
 
 import { promisify } from 'util';
-import type { ApiError } from '../../../../src/ApiError';
+import type { ApiError } from '../../../src/ApiError';
 
 const existingFile = path.join(fixturesDir, 'exit.js');
 

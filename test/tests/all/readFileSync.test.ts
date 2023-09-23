@@ -1,4 +1,4 @@
-import { backends, fs, configure, fixturesDir } from '../../../common';
+import { backends, fs, configure, fixturesDir } from '../../common';
 import path from 'path';
 
 describe.each(backends)('%s fs file reading', (name, options) => {

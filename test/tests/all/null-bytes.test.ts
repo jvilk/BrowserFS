@@ -1,5 +1,5 @@
 import { promisify } from 'node:util';
-import { backends, fs, configure } from '../../../common';
+import { backends, fs, configure } from '../../common';
 
 describe.each(backends)('%s fs path validation', (name, options) => {
 	const configured = configure({ fs: name, options });

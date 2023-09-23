@@ -1,4 +1,4 @@
-import { backends, fs, configure } from '../../../common';
+import { backends, fs, configure } from '../../common';
 import { promisify } from 'node:util';
 
 describe.each(backends)('%s Directory Removal', (name, options) => {

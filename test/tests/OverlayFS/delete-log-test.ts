@@ -1,6 +1,6 @@
-import { fs } from '../../../common';
-import { type FileSystem, OverlayFS } from '../../../../src';
-import { Cred } from '../../../../src/cred';
+import { fs } from '../../common';
+import { type FileSystem, OverlayFS } from '../../../src';
+import { Cred } from '../../../src/cred';
 
 let __numWaiting: number;
 

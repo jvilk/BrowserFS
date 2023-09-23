@@ -1,7 +1,7 @@
-import { backends, fs, configure } from '../../../common';
+import { backends, fs, configure } from '../../common';
 import * as path from 'path';
 import { promisify } from 'node:util'; // Import promisify
-import { tmpDir, fixturesDir } from '../../../common';
+import { tmpDir, fixturesDir } from '../../common';
 
 describe.each(backends)('%s fs.fileSync', (name, options) => {
 	const configured = configure({ fs: name, options });

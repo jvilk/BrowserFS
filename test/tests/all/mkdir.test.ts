@@ -1,5 +1,5 @@
-import { backends, fs, configure } from '../../../common';
-import { tmpDir, fixturesDir } from '../../../common';
+import { backends, fs, configure } from '../../common';
+import { tmpDir, fixturesDir } from '../../common';
 import { promisify } from 'node:util';
 
 describe.each(backends)('%s fs.mkdir', (name, options) => {

@@ -1,4 +1,4 @@
-import { fs, createMockStats, backends, configure, tmpDir, fixturesDir } from '../../../common';
+import { fs, createMockStats, backends, configure, tmpDir, fixturesDir } from '../../common';
 import * as path from 'path';
 
 import { jest } from '@jest/globals';

@@ -1,4 +1,4 @@
-import { backends, fs, configure, tmpDir, fixturesDir } from '../../../common';
+import { backends, fs, configure, tmpDir, fixturesDir } from '../../common';
 import path from 'path';
 
 import { promisify } from 'node:util';

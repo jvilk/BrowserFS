@@ -1,5 +1,5 @@
-import { fs } from '../../../common';
-import * as BrowserFS from '../../../../src';
+import { fs } from '../../common';
+import * as BrowserFS from '../../../src';
 import { promisify } from 'node:util';
 
 type Listing = { [name: string]: Listing | null };

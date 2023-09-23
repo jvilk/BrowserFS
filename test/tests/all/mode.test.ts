@@ -1,4 +1,4 @@
-import { backends, fs, configure } from '../../../common';
+import { backends, fs, configure } from '../../common';
 import * as path from 'path';
 import { promisify } from 'node:util';
 

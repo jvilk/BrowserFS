@@ -1,7 +1,7 @@
-import { backends, fs, configure, tmpDir } from '../../../common';
+import { backends, fs, configure, tmpDir } from '../../common';
 import * as path from 'path';
 
-import type { FileContents } from '../../../../src/filesystem';
+import type { FileContents } from '../../../src/filesystem';
 import { jest } from '@jest/globals';
 import { promisify } from 'node:util';
 
