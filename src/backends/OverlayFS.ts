@@ -1,4 +1,4 @@
-import { type FileSystem, BaseFileSystem } from '../filesystem';
+import { type FileSystem, BaseFileSystem, FileSystemMetadata } from '../filesystem';
 import { ApiError, ErrorCode } from '../ApiError';
 import { File, FileFlag, ActionType } from '../file';
 import { Stats } from '../stats';
@@ -89,9 +89,18 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 		super();
 		this._writable = writable;
 		this._readable = readable;
-		if (this._writable.isReadOnly()) {
+		if (this._writable.metadata.readonly) {
 			throw new ApiError(ErrorCode.EINVAL, 'Writable file system must be writable.');
 		}
+	}
+
+	public get metadata(): FileSystemMetadata {
+		return {
+			...super.metadata,
+			name: OverlayFS.Name,
+			synchronous: this._readable.metadata.synchronous && this._writable.metadata.synchronous,
+			supportsProperties: this._readable.metadata.supportsProperties && this._writable.metadata.supportsProperties,
+		};
 	}
 
 	public getOverlayedFileSystems(): { readable: FileSystem; writable: FileSystem } {
@@ -111,10 +120,6 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 		const stats = file.getStats();
 		this.createParentDirectories(file.getPath(), stats.getCred(0, 0));
 		this._writable.writeFileSync(file.getPath(), file.getBuffer(), null, getFlag('w'), stats.mode, stats.getCred(0, 0));
-	}
-
-	public getName() {
-		return OverlayFS.Name;
 	}
 
 	/**
@@ -139,19 +144,6 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 		}
 		this._isInitialized = true;
 		this._reparseDeletionLog();
-	}
-
-	public isReadOnly(): boolean {
-		return false;
-	}
-	public supportsSynch(): boolean {
-		return this._readable.supportsSynch() && this._writable.supportsSynch();
-	}
-	public supportsLinks(): boolean {
-		return false;
-	}
-	public supportsProps(): boolean {
-		return this._readable.supportsProps() && this._writable.supportsProps();
 	}
 
 	public getDeletionLog(): string {
@@ -758,14 +750,22 @@ export class OverlayFS extends LockedFS<UnlockedOverlayFS> {
 	}
 
 	public getOverlayedFileSystems(): { readable: FileSystem; writable: FileSystem } {
-		return super.getFSUnlocked().getOverlayedFileSystems();
+		return super.fs.getOverlayedFileSystems();
+	}
+
+	public getDeletionLog(): string {
+		return super.fs.getDeletionLog();
+	}
+
+	public resDeletionLog(): string {
+		return super.fs.getDeletionLog();
 	}
 
 	public unwrap(): UnlockedOverlayFS {
-		return super.getFSUnlocked();
+		return super.fs;
 	}
 
 	private async _initialize(): Promise<void> {
-		await super.getFSUnlocked()._initialize();
+		await super.fs._initialize();
 	}
 }

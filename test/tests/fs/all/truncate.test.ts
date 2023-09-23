@@ -23,7 +23,7 @@ describe.each(backends)('%s Truncate Tests', (name, options) => {
 	});
 
 	it('Truncate Sync', () => {
-		if (!fs.getRootFS().supportsSynch()) return;
+		if (!fs.getMount('/').metadata.synchronous) return;
 
 		fs.writeFileSync(filename, data);
 		expect(fs.statSync(filename).size).toBe(1024 * 16);
@@ -54,7 +54,7 @@ describe.each(backends)('%s Truncate Tests', (name, options) => {
 	it('Truncate Async', async () => {
 		await configured;
 
-		if (fs.getRootFS().isReadOnly() || !fs.getRootFS().supportsSynch()) {
+		if (fs.getMount('/').metadata.readonly || !fs.getMount('/').metadata.synchronous) {
 			return;
 		}
 

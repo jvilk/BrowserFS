@@ -1,5 +1,5 @@
 import Mutex from './mutex';
-import { DiskSpace, FileContents, FileSystem } from '../filesystem';
+import { FileContents, FileSystem, FileSystemMetadata } from '../filesystem';
 import { FileFlag } from '../file';
 import { Stats } from '../stats';
 import { File } from '../file';
@@ -23,32 +23,15 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		this._mu = new Mutex();
 	}
 
-	public getName(): string {
-		return 'LockedFS<' + this._fs.getName() + '>';
+	public get metadata(): FileSystemMetadata {
+		return {
+			...this._fs.metadata,
+			name: 'LockedFS<' + this._fs.metadata.name + '>',
+		};
 	}
 
-	public getFSUnlocked(): T {
+	public get fs(): T {
 		return this._fs;
-	}
-
-	public diskSpace(): Promise<DiskSpace> {
-		return this._fs.diskSpace();
-	}
-
-	public isReadOnly(): boolean {
-		return this._fs.isReadOnly();
-	}
-
-	public supportsLinks(): boolean {
-		return this._fs.supportsLinks();
-	}
-
-	public supportsProps(): boolean {
-		return this._fs.supportsProps();
-	}
-
-	public supportsSynch(): boolean {
-		return this._fs.supportsSynch();
 	}
 
 	public async rename(oldPath: string, newPath: string, cred: Cred): Promise<void> {

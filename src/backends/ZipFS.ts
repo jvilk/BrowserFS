@@ -1,6 +1,6 @@
 import { ApiError, ErrorCode } from '../ApiError';
 import { Stats, FileType } from '../stats';
-import { SynchronousFileSystem, type FileSystem, DiskSpace } from '../filesystem';
+import { SynchronousFileSystem, type FileSystem, FileSystemMetadata } from '../filesystem';
 import { File, FileFlag, ActionType } from '../file';
 import { NoSyncFile } from '../generic/preload_file';
 import { copyingSlice, bufferValidator } from '../utils';
@@ -867,8 +867,14 @@ export class ZipFS extends SynchronousFileSystem implements FileSystem {
 		this.data = input.data;
 	}
 
-	public getName(): string {
-		return ZipFS.Name + (this.name !== '' ? ` ${this.name}` : '');
+	public get metadata(): FileSystemMetadata {
+		return {
+			...super.metadata,
+			name: ZipFS.Name + (this.name !== '' ? ` ${this.name}` : ''),
+			readonly: true,
+			synchronous: true,
+			totalSpace: this.data.length,
+		};
 	}
 
 	/**
@@ -903,29 +909,6 @@ export class ZipFS extends SynchronousFileSystem implements FileSystem {
 
 	public getEndOfCentralDirectory(): EndOfCentralDirectory | null {
 		return this._eocd;
-	}
-
-	public async diskSpace(): Promise<DiskSpace> {
-		return {
-			total: this.data.length,
-			free: 0,
-		};
-	}
-
-	public isReadOnly(): boolean {
-		return true;
-	}
-
-	public supportsLinks(): boolean {
-		return false;
-	}
-
-	public supportsProps(): boolean {
-		return false;
-	}
-
-	public supportsSynch(): boolean {
-		return true;
 	}
 
 	public statSync(path: string): Stats {

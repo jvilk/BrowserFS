@@ -65,20 +65,8 @@ export class FolderAdapter extends BaseFileSystem implements FileSystem {
 		this._wrapped = wrapped;
 	}
 
-	public getName(): string {
-		return this._wrapped.getName();
-	}
-	public isReadOnly(): boolean {
-		return this._wrapped.isReadOnly();
-	}
-	public supportsProps(): boolean {
-		return this._wrapped.supportsProps();
-	}
-	public supportsSynch(): boolean {
-		return this._wrapped.supportsSynch();
-	}
-	public supportsLinks(): boolean {
-		return false;
+	public get metadata() {
+		return { ...super.metadata, ...this._wrapped.metadata, supportsLinks: false };
 	}
 
 	/**
@@ -87,7 +75,7 @@ export class FolderAdapter extends BaseFileSystem implements FileSystem {
 	 */
 	private async _initialize(): Promise<void> {
 		const exists = await this._wrapped.exists(this._folder, Cred.Root);
-		if (!exists && this._wrapped.isReadOnly()) {
+		if (!exists && this._wrapped.metadata.readonly) {
 			throw ApiError.ENOENT(this._folder);
 		} else {
 			await this._wrapped.mkdir(this._folder, 0o777, Cred.Root);

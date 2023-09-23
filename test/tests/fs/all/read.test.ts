@@ -12,7 +12,7 @@ describe.each(backends)('%s read', (name, options) => {
 	beforeEach(() => {
 		filepath = path.join(fixturesDir, 'x.txt');
 		expected = 'xyz\n';
-		rootFS = fs.getRootFS();
+		rootFS = fs.getMount('/');
 	});
 
 	it('should read file asynchronously', async () => {
@@ -25,7 +25,7 @@ describe.each(backends)('%s read', (name, options) => {
 		expect(bytesRead).toEqual(expected.length);
 	});
 
-	if (fs.getRootFS().supportsSynch()) {
+	if (fs.getMount('/').metadata.synchronous) {
 		it('should read file synchronously', async () => {
 			await configured;
 			const fd = fs.openSync(filepath, 'r');
@@ -48,7 +48,7 @@ describe.each(backends)('%s read binary', (name, options) => {
 	});
 
 	it('Read a file and check its binary bytes (synchronous)', () => {
-		if (fs.getRootFS().supportsSynch()) {
+		if (fs.getMount('/').metadata.synchronous) {
 			const buff = fs.readFileSync(path.join(fixturesDir, 'elipses.txt'));
 			expect(buff.readUInt16LE(0)).toBe(32994);
 		}
@@ -73,7 +73,7 @@ describe.each(backends)('%s read buffer', (name, options) => {
 
 	it('should read file synchronously', async () => {
 		await configured;
-		if (fs.getRootFS().supportsSynch()) {
+		if (fs.getMount('/').metadata.synchronous) {
 			const fd = fs.openSync(filepath, 'r');
 			const bytesRead = fs.readSync(fd, bufferSync, 0, expected.length, 0);
 

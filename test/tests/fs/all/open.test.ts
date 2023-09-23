@@ -10,7 +10,7 @@ describe.each(backends)('%s fs file opening', (name, options) => {
 	it('should throw ENOENT when opening non-existent file (sync)', async () => {
 		await configured;
 
-		if (fs.getRootFS().supportsSynch()) {
+		if (fs.getMount('/').metadata.synchronous) {
 			let caughtException = false;
 			try {
 				fs.openSync('/path/to/file/that/does/not/exist', 'r');

@@ -9,7 +9,7 @@ describe.each(backends)('%s Link and Symlink Test', (name, options) => {
 
 	it('should create and read symbolic link', async () => {
 		await configured;
-		if (fs.getRootFS().supportsLinks()) {
+		if (fs.getMount('/').metadata.supportsLinks) {
 			const linkData = path.join(fixturesDir, '/cycles/root.js');
 			const linkPath = path.join(tmpDir, 'symlink1.js');
 
@@ -28,7 +28,7 @@ describe.each(backends)('%s Link and Symlink Test', (name, options) => {
 
 	it('should create and read hard link', async () => {
 		await configured;
-		if (fs.getRootFS().supportsLinks()) {
+		if (fs.getMount('/').metadata.supportsLinks) {
 			const srcPath = path.join(fixturesDir, 'cycles', 'root.js');
 			const dstPath = path.join(tmpDir, 'link1.js');
 
@@ -72,7 +72,7 @@ describe.each(backends)('%s Symbolic Link Test', (name, options) => {
 
 	it('should lstat symbolic link', async () => {
 		await configured;
-		if (fs.getRootFS().isReadOnly() || !fs.getRootFS().supportsLinks()) {
+		if (fs.getMount('/').metadata.readonly || !fs.getMount('/').metadata.supportsLinks) {
 			return;
 		}
 
@@ -82,7 +82,7 @@ describe.each(backends)('%s Symbolic Link Test', (name, options) => {
 
 	it('should readlink symbolic link', async () => {
 		await configured;
-		if (fs.getRootFS().isReadOnly() || !fs.getRootFS().supportsLinks()) {
+		if (fs.getMount('/').metadata.readonly || !fs.getMount('/').metadata.supportsLinks) {
 			return;
 		}
 		const destination = await promisify(fs.readlink)(linkPath);
@@ -91,7 +91,7 @@ describe.each(backends)('%s Symbolic Link Test', (name, options) => {
 
 	it('should unlink symbolic link', async () => {
 		await configured;
-		if (fs.getRootFS().isReadOnly() || !fs.getRootFS().supportsLinks()) {
+		if (fs.getMount('/').metadata.readonly || !fs.getMount('/').metadata.supportsLinks) {
 			return;
 		}
 		await unlinkAsync(linkPath);

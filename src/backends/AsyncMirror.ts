@@ -1,11 +1,10 @@
-import { type FileSystem, SynchronousFileSystem } from '../filesystem';
+import { type FileSystem, SynchronousFileSystem, FileSystemMetadata } from '../filesystem';
 import { ApiError, ErrorCode } from '../ApiError';
 import { File, FileFlag } from '../file';
 import { Stats } from '../stats';
 import PreloadFile from '../generic/preload_file';
 import * as path from 'path';
 import { Cred } from '../cred';
-import type { Buffer } from 'buffer';
 import type { BackendOptions } from './index';
 /**
  * @hidden
@@ -94,7 +93,7 @@ export class AsyncMirror extends SynchronousFileSystem implements FileSystem {
 			type: 'object',
 			description: 'The synchronous file system to mirror the asynchronous file system to.',
 			validator: async (v: FileSystem): Promise<void> => {
-				if (!v?.supportsSynch()) {
+				if (!v?.metadata.synchronous) {
 					throw new ApiError(ErrorCode.EINVAL, `'sync' option must be a file system that supports synchronous operations`);
 				}
 			},
@@ -143,8 +142,13 @@ export class AsyncMirror extends SynchronousFileSystem implements FileSystem {
 		this._async = async;
 	}
 
-	public getName(): string {
-		return AsyncMirror.Name;
+	public get metadata(): FileSystemMetadata {
+		return {
+			...super.metadata,
+			name: AsyncMirror.Name,
+			synchronous: true,
+			supportsProperties: this._sync.metadata.supportsProperties && this._async.metadata.supportsProperties,
+		};
 	}
 
 	public _syncSync(fd: PreloadFile<AsyncMirror>) {
@@ -154,19 +158,6 @@ export class AsyncMirror extends SynchronousFileSystem implements FileSystem {
 			apiMethod: 'writeFile',
 			arguments: [fd.getPath(), fd.getBuffer(), null, fd.getFlag(), stats.mode, stats.getCred(0, 0)],
 		});
-	}
-
-	public isReadOnly(): boolean {
-		return false;
-	}
-	public supportsSynch(): boolean {
-		return true;
-	}
-	public supportsLinks(): boolean {
-		return false;
-	}
-	public supportsProps(): boolean {
-		return this._sync.supportsProps() && this._async.supportsProps();
 	}
 
 	public renameSync(oldPath: string, newPath: string, cred: Cred): void {

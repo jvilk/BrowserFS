@@ -1,4 +1,4 @@
-import { SynchronousFileSystem } from '../filesystem';
+import { FileSystemMetadata, SynchronousFileSystem } from '../filesystem';
 import { Stats, FileType } from '../stats';
 import { BaseFile, File, FileFlag } from '../file';
 import { ApiError, ErrorCode, ErrorStrings } from '../ApiError';
@@ -162,20 +162,14 @@ export class EmscriptenFileSystem extends SynchronousFileSystem {
 		super();
 		this._FS = _FS;
 	}
-	public getName(): string {
-		return this._FS.DB_NAME();
-	}
-	public isReadOnly(): boolean {
-		return false;
-	}
-	public supportsLinks(): boolean {
-		return true;
-	}
-	public supportsProps(): boolean {
-		return true;
-	}
-	public supportsSynch(): boolean {
-		return true;
+
+	public get metadata(): FileSystemMetadata {
+		return {
+			...super.metadata,
+			name: this._FS.DB_NAME(),
+			supportsProperties: true,
+			supportsLinks: true,
+		};
 	}
 
 	public renameSync(oldPath: string, newPath: string, cred: Cred): void {

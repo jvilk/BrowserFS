@@ -38,7 +38,7 @@ describe.each(backends)('%s File Stat Test', (name, options) => {
 		await promisify(fs.close)(fd);
 	});
 
-	if (fs.getRootFS().supportsSynch()) {
+	if (fs.getMount('/').metadata.synchronous) {
 		it('should fstatSync existing file', async () => {
 			await configured;
 			const fd = await promisify<string, string, number>(fs.open)(existing_file, 'r');

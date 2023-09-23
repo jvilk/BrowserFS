@@ -1,5 +1,5 @@
 import PreloadFile from '../generic/preload_file';
-import { BaseFileSystem, type FileSystem } from '../filesystem';
+import { BaseFileSystem, FileSystemMetadata, type FileSystem } from '../filesystem';
 import { Stats, FileType } from '../stats';
 import { ApiError, ErrorCode } from '../ApiError';
 import { File, FileFlag } from '../file';
@@ -198,27 +198,8 @@ export class DropboxFileSystem extends BaseFileSystem implements FileSystem {
 		this._client = client;
 	}
 
-	public getName(): string {
-		return DropboxFileSystem.Name;
-	}
-
-	public isReadOnly(): boolean {
-		return false;
-	}
-
-	// Dropbox doesn't support symlinks, properties, or synchronous calls
-	// TODO: does it???
-
-	public supportsSymlinks(): boolean {
-		return false;
-	}
-
-	public supportsProps(): boolean {
-		return false;
-	}
-
-	public supportsSynch(): boolean {
-		return false;
+	public get metadata(): FileSystemMetadata {
+		return { ...super.metadata, name: DropboxFileSystem.Name };
 	}
 
 	/**

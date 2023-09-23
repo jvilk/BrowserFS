@@ -1,16 +1,22 @@
 import { ApiError, ErrorCode } from '../ApiError';
-import { FileFlag } from '../file';
+import { File, FileFlag } from '../file';
 import { FileContents, FileSystem } from '../filesystem';
 import { Stats } from '../stats';
 import type { symlink, ReadSyncOptions } from 'fs';
 import { normalizePath, cred, getFdForFile, normalizeMode, normalizeOptions, fdMap, fd2file, normalizeTime, resolveFS, fixError, mounts } from './shared';
 
-function doOp<F extends keyof FileSystem, FN extends FileSystem[F]>(fn: F, resolveSymlinks: boolean, ...[path, ...args]: Parameters<FN>): ReturnType<FN> {
+type FileSystemMethod = {
+	[K in keyof FileSystem]: FileSystem[K] extends (...args: any) => any
+		? (name: K, resolveSymlinks: boolean, ...args: Parameters<FileSystem[K]>) => ReturnType<FileSystem[K]>
+		: never;
+}[keyof FileSystem]; // https://stackoverflow.com/a/76335220/17637456
+
+function doOp<M extends FileSystemMethod, RT extends ReturnType<M>>(...[name, resolveSymlinks, path, ...args]: Parameters<M>): RT {
 	path = normalizePath(path);
 	const { fs, path: resolvedPath } = resolveFS(resolveSymlinks && existsSync(path) ? realpathSync(path) : path);
 	try {
 		// @ts-expect-error 2556 (since ...args is not correctly picked up as being a tuple)
-		return fs[fn](resolvedPath, ...args) as Promise<ReturnType<FN>>;
+		return fs[name](resolvedPath, ...args) as RT;
 	} catch (e) {
 		throw fixError(e, { [resolvedPath]: path });
 	}
@@ -107,7 +113,7 @@ export function unlinkSync(path: string): void {
  * @return [BrowserFS.File]
  */
 export function openSync(path: string, flag: string, mode: number | string = 0o644): number {
-	const file = doOp('openSync', true, path, FileFlag.getFileFlag(flag), normalizeMode(mode, 0o644), cred);
+	const file: File = doOp('openSync', true, path, FileFlag.getFileFlag(flag), normalizeMode(mode, 0o644), cred);
 	return getFdForFile(file);
 }
 
@@ -357,7 +363,7 @@ export function mkdirSync(path: string, mode?: number | string): void {
  */
 export function readdirSync(path: string): string[] {
 	path = normalizePath(path);
-	const entries = doOp('readdirSync', true, path, cred);
+	const entries: string[] = doOp('readdirSync', true, path, cred);
 	const points = [...mounts.keys()];
 	for (const point of points) {
 		if (point.startsWith(path)) {

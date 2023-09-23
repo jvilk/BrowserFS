@@ -165,7 +165,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
 	 */
 	public truncate(len: number): Promise<void> {
 		this.truncateSync(len);
-		if (this._flag.isSynchronous() && !getMount('/')!.supportsSynch()) {
+		if (this._flag.isSynchronous() && !getMount('/')!.metadata.synchronous) {
 			return this.sync();
 		}
 	}
@@ -184,7 +184,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
 			const buf = Buffer.alloc(len - this._buffer.length, 0);
 			// Write will set @_stat.size for us.
 			this.writeSync(buf, 0, buf.length, this._buffer.length);
-			if (this._flag.isSynchronous() && getMount('/')!.supportsSynch()) {
+			if (this._flag.isSynchronous() && getMount('/')!.metadata.synchronous) {
 				this.syncSync();
 			}
 			return;
@@ -194,7 +194,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
 		const newBuff = Buffer.alloc(len);
 		this._buffer.copy(newBuff, 0, 0, len);
 		this._buffer = newBuff;
-		if (this._flag.isSynchronous() && getMount('/')!.supportsSynch()) {
+		if (this._flag.isSynchronous() && getMount('/')!.metadata.synchronous) {
 			this.syncSync();
 		}
 	}
@@ -317,7 +317,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
 	 * @param [Number] mode
 	 */
 	public chmodSync(mode: number): void {
-		if (!this._fs.supportsProps()) {
+		if (!this._fs.metadata.supportsProperties) {
 			throw new ApiError(ErrorCode.ENOTSUP);
 		}
 		this._dirty = true;
@@ -340,7 +340,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
 	 * @param [Number] gid
 	 */
 	public chownSync(uid: number, gid: number): void {
-		if (!this._fs.supportsProps()) {
+		if (!this._fs.metadata.supportsProperties) {
 			throw new ApiError(ErrorCode.ENOTSUP);
 		}
 		this._dirty = true;

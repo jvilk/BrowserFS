@@ -17,7 +17,7 @@ describe.each(backends)('%s fs.writeFile', (name, options) => {
 	it('should write and read file with specified content', async () => {
 		await configured;
 
-		if (fs.getRootFS().isReadOnly()) {
+		if (fs.getMount('/').metadata.readonly) {
 			return;
 		}
 
@@ -35,7 +35,7 @@ describe.each(backends)('%s fs.writeFile', (name, options) => {
 	it('should write and read file using buffer', async () => {
 		await configured;
 
-		if (fs.getRootFS().isReadOnly()) {
+		if (fs.getMount('/').metadata.readonly) {
 			return;
 		}
 
@@ -55,7 +55,7 @@ describe.each(backends)('%s fs.writeFile', (name, options) => {
 	it('should write base64 data to a file and read it back asynchronously', async () => {
 		await configured;
 
-		if (fs.getRootFS().isReadOnly()) {
+		if (fs.getMount('/').metadata.readonly) {
 			return;
 		}
 

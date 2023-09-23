@@ -13,7 +13,7 @@ describe.each(backends)('%s fs.write', (name, options) => {
 	const configured = configure({ fs: name, options });
 	it('should write file with specified content asynchronously', async () => {
 		await configured;
-		if (fs.getRootFS().isReadOnly()) {
+		if (fs.getMount('/').metadata.readonly) {
 			return;
 		}
 
@@ -45,7 +45,7 @@ describe.each(backends)('%s fs.write', (name, options) => {
 
 	it('should write a buffer to a file asynchronously', async () => {
 		await configured;
-		if (fs.getRootFS().isReadOnly()) {
+		if (fs.getMount('/').metadata.readonly) {
 			return;
 		}
 

@@ -41,7 +41,7 @@ describe.each(backends)('%s Utimes Tests', (name, options) => {
 			expect_errno('futimes', -1, err, 'EBADF');
 		});
 
-		if (!fs.getRootFS().supportsSynch()) {
+		if (!fs.getMount('/').metadata.synchronous) {
 			return;
 		}
 
@@ -77,7 +77,7 @@ describe.each(backends)('%s Utimes Tests', (name, options) => {
 
 	it('utimes should work', async () => {
 		await configured;
-		if (!fs.getRootFS().supportsProps()) {
+		if (!fs.getMount('/').metadata.supportsProperties) {
 			return;
 		}
 		await runTest(new Date('1982/09/10 13:37:00'), new Date('1982/09/10 13:37:00'));

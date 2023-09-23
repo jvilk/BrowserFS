@@ -5,7 +5,7 @@ import { promisify } from 'node:util';
 describe.each(backends)('%s fs.mkdir', (name, options) => {
 	const configured = configure({ fs: name, options });
 
-	if (!fs.getRootFS().isReadOnly()) {
+	if (!fs.getMount('/').metadata.readonly) {
 		const pathname1 = tmpDir + '/mkdir-test1';
 
 		it('should create a directory and verify its existence', async () => {

@@ -6,7 +6,7 @@ describe.each(backends)('%s fs.writeSync', (name, options) => {
 	it('should write file synchronously with specified content', async () => {
 		await configured;
 
-		if (fs.getRootFS().isReadOnly() || !fs.getRootFS().supportsSynch()) {
+		if (fs.getMount('/').metadata.readonly || !fs.getMount('/').metadata.synchronous) {
 			return;
 		}
 

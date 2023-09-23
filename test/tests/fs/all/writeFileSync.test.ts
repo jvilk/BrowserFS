@@ -28,7 +28,7 @@ describe.each(backends)('%s File Writing with Custom Mode', (name, options) => {
 		const content = fs.readFileSync(file, { encoding: 'utf8' });
 		expect(content).toBe('123');
 
-		if (fs.getRootFS().supportsProps()) {
+		if (fs.getMount('/').metadata.supportsProperties) {
 			const actual = fs.statSync(file).mode & 0o777;
 			expect(actual).toBe(mode);
 		}
@@ -55,7 +55,7 @@ describe.each(backends)('%s File Writing with Custom Mode', (name, options) => {
 		const content = fs.readFileSync(file, { encoding: 'utf8' });
 		expect(content).toBe('abc');
 
-		if (fs.getRootFS().supportsProps()) {
+		if (fs.getMount('/').metadata.supportsProperties) {
 			expect(fs.statSync(file).mode & mode).toBe(mode);
 		}
 

@@ -7,7 +7,7 @@ describe.each(backends)('%s fs path validation', (name, options) => {
 	function check(asyncFn: Function, syncFn: Function, ...args: any[]): void {
 		const expected = /Path must be a string without null bytes./;
 
-		if (fs.getRootFS().supportsSynch() && syncFn) {
+		if (fs.getMount('/').metadata.synchronous && syncFn) {
 			it(`${asyncFn.name} should throw an error for invalid path`, async () => {
 				await configured;
 				expect(() => {
@@ -39,7 +39,7 @@ describe.each(backends)('%s fs path validation', (name, options) => {
 	check(fs.unlink, fs.unlinkSync, 'foo\u0000bar');
 	check(fs.writeFile, fs.writeFileSync, 'foo\u0000bar');
 
-	if (fs.getRootFS().supportsLinks()) {
+	if (fs.getMount('/').metadata.supportsLinks) {
 		check(fs.link, fs.linkSync, 'foo\u0000bar', 'foobar');
 		check(fs.link, fs.linkSync, 'foobar', 'foo\u0000bar');
 		check(fs.readlink, fs.readlinkSync, 'foo\u0000bar');
@@ -47,7 +47,7 @@ describe.each(backends)('%s fs path validation', (name, options) => {
 		check(fs.symlink, fs.symlinkSync, 'foobar', 'foo\u0000bar');
 	}
 
-	if (fs.getRootFS().supportsProps()) {
+	if (fs.getMount('/').metadata.supportsProperties) {
 		check(fs.chmod, fs.chmodSync, 'foo\u0000bar', '0644');
 		check(fs.chown, fs.chownSync, 'foo\u0000bar', 12, 34);
 		check(fs.utimes, fs.utimesSync, 'foo\u0000bar', 0, 0);
@@ -60,7 +60,7 @@ describe.each(backends)('%s fs path validation', (name, options) => {
 
 	it('should return false for non-existing path (sync)', async () => {
 		await configured;
-		if (!fs.getRootFS().supportsSynch()) {
+		if (!fs.getMount('/').metadata.synchronous) {
 			return;
 		}
 		expect(fs.existsSync('foo\u0000bar')).toBeFalsy();

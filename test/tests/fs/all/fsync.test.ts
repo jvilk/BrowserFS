@@ -6,9 +6,9 @@ import { tmpDir, fixturesDir } from '../../../common';
 describe.each(backends)('%s fs.fileSync', (name, options) => {
 	const configured = configure({ fs: name, options });
 	const file = path.join(fixturesDir, 'a.js');
-	const rootFS = fs.getRootFS();
+	const rootFS = fs.getMount('/');
 
-	if (!fs.getRootFS().isReadOnly()) {
+	if (!fs.getMount('/').metadata.readonly) {
 		let fd: number;
 		let successes = 0;
 
@@ -17,7 +17,7 @@ describe.each(backends)('%s fs.fileSync', (name, options) => {
 			fd = await promisify<string, string, number, number>(fs.open)(file, 'a', 0o777);
 		});
 
-		if (fs.getRootFS().supportsSynch()) {
+		if (fs.getMount('/').metadata.synchronous) {
 			it('should synchronize file data changes (sync)', async () => {
 				await configured;
 				fs.fdatasyncSync(fd);
@@ -47,7 +47,7 @@ describe.each(backends)('%s fs.fileSync', (name, options) => {
 
 		it('should have correct number of successes', async () => {
 			await configured;
-			if (fs.getRootFS().supportsSynch()) {
+			if (fs.getMount('/').metadata.synchronous) {
 				expect(successes).toBe(4);
 			} else {
 				expect(successes).toBe(2);

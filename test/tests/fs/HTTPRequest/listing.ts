@@ -1,5 +1,5 @@
 import { fs } from '../../../common';
-import * as BrowserFS from '../../../../src/core/browserfs';
+import * as BrowserFS from '../../../../src';
 import { promisify } from 'node:util';
 
 type Listing = { [name: string]: Listing | null };
@@ -8,11 +8,11 @@ describe('HTTPDownloadFS', () => {
 	let oldRootFS: BrowserFS.FileSystem;
 
 	beforeAll(() => {
-		oldRootFS = fs.getRootFS();
+		oldRootFS = fs.getMount('/');
 	});
 
 	afterAll(() => {
-		BrowserFS.initialize(oldRootFS);
+		BrowserFS.initialize({ '/': oldRootFS });
 	});
 
 	it('File System Operations', async () => {
@@ -37,7 +37,7 @@ describe('HTTPDownloadFS', () => {
 			baseUrl: '/',
 		});
 
-		BrowserFS.initialize(newXFS);
+		BrowserFS.initialize({ '/': newXFS });
 
 		const expectedTestListing = ['README.md', 'src', 'test'];
 		const testListing = fs.readdirSync('/').sort();
@@ -65,9 +65,5 @@ describe('HTTPDownloadFS', () => {
 			statError = error;
 		}
 		expect(statError).toBeTruthy();
-	});
-
-	it('Maintains XHR file system for backwards compatibility', () => {
-		expect(BrowserFS.backends.HTTPRequest).toBe(BrowserFS.backends.XmlHttpRequest);
 	});
 });

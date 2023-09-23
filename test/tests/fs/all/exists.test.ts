@@ -37,7 +37,7 @@ describe.each(backends)('%s fs.exists', (name, options) => {
 
 	it('should have sync methods that behave the same', async () => {
 		await configured;
-		if (fs.getRootFS().supportsSynch()) {
+		if (fs.getMount('/').metadata.synchronous) {
 			expect(fs.existsSync(f)).toBe(true);
 			expect(fs.existsSync(f + '-NO')).toBe(false);
 		}

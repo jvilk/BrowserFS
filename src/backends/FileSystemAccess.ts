@@ -3,7 +3,7 @@ import { basename, dirname, join } from 'path';
 import { ApiError, ErrorCode } from '../ApiError';
 import { Cred } from '../cred';
 import { File, FileFlag } from '../file';
-import { BaseFileSystem, type FileSystem } from '../filesystem';
+import { BaseFileSystem, FileSystemMetadata, type FileSystem } from '../filesystem';
 import { Stats, FileType } from '../stats';
 import PreloadFile from '../generic/preload_file';
 import { Buffer } from 'buffer';
@@ -58,24 +58,11 @@ export class FileSystemAccessFileSystem extends BaseFileSystem implements FileSy
 		this._handles = { '/': handle };
 	}
 
-	public getName(): string {
-		return FileSystemAccessFileSystem.Name;
-	}
-
-	public isReadOnly(): boolean {
-		return false;
-	}
-
-	public supportsSymlinks(): boolean {
-		return false;
-	}
-
-	public supportsProps(): boolean {
-		return false;
-	}
-
-	public supportsSynch(): boolean {
-		return false;
+	public get metadata(): FileSystemMetadata {
+		return {
+			...super.metadata,
+			name: FileSystemAccessFileSystem.Name,
+		};
 	}
 
 	public async _sync(p: string, data: Buffer, stats: Stats, cred: Cred): Promise<void> {

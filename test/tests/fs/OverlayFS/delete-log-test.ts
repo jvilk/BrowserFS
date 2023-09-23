@@ -1,16 +1,17 @@
 import { fs } from '../../../common';
-import * as BrowserFS from '../../../../src/core/browserfs';
+import { type FileSystem, OverlayFS } from '../../../../src';
+import { Cred } from '../../../../src/cred';
 
 let __numWaiting: number;
 
 describe('Deletion Log', () => {
-	let rootFS: BrowserFS.Backend.OverlayFS;
-	let readable: BrowserFS.FileSystem;
-	let writable: typeof fs;
+	let rootFS: InstanceType<typeof OverlayFS>;
+	let readable: FileSystem;
+	let writable: FileSystem;
 	const logPath = '/.deletedFiles.log';
 
 	beforeAll(() => {
-		rootFS = fs.getRootFS() as BrowserFS.Backend.OverlayFS;
+		rootFS = fs.getMount('/') as InstanceType<typeof OverlayFS>;
 		const fses = rootFS.getOverlayedFileSystems();
 		readable = fses.readable;
 		writable = fses.writable;
@@ -21,7 +22,7 @@ describe('Deletion Log', () => {
 		}
 
 		// Back up the current log.
-		const deletionLog = rootFS.getDeletionLog();
+		const deletionLog = rootFS.fs.getDeletionLog();
 
 		// Delete a file in the underlay.
 		fs.unlinkSync('/test/fixtures/files/node/a.js');
@@ -67,25 +68,15 @@ describe('Deletion Log', () => {
 		});
 
 		// Re-mount OverlayFS.
-		return new Promise<void>(resolve => {
-			BrowserFS.Backend.OverlayFS.Create(
-				{
-					writable,
-					readable,
-				},
-				(e, overlayFs) => {
-					expect(e).toBeNull();
-					rootFS = overlayFs as BrowserFS.Backend.OverlayFS;
-					fs.initialize(rootFS);
-					rootFS = (rootFS as BrowserFS.Backend.OverlayFS).unwrap();
-					expect(fs.existsSync('/test/fixtures/files/node/a.js')).toBe(true);
-					rootFS.restoreDeletionLog('');
-					expect(fs.existsSync('/test/fixtures/files/node/a1.js')).toBe(true);
-					// Manually restore original deletion log.
-					rootFS.restoreDeletionLog(deletionLog);
-					resolve();
-				}
-			);
-		});
+		const overlayFs = await OverlayFS.Create({ writable, readable });
+
+		rootFS = overlayFs as InstanceType<typeof OverlayFS>;
+		fs.initialize({ '/': rootFS });
+		const newRoot = (rootFS as InstanceType<typeof OverlayFS>).unwrap();
+		expect(fs.existsSync('/test/fixtures/files/node/a.js')).toBe(true);
+		rootFS.fs.restoreDeletionLog('', Cred.Root);
+		expect(fs.existsSync('/test/fixtures/files/node/a1.js')).toBe(true);
+		// Manually restore original deletion log.
+		rootFS.fs.restoreDeletionLog(deletionLog, Cred.Root);
 	});
 });

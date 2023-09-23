@@ -1,13 +1,12 @@
-import Stats, { FileType } from '../src/core/stats';
-import { configure as _configure, BFSRequire } from '../src/index';
+import { Stats, FileType } from '../src/stats';
+import { configure as _configure, fs } from '../src/index';
 import * as path from 'node:path';
 import * as _fs from 'node:fs';
-import type { FSModule } from '../src/core/FS';
 
 export const tmpDir = 'tmp/';
 export const fixturesDir = 'test/fixtures/files/node';
 
-function copy(srcFS: typeof _fs, dstFS: FSModule, _p: string) {
+function copy(srcFS: typeof _fs, dstFS: typeof fs, _p: string) {
 	const p = path.posix.resolve(_p);
 	const stats = srcFS.statSync(p);
 
@@ -24,12 +23,11 @@ function copy(srcFS: typeof _fs, dstFS: FSModule, _p: string) {
 
 export async function configure(config) {
 	const result = await _configure(config);
-	const fs = BFSRequire('fs');
 	copy(_fs, fs, fixturesDir);
 	return result;
 }
 
-export const fs = BFSRequire('fs');
+export { fs };
 
 export function createMockStats(mode): Stats {
 	return new Stats(FileType.FILE, -1, mode);

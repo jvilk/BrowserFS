@@ -8,7 +8,7 @@ describe.each(backends)('%s Directory Reading', (name, options) => {
 
 	it('Cannot call readdir on a file (synchronous)', () => {
 		let wasThrown = false;
-		if (fs.getRootFS().supportsSynch()) {
+		if (fs.getMount('/').metadata.synchronous) {
 			try {
 				fs.readdirSync(path.join(fixturesDir, 'a.js'));
 			} catch (e) {
@@ -21,7 +21,7 @@ describe.each(backends)('%s Directory Reading', (name, options) => {
 
 	it('Cannot call readdir on a non-existent directory (synchronous)', () => {
 		let wasThrown = false;
-		if (fs.getRootFS().supportsSynch()) {
+		if (fs.getMount('/').metadata.synchronous) {
 			try {
 				fs.readdirSync('/does/not/exist');
 			} catch (e) {

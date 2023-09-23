@@ -5,7 +5,7 @@ import { promisify } from 'node:util';
 
 describe.each(backends)('%s fs.writeFile', (name, options) => {
 	const configured = configure({ fs: name, options });
-	if (!fs.getRootFS().isReadOnly()) {
+	if (!fs.getMount('/').metadata.readonly) {
 		const fileNameLen = Math.max(260 - tmpDir.length - 1, 1);
 		const fileName = path.join(tmpDir, new Array(fileNameLen + 1).join('x'));
 		const fullPath = path.resolve(fileName);

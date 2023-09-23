@@ -8,7 +8,7 @@ describe.each(backends)('%s fs file reading', (name, options) => {
 
 	it('should read file synchronously and verify the content', async () => {
 		await configured;
-		if (!fs.getRootFS().supportsSynch()) {
+		if (!fs.getMount('/').metadata.synchronous) {
 			return;
 		}
 		const content = fs.readFileSync(filepath, 'utf8');

@@ -12,7 +12,7 @@ import { InMemoryFileSystem } from '../backends/InMemory';
  * converts Date or number to a fractional UNIX timestamp
  * Grabbed from NodeJS sources (lib/fs.js)
  */
-export function toUnixTimestamp(time: Date | number): number {
+export function _toUnixTimestamp(time: Date | number): number {
 	if (typeof time === 'number') {
 		return time;
 	} else if (time instanceof Date) {

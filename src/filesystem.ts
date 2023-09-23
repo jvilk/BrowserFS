@@ -14,9 +14,44 @@ export type BFSThreeArgCallback<T, U> = (e?: ApiError, arg1?: T, arg2?: U) => un
 
 export type FileContents = Buffer | string;
 
-export interface DiskSpace {
-	total: number;
-	free: number;
+/**
+ * Metadata about a FileSystem
+ */
+export interface FileSystemMetadata {
+	/**
+	 * The name of the FS
+	 */
+	name: string;
+
+	/**
+	 * Wheter the FS is readonly or not
+	 */
+	readonly: boolean;
+
+	/**
+	 * Does the FS support synchronous operations
+	 */
+	synchronous: boolean;
+
+	/**
+	 * Does the FS support properties
+	 */
+	supportsProperties: boolean;
+
+	/**
+	 * Does the FS support links
+	 */
+	supportsLinks: boolean;
+
+	/**
+	 * The total space
+	 */
+	totalSpace: number;
+
+	/**
+	 * The available space
+	 */
+	freeSpace: number;
 }
 
 /**
@@ -68,43 +103,8 @@ export interface DiskSpace {
  *   reset the JavaScript stack depth before calling the user-supplied callback.
  */
 export abstract class FileSystem {
-	/**
-	 * Returns the name of the file system.
-	 */
-	abstract getName(): string;
-	/**
-	 * Passes the following information to the callback:
-	 *
-	 * * Total number of bytes available on this file system.
-	 * * number of free bytes available on this file system.
-	 *
-	 * @todo This info is not available through the Node API. Perhaps we could do a
-	 *   polyfill of diskspace.js, or add a new Node API function.
-	 */
-	abstract diskSpace(): Promise<DiskSpace>;
-	/**
-	 * Is this filesystem read-only?
-	 * @return True if this FileSystem is inherently read-only.
-	 */
-	abstract isReadOnly(): boolean;
-	/**
-	 * Does the filesystem support optional symlink/hardlink-related commands?
-	 * @return True if the FileSystem supports the optional
-	 *   symlink/hardlink-related commands.
-	 */
-	abstract supportsLinks(): boolean;
-	/**
-	 * Does the filesystem support optional property-related commands?
-	 * @return True if the FileSystem supports the optional
-	 *   property-related commands (permissions, utimes, etc).
-	 */
-	abstract supportsProps(): boolean;
-	/**
-	 * Does the filesystem support the optional synchronous interface?
-	 * @return True if the FileSystem supports synchronous operations.
-	 */
-	abstract supportsSynch(): boolean;
-	// **CORE API METHODS**
+	abstract readonly metadata: FileSystemMetadata;
+
 	// File or directory operations
 	/**
 	 * Asynchronous access.
@@ -333,32 +333,18 @@ export abstract class FileSystem {
  * provides default implementations for a handful of methods.
  */
 export class BaseFileSystem extends FileSystem {
-	getName() {
-		return 'BaseFileSystem';
-	}
-
-	isReadOnly() {
-		return false;
-	}
-
-	supportsProps() {
-		return false;
-	}
-
-	supportsSynch() {
-		return false;
-	}
-
-	public supportsLinks(): boolean {
-		return false;
-	}
-
-	public async diskSpace(): Promise<DiskSpace> {
+	public get metadata(): FileSystemMetadata {
 		return {
-			free: 0,
-			total: 0,
+			name: 'BaseFileSystem',
+			readonly: false,
+			synchronous: false,
+			supportsProperties: false,
+			supportsLinks: false,
+			totalSpace: 0,
+			freeSpace: 0,
 		};
 	}
+
 	/**
 	 * Opens the file at path p with the given flag. The file must exist.
 	 * @param p The path to open.
@@ -532,7 +518,7 @@ export class BaseFileSystem extends FileSystem {
 		}
 	}
 	public async realpath(p: string, cred: Cred): Promise<string> {
-		if (this.supportsLinks()) {
+		if (this.metadata.supportsLinks) {
 			// The path could contain symlinks. Split up the path,
 			// resolve any symlinks, return the resolved string.
 			const splitPath = p.split(path.sep);
@@ -551,7 +537,7 @@ export class BaseFileSystem extends FileSystem {
 		}
 	}
 	public realpathSync(p: string, cred: Cred): string {
-		if (this.supportsLinks()) {
+		if (this.metadata.supportsLinks) {
 			// The path could contain symlinks. Split up the path,
 			// resolve any symlinks, return the resolved string.
 			const splitPath = p.split(path.sep);
@@ -711,8 +697,8 @@ export class BaseFileSystem extends FileSystem {
  * Implements the asynchronous API in terms of the synchronous API.
  */
 export class SynchronousFileSystem extends BaseFileSystem {
-	public supportsSynch(): boolean {
-		return true;
+	public get metadata(): FileSystemMetadata {
+		return { ...super.metadata, synchronous: true };
 	}
 
 	public async access(p: string, mode: number, cred: Cred): Promise<void> {

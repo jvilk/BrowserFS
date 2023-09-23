@@ -1,4 +1,4 @@
-import { type FileSystem, BaseFileSystem, FileContents } from '../filesystem';
+import { type FileSystem, BaseFileSystem, FileContents, FileSystemMetadata } from '../filesystem';
 import { ApiError, ErrorCode } from '../ApiError';
 import { File, FileFlag } from '../file';
 import { Stats } from '../stats';
@@ -30,18 +30,12 @@ type _RPCFSResponses = {
 	[Method in keyof _FSAsyncMethods]: { method: Method; value: Awaited<ReturnType<_FSAsyncMethods[Method]>> };
 };
 
-interface RPCInitResponse {
-	isReadOnly: boolean;
-	supportsLinks: boolean;
-	supportsProps: boolean;
-}
-
 /**
  * @see https://stackoverflow.com/a/60920767/17637456
  */
 type RPCRequest = RPCMessage & (_RPCFSRequests[keyof _FSAsyncMethods] | { method: 'init'; args: [] } | { method: 'syncClose'; args: [string, File] });
 
-type RPCResponse = RPCMessage & (_RPCFSResponses[keyof _FSAsyncMethods] | { method: 'init'; value: RPCInitResponse } | { method: 'syncClose'; value: null });
+type RPCResponse = RPCMessage & (_RPCFSResponses[keyof _FSAsyncMethods] | { method: 'init'; value: FileSystemMetadata } | { method: 'syncClose'; value: null });
 
 function isRPCMessage(arg: unknown): arg is RPCMessage {
 	return typeof arg == 'object' && 'isBFS' in arg && !!arg.isBFS;
@@ -116,9 +110,7 @@ export class WorkerFS extends BaseFileSystem implements FileSystem {
 	private _requests: Map<number, WorkerRequest> = new Map();
 
 	private _isInitialized: boolean = false;
-	private _isReadOnly: boolean = false;
-	private _supportLinks: boolean = false;
-	private _supportProps: boolean = false;
+	private _metadata: FileSystemMetadata;
 
 	/**
 	 * Constructs a new WorkerFS instance that connects with BrowserFS running on
@@ -134,9 +126,7 @@ export class WorkerFS extends BaseFileSystem implements FileSystem {
 			const { id, method, value } = event.data as RPCResponse;
 
 			if (method === 'init') {
-				this._isReadOnly = value.isReadOnly;
-				this._supportLinks = value.supportsLinks;
-				this._supportProps = value.supportsProps;
+				this._metadata = value;
 				this._isInitialized = true;
 				return;
 			}
@@ -151,22 +141,13 @@ export class WorkerFS extends BaseFileSystem implements FileSystem {
 		};
 	}
 
-	public getName(): string {
-		return WorkerFS.Name;
-	}
-
-	public isReadOnly(): boolean {
-		return this._isReadOnly;
-	}
-	public supportsSynch(): boolean {
-		return false;
-	}
-	public supportsLinks(): boolean {
-		return this._supportLinks;
-	}
-
-	public supportsProps(): boolean {
-		return this._supportProps;
+	public get metadata(): FileSystemMetadata {
+		return {
+			...super.metadata,
+			...this._metadata,
+			name: WorkerFS.Name,
+			synchronous: false,
+		};
 	}
 
 	private async _rpc<T extends RPCRequest['method']>(method: T, ...args: Extract<RPCRequest, { method: T }>['args']): _RPCExtractReturnValue<T> {

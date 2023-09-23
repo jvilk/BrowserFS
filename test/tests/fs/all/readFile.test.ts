@@ -8,7 +8,7 @@ describe.each(backends)('%s File Reading', (name, options) => {
 		await configured;
 
 		let wasThrown = false;
-		if (!fs.getRootFS().supportsSynch()) {
+		if (!fs.getMount('/').metadata.synchronous) {
 			return;
 		}
 
@@ -50,7 +50,7 @@ describe.each(backends)('%s Read and Unlink File Test', (name, options) => {
 
 	it('should read file and verify its content', async () => {
 		await configured;
-		if (fs.getRootFS().isReadOnly()) {
+		if (fs.getMount('/').metadata.readonly) {
 			return;
 		}
 		const data: Buffer = await promisify<string, Buffer>(fs.readFile)(fileName);
@@ -60,7 +60,7 @@ describe.each(backends)('%s Read and Unlink File Test', (name, options) => {
 
 	it('should unlink file and remove directory', async () => {
 		await configured;
-		if (fs.getRootFS().isReadOnly()) {
+		if (fs.getMount('/').metadata.readonly) {
 			return;
 		}
 		await promisify(fs.unlink)(fileName);
@@ -84,7 +84,7 @@ describe.each(backends)('%s Read File Test', (name, options) => {
 		expect(data).toBe('');
 	});
 
-	if (fs.getRootFS().supportsSynch()) {
+	if (fs.getMount('/').metadata.synchronous) {
 		it('should read file synchronously', async () => {
 			await configured;
 			const data: Buffer = fs.readFileSync(fn);

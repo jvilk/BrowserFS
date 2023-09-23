@@ -1,4 +1,4 @@
-import { BaseFileSystem, type FileSystem, FileContents } from '../filesystem';
+import { BaseFileSystem, type FileSystem, FileContents, FileSystemMetadata } from '../filesystem';
 import { ApiError, ErrorCode } from '../ApiError';
 import { copyingSlice } from '../utils';
 import { File, FileFlag, ActionType } from '../file';
@@ -111,28 +111,12 @@ export class HTTPRequest extends BaseFileSystem implements FileSystem {
 		});
 	}
 
-	public getName(): string {
-		return HTTPRequest.Name;
-	}
-
-	public isReadOnly(): boolean {
-		return true;
-	}
-
-	public supportsLinks(): boolean {
-		return false;
-	}
-
-	public supportsProps(): boolean {
-		return false;
-	}
-
-	/**
-	 * Synchronous XHRs are deprecated.
-	 * @returns false
-	 */
-	public supportsSynch(): boolean {
-		return false;
+	public get metadata(): FileSystemMetadata {
+		return {
+			...super.metadata,
+			name: HTTPRequest.Name,
+			readonly: true,
+		};
 	}
 
 	/**

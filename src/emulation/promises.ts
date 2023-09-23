@@ -4,10 +4,16 @@ import { ApiError, ErrorCode } from '../ApiError';
 import * as constants from './constants';
 export { constants };
 
-import { FileFlag } from '../file';
+import { File, FileFlag } from '../file';
 import { normalizePath, normalizeMode, getFdForFile, normalizeOptions, fd2file, fdMap, normalizeTime, cred, nop, resolveFS, fixError, mounts } from './shared';
 import { FileContents, FileSystem } from '../filesystem';
 import { Stats } from '../stats';
+
+type FileSystemMethod = {
+	[K in keyof FileSystem]: FileSystem[K] extends (...args: any) => any
+		? (name: K, resolveSymlinks: boolean, ...args: Parameters<FileSystem[K]>) => ReturnType<FileSystem[K]>
+		: never;
+}[keyof FileSystem]; // https://stackoverflow.com/a/76335220/17637456
 
 /**
  * Utility for FS ops. It handles
@@ -16,17 +22,17 @@ import { Stats } from '../stats';
  * - FS/mount point resolution
  *
  * It can't be used for functions which may operate on multiple mounted FSs or paths (e.g. `rename`)
- * @param fn the function name
+ * @param name the function name
  * @param resolveSymlinks whether to resolve symlinks
  * @param args the rest of the parameters are passed to the FS function. Note that the first parameter is required to be a path
  * @returns
  */
-async function doOp<F extends keyof FileSystem, FN extends FileSystem[F]>(fn: F, resolveSymlinks: boolean, ...[path, ...args]: Parameters<FN>): Promise<ReturnType<FN>> {
+async function doOp<M extends FileSystemMethod, RT extends ReturnType<M>>(...[name, resolveSymlinks, path, ...args]: Parameters<M>): Promise<RT> {
 	path = normalizePath(path);
 	const { fs, path: resolvedPath } = resolveFS(resolveSymlinks && (await exists(path)) ? await realpath(path) : path);
 	try {
 		// @ts-expect-error 2556 (since ...args is not correctly picked up as being a tuple)
-		return fs[fn](resolvedPath, ...args) as Promise<ReturnType<FN>>;
+		return fs[name](resolvedPath, ...args) as Promise<RT>;
 	} catch (e) {
 		throw fixError(e, { [resolvedPath]: path });
 	}
@@ -126,7 +132,7 @@ export async function unlink(path: string): Promise<void> {
  * @param mode defaults to `0644`
  */
 export async function open(path: string, flag: string, mode: number | string = 0o644): Promise<number> {
-	const file = await doOp('open', true, path, FileFlag.getFileFlag(flag), normalizeMode(mode, 0o644), cred);
+	const file: File = await doOp('open', true, path, FileFlag.getFileFlag(flag), normalizeMode(mode, 0o644), cred);
 	return getFdForFile(file);
 }
 
@@ -373,7 +379,7 @@ export async function mkdir(path: string, mode?: number | string): Promise<void>
  */
 export async function readdir(path: string): Promise<string[]> {
 	path = normalizePath(path);
-	const entries = await doOp('readdir', true, path, cred);
+	const entries: string[] = await doOp('readdir', true, path, cred);
 	const points = [...mounts.keys()];
 	for (const point of points) {
 		if (point.startsWith(path)) {

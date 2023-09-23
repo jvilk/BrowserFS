@@ -1,6 +1,6 @@
 import { ApiError, ErrorCode } from '../ApiError';
 import { Stats, FileType } from '../stats';
-import { SynchronousFileSystem, type FileSystem, DiskSpace } from '../filesystem';
+import { SynchronousFileSystem, type FileSystem, FileSystemMetadata } from '../filesystem';
 import { File, FileFlag, ActionType } from '../file';
 import { NoSyncFile } from '../generic/preload_file';
 import { copyingSlice, bufferValidator as validator } from '../utils';
@@ -1220,35 +1220,18 @@ export class IsoFS extends SynchronousFileSystem implements FileSystem {
 		this._name = name;
 	}
 
-	public getName(): string {
+	public get metadata(): FileSystemMetadata {
 		let name = `IsoFS${this._name}${this._pvd ? `-${this._pvd.name()}` : ''}`;
 		if (this._root && this._root.hasRockRidge()) {
 			name += `-RockRidge`;
 		}
-		return name;
-	}
-
-	public async diskSpace(): Promise<DiskSpace> {
 		return {
-			total: this._data.length,
-			free: 0,
+			...super.metadata,
+			name,
+			synchronous: true,
+			readonly: true,
+			totalSpace: this._data.length,
 		};
-	}
-
-	public isReadOnly(): boolean {
-		return true;
-	}
-
-	public supportsLinks(): boolean {
-		return false;
-	}
-
-	public supportsProps(): boolean {
-		return false;
-	}
-
-	public supportsSynch(): boolean {
-		return true;
 	}
 
 	public statSync(p: string): Stats {

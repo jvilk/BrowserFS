@@ -88,7 +88,7 @@ describe.each(backends)('%s PermissionsTest', (name, options) => {
 	async function process_item(p: string, parentMode: number): Promise<void> {
 		const statAsync = promisify(fs.stat);
 
-		const isReadOnly = fs.getRootFS().isReadOnly();
+		const isReadOnly = fs.getMount('/').metadata.readonly;
 
 		try {
 			const stat = await statAsync(p);
