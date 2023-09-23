@@ -24,17 +24,23 @@ export function registerBackend(name: string, fs: BackendConstructor) {
 }
 
 /**
- * Initializes BrowserFS with the given root file system.
+ * Initializes BrowserFS with the given file systems.
  */
 export function initialize(mounts: { [point: string]: FileSystem }, uid: number = 0, gid: number = 0) {
 	setCred(new Cred(uid, gid, uid, gid, uid, gid));
 	return fs.initialize(mounts);
 }
 
+/**
+ * Defines a mapping of mount points to their configurations
+ */
 export interface ConfigMapping {
 	[mountPoint: string]: FileSystem | FileSystemConfiguration | keyof typeof backends;
 }
 
+/**
+ * A configuration for BrowserFS
+ */
 export type Configuration = FileSystem | FileSystemConfiguration | ConfigMapping;
 
 async function _configure(config: Configuration): Promise<void> {
@@ -62,9 +68,9 @@ async function _configure(config: Configuration): Promise<void> {
  * Creates a file system with the given configuration, and initializes BrowserFS with it.
  * See the FileSystemConfiguration type for more info on the configuration object.
  */
-export function configure(config: FileSystemConfiguration): Promise<void>;
-export function configure(config: FileSystemConfiguration, cb: BFSOneArgCallback): void;
-export function configure(config: FileSystemConfiguration, cb?: BFSOneArgCallback): Promise<void> | void {
+export function configure(config: Configuration): Promise<void>;
+export function configure(config: Configuration, cb: BFSOneArgCallback): void;
+export function configure(config: Configuration, cb?: BFSOneArgCallback): Promise<void> | void {
 	// Promise version
 	if (typeof cb != 'function') {
 		return _configure(config);
