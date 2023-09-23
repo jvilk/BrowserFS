@@ -3,14 +3,14 @@
  */
 
 import * as buffer from 'buffer';
-import fs from './node_fs';
+import fs from './emulation/fs';
 import * as path from 'path';
 import { FileSystem, type BFSOneArgCallback, type BFSCallback, BaseFileSystem } from './filesystem';
 import EmscriptenFS from './generic/emscripten_fs';
 import { backends } from './backends';
 import * as BFSUtils from './utils';
 import { ErrorCode, ApiError } from './ApiError';
-import Cred from './cred';
+import { Cred } from './cred';
 import * as process from 'process';
 import type { BackendConstructor } from './backends';
 
@@ -189,4 +189,5 @@ export * from './backends';
 export * from './ApiError';
 export * from './generic/key_value_filesystem';
 export * from './inode';
-export { EmscriptenFS, FileSystem, BaseFileSystem };
+export { fs, EmscriptenFS, FileSystem, BaseFileSystem };
+export default fs;

@@ -1,13 +1,13 @@
 import { type FileSystem, BaseFileSystem } from '../filesystem';
 import { ApiError, ErrorCode } from '../ApiError';
 import { File, FileFlag, ActionType } from '../file';
-import { default as Stats } from '../stats';
+import { Stats } from '../stats';
 import PreloadFile from '../generic/preload_file';
 import LockedFS from '../generic/locked_fs';
 import * as path from 'path';
-import Cred from '../cred';
+import { Cred } from '../cred';
 import type { Buffer } from 'buffer';
-import type { BackendOptions } from '.';
+import type { BackendOptions } from './index';
 /**
  * @hidden
  */
@@ -172,7 +172,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 			throw ApiError.EPERM('Cannot rename deletion log.');
 		}
 		// Write newPath using oldPath's contents, delete oldPath.
-		const oldStats = await this.stat(oldPath, false, cred);
+		const oldStats = await this.stat(oldPath, cred);
 		if (oldStats.isDirectory()) {
 			// Optimization: Don't bother moving if old === new.
 			if (oldPath === newPath) {
@@ -181,7 +181,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 
 			let mode = 0o777;
 			if (await this.exists(newPath, cred)) {
-				const stats = await this.stat(newPath, false, cred);
+				const stats = await this.stat(newPath, cred);
 				mode = stats.mode;
 				if (stats.isDirectory()) {
 					if ((await this.readdir(newPath, cred)).length > 0) {
@@ -209,7 +209,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 				}
 			}
 		} else {
-			if ((await this.exists(newPath, cred)) && (await this.stat(newPath, false, cred)).isDirectory()) {
+			if ((await this.exists(newPath, cred)) && (await this.stat(newPath, cred)).isDirectory()) {
 				throw ApiError.EISDIR(newPath);
 			}
 
@@ -229,7 +229,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 			throw ApiError.EPERM('Cannot rename deletion log.');
 		}
 		// Write newPath using oldPath's contents, delete oldPath.
-		const oldStats = this.statSync(oldPath, false, cred);
+		const oldStats = this.statSync(oldPath, cred);
 		if (oldStats.isDirectory()) {
 			// Optimization: Don't bother moving if old === new.
 			if (oldPath === newPath) {
@@ -238,7 +238,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 
 			let mode = 0o777;
 			if (this.existsSync(newPath, cred)) {
-				const stats = this.statSync(newPath, false, cred);
+				const stats = this.statSync(newPath, cred);
 				mode = stats.mode;
 				if (stats.isDirectory()) {
 					if (this.readdirSync(newPath, cred).length > 0) {
@@ -266,7 +266,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 				});
 			}
 		} else {
-			if (this.existsSync(newPath, cred) && this.statSync(newPath, false, cred).isDirectory()) {
+			if (this.existsSync(newPath, cred) && this.statSync(newPath, cred).isDirectory()) {
 				throw ApiError.EISDIR(newPath);
 			}
 
@@ -278,15 +278,15 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 		}
 	}
 
-	public async stat(p: string, isLstat: boolean, cred: Cred): Promise<Stats> {
+	public async stat(p: string, cred: Cred): Promise<Stats> {
 		this.checkInitialized();
 		try {
-			return this._writable.stat(p, isLstat, cred);
+			return this._writable.stat(p, cred);
 		} catch (e) {
 			if (this._deletedFiles[p]) {
 				throw ApiError.ENOENT(p);
 			}
-			const oldStat = Stats.clone(await this._readable.stat(p, isLstat, cred));
+			const oldStat = Stats.clone(await this._readable.stat(p, cred));
 			// Make the oldStat's mode writable. Preserve the topmost part of the
 			// mode, which specifies if it is a file or a directory.
 			oldStat.mode = makeModeWritable(oldStat.mode);
@@ -294,15 +294,15 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 		}
 	}
 
-	public statSync(p: string, isLstat: boolean, cred: Cred): Stats {
+	public statSync(p: string, cred: Cred): Stats {
 		this.checkInitialized();
 		try {
-			return this._writable.statSync(p, isLstat, cred);
+			return this._writable.statSync(p, cred);
 		} catch (e) {
 			if (this._deletedFiles[p]) {
 				throw ApiError.ENOENT(p);
 			}
-			const oldStat = Stats.clone(this._readable.statSync(p, isLstat, cred));
+			const oldStat = Stats.clone(this._readable.statSync(p, cred));
 			// Make the oldStat's mode writable. Preserve the topmost part of the
 			// mode, which specifies if it is a file or a directory.
 			oldStat.mode = makeModeWritable(oldStat.mode);
@@ -327,7 +327,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 					} else {
 						// Create an OverlayFile.
 						const buf = await this._readable.readFile(p, null, getFlag('r'), cred);
-						const stats = Stats.clone(await this._readable.stat(p, false, cred));
+						const stats = Stats.clone(await this._readable.stat(p, cred));
 						stats.mode = mode;
 						return new OverlayFile(this, p, flag, stats, buf as Buffer);
 					}
@@ -362,7 +362,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 					} else {
 						// Create an OverlayFile.
 						const buf = <Buffer>this._readable.readFileSync(p, null, getFlag('r'), cred);
-						const stats = Stats.clone(this._readable.statSync(p, false, cred));
+						const stats = Stats.clone(this._readable.statSync(p, cred));
 						stats.mode = mode;
 						return new OverlayFile(this, p, flag, stats, buf);
 					}
@@ -478,7 +478,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 
 	public async readdir(p: string, cred: Cred): Promise<string[]> {
 		this.checkInitialized();
-		const dirStats = await this.stat(p, false, cred);
+		const dirStats = await this.stat(p, cred);
 		if (!dirStats.isDirectory()) {
 			throw ApiError.ENOTDIR(p);
 		}
@@ -505,7 +505,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 
 	public readdirSync(p: string, cred: Cred): string[] {
 		this.checkInitialized();
-		const dirStats = this.statSync(p, false, cred);
+		const dirStats = this.statSync(p, cred);
 		if (!dirStats.isDirectory()) {
 			throw ApiError.ENOTDIR(p);
 		}
@@ -540,28 +540,28 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 		return this._writable.existsSync(p, cred) || (this._readable.existsSync(p, cred) && this._deletedFiles[p] !== true);
 	}
 
-	public async chmod(p: string, isLchmod: boolean, mode: number, cred: Cred): Promise<void> {
+	public async chmod(p: string, mode: number, cred: Cred): Promise<void> {
 		this.checkInitialized();
 		await this.operateOnWritableAsync(p, cred);
-		await this._writable.chmod(p, isLchmod, mode, cred);
+		await this._writable.chmod(p, mode, cred);
 	}
 
-	public chmodSync(p: string, isLchmod: boolean, mode: number, cred: Cred): void {
+	public chmodSync(p: string, mode: number, cred: Cred): void {
 		this.checkInitialized();
 		this.operateOnWritable(p, cred);
-		this._writable.chmodSync(p, isLchmod, mode, cred);
+		this._writable.chmodSync(p, mode, cred);
 	}
 
-	public async chown(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): Promise<void> {
+	public async chown(p: string, new_uid: number, new_gid: number, cred: Cred): Promise<void> {
 		this.checkInitialized();
 		await this.operateOnWritableAsync(p, cred);
-		await this._writable.chown(p, isLchown, new_uid, new_gid, cred);
+		await this._writable.chown(p, new_uid, new_gid, cred);
 	}
 
-	public chownSync(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): void {
+	public chownSync(p: string, new_uid: number, new_gid: number, cred: Cred): void {
 		this.checkInitialized();
 		this.operateOnWritable(p, cred);
-		this._writable.chownSync(p, isLchown, new_uid, new_gid, cred);
+		this._writable.chownSync(p, new_uid, new_gid, cred);
 	}
 
 	public async utimes(p: string, atime: Date, mtime: Date, cred: Cred): Promise<void> {
@@ -642,7 +642,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 		toCreate = toCreate.reverse();
 
 		for (const p of toCreate) {
-			this._writable.mkdirSync(p, this.statSync(p, false, cred).mode, cred);
+			this._writable.mkdirSync(p, this.statSync(p, cred).mode, cred);
 		}
 	}
 
@@ -656,7 +656,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 		toCreate = toCreate.reverse();
 
 		for (const p of toCreate) {
-			const stats = await this.stat(p, false, cred);
+			const stats = await this.stat(p, cred);
 			await this._writable.mkdir(p, stats.mode, cred);
 		}
 	}
@@ -692,7 +692,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 	 * PRECONDITION: File does not exist on writable storage.
 	 */
 	private copyToWritable(p: string, cred: Cred): void {
-		const pStats = this.statSync(p, false, cred);
+		const pStats = this.statSync(p, cred);
 		if (pStats.isDirectory()) {
 			this._writable.mkdirSync(p, pStats.mode, cred);
 		} else {
@@ -701,7 +701,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 	}
 
 	private async copyToWritableAsync(p: string, cred: Cred): Promise<void> {
-		const pStats = await this.stat(p, false, cred);
+		const pStats = await this.stat(p, cred);
 		if (pStats.isDirectory()) {
 			await this._writable.mkdir(p, pStats.mode, cred);
 		} else {

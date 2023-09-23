@@ -2,13 +2,13 @@ import { BaseFileSystem, type FileSystem, FileContents } from '../filesystem';
 import { ApiError, ErrorCode } from '../ApiError';
 import { copyingSlice } from '../utils';
 import { File, FileFlag, ActionType } from '../file';
-import { default as Stats, FilePerm } from '../stats';
+import { Stats, FilePerm } from '../stats';
 import { NoSyncFile } from '../generic/preload_file';
 import { fetchIsAvailable, fetchFile, fetchFileSize } from '../generic/fetch';
 import { FileIndex, isFileInode, isDirInode } from '../generic/file_index';
-import Cred from '../cred';
+import { Cred } from '../cred';
 import type { Buffer } from 'buffer';
-import type { BackendOptions } from '.';
+import type { BackendOptions } from './index';
 
 /**
  * Configuration options for a HTTPRequest file system.
@@ -160,7 +160,7 @@ export class HTTPRequest extends BaseFileSystem implements FileSystem {
 		}
 	}
 
-	public async stat(path: string, isLstat: boolean, cred: Cred): Promise<Stats> {
+	public async stat(path: string, cred: Cred): Promise<Stats> {
 		const inode = this._index.getInode(path);
 		if (inode === null) {
 			throw ApiError.ENOENT(path);

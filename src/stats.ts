@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import Cred from './cred';
+import { Cred } from './cred';
 import { Buffer } from 'buffer';
 
 /**
@@ -27,7 +27,7 @@ export enum FilePerm {
  * @see http://nodejs.org/api/fs.html#fs_class_fs_stats
  * @see http://man7.org/linux/man-pages/man2/stat.2.html
  */
-export default class Stats implements fs.Stats {
+export class Stats implements fs.Stats {
 	public static fromBuffer(buffer: Buffer): Stats {
 		const size = buffer.readUInt32LE(0),
 			mode = buffer.readUInt32LE(4),
@@ -144,11 +144,11 @@ export default class Stats implements fs.Stats {
 		if (!mode) {
 			switch (itemType) {
 				case FileType.FILE:
-					this.mode = 0x1a4;
+					this.mode = 0o644;
 					break;
 				case FileType.DIRECTORY:
 				default:
-					this.mode = 0x1ff;
+					this.mode = 0o777;
 			}
 		} else {
 			this.mode = mode;

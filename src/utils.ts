@@ -4,7 +4,7 @@
 import { FileSystem } from './filesystem';
 import { ErrorCode, ApiError } from './ApiError';
 import * as path from 'path';
-import Cred from './cred';
+import { Cred } from './cred';
 import { Buffer } from 'buffer';
 import type { BackendConstructor } from './backends';
 

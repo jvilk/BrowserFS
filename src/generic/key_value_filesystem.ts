@@ -1,13 +1,13 @@
 import { BaseFileSystem, SynchronousFileSystem } from '../filesystem';
 import { ApiError, ErrorCode } from '../ApiError';
-import { default as Stats, FileType, FilePerm } from '../stats';
+import { Stats, FileType, FilePerm } from '../stats';
 import { File } from '../file';
 import { FileFlag } from '../file';
 import * as path from 'path';
 import * as process from 'process';
 import Inode from '../inode';
 import PreloadFile from '../generic/preload_file';
-import Cred from '../cred';
+import { Cred } from '../cred';
 import { Buffer } from 'buffer';
 /**
  * @hidden
@@ -449,7 +449,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
 		tx.commit();
 	}
 
-	public statSync(p: string, isLstat: boolean, cred: Cred): Stats {
+	public statSync(p: string, cred: Cred): Stats {
 		// Get the inode to the item, convert it into a Stats object.
 		const stats = this.findINode(this.store.beginTransaction('readonly'), p).toStats();
 		if (!stats.hasAccess(FilePerm.READ, cred)) {
@@ -507,15 +507,13 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
 		return Object.keys(this.getDirListing(tx, p, node));
 	}
 
-	public chmodSync(p: string, isLchmod: boolean, mode: number, cred: Cred): void {
-		const path = isLchmod ? p : this.realpathSync(p, {}, cred);
-		const fd = this.openFileSync(path, FileFlag.getFileFlag('r+'), cred);
+	public chmodSync(p: string, mode: number, cred: Cred): void {
+		const fd = this.openFileSync(p, FileFlag.getFileFlag('r+'), cred);
 		fd.chmodSync(mode);
 	}
 
-	public chownSync(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): void {
-		const path = isLchown ? p : this.realpathSync(p, {}, cred);
-		const fd = this.openFileSync(path, FileFlag.getFileFlag('r+'), cred);
+	public chownSync(p: string, new_uid: number, new_gid: number, cred: Cred): void {
+		const fd = this.openFileSync(p, FileFlag.getFileFlag('r+'), cred);
 		fd.chownSync(new_uid, new_gid);
 	}
 
@@ -997,7 +995,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
 		}
 	}
 
-	public async stat(p: string, isLstat: boolean, cred: Cred): Promise<Stats> {
+	public async stat(p: string, cred: Cred): Promise<Stats> {
 		const tx = this.store.beginTransaction('readonly');
 		const inode = await this.findINode(tx, p);
 		const stats = inode!.toStats();
@@ -1056,16 +1054,14 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
 		return Object.keys(await this.getDirListing(tx, p, node));
 	}
 
-	public async chmod(p: string, isLchmod: boolean, mode: number, cred: Cred): Promise<void> {
-		const path = isLchmod ? p : await this.realpath(p, {}, cred);
-		const fd = await this.openFile(path, FileFlag.getFileFlag('r+'), cred);
+	public async chmod(p: string, mode: number, cred: Cred): Promise<void> {
+		const fd = await this.openFile(p, FileFlag.getFileFlag('r+'), cred);
 		await fd.chmod(mode);
 	}
 
-	public async chown(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): Promise<void> {
-		const path = isLchown ? p : await this.realpath(p, {}, cred);
-		const fd = await this.openFile(path, FileFlag.getFileFlag('r+'), cred);
-		await fd.chown(cred.euid, cred.egid);
+	public async chown(p: string, new_uid: number, new_gid: number, cred: Cred): Promise<void> {
+		const fd = await this.openFile(p, FileFlag.getFileFlag('r+'), cred);
+		await fd.chown(new_uid, new_gid);
 	}
 
 	public async _sync(p: string, data: Buffer, stats: Stats): Promise<void> {

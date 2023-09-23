@@ -1,6 +1,6 @@
 import { SyncKeyValueStore, SimpleSyncStore, SimpleSyncRWTransaction, SyncKeyValueRWTransaction, SyncKeyValueFileSystem } from '../generic/key_value_filesystem';
 import type { Buffer } from 'buffer';
-import type { BackendOptions } from '.';
+import type { BackendOptions } from './index';
 
 /**
  * A simple in-memory key-value store backed by a JavaScript object.

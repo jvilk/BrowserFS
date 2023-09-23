@@ -1,11 +1,11 @@
 import { type FileSystem, BaseFileSystem } from '../filesystem';
 import { InMemoryFileSystem } from './InMemory';
 import { ApiError, ErrorCode } from '../ApiError';
-import fs from '../node_fs';
+import fs from '../emulation/fs';
 import * as path from 'path';
 import { mkdirpSync, toPromise } from '../utils';
-import Cred from '../cred';
-import type { BackendOptions } from '.';
+import { Cred } from '../cred';
+import type { BackendOptions } from './index';
 
 /**
  * Configuration options for the MountableFileSystem backend.
@@ -104,7 +104,7 @@ export class MountableFileSystem extends BaseFileSystem implements FileSystem {
 		if (this.mntMap[mountPoint]) {
 			throw new ApiError(ErrorCode.EINVAL, 'Mount point ' + mountPoint + ' is already in use.');
 		}
-		mkdirpSync(mountPoint, 0x1ff, cred, this.rootFs);
+		mkdirpSync(mountPoint, 0o777, cred, this.rootFs);
 		this.mntMap[mountPoint] = fs;
 		this.mountList.push(mountPoint);
 		this.mountList = this.mountList.sort((a, b) => b.length - a.length);
@@ -289,11 +289,11 @@ export class MountableFileSystem extends BaseFileSystem implements FileSystem {
 		}
 	}
 
-	public realpathSync(p: string, cache: { [path: string]: string }, cred: Cred): string {
+	public realpathSync(p: string, cred: Cred): string {
 		const fsInfo = this._getFs(p);
 
 		try {
-			const mountedPath = fsInfo.fs.realpathSync(fsInfo.path, {}, cred);
+			const mountedPath = fsInfo.fs.realpathSync(fsInfo.path, cred);
 			// resolve is there to remove any trailing slash that may be present
 			return path.resolve(path.join(fsInfo.mountPoint, mountedPath));
 		} catch (e) {
@@ -301,11 +301,11 @@ export class MountableFileSystem extends BaseFileSystem implements FileSystem {
 		}
 	}
 
-	public async realpath(p: string, cache: { [path: string]: string }, cred: Cred): Promise<string> {
+	public async realpath(p: string, cred: Cred): Promise<string> {
 		const fsInfo = this._getFs(p);
 
 		try {
-			const rv = await fsInfo.fs.realpath(fsInfo.path, {}, cred);
+			const rv = await fsInfo.fs.realpath(fsInfo.path, cred);
 
 			return path.resolve(path.join(fsInfo.mountPoint, rv!));
 		} catch (e) {

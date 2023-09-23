@@ -1,12 +1,12 @@
 import { ApiError, ErrorCode } from '../ApiError';
-import { default as Stats, FileType } from '../stats';
+import { Stats, FileType } from '../stats';
 import { SynchronousFileSystem, type FileSystem } from '../filesystem';
 import { File, FileFlag, ActionType } from '../file';
 import { NoSyncFile } from '../generic/preload_file';
 import { copyingSlice, bufferValidator as validator } from '../utils';
 import * as path from 'path';
 import type { Buffer } from 'buffer';
-import type { BackendOptions } from '.';
+import type { BackendOptions } from './index';
 
 /**
  * @hidden
@@ -1249,7 +1249,7 @@ export class IsoFS extends SynchronousFileSystem implements FileSystem {
 		return true;
 	}
 
-	public statSync(p: string, isLstat: boolean): Stats {
+	public statSync(p: string): Stats {
 		const record = this._getDirectoryRecord(p);
 		if (record === null) {
 			throw ApiError.ENOENT(p);
@@ -1300,7 +1300,7 @@ export class IsoFS extends SynchronousFileSystem implements FileSystem {
 	 */
 	public readFileSync(fname: string, encoding: BufferEncoding, flag: FileFlag): any {
 		// Get file.
-		const fd = this.openSync(fname, flag, 0x1a4);
+		const fd = this.openSync(fname, flag, 0o644);
 		try {
 			const fdCast = <NoSyncFile<IsoFS>>fd;
 			const fdBuff = <Buffer>fdCast.getBuffer();

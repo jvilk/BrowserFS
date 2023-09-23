@@ -1,13 +1,13 @@
 /// <reference lib="dom" />
 import { basename, dirname, join } from 'path';
 import { ApiError, ErrorCode } from '../ApiError';
-import Cred from '../cred';
+import { Cred } from '../cred';
 import { File, FileFlag } from '../file';
 import { BaseFileSystem, type FileSystem } from '../filesystem';
-import { default as Stats, FileType } from '../stats';
+import { Stats, FileType } from '../stats';
 import PreloadFile from '../generic/preload_file';
 import { Buffer } from 'buffer';
-import type { BackendOptions } from '.';
+import type { BackendOptions } from './index';
 
 interface FileSystemAccessFileSystemOptions {
 	handle: FileSystemDirectoryHandle;
@@ -79,7 +79,7 @@ export class FileSystemAccessFileSystem extends BaseFileSystem implements FileSy
 	}
 
 	public async _sync(p: string, data: Buffer, stats: Stats, cred: Cred): Promise<void> {
-		const currentStats = await this.stat(p, false, cred);
+		const currentStats = await this.stat(p, cred);
 		if (stats.mtime !== currentStats!.mtime) {
 			await this.writeFile(p, data, null, FileFlag.getFileFlag('w'), currentStats!.mode, cred);
 		}
@@ -135,7 +135,7 @@ export class FileSystemAccessFileSystem extends BaseFileSystem implements FileSy
 		return this.openFile(p, flag, cred);
 	}
 
-	public async stat(path: string, isLstat: boolean, cred: Cred): Promise<Stats> {
+	public async stat(path: string, cred: Cred): Promise<Stats> {
 		const handle = await this.getHandle(path);
 		if (!handle) {
 			throw ApiError.FileError(ErrorCode.EINVAL, path);

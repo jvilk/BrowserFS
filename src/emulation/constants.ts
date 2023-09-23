@@ -46,7 +46,7 @@ export const O_WRONLY = 1;
 export const O_RDWR = 2;
 
 /** Constant for fs.open(). Flag indicating to create the file if it does not already exist. */
-export const O_CREAT = 0o100; // Node internal is 
+export const O_CREAT = 0o100; // Node internal is
 
 /** Constant for fs.open(). Flag indicating that opening a file should fail if the O_CREAT flag is set and the file already exists. */
 export const O_EXCL = 0o200;

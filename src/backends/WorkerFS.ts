@@ -1,9 +1,9 @@
 import { type FileSystem, BaseFileSystem, FileContents } from '../filesystem';
 import { ApiError, ErrorCode } from '../ApiError';
 import { File, FileFlag } from '../file';
-import { default as Stats } from '../stats';
-import Cred from '../cred';
-import type { BackendOptions } from '.';
+import { Stats } from '../stats';
+import { Cred } from '../cred';
+import type { BackendOptions } from './index';
 
 /**
  * @hidden
@@ -185,8 +185,8 @@ export class WorkerFS extends BaseFileSystem implements FileSystem {
 	public rename(oldPath: string, newPath: string, cred: Cred): Promise<void> {
 		return this._rpc('rename', oldPath, newPath, cred);
 	}
-	public stat(p: string, isLstat: boolean, cred: Cred): Promise<Stats> {
-		return this._rpc('stat', p, isLstat, cred);
+	public stat(p: string, cred: Cred): Promise<Stats> {
+		return this._rpc('stat', p, cred);
 	}
 	public open(p: string, flag: FileFlag, mode: number, cred: Cred): Promise<File> {
 		return this._rpc('open', p, flag, mode, cred);
@@ -206,8 +206,8 @@ export class WorkerFS extends BaseFileSystem implements FileSystem {
 	public exists(p: string, cred: Cred): Promise<boolean> {
 		return this._rpc('exists', p, cred);
 	}
-	public realpath(p: string, cache: { [path: string]: string }, cred: Cred): Promise<string> {
-		return this._rpc('realpath', p, cache, cred);
+	public realpath(p: string, cred: Cred): Promise<string> {
+		return this._rpc('realpath', p, cred);
 	}
 	public truncate(p: string, len: number, cred: Cred): Promise<void> {
 		return this._rpc('truncate', p, len, cred);
@@ -221,11 +221,11 @@ export class WorkerFS extends BaseFileSystem implements FileSystem {
 	public appendFile(fname: string, data: FileContents, encoding: BufferEncoding, flag: FileFlag, mode: number, cred: Cred): Promise<void> {
 		return this._rpc('appendFile', fname, data, encoding, flag, mode, cred);
 	}
-	public chmod(p: string, isLchmod: boolean, mode: number, cred: Cred): Promise<void> {
-		return this._rpc('chmod', p, isLchmod, mode, cred);
+	public chmod(p: string, mode: number, cred: Cred): Promise<void> {
+		return this._rpc('chmod', p, mode, cred);
 	}
-	public chown(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): Promise<void> {
-		return this._rpc('chown', p, isLchown, new_uid, new_gid, cred);
+	public chown(p: string, new_uid: number, new_gid: number, cred: Cred): Promise<void> {
+		return this._rpc('chown', p, new_uid, new_gid, cred);
 	}
 	public utimes(p: string, atime: Date, mtime: Date, cred: Cred): Promise<void> {
 		return this._rpc('utimes', p, atime, mtime, cred);

@@ -1,7 +1,7 @@
 import { SyncKeyValueStore, SimpleSyncStore, SyncKeyValueFileSystem, SimpleSyncRWTransaction, SyncKeyValueRWTransaction } from '../generic/key_value_filesystem';
 import { ApiError, ErrorCode } from '../ApiError';
 import { Buffer } from 'buffer';
-import type { BackendOptions } from '.';
+import type { BackendOptions } from './index';
 
 /**
  * Some versions of FF and all versions of IE do not support the full range of

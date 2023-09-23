@@ -1,11 +1,11 @@
 import { SynchronousFileSystem } from '../filesystem';
-import { default as Stats, FileType } from '../stats';
+import { Stats, FileType } from '../stats';
 import { BaseFile, File, FileFlag } from '../file';
 import { ApiError, ErrorCode, ErrorStrings } from '../ApiError';
 import { EmscriptenFSNode } from '../generic/emscripten_fs';
-import Cred from '../cred';
+import { Cred } from '../cred';
 import { Buffer } from 'buffer';
-import type { BackendOptions } from '.';
+import type { BackendOptions } from './index';
 
 /**
  * @hidden
@@ -54,7 +54,7 @@ export class EmscriptenFile extends BaseFile implements File {
 	}
 	public statSync(): Stats {
 		try {
-			return this._fs.statSync(this._path, false, Cred.Root);
+			return this._fs.statSync(this._path, Cred.Root);
 		} catch (e) {
 			throw convertError(e, this._path);
 		}
@@ -190,9 +190,9 @@ export class EmscriptenFileSystem extends SynchronousFileSystem {
 		}
 	}
 
-	public statSync(p: string, isLstat: boolean, cred: Cred): Stats {
+	public statSync(p: string, cred: Cred): Stats {
 		try {
-			const stats = isLstat ? this._FS.lstat(p) : this._FS.stat(p);
+			const stats = this._FS.stat(p);
 			const itemType = this.modeToFileType(stats.mode);
 			return new Stats(itemType, stats.size, stats.mode, stats.atime.getTime(), stats.mtime.getTime(), stats.ctime.getTime());
 		} catch (e) {
@@ -276,17 +276,17 @@ export class EmscriptenFileSystem extends SynchronousFileSystem {
 		}
 	}
 
-	public chmodSync(p: string, isLchmod: boolean, mode: number, cred: Cred) {
+	public chmodSync(p: string, mode: number, cred: Cred) {
 		try {
-			isLchmod ? this._FS.lchmod(p, mode) : this._FS.chmod(p, mode);
+			this._FS.chmod(p, mode);
 		} catch (e) {
 			throw convertError(e, p);
 		}
 	}
 
-	public chownSync(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): void {
+	public chownSync(p: string, new_uid: number, new_gid: number, cred: Cred): void {
 		try {
-			isLchown ? this._FS.lchown(p, new_uid, new_gid) : this._FS.chown(p, new_uid, new_gid);
+			this._FS.chown(p, new_uid, new_gid);
 		} catch (e) {
 			throw convertError(e, p);
 		}

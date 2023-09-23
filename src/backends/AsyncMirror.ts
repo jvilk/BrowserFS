@@ -1,12 +1,12 @@
 import { type FileSystem, SynchronousFileSystem } from '../filesystem';
 import { ApiError, ErrorCode } from '../ApiError';
 import { File, FileFlag } from '../file';
-import Stats from '../stats';
+import { Stats } from '../stats';
 import PreloadFile from '../generic/preload_file';
 import * as path from 'path';
-import Cred from '../cred';
+import { Cred } from '../cred';
 import type { Buffer } from 'buffer';
-import type { BackendOptions } from '.';
+import type { BackendOptions } from './index';
 /**
  * @hidden
  */
@@ -177,15 +177,15 @@ export class AsyncMirror extends SynchronousFileSystem implements FileSystem {
 		});
 	}
 
-	public statSync(p: string, isLstat: boolean, cred: Cred): Stats {
-		return this._sync.statSync(p, isLstat, cred);
+	public statSync(p: string, cred: Cred): Stats {
+		return this._sync.statSync(p, cred);
 	}
 
 	public openSync(p: string, flag: FileFlag, mode: number, cred: Cred): File {
 		// Sanity check: Is this open/close permitted?
 		const fd = this._sync.openSync(p, flag, mode, cred);
 		fd.closeSync();
-		return new MirrorFile(this, p, flag, this._sync.statSync(p, false, cred), <Buffer>this._sync.readFileSync(p, null, FileFlag.getFileFlag('r'), cred));
+		return new MirrorFile(this, p, flag, this._sync.statSync(p, cred), <Buffer>this._sync.readFileSync(p, null, FileFlag.getFileFlag('r'), cred));
 	}
 
 	public unlinkSync(p: string, cred: Cred): void {
@@ -220,19 +220,19 @@ export class AsyncMirror extends SynchronousFileSystem implements FileSystem {
 		return this._sync.existsSync(p, cred);
 	}
 
-	public chmodSync(p: string, isLchmod: boolean, mode: number, cred: Cred): void {
-		this._sync.chmodSync(p, isLchmod, mode, cred);
+	public chmodSync(p: string, mode: number, cred: Cred): void {
+		this._sync.chmodSync(p, mode, cred);
 		this.enqueueOp({
 			apiMethod: 'chmod',
-			arguments: [p, isLchmod, mode, cred],
+			arguments: [p, mode, cred],
 		});
 	}
 
-	public chownSync(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): void {
-		this._sync.chownSync(p, isLchown, new_uid, new_gid, cred);
+	public chownSync(p: string, new_uid: number, new_gid: number, cred: Cred): void {
+		this._sync.chownSync(p, new_uid, new_gid, cred);
 		this.enqueueOp({
 			apiMethod: 'chown',
-			arguments: [p, isLchown, new_uid, new_gid, cred],
+			arguments: [p, new_uid, new_gid, cred],
 		});
 	}
 
@@ -252,7 +252,7 @@ export class AsyncMirror extends SynchronousFileSystem implements FileSystem {
 			// First call triggers initialization, the rest wait.
 			const copyDirectory = async (p: string, mode: number): Promise<void> => {
 					if (p !== '/') {
-						const stats = await this._async.stat(p, true, Cred.Root);
+						const stats = await this._async.stat(p, Cred.Root);
 						this._sync.mkdirSync(p, mode, stats.getCred());
 					}
 					const files = await this._async.readdir(p, Cred.Root);
@@ -265,7 +265,7 @@ export class AsyncMirror extends SynchronousFileSystem implements FileSystem {
 					this._sync.writeFileSync(p, data, null, FileFlag.getFileFlag('w'), mode, Cred.Root);
 				},
 				copyItem = async (p: string): Promise<void> => {
-					const stats = await this._async.stat(p, false, Cred.Root);
+					const stats = await this._async.stat(p, Cred.Root);
 					if (stats.isDirectory()) {
 						await copyDirectory(p, stats.mode);
 					} else {

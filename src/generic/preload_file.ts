@@ -1,9 +1,9 @@
 import { BaseFile, File } from '../file';
 import { FileSystem } from '../filesystem';
-import Stats from '../stats';
+import { Stats } from '../stats';
 import { FileFlag } from '../file';
 import { ApiError, ErrorCode } from '../ApiError';
-import fs from '../node_fs';
+import { root } from '../emulation/fs';
 import { Buffer } from 'buffer';
 
 /**
@@ -165,7 +165,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
 	 */
 	public truncate(len: number): Promise<void> {
 		this.truncateSync(len);
-		if (this._flag.isSynchronous() && !fs.getRootFS()!.supportsSynch()) {
+		if (this._flag.isSynchronous() && !root!.supportsSynch()) {
 			return this.sync();
 		}
 	}
@@ -184,7 +184,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
 			const buf = Buffer.alloc(len - this._buffer.length, 0);
 			// Write will set @_stat.size for us.
 			this.writeSync(buf, 0, buf.length, this._buffer.length);
-			if (this._flag.isSynchronous() && fs.getRootFS()!.supportsSynch()) {
+			if (this._flag.isSynchronous() && root!.supportsSynch()) {
 				this.syncSync();
 			}
 			return;
@@ -194,7 +194,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
 		const newBuff = Buffer.alloc(len);
 		this._buffer.copy(newBuff, 0, 0, len);
 		this._buffer = newBuff;
-		if (this._flag.isSynchronous() && fs.getRootFS()!.supportsSynch()) {
+		if (this._flag.isSynchronous() && root!.supportsSynch()) {
 			this.syncSync();
 		}
 	}

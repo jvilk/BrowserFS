@@ -1,5 +1,5 @@
 import { ApiError, ErrorCode } from '../ApiError';
-import { default as Stats, FileType } from '../stats';
+import { Stats, FileType } from '../stats';
 import { SynchronousFileSystem, type FileSystem } from '../filesystem';
 import { File, FileFlag, ActionType } from '../file';
 import { NoSyncFile } from '../generic/preload_file';
@@ -7,7 +7,7 @@ import { copyingSlice, bufferValidator } from '../utils';
 import { inflateRawSync } from 'zlib';
 import { FileIndex, DirInode, FileInode, isDirInode, isFileInode } from '../generic/file_index';
 import type { Buffer } from 'buffer';
-import type { BackendOptions } from '.';
+import type { BackendOptions } from './index';
 
 /**
  * 8-bit ASCII with the extended character set. Unlike regular ASCII, we do not mask the high bits.
@@ -926,7 +926,7 @@ export class ZipFS extends SynchronousFileSystem implements FileSystem {
 		return true;
 	}
 
-	public statSync(path: string, isLstat: boolean): Stats {
+	public statSync(path: string): Stats {
 		const inode = this._index.getInode(path);
 		if (inode === null) {
 			throw ApiError.ENOENT(path);
@@ -985,7 +985,7 @@ export class ZipFS extends SynchronousFileSystem implements FileSystem {
 	 */
 	public readFileSync(fname: string, encoding: BufferEncoding, flag: FileFlag): any {
 		// Get file.
-		const fd = this.openSync(fname, flag, 0x1a4);
+		const fd = this.openSync(fname, flag, 0o644);
 		try {
 			const fdCast = <NoSyncFile<ZipFS>>fd;
 			const fdBuff = <Buffer>fdCast.getBuffer();

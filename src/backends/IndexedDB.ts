@@ -2,7 +2,7 @@
 import { AsyncKeyValueROTransaction, AsyncKeyValueRWTransaction, AsyncKeyValueStore, AsyncKeyValueFileSystem } from '../generic/key_value_filesystem';
 import { ApiError, ErrorCode } from '../ApiError';
 import { Buffer } from 'buffer';
-import type { BackendOptions } from '.';
+import type { BackendOptions } from './index';
 
 /**
  * Get the indexedDB constructor for the current browser.

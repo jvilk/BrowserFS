@@ -1,4 +1,4 @@
-import { default as Stats, FileType } from './stats';
+import { Stats, FileType } from './stats';
 import { Buffer } from 'buffer';
 
 /**

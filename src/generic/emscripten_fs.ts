@@ -9,8 +9,8 @@
  * Adapted from Emscripten's NodeFS:
  * https://raw.github.com/kripken/emscripten/master/src/library_nodefs.js
  */
-import * as fs from '../FS';
-import Stats from '../stats';
+import * as fs from '../emulation';
+import { Stats } from '../stats';
 
 export interface EmscriptenStats {
 	dev: number;

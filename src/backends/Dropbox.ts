@@ -1,14 +1,14 @@
 import PreloadFile from '../generic/preload_file';
 import { BaseFileSystem, type FileSystem } from '../filesystem';
-import { default as Stats, FileType } from '../stats';
+import { Stats, FileType } from '../stats';
 import { ApiError, ErrorCode } from '../ApiError';
 import { File, FileFlag } from '../file';
 import { wait } from '../utils';
 import type * as DropboxTypes from 'dropbox';
 import { dirname } from 'path';
-import Cred from '../cred';
+import { Cred } from '../cred';
 import { Buffer } from 'buffer';
-import type { BackendOptions } from '.';
+import type { BackendOptions } from './index';
 
 /**
  * Dropbox paths do not begin with a /, they just begin with a folder at the root node.
@@ -266,7 +266,7 @@ export class DropboxFileSystem extends BaseFileSystem implements FileSystem {
 			}
 		};
 		try {
-			const stats = await this.stat(newPath, false, cred);
+			const stats = await this.stat(newPath, cred);
 
 			if (stats.isDirectory()) {
 				throw ApiError.EISDIR(newPath);
@@ -285,7 +285,7 @@ export class DropboxFileSystem extends BaseFileSystem implements FileSystem {
 	/**
 	 * @todo parse time fields
 	 */
-	public async stat(path: string, isLstat: boolean, cred: Cred): Promise<Stats> {
+	public async stat(path: string, cred: Cred): Promise<Stats> {
 		if (path === '/') {
 			// Dropbox doesn't support querying the root directory.
 			return new Stats(FileType.DIRECTORY, 4096);
@@ -374,7 +374,7 @@ export class DropboxFileSystem extends BaseFileSystem implements FileSystem {
 	 */
 	public async unlink(path: string, cred: Cred): Promise<void> {
 		// Must be a file. Check first.
-		const stats = await this.stat(path, false, cred);
+		const stats = await this.stat(path, cred);
 		if (stats.isDirectory()) {
 			throw ApiError.EISDIR(path);
 		}
@@ -398,7 +398,7 @@ export class DropboxFileSystem extends BaseFileSystem implements FileSystem {
 	public async mkdir(p: string, mode: number, cred: Cred): Promise<void> {
 		// Dropbox's create_folder is recursive. Check if parent exists.
 		const parent = dirname(p);
-		const stats = await this.stat(parent, false, cred);
+		const stats = await this.stat(parent, cred);
 		if (stats && !stats.isDirectory()) {
 			throw ApiError.ENOTDIR(parent);
 		}

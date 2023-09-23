@@ -2,10 +2,10 @@
 // disable no-unused-vars since BaseFileSystem uses them a lot
 
 import { ApiError, ErrorCode } from './ApiError';
-import Stats from './stats';
+import { Stats } from './stats';
 import { File, FileFlag, ActionType } from './file';
 import * as path from 'path';
-import Cred from './cred';
+import { Cred } from './cred';
 import { Buffer } from 'buffer';
 
 export type BFSOneArgCallback = (e?: ApiError) => unknown;
@@ -123,17 +123,13 @@ export abstract class FileSystem {
 	 */
 	abstract renameSync(oldPath: string, newPath: string, cred: Cred): void;
 	/**
-	 * Asynchronous `stat` or `lstat`.
-	 * @param isLstat True if this is `lstat`, false if this is regular
-	 *   `stat`.
+	 * Asynchronous `stat`.
 	 */
-	abstract stat(p: string, isLstat: boolean | null, cred: Cred): Promise<Stats>;
+	abstract stat(p: string, cred: Cred): Promise<Stats>;
 	/**
-	 * Synchronous `stat` or `lstat`.
-	 * @param isLstat True if this is `lstat`, false if this is regular
-	 *   `stat`.
+	 * Synchronous `stat`.
 	 */
-	abstract statSync(p: string, isLstat: boolean | null, cred: Cred): Stats;
+	abstract statSync(p: string, cred: Cred): Stats;
 	// File operations
 	/**
 	 * Asynchronous file open.
@@ -214,7 +210,7 @@ export abstract class FileSystem {
 	 *   force a specific path resolution or avoid additional `fs.stat` calls for
 	 *   known real paths. If not supplied by the user, it'll be an empty object.
 	 */
-	abstract realpath(p: string, cache: { [path: string]: string }, cred: Cred): Promise<string>;
+	abstract realpath(p: string, cred: Cred): Promise<string>;
 	/**
 	 * Synchronous `realpath`.
 	 *
@@ -223,7 +219,7 @@ export abstract class FileSystem {
 	 *   force a specific path resolution or avoid additional `fs.stat` calls for
 	 *   known real paths. If not supplied by the user, it'll be an empty object.
 	 */
-	abstract realpathSync(p: string, cache: { [path: string]: string }, cred: Cred): string;
+	abstract realpathSync(p: string, cred: Cred): string;
 	// File operations
 	/**
 	 * Asynchronous `truncate`.
@@ -276,29 +272,21 @@ export abstract class FileSystem {
 	// Property operations
 	// This isn't always possible on some filesystem types (e.g. Dropbox).
 	/**
-	 * Asynchronous `chmod` or `lchmod`.
-	 * @param isLchmod `True` if `lchmod`, false if `chmod`. Has no
-	 *   bearing on result if links aren't supported.
+	 * Asynchronous `chmod`.
 	 */
-	abstract chmod(p: string, isLchmod: boolean, mode: number, cred: Cred): Promise<void>;
+	abstract chmod(p: string, mode: number, cred: Cred): Promise<void>;
 	/**
-	 * Synchronous `chmod` or `lchmod`.
-	 * @param isLchmod `True` if `lchmod`, false if `chmod`. Has no
-	 *   bearing on result if links aren't supported.
+	 * Synchronous `chmod`.
 	 */
-	abstract chmodSync(p: string, isLchmod: boolean, mode: number, cred: Cred): void;
+	abstract chmodSync(p: string, mode: number, cred: Cred): void;
 	/**
-	 * Asynchronous `chown` or `lchown`.
-	 * @param isLchown `True` if `lchown`, false if `chown`. Has no
-	 *   bearing on result if links aren't supported.
+	 * Asynchronous `chown`.
 	 */
-	abstract chown(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): Promise<void>;
+	abstract chown(p: string, new_uid: number, new_gid: number, cred: Cred): Promise<void>;
 	/**
-	 * Synchronous `chown` or `lchown`.
-	 * @param isLchown `True` if `lchown`, false if `chown`. Has no
-	 *   bearing on result if links aren't supported.
+	 * Synchronous `chown`.
 	 */
-	abstract chownSync(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): void;
+	abstract chownSync(p: string, new_uid: number, new_gid: number, cred: Cred): void;
 	/**
 	 * Change file timestamps of the file referenced by the supplied
 	 * path.
@@ -384,7 +372,7 @@ export class BaseFileSystem extends FileSystem {
 	}
 	public async open(p: string, flag: FileFlag, mode: number, cred: Cred): Promise<File> {
 		try {
-			const stats = await this.stat(p, false, cred);
+			const stats = await this.stat(p, cred);
 			switch (flag.pathExistsAction()) {
 				case ActionType.THROW_EXCEPTION:
 					throw ApiError.EEXIST(p);
@@ -410,7 +398,7 @@ export class BaseFileSystem extends FileSystem {
 			switch (flag.pathNotExistsAction()) {
 				case ActionType.CREATE_FILE:
 					// Ensure parent exists.
-					const parentStats = await this.stat(path.dirname(p), false, cred);
+					const parentStats = await this.stat(path.dirname(p), cred);
 					if (parentStats && !parentStats.isDirectory()) {
 						throw ApiError.ENOTDIR(path.dirname(p));
 					}
@@ -434,10 +422,10 @@ export class BaseFileSystem extends FileSystem {
 	public renameSync(oldPath: string, newPath: string, cred: Cred): void {
 		throw new ApiError(ErrorCode.ENOTSUP);
 	}
-	public async stat(p: string, isLstat: boolean | null, cred: Cred): Promise<Stats> {
+	public async stat(p: string, cred: Cred): Promise<Stats> {
 		throw new ApiError(ErrorCode.ENOTSUP);
 	}
-	public statSync(p: string, isLstat: boolean | null, cred: Cred): Stats {
+	public statSync(p: string, cred: Cred): Stats {
 		throw new ApiError(ErrorCode.ENOTSUP);
 	}
 	/**
@@ -460,13 +448,13 @@ export class BaseFileSystem extends FileSystem {
 		// Check if the path exists, and is a file.
 		let stats: Stats;
 		try {
-			stats = this.statSync(p, false, cred);
+			stats = this.statSync(p, cred);
 		} catch (e) {
 			// File does not exist.
 			switch (flag.pathNotExistsAction()) {
 				case ActionType.CREATE_FILE:
 					// Ensure parent exists.
-					const parentStats = this.statSync(path.dirname(p), false, cred);
+					const parentStats = this.statSync(path.dirname(p), cred);
 					if (!parentStats.isDirectory()) {
 						throw ApiError.ENOTDIR(path.dirname(p));
 					}
@@ -525,7 +513,7 @@ export class BaseFileSystem extends FileSystem {
 	}
 	public async exists(p: string, cred: Cred): Promise<boolean> {
 		try {
-			await this.stat(p, null, cred);
+			await this.stat(p, cred);
 			return true;
 		} catch (e) {
 			return false;
@@ -533,13 +521,13 @@ export class BaseFileSystem extends FileSystem {
 	}
 	public existsSync(p: string, cred: Cred): boolean {
 		try {
-			this.statSync(p, true, cred);
+			this.statSync(p, cred);
 			return true;
 		} catch (e) {
 			return false;
 		}
 	}
-	public async realpath(p: string, cache: { [path: string]: string }, cred: Cred): Promise<string> {
+	public async realpath(p: string, cred: Cred): Promise<string> {
 		if (this.supportsLinks()) {
 			// The path could contain symlinks. Split up the path,
 			// resolve any symlinks, return the resolved string.
@@ -558,7 +546,7 @@ export class BaseFileSystem extends FileSystem {
 			return p;
 		}
 	}
-	public realpathSync(p: string, cache: { [path: string]: string }, cred: Cred): string {
+	public realpathSync(p: string, cred: Cred): string {
 		if (this.supportsLinks()) {
 			// The path could contain symlinks. Split up the path,
 			// resolve any symlinks, return the resolved string.
@@ -677,16 +665,16 @@ export class BaseFileSystem extends FileSystem {
 			fd.closeSync();
 		}
 	}
-	public async chmod(p: string, isLchmod: boolean, mode: number, cred: Cred): Promise<void> {
+	public async chmod(p: string, mode: number, cred: Cred): Promise<void> {
 		throw new ApiError(ErrorCode.ENOTSUP);
 	}
-	public chmodSync(p: string, isLchmod: boolean, mode: number, cred: Cred) {
+	public chmodSync(p: string, mode: number, cred: Cred) {
 		throw new ApiError(ErrorCode.ENOTSUP);
 	}
-	public async chown(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): Promise<void> {
+	public async chown(p: string, new_uid: number, new_gid: number, cred: Cred): Promise<void> {
 		throw new ApiError(ErrorCode.ENOTSUP);
 	}
-	public chownSync(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): void {
+	public chownSync(p: string, new_uid: number, new_gid: number, cred: Cred): void {
 		throw new ApiError(ErrorCode.ENOTSUP);
 	}
 	public async utimes(p: string, atime: Date, mtime: Date, cred: Cred): Promise<void> {
@@ -731,8 +719,8 @@ export class SynchronousFileSystem extends BaseFileSystem {
 		return this.renameSync(oldPath, newPath, cred);
 	}
 
-	public async stat(p: string, isLstat: boolean | null, cred: Cred): Promise<Stats> {
-		return this.statSync(p, isLstat, cred);
+	public async stat(p: string | null, cred: Cred): Promise<Stats> {
+		return this.statSync(p, cred);
 	}
 
 	public async open(p: string, flags: FileFlag, mode: number, cred: Cred): Promise<File> {
@@ -755,12 +743,12 @@ export class SynchronousFileSystem extends BaseFileSystem {
 		return this.readdirSync(p, cred);
 	}
 
-	public async chmod(p: string, isLchmod: boolean, mode: number, cred: Cred): Promise<void> {
-		return this.chmodSync(p, isLchmod, mode, cred);
+	public async chmod(p: string, mode: number, cred: Cred): Promise<void> {
+		return this.chmodSync(p, mode, cred);
 	}
 
-	public async chown(p: string, isLchown: boolean, new_uid: number, new_gid: number, cred: Cred): Promise<void> {
-		return this.chownSync(p, isLchown, new_uid, new_gid, cred);
+	public async chown(p: string, new_uid: number, new_gid: number, cred: Cred): Promise<void> {
+		return this.chownSync(p, new_uid, new_gid, cred);
 	}
 
 	public async utimes(p: string, atime: Date, mtime: Date, cred: Cred): Promise<void> {

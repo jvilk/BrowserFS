@@ -1,8 +1,8 @@
 import { BaseFileSystem, type FileSystem } from '../filesystem';
 import * as path from 'path';
 import { ApiError } from '../ApiError';
-import Cred from '../cred';
-import type { BackendOptions } from '.';
+import { Cred } from '../cred';
+import type { BackendOptions } from './index';
 
 /**
  * Configuration options for a FolderAdapter file system.
@@ -90,7 +90,7 @@ export class FolderAdapter extends BaseFileSystem implements FileSystem {
 		if (!exists && this._wrapped.isReadOnly()) {
 			throw ApiError.ENOENT(this._folder);
 		} else {
-			await this._wrapped.mkdir(this._folder, 0x1ff, Cred.Root);
+			await this._wrapped.mkdir(this._folder, 0o777, Cred.Root);
 		}
 	}
 }
