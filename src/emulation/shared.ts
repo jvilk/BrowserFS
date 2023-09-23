@@ -6,6 +6,7 @@ import { Cred } from '../cred';
 import { FileSystem } from '../filesystem';
 import { File } from '../file';
 import { InternalBackendConstructor } from '../backends';
+import { InMemoryFileSystem } from '../backends/InMemory';
 
 /**
  * converts Date or number to a fractional UNIX timestamp
@@ -122,9 +123,23 @@ export interface MountMapping {
 
 export const mounts: Map<string, FileSystem> = new Map();
 
+/*
+Set a default root.
+There is a very small but not 0 change that initialize() will try to unmount the default before it is mounted.
+This can be fixed by using a top-level await, which is not done to maintain ES6 compatibility.
+*/
+InMemoryFileSystem.Create().then(fs => mount('/', fs));
+
+/**
+ * Gets the file system mounted at `mountPoint`
+ */
 export function getMount(mountPoint: string): FileSystem {
 	return mounts.get(mountPoint);
 }
+
+/**
+ * Gets an object of mount points (keys) and filesystems (values)
+ */
 export function getMounts(): MountMapping {
 	return Object.fromEntries(mounts.entries());
 }
@@ -143,6 +158,9 @@ export function mount(mountPoint: string, fs: FileSystem): void {
 	mounts.set(mountPoint, fs);
 }
 
+/**
+ * Unmounts the file system at the given mount point.
+ */
 export function umount(mountPoint: string): void {
 	if (mountPoint[0] !== '/') {
 		mountPoint = `/${mountPoint}`;
@@ -190,8 +208,8 @@ export function fixError<E extends Error>(e: E, paths: { [from: string]: string 
 }
 
 export function initialize(mountMapping: MountMapping): void {
-	if (!mountMapping['/']) {
-		throw new ApiError(ErrorCode.EINVAL, 'BrowserFS must be initialized with a root filesystem.');
+	if (mountMapping['/']) {
+		umount('/');
 	}
 	for (const [point, fs] of Object.entries(mountMapping)) {
 		const FS = fs.constructor as unknown as InternalBackendConstructor;
@@ -199,6 +217,6 @@ export function initialize(mountMapping: MountMapping): void {
 			throw new ApiError(ErrorCode.EINVAL, `Can not mount "${point}" since the filesystem is unavailable.`);
 		}
 
-		mounts.set(point, fs);
+		mount(point, fs);
 	}
 }
