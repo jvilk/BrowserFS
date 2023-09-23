@@ -2,7 +2,7 @@ import { FileSystemMetadata, SynchronousFileSystem } from '../filesystem';
 import { Stats, FileType } from '../stats';
 import { BaseFile, File, FileFlag } from '../file';
 import { ApiError, ErrorCode, ErrorStrings } from '../ApiError';
-import { EmscriptenFSNode } from '../generic/emscripten_fs';
+import { EmscriptenEntry } from '../generic/emscripten_fs';
 import { Cred } from '../cred';
 import { Buffer } from 'buffer';
 import type { BackendOptions } from './index';
@@ -11,7 +11,7 @@ import type { BackendOptions } from './index';
  * @hidden
  */
 interface EmscriptenError {
-	node: EmscriptenFSNode;
+	node: EmscriptenEntry;
 	errno: number;
 }
 
