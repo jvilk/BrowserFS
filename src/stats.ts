@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import type { StatsBase } from 'fs';
 import { Cred } from './cred';
 import { Buffer } from 'buffer';
 import { S_IFDIR, S_IFLNK, S_IFMT, S_IFREG } from './emulation/constants';
@@ -22,13 +22,13 @@ export enum FilePerm {
 }
 
 /**
- * Emulation of Node's `fs.Stats` object.
+ * Implementation of Node's `Stats`.
  *
  * Attribute descriptions are from `man 2 stat'
  * @see http://nodejs.org/api/fs.html#fs_class_fs_stats
  * @see http://man7.org/linux/man-pages/man2/stat.2.html
  */
-export class Stats implements fs.Stats {
+export class Stats implements StatsBase<number> {
 	public static fromBuffer(buffer: Buffer): Stats {
 		const size = buffer.readUInt32LE(0),
 			mode = buffer.readUInt32LE(4),
@@ -50,11 +50,6 @@ export class Stats implements fs.Stats {
 
 	public blocks: number;
 	public mode: number;
-	/**
-	 * UNSUPPORTED ATTRIBUTES
-	 * I assume no one is going to need these details, although we could fake
-	 * appropriate values if need be.
-	 */
 	// ID of device containing file
 	public dev: number = 0;
 	// inode number
@@ -69,7 +64,7 @@ export class Stats implements fs.Stats {
 	public uid: number = 0;
 	// group ID of owner
 	public gid: number = 0;
-	// XXX: Some file systems stash data on stats objects.
+	// Some file systems stash data on stats objects.
 	public fileData: Buffer | null = null;
 	public atimeMs: number;
 	public mtimeMs: number;

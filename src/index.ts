@@ -3,7 +3,7 @@
  */
 
 import fs from './emulation/fs';
-import { FileSystem, type BFSOneArgCallback, type BFSCallback, BaseFileSystem } from './filesystem';
+import { FileSystem, type BFSOneArgCallback, type BFSCallback } from './filesystem';
 import EmscriptenFS from './generic/emscripten_fs';
 import { backends } from './backends';
 import { ErrorCode, ApiError } from './ApiError';
@@ -164,9 +164,13 @@ export function getFileSystem(config: FileSystemConfiguration, cb?: BFSCallback<
 	return;
 }
 
+export * from './cred';
+export * from './inode';
+export * from './stats';
+export * from './file';
+export * from './filesystem';
 export * from './backends';
 export * from './ApiError';
 export * from './generic/key_value_filesystem';
-export * from './inode';
-export { fs, EmscriptenFS, FileSystem, BaseFileSystem };
+export { fs, EmscriptenFS };
 export default fs;

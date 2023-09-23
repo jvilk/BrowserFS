@@ -1,6 +1,5 @@
 import { ApiError, ErrorCode } from './ApiError';
 import { Stats } from './stats';
-import type { Buffer } from 'buffer';
 
 export enum ActionType {
 	// Indicates that the code should not do anything.
