@@ -3,7 +3,7 @@ import { FileFlag } from '../file';
 import { FileContents, FileSystem } from '../filesystem';
 import { Stats } from '../stats';
 import type { symlink, ReadSyncOptions } from 'fs';
-import { normalizePath, cred, getFdForFile, normalizeMode, normalizeOptions, fdMap, fd2file, normalizeTime, resolveFS, fixError } from './shared';
+import { normalizePath, cred, getFdForFile, normalizeMode, normalizeOptions, fdMap, fd2file, normalizeTime, resolveFS, fixError, mounts } from './shared';
 
 function doOp<F extends keyof FileSystem, FN extends FileSystem[F]>(fn: F, resolveSymlinks: boolean, ...[path, ...args]: Parameters<FN>): ReturnType<FN> {
 	path = normalizePath(path);
@@ -50,7 +50,7 @@ export function existsSync(path: string): boolean {
 		const { fs, path: resolvedPath } = resolveFS(path);
 		return fs.existsSync(resolvedPath, cred);
 	} catch (e) {
-		if((e as ApiError).errno == ErrorCode.ENOENT) {
+		if ((e as ApiError).errno == ErrorCode.ENOENT) {
 			return false;
 		}
 
@@ -356,7 +356,20 @@ export function mkdirSync(path: string, mode?: number | string): void {
  * @return [String[]]
  */
 export function readdirSync(path: string): string[] {
-	return doOp('readdirSync', true, path, cred);
+	path = normalizePath(path);
+	const entries = doOp('readdirSync', true, path, cred);
+	const points = [...mounts.keys()];
+	for (const point of points) {
+		if (point.startsWith(path)) {
+			const entry = point.slice(path.length);
+			if (entry.includes('/') || entry.length == 0) {
+				// ignore FSs mounted in subdirectories and any FS mounted to `path`.
+				continue;
+			}
+			entries.push(entry);
+		}
+	}
+	return entries;
 }
 
 // SYMLINK METHODS
