@@ -3,9 +3,8 @@
 import { posix as path } from 'path';
 import { ApiError, ErrorCode } from '../ApiError';
 import { Cred } from '../cred';
-import { BaseFileSystem, FileSystem } from '../filesystem';
+import { FileSystem } from '../filesystem';
 import { File } from '../file';
-import { mkdirpSync } from '../utils';
 import { InternalBackendConstructor } from '../backends';
 
 /**
@@ -117,10 +116,17 @@ export function fd2file(fd: number): File {
 }
 
 // mounting
+export interface MountMapping {
+	[point: string]: FileSystem;
+}
+
 export const mounts: Map<string, FileSystem> = new Map();
 
-export function getRootFS(): FileSystem | null {
-	return mounts.get('/');
+export function getMount(mountPoint: string): FileSystem {
+	return mounts.get(mountPoint);
+}
+export function getMounts(): MountMapping {
+	return Object.fromEntries(mounts.entries());
 }
 
 /**
@@ -128,13 +134,12 @@ export function getRootFS(): FileSystem | null {
  */
 export function mount(mountPoint: string, fs: FileSystem): void {
 	if (mountPoint[0] !== '/') {
-		mountPoint = `/${mountPoint}`;
+		mountPoint = '/' + mountPoint;
 	}
 	mountPoint = path.resolve(mountPoint);
 	if (mounts.has(mountPoint)) {
 		throw new ApiError(ErrorCode.EINVAL, 'Mount point ' + mountPoint + ' is already in use.');
 	}
-	mkdirpSync(mountPoint, 0o777, cred, getRootFS());
 	mounts.set(mountPoint, fs);
 }
 
@@ -147,15 +152,6 @@ export function umount(mountPoint: string): void {
 		throw new ApiError(ErrorCode.EINVAL, 'Mount point ' + mountPoint + ' is already unmounted.');
 	}
 	mounts.delete(mountPoint);
-
-	while (mountPoint !== '/') {
-		if (getRootFS().readdirSync(mountPoint, cred).length === 0) {
-			getRootFS().rmdirSync(mountPoint, cred);
-			mountPoint = path.dirname(mountPoint);
-		} else {
-			break;
-		}
-	}
 }
 
 /**
@@ -191,10 +187,6 @@ export function fixError<E extends Error>(e: E, paths: { [from: string]: string 
 	e.stack = fixPaths(e.stack, paths);
 	e.message = fixPaths(e.message, paths);
 	return e;
-}
-
-export interface MountMapping {
-	[point: string]: FileSystem;
 }
 
 export function initialize(mountMapping: MountMapping): void {
