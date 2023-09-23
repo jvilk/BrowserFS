@@ -14,7 +14,10 @@ export type BFSThreeArgCallback<T, U> = (e?: ApiError, arg1?: T, arg2?: U) => un
 
 export type FileContents = Buffer | string;
 
-export type DiskSpaceCB = (total: number, free: number) => unknown;
+export interface DiskSpace {
+	total: number;
+	free: number;
+}
 
 /**
  * Interface for a filesystem. **All** BrowserFS FileSystems should implement
@@ -77,10 +80,8 @@ export abstract class FileSystem {
 	 *
 	 * @todo This info is not available through the Node API. Perhaps we could do a
 	 *   polyfill of diskspace.js, or add a new Node API function.
-	 * @param path The path to the location that is being queried. Only
-	 *   useful for filesystems that support mount points.
 	 */
-	abstract diskSpace(p: string, cb: DiskSpaceCB): void;
+	abstract diskSpace(): Promise<DiskSpace>;
 	/**
 	 * Is this filesystem read-only?
 	 * @return True if this FileSystem is inherently read-only.
@@ -352,8 +353,11 @@ export class BaseFileSystem extends FileSystem {
 		return false;
 	}
 
-	public diskSpace(p: string, cb: DiskSpaceCB): void {
-		cb(0, 0);
+	public async diskSpace(): Promise<DiskSpace> {
+		return {
+			free: 0,
+			total: 0,
+		};
 	}
 	/**
 	 * Opens the file at path p with the given flag. The file must exist.

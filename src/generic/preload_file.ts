@@ -3,7 +3,7 @@ import { FileSystem } from '../filesystem';
 import { Stats } from '../stats';
 import { FileFlag } from '../file';
 import { ApiError, ErrorCode } from '../ApiError';
-import { root } from '../emulation/fs';
+import { getRootFS } from '../emulation/fs';
 import { Buffer } from 'buffer';
 
 /**
@@ -165,7 +165,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
 	 */
 	public truncate(len: number): Promise<void> {
 		this.truncateSync(len);
-		if (this._flag.isSynchronous() && !root!.supportsSynch()) {
+		if (this._flag.isSynchronous() && !getRootFS()!.supportsSynch()) {
 			return this.sync();
 		}
 	}
@@ -184,7 +184,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
 			const buf = Buffer.alloc(len - this._buffer.length, 0);
 			// Write will set @_stat.size for us.
 			this.writeSync(buf, 0, buf.length, this._buffer.length);
-			if (this._flag.isSynchronous() && root!.supportsSynch()) {
+			if (this._flag.isSynchronous() && getRootFS()!.supportsSynch()) {
 				this.syncSync();
 			}
 			return;
@@ -194,7 +194,7 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
 		const newBuff = Buffer.alloc(len);
 		this._buffer.copy(newBuff, 0, 0, len);
 		this._buffer = newBuff;
-		if (this._flag.isSynchronous() && root!.supportsSynch()) {
+		if (this._flag.isSynchronous() && getRootFS()!.supportsSynch()) {
 			this.syncSync();
 		}
 	}
@@ -271,8 +271,8 @@ export default class PreloadFile<T extends FileSystem> extends BaseFile {
 	 * @param [Function(BrowserFS.ApiError, Number, BrowserFS.node.Buffer)] cb The
 	 *   number is the number of bytes read
 	 */
-	public async read(buffer: Buffer, offset: number, length: number, position: number): Promise<number> {
-		return this.readSync(buffer, offset, length, position);
+	public async read(buffer: Buffer, offset: number, length: number, position: number): Promise<{ bytesRead: number; buffer: Buffer }> {
+		return { bytesRead: this.readSync(buffer, offset, length, position), buffer };
 	}
 
 	/**

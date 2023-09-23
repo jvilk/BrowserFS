@@ -1,13 +1,36 @@
-import type { ReadStream, WriteStream, FSWatcher } from 'node:fs';
+import type { ReadStream, WriteStream, FSWatcher, symlink as _symlink } from 'node:fs';
 import { ApiError, ErrorCode } from '../ApiError';
 
 import * as constants from './constants';
 export { constants };
 
 import { FileFlag } from '../file';
-import { normalizePath, normalizeMode, getFdForFile, normalizeOptions, fd2file, fdMap, normalizeTime, cred, nop, assertRoot } from './shared';
-import { FileContents } from '../filesystem';
+import { normalizePath, normalizeMode, getFdForFile, normalizeOptions, fd2file, fdMap, normalizeTime, cred, nop, resolveFS, fixError, mounts } from './shared';
+import { FileContents, FileSystem } from '../filesystem';
 import { Stats } from '../stats';
+
+/**
+ * Utility for FS ops. It handles
+ * - path normalization (for the first parameter to the FS op)
+ * - path translation for errors
+ * - FS/mount point resolution
+ *
+ * It can't be used for functions which may operate on multiple mounted FSs or paths (e.g. `rename`)
+ * @param fn the function name
+ * @param resolveSymlinks whether to resolve symlinks
+ * @param args the rest of the parameters are passed to the FS function. Note that the first parameter is required to be a path
+ * @returns
+ */
+async function doOp<F extends keyof FileSystem, FN extends FileSystem[F]>(fn: F, resolveSymlinks: boolean, ...[path, ...args]: Parameters<FN>): Promise<ReturnType<FN>> {
+	path = normalizePath(path);
+	const { fs, path: resolvedPath } = resolveFS(resolveSymlinks ? await realpath(path) : path);
+	try {
+		// @ts-expect-error 2556 (since ...args is not correctly picked up as being a tuple)
+		return fs[fn](resolvedPath, ...args) as Promise<ReturnType<FN>>;
+	} catch (e) {
+		throw fixError(e, { [resolvedPath]: path });
+	}
+}
 
 // fs.promises
 
@@ -17,7 +40,22 @@ import { Stats } from '../stats';
  * @param newPath
  */
 export async function rename(oldPath: string, newPath: string): Promise<void> {
-	return assertRoot().rename(normalizePath(oldPath), normalizePath(newPath), cred);
+	oldPath = normalizePath(oldPath);
+	newPath = normalizePath(newPath);
+	const _old = resolveFS(oldPath);
+	const _new = resolveFS(newPath);
+	const paths = { [_old.path]: oldPath, [_new.path]: newPath };
+	try {
+		if (_old === _new) {
+			return _old.fs.rename(_old.path, _new.path, cred);
+		}
+
+		const data = await readFile(oldPath);
+		await writeFile(newPath, data);
+		await unlink(oldPath);
+	} catch (e) {
+		throw fixError(e, paths);
+	}
 }
 
 /**
@@ -25,11 +63,7 @@ export async function rename(oldPath: string, newPath: string): Promise<void> {
  * @param path
  */
 export async function exists(path: string): Promise<boolean> {
-	try {
-		return assertRoot().exists(normalizePath(path), cred);
-	} catch (e) {
-		return false;
-	}
+	return doOp('exists', false, path, cred);
 }
 
 /**
@@ -38,9 +72,7 @@ export async function exists(path: string): Promise<boolean> {
  * @returns Stats
  */
 export async function stat(path: string): Promise<Stats> {
-	const fs = assertRoot();
-	const p = await fs.realpath(normalizePath(path), cred);
-	return fs.stat(p, cred);
+	return doOp('stat', true, path, cred);
 }
 
 /**
@@ -51,7 +83,7 @@ export async function stat(path: string): Promise<Stats> {
  * @return [BrowserFS.node.fs.Stats]
  */
 export async function lstat(path: string): Promise<Stats> {
-	return assertRoot().stat(normalizePath(path), cred);
+	return doOp('stat', false, path, cred);
 }
 
 // FILE-ONLY METHODS
@@ -65,7 +97,7 @@ export async function truncate(path: string, len: number = 0): Promise<void> {
 	if (len < 0) {
 		throw new ApiError(ErrorCode.EINVAL);
 	}
-	return assertRoot().truncate(normalizePath(path), len, cred);
+	return doOp('truncate', true, path, len, cred);
 }
 
 /**
@@ -73,7 +105,7 @@ export async function truncate(path: string, len: number = 0): Promise<void> {
  * @param path
  */
 export async function unlink(path: string): Promise<void> {
-	return assertRoot().unlink(normalizePath(path), cred);
+	return doOp('unlink', false, path, cred);
 }
 
 /**
@@ -84,7 +116,7 @@ export async function unlink(path: string): Promise<void> {
  * @param mode defaults to `0644`
  */
 export async function open(path: string, flag: string, mode: number | string = 0o644): Promise<number> {
-	const file = await assertRoot().open(normalizePath(path), FileFlag.getFileFlag(flag), normalizeMode(mode, 0o644), cred);
+	const file = await doOp('open', true, path, FileFlag.getFileFlag(flag), normalizeMode(mode, 0o644), cred);
 	return getFdForFile(file);
 }
 
@@ -105,7 +137,7 @@ export async function readFile(filename: string, arg2: any = {}): Promise<Buffer
 	if (!flag.isReadable()) {
 		throw new ApiError(ErrorCode.EINVAL, 'Flag passed to readFile must allow for reading.');
 	}
-	return assertRoot().readFile(normalizePath(filename), options.encoding, flag, cred);
+	return doOp('readFile', true, filename, options.encoding, flag, cred);
 }
 
 /**
@@ -129,7 +161,7 @@ export async function writeFile(filename: string, data: FileContents, arg3?: { e
 	if (!flag.isWriteable()) {
 		throw new ApiError(ErrorCode.EINVAL, 'Flag passed to writeFile must allow for writing.');
 	}
-	return assertRoot().writeFile(normalizePath(filename), data, options.encoding, flag, options.mode, cred);
+	return doOp('writeFile', true, filename, data, options.encoding, flag, options.mode, cred);
 }
 
 /**
@@ -156,7 +188,7 @@ export async function appendFile(filename: string, data: FileContents, arg3?: an
 	if (!flag.isAppendable()) {
 		throw new ApiError(ErrorCode.EINVAL, 'Flag passed to appendFile must allow for appending.');
 	}
-	return assertRoot().appendFile(normalizePath(filename), data, options.encoding, flag, options.mode, cred);
+	return doOp('appendFile', true, filename, data, options.encoding, flag, options.mode, cred);
 }
 
 // FILE DESCRIPTOR METHODS
@@ -264,41 +296,14 @@ export async function write(fd: number, arg2: Buffer | string, arg3?: number, ar
  * @param position An integer specifying where to begin reading from
  *   in the file. If position is null, data will be read from the current file
  *   position.
- * @return [Number]
  */
-export async function read(fd: number, length: number, position: number, encoding: BufferEncoding): Promise<string>;
-export async function read(fd: number, buffer: Buffer, offset: number, length: number, position: number): Promise<number>;
-export async function read(fd: number, arg2: number | Buffer, arg3: number, arg4: BufferEncoding | number, arg5?: number): Promise<string | number | (string | number)[]> {
-	let shenanigans = false;
-	let buffer: Buffer,
-		offset: number,
-		length: number,
-		position: number,
-		encoding: BufferEncoding = 'utf8';
-	if (typeof arg2 === 'number') {
-		length = arg2;
-		position = arg3;
-		encoding = arg4 as BufferEncoding;
-		offset = 0;
-		buffer = Buffer.alloc(length);
-		shenanigans = true;
-	} else {
-		buffer = arg2;
-		offset = arg3;
-		length = arg4 as number;
-		position = arg5;
-	}
+export async function read(fd: number, buffer: Buffer, offset: number, length: number, position?: number): Promise<{ bytesRead: number; buffer: Buffer }> {
 	const file = fd2file(fd);
-	if (position === undefined || position === null) {
+	if (isNaN(+position)) {
 		position = file.getPos()!;
 	}
 
-	const rv = await file.read(buffer, offset, length, position);
-	if (!shenanigans) {
-		return rv;
-	} else {
-		return [buffer.toString(encoding), rv];
-	}
+	return file.read(buffer, offset, length, position);
 }
 
 /**
@@ -339,8 +344,7 @@ export async function futimes(fd: number, atime: number | Date, mtime: number | 
  * @param path
  */
 export async function rmdir(path: string): Promise<void> {
-	path = normalizePath(path);
-	return assertRoot().rmdir(path, cred);
+	return doOp('rmdir', true, path, cred);
 }
 
 /**
@@ -349,7 +353,7 @@ export async function rmdir(path: string): Promise<void> {
  * @param mode defaults to `0777`
  */
 export async function mkdir(path: string, mode?: number | string): Promise<void> {
-	return assertRoot().mkdir(normalizePath(path), normalizeMode(mode, 0o777), cred);
+	return doOp('mkdir', true, path, normalizeMode(mode, 0o777), cred);
 }
 
 /**
@@ -359,7 +363,19 @@ export async function mkdir(path: string, mode?: number | string): Promise<void>
  */
 export async function readdir(path: string): Promise<string[]> {
 	path = normalizePath(path);
-	return assertRoot().readdir(path, cred);
+	const entries = await doOp('readdir', true, path, cred);
+	const points = [...mounts.keys()];
+	for (const point of points) {
+		if (point.startsWith(path)) {
+			const entry = point.slice(path.length);
+			if (entry.includes('/') || entry.length == 0) {
+				// ignore FSs mounted in subdirectories and any FS mounted to `path`.
+				continue;
+			}
+			entries.push(entry);
+		}
+	}
+	return entries;
 }
 
 // SYMLINK METHODS
@@ -370,9 +386,8 @@ export async function readdir(path: string): Promise<string[]> {
  * @param dstpath
  */
 export async function link(srcpath: string, dstpath: string): Promise<void> {
-	srcpath = normalizePath(srcpath);
 	dstpath = normalizePath(dstpath);
-	return assertRoot().link(srcpath, dstpath, cred);
+	return doOp('link', false, srcpath, dstpath, cred);
 }
 
 /**
@@ -381,15 +396,12 @@ export async function link(srcpath: string, dstpath: string): Promise<void> {
  * @param dstpath
  * @param type can be either `'dir'` or `'file'` (default is `'file'`)
  */
-export async function symlink(srcpath: string, dstpath: string, type?: string): Promise<void> {
-	if (!type) {
-		type = 'file';
-	} else if (type !== 'file' && type !== 'dir') {
+export async function symlink(srcpath: string, dstpath: string, type: _symlink.Type = 'file'): Promise<void> {
+	if (!['file', 'dir', 'junction'].includes(type)) {
 		throw new ApiError(ErrorCode.EINVAL, 'Invalid type: ' + type);
 	}
-	srcpath = normalizePath(srcpath);
 	dstpath = normalizePath(dstpath);
-	return assertRoot().symlink(srcpath, dstpath, type, cred);
+	return doOp('symlink', false, srcpath, dstpath, type, cred);
 }
 
 /**
@@ -398,8 +410,7 @@ export async function symlink(srcpath: string, dstpath: string, type?: string): 
  * @return [String]
  */
 export async function readlink(path: string): Promise<string> {
-	path = normalizePath(path);
-	return assertRoot().readlink(path, cred);
+	return doOp('readlink', false, path, cred);
 }
 
 // PROPERTY OPERATIONS
@@ -411,8 +422,7 @@ export async function readlink(path: string): Promise<string> {
  * @param gid
  */
 export async function chown(path: string, uid: number, gid: number): Promise<void> {
-	path = normalizePath(path);
-	return assertRoot().chown(path, uid, gid, cred);
+	return doOp('chown', true, path, uid, gid, cred);
 }
 
 /**
@@ -422,8 +432,7 @@ export async function chown(path: string, uid: number, gid: number): Promise<voi
  * @param gid
  */
 export async function lchown(path: string, uid: number, gid: number): Promise<void> {
-	path = normalizePath(path);
-	return assertRoot().chown(path, uid, gid, cred);
+	return doOp('chown', false, path, uid, gid, cred);
 }
 
 /**
@@ -436,8 +445,7 @@ export async function chmod(path: string, mode: string | number): Promise<void> 
 	if (numMode < 0) {
 		throw new ApiError(ErrorCode.EINVAL, `Invalid mode.`);
 	}
-	path = normalizePath(path);
-	return assertRoot().chmod(path, numMode, cred);
+	return doOp('chmod', true, path, numMode, cred);
 }
 
 /**
@@ -450,7 +458,7 @@ export async function lchmod(path: string, mode: number | string): Promise<void>
 	if (numMode < 1) {
 		throw new ApiError(ErrorCode.EINVAL, `Invalid mode.`);
 	}
-	return assertRoot().chmod(normalizePath(path), numMode, cred);
+	return doOp('chmod', false, normalizePath(path), numMode, cred);
 }
 
 /**
@@ -460,7 +468,7 @@ export async function lchmod(path: string, mode: number | string): Promise<void>
  * @param mtime
  */
 export async function utimes(path: string, atime: number | Date, mtime: number | Date): Promise<void> {
-	return assertRoot().utimes(normalizePath(path), normalizeTime(atime), normalizeTime(mtime), cred);
+	return doOp('utimes', true, path, normalizeTime(atime), normalizeTime(mtime), cred);
 }
 
 /**
@@ -470,7 +478,7 @@ export async function utimes(path: string, atime: number | Date, mtime: number |
  * @param mtime
  */
 export async function lutimes(path: string, atime: number | Date, mtime: number | Date): Promise<void> {
-	return assertRoot().utimes(normalizePath(path), normalizeTime(atime), normalizeTime(mtime), cred);
+	return doOp('utimes', false, path, normalizeTime(atime), normalizeTime(mtime), cred);
 }
 
 /**
@@ -483,7 +491,17 @@ export async function lutimes(path: string, atime: number | Date, mtime: number 
  */
 export async function realpath(path: string, cache: { [path: string]: string } = {}): Promise<string> {
 	path = normalizePath(path);
-	return assertRoot().realpath(path, cred);
+	const { fs, path: resolvedPath, mountPoint } = resolveFS(path);
+	try {
+		const stats = await fs.stat(resolvedPath, cred);
+		if (!stats.isSymbolicLink()) {
+			return path;
+		}
+		const dst = mountPoint + normalizePath(await fs.readlink(resolvedPath, cred));
+		return realpath(dst);
+	} catch (e) {
+		throw fixError(e, { [resolvedPath]: path });
+	}
 }
 
 export async function watchFile(filename: string, listener: (curr: Stats, prev: Stats) => void): Promise<void>;
@@ -508,8 +526,7 @@ export async function watch(filename: string, arg2: any, listener: (event: strin
  * @param mode
  */
 export async function access(path: string, mode: number = 0o600): Promise<void> {
-	path = normalizePath(path);
-	return assertRoot().access(path, mode, cred);
+	return doOp('access', true, path, mode, cred);
 }
 
 export async function createReadStream(

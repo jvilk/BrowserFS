@@ -1,14 +1,15 @@
 import * as fs from 'fs';
 import { Cred } from './cred';
 import { Buffer } from 'buffer';
+import { S_IFDIR, S_IFLNK, S_IFMT, S_IFREG } from './emulation/constants';
 
 /**
  * Indicates the type of the given file. Applied to 'mode'.
  */
 export enum FileType {
-	FILE = 0x8000,
-	DIRECTORY = 0x4000,
-	SYMLINK = 0xa000,
+	FILE = S_IFREG,
+	DIRECTORY = S_IFDIR,
+	SYMLINK = S_IFLNK,
 }
 
 /**
@@ -37,14 +38,14 @@ export class Stats implements fs.Stats {
 			uid = buffer.readUInt32LE(32),
 			gid = buffer.readUInt32LE(36);
 
-		return new Stats(mode & 0xf000, size, mode & 0xfff, atime, mtime, ctime, uid, gid);
+		return new Stats(mode & S_IFMT, size, mode & ~S_IFMT, atime, mtime, ctime, uid, gid);
 	}
 
 	/**
 	 * Clones the stats object.
 	 */
 	public static clone(s: Stats): Stats {
-		return new Stats(s.mode & 0xf000, s.size, s.mode & 0xfff, s.atimeMs, s.mtimeMs, s.ctimeMs, s.uid, s.gid, s.birthtimeMs);
+		return new Stats(s.mode & S_IFMT, s.size, s.mode & ~S_IFMT, s.atimeMs, s.mtimeMs, s.ctimeMs, s.uid, s.gid, s.birthtimeMs);
 	}
 
 	public blocks: number;
@@ -157,7 +158,7 @@ export class Stats implements fs.Stats {
 		this.blocks = Math.ceil(size / 512);
 		// Check if mode also includes top-most bits, which indicate the file's
 		// type.
-		if (this.mode < 0x1000) {
+		if ((this.mode & S_IFMT) == 0) {
 			this.mode |= itemType;
 		}
 	}
@@ -178,21 +179,21 @@ export class Stats implements fs.Stats {
 	 * @return [Boolean] True if this item is a file.
 	 */
 	public isFile(): boolean {
-		return (this.mode & 0xf000) === FileType.FILE;
+		return (this.mode & S_IFMT) === S_IFREG;
 	}
 
 	/**
 	 * @return [Boolean] True if this item is a directory.
 	 */
 	public isDirectory(): boolean {
-		return (this.mode & 0xf000) === FileType.DIRECTORY;
+		return (this.mode & S_IFMT) === S_IFDIR;
 	}
 
 	/**
 	 * @return [Boolean] True if this item is a symbolic link (only valid through lstat)
 	 */
 	public isSymbolicLink(): boolean {
-		return (this.mode & 0xf000) === FileType.SYMLINK;
+		return (this.mode & S_IFMT) === S_IFLNK;
 	}
 
 	/**
@@ -207,7 +208,7 @@ export class Stats implements fs.Stats {
 			//Running as root
 			return true;
 		}
-		const perms = this.mode & 0xfff;
+		const perms = this.mode & ~S_IFMT;
 		let uMode = 0xf,
 			gMode = 0xf,
 			wMode = 0xf;
@@ -242,7 +243,7 @@ export class Stats implements fs.Stats {
 	 * up the type of the file, which is encoded in mode.
 	 */
 	public chmod(mode: number): void {
-		this.mode = (this.mode & 0xf000) | mode;
+		this.mode = (this.mode & S_IFMT) | mode;
 	}
 
 	/**

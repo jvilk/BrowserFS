@@ -223,7 +223,7 @@ export interface File {
 	 *   position.
 	 * @returns Promise resolving to the new length of the buffer
 	 */
-	read(buffer: Buffer, offset: number, length: number, position: number | null): Promise<number>;
+	read(buffer: Buffer, offset: number, length: number, position: number | null): Promise<{ bytesRead: number; buffer: Buffer }>;
 	/**
 	 * **Core**: Read data from the file.
 	 * @param buffer The buffer that the data will be written to.

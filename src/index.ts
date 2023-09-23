@@ -13,6 +13,7 @@ import { ErrorCode, ApiError } from './ApiError';
 import { Cred } from './cred';
 import * as process from 'process';
 import type { BackendConstructor } from './backends';
+import { type MountMapping, setCred } from './emulation/shared';
 
 if (process && (<any>process)['initializeTTYs']) {
 	(<any>process)['initializeTTYs']();
@@ -75,23 +76,45 @@ export function BFSRequire(module: string): any {
 /**
  * Initializes BrowserFS with the given root file system.
  */
-export function initialize(rootfs: FileSystem, uid: number = 0, gid: number = 0) {
-	const cred = new Cred(uid, gid, uid, gid, uid, gid);
-	return fs.initialize(rootfs, cred);
+export function initialize(mounts: { [point: string]: FileSystem }, uid: number = 0, gid: number = 0) {
+	setCred(new Cred(uid, gid, uid, gid, uid, gid));
+	return fs.initialize(mounts);
 }
 
-async function _configure(config: FileSystemConfiguration): Promise<FileSystem> {
-	const fs = await getFileSystem(config);
-	return initialize(fs);
+export interface ConfigMapping {
+	[mountPoint: string]: FileSystem | FileSystemConfiguration | keyof typeof backends;
+}
+
+export type Configuration = FileSystem | FileSystemConfiguration | ConfigMapping;
+
+async function _configure(config: Configuration): Promise<void> {
+	if ('fs' in config || config instanceof FileSystem) {
+		// single FS
+		config = { '/': config } as ConfigMapping;
+	}
+	for (let [point, value] of Object.entries(config)) {
+		point = point.toString(); // so linting stops complaining that point should be declared with const, which can't be done since value is assigned to
+
+		if (value instanceof FileSystem) {
+			continue;
+		}
+
+		if (typeof value == 'string') {
+			value = { fs: value };
+		}
+
+		config[point] = await getFileSystem(value);
+	}
+	return initialize(config as MountMapping);
 }
 
 /**
  * Creates a file system with the given configuration, and initializes BrowserFS with it.
  * See the FileSystemConfiguration type for more info on the configuration object.
  */
-export function configure(config: FileSystemConfiguration): Promise<FileSystem>;
+export function configure(config: FileSystemConfiguration): Promise<void>;
 export function configure(config: FileSystemConfiguration, cb: BFSOneArgCallback): void;
-export function configure(config: FileSystemConfiguration, cb?: BFSOneArgCallback): Promise<FileSystem> | void {
+export function configure(config: FileSystemConfiguration, cb?: BFSOneArgCallback): Promise<void> | void {
 	// Promise version
 	if (typeof cb != 'function') {
 		return _configure(config);

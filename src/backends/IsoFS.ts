@@ -1,6 +1,6 @@
 import { ApiError, ErrorCode } from '../ApiError';
 import { Stats, FileType } from '../stats';
-import { SynchronousFileSystem, type FileSystem } from '../filesystem';
+import { SynchronousFileSystem, type FileSystem, DiskSpace } from '../filesystem';
 import { File, FileFlag, ActionType } from '../file';
 import { NoSyncFile } from '../generic/preload_file';
 import { copyingSlice, bufferValidator as validator } from '../utils';
@@ -1228,9 +1228,11 @@ export class IsoFS extends SynchronousFileSystem implements FileSystem {
 		return name;
 	}
 
-	public diskSpace(path: string, cb: (total: number, free: number) => void): void {
-		// Read-only file system.
-		cb(this._data.length, 0);
+	public async diskSpace(): Promise<DiskSpace> {
+		return {
+			total: this._data.length,
+			free: 0,
+		};
 	}
 
 	public isReadOnly(): boolean {

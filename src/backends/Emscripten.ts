@@ -81,8 +81,8 @@ export class EmscriptenFile extends BaseFile implements File {
 			throw convertError(e, this._path);
 		}
 	}
-	public async read(buffer: Buffer, offset: number, length: number, position: number): Promise<number> {
-		return this.readSync(buffer, offset, length, position);
+	public async read(buffer: Buffer, offset: number, length: number, position: number): Promise<{ bytesRead: number; buffer: Buffer }> {
+		return { bytesRead: this.readSync(buffer, offset, length, position), buffer };
 	}
 	public readSync(buffer: Buffer, offset: number, length: number, position: number | null): number {
 		try {

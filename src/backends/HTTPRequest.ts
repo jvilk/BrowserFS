@@ -115,12 +115,6 @@ export class HTTPRequest extends BaseFileSystem implements FileSystem {
 		return HTTPRequest.Name;
 	}
 
-	public diskSpace(path: string, cb: (total: number, free: number) => void): void {
-		// Read-only file system. We could calculate the total space, but that's not
-		// important right now.
-		cb(0, 0);
-	}
-
 	public isReadOnly(): boolean {
 		return true;
 	}

@@ -1,7 +1,19 @@
 import { ApiError, ErrorCode } from '../ApiError';
 import { FileFlag } from '../file';
+import { FileContents, FileSystem } from '../filesystem';
 import { Stats } from '../stats';
-import { assertRoot, normalizePath, cred, getFdForFile, normalizeMode, normalizeOptions, fdMap, fd2file, normalizeTime } from './shared';
+import type { symlink, ReadSyncOptions } from 'fs';
+import { normalizePath, cred, getFdForFile, normalizeMode, normalizeOptions, fdMap, fd2file, normalizeTime, resolveFS, fixError } from './shared';
+
+function doOp<F extends keyof FileSystem, FN extends FileSystem[F]>(fn: F, resolveSymlinks: boolean, ...[path, ...args]: Parameters<FN>): ReturnType<FN> {
+	const { fs, path: resolvedPath } = resolveFS(resolveSymlinks ? realpathSync(path) : path);
+	try {
+		// @ts-expect-error 2556 (since ...args is not correctly picked up as being a tuple)
+		return fs[fn](resolvedPath, ...args) as Promise<ReturnType<FN>>;
+	} catch (e) {
+		throw fixError(e, { [resolvedPath]: path });
+	}
+}
 
 /**
  * Synchronous rename.
@@ -9,7 +21,22 @@ import { assertRoot, normalizePath, cred, getFdForFile, normalizeMode, normalize
  * @param newPath
  */
 export function renameSync(oldPath: string, newPath: string): void {
-	assertRoot().renameSync(normalizePath(oldPath), normalizePath(newPath), cred);
+	oldPath = normalizePath(oldPath);
+	newPath = normalizePath(newPath);
+	const _old = resolveFS(oldPath);
+	const _new = resolveFS(newPath);
+	const paths = { [_old.path]: oldPath, [_new.path]: newPath };
+	try {
+		if (_old === _new) {
+			return _old.fs.renameSync(_old.path, _new.path, cred);
+		}
+
+		const data = readFileSync(oldPath);
+		writeFileSync(newPath, data);
+		unlinkSync(oldPath);
+	} catch (e) {
+		throw fixError(e, paths);
+	}
 }
 
 /**
@@ -18,7 +45,7 @@ export function renameSync(oldPath: string, newPath: string): void {
  */
 export function existsSync(path: string): boolean {
 	try {
-		return assertRoot().existsSync(normalizePath(path), cred);
+		return doOp('existsSync', false, path, cred);
 	} catch (e) {
 		return false;
 	}
@@ -30,9 +57,7 @@ export function existsSync(path: string): boolean {
  * @returns Stats
  */
 export function statSync(path: string): Stats {
-	const fs = assertRoot();
-	const p = fs.realpathSync(normalizePath(path), cred);
-	return fs.statSync(p, cred);
+	return doOp('statSync', true, path, cred);
 }
 
 /**
@@ -43,7 +68,7 @@ export function statSync(path: string): Stats {
  * @return [BrowserFS.node.fs.Stats]
  */
 export function lstatSync(path: string): Stats {
-	return assertRoot().statSync(normalizePath(path), cred);
+	return doOp('statSync', false, path, cred);
 }
 
 /**
@@ -55,7 +80,7 @@ export function truncateSync(path: string, len: number = 0): void {
 	if (len < 0) {
 		throw new ApiError(ErrorCode.EINVAL);
 	}
-	return assertRoot().truncateSync(normalizePath(path), len, cred);
+	return doOp('truncateSync', true, path, len, cred);
 }
 
 /**
@@ -63,7 +88,7 @@ export function truncateSync(path: string, len: number = 0): void {
  * @param path
  */
 export function unlinkSync(path: string): void {
-	return assertRoot().unlinkSync(normalizePath(path), cred);
+	return doOp('unlinkSync', false, path, cred);
 }
 
 /**
@@ -75,7 +100,8 @@ export function unlinkSync(path: string): void {
  * @return [BrowserFS.File]
  */
 export function openSync(path: string, flag: string, mode: number | string = 0o644): number {
-	return getFdForFile(assertRoot().openSync(normalizePath(path), FileFlag.getFileFlag(flag), normalizeMode(mode, 0o644), cred));
+	const file = doOp('openSync', true, path, FileFlag.getFileFlag(flag), normalizeMode(mode, 0o644), cred);
+	return getFdForFile(file);
 }
 
 /**
@@ -89,13 +115,13 @@ export function openSync(path: string, flag: string, mode: number | string = 0o6
 export function readFileSync(filename: string, options?: { flag?: string }): Buffer;
 export function readFileSync(filename: string, options: { encoding: string; flag?: string }): string;
 export function readFileSync(filename: string, encoding: string): string;
-export function readFileSync(filename: string, arg2: any = {}): any {
+export function readFileSync(filename: string, arg2: { encoding: string; flag?: string } | { flag?: string } | string = {}): FileContents {
 	const options = normalizeOptions(arg2, null, 'r', null);
 	const flag = FileFlag.getFileFlag(options.flag);
 	if (!flag.isReadable()) {
 		throw new ApiError(ErrorCode.EINVAL, 'Flag passed to readFile must allow for reading.');
 	}
-	return assertRoot().readFileSync(normalizePath(filename), options.encoding, flag, cred);
+	return doOp('readFileSync', true, filename, options.encoding, flag, cred);
 }
 
 /**
@@ -110,15 +136,15 @@ export function readFileSync(filename: string, arg2: any = {}): any {
  * @option options [Number] mode Defaults to `0644`.
  * @option options [String] flag Defaults to `'w'`.
  */
-export function writeFileSync(filename: string, data: any, options?: { encoding?: string; mode?: number | string; flag?: string }): void;
-export function writeFileSync(filename: string, data: any, encoding?: string): void;
-export function writeFileSync(filename: string, data: any, arg3?: any): void {
+export function writeFileSync(filename: string, data: FileContents, options?: { encoding?: string; mode?: number | string; flag?: string }): void;
+export function writeFileSync(filename: string, data: FileContents, encoding?: string): void;
+export function writeFileSync(filename: string, data: FileContents, arg3?: { encoding?: string; mode?: number | string; flag?: string } | string): void {
 	const options = normalizeOptions(arg3, 'utf8', 'w', 0o644);
 	const flag = FileFlag.getFileFlag(options.flag);
 	if (!flag.isWriteable()) {
 		throw new ApiError(ErrorCode.EINVAL, 'Flag passed to writeFile must allow for writing.');
 	}
-	return assertRoot().writeFileSync(normalizePath(filename), data, options.encoding, flag, options.mode, cred);
+	return doOp('writeFileSync', true, filename, data, options.encoding, flag, options.mode, cred);
 }
 
 /**
@@ -137,15 +163,15 @@ export function writeFileSync(filename: string, data: any, arg3?: any): void {
  * @option options [Number] mode Defaults to `0644`.
  * @option options [String] flag Defaults to `'a'`.
  */
-export function appendFileSync(filename: string, data: any, options?: { encoding?: string; mode?: number | string; flag?: string }): void;
-export function appendFileSync(filename: string, data: any, encoding?: string): void;
-export function appendFileSync(filename: string, data: any, arg3?: any): void {
+export function appendFileSync(filename: string, data: FileContents, options?: { encoding?: string; mode?: number | string; flag?: string }): void;
+export function appendFileSync(filename: string, data: FileContents, encoding?: string): void;
+export function appendFileSync(filename: string, data: FileContents, arg3?: { encoding?: string; mode?: number | string; flag?: string } | string): void {
 	const options = normalizeOptions(arg3, 'utf8', 'a', 0o644);
 	const flag = FileFlag.getFileFlag(options.flag);
 	if (!flag.isAppendable()) {
 		throw new ApiError(ErrorCode.EINVAL, 'Flag passed to appendFile must allow for appending.');
 	}
-	return assertRoot().appendFileSync(normalizePath(filename), data, options.encoding, flag, options.mode, cred);
+	return doOp('appendFileSync', true, filename, data, options.encoding, flag, options.mode, cred);
 }
 
 /**
@@ -212,7 +238,7 @@ export function fdatasyncSync(fd: number): void {
  */
 export function writeSync(fd: number, buffer: Buffer, offset: number, length: number, position?: number | null): number;
 export function writeSync(fd: number, data: string, position?: number | null, encoding?: BufferEncoding): number;
-export function writeSync(fd: number, arg2: any, arg3?: any, arg4?: any, arg5?: any): number {
+export function writeSync(fd: number, arg2: Buffer | string, arg3?: number, arg4?: BufferEncoding | number, arg5?: number): number {
 	let buffer: Buffer,
 		offset: number = 0,
 		length: number,
@@ -228,7 +254,7 @@ export function writeSync(fd: number, arg2: any, arg3?: any, arg4?: any, arg5?: 
 		// Signature 2: (fd, buffer, offset, length, position?)
 		buffer = arg2;
 		offset = arg3;
-		length = arg4;
+		length = arg4 as number;
 		position = typeof arg5 === 'number' ? arg5 : null;
 	}
 
@@ -250,41 +276,21 @@ export function writeSync(fd: number, arg2: any, arg3?: any, arg4?: any, arg5?: 
  * @param position An integer specifying where to begin reading from
  *   in the file. If position is null, data will be read from the current file
  *   position.
- * @return [Number]
  */
-export function readSync(fd: number, length: number, position: number, encoding: BufferEncoding): string;
-export function readSync(fd: number, buffer: Buffer, offset: number, length: number, position: number): number;
-export function readSync(fd: number, arg2: any, arg3: any, arg4: any, arg5?: any): any {
-	let shenanigans = false;
-	let buffer: Buffer,
-		offset: number,
-		length: number,
-		position: number,
-		encoding: BufferEncoding = 'utf8';
-	if (typeof arg2 === 'number') {
-		length = arg2;
-		position = arg3;
-		encoding = arg4;
-		offset = 0;
-		buffer = Buffer.alloc(length);
-		shenanigans = true;
-	} else {
-		buffer = arg2;
-		offset = arg3;
-		length = arg4;
-		position = arg5;
-	}
+export function readSync(fd: number, buffer: Buffer, opts?: ReadSyncOptions): number;
+export function readSync(fd: number, buffer: Buffer, offset: number, length: number, position?: number): number;
+export function readSync(fd: number, buffer: Buffer, opts?: ReadSyncOptions | number, length?: number, position?: number): number {
 	const file = fd2file(fd);
-	if (position === undefined || position === null) {
+	let offset = opts as number;
+	if (typeof opts == 'object') {
+		({ offset, length, position } = opts);
+	}
+
+	if (isNaN(+position)) {
 		position = file.getPos()!;
 	}
 
-	const rv = file.readSync(buffer, offset, length, position);
-	if (!shenanigans) {
-		return rv;
-	} else {
-		return [buffer.toString(encoding), rv];
-	}
+	return file.readSync(buffer, offset, length, position);
 }
 
 /**
@@ -325,8 +331,7 @@ export function futimesSync(fd: number, atime: number | Date, mtime: number | Da
  * @param path
  */
 export function rmdirSync(path: string): void {
-	path = normalizePath(path);
-	return assertRoot().rmdirSync(path, cred);
+	return doOp('rmdirSync', true, path, cred);
 }
 
 /**
@@ -335,7 +340,7 @@ export function rmdirSync(path: string): void {
  * @param mode defaults to `0777`
  */
 export function mkdirSync(path: string, mode?: number | string): void {
-	assertRoot().mkdirSync(normalizePath(path), normalizeMode(mode, 0o777), cred);
+	doOp('mkdirSync', true, path, normalizeMode(mode, 0o777), cred);
 }
 
 /**
@@ -344,8 +349,7 @@ export function mkdirSync(path: string, mode?: number | string): void {
  * @return [String[]]
  */
 export function readdirSync(path: string): string[] {
-	path = normalizePath(path);
-	return assertRoot().readdirSync(path, cred);
+	return doOp('readdirSync', true, path, cred);
 }
 
 // SYMLINK METHODS
@@ -356,9 +360,8 @@ export function readdirSync(path: string): string[] {
  * @param dstpath
  */
 export function linkSync(srcpath: string, dstpath: string): void {
-	srcpath = normalizePath(srcpath);
 	dstpath = normalizePath(dstpath);
-	return assertRoot().linkSync(srcpath, dstpath, cred);
+	return doOp('linkSync', false, srcpath, dstpath, cred);
 }
 
 /**
@@ -367,15 +370,12 @@ export function linkSync(srcpath: string, dstpath: string): void {
  * @param dstpath
  * @param type can be either `'dir'` or `'file'` (default is `'file'`)
  */
-export function symlinkSync(srcpath: string, dstpath: string, type?: string): void {
-	if (!type) {
-		type = 'file';
-	} else if (type !== 'file' && type !== 'dir') {
+export function symlinkSync(srcpath: string, dstpath: string, type?: symlink.Type): void {
+	if (!['file', 'dir', 'junction'].includes(type)) {
 		throw new ApiError(ErrorCode.EINVAL, 'Invalid type: ' + type);
 	}
-	srcpath = normalizePath(srcpath);
 	dstpath = normalizePath(dstpath);
-	return assertRoot().symlinkSync(srcpath, dstpath, type, cred);
+	return doOp('symlinkSync', false, srcpath, dstpath, type, cred);
 }
 
 /**
@@ -384,8 +384,7 @@ export function symlinkSync(srcpath: string, dstpath: string, type?: string): vo
  * @return [String]
  */
 export function readlinkSync(path: string): string {
-	path = normalizePath(path);
-	return assertRoot().readlinkSync(path, cred);
+	return doOp('readlinkSync', false, path, cred);
 }
 
 // PROPERTY OPERATIONS
@@ -397,8 +396,7 @@ export function readlinkSync(path: string): string {
  * @param gid
  */
 export function chownSync(path: string, uid: number, gid: number): void {
-	path = normalizePath(path);
-	assertRoot().chownSync(path, uid, gid, cred);
+	doOp('chownSync', true, path, uid, gid, cred);
 }
 
 /**
@@ -408,8 +406,7 @@ export function chownSync(path: string, uid: number, gid: number): void {
  * @param gid
  */
 export function lchownSync(path: string, uid: number, gid: number): void {
-	path = normalizePath(path);
-	assertRoot().chownSync(path, uid, gid, cred);
+	doOp('chownSync', false, path, uid, gid, cred);
 }
 
 /**
@@ -422,8 +419,7 @@ export function chmodSync(path: string, mode: string | number): void {
 	if (numMode < 0) {
 		throw new ApiError(ErrorCode.EINVAL, `Invalid mode.`);
 	}
-	path = normalizePath(path);
-	assertRoot().chmodSync(path, numMode, cred);
+	doOp('chmodSync', true, path, numMode, cred);
 }
 
 /**
@@ -436,7 +432,7 @@ export function lchmodSync(path: string, mode: number | string): void {
 	if (numMode < 1) {
 		throw new ApiError(ErrorCode.EINVAL, `Invalid mode.`);
 	}
-	assertRoot().chmodSync(normalizePath(path), numMode, cred);
+	doOp('chmodSync', false, path, numMode, cred);
 }
 
 /**
@@ -446,7 +442,7 @@ export function lchmodSync(path: string, mode: number | string): void {
  * @param mtime
  */
 export function utimesSync(path: string, atime: number | Date, mtime: number | Date): void {
-	assertRoot().utimesSync(normalizePath(path), normalizeTime(atime), normalizeTime(mtime), cred);
+	doOp('utimesSync', true, path, normalizeTime(atime), normalizeTime(mtime), cred);
 }
 
 /**
@@ -456,7 +452,7 @@ export function utimesSync(path: string, atime: number | Date, mtime: number | D
  * @param mtime
  */
 export function lutimesSync(path: string, atime: number | Date, mtime: number | Date): void {
-	assertRoot().utimesSync(normalizePath(path), normalizeTime(atime), normalizeTime(mtime), cred);
+	doOp('utimesSync', false, path, normalizeTime(atime), normalizeTime(mtime), cred);
 }
 
 /**
@@ -469,7 +465,17 @@ export function lutimesSync(path: string, atime: number | Date, mtime: number | 
  */
 export function realpathSync(path: string, cache: { [path: string]: string } = {}): string {
 	path = normalizePath(path);
-	return assertRoot().realpathSync(path, cred);
+	const { fs, path: resolvedPath, mountPoint } = resolveFS(path);
+	try {
+		const stats = fs.statSync(resolvedPath, cred);
+		if (!stats.isSymbolicLink()) {
+			return path;
+		}
+		const dst = mountPoint + normalizePath(fs.readlinkSync(resolvedPath, cred));
+		return realpathSync(dst);
+	} catch (e) {
+		throw fixError(e, { [resolvedPath]: path });
+	}
 }
 
 /**
@@ -478,6 +484,5 @@ export function realpathSync(path: string, cache: { [path: string]: string } = {
  * @param mode
  */
 export function accessSync(path: string, mode: number = 0o600): void {
-	path = normalizePath(path);
-	return assertRoot().accessSync(path, mode, cred);
+	return doOp('accessSync', true, path, mode, cred);
 }

@@ -1,8 +1,8 @@
-import type { FSWatcher, ReadStream, WriteStream } from 'fs';
+import type { FSWatcher, ReadStream, WriteStream, symlink as _symlink } from 'fs';
 import { ApiError, ErrorCode } from '../ApiError';
 import { BFSCallback, BFSOneArgCallback, BFSThreeArgCallback, FileContents } from '../filesystem';
 import { FilePerm, Stats } from '../stats';
-import { fd2file, nop, normalizeMode } from './shared';
+import { nop, normalizeMode } from './shared';
 import * as promises from './promises';
 
 /**
@@ -290,14 +290,22 @@ export function write(fd: number, buffer: Buffer, offset: number, length: number
 export function write(fd: number, data: FileContents, cb?: BFSThreeArgCallback<number, string>): void;
 export function write(fd: number, data: FileContents, position: number | null, cb?: BFSThreeArgCallback<number, string>): void;
 export function write(fd: number, data: FileContents, position: number | null, encoding: BufferEncoding, cb?: BFSThreeArgCallback<number, string>): void;
-export function write(fd: number, arg2: FileContents, arg3?: any, arg4?: any, arg5?: any, cb: BFSThreeArgCallback<number, any> = nop): void {
+export function write(
+	fd: number,
+	arg2: FileContents,
+	arg3?: any,
+	arg4?: any,
+	arg5?: any,
+	cb: BFSThreeArgCallback<number, Buffer> | BFSThreeArgCallback<number, string> = nop
+): void {
 	let buffer: Buffer,
 		offset: number,
 		length: number,
-		position: number | null = null;
+		position: number | null = null,
+		encoding: BufferEncoding;
 	if (typeof arg2 === 'string') {
 		// Signature 1: (fd, string, [position?, [encoding?]], cb?)
-		let encoding: BufferEncoding = 'utf8';
+		encoding = 'utf8';
 		switch (typeof arg3) {
 			case 'function':
 				// (fd, string, cb)
@@ -318,16 +326,23 @@ export function write(fd: number, arg2: FileContents, arg3?: any, arg4?: any, ar
 		buffer = Buffer.from(arg2, encoding);
 		offset = 0;
 		length = buffer.length;
+		const _cb = cb as BFSThreeArgCallback<number, string>;
+		promises
+			.write(fd, buffer, offset, length, position)
+			.then(bytesWritten => _cb(null, bytesWritten, buffer.toString(encoding)))
+			.catch(_cb);
 	} else {
 		// Signature 2: (fd, buffer, offset, length, position?, cb?)
 		buffer = arg2;
 		offset = arg3;
 		length = arg4;
 		position = typeof arg5 === 'number' ? arg5 : null;
-		cb = typeof arg5 === 'function' ? arg5 : cb;
+		const _cb = (typeof arg5 === 'function' ? arg5 : cb) as BFSThreeArgCallback<number, Buffer>;
+		promises
+			.write(fd, buffer, offset, length, position)
+			.then(bytesWritten => _cb(null, bytesWritten, buffer))
+			.catch(_cb);
 	}
-
-	promises.write(fd, buffer, offset, length, position);
 }
 
 /**
@@ -342,23 +357,11 @@ export function write(fd: number, arg2: FileContents, arg3?: any, arg4?: any, ar
  *   position.
  * @param callback The number is the number of bytes read
  */
-export function read(fd: number, length: number, position: number | null, encoding: string, cb?: BFSThreeArgCallback<string, number>): void;
-export function read(fd: number, buffer: Buffer, offset: number, length: number, position: number | null, cb?: BFSThreeArgCallback<number, Buffer>): void;
-export function read(fd: number, arg2: Buffer | number, arg3, arg4, arg5?, cb: BFSThreeArgCallback<string, number> | BFSThreeArgCallback<number, Buffer> = nop): void {
-	let position: number | null, offset: number, length: number, buffer: Buffer, newCb: BFSThreeArgCallback<number, Buffer>;
-	if (typeof arg2 === 'number') {
-		// legacy interface
-		// (fd, length, position, encoding, callback)
-		length = arg2;
-		position = arg3;
-		const encoding = arg4;
-		cb = typeof arg5 === 'function' ? arg5 : cb;
-		offset = 0;
-		buffer = Buffer.alloc(length);
-		promises.read(fd, buffer, offset, length, position);
-	} else {
-		promises.read(fd, arg2, arg3, arg4, arg5);
-	}
+export function read(fd: number, buffer: Buffer, offset: number, length: number, position?: number, cb: BFSThreeArgCallback<number, Buffer> = nop): void {
+	promises
+		.read(fd, buffer, offset, length, position)
+		.then(({ bytesRead, buffer }) => cb(null, bytesRead, buffer))
+		.catch(cb);
 }
 
 /**
@@ -463,8 +466,8 @@ export function link(srcpath: string, dstpath: string, cb: BFSOneArgCallback = n
  * @param callback
  */
 export function symlink(srcpath: string, dstpath: string, cb?: BFSOneArgCallback): void;
-export function symlink(srcpath: string, dstpath: string, type?: string, cb?: BFSOneArgCallback): void;
-export function symlink(srcpath: string, dstpath: string, arg3?: string | BFSOneArgCallback, cb: BFSOneArgCallback = nop): void {
+export function symlink(srcpath: string, dstpath: string, type?: _symlink.Type, cb?: BFSOneArgCallback): void;
+export function symlink(srcpath: string, dstpath: string, arg3?: _symlink.Type | BFSOneArgCallback, cb: BFSOneArgCallback = nop): void {
 	const type = typeof arg3 === 'string' ? arg3 : 'file';
 	cb = typeof arg3 === 'function' ? arg3 : cb;
 	promises

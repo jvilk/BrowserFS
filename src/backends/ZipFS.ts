@@ -1,6 +1,6 @@
 import { ApiError, ErrorCode } from '../ApiError';
 import { Stats, FileType } from '../stats';
-import { SynchronousFileSystem, type FileSystem } from '../filesystem';
+import { SynchronousFileSystem, type FileSystem, DiskSpace } from '../filesystem';
 import { File, FileFlag, ActionType } from '../file';
 import { NoSyncFile } from '../generic/preload_file';
 import { copyingSlice, bufferValidator } from '../utils';
@@ -905,9 +905,11 @@ export class ZipFS extends SynchronousFileSystem implements FileSystem {
 		return this._eocd;
 	}
 
-	public diskSpace(path: string, cb: (total: number, free: number) => void): void {
-		// Read-only file system.
-		cb(this.data.length, 0);
+	public async diskSpace(): Promise<DiskSpace> {
+		return {
+			total: this.data.length,
+			free: 0,
+		};
 	}
 
 	public isReadOnly(): boolean {

@@ -43,7 +43,7 @@ export interface BackendOptions {
 /**
  * Contains typings for static functions on the internal backend constructors.
  */
-interface InternalBackendConstructor<FS extends FileSystem = FileSystem> {
+export interface InternalBackendConstructor<FS extends FileSystem = FileSystem> {
 	/**
 	 * **Core**: Name to identify this backend.
 	 */

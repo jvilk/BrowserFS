@@ -158,10 +158,6 @@ export class MountableFileSystem extends BaseFileSystem implements FileSystem {
 		return MountableFileSystem.Name;
 	}
 
-	public diskSpace(path: string, cb: (total: number, free: number) => void): void {
-		cb(0, 0);
-	}
-
 	public isReadOnly(): boolean {
 		return false;
 	}

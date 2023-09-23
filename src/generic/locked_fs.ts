@@ -1,5 +1,5 @@
 import Mutex from './mutex';
-import { DiskSpaceCB, FileContents, FileSystem } from '../filesystem';
+import { DiskSpace, FileContents, FileSystem } from '../filesystem';
 import { FileFlag } from '../file';
 import { Stats } from '../stats';
 import { File } from '../file';
@@ -31,9 +31,8 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 		return this._fs;
 	}
 
-	public diskSpace(p: string, cb: DiskSpaceCB): void {
-		// FIXME: should this lock?
-		this._fs.diskSpace(p, cb);
+	public diskSpace(): Promise<DiskSpace> {
+		return this._fs.diskSpace();
 	}
 
 	public isReadOnly(): boolean {
