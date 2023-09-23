@@ -46,7 +46,7 @@ jobs:
               run: npm run build
     docs:
         needs: ci
-        runs-on: $ubuntu-latest]
+        runs-on: ubuntu-latest
         name: Docs build and deploy
         permissions:
             contents: write
