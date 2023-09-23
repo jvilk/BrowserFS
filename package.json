@@ -42,7 +42,7 @@
 		"build": "rm -rf dist/* && node scripts/build.mjs",
 		"test": "cross-env NODE_OPTIONS=--experimental-vm-modules npx jest",
 		"prepublishOnly": "npm run build",
-		"build:docs": "typedoc --out docs --name BrowserFS src",
+		"build:docs": "typedoc --out docs --name BrowserFS src/index.ts",
 		"format:check": "prettier --check src test",
 		"format": "prettier --write src test"
 	},
