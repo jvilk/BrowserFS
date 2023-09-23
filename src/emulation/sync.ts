@@ -6,7 +6,8 @@ import type { symlink, ReadSyncOptions } from 'fs';
 import { normalizePath, cred, getFdForFile, normalizeMode, normalizeOptions, fdMap, fd2file, normalizeTime, resolveFS, fixError } from './shared';
 
 function doOp<F extends keyof FileSystem, FN extends FileSystem[F]>(fn: F, resolveSymlinks: boolean, ...[path, ...args]: Parameters<FN>): ReturnType<FN> {
-	const { fs, path: resolvedPath } = resolveFS(resolveSymlinks ? realpathSync(path) : path);
+	path = normalizePath(path);
+	const { fs, path: resolvedPath } = resolveFS(resolveSymlinks && existsSync(path) ? realpathSync(path) : path);
 	try {
 		// @ts-expect-error 2556 (since ...args is not correctly picked up as being a tuple)
 		return fs[fn](resolvedPath, ...args) as Promise<ReturnType<FN>>;
@@ -44,10 +45,16 @@ export function renameSync(oldPath: string, newPath: string): void {
  * @param path
  */
 export function existsSync(path: string): boolean {
+	path = normalizePath(path);
 	try {
-		return doOp('existsSync', false, path, cred);
+		const { fs, path: resolvedPath } = resolveFS(path);
+		return fs.existsSync(resolvedPath, cred);
 	} catch (e) {
-		return false;
+		if((e as ApiError).errno == ErrorCode.ENOENT) {
+			return false;
+		}
+
+		throw e;
 	}
 }
 
@@ -471,7 +478,7 @@ export function realpathSync(path: string, cache: { [path: string]: string } = {
 		if (!stats.isSymbolicLink()) {
 			return path;
 		}
-		const dst = mountPoint + normalizePath(fs.readlinkSync(resolvedPath, cred));
+		const dst = normalizePath(mountPoint + fs.readlinkSync(resolvedPath, cred));
 		return realpathSync(dst);
 	} catch (e) {
 		throw fixError(e, { [resolvedPath]: path });

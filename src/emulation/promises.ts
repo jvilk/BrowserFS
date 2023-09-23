@@ -23,7 +23,7 @@ import { Stats } from '../stats';
  */
 async function doOp<F extends keyof FileSystem, FN extends FileSystem[F]>(fn: F, resolveSymlinks: boolean, ...[path, ...args]: Parameters<FN>): Promise<ReturnType<FN>> {
 	path = normalizePath(path);
-	const { fs, path: resolvedPath } = resolveFS(resolveSymlinks ? await realpath(path) : path);
+	const { fs, path: resolvedPath } = resolveFS(resolveSymlinks && await exists(path) ? await realpath(path) : path);
 	try {
 		// @ts-expect-error 2556 (since ...args is not correctly picked up as being a tuple)
 		return fs[fn](resolvedPath, ...args) as Promise<ReturnType<FN>>;
@@ -63,7 +63,17 @@ export async function rename(oldPath: string, newPath: string): Promise<void> {
  * @param path
  */
 export async function exists(path: string): Promise<boolean> {
-	return doOp('exists', false, path, cred);
+	path = normalizePath(path);
+	try {
+		const { fs, path: resolvedPath } = resolveFS(path);
+		return fs.exists(resolvedPath, cred);
+	} catch (e) {
+		if((e as ApiError).errno == ErrorCode.ENOENT) {
+			return false;
+		}
+
+		throw e;
+	}
 }
 
 /**

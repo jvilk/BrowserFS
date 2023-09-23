@@ -59,6 +59,7 @@ export function normalizePath(p: string): string {
 	if (p === '') {
 		throw new ApiError(ErrorCode.EINVAL, 'Path must not be empty.');
 	}
+	p = p.replaceAll(/\/+/g, '/');
 	return path.resolve(p);
 }
 
@@ -164,8 +165,8 @@ export function resolveFS(path: string): { fs: FileSystem; path: string; mountPo
 	const sortedMounts = [...mounts].sort((a, b) => (a[0].length > b[0].length ? -1 : 1)); // decending order of the string length
 	for (const [mountPoint, fs] of sortedMounts) {
 		// We know path is normalized, so it would be a substring of the mount point.
-		if (mountPoint.length <= path.length && path.indexOf(mountPoint) == 0) {
-			path = path.slice(mountPoint.length); // Resolve the path relative to the mount point
+		if (mountPoint.length <= path.length && path.startsWith(mountPoint)) {
+			path = path.slice(mountPoint.length > 1 ? mountPoint.length : 0); // Resolve the path relative to the mount point
 			if (path === '') {
 				path = '/';
 			}
