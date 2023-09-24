@@ -2,13 +2,13 @@ import { BaseFileSystem, type FileSystem, FileContents, FileSystemMetadata } fro
 import { ApiError, ErrorCode } from '../ApiError';
 import { copyingSlice } from '../utils';
 import { File, FileFlag, ActionType } from '../file';
-import { Stats, FilePerm } from '../stats';
+import { Stats } from '../stats';
 import { NoSyncFile } from '../generic/preload_file';
 import { fetchIsAvailable, fetchFile, fetchFileSize } from '../generic/fetch';
 import { FileIndex, isFileInode, isDirInode } from '../generic/file_index';
 import { Cred } from '../cred';
-import type { Buffer } from 'buffer';
 import type { BackendOptions } from './index';
+import { R_OK } from '../emulation/constants';
 
 /**
  * Configuration options for a HTTPRequest file system.
@@ -143,7 +143,7 @@ export class HTTPRequest extends BaseFileSystem implements FileSystem {
 		if (inode === null) {
 			throw ApiError.ENOENT(path);
 		}
-		if (!inode.toStats().hasAccess(FilePerm.READ, cred)) {
+		if (!inode.toStats().hasAccess(R_OK, cred)) {
 			throw ApiError.EACCES(path);
 		}
 		let stats: Stats;

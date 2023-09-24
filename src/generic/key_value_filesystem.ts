@@ -1,6 +1,6 @@
 import { BaseFileSystem, SynchronousFileSystem } from '../filesystem';
 import { ApiError, ErrorCode } from '../ApiError';
-import { Stats, FileType, FilePerm } from '../stats';
+import { Stats, FileType } from '../stats';
 import { File } from '../file';
 import { FileFlag } from '../file';
 import * as path from 'path';
@@ -9,6 +9,7 @@ import Inode from '../inode';
 import PreloadFile from '../generic/preload_file';
 import { Cred } from '../cred';
 import { Buffer } from 'buffer';
+import { R_OK, W_OK } from '../emulation/constants';
 /**
  * @hidden
  */
@@ -389,7 +390,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
 			oldDirNode = this.findINode(tx, oldParent),
 			oldDirList = this.getDirListing(tx, oldParent, oldDirNode);
 
-		if (!oldDirNode.toStats().hasAccess(FilePerm.WRITE, cred)) {
+		if (!oldDirNode.toStats().hasAccess(W_OK, cred)) {
 			throw ApiError.EACCES(oldPath);
 		}
 
@@ -452,7 +453,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
 	public statSync(p: string, cred: Cred): Stats {
 		// Get the inode to the item, convert it into a Stats object.
 		const stats = this.findINode(this.store.beginTransaction('readonly'), p).toStats();
-		if (!stats.hasAccess(FilePerm.READ, cred)) {
+		if (!stats.hasAccess(R_OK, cred)) {
 			throw ApiError.EACCES(p);
 		}
 		return stats;
@@ -501,7 +502,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
 	public readdirSync(p: string, cred: Cred): string[] {
 		const tx = this.store.beginTransaction('readonly');
 		const node = this.findINode(tx, p);
-		if (!node.toStats().hasAccess(FilePerm.READ, cred)) {
+		if (!node.toStats().hasAccess(R_OK, cred)) {
 			throw ApiError.EACCES(p);
 		}
 		return Object.keys(this.getDirListing(tx, p, node));
@@ -731,7 +732,7 @@ export class SyncKeyValueFileSystem extends SynchronousFileSystem {
 		// Get file inode.
 		const fileNode = this.getINode(tx, p, fileNodeId);
 
-		if (!fileNode.toStats().hasAccess(FilePerm.WRITE, cred)) {
+		if (!fileNode.toStats().hasAccess(W_OK, cred)) {
 			throw ApiError.EACCES(p);
 		}
 
@@ -930,7 +931,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
 				oldDirNode = await this.findINode(tx, oldParent),
 				oldDirList = await this.getDirListing(tx, oldParent, oldDirNode);
 
-			if (!oldDirNode.toStats().hasAccess(FilePerm.WRITE, cred)) {
+			if (!oldDirNode.toStats().hasAccess(W_OK, cred)) {
 				throw ApiError.EACCES(oldPath);
 			}
 
@@ -999,7 +1000,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
 		const tx = this.store.beginTransaction('readonly');
 		const inode = await this.findINode(tx, p);
 		const stats = inode!.toStats();
-		if (!stats.hasAccess(FilePerm.READ, cred)) {
+		if (!stats.hasAccess(R_OK, cred)) {
 			throw ApiError.EACCES(p);
 		}
 		return stats;
@@ -1048,7 +1049,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
 	public async readdir(p: string, cred: Cred): Promise<string[]> {
 		const tx = this.store.beginTransaction('readonly');
 		const node = await this.findINode(tx, p);
-		if (!node.toStats().hasAccess(FilePerm.READ, cred)) {
+		if (!node.toStats().hasAccess(R_OK, cred)) {
 			throw ApiError.EACCES(p);
 		}
 		return Object.keys(await this.getDirListing(tx, p, node));
@@ -1248,7 +1249,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
 			currTime = new Date().getTime();
 
 		//Check that the creater has correct access
-		if (!parentNode.toStats().hasAccess(FilePerm.WRITE, cred)) {
+		if (!parentNode.toStats().hasAccess(W_OK, cred)) {
 			throw ApiError.EACCES(p);
 		}
 
@@ -1312,7 +1313,7 @@ export class AsyncKeyValueFileSystem extends BaseFileSystem {
 		// Get file inode.
 		const fileNode = await this.getINode(tx, p, fileNodeId);
 
-		if (!fileNode.toStats().hasAccess(FilePerm.WRITE, cred)) {
+		if (!fileNode.toStats().hasAccess(W_OK, cred)) {
 			throw ApiError.EACCES(p);
 		}
 

@@ -13,15 +13,6 @@ export enum FileType {
 }
 
 /**
- * Indicates the different permssions on the file.
- */
-export enum FilePerm {
-	READ = 0b100,
-	WRITE = 0b10,
-	EXECUTE = 0b1,
-}
-
-/**
  * Implementation of Node's `Stats`.
  *
  * Attribute descriptions are from `man 2 stat'

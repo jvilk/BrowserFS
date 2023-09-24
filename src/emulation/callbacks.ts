@@ -1,9 +1,10 @@
 import type { FSWatcher, ReadStream, WriteStream, symlink as _symlink } from 'fs';
 import { ApiError, ErrorCode } from '../ApiError';
 import { BFSCallback, BFSOneArgCallback, BFSThreeArgCallback, FileContents } from '../filesystem';
-import { FilePerm, Stats } from '../stats';
+import { Stats } from '../stats';
 import { nop, normalizeMode } from './shared';
 import * as promises from './promises';
+import { R_OK } from './constants';
 
 /**
  * Asynchronous rename. No arguments other than a possible exception are given
@@ -607,7 +608,7 @@ export function realpath(path: string, arg2?: any, cb: BFSCallback<string> = nop
 export function access(path: string, cb: BFSOneArgCallback): void;
 export function access(path: string, mode: number, cb: BFSOneArgCallback): void;
 export function access(path: string, arg2: any, cb: BFSOneArgCallback = nop): void {
-	const mode = typeof arg2 === 'number' ? arg2 : FilePerm.READ;
+	const mode = typeof arg2 === 'number' ? arg2 : R_OK;
 	cb = typeof arg2 === 'function' ? arg2 : cb;
 	promises
 		.access(path, typeof arg2 === 'function' ? null : arg2)
