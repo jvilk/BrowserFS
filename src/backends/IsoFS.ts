@@ -1159,7 +1159,7 @@ export namespace IsoFS {
  * * Vanilla ISO9660 ISOs
  * * Microsoft Joliet and Rock Ridge extensions to the ISO9660 standard
  */
-export class IsoFS extends SynchronousFileSystem implements FileSystem {
+export class IsoFS extends SynchronousFileSystem {
 	public static readonly Name = 'IsoFS';
 
 	public static Create = CreateBackend.bind(this);

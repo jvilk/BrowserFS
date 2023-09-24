@@ -745,7 +745,7 @@ export namespace ZipFS {
  *   - Stream it out to a location.
  *   This isn't that bad, so we might do this at a later date.
  */
-export class ZipFS extends SynchronousFileSystem implements FileSystem {
+export class ZipFS extends SynchronousFileSystem {
 	public static readonly Name = 'ZipFS';
 
 	public static Create = CreateBackend.bind(this);

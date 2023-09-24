@@ -83,7 +83,7 @@ export namespace OverlayFS {
  * Core OverlayFS class that contains no locking whatsoever. We wrap these objects
  * in a LockedFS to prevent races.
  */
-export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
+export class UnlockedOverlayFS extends BaseFileSystem {
 	public static isAvailable(): boolean {
 		return true;
 	}

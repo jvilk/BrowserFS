@@ -34,7 +34,7 @@ export namespace FolderAdapter {
  * });
  * ```
  */
-export class FolderAdapter extends BaseFileSystem implements FileSystem {
+export class FolderAdapter extends BaseFileSystem {
 	public static readonly Name = 'FolderAdapter';
 
 	public static Create = CreateBackend.bind(this);

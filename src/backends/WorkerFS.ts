@@ -85,7 +85,7 @@ type _RPCExtractReturnValue<T extends RPCResponse['method']> = Promise<Extract<R
  * Note that synchronous operations are not permitted on the WorkerFS, regardless
  * of the configuration option of the remote FS.
  */
-export class WorkerFS extends BaseFileSystem implements FileSystem {
+export class WorkerFS extends BaseFileSystem {
 	public static readonly Name = 'WorkerFS';
 
 	public static Create = CreateBackend.bind(this);

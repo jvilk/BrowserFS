@@ -92,7 +92,7 @@ export namespace AsyncMirror {
  * });
  * ```
  */
-export class AsyncMirror extends SynchronousFileSystem implements FileSystem {
+export class AsyncMirror extends SynchronousFileSystem {
 	public static readonly Name = 'AsyncMirror';
 
 	public static Create = CreateBackend.bind(this);

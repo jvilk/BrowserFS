@@ -38,7 +38,7 @@ export class FileSystemAccessFile extends PreloadFile<FileSystemAccessFileSystem
 	}
 }
 
-export class FileSystemAccessFileSystem extends BaseFileSystem implements FileSystem {
+export class FileSystemAccessFileSystem extends BaseFileSystem {
 	public static readonly Name = 'FileSystemAccess';
 
 	public static Create = CreateBackend.bind(this);

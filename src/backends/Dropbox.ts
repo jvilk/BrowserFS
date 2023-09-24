@@ -168,7 +168,7 @@ export interface DropboxFileSystemOptions {
  *
  * Uses the Dropbox V2 API, and the 2.x JS SDK.
  */
-export class DropboxFileSystem extends BaseFileSystem implements FileSystem {
+export class DropboxFileSystem extends BaseFileSystem {
 	public static readonly Name = 'DropboxV2';
 
 	public static Create = CreateBackend.bind(this);

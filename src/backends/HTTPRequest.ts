@@ -60,7 +60,7 @@ export namespace HTTPRequest {
  *
  * *This example has the folder `/home/jvilk` with subfile `someFile.txt` and subfolder `someDir`.*
  */
-export class HTTPRequest extends BaseFileSystem implements FileSystem {
+export class HTTPRequest extends BaseFileSystem {
 	public static readonly Name = 'HTTPRequest';
 
 	public static Create = CreateBackend.bind(this);
