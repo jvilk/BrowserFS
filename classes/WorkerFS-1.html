@@ -1,4 +1,4 @@
-<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>BaseFileSystem | BrowserFS</title><meta name="description" content="Documentation for BrowserFS"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>WorkerFS | BrowserFS</title><meta name="description" content="Documentation for BrowserFS"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
 <div class="tsd-toolbar-contents container">
 <div class="table-cell" id="tsd-search" data-base="..">
 <div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="#icon-search"></use></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
@@ -13,29 +13,33 @@
 <div class="tsd-page-title">
 <ul class="tsd-breadcrumb">
 <li><a href="../modules.html">BrowserFS</a></li>
-<li><a href="BaseFileSystem.html">BaseFileSystem</a></li></ul>
-<h1>Class BaseFileSystem</h1></div>
+<li><a href="WorkerFS-1.html">WorkerFS</a></li></ul>
+<h1>Class WorkerFS</h1></div>
 <section class="tsd-panel tsd-comment">
-<div class="tsd-comment tsd-typography"><p>Basic filesystem class. Most filesystems should extend this class, as it
-provides default implementations for a handful of methods.</p>
+<div class="tsd-comment tsd-typography"><p>WorkerFS lets you access a BrowserFS instance that is running in a different
+JavaScript context (e.g. access BrowserFS in one of your WebWorkers, or
+access BrowserFS running on the main page from a WebWorker).</p>
+<p>For example, to have a WebWorker access files in the main browser thread,
+do the following:</p>
+<p>MAIN BROWSER THREAD:</p>
+<pre><code class="language-javascript"><span class="hl-1">  </span><span class="hl-4">// Listen for remote file system requests.</span><br/><span class="hl-1">  </span><span class="hl-2">BrowserFS</span><span class="hl-1">.</span><span class="hl-2">Backend</span><span class="hl-1">.</span><span class="hl-2">WorkerFS</span><span class="hl-1">.</span><span class="hl-5">attachRemoteListener</span><span class="hl-1">(</span><span class="hl-2">webWorkerObject</span><span class="hl-1">);</span>
+</code><button>Copy</button></pre>
+<p>WEBWORKER THREAD:</p>
+<pre><code class="language-javascript"><span class="hl-1">  </span><span class="hl-4">// Set the remote file system as the root file system.</span><br/><span class="hl-1">  </span><span class="hl-2">BrowserFS</span><span class="hl-1">.</span><span class="hl-5">configure</span><span class="hl-1">({ </span><span class="hl-2">fs:</span><span class="hl-1"> </span><span class="hl-3">&quot;WorkerFS&quot;</span><span class="hl-1">, </span><span class="hl-2">options:</span><span class="hl-1"> { </span><span class="hl-2">worker:</span><span class="hl-1"> </span><span class="hl-2">self</span><span class="hl-1"> }}, </span><span class="hl-6">function</span><span class="hl-1">(</span><span class="hl-2">e</span><span class="hl-1">) {</span><br/><span class="hl-1">    </span><span class="hl-4">// Ready!</span><br/><span class="hl-1">  });</span>
+</code><button>Copy</button></pre>
+<p>Note that synchronous operations are not permitted on the WorkerFS, regardless
+of the configuration option of the remote FS.</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></section>
 <section class="tsd-panel tsd-hierarchy">
 <h4>Hierarchy</h4>
 <ul class="tsd-hierarchy">
-<li><a href="FileSystem.html" class="tsd-signature-type tsd-kind-class">FileSystem</a>
+<li><a href="BaseFileSystem.html" class="tsd-signature-type tsd-kind-class">BaseFileSystem</a>
 <ul class="tsd-hierarchy">
-<li><span class="target">BaseFileSystem</span>
-<ul class="tsd-hierarchy">
-<li><a href="SynchronousFileSystem.html" class="tsd-signature-type tsd-kind-class">SynchronousFileSystem</a></li>
-<li><a href="Dropbox.html" class="tsd-signature-type tsd-kind-class">Dropbox</a></li>
-<li><a href="FileSystemAccess.html" class="tsd-signature-type tsd-kind-class">FileSystemAccess</a></li>
-<li><a href="FolderAdapter-1.html" class="tsd-signature-type tsd-kind-class">FolderAdapter</a></li>
-<li><a href="WorkerFS-1.html" class="tsd-signature-type tsd-kind-class">WorkerFS</a></li>
-<li><a href="HTTPRequest-1.html" class="tsd-signature-type tsd-kind-class">HTTPRequest</a></li>
-<li><a href="AsyncKeyValueFileSystem.html" class="tsd-signature-type tsd-kind-class">AsyncKeyValueFileSystem</a></li></ul></li></ul></li></ul></section><aside class="tsd-sources">
+<li><span class="target">WorkerFS</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L308">src/filesystem.ts:308</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L50">src/backends/WorkerFS.ts:50</a></li>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L88">src/backends/WorkerFS.ts:88</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -43,97 +47,138 @@ provides default implementations for a handful of methods.</p>
 <div class="tsd-accordion-details">
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Constructors</h3>
-<div class="tsd-index-list"><a href="BaseFileSystem.html#constructor" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-512"></use></svg><span>constructor</span></a>
+<div class="tsd-index-list"><a href="WorkerFS-1.html#constructor" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-512"></use></svg><span>constructor</span></a>
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Properties</h3>
-<div class="tsd-index-list"><a href="BaseFileSystem.html#_ready" class="tsd-index-link tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_ready</span></a>
-<a href="BaseFileSystem.html#Name" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>Name</span></a>
+<div class="tsd-index-list"><a href="WorkerFS-1.html#_currentID" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_currentID</span></a>
+<a href="WorkerFS-1.html#_isInitialized" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_is<wbr/>Initialized</span></a>
+<a href="WorkerFS-1.html#_metadata" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_metadata</span></a>
+<a href="WorkerFS-1.html#_ready" class="tsd-index-link tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_ready</span></a>
+<a href="WorkerFS-1.html#_requests" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_requests</span></a>
+<a href="WorkerFS-1.html#_worker" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_worker</span></a>
+<a href="WorkerFS-1.html#Create" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>Create</span></a>
+<a href="WorkerFS-1.html#Name" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>Name</span></a>
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Accessors</h3>
-<div class="tsd-index-list"><a href="BaseFileSystem.html#metadata" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-262144"></use></svg><span>metadata</span></a>
+<div class="tsd-index-list"><a href="WorkerFS-1.html#metadata" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-262144"></use></svg><span>metadata</span></a>
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Methods</h3>
-<div class="tsd-index-list"><a href="BaseFileSystem.html#access" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>access</span></a>
-<a href="BaseFileSystem.html#accessSync" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>access<wbr/>Sync</span></a>
-<a href="BaseFileSystem.html#appendFile" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>append<wbr/>File</span></a>
-<a href="BaseFileSystem.html#appendFileSync" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>append<wbr/>File<wbr/>Sync</span></a>
-<a href="BaseFileSystem.html#chmod" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>chmod</span></a>
-<a href="BaseFileSystem.html#chmodSync" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>chmod<wbr/>Sync</span></a>
-<a href="BaseFileSystem.html#chown" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>chown</span></a>
-<a href="BaseFileSystem.html#chownSync" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>chown<wbr/>Sync</span></a>
-<a href="BaseFileSystem.html#createFile" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>create<wbr/>File</span></a>
-<a href="BaseFileSystem.html#createFileSync" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>create<wbr/>File<wbr/>Sync</span></a>
-<a href="BaseFileSystem.html#exists" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>exists</span></a>
-<a href="BaseFileSystem.html#existsSync" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>exists<wbr/>Sync</span></a>
-<a href="BaseFileSystem.html#link" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>link</span></a>
-<a href="BaseFileSystem.html#linkSync" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>link<wbr/>Sync</span></a>
-<a href="BaseFileSystem.html#mkdir" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>mkdir</span></a>
-<a href="BaseFileSystem.html#mkdirSync" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>mkdir<wbr/>Sync</span></a>
-<a href="BaseFileSystem.html#open" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open</span></a>
-<a href="BaseFileSystem.html#openFile" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open<wbr/>File</span></a>
-<a href="BaseFileSystem.html#openFileSync" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open<wbr/>File<wbr/>Sync</span></a>
-<a href="BaseFileSystem.html#openSync" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open<wbr/>Sync</span></a>
-<a href="BaseFileSystem.html#readFile" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>read<wbr/>File</span></a>
-<a href="BaseFileSystem.html#readFileSync" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>read<wbr/>File<wbr/>Sync</span></a>
-<a href="BaseFileSystem.html#readdir" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>readdir</span></a>
-<a href="BaseFileSystem.html#readdirSync" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>readdir<wbr/>Sync</span></a>
-<a href="BaseFileSystem.html#readlink" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>readlink</span></a>
-<a href="BaseFileSystem.html#readlinkSync" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>readlink<wbr/>Sync</span></a>
-<a href="BaseFileSystem.html#realpath" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>realpath</span></a>
-<a href="BaseFileSystem.html#realpathSync" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>realpath<wbr/>Sync</span></a>
-<a href="BaseFileSystem.html#rename" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>rename</span></a>
-<a href="BaseFileSystem.html#renameSync" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>rename<wbr/>Sync</span></a>
-<a href="BaseFileSystem.html#rmdir" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>rmdir</span></a>
-<a href="BaseFileSystem.html#rmdirSync" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>rmdir<wbr/>Sync</span></a>
-<a href="BaseFileSystem.html#stat" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>stat</span></a>
-<a href="BaseFileSystem.html#statSync" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>stat<wbr/>Sync</span></a>
-<a href="BaseFileSystem.html#symlink" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>symlink</span></a>
-<a href="BaseFileSystem.html#symlinkSync" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>symlink<wbr/>Sync</span></a>
-<a href="BaseFileSystem.html#truncate" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>truncate</span></a>
-<a href="BaseFileSystem.html#truncateSync" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>truncate<wbr/>Sync</span></a>
-<a href="BaseFileSystem.html#unlink" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>unlink</span></a>
-<a href="BaseFileSystem.html#unlinkSync" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>unlink<wbr/>Sync</span></a>
-<a href="BaseFileSystem.html#utimes" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>utimes</span></a>
-<a href="BaseFileSystem.html#utimesSync" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>utimes<wbr/>Sync</span></a>
-<a href="BaseFileSystem.html#whenReady" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>when<wbr/>Ready</span></a>
-<a href="BaseFileSystem.html#writeFile" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>write<wbr/>File</span></a>
-<a href="BaseFileSystem.html#writeFileSync" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>write<wbr/>File<wbr/>Sync</span></a>
+<div class="tsd-index-list"><a href="WorkerFS-1.html#_rpc" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>_rpc</span></a>
+<a href="WorkerFS-1.html#access" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>access</span></a>
+<a href="WorkerFS-1.html#accessSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>access<wbr/>Sync</span></a>
+<a href="WorkerFS-1.html#appendFile" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>append<wbr/>File</span></a>
+<a href="WorkerFS-1.html#appendFileSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>append<wbr/>File<wbr/>Sync</span></a>
+<a href="WorkerFS-1.html#chmod" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>chmod</span></a>
+<a href="WorkerFS-1.html#chmodSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>chmod<wbr/>Sync</span></a>
+<a href="WorkerFS-1.html#chown" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>chown</span></a>
+<a href="WorkerFS-1.html#chownSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>chown<wbr/>Sync</span></a>
+<a href="WorkerFS-1.html#createFile" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>create<wbr/>File</span></a>
+<a href="WorkerFS-1.html#createFileSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>create<wbr/>File<wbr/>Sync</span></a>
+<a href="WorkerFS-1.html#exists" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>exists</span></a>
+<a href="WorkerFS-1.html#existsSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>exists<wbr/>Sync</span></a>
+<a href="WorkerFS-1.html#link" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>link</span></a>
+<a href="WorkerFS-1.html#linkSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>link<wbr/>Sync</span></a>
+<a href="WorkerFS-1.html#mkdir" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>mkdir</span></a>
+<a href="WorkerFS-1.html#mkdirSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>mkdir<wbr/>Sync</span></a>
+<a href="WorkerFS-1.html#open" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open</span></a>
+<a href="WorkerFS-1.html#openFile" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open<wbr/>File</span></a>
+<a href="WorkerFS-1.html#openFileSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open<wbr/>File<wbr/>Sync</span></a>
+<a href="WorkerFS-1.html#openSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open<wbr/>Sync</span></a>
+<a href="WorkerFS-1.html#readFile" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>read<wbr/>File</span></a>
+<a href="WorkerFS-1.html#readFileSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>read<wbr/>File<wbr/>Sync</span></a>
+<a href="WorkerFS-1.html#readdir" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>readdir</span></a>
+<a href="WorkerFS-1.html#readdirSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>readdir<wbr/>Sync</span></a>
+<a href="WorkerFS-1.html#readlink" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>readlink</span></a>
+<a href="WorkerFS-1.html#readlinkSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>readlink<wbr/>Sync</span></a>
+<a href="WorkerFS-1.html#realpath" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>realpath</span></a>
+<a href="WorkerFS-1.html#realpathSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>realpath<wbr/>Sync</span></a>
+<a href="WorkerFS-1.html#rename" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>rename</span></a>
+<a href="WorkerFS-1.html#renameSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>rename<wbr/>Sync</span></a>
+<a href="WorkerFS-1.html#rmdir" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>rmdir</span></a>
+<a href="WorkerFS-1.html#rmdirSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>rmdir<wbr/>Sync</span></a>
+<a href="WorkerFS-1.html#stat" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>stat</span></a>
+<a href="WorkerFS-1.html#statSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>stat<wbr/>Sync</span></a>
+<a href="WorkerFS-1.html#symlink" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>symlink</span></a>
+<a href="WorkerFS-1.html#symlinkSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>symlink<wbr/>Sync</span></a>
+<a href="WorkerFS-1.html#syncClose" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>sync<wbr/>Close</span></a>
+<a href="WorkerFS-1.html#truncate" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>truncate</span></a>
+<a href="WorkerFS-1.html#truncateSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>truncate<wbr/>Sync</span></a>
+<a href="WorkerFS-1.html#unlink" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>unlink</span></a>
+<a href="WorkerFS-1.html#unlinkSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>unlink<wbr/>Sync</span></a>
+<a href="WorkerFS-1.html#utimes" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>utimes</span></a>
+<a href="WorkerFS-1.html#utimesSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>utimes<wbr/>Sync</span></a>
+<a href="WorkerFS-1.html#whenReady" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>when<wbr/>Ready</span></a>
+<a href="WorkerFS-1.html#writeFile" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>write<wbr/>File</span></a>
+<a href="WorkerFS-1.html#writeFileSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>write<wbr/>File<wbr/>Sync</span></a>
+<a href="WorkerFS-1.html#isAvailable" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>is<wbr/>Available</span></a>
 </div></section></div></details></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Constructors</h2>
 <section class="tsd-panel tsd-member"><a id="constructor" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="constructor.new_BaseFileSystem"><span class="tsd-kind-constructor-signature">new <wbr/>Base<wbr/>File<wbr/>System</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="BaseFileSystem.html" class="tsd-signature-type tsd-kind-class">BaseFileSystem</a><a href="#constructor.new_BaseFileSystem" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="constructor.new_WorkerFS"><span class="tsd-kind-constructor-signature">new <wbr/>WorkerFS</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">__namedParameters</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="WorkerFS-1.html" class="tsd-signature-type tsd-kind-class">WorkerFS</a><a href="#constructor.new_WorkerFS" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
+<div class="tsd-comment tsd-typography"><p>Constructs a new WorkerFS instance that connects with BrowserFS running on
+the specified worker.</p>
+</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
 <li>
-<h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">options</span>: <span class="tsd-signature-symbol">{ </span><br/><span>    </span>[<span class="tsd-kind-index-signature">key</span>: <span class="tsd-signature-type">string</span>]<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">unknown</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span></h5>
-<ul class="tsd-parameters">
-<li class="tsd-parameter-index-signature">
-<h5><span class="tsd-signature-symbol">[</span><span class="tsd-kind-parameter">key</span>: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">]: </span><span class="tsd-signature-type">unknown</span></h5></li></ul></li></ul></div>
-<h4 class="tsd-returns-title">Returns <a href="BaseFileSystem.html" class="tsd-signature-type tsd-kind-class">BaseFileSystem</a></h4><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#constructor">constructor</a></p>
+<h5><span class="tsd-kind-parameter">__namedParameters</span>: <a href="../modules/WorkerFS.html" class="tsd-signature-type tsd-kind-namespace">WorkerFS</a><span class="tsd-signature-symbol">.</span><a href="../interfaces/WorkerFS.Options.html" class="tsd-signature-type tsd-kind-interface">Options</a></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="WorkerFS-1.html" class="tsd-signature-type tsd-kind-class">WorkerFS</a></h4>
+<div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<p>Overrides <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#constructor">constructor</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L313">src/filesystem.ts:313</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L121">src/backends/WorkerFS.ts:121</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
-<section class="tsd-panel tsd-member tsd-is-protected"><a id="_ready" class="tsd-anchor"></a>
+<section class="tsd-panel tsd-member tsd-is-private"><a id="_currentID" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_currentID</span><a href="#_currentID" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">_currentID</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> = 0</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L111">src/backends/WorkerFS.ts:111</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-private"><a id="_isInitialized" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_is<wbr/>Initialized</span><a href="#_isInitialized" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">_is<wbr/>Initialized</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L114">src/backends/WorkerFS.ts:114</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-private"><a id="_metadata" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_metadata</span><a href="#_metadata" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">_metadata</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/FileSystemMetadata.html" class="tsd-signature-type tsd-kind-interface">FileSystemMetadata</a></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L115">src/backends/WorkerFS.ts:115</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited"><a id="_ready" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagProtected">Protected</code> <span>_ready</span><a href="#_ready" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">_ready</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="BaseFileSystem.html" class="tsd-signature-type tsd-kind-class">BaseFileSystem</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">_ready</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="WorkerFS-1.html" class="tsd-signature-type tsd-kind-class">WorkerFS</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#_ready">_ready</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L311">src/filesystem.ts:311</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-private"><a id="_requests" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_requests</span><a href="#_requests" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">_requests</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Map</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type ">WorkerRequest</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L112">src/backends/WorkerFS.ts:112</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member tsd-is-private"><a id="_worker" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_worker</span><a href="#_worker" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">_worker</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Worker</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L110">src/backends/WorkerFS.ts:110</a></li></ul></aside></section>
+<section class="tsd-panel tsd-member"><a id="Create" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>Create</span><a href="#Create" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">Create</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L91">src/backends/WorkerFS.ts:91</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="Name" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span>Name</span><a href="#Name" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">Name</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#Name">Name</a></p>
+<div class="tsd-signature"><span class="tsd-kind-property">Name</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;WorkerFS&quot;</span><span class="tsd-signature-symbol"> = &#39;WorkerFS&#39;</span></div><aside class="tsd-sources">
+<p>Overrides <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#Name">Name</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L309">src/filesystem.ts:309</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L89">src/backends/WorkerFS.ts:89</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Accessors</h2>
 <section class="tsd-panel tsd-member"><a id="metadata" class="tsd-anchor"></a>
@@ -142,14 +187,34 @@ provides default implementations for a handful of methods.</p>
 <li class="tsd-signature" id="metadata.metadata-1"><span class="tsd-signature-symbol">get</span> metadata<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/FileSystemMetadata.html" class="tsd-signature-type tsd-kind-interface">FileSystemMetadata</a></li>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/FileSystemMetadata.html" class="tsd-signature-type tsd-kind-interface">FileSystemMetadata</a></h4><aside class="tsd-sources">
-<p>Overrides FileSystem.metadata</p>
+<p>Overrides BaseFileSystem.metadata</p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L317">src/filesystem.ts:317</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L146">src/backends/WorkerFS.ts:146</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
-<section class="tsd-panel tsd-member"><a id="access" class="tsd-anchor"></a>
+<section class="tsd-panel tsd-member tsd-is-private"><a id="_rpc" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>_rpc</span><a href="#_rpc" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures tsd-is-private">
+<li class="tsd-signature tsd-anchor-link" id="_rpc._rpc-1"><span class="tsd-kind-call-signature">_rpc</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">method</span>, <span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">args</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">_RPCExtractReturnValue</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span><a href="#_rpc._rpc-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<section class="tsd-panel">
+<h4>Type Parameters</h4>
+<ul class="tsd-type-parameter-list">
+<li>
+<h4><span class="tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol"> extends </span><span class="tsd-signature-type">&quot;link&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;open&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;metadata&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;whenReady&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;access&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;accessSync&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;rename&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;renameSync&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;stat&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;statSync&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;openSync&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;unlink&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;unlinkSync&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;rmdir&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;rmdirSync&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;mkdir&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;mkdirSync&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;readdir&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;readdirSync&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;exists&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;existsSync&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;realpath&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;realpathSync&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;truncate&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;truncateSync&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;readFile&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;readFileSync&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;writeFile&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;writeFileSync&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;appendFile&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;appendFileSync&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;chmod&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;chmodSync&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;chown&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;chownSync&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;utimes&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;utimesSync&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;linkSync&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;symlink&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;symlinkSync&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;readlink&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;readlinkSync&quot;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type">&quot;syncClose&quot;</span></h4></li></ul></section>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">method</span>: <span class="tsd-signature-type tsd-kind-type-parameter">T</span></h5></li>
+<li>
+<h5><code class="tsd-tag ts-flagRest">Rest</code> <span class="tsd-signature-symbol">...</span><span class="tsd-kind-parameter">args</span>: <span class="tsd-signature-symbol">(</span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span>srcpath<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>dstpath<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>cred<span class="tsd-signature-symbol">: </span><a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;link&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span>p<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>flag<span class="tsd-signature-symbol">: </span><a href="FileFlag.html" class="tsd-signature-type tsd-kind-class">FileFlag</a><span class="tsd-signature-symbol">, </span>mode<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span>cred<span class="tsd-signature-symbol">: </span><a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;open&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;metadata&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;whenReady&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span>p<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>mode<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span>cred<span class="tsd-signature-symbol">: </span><a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;access&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;accessSync&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span>oldPath<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>newPath<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>cred<span class="tsd-signature-symbol">: </span><a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;rename&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;renameSync&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span>p<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>cred<span class="tsd-signature-symbol">: </span><a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;stat&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;statSync&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;openSync&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span>p<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>cred<span class="tsd-signature-symbol">: </span><a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;unlink&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;unlinkSync&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span>p<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>cred<span class="tsd-signature-symbol">: </span><a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;rmdir&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;rmdirSync&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span>p<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>mode<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span>cred<span class="tsd-signature-symbol">: </span><a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;mkdir&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;mkdirSync&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span>p<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>cred<span class="tsd-signature-symbol">: </span><a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;readdir&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;readdirSync&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span>p<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>cred<span class="tsd-signature-symbol">: </span><a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;exists&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;existsSync&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span>p<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>cred<span class="tsd-signature-symbol">: </span><a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;realpath&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;realpathSync&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span>p<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>len<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span>cred<span class="tsd-signature-symbol">: </span><a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;truncate&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;truncateSync&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span>fname<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>encoding<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">BufferEncoding</span><span class="tsd-signature-symbol">, </span>flag<span class="tsd-signature-symbol">: </span><a href="FileFlag.html" class="tsd-signature-type tsd-kind-class">FileFlag</a><span class="tsd-signature-symbol">, </span>cred<span class="tsd-signature-symbol">: </span><a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;readFile&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;readFileSync&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span>fname<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>data<span class="tsd-signature-symbol">: </span><a href="../types/FileContents.html" class="tsd-signature-type tsd-kind-type-alias">FileContents</a><span class="tsd-signature-symbol">, </span>encoding<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">BufferEncoding</span><span class="tsd-signature-symbol">, </span>flag<span class="tsd-signature-symbol">: </span><a href="FileFlag.html" class="tsd-signature-type tsd-kind-class">FileFlag</a><span class="tsd-signature-symbol">, </span>mode<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span>cred<span class="tsd-signature-symbol">: </span><a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;writeFile&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;writeFileSync&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span>fname<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>data<span class="tsd-signature-symbol">: </span><a href="../types/FileContents.html" class="tsd-signature-type tsd-kind-type-alias">FileContents</a><span class="tsd-signature-symbol">, </span>encoding<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">BufferEncoding</span><span class="tsd-signature-symbol">, </span>flag<span class="tsd-signature-symbol">: </span><a href="FileFlag.html" class="tsd-signature-type tsd-kind-class">FileFlag</a><span class="tsd-signature-symbol">, </span>mode<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span>cred<span class="tsd-signature-symbol">: </span><a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;appendFile&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;appendFileSync&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span>p<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>mode<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span>cred<span class="tsd-signature-symbol">: </span><a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;chmod&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;chmodSync&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span>p<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>new_uid<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span>new_gid<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span>cred<span class="tsd-signature-symbol">: </span><a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;chown&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;chownSync&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span>p<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>atime<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Date</span><span class="tsd-signature-symbol">, </span>mtime<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Date</span><span class="tsd-signature-symbol">, </span>cred<span class="tsd-signature-symbol">: </span><a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;utimes&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;utimesSync&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;linkSync&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span>srcpath<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>dstpath<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>type<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>cred<span class="tsd-signature-symbol">: </span><a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;symlink&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;symlinkSync&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span>p<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span>cred<span class="tsd-signature-symbol">: </span><a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;readlink&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;readlinkSync&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;metadata&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Extract</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type ">RPCMessage</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">args</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">, </span><a href="../interfaces/File.html" class="tsd-signature-type tsd-kind-interface">File</a><span class="tsd-signature-symbol">]</span><span class="tsd-signature-symbol">; </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">&quot;syncClose&quot;</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-symbol">{ </span><br/><span>    </span><span class="tsd-kind-property">method</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">; </span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">[</span><span class="tsd-signature-type">&quot;args&quot;</span><span class="tsd-signature-symbol">]</span></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">_RPCExtractReturnValue</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type tsd-kind-type-parameter">T</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L155">src/backends/WorkerFS.ts:155</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="access" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>access</span><a href="#access" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="access.access-1"><span class="tsd-kind-call-signature">access</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">p</span>, <span class="tsd-kind-parameter">mode</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#access.access-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Asynchronous access.</p>
@@ -165,12 +230,12 @@ provides default implementations for a handful of methods.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#access">access</a></p>
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#access">access</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L388">src/filesystem.ts:388</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="accessSync" class="tsd-anchor"></a>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="accessSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>access<wbr/>Sync</span><a href="#accessSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="accessSync.accessSync-1"><span class="tsd-kind-call-signature">access<wbr/>Sync</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">p</span>, <span class="tsd-kind-parameter">mode</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#accessSync.accessSync-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Synchronous access.</p>
@@ -186,7 +251,7 @@ provides default implementations for a handful of methods.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#accessSync">accessSync</a></p>
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#accessSync">accessSync</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L391">src/filesystem.ts:391</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="appendFile" class="tsd-anchor"></a>
@@ -214,12 +279,12 @@ it not yet exists.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#appendFile">appendFile</a></p>
+<p>Overrides <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#appendFile">appendFile</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L621">src/filesystem.ts:621</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="appendFileSync" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L204">src/backends/WorkerFS.ts:204</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="appendFileSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>append<wbr/>File<wbr/>Sync</span><a href="#appendFileSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="appendFileSync.appendFileSync-1"><span class="tsd-kind-call-signature">append<wbr/>File<wbr/>Sync</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">fname</span>, <span class="tsd-kind-parameter">data</span>, <span class="tsd-kind-parameter">encoding</span>, <span class="tsd-kind-parameter">flag</span>, <span class="tsd-kind-parameter">mode</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#appendFileSync.appendFileSync-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Synchronously append data to a file, creating the file if
@@ -242,7 +307,7 @@ it not yet exists.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#appendFileSync">appendFileSync</a></p>
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#appendFileSync">appendFileSync</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L632">src/filesystem.ts:632</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="chmod" class="tsd-anchor"></a>
@@ -263,12 +328,12 @@ it not yet exists.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#chmod">chmod</a></p>
+<p>Overrides <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#chmod">chmod</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L643">src/filesystem.ts:643</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="chmodSync" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L207">src/backends/WorkerFS.ts:207</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="chmodSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>chmod<wbr/>Sync</span><a href="#chmodSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="chmodSync.chmodSync-1"><span class="tsd-kind-call-signature">chmod<wbr/>Sync</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">p</span>, <span class="tsd-kind-parameter">mode</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#chmodSync.chmodSync-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Synchronous <code>chmod</code>.</p>
@@ -284,7 +349,7 @@ it not yet exists.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#chmodSync">chmodSync</a></p>
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#chmodSync">chmodSync</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L646">src/filesystem.ts:646</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="chown" class="tsd-anchor"></a>
@@ -307,12 +372,12 @@ it not yet exists.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#chown">chown</a></p>
+<p>Overrides <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#chown">chown</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L649">src/filesystem.ts:649</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="chownSync" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L210">src/backends/WorkerFS.ts:210</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="chownSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>chown<wbr/>Sync</span><a href="#chownSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="chownSync.chownSync-1"><span class="tsd-kind-call-signature">chown<wbr/>Sync</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">p</span>, <span class="tsd-kind-parameter">new_uid</span>, <span class="tsd-kind-parameter">new_gid</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#chownSync.chownSync-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Synchronous <code>chown</code>.</p>
@@ -330,12 +395,12 @@ it not yet exists.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#chownSync">chownSync</a></p>
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#chownSync">chownSync</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L652">src/filesystem.ts:652</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="createFile" class="tsd-anchor"></a>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="createFile" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>create<wbr/>File</span><a href="#createFile" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="createFile.createFile-1"><span class="tsd-kind-call-signature">create<wbr/>File</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">p</span>, <span class="tsd-kind-parameter">flag</span>, <span class="tsd-kind-parameter">mode</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/File.html" class="tsd-signature-type tsd-kind-interface">File</a><span class="tsd-signature-symbol">&gt;</span><a href="#createFile.createFile-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Create the file at path p with the given mode. Then, open it with the given
@@ -354,11 +419,12 @@ flag.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/File.html" class="tsd-signature-type tsd-kind-interface">File</a><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#createFile">createFile</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L345">src/filesystem.ts:345</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="createFileSync" class="tsd-anchor"></a>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="createFileSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>create<wbr/>File<wbr/>Sync</span><a href="#createFileSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="createFileSync.createFileSync-1"><span class="tsd-kind-call-signature">create<wbr/>File<wbr/>Sync</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">p</span>, <span class="tsd-kind-parameter">flag</span>, <span class="tsd-kind-parameter">mode</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/File.html" class="tsd-signature-type tsd-kind-interface">File</a><a href="#createFileSync.createFileSync-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Create the file at path p with the given mode. Then, open it with the given
@@ -377,6 +443,7 @@ flag.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/File.html" class="tsd-signature-type tsd-kind-interface">File</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#createFileSync">createFileSync</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L419">src/filesystem.ts:419</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="exists" class="tsd-anchor"></a>
@@ -396,12 +463,12 @@ the file system. Then call the callback argument with either true or false.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#exists">exists</a></p>
+<p>Overrides <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#exists">exists</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L489">src/filesystem.ts:489</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="existsSync" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L189">src/backends/WorkerFS.ts:189</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="existsSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>exists<wbr/>Sync</span><a href="#existsSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="existsSync.existsSync-1"><span class="tsd-kind-call-signature">exists<wbr/>Sync</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">p</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><a href="#existsSync.existsSync-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Test whether or not the given path exists by checking with
@@ -416,7 +483,7 @@ the file system.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#existsSync">existsSync</a></p>
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#existsSync">existsSync</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L497">src/filesystem.ts:497</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="link" class="tsd-anchor"></a>
@@ -437,12 +504,12 @@ the file system.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#link">link</a></p>
+<p>Overrides <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#link">link</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L661">src/filesystem.ts:661</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="linkSync" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L216">src/backends/WorkerFS.ts:216</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="linkSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>link<wbr/>Sync</span><a href="#linkSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="linkSync.linkSync-1"><span class="tsd-kind-call-signature">link<wbr/>Sync</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">srcpath</span>, <span class="tsd-kind-parameter">dstpath</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#linkSync.linkSync-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Synchronous <code>link</code>.</p>
@@ -458,7 +525,7 @@ the file system.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#linkSync">linkSync</a></p>
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#linkSync">linkSync</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L664">src/filesystem.ts:664</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="mkdir" class="tsd-anchor"></a>
@@ -483,12 +550,12 @@ the file system.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#mkdir">mkdir</a></p>
+<p>Overrides <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#mkdir">mkdir</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L477">src/filesystem.ts:477</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="mkdirSync" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L183">src/backends/WorkerFS.ts:183</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="mkdirSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>mkdir<wbr/>Sync</span><a href="#mkdirSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="mkdirSync.mkdirSync-1"><span class="tsd-kind-call-signature">mkdir<wbr/>Sync</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">p</span>, <span class="tsd-kind-parameter">mode</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#mkdirSync.mkdirSync-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Synchronous <code>mkdir</code>.</p>
@@ -508,7 +575,7 @@ the file system.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#mkdirSync">mkdirSync</a></p>
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#mkdirSync">mkdirSync</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L480">src/filesystem.ts:480</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="open" class="tsd-anchor"></a>
@@ -537,12 +604,12 @@ the file system.</p>
 <div class="tsd-comment tsd-typography">
 <h4>See</h4><p><a href="http://www.manpagez.com/man/2/open/">http://www.manpagez.com/man/2/open/</a></p>
 </div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#open">open</a></p>
+<p>Overrides <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#open">open</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L348">src/filesystem.ts:348</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="openFile" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L174">src/backends/WorkerFS.ts:174</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="openFile" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>open<wbr/>File</span><a href="#openFile" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="openFile.openFile-1"><span class="tsd-kind-call-signature">open<wbr/>File</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">p</span>, <span class="tsd-kind-parameter">flag</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/File.html" class="tsd-signature-type tsd-kind-interface">File</a><span class="tsd-signature-symbol">&gt;</span><a href="#openFile.openFile-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Opens the file at path p with the given flag. The file must exist.</p>
@@ -564,11 +631,12 @@ the file system.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/File.html" class="tsd-signature-type tsd-kind-interface">File</a><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#openFile">openFile</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L338">src/filesystem.ts:338</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="openFileSync" class="tsd-anchor"></a>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="openFileSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>open<wbr/>File<wbr/>Sync</span><a href="#openFileSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="openFileSync.openFileSync-1"><span class="tsd-kind-call-signature">open<wbr/>File<wbr/>Sync</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">p</span>, <span class="tsd-kind-parameter">flag</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/File.html" class="tsd-signature-type tsd-kind-interface">File</a><a href="#openFileSync.openFileSync-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Opens the file at path p with the given flag. The file must exist.</p>
@@ -591,11 +659,12 @@ the file system.</p>
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/File.html" class="tsd-signature-type tsd-kind-interface">File</a></h4><p>A File object corresponding to the opened file.</p>
 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#openFileSync">openFileSync</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L412">src/filesystem.ts:412</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="openSync" class="tsd-anchor"></a>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="openSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>open<wbr/>Sync</span><a href="#openSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="openSync.openSync-1"><span class="tsd-kind-call-signature">open<wbr/>Sync</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">p</span>, <span class="tsd-kind-parameter">flag</span>, <span class="tsd-kind-parameter">mode</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/File.html" class="tsd-signature-type tsd-kind-interface">File</a><a href="#openSync.openSync-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Synchronous file open.</p>
@@ -619,7 +688,7 @@ the file system.</p>
 <div class="tsd-comment tsd-typography">
 <h4>See</h4><p><a href="http://www.manpagez.com/man/2/open/">http://www.manpagez.com/man/2/open/</a></p>
 </div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#openSync">openSync</a></p>
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#openSync">openSync</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L422">src/filesystem.ts:422</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="readFile" class="tsd-anchor"></a>
@@ -648,12 +717,12 @@ If no encoding is specified, then the raw buffer is returned.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../types/FileContents.html" class="tsd-signature-type tsd-kind-type-alias">FileContents</a><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#readFile">readFile</a></p>
+<p>Overrides <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#readFile">readFile</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L561">src/filesystem.ts:561</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="readFileSync" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L198">src/backends/WorkerFS.ts:198</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="readFileSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>read<wbr/>File<wbr/>Sync</span><a href="#readFileSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="readFileSync.readFileSync-1"><span class="tsd-kind-call-signature">read<wbr/>File<wbr/>Sync</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">fname</span>, <span class="tsd-kind-parameter">encoding</span>, <span class="tsd-kind-parameter">flag</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../types/FileContents.html" class="tsd-signature-type tsd-kind-type-alias">FileContents</a><a href="#readFileSync.readFileSync-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Synchronously reads the entire contents of a file.</p>
@@ -676,7 +745,7 @@ If no encoding is specified, then the raw buffer is returned.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="../types/FileContents.html" class="tsd-signature-type tsd-kind-type-alias">FileContents</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#readFileSync">readFileSync</a></p>
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#readFileSync">readFileSync</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L578">src/filesystem.ts:578</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="readdir" class="tsd-anchor"></a>
@@ -697,12 +766,12 @@ the names of the files in the directory excluding <code>&#39;.&#39;</code> and <
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#readdir">readdir</a></p>
+<p>Overrides <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#readdir">readdir</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L483">src/filesystem.ts:483</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="readdirSync" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L186">src/backends/WorkerFS.ts:186</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="readdirSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>readdir<wbr/>Sync</span><a href="#readdirSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="readdirSync.readdirSync-1"><span class="tsd-kind-call-signature">readdir<wbr/>Sync</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">p</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><a href="#readdirSync.readdirSync-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Synchronous <code>readdir</code>. Reads the contents of a directory.</p>
@@ -716,7 +785,7 @@ the names of the files in the directory excluding <code>&#39;.&#39;</code> and <
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#readdirSync">readdirSync</a></p>
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#readdirSync">readdirSync</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L486">src/filesystem.ts:486</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="readlink" class="tsd-anchor"></a>
@@ -735,12 +804,12 @@ the names of the files in the directory excluding <code>&#39;.&#39;</code> and <
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#readlink">readlink</a></p>
+<p>Overrides <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#readlink">readlink</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L673">src/filesystem.ts:673</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="readlinkSync" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L222">src/backends/WorkerFS.ts:222</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="readlinkSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>readlink<wbr/>Sync</span><a href="#readlinkSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="readlinkSync.readlinkSync-1"><span class="tsd-kind-call-signature">readlink<wbr/>Sync</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">p</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><a href="#readlinkSync.readlinkSync-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Synchronous readlink.</p>
@@ -754,7 +823,7 @@ the names of the files in the directory excluding <code>&#39;.&#39;</code> and <
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#readlinkSync">readlinkSync</a></p>
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#readlinkSync">readlinkSync</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L676">src/filesystem.ts:676</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="realpath" class="tsd-anchor"></a>
@@ -775,12 +844,12 @@ the names of the files in the directory excluding <code>&#39;.&#39;</code> and <
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#realpath">realpath</a></p>
+<p>Overrides <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#realpath">realpath</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L505">src/filesystem.ts:505</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="realpathSync" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L192">src/backends/WorkerFS.ts:192</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="realpathSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>realpath<wbr/>Sync</span><a href="#realpathSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="realpathSync.realpathSync-1"><span class="tsd-kind-call-signature">realpath<wbr/>Sync</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">p</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><a href="#realpathSync.realpathSync-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Synchronous <code>realpath</code>.</p>
@@ -795,7 +864,7 @@ the names of the files in the directory excluding <code>&#39;.&#39;</code> and <
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#realpathSync">realpathSync</a></p>
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#realpathSync">realpathSync</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L524">src/filesystem.ts:524</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="rename" class="tsd-anchor"></a>
@@ -817,12 +886,12 @@ are given to the completion callback.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#rename">rename</a></p>
+<p>Overrides <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#rename">rename</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L394">src/filesystem.ts:394</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="renameSync" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L168">src/backends/WorkerFS.ts:168</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="renameSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>rename<wbr/>Sync</span><a href="#renameSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="renameSync.renameSync-1"><span class="tsd-kind-call-signature">rename<wbr/>Sync</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">oldPath</span>, <span class="tsd-kind-parameter">newPath</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#renameSync.renameSync-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Synchronous rename.</p>
@@ -838,7 +907,7 @@ are given to the completion callback.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#renameSync">renameSync</a></p>
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#renameSync">renameSync</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L397">src/filesystem.ts:397</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="rmdir" class="tsd-anchor"></a>
@@ -857,12 +926,12 @@ are given to the completion callback.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#rmdir">rmdir</a></p>
+<p>Overrides <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#rmdir">rmdir</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L471">src/filesystem.ts:471</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="rmdirSync" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L180">src/backends/WorkerFS.ts:180</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="rmdirSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>rmdir<wbr/>Sync</span><a href="#rmdirSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="rmdirSync.rmdirSync-1"><span class="tsd-kind-call-signature">rmdir<wbr/>Sync</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">p</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#rmdirSync.rmdirSync-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Synchronous <code>rmdir</code>.</p>
@@ -876,7 +945,7 @@ are given to the completion callback.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#rmdirSync">rmdirSync</a></p>
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#rmdirSync">rmdirSync</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L474">src/filesystem.ts:474</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="stat" class="tsd-anchor"></a>
@@ -895,12 +964,12 @@ are given to the completion callback.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="Stats.html" class="tsd-signature-type tsd-kind-class">Stats</a><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#stat">stat</a></p>
+<p>Overrides <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#stat">stat</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L400">src/filesystem.ts:400</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="statSync" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L171">src/backends/WorkerFS.ts:171</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="statSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>stat<wbr/>Sync</span><a href="#statSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="statSync.statSync-1"><span class="tsd-kind-call-signature">stat<wbr/>Sync</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">p</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="Stats.html" class="tsd-signature-type tsd-kind-class">Stats</a><a href="#statSync.statSync-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Synchronous <code>stat</code>.</p>
@@ -914,7 +983,7 @@ are given to the completion callback.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="Stats.html" class="tsd-signature-type tsd-kind-class">Stats</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#statSync">statSync</a></p>
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#statSync">statSync</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L403">src/filesystem.ts:403</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="symlink" class="tsd-anchor"></a>
@@ -940,12 +1009,12 @@ are given to the completion callback.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#symlink">symlink</a></p>
+<p>Overrides <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#symlink">symlink</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L667">src/filesystem.ts:667</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="symlinkSync" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L219">src/backends/WorkerFS.ts:219</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="symlinkSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>symlink<wbr/>Sync</span><a href="#symlinkSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="symlinkSync.symlinkSync-1"><span class="tsd-kind-call-signature">symlink<wbr/>Sync</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">srcpath</span>, <span class="tsd-kind-parameter">dstpath</span>, <span class="tsd-kind-parameter">type</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#symlinkSync.symlinkSync-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Synchronous <code>symlink</code>.</p>
@@ -966,9 +1035,24 @@ are given to the completion callback.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#symlinkSync">symlinkSync</a></p>
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#symlinkSync">symlinkSync</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L670">src/filesystem.ts:670</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member"><a id="syncClose" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>sync<wbr/>Close</span><a href="#syncClose" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="tsd-signature tsd-anchor-link" id="syncClose.syncClose-1"><span class="tsd-kind-call-signature">sync<wbr/>Close</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">method</span>, <span class="tsd-kind-parameter">fd</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span><a href="#syncClose.syncClose-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">method</span>: <span class="tsd-signature-type">string</span></h5></li>
+<li>
+<h5><span class="tsd-kind-parameter">fd</span>: <a href="../interfaces/File.html" class="tsd-signature-type tsd-kind-interface">File</a></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L226">src/backends/WorkerFS.ts:226</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="truncate" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>truncate</span><a href="#truncate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -987,12 +1071,12 @@ are given to the completion callback.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#truncate">truncate</a></p>
+<p>Overrides <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#truncate">truncate</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L544">src/filesystem.ts:544</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="truncateSync" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L195">src/backends/WorkerFS.ts:195</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="truncateSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>truncate<wbr/>Sync</span><a href="#truncateSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="truncateSync.truncateSync-1"><span class="tsd-kind-call-signature">truncate<wbr/>Sync</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">p</span>, <span class="tsd-kind-parameter">len</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#truncateSync.truncateSync-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Synchronous <code>truncate</code>.</p>
@@ -1008,7 +1092,7 @@ are given to the completion callback.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#truncateSync">truncateSync</a></p>
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#truncateSync">truncateSync</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L552">src/filesystem.ts:552</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="unlink" class="tsd-anchor"></a>
@@ -1027,12 +1111,12 @@ are given to the completion callback.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#unlink">unlink</a></p>
+<p>Overrides <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#unlink">unlink</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L465">src/filesystem.ts:465</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="unlinkSync" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L177">src/backends/WorkerFS.ts:177</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="unlinkSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>unlink<wbr/>Sync</span><a href="#unlinkSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="unlinkSync.unlinkSync-1"><span class="tsd-kind-call-signature">unlink<wbr/>Sync</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">p</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#unlinkSync.unlinkSync-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Synchronous <code>unlink</code>.</p>
@@ -1046,7 +1130,7 @@ are given to the completion callback.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#unlinkSync">unlinkSync</a></p>
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#unlinkSync">unlinkSync</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L468">src/filesystem.ts:468</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="utimes" class="tsd-anchor"></a>
@@ -1070,12 +1154,12 @@ path.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#utimes">utimes</a></p>
+<p>Overrides <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#utimes">utimes</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L655">src/filesystem.ts:655</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="utimesSync" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L213">src/backends/WorkerFS.ts:213</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="utimesSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>utimes<wbr/>Sync</span><a href="#utimesSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="utimesSync.utimesSync-1"><span class="tsd-kind-call-signature">utimes<wbr/>Sync</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">p</span>, <span class="tsd-kind-parameter">atime</span>, <span class="tsd-kind-parameter">mtime</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#utimesSync.utimesSync-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Change file timestamps of the file referenced by the supplied
@@ -1094,16 +1178,16 @@ path.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#utimesSync">utimesSync</a></p>
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#utimesSync">utimesSync</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L658">src/filesystem.ts:658</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="whenReady" class="tsd-anchor"></a>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="whenReady" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>when<wbr/>Ready</span><a href="#whenReady" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="whenReady.whenReady-1"><span class="tsd-kind-call-signature">when<wbr/>Ready</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="BaseFileSystem.html" class="tsd-signature-type tsd-kind-class">BaseFileSystem</a><span class="tsd-signature-symbol">&gt;</span><a href="#whenReady.whenReady-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<ul class="tsd-signatures tsd-is-inherited">
+<li class="tsd-signature tsd-anchor-link" id="whenReady.whenReady-1"><span class="tsd-kind-call-signature">when<wbr/>Ready</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="WorkerFS-1.html" class="tsd-signature-type tsd-kind-class">WorkerFS</a><span class="tsd-signature-symbol">&gt;</span><a href="#whenReady.whenReady-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="BaseFileSystem.html" class="tsd-signature-type tsd-kind-class">BaseFileSystem</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#whenReady">whenReady</a></p>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="WorkerFS-1.html" class="tsd-signature-type tsd-kind-class">WorkerFS</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#whenReady">whenReady</a></p>
 <ul>
 <li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L329">src/filesystem.ts:329</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="writeFile" class="tsd-anchor"></a>
@@ -1132,12 +1216,12 @@ if it already exists.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">void</span><span class="tsd-signature-symbol">&gt;</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#writeFile">writeFile</a></p>
+<p>Overrides <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#writeFile">writeFile</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L595">src/filesystem.ts:595</a></li></ul></aside></li></ul></section>
-<section class="tsd-panel tsd-member"><a id="writeFileSync" class="tsd-anchor"></a>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L201">src/backends/WorkerFS.ts:201</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member tsd-is-inherited"><a id="writeFileSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>write<wbr/>File<wbr/>Sync</span><a href="#writeFileSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<ul class="tsd-signatures">
+<ul class="tsd-signatures tsd-is-inherited">
 <li class="tsd-signature tsd-anchor-link" id="writeFileSync.writeFileSync-1"><span class="tsd-kind-call-signature">write<wbr/>File<wbr/>Sync</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">fname</span>, <span class="tsd-kind-parameter">data</span>, <span class="tsd-kind-parameter">encoding</span>, <span class="tsd-kind-parameter">flag</span>, <span class="tsd-kind-parameter">mode</span>, <span class="tsd-kind-parameter">cred</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span><a href="#writeFileSync.writeFileSync-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-comment tsd-typography"><p>Synchronously writes data to a file, replacing the file
@@ -1161,9 +1245,17 @@ if it already exists.</p>
 <h5><span class="tsd-kind-parameter">cred</span>: <a href="Cred.html" class="tsd-signature-type tsd-kind-class">Cred</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
-<p>Overrides <a href="FileSystem.html">FileSystem</a>.<a href="FileSystem.html#writeFileSync">writeFileSync</a></p>
+<p>Inherited from <a href="BaseFileSystem.html">BaseFileSystem</a>.<a href="BaseFileSystem.html#writeFileSync">writeFileSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L608">src/filesystem.ts:608</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L608">src/filesystem.ts:608</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member"><a id="isAvailable" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>is<wbr/>Available</span><a href="#isAvailable" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="tsd-signature tsd-anchor-link" id="isAvailable.isAvailable-1"><span class="tsd-kind-call-signature">is<wbr/>Available</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><a href="#isAvailable.isAvailable-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/WorkerFS.ts#L106">src/backends/WorkerFS.ts:106</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -1184,54 +1276,63 @@ if it already exists.</p>
 <div class="tsd-accordion-details">
 <ul>
 <li><a href="#constructor" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-512"></use></svg><span>constructor</span></a></li>
-<li><a href="#_ready" class="tsd-is-protected"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_ready</span></a></li>
+<li><a href="#_currentID" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_currentID</span></a></li>
+<li><a href="#_isInitialized" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_is<wbr/>Initialized</span></a></li>
+<li><a href="#_metadata" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_metadata</span></a></li>
+<li><a href="#_ready" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_ready</span></a></li>
+<li><a href="#_requests" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_requests</span></a></li>
+<li><a href="#_worker" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_worker</span></a></li>
+<li><a href="#Create" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>Create</span></a></li>
 <li><a href="#Name" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>Name</span></a></li>
 <li><a href="#metadata" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-262144"></use></svg><span>metadata</span></a></li>
-<li><a href="#access" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>access</span></a></li>
-<li><a href="#accessSync" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>access<wbr/>Sync</span></a></li>
+<li><a href="#_rpc" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>_rpc</span></a></li>
+<li><a href="#access" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>access</span></a></li>
+<li><a href="#accessSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>access<wbr/>Sync</span></a></li>
 <li><a href="#appendFile" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>append<wbr/>File</span></a></li>
-<li><a href="#appendFileSync" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>append<wbr/>File<wbr/>Sync</span></a></li>
+<li><a href="#appendFileSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>append<wbr/>File<wbr/>Sync</span></a></li>
 <li><a href="#chmod" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>chmod</span></a></li>
-<li><a href="#chmodSync" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>chmod<wbr/>Sync</span></a></li>
+<li><a href="#chmodSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>chmod<wbr/>Sync</span></a></li>
 <li><a href="#chown" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>chown</span></a></li>
-<li><a href="#chownSync" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>chown<wbr/>Sync</span></a></li>
-<li><a href="#createFile" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>create<wbr/>File</span></a></li>
-<li><a href="#createFileSync" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>create<wbr/>File<wbr/>Sync</span></a></li>
+<li><a href="#chownSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>chown<wbr/>Sync</span></a></li>
+<li><a href="#createFile" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>create<wbr/>File</span></a></li>
+<li><a href="#createFileSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>create<wbr/>File<wbr/>Sync</span></a></li>
 <li><a href="#exists" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>exists</span></a></li>
-<li><a href="#existsSync" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>exists<wbr/>Sync</span></a></li>
+<li><a href="#existsSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>exists<wbr/>Sync</span></a></li>
 <li><a href="#link" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>link</span></a></li>
-<li><a href="#linkSync" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>link<wbr/>Sync</span></a></li>
+<li><a href="#linkSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>link<wbr/>Sync</span></a></li>
 <li><a href="#mkdir" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>mkdir</span></a></li>
-<li><a href="#mkdirSync" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>mkdir<wbr/>Sync</span></a></li>
+<li><a href="#mkdirSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>mkdir<wbr/>Sync</span></a></li>
 <li><a href="#open" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open</span></a></li>
-<li><a href="#openFile" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open<wbr/>File</span></a></li>
-<li><a href="#openFileSync" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open<wbr/>File<wbr/>Sync</span></a></li>
-<li><a href="#openSync" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open<wbr/>Sync</span></a></li>
+<li><a href="#openFile" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open<wbr/>File</span></a></li>
+<li><a href="#openFileSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open<wbr/>File<wbr/>Sync</span></a></li>
+<li><a href="#openSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open<wbr/>Sync</span></a></li>
 <li><a href="#readFile" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>read<wbr/>File</span></a></li>
-<li><a href="#readFileSync" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>read<wbr/>File<wbr/>Sync</span></a></li>
+<li><a href="#readFileSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>read<wbr/>File<wbr/>Sync</span></a></li>
 <li><a href="#readdir" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>readdir</span></a></li>
-<li><a href="#readdirSync" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>readdir<wbr/>Sync</span></a></li>
+<li><a href="#readdirSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>readdir<wbr/>Sync</span></a></li>
 <li><a href="#readlink" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>readlink</span></a></li>
-<li><a href="#readlinkSync" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>readlink<wbr/>Sync</span></a></li>
+<li><a href="#readlinkSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>readlink<wbr/>Sync</span></a></li>
 <li><a href="#realpath" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>realpath</span></a></li>
-<li><a href="#realpathSync" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>realpath<wbr/>Sync</span></a></li>
+<li><a href="#realpathSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>realpath<wbr/>Sync</span></a></li>
 <li><a href="#rename" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>rename</span></a></li>
-<li><a href="#renameSync" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>rename<wbr/>Sync</span></a></li>
+<li><a href="#renameSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>rename<wbr/>Sync</span></a></li>
 <li><a href="#rmdir" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>rmdir</span></a></li>
-<li><a href="#rmdirSync" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>rmdir<wbr/>Sync</span></a></li>
+<li><a href="#rmdirSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>rmdir<wbr/>Sync</span></a></li>
 <li><a href="#stat" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>stat</span></a></li>
-<li><a href="#statSync" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>stat<wbr/>Sync</span></a></li>
+<li><a href="#statSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>stat<wbr/>Sync</span></a></li>
 <li><a href="#symlink" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>symlink</span></a></li>
-<li><a href="#symlinkSync" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>symlink<wbr/>Sync</span></a></li>
+<li><a href="#symlinkSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>symlink<wbr/>Sync</span></a></li>
+<li><a href="#syncClose" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>sync<wbr/>Close</span></a></li>
 <li><a href="#truncate" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>truncate</span></a></li>
-<li><a href="#truncateSync" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>truncate<wbr/>Sync</span></a></li>
+<li><a href="#truncateSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>truncate<wbr/>Sync</span></a></li>
 <li><a href="#unlink" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>unlink</span></a></li>
-<li><a href="#unlinkSync" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>unlink<wbr/>Sync</span></a></li>
+<li><a href="#unlinkSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>unlink<wbr/>Sync</span></a></li>
 <li><a href="#utimes" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>utimes</span></a></li>
-<li><a href="#utimesSync" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>utimes<wbr/>Sync</span></a></li>
-<li><a href="#whenReady" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>when<wbr/>Ready</span></a></li>
+<li><a href="#utimesSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>utimes<wbr/>Sync</span></a></li>
+<li><a href="#whenReady" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>when<wbr/>Ready</span></a></li>
 <li><a href="#writeFile" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>write<wbr/>File</span></a></li>
-<li><a href="#writeFileSync" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>write<wbr/>File<wbr/>Sync</span></a></li></ul></div></details></div>
+<li><a href="#writeFileSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>write<wbr/>File<wbr/>Sync</span></a></li>
+<li><a href="#isAvailable" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>is<wbr/>Available</span></a></li></ul></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../modules.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1"></use></svg><span>BrowserFS</span></a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container" data-base="..">
@@ -1254,7 +1355,7 @@ if it already exists.</p>
 <li><a href="AsyncKeyValueFileSystem.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg>AsyncKeyValueFileSystem</a></li>
 <li><a href="AsyncMirror-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg>AsyncMirror</a></li>
 <li><a href="BaseFile.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg>BaseFile</a></li>
-<li><a href="BaseFileSystem.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg>BaseFileSystem</a></li>
+<li><a href="BaseFileSystem.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg>BaseFileSystem</a></li>
 <li><a href="Cred.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg>Cred</a></li>
 <li>Loading...</li></ul></nav></div></div></div>
 <div class="tsd-generator">
