@@ -1,28 +1,28 @@
 export type MutexCallback = () => void;
+
 /**
  * Non-recursive mutex
  * @hidden
  */
 export default class Mutex {
-	private _locked: boolean = false;
-	private _waiters: MutexCallback[] = [];
+	private _locks: Map<string, MutexCallback[]> = new Map();
 
-	public lock(): Promise<void> {
+	public lock(path: string): Promise<void> {
 		return new Promise(resolve => {
-			if (this._locked) {
-				this._waiters.push(resolve);
+			if (this._locks.has(path)) {
+				this._locks.get(path).push(resolve);
+			} else {
+				this._locks.set(path, []);
 			}
-
-			this._locked = true;
 		});
 	}
 
-	public unlock(): void {
-		if (!this._locked) {
+	public unlock(path: string): void {
+		if (!this._locks.has(path)) {
 			throw new Error('unlock of a non-locked mutex');
 		}
 
-		const next = this._waiters.shift();
+		const next = this._locks.get(path).shift();
 		/* 
 			don't unlock - we want to queue up next for the
 			end of the current task execution, but we don't
@@ -36,19 +36,19 @@ export default class Mutex {
 			return;
 		}
 
-		this._locked = false;
+		this._locks.delete(path);
 	}
 
-	public tryLock(): boolean {
-		if (this._locked) {
+	public tryLock(path: string): boolean {
+		if (this._locks.has(path)) {
 			return false;
 		}
 
-		this._locked = true;
+		this._locks.set(path, []);
 		return true;
 	}
 
-	public isLocked(): boolean {
-		return this._locked;
+	public isLocked(path: string): boolean {
+		return this._locks.has(path);
 	}
 }
