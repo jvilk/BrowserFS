@@ -1,4 +1,4 @@
-<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>LocalStorage | BrowserFS</title><meta name="description" content="Documentation for BrowserFS"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>Storage | BrowserFS</title><meta name="description" content="Documentation for BrowserFS"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
 <div class="tsd-toolbar-contents container">
 <div class="table-cell" id="tsd-search" data-base="..">
 <div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="#icon-search"></use></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
@@ -13,11 +13,10 @@
 <div class="tsd-page-title">
 <ul class="tsd-breadcrumb">
 <li><a href="../modules.html">BrowserFS</a></li>
-<li><a href="LocalStorage.html">LocalStorage</a></li></ul>
-<h1>Class LocalStorage</h1></div>
+<li><a href="Storage-1.html">Storage</a></li></ul>
+<h1>Class Storage</h1></div>
 <section class="tsd-panel tsd-comment">
-<div class="tsd-comment tsd-typography"><p>A synchronous file system backed by localStorage. Connects our
-LocalStorageStore to our SyncKeyValueFileSystem.</p>
+<div class="tsd-comment tsd-typography"><p>A synchronous file system backed by a <code>Storage</code> (e.g. localStorage).</p>
 </div>
 <div class="tsd-comment tsd-typography"></div></section>
 <section class="tsd-panel tsd-hierarchy">
@@ -25,9 +24,10 @@ LocalStorageStore to our SyncKeyValueFileSystem.</p>
 <ul class="tsd-hierarchy">
 <li><a href="SyncKeyValueFileSystem.html" class="tsd-signature-type tsd-kind-class">SyncKeyValueFileSystem</a>
 <ul class="tsd-hierarchy">
-<li><span class="target">LocalStorage</span></li></ul></li></ul></section><aside class="tsd-sources">
+<li><span class="target">Storage</span></li></ul></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/LocalStorage.ts#L84">src/backends/LocalStorage.ts:84</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/backends/Storage.ts#L56">src/backends/Storage.ts:56</a></li>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/backends/Storage.ts#L71">src/backends/Storage.ts:71</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -35,113 +35,112 @@ LocalStorageStore to our SyncKeyValueFileSystem.</p>
 <div class="tsd-accordion-details">
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Constructors</h3>
-<div class="tsd-index-list"><a href="LocalStorage.html#constructor" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-512"></use></svg><span>constructor</span></a>
+<div class="tsd-index-list"><a href="Storage-1.html#constructor" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-512"></use></svg><span>constructor</span></a>
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Properties</h3>
-<div class="tsd-index-list"><a href="LocalStorage.html#_ready" class="tsd-index-link tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_ready</span></a>
-<a href="LocalStorage.html#Create" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>Create</span></a>
-<a href="LocalStorage.html#Name" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>Name</span></a>
-<a href="LocalStorage.html#Options" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>Options</span></a>
+<div class="tsd-index-list"><a href="Storage-1.html#_ready" class="tsd-index-link tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_ready</span></a>
+<a href="Storage-1.html#Create" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>Create</span></a>
+<a href="Storage-1.html#Name" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>Name</span></a>
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Accessors</h3>
-<div class="tsd-index-list"><a href="LocalStorage.html#metadata" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-262144"></use></svg><span>metadata</span></a>
+<div class="tsd-index-list"><a href="Storage-1.html#metadata" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-262144"></use></svg><span>metadata</span></a>
 </div></section>
 <section class="tsd-index-section">
 <h3 class="tsd-index-heading">Methods</h3>
-<div class="tsd-index-list"><a href="LocalStorage.html#_syncSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>_sync<wbr/>Sync</span></a>
-<a href="LocalStorage.html#access" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>access</span></a>
-<a href="LocalStorage.html#accessSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>access<wbr/>Sync</span></a>
-<a href="LocalStorage.html#appendFile" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>append<wbr/>File</span></a>
-<a href="LocalStorage.html#appendFileSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>append<wbr/>File<wbr/>Sync</span></a>
-<a href="LocalStorage.html#chmod" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>chmod</span></a>
-<a href="LocalStorage.html#chmodSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>chmod<wbr/>Sync</span></a>
-<a href="LocalStorage.html#chown" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>chown</span></a>
-<a href="LocalStorage.html#chownSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>chown<wbr/>Sync</span></a>
-<a href="LocalStorage.html#createFile" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>create<wbr/>File</span></a>
-<a href="LocalStorage.html#createFileSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>create<wbr/>File<wbr/>Sync</span></a>
-<a href="LocalStorage.html#empty" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>empty</span></a>
-<a href="LocalStorage.html#exists" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>exists</span></a>
-<a href="LocalStorage.html#existsSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>exists<wbr/>Sync</span></a>
-<a href="LocalStorage.html#getName" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Name</span></a>
-<a href="LocalStorage.html#isReadOnly" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>is<wbr/>Read<wbr/>Only</span></a>
-<a href="LocalStorage.html#link" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>link</span></a>
-<a href="LocalStorage.html#linkSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>link<wbr/>Sync</span></a>
-<a href="LocalStorage.html#mkdir" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>mkdir</span></a>
-<a href="LocalStorage.html#mkdirSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>mkdir<wbr/>Sync</span></a>
-<a href="LocalStorage.html#open" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open</span></a>
-<a href="LocalStorage.html#openFile" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open<wbr/>File</span></a>
-<a href="LocalStorage.html#openFileSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open<wbr/>File<wbr/>Sync</span></a>
-<a href="LocalStorage.html#openSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open<wbr/>Sync</span></a>
-<a href="LocalStorage.html#readFile" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>read<wbr/>File</span></a>
-<a href="LocalStorage.html#readFileSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>read<wbr/>File<wbr/>Sync</span></a>
-<a href="LocalStorage.html#readdir" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>readdir</span></a>
-<a href="LocalStorage.html#readdirSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>readdir<wbr/>Sync</span></a>
-<a href="LocalStorage.html#readlink" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>readlink</span></a>
-<a href="LocalStorage.html#readlinkSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>readlink<wbr/>Sync</span></a>
-<a href="LocalStorage.html#realpath" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>realpath</span></a>
-<a href="LocalStorage.html#realpathSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>realpath<wbr/>Sync</span></a>
-<a href="LocalStorage.html#rename" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>rename</span></a>
-<a href="LocalStorage.html#renameSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>rename<wbr/>Sync</span></a>
-<a href="LocalStorage.html#rmdir" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>rmdir</span></a>
-<a href="LocalStorage.html#rmdirSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>rmdir<wbr/>Sync</span></a>
-<a href="LocalStorage.html#stat" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>stat</span></a>
-<a href="LocalStorage.html#statSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>stat<wbr/>Sync</span></a>
-<a href="LocalStorage.html#supportsProps" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>supports<wbr/>Props</span></a>
-<a href="LocalStorage.html#supportsSymlinks" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>supports<wbr/>Symlinks</span></a>
-<a href="LocalStorage.html#supportsSynch" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>supports<wbr/>Synch</span></a>
-<a href="LocalStorage.html#symlink" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>symlink</span></a>
-<a href="LocalStorage.html#symlinkSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>symlink<wbr/>Sync</span></a>
-<a href="LocalStorage.html#truncate" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>truncate</span></a>
-<a href="LocalStorage.html#truncateSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>truncate<wbr/>Sync</span></a>
-<a href="LocalStorage.html#unlink" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>unlink</span></a>
-<a href="LocalStorage.html#unlinkSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>unlink<wbr/>Sync</span></a>
-<a href="LocalStorage.html#utimes" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>utimes</span></a>
-<a href="LocalStorage.html#utimesSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>utimes<wbr/>Sync</span></a>
-<a href="LocalStorage.html#whenReady" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>when<wbr/>Ready</span></a>
-<a href="LocalStorage.html#writeFile" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>write<wbr/>File</span></a>
-<a href="LocalStorage.html#writeFileSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>write<wbr/>File<wbr/>Sync</span></a>
-<a href="LocalStorage.html#isAvailable" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>is<wbr/>Available</span></a>
+<div class="tsd-index-list"><a href="Storage-1.html#_syncSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>_sync<wbr/>Sync</span></a>
+<a href="Storage-1.html#access" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>access</span></a>
+<a href="Storage-1.html#accessSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>access<wbr/>Sync</span></a>
+<a href="Storage-1.html#appendFile" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>append<wbr/>File</span></a>
+<a href="Storage-1.html#appendFileSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>append<wbr/>File<wbr/>Sync</span></a>
+<a href="Storage-1.html#chmod" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>chmod</span></a>
+<a href="Storage-1.html#chmodSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>chmod<wbr/>Sync</span></a>
+<a href="Storage-1.html#chown" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>chown</span></a>
+<a href="Storage-1.html#chownSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>chown<wbr/>Sync</span></a>
+<a href="Storage-1.html#createFile" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>create<wbr/>File</span></a>
+<a href="Storage-1.html#createFileSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>create<wbr/>File<wbr/>Sync</span></a>
+<a href="Storage-1.html#empty" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>empty</span></a>
+<a href="Storage-1.html#exists" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>exists</span></a>
+<a href="Storage-1.html#existsSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>exists<wbr/>Sync</span></a>
+<a href="Storage-1.html#getName" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>get<wbr/>Name</span></a>
+<a href="Storage-1.html#isReadOnly" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>is<wbr/>Read<wbr/>Only</span></a>
+<a href="Storage-1.html#link" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>link</span></a>
+<a href="Storage-1.html#linkSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>link<wbr/>Sync</span></a>
+<a href="Storage-1.html#mkdir" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>mkdir</span></a>
+<a href="Storage-1.html#mkdirSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>mkdir<wbr/>Sync</span></a>
+<a href="Storage-1.html#open" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open</span></a>
+<a href="Storage-1.html#openFile" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open<wbr/>File</span></a>
+<a href="Storage-1.html#openFileSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open<wbr/>File<wbr/>Sync</span></a>
+<a href="Storage-1.html#openSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>open<wbr/>Sync</span></a>
+<a href="Storage-1.html#readFile" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>read<wbr/>File</span></a>
+<a href="Storage-1.html#readFileSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>read<wbr/>File<wbr/>Sync</span></a>
+<a href="Storage-1.html#readdir" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>readdir</span></a>
+<a href="Storage-1.html#readdirSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>readdir<wbr/>Sync</span></a>
+<a href="Storage-1.html#readlink" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>readlink</span></a>
+<a href="Storage-1.html#readlinkSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>readlink<wbr/>Sync</span></a>
+<a href="Storage-1.html#realpath" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>realpath</span></a>
+<a href="Storage-1.html#realpathSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>realpath<wbr/>Sync</span></a>
+<a href="Storage-1.html#rename" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>rename</span></a>
+<a href="Storage-1.html#renameSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>rename<wbr/>Sync</span></a>
+<a href="Storage-1.html#rmdir" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>rmdir</span></a>
+<a href="Storage-1.html#rmdirSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>rmdir<wbr/>Sync</span></a>
+<a href="Storage-1.html#stat" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>stat</span></a>
+<a href="Storage-1.html#statSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>stat<wbr/>Sync</span></a>
+<a href="Storage-1.html#supportsProps" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>supports<wbr/>Props</span></a>
+<a href="Storage-1.html#supportsSymlinks" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>supports<wbr/>Symlinks</span></a>
+<a href="Storage-1.html#supportsSynch" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>supports<wbr/>Synch</span></a>
+<a href="Storage-1.html#symlink" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>symlink</span></a>
+<a href="Storage-1.html#symlinkSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>symlink<wbr/>Sync</span></a>
+<a href="Storage-1.html#truncate" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>truncate</span></a>
+<a href="Storage-1.html#truncateSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>truncate<wbr/>Sync</span></a>
+<a href="Storage-1.html#unlink" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>unlink</span></a>
+<a href="Storage-1.html#unlinkSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>unlink<wbr/>Sync</span></a>
+<a href="Storage-1.html#utimes" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>utimes</span></a>
+<a href="Storage-1.html#utimesSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>utimes<wbr/>Sync</span></a>
+<a href="Storage-1.html#whenReady" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>when<wbr/>Ready</span></a>
+<a href="Storage-1.html#writeFile" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>write<wbr/>File</span></a>
+<a href="Storage-1.html#writeFileSync" class="tsd-index-link tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>write<wbr/>File<wbr/>Sync</span></a>
+<a href="Storage-1.html#isAvailable" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>is<wbr/>Available</span></a>
 </div></section></div></details></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Constructors</h2>
 <section class="tsd-panel tsd-member"><a id="constructor" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>constructor</span><a href="#constructor" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="constructor.new_LocalStorage"><span class="tsd-kind-constructor-signature">new <wbr/>Local<wbr/>Storage</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="LocalStorage.html" class="tsd-signature-type tsd-kind-class">LocalStorage</a><a href="#constructor.new_LocalStorage" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="constructor.new_Storage"><span class="tsd-kind-constructor-signature">new <wbr/>Storage</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">__namedParameters</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="Storage-1.html" class="tsd-signature-type tsd-kind-class">Storage</a><a href="#constructor.new_Storage" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Creates a new LocalStorage file system using the contents of <code>localStorage</code>.</p>
+<div class="tsd-comment tsd-typography"><p>Creates a new Storage file system using the contents of <code>Storage</code>.</p>
 </div>
-<h4 class="tsd-returns-title">Returns <a href="LocalStorage.html" class="tsd-signature-type tsd-kind-class">LocalStorage</a></h4>
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">__namedParameters</span>: <a href="../modules/Storage.html" class="tsd-signature-type tsd-kind-namespace">Storage</a><span class="tsd-signature-symbol">.</span><a href="../interfaces/Storage.Options.html" class="tsd-signature-type tsd-kind-interface">Options</a></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="Storage-1.html" class="tsd-signature-type tsd-kind-class">Storage</a></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Overrides <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#constructor">constructor</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/LocalStorage.ts#L97">src/backends/LocalStorage.ts:97</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/backends/Storage.ts#L90">src/backends/Storage.ts:90</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-is-protected tsd-is-inherited"><a id="_ready" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagProtected">Protected</code> <span>_ready</span><a href="#_ready" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">_ready</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="LocalStorage.html" class="tsd-signature-type tsd-kind-class">LocalStorage</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">_ready</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="Storage-1.html" class="tsd-signature-type tsd-kind-class">Storage</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#_ready">_ready</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L311">src/filesystem.ts:311</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L311">src/filesystem.ts:311</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="Create" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>Create</span><a href="#Create" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">Create</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">any</span><span class="tsd-signature-symbol"> = ...</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/LocalStorage.ts#L87">src/backends/LocalStorage.ts:87</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/backends/Storage.ts#L74">src/backends/Storage.ts:74</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="Name" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span>Name</span><a href="#Name" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">Name</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;LocalStorage&quot;</span><span class="tsd-signature-symbol"> = &#39;LocalStorage&#39;</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-kind-property">Name</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">&quot;Storage&quot;</span><span class="tsd-signature-symbol"> = &#39;Storage&#39;</span></div><aside class="tsd-sources">
 <p>Overrides <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#Name">Name</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/LocalStorage.ts#L85">src/backends/LocalStorage.ts:85</a></li></ul></aside></section>
-<section class="tsd-panel tsd-member"><a id="Options" class="tsd-anchor"></a>
-<h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <code class="tsd-tag ts-flagReadonly">Readonly</code> <span>Options</span><a href="#Options" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
-<div class="tsd-signature"><span class="tsd-kind-property">Options</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">BackendOptions</span><span class="tsd-signature-symbol"> = {}</span></div><aside class="tsd-sources">
-<ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/LocalStorage.ts#L89">src/backends/LocalStorage.ts:89</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/backends/Storage.ts#L72">src/backends/Storage.ts:72</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Accessors</h2>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="metadata" class="tsd-anchor"></a>
@@ -152,7 +151,7 @@ LocalStorageStore to our SyncKeyValueFileSystem.</p>
 <h4 class="tsd-returns-title">Returns <a href="../interfaces/FileSystemMetadata.html" class="tsd-signature-type tsd-kind-interface">FileSystemMetadata</a></h4><aside class="tsd-sources">
 <p>Inherited from SyncKeyValueFileSystem.metadata</p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L685">src/filesystem.ts:685</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L685">src/filesystem.ts:685</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="_syncSync" class="tsd-anchor"></a>
@@ -172,7 +171,7 @@ LocalStorageStore to our SyncKeyValueFileSystem.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#_syncSync">_syncSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/generic/key_value_filesystem.ts#L521">src/generic/key_value_filesystem.ts:521</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/generic/key_value_filesystem.ts#L521">src/generic/key_value_filesystem.ts:521</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="access" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>access</span><a href="#access" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -193,7 +192,7 @@ LocalStorageStore to our SyncKeyValueFileSystem.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#access">access</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L689">src/filesystem.ts:689</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L689">src/filesystem.ts:689</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="accessSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>access<wbr/>Sync</span><a href="#accessSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -214,7 +213,7 @@ LocalStorageStore to our SyncKeyValueFileSystem.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#accessSync">accessSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/generic/key_value_filesystem.ts#L375">src/generic/key_value_filesystem.ts:375</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/generic/key_value_filesystem.ts#L375">src/generic/key_value_filesystem.ts:375</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="appendFile" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>append<wbr/>File</span><a href="#appendFile" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -242,7 +241,7 @@ it not yet exists.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#appendFile">appendFile</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L621">src/filesystem.ts:621</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L621">src/filesystem.ts:621</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="appendFileSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>append<wbr/>File<wbr/>Sync</span><a href="#appendFileSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -270,7 +269,7 @@ it not yet exists.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#appendFileSync">appendFileSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L632">src/filesystem.ts:632</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L632">src/filesystem.ts:632</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="chmod" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>chmod</span><a href="#chmod" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -291,7 +290,7 @@ it not yet exists.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#chmod">chmod</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L721">src/filesystem.ts:721</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L721">src/filesystem.ts:721</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="chmodSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>chmod<wbr/>Sync</span><a href="#chmodSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -312,7 +311,7 @@ it not yet exists.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#chmodSync">chmodSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/generic/key_value_filesystem.ts#L511">src/generic/key_value_filesystem.ts:511</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/generic/key_value_filesystem.ts#L511">src/generic/key_value_filesystem.ts:511</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="chown" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>chown</span><a href="#chown" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -335,7 +334,7 @@ it not yet exists.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#chown">chown</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L725">src/filesystem.ts:725</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L725">src/filesystem.ts:725</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="chownSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>chown<wbr/>Sync</span><a href="#chownSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -358,7 +357,7 @@ it not yet exists.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#chownSync">chownSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/generic/key_value_filesystem.ts#L516">src/generic/key_value_filesystem.ts:516</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/generic/key_value_filesystem.ts#L516">src/generic/key_value_filesystem.ts:516</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="createFile" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>create<wbr/>File</span><a href="#createFile" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -382,7 +381,7 @@ flag.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#createFile">createFile</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L345">src/filesystem.ts:345</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L345">src/filesystem.ts:345</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="createFileSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>create<wbr/>File<wbr/>Sync</span><a href="#createFileSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -406,7 +405,7 @@ flag.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#createFileSync">createFileSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/generic/key_value_filesystem.ts#L462">src/generic/key_value_filesystem.ts:462</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/generic/key_value_filesystem.ts#L462">src/generic/key_value_filesystem.ts:462</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="empty" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>empty</span><a href="#empty" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -418,7 +417,7 @@ flag.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#empty">empty</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/generic/key_value_filesystem.ts#L369">src/generic/key_value_filesystem.ts:369</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/generic/key_value_filesystem.ts#L369">src/generic/key_value_filesystem.ts:369</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="exists" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>exists</span><a href="#exists" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -438,7 +437,7 @@ the file system. Then call the callback argument with either true or false.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#exists">exists</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L489">src/filesystem.ts:489</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L489">src/filesystem.ts:489</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="existsSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>exists<wbr/>Sync</span><a href="#existsSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -458,7 +457,7 @@ the file system.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#existsSync">existsSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L497">src/filesystem.ts:497</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L497">src/filesystem.ts:497</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="getName" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>get<wbr/>Name</span><a href="#getName" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -467,7 +466,7 @@ the file system.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#getName">getName</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/generic/key_value_filesystem.ts#L350">src/generic/key_value_filesystem.ts:350</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/generic/key_value_filesystem.ts#L350">src/generic/key_value_filesystem.ts:350</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="isReadOnly" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>is<wbr/>Read<wbr/>Only</span><a href="#isReadOnly" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -476,7 +475,7 @@ the file system.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#isReadOnly">isReadOnly</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/generic/key_value_filesystem.ts#L353">src/generic/key_value_filesystem.ts:353</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/generic/key_value_filesystem.ts#L353">src/generic/key_value_filesystem.ts:353</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="link" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>link</span><a href="#link" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -497,7 +496,7 @@ the file system.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#link">link</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L733">src/filesystem.ts:733</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L733">src/filesystem.ts:733</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="linkSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>link<wbr/>Sync</span><a href="#linkSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -518,7 +517,7 @@ the file system.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#linkSync">linkSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L664">src/filesystem.ts:664</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L664">src/filesystem.ts:664</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="mkdir" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>mkdir</span><a href="#mkdir" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -543,7 +542,7 @@ the file system.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#mkdir">mkdir</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L713">src/filesystem.ts:713</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L713">src/filesystem.ts:713</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="mkdirSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>mkdir<wbr/>Sync</span><a href="#mkdirSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -568,7 +567,7 @@ the file system.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#mkdirSync">mkdirSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/generic/key_value_filesystem.ts#L496">src/generic/key_value_filesystem.ts:496</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/generic/key_value_filesystem.ts#L496">src/generic/key_value_filesystem.ts:496</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="open" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>open</span><a href="#open" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -597,7 +596,7 @@ the file system.</p>
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#open">open</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L701">src/filesystem.ts:701</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L701">src/filesystem.ts:701</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="openFile" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>open<wbr/>File</span><a href="#openFile" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -624,7 +623,7 @@ the file system.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#openFile">openFile</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L338">src/filesystem.ts:338</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L338">src/filesystem.ts:338</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="openFileSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>open<wbr/>File<wbr/>Sync</span><a href="#openFileSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -652,7 +651,7 @@ the file system.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#openFileSync">openFileSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/generic/key_value_filesystem.ts#L470">src/generic/key_value_filesystem.ts:470</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/generic/key_value_filesystem.ts#L470">src/generic/key_value_filesystem.ts:470</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="openSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>open<wbr/>Sync</span><a href="#openSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -681,7 +680,7 @@ the file system.</p>
 </div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#openSync">openSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L422">src/filesystem.ts:422</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L422">src/filesystem.ts:422</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="readFile" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>read<wbr/>File</span><a href="#readFile" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -710,7 +709,7 @@ If no encoding is specified, then the raw buffer is returned.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#readFile">readFile</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L561">src/filesystem.ts:561</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L561">src/filesystem.ts:561</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="readFileSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>read<wbr/>File<wbr/>Sync</span><a href="#readFileSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -738,7 +737,7 @@ If no encoding is specified, then the raw buffer is returned.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#readFileSync">readFileSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L578">src/filesystem.ts:578</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L578">src/filesystem.ts:578</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="readdir" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>readdir</span><a href="#readdir" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -759,7 +758,7 @@ the names of the files in the directory excluding <code>&#39;.&#39;</code> and <
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#readdir">readdir</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L717">src/filesystem.ts:717</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L717">src/filesystem.ts:717</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="readdirSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>readdir<wbr/>Sync</span><a href="#readdirSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -778,7 +777,7 @@ the names of the files in the directory excluding <code>&#39;.&#39;</code> and <
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#readdirSync">readdirSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/generic/key_value_filesystem.ts#L502">src/generic/key_value_filesystem.ts:502</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/generic/key_value_filesystem.ts#L502">src/generic/key_value_filesystem.ts:502</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="readlink" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>readlink</span><a href="#readlink" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -797,7 +796,7 @@ the names of the files in the directory excluding <code>&#39;.&#39;</code> and <
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#readlink">readlink</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L741">src/filesystem.ts:741</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L741">src/filesystem.ts:741</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="readlinkSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>readlink<wbr/>Sync</span><a href="#readlinkSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -816,7 +815,7 @@ the names of the files in the directory excluding <code>&#39;.&#39;</code> and <
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#readlinkSync">readlinkSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L676">src/filesystem.ts:676</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L676">src/filesystem.ts:676</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="realpath" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>realpath</span><a href="#realpath" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -837,7 +836,7 @@ the names of the files in the directory excluding <code>&#39;.&#39;</code> and <
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#realpath">realpath</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L505">src/filesystem.ts:505</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L505">src/filesystem.ts:505</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="realpathSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>realpath<wbr/>Sync</span><a href="#realpathSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -857,7 +856,7 @@ the names of the files in the directory excluding <code>&#39;.&#39;</code> and <
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#realpathSync">realpathSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L524">src/filesystem.ts:524</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L524">src/filesystem.ts:524</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="rename" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>rename</span><a href="#rename" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -879,7 +878,7 @@ are given to the completion callback.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#rename">rename</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L693">src/filesystem.ts:693</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L693">src/filesystem.ts:693</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="renameSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>rename<wbr/>Sync</span><a href="#renameSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -900,7 +899,7 @@ are given to the completion callback.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#renameSync">renameSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/generic/key_value_filesystem.ts#L383">src/generic/key_value_filesystem.ts:383</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/generic/key_value_filesystem.ts#L383">src/generic/key_value_filesystem.ts:383</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="rmdir" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>rmdir</span><a href="#rmdir" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -919,7 +918,7 @@ are given to the completion callback.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#rmdir">rmdir</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L709">src/filesystem.ts:709</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L709">src/filesystem.ts:709</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="rmdirSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>rmdir<wbr/>Sync</span><a href="#rmdirSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -938,7 +937,7 @@ are given to the completion callback.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#rmdirSync">rmdirSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/generic/key_value_filesystem.ts#L487">src/generic/key_value_filesystem.ts:487</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/generic/key_value_filesystem.ts#L487">src/generic/key_value_filesystem.ts:487</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="stat" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>stat</span><a href="#stat" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -957,7 +956,7 @@ are given to the completion callback.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#stat">stat</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L697">src/filesystem.ts:697</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L697">src/filesystem.ts:697</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="statSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>stat<wbr/>Sync</span><a href="#statSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -976,7 +975,7 @@ are given to the completion callback.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#statSync">statSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/generic/key_value_filesystem.ts#L453">src/generic/key_value_filesystem.ts:453</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/generic/key_value_filesystem.ts#L453">src/generic/key_value_filesystem.ts:453</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="supportsProps" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>supports<wbr/>Props</span><a href="#supportsProps" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -985,7 +984,7 @@ are given to the completion callback.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#supportsProps">supportsProps</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/generic/key_value_filesystem.ts#L359">src/generic/key_value_filesystem.ts:359</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/generic/key_value_filesystem.ts#L359">src/generic/key_value_filesystem.ts:359</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="supportsSymlinks" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>supports<wbr/>Symlinks</span><a href="#supportsSymlinks" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -994,7 +993,7 @@ are given to the completion callback.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#supportsSymlinks">supportsSymlinks</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/generic/key_value_filesystem.ts#L356">src/generic/key_value_filesystem.ts:356</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/generic/key_value_filesystem.ts#L356">src/generic/key_value_filesystem.ts:356</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="supportsSynch" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>supports<wbr/>Synch</span><a href="#supportsSynch" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -1003,7 +1002,7 @@ are given to the completion callback.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#supportsSynch">supportsSynch</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/generic/key_value_filesystem.ts#L362">src/generic/key_value_filesystem.ts:362</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/generic/key_value_filesystem.ts#L362">src/generic/key_value_filesystem.ts:362</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="symlink" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>symlink</span><a href="#symlink" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -1029,7 +1028,7 @@ are given to the completion callback.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#symlink">symlink</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L737">src/filesystem.ts:737</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L737">src/filesystem.ts:737</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="symlinkSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>symlink<wbr/>Sync</span><a href="#symlinkSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -1055,7 +1054,7 @@ are given to the completion callback.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#symlinkSync">symlinkSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L670">src/filesystem.ts:670</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L670">src/filesystem.ts:670</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="truncate" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>truncate</span><a href="#truncate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -1076,7 +1075,7 @@ are given to the completion callback.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#truncate">truncate</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L544">src/filesystem.ts:544</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L544">src/filesystem.ts:544</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="truncateSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>truncate<wbr/>Sync</span><a href="#truncateSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -1097,7 +1096,7 @@ are given to the completion callback.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#truncateSync">truncateSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L552">src/filesystem.ts:552</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L552">src/filesystem.ts:552</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="unlink" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>unlink</span><a href="#unlink" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -1116,7 +1115,7 @@ are given to the completion callback.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#unlink">unlink</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L705">src/filesystem.ts:705</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L705">src/filesystem.ts:705</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="unlinkSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>unlink<wbr/>Sync</span><a href="#unlinkSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -1135,7 +1134,7 @@ are given to the completion callback.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#unlinkSync">unlinkSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/generic/key_value_filesystem.ts#L483">src/generic/key_value_filesystem.ts:483</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/generic/key_value_filesystem.ts#L483">src/generic/key_value_filesystem.ts:483</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="utimes" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>utimes</span><a href="#utimes" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -1159,7 +1158,7 @@ path.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#utimes">utimes</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L729">src/filesystem.ts:729</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L729">src/filesystem.ts:729</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="utimesSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>utimes<wbr/>Sync</span><a href="#utimesSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -1183,16 +1182,16 @@ path.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#utimesSync">utimesSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L658">src/filesystem.ts:658</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L658">src/filesystem.ts:658</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="whenReady" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>when<wbr/>Ready</span><a href="#whenReady" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
-<li class="tsd-signature tsd-anchor-link" id="whenReady.whenReady-1"><span class="tsd-kind-call-signature">when<wbr/>Ready</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="LocalStorage.html" class="tsd-signature-type tsd-kind-class">LocalStorage</a><span class="tsd-signature-symbol">&gt;</span><a href="#whenReady.whenReady-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="whenReady.whenReady-1"><span class="tsd-kind-call-signature">when<wbr/>Ready</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="Storage-1.html" class="tsd-signature-type tsd-kind-class">Storage</a><span class="tsd-signature-symbol">&gt;</span><a href="#whenReady.whenReady-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="LocalStorage.html" class="tsd-signature-type tsd-kind-class">LocalStorage</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="Storage-1.html" class="tsd-signature-type tsd-kind-class">Storage</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#whenReady">whenReady</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L329">src/filesystem.ts:329</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L329">src/filesystem.ts:329</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="writeFile" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>write<wbr/>File</span><a href="#writeFile" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -1221,7 +1220,7 @@ if it already exists.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#writeFile">writeFile</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L595">src/filesystem.ts:595</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L595">src/filesystem.ts:595</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-inherited"><a id="writeFileSync" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>write<wbr/>File<wbr/>Sync</span><a href="#writeFileSync" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-inherited">
@@ -1250,16 +1249,21 @@ if it already exists.</p>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <p>Inherited from <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#writeFileSync">writeFileSync</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/filesystem.ts#L608">src/filesystem.ts:608</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/filesystem.ts#L608">src/filesystem.ts:608</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="isAvailable" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagStatic">Static</code> <span>is<wbr/>Available</span><a href="#isAvailable" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="isAvailable.isAvailable-1"><span class="tsd-kind-call-signature">is<wbr/>Available</span><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><a href="#isAvailable.isAvailable-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="isAvailable.isAvailable-1"><span class="tsd-kind-call-signature">is<wbr/>Available</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">storage</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><a href="#isAvailable.isAvailable-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">storage</span>: <span class="tsd-signature-type ">Storage</span><span class="tsd-signature-symbol"> = globalThis.localStorage</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <p>Overrides <a href="SyncKeyValueFileSystem.html">SyncKeyValueFileSystem</a>.<a href="SyncKeyValueFileSystem.html#isAvailable">isAvailable</a></p>
 <ul>
-<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/fd145f2/src/backends/LocalStorage.ts#L91">src/backends/LocalStorage.ts:91</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/jvilk/BrowserFS/blob/d922c74/src/backends/Storage.ts#L84">src/backends/Storage.ts:84</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -1283,7 +1287,6 @@ if it already exists.</p>
 <li><a href="#_ready" class="tsd-is-protected tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>_ready</span></a></li>
 <li><a href="#Create" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>Create</span></a></li>
 <li><a href="#Name" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>Name</span></a></li>
-<li><a href="#Options" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-1024"></use></svg><span>Options</span></a></li>
 <li><a href="#metadata" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-262144"></use></svg><span>metadata</span></a></li>
 <li><a href="#_syncSync" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>_sync<wbr/>Sync</span></a></li>
 <li><a href="#access" class="tsd-is-inherited"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>access</span></a></li>
@@ -1350,6 +1353,7 @@ if it already exists.</p>
 <li><a href="../modules/IndexedDB.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg>IndexedDB</a></li>
 <li><a href="../modules/IsoFS.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg>IsoFS</a></li>
 <li><a href="../modules/OverlayFS.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg>OverlayFS</a></li>
+<li><a href="../modules/Storage.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg>Storage</a></li>
 <li><a href="../modules/WorkerFS.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg>WorkerFS</a></li>
 <li><a href="../modules/ZipFS.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg>ZipFS</a></li>
 <li><a href="../enums/ActionType.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-8"></use></svg>ActionType</a></li>
@@ -1361,7 +1365,6 @@ if it already exists.</p>
 <li><a href="AsyncMirror-1.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg>AsyncMirror</a></li>
 <li><a href="BaseFile.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg>BaseFile</a></li>
 <li><a href="BaseFileSystem.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg>BaseFileSystem</a></li>
-<li><a href="Cred.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-128"></use></svg>Cred</a></li>
 <li>Loading...</li></ul></nav></div></div></div>
 <div class="tsd-generator">
 <p>Generated using <a href="https://typedoc.org/" rel="noopener" target="_blank">TypeDoc</a></p></div>
