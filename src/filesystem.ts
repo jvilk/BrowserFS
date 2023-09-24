@@ -55,52 +55,17 @@ export interface FileSystemMetadata {
 }
 
 /**
- * Interface for a filesystem. **All** BrowserFS FileSystems should implement
- * this interface.
- *
- * Below, we denote each API method as **Core**, **Supplemental**, or
- * **Optional**.
- *
- * ### Core Methods
- *
- * **Core** API methods *need* to be implemented for basic read/write
- * functionality.
- *
- * Note that read-only FileSystems can choose to not implement core methods
- * that mutate files or metadata. The default implementation will pass a
- * NOT_SUPPORTED error to the callback.
- *
- * ### Supplemental Methods
- *
- * **Supplemental** API methods do not need to be implemented by a filesystem.
- * The default implementation implements all of the supplemental API methods in
- * terms of the **core** API methods.
- *
- * Note that a file system may choose to implement supplemental methods for
- * efficiency reasons.
- *
- * The code for some supplemental methods was adapted directly from NodeJS's
- * fs.js source code.
- *
- * ### Optional Methods
- *
- * **Optional** API methods provide functionality that may not be available in
- * all filesystems. For example, all symlink/hardlink-related API methods fall
- * under this category.
- *
- * The default implementation will pass a NOT_SUPPORTED error to the callback.
+ * Structure for a filesystem. **All** BrowserFS FileSystems must implement
+ * this.
  *
  * ### Argument Assumptions
  *
  * You can assume the following about arguments passed to each API method:
  *
- * * **Every path is an absolute path.** Meaning, `.`, `..`, and other items
+ * - Every path is an absolute path. `.`, `..`, and other items
  *   are resolved into an absolute form.
- * * **All arguments are present.** Any optional arguments at the Node API level
+ * - All arguments are present. Any optional arguments at the Node API level
  *   have been passed in with their default values.
- * * **The callback will reset the stack depth.** When your filesystem calls the
- *   callback with the requested information, it will use `setImmediate` to
- *   reset the JavaScript stack depth before calling the user-supplied callback.
  */
 export abstract class FileSystem {
 	static readonly Name: string;
