@@ -18,17 +18,28 @@ import { IsoFS as _IsoFS } from './IsoFS';
  * Describes a file system option.
  */
 export interface BackendOption<T> {
-	// The basic JavaScript type(s) for this option.
+	/**
+	 * The basic JavaScript type(s) for this option.
+	 */
 	type: string | string[];
-	// Whether or not the option is optional (e.g., can be set to null or undefined).
-	// Defaults to `false`.
+
+	/**
+	 * Whether or not the option is optional (e.g., can be set to null or undefined).
+	 * Defaults to `false`.
+	 */
 	optional?: boolean;
-	// Description of the option. Used in error messages and documentation.
+
+	/**
+	 * Description of the option. Used in error messages and documentation.
+	 */
 	description: string;
-	// A custom validation function to check if the option is valid.
-	// Calls the callback with an error object on an error.
-	// (Can call callback synchronously.)
-	// Defaults to `(opt) => Promise<void>`.
+
+	/**
+	 * A custom validation function to check if the option is valid.
+	 * Calls the callback with an error object on an error.
+	 * (Can call callback synchronously.)
+	 * Defaults to `(opt) => Promise<void>`.
+	 */
 	validator?(opt: T): Promise<void>;
 }
 
@@ -44,23 +55,23 @@ export interface BackendOptions {
  */
 export interface InternalBackendConstructor<FS extends FileSystem = FileSystem> {
 	/**
-	 * **Core**: Name to identify this backend.
+	 * Name to identify this backend.
 	 */
 	Name: string;
 
 	/**
-	 * **Core**: Describes all of the options available for this backend.
+	 * Describes all of the options available for this backend.
 	 */
 	Options: BackendOptions;
 
 	/**
-	 * **Core**: Creates backend of this given type with the given
+	 * Creates backend of this given type with the given
 	 * options, and returns the result in a promise.
 	 */
 	Create(options: object): Promise<FS>;
 
 	/**
-	 * **Core**: Returns 'true' if this backend is available in the current
+	 * Returns 'true' if this backend is available in the current
 	 * environment. For example, a `localStorage`-backed filesystem will return
 	 * 'false' if the browser does not support that API.
 	 *
@@ -74,17 +85,17 @@ export interface InternalBackendConstructor<FS extends FileSystem = FileSystem> 
  */
 export interface BackendConstructor<FS extends FileSystem = FileSystem> {
 	/**
-	 * **Core**: Name to identify this backend.
+	 * Name to identify this backend.
 	 */
 	Name: string;
 
 	/**
-	 * **Core**: Describes all of the options available for this backend.
+	 * Describes all of the options available for this backend.
 	 */
 	Options: BackendOptions;
 
 	/**
-	 * **Core**: Creates backend of this given type with the given
+	 * Creates backend of this given type with the given
 	 * options, and either returns the result in a promise or callback.
 	 */
 	Create(): Promise<FS>;
@@ -94,7 +105,7 @@ export interface BackendConstructor<FS extends FileSystem = FileSystem> {
 	Create(options: object, cb?: BFSCallback<FS>): Promise<FS> | void;
 
 	/**
-	 * **Core**: Returns 'true' if this backend is available in the current
+	 * Returns 'true' if this backend is available in the current
 	 * environment. For example, a `localStorage`-backed filesystem will return
 	 * 'false' if the browser does not support that API.
 	 *
