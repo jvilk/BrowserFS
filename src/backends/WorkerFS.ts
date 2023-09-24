@@ -3,7 +3,7 @@ import { ApiError, ErrorCode } from '../ApiError';
 import { File, FileFlag } from '../file';
 import { Stats } from '../stats';
 import { Cred } from '../cred';
-import type { BackendOptions } from './index';
+import { CreateBackend, type BackendOptions } from './backend';
 
 /**
  * @hidden
@@ -33,9 +33,9 @@ type _RPCFSResponses = {
 /**
  * @see https://stackoverflow.com/a/60920767/17637456
  */
-type RPCRequest = RPCMessage & (_RPCFSRequests[keyof _FSAsyncMethods] | { method: 'init'; args: [] } | { method: 'syncClose'; args: [string, File] });
+type RPCRequest = RPCMessage & (_RPCFSRequests[keyof _FSAsyncMethods] | { method: 'metadata'; args: [] } | { method: 'syncClose'; args: [string, File] });
 
-type RPCResponse = RPCMessage & (_RPCFSResponses[keyof _FSAsyncMethods] | { method: 'init'; value: FileSystemMetadata } | { method: 'syncClose'; value: null });
+type RPCResponse = RPCMessage & (_RPCFSResponses[keyof _FSAsyncMethods] | { method: 'metadata'; value: FileSystemMetadata } | { method: 'syncClose'; value: null });
 
 function isRPCMessage(arg: unknown): arg is RPCMessage {
 	return typeof arg == 'object' && 'isBFS' in arg && !!arg.isBFS;
@@ -47,9 +47,13 @@ interface WorkerRequest {
 	reject: _executor[1];
 }
 
-export interface WorkerFSOptions {
-	// The target worker that you want to connect to, or the current worker if in a worker context.
-	worker: Worker;
+export namespace WorkerFS {
+	export interface Options {
+		/**
+		 * The target worker that you want to connect to, or the current worker if in a worker context.
+		 */
+		worker: Worker;
+	}
 }
 
 type _RPCExtractReturnValue<T extends RPCResponse['method']> = Promise<Extract<RPCResponse, { method: T }>['value']>;
@@ -84,6 +88,8 @@ type _RPCExtractReturnValue<T extends RPCResponse['method']> = Promise<Extract<R
 export class WorkerFS extends BaseFileSystem implements FileSystem {
 	public static readonly Name = 'WorkerFS';
 
+	public static Create = CreateBackend.bind(this);
+
 	public static readonly Options: BackendOptions = {
 		worker: {
 			type: 'object',
@@ -96,10 +102,6 @@ export class WorkerFS extends BaseFileSystem implements FileSystem {
 			},
 		},
 	};
-
-	public static async Create(opts: WorkerFSOptions): Promise<WorkerFS> {
-		return new WorkerFS(opts.worker);
-	}
 
 	public static isAvailable(): boolean {
 		return typeof importScripts !== 'undefined' || typeof Worker !== 'undefined';
@@ -116,7 +118,7 @@ export class WorkerFS extends BaseFileSystem implements FileSystem {
 	 * Constructs a new WorkerFS instance that connects with BrowserFS running on
 	 * the specified worker.
 	 */
-	private constructor(worker: Worker) {
+	public constructor({ worker }: WorkerFS.Options) {
 		super();
 		this._worker = worker;
 		this._worker.onmessage = (event: MessageEvent) => {
@@ -125,7 +127,7 @@ export class WorkerFS extends BaseFileSystem implements FileSystem {
 			}
 			const { id, method, value } = event.data as RPCResponse;
 
-			if (method === 'init') {
+			if (method === 'metadata') {
 				this._metadata = value;
 				this._isInitialized = true;
 				return;

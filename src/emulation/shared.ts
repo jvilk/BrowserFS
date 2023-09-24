@@ -5,8 +5,9 @@ import { ApiError, ErrorCode } from '../ApiError';
 import { Cred } from '../cred';
 import { FileSystem } from '../filesystem';
 import { File } from '../file';
-import { InternalBackendConstructor } from '../backends';
+//import { BackendConstructor } from '../backends';
 import { InMemoryFileSystem } from '../backends/InMemory';
+import { BackendConstructor } from '../backends/backend';
 
 /**
  * converts Date or number to a fractional UNIX timestamp
@@ -118,7 +119,7 @@ export function fd2file(fd: number): File {
 
 // mounting
 export interface MountMapping {
-	[point: string]: FileSystem;
+	[point: string]: InstanceType<BackendConstructor>;
 }
 
 export const mounts: Map<string, FileSystem> = new Map();
@@ -212,7 +213,7 @@ export function initialize(mountMapping: MountMapping): void {
 		umount('/');
 	}
 	for (const [point, fs] of Object.entries(mountMapping)) {
-		const FS = fs.constructor as unknown as InternalBackendConstructor;
+		const FS = fs.constructor as unknown as BackendConstructor;
 		if (!FS.isAvailable()) {
 			throw new ApiError(ErrorCode.EINVAL, `Can not mount "${point}" since the filesystem is unavailable.`);
 		}

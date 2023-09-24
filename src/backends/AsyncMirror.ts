@@ -5,7 +5,8 @@ import { Stats } from '../stats';
 import PreloadFile from '../generic/preload_file';
 import * as path from 'path';
 import { Cred } from '../cred';
-import type { BackendOptions } from './index';
+import { CreateBackend, type BackendOptions } from './backend';
+
 /**
  * @hidden
  */
@@ -34,14 +35,20 @@ class MirrorFile extends PreloadFile<AsyncMirror> implements File {
 	}
 }
 
-/**
- * Configuration options for the AsyncMirror file system.
- */
-export interface AsyncMirrorOptions {
-	// The synchronous file system to mirror the asynchronous file system to.
-	sync: FileSystem;
-	// The asynchronous file system to mirror.
-	async: FileSystem;
+export namespace AsyncMirror {
+	/**
+	 * Configuration options for the AsyncMirror file system.
+	 */
+	export interface Options {
+		/**
+		 * The synchronous file system to mirror the asynchronous file system to.
+		 */
+		sync: FileSystem;
+		/**
+		 * The asynchronous file system to mirror.
+		 */
+		async: FileSystem;
+	}
 }
 
 /**
@@ -88,6 +95,8 @@ export interface AsyncMirrorOptions {
 export class AsyncMirror extends SynchronousFileSystem implements FileSystem {
 	public static readonly Name = 'AsyncMirror';
 
+	public static Create = CreateBackend.bind(this);
+
 	public static readonly Options: BackendOptions = {
 		sync: {
 			type: 'object',
@@ -104,15 +113,6 @@ export class AsyncMirror extends SynchronousFileSystem implements FileSystem {
 		},
 	};
 
-	/**
-	 * Asynchronously constructs and initializes an AsyncMirror file system with the given options.
-	 */
-	public static async Create(opts: AsyncMirrorOptions): Promise<AsyncMirror> {
-		const fs = new AsyncMirror(opts.sync, opts.async);
-		await fs._initialize();
-		return fs;
-	}
-
 	public static isAvailable(): boolean {
 		return true;
 	}
@@ -128,18 +128,17 @@ export class AsyncMirror extends SynchronousFileSystem implements FileSystem {
 	private _initializeCallbacks: ((e?: ApiError) => void)[] = [];
 
 	/**
-	 * **Deprecated; use AsyncMirror.Create() method instead.**
 	 *
 	 * Mirrors the synchronous file system into the asynchronous file system.
 	 *
-	 * **IMPORTANT**: You must call `initialize` on the file system before it can be used.
 	 * @param sync The synchronous file system to mirror the asynchronous file system to.
 	 * @param async The asynchronous file system to mirror.
 	 */
-	constructor(sync: FileSystem, async: FileSystem) {
+	constructor({ sync, async }: AsyncMirror.Options) {
 		super();
 		this._sync = sync;
 		this._async = async;
+		this._ready = this._initialize();
 	}
 
 	public get metadata(): FileSystemMetadata {
@@ -238,7 +237,7 @@ export class AsyncMirror extends SynchronousFileSystem implements FileSystem {
 	/**
 	 * Called once to load up files from async storage into sync storage.
 	 */
-	private async _initialize(): Promise<void> {
+	private async _initialize(): Promise<this> {
 		if (!this._isInitialized) {
 			// First call triggers initialization, the rest wait.
 			const copyDirectory = async (p: string, mode: number): Promise<void> => {
@@ -271,6 +270,7 @@ export class AsyncMirror extends SynchronousFileSystem implements FileSystem {
 				throw e;
 			}
 		}
+		return this;
 	}
 
 	private enqueueOp(op: AsyncOperation) {

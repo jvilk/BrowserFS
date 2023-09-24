@@ -2,7 +2,7 @@
 import { AsyncKeyValueROTransaction, AsyncKeyValueRWTransaction, AsyncKeyValueStore, AsyncKeyValueFileSystem } from '../generic/key_value_filesystem';
 import { ApiError, ErrorCode } from '../ApiError';
 import { Buffer } from 'buffer';
-import type { BackendOptions } from './index';
+import { CreateBackend, type BackendOptions } from './backend';
 
 /**
  * Get the indexedDB constructor for the current browser.
@@ -135,7 +135,7 @@ export class IndexedDBRWTransaction extends IndexedDBROTransaction implements As
 }
 
 export class IndexedDBStore implements AsyncKeyValueStore {
-	public static Create(storeName: string): Promise<IndexedDBStore> {
+	public static Create(storeName: string, indexedDB: IDBFactory): Promise<IndexedDBStore> {
 		return new Promise((resolve, reject) => {
 			const openReq: IDBOpenDBRequest = indexedDB.open(storeName, 1);
 
@@ -195,15 +195,26 @@ export class IndexedDBStore implements AsyncKeyValueStore {
 	}
 }
 
-/**
- * Configuration options for the IndexedDB file system.
- */
-export interface IndexedDBFileSystemOptions {
-	// The name of this file system. You can have multiple IndexedDB file systems operating
-	// at once, but each must have a different name.
-	storeName?: string;
-	// The size of the inode cache. Defaults to 100. A size of 0 or below disables caching.
-	cacheSize?: number;
+export namespace IndexedDBFileSystem {
+	/**
+	 * Configuration options for the IndexedDB file system.
+	 */
+	export interface Options {
+		/**
+		 * The name of this file system. You can have multiple IndexedDB file systems operating at once, but each must have a different name.
+		 */
+		storeName?: string;
+
+		/**
+		 * The size of the inode cache. Defaults to 100. A size of 0 or below disables caching.
+		 */
+		cacheSize?: number;
+
+		/**
+		 * The IDBFactory to use. Defaults to `globalThis.indexedDB`.
+		 */
+		idbFactory?: IDBFactory;
+	}
 }
 
 /**
@@ -211,6 +222,8 @@ export interface IndexedDBFileSystemOptions {
  */
 export class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
 	public static readonly Name = 'IndexedDB';
+
+	public static Create = CreateBackend.bind(this);
 
 	public static readonly Options: BackendOptions = {
 		storeName: {
@@ -223,31 +236,32 @@ export class IndexedDBFileSystem extends AsyncKeyValueFileSystem {
 			optional: true,
 			description: 'The size of the inode cache. Defaults to 100. A size of 0 or below disables caching.',
 		},
+		idbFactory: {
+			type: 'object',
+			optional: true,
+			description: 'The IDBFactory to use. Defaults to globalThis.indexedDB.',
+		},
 	};
 
-	public static async Create(options: IndexedDBFileSystemOptions): Promise<IndexedDBFileSystem> {
-		options ||= {
-			storeName: 'browserfs',
-			cacheSize: 100,
-		};
-		const store = await IndexedDBStore.Create(options.storeName || 'browserfs'),
-			idbfs = new IndexedDBFileSystem(options.cacheSize || 100);
-		await idbfs.init(store);
-		return idbfs;
-	}
-
-	public static isAvailable(): boolean {
-		// In Safari's private browsing mode, indexedDB.open returns NULL.
-		// In Firefox, it throws an exception.
-		// In Chrome, it "just works", and clears the database when you leave the page.
-		// Untested: Opera, IE.
+	public static isAvailable(idbFactory: IDBFactory = globalThis.indexedDB): boolean {
 		try {
-			return typeof indexedDB !== 'undefined' && null !== indexedDB.open('__browserfs_test__');
+			if (!(idbFactory instanceof IDBFactory)) {
+				return false;
+			}
+			const req = indexedDB.open('__browserfs_test__');
+			if (!req) {
+				return false;
+			}
 		} catch (e) {
 			return false;
 		}
 	}
-	private constructor(cacheSize: number) {
+
+	constructor({ cacheSize = 100, storeName = 'browserfs', idbFactory = globalThis.indexedDB }: IndexedDBFileSystem.Options) {
 		super(cacheSize);
+		this._ready = IndexedDBStore.Create(storeName, idbFactory).then(store => {
+			this.init(store);
+			return this;
+		});
 	}
 }

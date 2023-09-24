@@ -6,7 +6,7 @@ import { ErrorCode, ApiError } from './ApiError';
 import * as path from 'path';
 import { Cred } from './cred';
 import { Buffer } from 'buffer';
-import type { BackendConstructor } from './backends';
+import type { BackendConstructor, BackendOptions, BaseBackendConstructor } from './backends/backend';
 
 /**
  * Synchronous recursive makedir.
@@ -142,7 +142,7 @@ function levenshtein(a: string, b: string): number {
  * Checks that the given options object is valid for the file system options.
  * @hidden
  */
-export async function checkOptions(backend: BackendConstructor, opts: object): Promise<void> {
+export async function checkOptions(backend: BaseBackendConstructor, opts: object): Promise<void> {
 	const optsInfo = backend.Options;
 	const fsName = backend.Name;
 

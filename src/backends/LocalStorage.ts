@@ -1,7 +1,7 @@
 import { SyncKeyValueStore, SimpleSyncStore, SyncKeyValueFileSystem, SimpleSyncRWTransaction, SyncKeyValueRWTransaction } from '../generic/key_value_filesystem';
 import { ApiError, ErrorCode } from '../ApiError';
 import { Buffer } from 'buffer';
-import type { BackendOptions } from './index';
+import { CreateBackend, type BackendOptions } from './backend';
 
 /**
  * Some versions of FF and all versions of IE do not support the full range of
@@ -84,11 +84,9 @@ export class LocalStorageStore implements SyncKeyValueStore, SimpleSyncStore {
 export class LocalStorageFileSystem extends SyncKeyValueFileSystem {
 	public static readonly Name = 'LocalStorage';
 
-	public static readonly Options: BackendOptions = {};
+	public static Create = CreateBackend.bind(this);
 
-	public static async Create(opts: any): Promise<LocalStorageFileSystem> {
-		return new LocalStorageFileSystem();
-	}
+	public static readonly Options: BackendOptions = {};
 
 	public static isAvailable(): boolean {
 		return typeof globalThis.localStorage !== 'undefined';
@@ -96,7 +94,7 @@ export class LocalStorageFileSystem extends SyncKeyValueFileSystem {
 	/**
 	 * Creates a new LocalStorage file system using the contents of `localStorage`.
 	 */
-	private constructor() {
+	constructor() {
 		super({ store: new LocalStorageStore() });
 	}
 }

@@ -7,7 +7,7 @@ import { BaseFileSystem, FileSystemMetadata, type FileSystem } from '../filesyst
 import { Stats, FileType } from '../stats';
 import PreloadFile from '../generic/preload_file';
 import { Buffer } from 'buffer';
-import type { BackendOptions } from './index';
+import { CreateBackend, type BackendOptions } from './backend';
 
 interface FileSystemAccessFileSystemOptions {
 	handle: FileSystemDirectoryHandle;
@@ -41,11 +41,9 @@ export class FileSystemAccessFile extends PreloadFile<FileSystemAccessFileSystem
 export class FileSystemAccessFileSystem extends BaseFileSystem implements FileSystem {
 	public static readonly Name = 'FileSystemAccess';
 
-	public static readonly Options: BackendOptions = {};
+	public static Create = CreateBackend.bind(this);
 
-	public static async Create({ handle }: FileSystemAccessFileSystemOptions): Promise<FileSystemAccessFileSystem> {
-		return new FileSystemAccessFileSystem(handle);
-	}
+	public static readonly Options: BackendOptions = {};
 
 	public static isAvailable(): boolean {
 		return typeof FileSystemHandle === 'function';
@@ -53,7 +51,7 @@ export class FileSystemAccessFileSystem extends BaseFileSystem implements FileSy
 
 	private _handles: { [path: string]: FileSystemHandle };
 
-	private constructor(handle: FileSystemDirectoryHandle) {
+	public constructor({ handle }: FileSystemAccessFileSystemOptions) {
 		super();
 		this._handles = { '/': handle };
 	}

@@ -18,9 +18,15 @@ export default class LockedFS<T extends FileSystem> implements FileSystem {
 	private _fs: T;
 	private _mu: Mutex;
 
+	protected _ready: Promise<this> = Promise.resolve(this);
+
 	constructor(fs: T) {
 		this._fs = fs;
 		this._mu = new Mutex();
+	}
+
+	whenReady(): Promise<this> {
+		return this._ready;
 	}
 
 	public get metadata(): FileSystemMetadata {

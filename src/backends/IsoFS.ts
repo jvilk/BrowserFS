@@ -6,7 +6,7 @@ import { NoSyncFile } from '../generic/preload_file';
 import { copyingSlice, bufferValidator as validator } from '../utils';
 import * as path from 'path';
 import type { Buffer } from 'buffer';
-import type { BackendOptions } from './index';
+import { CreateBackend, type BackendOptions } from './backend';
 
 /**
  * @hidden
@@ -1136,14 +1136,20 @@ class JolietDirectory extends Directory<JolietDirectoryRecord> {
 	}
 }
 
-/**
- * Options for IsoFS file system instances.
- */
-export interface IsoFSOptions {
-	// The ISO file in a buffer.
-	data: Buffer;
-	// The name of the ISO (optional; used for debug messages / identification via getName()).
-	name?: string;
+export namespace IsoFS {
+	/**
+	 * Options for IsoFS file system instances.
+	 */
+	export interface Options {
+		/**
+		 * The ISO file in a buffer.
+		 */
+		data: Buffer;
+		/**
+		 * The name of the ISO (optional; used for debug messages / identification via metadata.name).
+		 */
+		name?: string;
+	}
 }
 
 /**
@@ -1156,6 +1162,8 @@ export interface IsoFSOptions {
 export class IsoFS extends SynchronousFileSystem implements FileSystem {
 	public static readonly Name = 'IsoFS';
 
+	public static Create = CreateBackend.bind(this);
+
 	public static readonly Options: BackendOptions = {
 		data: {
 			type: 'object',
@@ -1163,10 +1171,6 @@ export class IsoFS extends SynchronousFileSystem implements FileSystem {
 			validator,
 		},
 	};
-
-	public static async Create(opts: IsoFSOptions): Promise<IsoFS> {
-		return new IsoFS(opts.data, opts.name);
-	}
 
 	public static isAvailable(): boolean {
 		return true;
@@ -1184,7 +1188,7 @@ export class IsoFS extends SynchronousFileSystem implements FileSystem {
 	 * @param data The ISO file in a buffer.
 	 * @param name The name of the ISO (optional; used for debug messages / identification via getName()).
 	 */
-	private constructor(data: Buffer, name: string = '') {
+	constructor({ data, name = '' }: IsoFS.Options) {
 		super();
 		this._data = data;
 		// Skip first 16 sectors.

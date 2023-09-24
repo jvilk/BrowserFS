@@ -8,7 +8,7 @@ import type * as DropboxTypes from 'dropbox';
 import { dirname } from 'path';
 import { Cred } from '../cred';
 import { Buffer } from 'buffer';
-import type { BackendOptions } from './index';
+import { CreateBackend, type BackendOptions } from './backend';
 
 /**
  * Dropbox paths do not begin with a /, they just begin with a folder at the root node.
@@ -171,20 +171,14 @@ export interface DropboxFileSystemOptions {
 export class DropboxFileSystem extends BaseFileSystem implements FileSystem {
 	public static readonly Name = 'DropboxV2';
 
+	public static Create = CreateBackend.bind(this);
+
 	public static readonly Options: BackendOptions = {
 		client: {
 			type: 'object',
 			description: 'An *authenticated* Dropbox client. Must be from the 2.5.x JS SDK.',
 		},
 	};
-
-	/**
-	 * Asynchronously creates a new DropboxFileSystem instance with the given options.
-	 * Must be given an *authenticated* Dropbox client from 2.x JS SDK.
-	 */
-	public static async Create(opts: DropboxFileSystemOptions): Promise<DropboxFileSystem> {
-		return new DropboxFileSystem(opts.client);
-	}
 
 	public static isAvailable(): boolean {
 		// Checks if the Dropbox library is loaded.
@@ -193,7 +187,7 @@ export class DropboxFileSystem extends BaseFileSystem implements FileSystem {
 
 	private _client: DropboxTypes.Dropbox;
 
-	private constructor(client: DropboxTypes.Dropbox) {
+	public constructor(client: DropboxTypes.Dropbox) {
 		super();
 		this._client = client;
 	}

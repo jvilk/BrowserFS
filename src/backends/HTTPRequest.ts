@@ -7,23 +7,29 @@ import { NoSyncFile } from '../generic/preload_file';
 import { fetchIsAvailable, fetchFile, fetchFileSize } from '../generic/fetch';
 import { FileIndex, isFileInode, isDirInode } from '../generic/file_index';
 import { Cred } from '../cred';
-import type { BackendOptions } from './index';
+import { CreateBackend, type BackendOptions } from './backend';
 import { R_OK } from '../emulation/constants';
 
-/**
- * Configuration options for a HTTPRequest file system.
- */
-export interface HTTPRequestOptions {
-	// URL to a file index as a JSON file or the file index object itself, generated with the make_http_index script.
-	// Defaults to `index.json`.
-	index?: string | object;
-	// Used as the URL prefix for fetched files.
-	// Default: Fetch files relative to the index.
-	baseUrl?: string;
+export interface HTTPRequestIndex {
+	[key: string]: string;
 }
 
-function syncNotAvailableError(): never {
-	throw new ApiError(ErrorCode.ENOTSUP, `Synchronous HTTP download methods are not available in this environment.`);
+export namespace HTTPRequest {
+	/**
+	 * Configuration options for a HTTPRequest file system.
+	 */
+	export interface Options {
+		/**
+		 * URL to a file index as a JSON file or the file index object itself, generated with the make_http_index script.
+		 * Defaults to `index.json`.
+		 */
+		index?: string | HTTPRequestIndex;
+
+		/** Used as the URL prefix for fetched files.
+		 * Default: Fetch files relative to the index.
+		 */
+		baseUrl?: string;
+	}
 }
 
 /**
@@ -57,6 +63,8 @@ function syncNotAvailableError(): never {
 export class HTTPRequest extends BaseFileSystem implements FileSystem {
 	public static readonly Name = 'HTTPRequest';
 
+	public static Create = CreateBackend.bind(this);
+
 	public static readonly Options: BackendOptions = {
 		index: {
 			type: ['string', 'object'],
@@ -70,19 +78,6 @@ export class HTTPRequest extends BaseFileSystem implements FileSystem {
 		},
 	};
 
-	public static async Create(opts: HTTPRequestOptions): Promise<HTTPRequest> {
-		if (!opts.index) {
-			opts.index = 'index.json';
-		}
-
-		if (typeof opts.index != 'string') {
-			return new HTTPRequest(opts.index, opts.baseUrl);
-		}
-
-		const data = await fetchFile(opts.index, 'json');
-		return new HTTPRequest(data, opts.baseUrl);
-	}
-
 	public static isAvailable(): boolean {
 		return fetchIsAvailable;
 	}
@@ -92,23 +87,26 @@ export class HTTPRequest extends BaseFileSystem implements FileSystem {
 	private _requestFileInternal: typeof fetchFile;
 	private _requestFileSizeInternal: typeof fetchFileSize;
 
-	private constructor(index: object, prefixUrl: string = '') {
+	constructor({ index, baseUrl = '' }: HTTPRequest.Options) {
 		super();
-		// prefix_url must end in a directory separator.
-		if (prefixUrl.length > 0 && prefixUrl.charAt(prefixUrl.length - 1) !== '/') {
-			prefixUrl = prefixUrl + '/';
+		if (!index) {
+			index = 'index.json';
 		}
-		this.prefixUrl = prefixUrl;
-		this._index = FileIndex.fromListing(index);
+
+		const indexRequest = typeof index == 'string' ? fetchFile(index, 'json') : Promise.resolve(index);
+		this._ready = indexRequest.then(data => {
+			this._index = FileIndex.fromListing(data);
+			return this;
+		});
+
+		// prefix_url must end in a directory separator.
+		if (baseUrl.length > 0 && baseUrl.charAt(baseUrl.length - 1) !== '/') {
+			baseUrl = baseUrl + '/';
+		}
+		this.prefixUrl = baseUrl;
 
 		this._requestFileInternal = fetchFile;
 		this._requestFileSizeInternal = fetchFileSize;
-	}
-
-	public empty(): void {
-		this._index.fileIterator(function (file: Stats) {
-			file.fileData = null;
-		});
 	}
 
 	public get metadata(): FileSystemMetadata {
@@ -117,6 +115,12 @@ export class HTTPRequest extends BaseFileSystem implements FileSystem {
 			name: HTTPRequest.Name,
 			readonly: true,
 		};
+	}
+
+	public empty(): void {
+		this._index.fileIterator(function (file: Stats) {
+			file.fileData = null;
+		});
 	}
 
 	/**

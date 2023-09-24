@@ -7,7 +7,7 @@ import LockedFS from '../generic/locked_fs';
 import * as path from 'path';
 import { Cred } from '../cred';
 import type { Buffer } from 'buffer';
-import type { BackendOptions } from './index';
+import { CreateBackend, type BackendOptions } from './backend';
 /**
  * @hidden
  */
@@ -61,6 +61,22 @@ class OverlayFile extends PreloadFile<UnlockedOverlayFS> implements File {
 	}
 }
 
+export namespace OverlayFS {
+	/**
+	 * Configuration options for OverlayFS instances.
+	 */
+	export interface Options {
+		/**
+		 * The file system to write modified files to.
+		 */
+		writable: FileSystem;
+		/**
+		 * The file system that initially populates this file system.
+		 */
+		readable: FileSystem;
+	}
+}
+
 /**
  * *INTERNAL, DO NOT USE DIRECTLY!*
  *
@@ -85,7 +101,7 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 	// If there was an error updating the delete log...
 	private _deleteLogError: ApiError | null = null;
 
-	constructor(writable: FileSystem, readable: FileSystem) {
+	constructor({ writable, readable }: OverlayFS.Options) {
 		super();
 		this._writable = writable;
 		this._readable = readable;
@@ -703,22 +719,14 @@ export class UnlockedOverlayFS extends BaseFileSystem implements FileSystem {
 }
 
 /**
- * Configuration options for OverlayFS instances.
- */
-export interface OverlayFSOptions {
-	// The file system to write modified files to.
-	writable: FileSystem;
-	// The file system that initially populates this file system.
-	readable: FileSystem;
-}
-
-/**
  * OverlayFS makes a read-only filesystem writable by storing writes on a second,
  * writable file system. Deletes are persisted via metadata stored on the writable
  * file system.
  */
 export class OverlayFS extends LockedFS<UnlockedOverlayFS> {
 	public static readonly Name = 'OverlayFS';
+
+	public static Create = CreateBackend.bind(this);
 
 	public static readonly Options: BackendOptions = {
 		writable: {
@@ -731,25 +739,19 @@ export class OverlayFS extends LockedFS<UnlockedOverlayFS> {
 		},
 	};
 
-	public static async Create(opts: OverlayFSOptions): Promise<OverlayFS> {
-		const fs = new OverlayFS(opts.writable, opts.readable);
-		await fs._initialize();
-		return fs;
-	}
-
 	public static isAvailable(): boolean {
 		return UnlockedOverlayFS.isAvailable();
 	}
 
 	/**
-	 * @param writable The file system to write modified files to.
-	 * @param readable The file system that initially populates this file system.
+	 * @param options The options to initialize the OverlayFS with
 	 */
-	constructor(writable: FileSystem, readable: FileSystem) {
-		super(new UnlockedOverlayFS(writable, readable));
+	constructor(options: OverlayFS.Options) {
+		super(new UnlockedOverlayFS(options));
+		this._ready = this._initialize();
 	}
 
-	public getOverlayedFileSystems(): { readable: FileSystem; writable: FileSystem } {
+	public getOverlayedFileSystems(): OverlayFS.Options {
 		return super.fs.getOverlayedFileSystems();
 	}
 
@@ -765,7 +767,8 @@ export class OverlayFS extends LockedFS<UnlockedOverlayFS> {
 		return super.fs;
 	}
 
-	private async _initialize(): Promise<void> {
+	private async _initialize(): Promise<this> {
 		await super.fs._initialize();
+		return this;
 	}
 }

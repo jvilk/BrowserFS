@@ -5,7 +5,7 @@ import { ApiError, ErrorCode, ErrorStrings } from '../ApiError';
 import { EmscriptenEntry } from '../generic/emscripten_fs';
 import { Cred } from '../cred';
 import { Buffer } from 'buffer';
-import type { BackendOptions } from './index';
+import { CreateBackend, type BackendOptions } from './backend';
 
 /**
  * @hidden
@@ -127,12 +127,14 @@ export class EmscriptenFile extends BaseFile implements File {
 	}
 }
 
-/**
- * Configuration options for Emscripten file systems.
- */
-export interface EmscriptenFileSystemOptions {
-	// The Emscripten file system to use (`FS`)
-	FS: any;
+export namespace EmscriptenFileSystem {
+	/**
+	 * Configuration options for Emscripten file systems.
+	 */
+	export interface Options {
+		// The Emscripten file system to use (`FS`)
+		FS: any;
+	}
 }
 
 /**
@@ -141,6 +143,8 @@ export interface EmscriptenFileSystemOptions {
 export class EmscriptenFileSystem extends SynchronousFileSystem {
 	public static readonly Name = 'EmscriptenFileSystem';
 
+	public static Create = CreateBackend.bind(this);
+
 	public static readonly Options: BackendOptions = {
 		FS: {
 			type: 'object',
@@ -148,19 +152,15 @@ export class EmscriptenFileSystem extends SynchronousFileSystem {
 		},
 	};
 
-	public static async Create(opts: EmscriptenFileSystemOptions): Promise<EmscriptenFileSystem> {
-		return new EmscriptenFileSystem(opts.FS);
-	}
-
 	public static isAvailable(): boolean {
 		return true;
 	}
 
 	private _FS: any;
 
-	private constructor(_FS: any) {
+	public constructor({ FS }: EmscriptenFileSystem.Options) {
 		super();
-		this._FS = _FS;
+		this._FS = FS;
 	}
 
 	public get metadata(): FileSystemMetadata {

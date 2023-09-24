@@ -9,7 +9,7 @@ import { backends } from './backends';
 import { ErrorCode, ApiError } from './ApiError';
 import { Cred } from './cred';
 import * as process from 'process';
-import type { BackendConstructor } from './backends';
+import type { BackendConstructor } from './backends/backend';
 import { type MountMapping, setCred } from './emulation/shared';
 
 if (process && (<any>process)['initializeTTYs']) {
@@ -49,6 +49,10 @@ async function _configure(config: Configuration): Promise<void> {
 		config = { '/': config } as ConfigMapping;
 	}
 	for (let [point, value] of Object.entries(config)) {
+		if (typeof value == 'number') {
+			//should never happen
+			continue;
+		}
 		point = point.toString(); // so linting stops complaining that point should be declared with const, which can't be done since value is assigned to
 
 		if (value instanceof FileSystem) {

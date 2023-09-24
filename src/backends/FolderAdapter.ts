@@ -2,16 +2,18 @@ import { BaseFileSystem, type FileSystem } from '../filesystem';
 import * as path from 'path';
 import { ApiError } from '../ApiError';
 import { Cred } from '../cred';
-import type { BackendOptions } from './index';
+import { CreateBackend, type BackendOptions } from './backend';
 
-/**
- * Configuration options for a FolderAdapter file system.
- */
-export interface FolderAdapterOptions {
-	// The folder to use as the root directory.
-	folder: string;
-	// The file system to wrap.
-	wrapped: FileSystem;
+export namespace FolderAdapter {
+	/**
+	 * Configuration options for a FolderAdapter file system.
+	 */
+	export interface Options {
+		// The folder to use as the root directory.
+		folder: string;
+		// The file system to wrap.
+		wrapped: FileSystem;
+	}
 }
 
 /**
@@ -35,6 +37,8 @@ export interface FolderAdapterOptions {
 export class FolderAdapter extends BaseFileSystem implements FileSystem {
 	public static readonly Name = 'FolderAdapter';
 
+	public static Create = CreateBackend.bind(this);
+
 	public static readonly Options: BackendOptions = {
 		folder: {
 			type: 'string',
@@ -46,12 +50,6 @@ export class FolderAdapter extends BaseFileSystem implements FileSystem {
 		},
 	};
 
-	public static async Create(opts: FolderAdapterOptions): Promise<FolderAdapter> {
-		const fa = new FolderAdapter(opts.folder, opts.wrapped);
-		await fa._initialize();
-		return fa;
-	}
-
 	public static isAvailable(): boolean {
 		return true;
 	}
@@ -59,10 +57,11 @@ export class FolderAdapter extends BaseFileSystem implements FileSystem {
 	public _wrapped: FileSystem;
 	public _folder: string;
 
-	private constructor(folder: string, wrapped: FileSystem) {
+	public constructor({ folder, wrapped }: FolderAdapter.Options) {
 		super();
 		this._folder = folder;
 		this._wrapped = wrapped;
+		this._ready = this._initialize();
 	}
 
 	public get metadata() {
@@ -73,13 +72,13 @@ export class FolderAdapter extends BaseFileSystem implements FileSystem {
 	 * Initialize the file system. Ensures that the wrapped file system
 	 * has the given folder.
 	 */
-	private async _initialize(): Promise<void> {
+	private async _initialize(): Promise<this> {
 		const exists = await this._wrapped.exists(this._folder, Cred.Root);
 		if (!exists && this._wrapped.metadata.readonly) {
 			throw ApiError.ENOENT(this._folder);
-		} else {
-			await this._wrapped.mkdir(this._folder, 0o777, Cred.Root);
 		}
+		await this._wrapped.mkdir(this._folder, 0o777, Cred.Root);
+		return this;
 	}
 }
 

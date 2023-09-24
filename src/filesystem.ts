@@ -103,7 +103,15 @@ export interface FileSystemMetadata {
  *   reset the JavaScript stack depth before calling the user-supplied callback.
  */
 export abstract class FileSystem {
+	static readonly Name: string;
+
 	abstract readonly metadata: FileSystemMetadata;
+
+	constructor(options?: object) {
+		// unused
+	}
+
+	abstract whenReady(): Promise<this>;
 
 	// File or directory operations
 	/**
@@ -333,9 +341,17 @@ export abstract class FileSystem {
  * provides default implementations for a handful of methods.
  */
 export class BaseFileSystem extends FileSystem {
+	static readonly Name: string = this.name;
+
+	protected _ready: Promise<this> = Promise.resolve(this);
+
+	public constructor(options?: { [key: string]: unknown }) {
+		super();
+	}
+
 	public get metadata(): FileSystemMetadata {
 		return {
-			name: 'BaseFileSystem',
+			name: this.constructor.name,
 			readonly: false,
 			synchronous: false,
 			supportsProperties: false,
@@ -343,6 +359,10 @@ export class BaseFileSystem extends FileSystem {
 			totalSpace: 0,
 			freeSpace: 0,
 		};
+	}
+
+	public whenReady(): Promise<this> {
+		return this._ready;
 	}
 
 	/**

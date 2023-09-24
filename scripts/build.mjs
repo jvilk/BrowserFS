@@ -6,6 +6,7 @@ const common = {
 	target: ['es6'],
 	globalName: 'BrowserFS',
 	sourcemap: true,
+	keepNames: true,
 	bundle: true,
 	alias: { process: 'bfs-process', path: 'path' },
 	plugins: [polyfillNode()],

@@ -1,6 +1,5 @@
 import { SyncKeyValueStore, SimpleSyncStore, SimpleSyncRWTransaction, SyncKeyValueRWTransaction, SyncKeyValueFileSystem } from '../generic/key_value_filesystem';
-import type { Buffer } from 'buffer';
-import type { BackendOptions } from './index';
+import { CreateBackend, type BackendOptions } from './backend';
 
 /**
  * A simple in-memory key-value store backed by a JavaScript object.
@@ -43,13 +42,11 @@ export class InMemoryStore implements SyncKeyValueStore, SimpleSyncStore {
 export class InMemoryFileSystem extends SyncKeyValueFileSystem {
 	public static readonly Name = 'InMemory';
 
+	public static Create = CreateBackend.bind(this);
+
 	public static readonly Options: BackendOptions = {};
 
-	public static async Create(): Promise<InMemoryFileSystem> {
-		return new InMemoryFileSystem();
-	}
-
-	private constructor() {
+	public constructor() {
 		super({ store: new InMemoryStore() });
 	}
 }

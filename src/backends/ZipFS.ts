@@ -7,7 +7,7 @@ import { copyingSlice, bufferValidator } from '../utils';
 import { inflateRawSync } from 'zlib';
 import { FileIndex, DirInode, FileInode, isDirInode, isFileInode } from '../generic/file_index';
 import type { Buffer } from 'buffer';
-import type { BackendOptions } from './index';
+import { CreateBackend, type BackendOptions } from './backend';
 
 /**
  * 8-bit ASCII with the extended character set. Unlike regular ASCII, we do not mask the high bits.
@@ -690,14 +690,20 @@ export class ZipTOC {
 	constructor(public index: FileIndex<CentralDirectory>, public directoryEntries: CentralDirectory[], public eocd: EndOfCentralDirectory, public data: Buffer) {}
 }
 
-/**
- * Configuration options for a ZipFS file system.
- */
-export interface ZipFSOptions {
-	// The zip file as a binary buffer.
-	zipData: Buffer;
-	// The name of the zip file (optional).
-	name?: string;
+export namespace ZipFS {
+	/**
+	 * Configuration options for a ZipFS file system.
+	 */
+	export interface Options {
+		/**
+		 * The zip file as a binary buffer.
+		 */
+		zipData: Buffer;
+		/**
+		 * The name of the zip file (optional).
+		 */
+		name?: string;
+	}
 }
 
 /**
@@ -728,9 +734,6 @@ export interface ZipFSOptions {
  * feature, it is best implemented as a generic file system wrapper that can
  * cache data from arbitrary file systems.
  *
- * For inflation, we use `pako`'s implementation:
- * https://github.com/nodeca/pako
- *
  * Current limitations:
  * * No encryption.
  * * No ZIP64 support.
@@ -744,6 +747,8 @@ export interface ZipFSOptions {
  */
 export class ZipFS extends SynchronousFileSystem implements FileSystem {
 	public static readonly Name = 'ZipFS';
+
+	public static Create = CreateBackend.bind(this);
 
 	public static readonly Options: BackendOptions = {
 		zipData: {
@@ -759,11 +764,6 @@ export class ZipFS extends SynchronousFileSystem implements FileSystem {
 	};
 
 	public static readonly CompressionMethod = CompressionMethod;
-
-	public static async Create(opts: ZipFSOptions): Promise<ZipFS> {
-		const zipTOC = await ZipFS._computeIndex(opts.zipData);
-		return new ZipFS(zipTOC, opts.name);
-	}
 
 	public static isAvailable(): boolean {
 		return true;
@@ -858,13 +858,18 @@ export class ZipFS extends SynchronousFileSystem implements FileSystem {
 	private _directoryEntries: CentralDirectory[] = [];
 	private _eocd: EndOfCentralDirectory | null = null;
 	private data: Buffer;
+	public readonly name: string;
 
-	private constructor(input: ZipTOC, private name: string = '') {
+	public constructor({ zipData, name = '' }: ZipFS.Options) {
 		super();
-		this._index = input.index;
-		this._directoryEntries = input.directoryEntries;
-		this._eocd = input.eocd;
-		this.data = input.data;
+		this.name = name;
+		this._ready = ZipFS._computeIndex(zipData).then(zipTOC => {
+			this._index = zipTOC.index;
+			this._directoryEntries = zipTOC.directoryEntries;
+			this._eocd = zipTOC.eocd;
+			this.data = zipTOC.data;
+			return this;
+		});
 	}
 
 	public get metadata(): FileSystemMetadata {
