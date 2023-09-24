@@ -5,7 +5,7 @@ import { FileSystemAccessFileSystem as FileSystemAccess } from './FileSystemAcce
 import { FolderAdapter } from './FolderAdapter';
 import { InMemoryFileSystem as InMemory } from './InMemory';
 import { IndexedDBFileSystem as IndexedDB } from './IndexedDB';
-import { LocalStorageFileSystem as LocalStorage } from './LocalStorage';
+import { StorageFileSystem as Storage } from './Storage';
 import { OverlayFS } from './OverlayFS';
 import { WorkerFS } from './WorkerFS';
 import { HTTPRequest } from './HTTPRequest';
@@ -22,7 +22,7 @@ export const backends: { [backend: string]: BackendConstructor } = {
 	InMemory,
 	IndexedDB,
 	IsoFS,
-	LocalStorage,
+	Storage,
 	OverlayFS,
 	WorkerFS,
 	HTTPRequest,
@@ -39,7 +39,7 @@ export {
 	InMemory,
 	IndexedDB,
 	IsoFS,
-	LocalStorage,
+	Storage,
 	OverlayFS,
 	WorkerFS,
 	HTTPRequest,

@@ -42,7 +42,7 @@ const tests /*: { [B in keyof typeof Backends]: Parameters<typeof Backends[B]['C
 	InMemory: {},
 	//IndexedDB: {},
 	//IsoFS: {},
-	//LocalStorage: {},
+	//Storage: {},
 	OverlayFS: { readable: { fs: 'InMemory' }, writable: { fs: 'InMemory' } },
 	//WorkerFS: {},
 	//HTTPRequest: {},
