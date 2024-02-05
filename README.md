@@ -5,7 +5,7 @@ BrowserFS is an in-browser file system that emulates the [Node JS file system AP
 
 I am currently working on getting NPM permissions from John Vilk (jvilk), the creator of BrowserFS. He is very busy with life and does not have the time to work on BrowserFS. That includes adminministration actions like giving me the aforementioned permissions. Until I get permissions to publish BrowserFS, no new releases of the `browserfs` package can be published on NPM. You will need to build *from source* for now. 
 
-In addition, I am working on obtaining the browserfs organization names on GitHub and NPM. Once that is done, the repository will be moved to [Browser-FS/BrowserFS](https://github.com/Browser-FS/BrowserFS) and some package reorgnization will be done. The new structure will look like this:
+In addition, I am working on obtaining the browserfs organization names on GitHub and NPM. Once that is done, the repository will be moved to [Browser-FS](https://github.com/Browser-FS) and some package reorgnization will be done. The new structure will look like this:
 
 | NPM package | Description |
 | ----------- | -------- |
