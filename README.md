@@ -1,25 +1,9 @@
+# DEPRECATED
+
+Please see https://github.com/browser-fs/NOTICE
+
 # BrowserFS
 BrowserFS is an in-browser file system that emulates the [Node JS file system API](http://nodejs.org/api/fs.html) and supports storing and retrieving files from various backends. BrowserFS also integrates nicely into the Emscripten file system.
-
-### Releases and compatibility going forward
-
-I am currently working on getting NPM permissions from John Vilk (jvilk), the creator of BrowserFS. He is very busy with life and does not have the time to work on BrowserFS. That includes adminministration actions like giving me the aforementioned permissions. Until I get permissions to publish BrowserFS, no new releases of the `browserfs` package can be published on NPM. You will need to build *from source* for now. 
-
-In addition, I am working on obtaining the browserfs organization names on GitHub and NPM. Once that is done, the repository will be moved to [Browser-FS](https://github.com/Browser-FS) and some package reorgnization will be done. The new structure will look like this:
-
-| NPM package | Description |
-| ----------- | -------- |
-| @browserfs/core | Includes the core code for BrowserFS and these backends: InMemory, MountableFileSystem, OverlayFS, AsyncMirror, FolderAdapter |
-| @browserfs/fetch | `Fetch`/`HTTPRequest`/`XMLHTTPRequest` backend |
-| @browserfs/dom | Backends which require DOM APIs (i.e. `LocalStorage` and `IndexedDB`) |
-| @browserfs/emscripten | `Emscripten` backend |
-| @browserfs/zip | `ZipFS` backend (will be updated to include explode, unreduce, and unshrink) |
-| @browserfs/iso | `IsoFS` backend |
-| @browserfs/dropbox | `Dropbox` backend |
-
-This will be done so users of browserfs don't bundle 5x more code than they actually need and so the library's bundles are smaller.
-
-\- Vortex (current BrowserFS maintainer)
 
 ### Backends
 
