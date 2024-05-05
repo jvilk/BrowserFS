@@ -1,6 +1,6 @@
 # DEPRECATED
 
-Please see https://github.com/browser-fs/NOTICE
+Please see the [notice](./notice.md)
 
 # BrowserFS
 BrowserFS is an in-browser file system that emulates the [Node JS file system API](http://nodejs.org/api/fs.html) and supports storing and retrieving files from various backends. BrowserFS also integrates nicely into the Emscripten file system.
