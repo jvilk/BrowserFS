@@ -1,7 +1,8 @@
 # DEPRECATED
+***Active fork: [ZenFS](https://github.com/zen-fs)***
 
 _22 March 2024_  
-_Active and updated fork: [ZenFS](https://github.com/zen-fs)_
+
 
 Hey there, this is the current maintainer of BrowserFS.
 
