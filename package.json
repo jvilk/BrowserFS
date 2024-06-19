@@ -13,11 +13,7 @@
 	"homepage": "https://github.com/jvilk/BrowserFS",
 	"author": "John Vilk <jvilk@cs.umass.edu> (http://people.cs.umass.edu/~jvilk)",
 	"contributors": [
-		{
-			"name": "dr-vortex",
-			"email": "jp@drvortex.dev",
-			"url": "https://drvortex.dev"
-		}
+		"James P. <jp@drvortex.dev> (https://drvortex.dev)"
 	],
 	"license": "MIT",
 	"repository": {
