@@ -1,8 +1,6 @@
-# DEPRECATED
-***Active fork: [ZenFS](https://github.com/zen-fs)***
+# DEPRECATED (*Active fork: [ZenFS](https://github.com/zen-fs)*)
 
-_22 March 2024_  
-
+_22 March 2024_
 
 Hey there, this is the current maintainer of BrowserFS.
 
@@ -23,8 +21,7 @@ The NPM organization `browserfs` has had all of its packages deprecated, with a 
 I hope that ZenFS can continue the legacy of BrowserFS, and can reach the same popularity and reliability.
 
 Until next time,  
-**James P.**  
-a.k.a. Dr. Vortex  
+**James Prevett**  
 BrowserFS maintainer  
 [ZenFS](https://github.com/zen-fs) creator
 
