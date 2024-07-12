@@ -1,4 +1,4 @@
-# DEPRECATED (*Active fork: [ZenFS](https://github.com/zen-fs)*)
+# DEPRECATED <sub>(*Active fork: [ZenFS](https://github.com/zen-fs)*)</sub>
 
 _22 March 2024_
 
